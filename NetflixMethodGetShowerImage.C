@@ -36,6 +36,7 @@
 #include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
 using namespace Eigen;
 
+int n_control_samples = 2;
 int N_bins_for_deconv = 12; // 12 should be the lowest bin number
 const int N_energy_bins = 1;
 double energy_bins[N_energy_bins+1] = {pow(10,2.3),pow(10,4.0)};
@@ -780,7 +781,6 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
 
     TH1::SetDefaultSumw2();
 
-    int n_control_samples = 2;
     sprintf(target, "%s", target_data.c_str());
     MSCW_cut_blind = MSCW_cut_input;
     MSCL_cut_blind = MSCL_cut_input;
