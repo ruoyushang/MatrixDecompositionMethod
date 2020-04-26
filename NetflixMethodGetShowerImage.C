@@ -599,11 +599,11 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
     vector<pair<double,double>> ON_pointing_radec_new;
     for (int n=0;n<1;n++)
     {
-        for (int on_run=0;on_run<ON_runlist.size();on_run++)
+        for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
         {
-
-            for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
+            for (int on_run=0;on_run<ON_runlist.size();on_run++)
             {
+
                 pair<string,int> best_match;
                 pair<double,double> best_pointing;
                 double best_chi2 = 10000.;
@@ -630,7 +630,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     //if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)>0.2*0.2)
                     if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>4.0*4.0)
                     {
-                        chi2 += 10000.;
+                        chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
                     }
                     if ((diff_ra*diff_ra+diff_dec*diff_dec)<10.*10.)
                     {
@@ -813,7 +813,6 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
         Dark_runlist.push_back(the_runs);
     }
     vector<pair<string,int>> Dark_runlist_init = GetRunList("Everything");
-    //vector<pair<string,int>> Dark_runlist_init = GetRunList("Crab");
     if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("EverythingV5");
     if (TString(target).Contains("Proton")) Dark_runlist_init = GetRunList("EverythingProton");
     std::cout << "initial Dark_runlist size = " << Dark_runlist_init.size() << std::endl;
@@ -1504,7 +1503,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     mean_tele_point_l = mean_tele_point_l_b.first;
     mean_tele_point_b = mean_tele_point_l_b.second;
 
-    TFile OutputFile("output_root/Netflix_"+TString(target)+"_Crab"+std::to_string(int(PercentCrab))+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root","recreate");
+    TFile OutputFile("../Netflix_"+TString(target)+"_Crab"+std::to_string(int(PercentCrab))+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root","recreate");
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("MSCW_cut_blind",&MSCW_cut_blind,"MSCW_cut_blind/D");
     InfoTree.Branch("MSCL_cut_blind",&MSCL_cut_blind,"MSCL_cut_blind/D");

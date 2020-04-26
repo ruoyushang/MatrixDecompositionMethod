@@ -263,7 +263,7 @@ double BlindedChi2(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_model, TH2D* his
             double data_err = max(1.0,pow(data,0.5));
             double model_err = max(1.0,pow(abs(model),0.5));
             //weight = 1./(data_err*data_err+model_err*model_err);
-            weight = 1./(data_err*data_err);
+            //weight = 1./(data_err*data_err);
             double chi2_this = weight*pow(data-model,2);
             if (isnan(chi2_this))
             {
@@ -511,7 +511,7 @@ void NetflixMethodPrediction(string target_data, double PercentCrab, double tel_
     MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_input-MSCL_plot_lower)+MSCL_cut_input;
     NumberOfEigenvectors = rank;
 
-    TFile InputDataFile("output_root/Netflix_"+TString(target_data)+"_Crab"+std::to_string(int(PercentCrab))+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root");
+    TFile InputDataFile("../Netflix_"+TString(target_data)+"_Crab"+std::to_string(int(PercentCrab))+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputDataFile.Get("InfoTree");
 
@@ -646,7 +646,7 @@ void NetflixMethodPrediction(string target_data, double PercentCrab, double tel_
 
     InputDataFile.Close();
 
-    TFile OutputFile("output_root/Netflix_"+TString(target_data)+"_Crab"+std::to_string(int(PercentCrab))+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root","update");
+    TFile OutputFile("../Netflix_"+TString(target_data)+"_Crab"+std::to_string(int(PercentCrab))+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root","update");
     for (int e=0;e<N_energy_bins;e++)
     {
         Hist_OnBkgd_MSCLW.at(e).Write();
