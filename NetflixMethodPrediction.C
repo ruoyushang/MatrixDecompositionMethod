@@ -389,7 +389,7 @@ void SingleTimeMinimization(int fix_which, int which_to_fit)
     VaryNthVector = which_to_fit;
 
     ROOT::Math::Functor Chi2Func;
-    std::cout << "total n paramters = " << 1+2*NumberOfEigenvectors*(N_bins_for_deconv)+NumberOfEigenvectors << std::endl;
+    //std::cout << "total n paramters = " << 1+2*NumberOfEigenvectors*(N_bins_for_deconv)+NumberOfEigenvectors << std::endl;
     Chi2Func = ROOT::Math::Functor(&NetflixChi2Function,1+2*NumberOfEigenvectors*(N_bins_for_deconv)+NumberOfEigenvectors*NumberOfEigenvectors); 
 
     // Choose method upon creation between:
@@ -407,11 +407,11 @@ void SingleTimeMinimization(int fix_which, int which_to_fit)
     NetflixSetInitialVariables(&Chi2Minimizer_1st,binx_blind_global,biny_blind_global,fix_which,which_to_fit);
 
     const double *par_1st = Chi2Minimizer_1st.X();
-    std::cout << "initial chi2 = " << NetflixChi2Function(par_1st) << std::endl;
+    //std::cout << "initial chi2 = " << NetflixChi2Function(par_1st) << std::endl;
     Chi2Minimizer_1st.SetTolerance(0.01*double(N_bins_for_deconv*N_bins_for_deconv));
     Chi2Minimizer_1st.Minimize();
     par_1st = Chi2Minimizer_1st.X();
-    std::cout << "final chi2 = " << NetflixChi2Function(par_1st) << std::endl;
+    //std::cout << "final chi2 = " << NetflixChi2Function(par_1st) << std::endl;
 
     NetflixParametrizeEigenvectors(par_1st);
 
@@ -482,7 +482,7 @@ void MatrixFactorizationMethod()
 
     for (int iteration=0;iteration<20;iteration++)
     {
-        std::cout << "iteration = " << iteration << std::endl;
+        //std::cout << "iteration = " << iteration << std::endl;
         SingleTimeMinimization(0,1);
         SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
         SingleTimeMinimization(1,1);
@@ -490,7 +490,7 @@ void MatrixFactorizationMethod()
     }
     for (int iteration=0;iteration<20;iteration++)
     {
-        std::cout << "iteration = " << iteration << std::endl;
+        //std::cout << "iteration = " << iteration << std::endl;
         SingleTimeMinimization(0,2);
         SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
         SingleTimeMinimization(1,2);
@@ -645,6 +645,21 @@ void NetflixMethodPrediction(string target_data, double PercentCrab, double tel_
     }
 
     InputDataFile.Close();
+
+    TFile OutputFile("output_root/Netflix_"+TString(target_data)+"_Crab"+std::to_string(int(PercentCrab))+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root","update");
+    for (int e=0;e<N_energy_bins;e++)
+    {
+        Hist_OnBkgd_MSCLW.at(e).Write();
+        Hist_OnGamma_MSCLW.at(e).Write();
+    }
+    for (int nth_sample=0;nth_sample<n_control_samples-1;nth_sample++)
+    {
+        for (int e=0;e<N_energy_bins;e++) 
+        {
+            Hist_OffBkgd_MSCLW.at(nth_sample).at(e).Write();
+            Hist_OffGamma_MSCLW.at(nth_sample).at(e).Write();
+        }
+    }
 
     std::cout << "Done." << std::endl;
 }

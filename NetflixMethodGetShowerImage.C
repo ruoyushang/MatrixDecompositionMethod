@@ -36,7 +36,7 @@
 #include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
 using namespace Eigen;
 
-int n_control_samples = 2;
+int n_control_samples = 5;
 int N_bins_for_deconv = 12; // 12 should be the lowest bin number
 const int N_energy_bins = 1;
 double energy_bins[N_energy_bins+1] = {pow(10,2.3),pow(10,4.0)};
@@ -812,8 +812,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
         vector<pair<string,int>> the_runs;
         Dark_runlist.push_back(the_runs);
     }
-    //vector<pair<string,int>> Dark_runlist_init = GetRunList("Everything");
-    vector<pair<string,int>> Dark_runlist_init = GetRunList("Crab");
+    vector<pair<string,int>> Dark_runlist_init = GetRunList("Everything");
+    //vector<pair<string,int>> Dark_runlist_init = GetRunList("Crab");
     if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("EverythingV5");
     if (TString(target).Contains("Proton")) Dark_runlist_init = GetRunList("EverythingProton");
     std::cout << "initial Dark_runlist size = " << Dark_runlist_init.size() << std::endl;
@@ -821,6 +821,10 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
     {
         std::cout << "final Dark_runlist size = " << Dark_runlist.at(nth_sample).size() << std::endl;
+        for (int nth_run=0;nth_run<Dark_runlist.at(nth_sample).size();nth_run++)
+        {
+            std::cout << Dark_runlist.at(nth_sample).at(nth_run).first << ", " << Dark_runlist.at(nth_sample).at(nth_run).second << std::endl;
+        }
     }
 
     mean_tele_point_ra = 0.;
@@ -1496,12 +1500,21 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
         }
     }
 
+    pair<double,double> mean_tele_point_l_b = ConvertRaDecToGalactic(mean_tele_point_ra, mean_tele_point_dec);
+    mean_tele_point_l = mean_tele_point_l_b.first;
+    mean_tele_point_b = mean_tele_point_l_b.second;
 
     TFile OutputFile("output_root/Netflix_"+TString(target)+"_Crab"+std::to_string(int(PercentCrab))+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root","recreate");
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("MSCW_cut_blind",&MSCW_cut_blind,"MSCW_cut_blind/D");
     InfoTree.Branch("MSCL_cut_blind",&MSCL_cut_blind,"MSCL_cut_blind/D");
+    InfoTree.Branch("exposure_hours",&exposure_hours,"exposure_hours/D");
+    InfoTree.Branch("mean_tele_point_ra",&mean_tele_point_ra,"mean_tele_point_ra/D");
+    InfoTree.Branch("mean_tele_point_dec",&mean_tele_point_dec,"mean_tele_point_dec/D");
+    InfoTree.Branch("mean_tele_point_l",&mean_tele_point_l,"mean_tele_point_l/D");
+    InfoTree.Branch("mean_tele_point_b",&mean_tele_point_b,"mean_tele_point_b/D");
     InfoTree.Branch("n_bad_matches",&n_bad_matches,"n_bad_matches/I");
+    InfoTree.Branch("n_control_samples",&n_control_samples,"n_control_samples/I");
     InfoTree.Fill();
     InfoTree.Write();
     TTree StarTree("StarTree","star tree");
