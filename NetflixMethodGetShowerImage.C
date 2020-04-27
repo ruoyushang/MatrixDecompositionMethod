@@ -36,7 +36,7 @@
 #include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
 using namespace Eigen;
 
-int n_control_samples = 5;
+int n_control_samples = 2;
 int N_bins_for_deconv = 12; // 12 should be the lowest bin number
 const int N_energy_bins = 1;
 double energy_bins[N_energy_bins+1] = {pow(10,2.3),pow(10,4.0)};
@@ -100,7 +100,39 @@ double roi_ra = 0.;
 double roi_dec = 0.;
 double roi_radius = 0.;
 vector<vector<double>> BrightStars_Data;
+vector<vector<double>> GammaSource_Data;
 
+bool CoincideWithBrightStars(double ra, double dec)
+{
+    bool isCoincident = false;
+    double brightness_cut = 7.0;
+    double radius_cut = 0.25;
+    for (int star=0;star<BrightStars_Data.size();star++)
+    {
+        double star_ra = BrightStars_Data.at(star).at(0);
+        double star_dec = BrightStars_Data.at(star).at(1);
+        double star_brightness = BrightStars_Data.at(star).at(3);
+        double radius = pow((ra-star_ra)*(ra-star_ra)+(dec-star_dec)*(dec-star_dec),0.5);
+        if (star_brightness>brightness_cut) continue;
+        if (radius>radius_cut) continue;
+        isCoincident = true;
+    }
+    return isCoincident;
+}
+bool CoincideWithGammaSources(double ra, double dec)
+{
+    bool isCoincident = false;
+    double radius_cut = 0.4;
+    for (int star=0;star<GammaSource_Data.size();star++)
+    {
+        double star_ra = GammaSource_Data.at(star).at(0);
+        double star_dec = GammaSource_Data.at(star).at(1);
+        double radius = pow((ra-star_ra)*(ra-star_ra)+(dec-star_dec)*(dec-star_dec),0.5);
+        if (radius>radius_cut) continue;
+        isCoincident = true;
+    }
+    return isCoincident;
+}
 pair<double,double> GetSourceRaDec(TString source_name)
 {
     double Source_RA = 0.;
@@ -349,6 +381,31 @@ pair<double,double> ConvertRaDecToGalactic(double Ra, double Dec)
     return std::make_pair(l_round,b_round);
 }
 
+void GetGammaSources()
+{
+    std::ifstream astro_file("/home/rshang/EventDisplay/MatrixDecompositionMethod/TeVCat_RaDec.txt");
+    std::string line;
+    // Read one line at a time into the variable line:
+    while(std::getline(astro_file, line))
+    {
+        if (line.empty()) continue;
+        std::vector<double>   lineData;
+        std::stringstream  lineStream(line);
+        double value;
+        // Read an integer at a time from the line
+        while(lineStream >> value)
+        {
+            // Add the integers from a line to a 1D array (vector)
+            lineData.push_back(value);
+        }
+        if (lineData.size()!=2) continue;
+        double star_ra = lineData.at(0);
+        double star_dec = lineData.at(1);
+        GammaSource_Data.push_back(lineData);
+    }
+    std::cout << "I found " << GammaSource_Data.size() << " gamma-ray sources." << std::endl;
+}
+
 void GetBrightStars()
 {
     double brightness_cut = 7.0;
@@ -391,7 +448,8 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    ifstream myfile ("/home/rshang/EventDisplay/NewBkgMethodExtendedSource/allrunsdiagnostic.txt");
+    //ifstream myfile ("/home/rshang/EventDisplay/NewBkgMethodExtendedSource/allrunsdiagnostic.txt");
+    ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/diagnostics.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -616,6 +674,10 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     {
                         if (ON_runlist[on_run].first.compare(OFF_runlist[off_run].first) == 0) continue;
                     }
+                    for (int on_run2=0;on_run2<ON_runlist.size();on_run2++)
+                    {
+                        if (int(ON_runlist[on_run2].second)==int(OFF_runlist[off_run].second)) continue; // this OFF run is in ON runlist
+                    }
                     bool already_used_run = false;
                     for (int nth_sample_newrun=0;nth_sample_newrun<n_control_samples;nth_sample_newrun++)
                     {
@@ -738,10 +800,13 @@ bool GammaFoV() {
     return true;
 }
 bool DarkFoV() {
-    if (theta2<0.05) return false;
+    //if (theta2<0.05) return false;
+    if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
 bool FoV() {
+    //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
 bool RoIFoV() {
@@ -833,6 +898,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     mean_tele_point_dec = source_ra_dec.second;
 
     GetBrightStars();
+    GetGammaSources();
 
     roi_ra = mean_tele_point_ra;
     roi_dec = mean_tele_point_dec;

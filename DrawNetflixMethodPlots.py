@@ -40,7 +40,7 @@ source_ra = 0.
 source_dec = 0.
 source_l = 0.
 source_b = 0.
-n_control_samples = 5
+n_control_samples = 2
 
 Syst_MDM = 0.02
 
@@ -77,8 +77,8 @@ energy_fine_bin += [pow(10,4.0)]
 
 sample_list = []
 sky_coord = []
-#sample_list += ['Crab']
-#sky_coord += ['05 34 31.97 +22 00 52.1']
+sample_list += ['Crab']
+sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['CrabV5']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['Mrk421']
@@ -223,6 +223,19 @@ def GetBrightStarInfo(file_list):
             bright_star_dec += [StarTree.star_dec]
             bright_star_brightness += [StarTree.star_brightness]
         InputFile.Close()
+
+def GetGammaSourceInfo():
+
+    global other_stars
+    global other_star_coord
+
+    inputFile = open('TeVCat_RaDec_w_Names.txt')
+    for line in inputFile:
+        gamma_source_name = line.split(',')[0]
+        gamma_source_ra = float(line.split(',')[1])
+        gamma_source_dec = float(line.split(',')[2])
+        other_stars += [gamma_source_name]
+        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
 def ResetStackedShowerHistograms():
 
@@ -1138,6 +1151,7 @@ def SingleSourceAnalysis(source_list,doMap):
     Hist_OnBkgd_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Sum,smooth_size,False)
 
     Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,'RA','Dec','Skymap_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_smooth,'RA','Dec','Skymap_Smooth_Galactic_MDM_%s%s'%(source_name,PercentCrab))
 
 def FindSourceIndex(source_name):
     for source in range(0,len(sample_list)):
@@ -1256,5 +1270,9 @@ n_rebin = 2
 smooth_size = 0.1
 #n_rebin = 1
 #smooth_size = 0.05
+
+GetGammaSourceInfo()
+print 'other_stars size = %s'%(len(other_stars))
+print 'other_star_coord size = %s'%(len(other_star_coord))
 
 SingleSourceAnalysis(sample_list,True)

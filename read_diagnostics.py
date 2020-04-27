@@ -30,17 +30,21 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_ra = 2.0
 #range_dec = 2.0
 
-## W Comae
-#target_ra = 185.382083333
-#target_dec = 28.2330555556
+# W Comae
+target_ra = 185.382083333
+target_dec = 28.2330555556
+range_ra = 1.0
+range_dec = 1.0
+
+## MGRO J1908
+#target_ra = 286.975
+#target_dec = 6.269
 #range_ra = 1.0
 #range_dec = 1.0
 
-# MGRO J1908
-target_ra = 286.975
-target_dec = 6.269
-range_ra = 1.0
-range_dec = 1.0
+V4 = True
+V5 = False
+V6 = False
 
 
 RunNumber = 0
@@ -70,15 +74,11 @@ List_Livetime = []
 Source_RunNumber = []
 Source_Elev = []
 Source_Azim = []
-sourceFile = open('../data/output_list/MGRO_J1908_V5_runlist.txt')
-for line in sourceFile:
-    Source_RunNumber += [int(line)]
-    Source_Elev += [0.]
-    Source_Azim += [0.]
-
-V4 = False
-V5 = True
-V6 = False
+#sourceFile = open('../data/output_list/MGRO_J1908_V5_runlist.txt')
+#for line in sourceFile:
+#    Source_RunNumber += [int(line)]
+#    Source_Elev += [0.]
+#    Source_Azim += [0.]
 
 inputFile = open('diagnostics.txt')
 for line in inputFile:
@@ -138,83 +138,86 @@ for line in inputFile:
 
 List_Used = []
 
-#for entry in range(0,len(List_RunNumber)):
+for entry in range(0,len(List_RunNumber)):
+
+    RunNumber = List_RunNumber[entry]
+    Elev = List_Elev[entry]
+    Azim = List_Azim[entry]
+    T1_RA = List_T1_RA[entry]
+    T1_Dec = List_T1_Dec[entry]
+    PedVar_DC = List_PedVar_DC[entry]
+    PedVar_PE = List_PedVar_PE[entry]
+    FIR_Mean = List_FIR_Mean[entry]
+    FIR_RMS = List_FIR_RMS[entry]
+    L3_rate = List_L3_rate[entry]
+    Livetime = List_Livetime[entry]
+
+    if V4:
+        if int(RunNumber)>=46642: continue
+    if V5:
+        if int(RunNumber)<46642: continue
+        if int(RunNumber)>=63373: continue
+    if V6:
+        if int(RunNumber)<63373: continue
+
+    if L3_rate<150.: continue
+    if L3_rate>450.: continue
+
+    if abs(float(T1_RA)-target_ra)>range_ra: continue
+    if abs(float(T1_Dec)-target_dec)>range_dec: continue
+
+    #gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
+    print 'RunNumber %s, L3_rate %s, Livetime %s'%(RunNumber,L3_rate,Livetime)
+
+    List_Used += [RunNumber]
+
+#n_matches = 5
+#for entry2 in range(0,len(Source_RunNumber)):
+#    for match in range(0,n_matches):
+#        chi2 = 10000.
+#        matched_run = 0
+#        for entry in range(0,len(List_RunNumber)):
 #
-#    RunNumber = List_RunNumber[entry]
-#    Elev = List_Elev[entry]
-#    Azim = List_Azim[entry]
-#    T1_RA = List_T1_RA[entry]
-#    T1_Dec = List_T1_Dec[entry]
-#    PedVar_DC = List_PedVar_DC[entry]
-#    PedVar_PE = List_PedVar_PE[entry]
-#    FIR_Mean = List_FIR_Mean[entry]
-#    FIR_RMS = List_FIR_RMS[entry]
-#    L3_rate = List_L3_rate[entry]
-#    Livetime = List_Livetime[entry]
+#            RunNumber = List_RunNumber[entry]
+#            Elev = List_Elev[entry]
+#            Azim = List_Azim[entry]
+#            T1_RA = List_T1_RA[entry]
+#            T1_Dec = List_T1_Dec[entry]
+#            PedVar_DC = List_PedVar_DC[entry]
+#            PedVar_PE = List_PedVar_PE[entry]
+#            L3_rate = List_L3_rate[entry]
+#            Livetime = List_Livetime[entry]
 #
-#    if V4:
-#        if int(RunNumber)>=46642: continue
-#    if V5:
-#        if int(RunNumber)<46642: continue
-#        if int(RunNumber)>=63373: continue
-#    if V6:
-#        if int(RunNumber)<63373: continue
+#            if L3_rate<150.: continue
+#            if L3_rate>450.: continue
+#            if Livetime<10.: continue
 #
-#    if abs(float(T1_RA)-target_ra)>range_ra: continue
-#    if abs(float(T1_Dec)-target_dec)>range_dec: continue
+#            gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
+#            if abs(gal_b)<20.: continue
 #
-#    #gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
-#    print 'RunNumber %s, L3_rate %s, Livetime %s'%(RunNumber,L3_rate,Livetime)
+#            if V4:
+#                if int(RunNumber)>=46642: continue
+#            if V5:
+#                if int(RunNumber)<46642: continue
+#                if int(RunNumber)>=63373: continue
+#            if V6:
+#                if int(RunNumber)<63373: continue
 #
-#    List_Used += [RunNumber]
-
-n_matches = 5
-for entry2 in range(0,len(Source_RunNumber)):
-    for match in range(0,n_matches):
-        chi2 = 10000.
-        matched_run = 0
-        for entry in range(0,len(List_RunNumber)):
-
-            RunNumber = List_RunNumber[entry]
-            Elev = List_Elev[entry]
-            Azim = List_Azim[entry]
-            T1_RA = List_T1_RA[entry]
-            T1_Dec = List_T1_Dec[entry]
-            PedVar_DC = List_PedVar_DC[entry]
-            PedVar_PE = List_PedVar_PE[entry]
-            L3_rate = List_L3_rate[entry]
-            Livetime = List_Livetime[entry]
-
-            if L3_rate<150.: continue
-            if L3_rate>450.: continue
-            if Livetime<10.: continue
-
-            gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
-            if abs(gal_b)<20.: continue
-
-            if V4:
-                if int(RunNumber)>=46642: continue
-            if V5:
-                if int(RunNumber)<46642: continue
-                if int(RunNumber)>=63373: continue
-            if V6:
-                if int(RunNumber)<63373: continue
-
-            if abs(float(T1_RA)-target_ra)<10. and abs(float(T1_Dec)-target_dec)<10.: continue
-            if abs(Elev-Source_Elev[entry2])>5.: continue
-
-            already_used = False
-            for entry3 in range(0,len(List_Used)):
-                if List_Used[entry3]==RunNumber: already_used = True
-            if already_used: continue
-
-            chi2_this = pow(Elev-Source_Elev[entry2],2)
-            if chi2_this<chi2:
-                chi2 = chi2_this
-                matched_run = RunNumber
-
-        if matched_run!=0: 
-            List_Used += [matched_run]
+#            if abs(float(T1_RA)-target_ra)<10. and abs(float(T1_Dec)-target_dec)<10.: continue
+#            if abs(Elev-Source_Elev[entry2])>5.: continue
+#
+#            already_used = False
+#            for entry3 in range(0,len(List_Used)):
+#                if List_Used[entry3]==RunNumber: already_used = True
+#            if already_used: continue
+#
+#            chi2_this = pow(Elev-Source_Elev[entry2],2)
+#            if chi2_this<chi2:
+#                chi2 = chi2_this
+#                matched_run = RunNumber
+#
+#        if matched_run!=0: 
+#            List_Used += [matched_run]
         
 for entry in range(0,len(List_Used)):
     print List_Used[entry]
