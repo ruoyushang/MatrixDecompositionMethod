@@ -384,6 +384,7 @@ pair<double,double> ConvertRaDecToGalactic(double Ra, double Dec)
 void GetGammaSources()
 {
     std::ifstream astro_file("/home/rshang/EventDisplay/MatrixDecompositionMethod/TeVCat_RaDec.txt");
+    //std::ifstream astro_file("/home/rshang/EventDisplay/MatrixDecompositionMethod/TeVCat_RaDec_Strong.txt");
     std::string line;
     // Read one line at a time into the variable line:
     while(std::getline(astro_file, line))
@@ -890,6 +891,11 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
             std::cout << Dark_runlist.at(nth_sample).at(nth_run).first << ", " << Dark_runlist.at(nth_sample).at(nth_run).second << std::endl;
         }
     }
+    vector<int> Dark_runlist_primary;
+    for (int run=0;run<Dark_runlist.at(0).size();run++)
+    {
+        Dark_runlist_primary.push_back(Dark_runlist.at(0).at(run).second);
+    }
 
     mean_tele_point_ra = 0.;
     mean_tele_point_dec = 0.;
@@ -1032,12 +1038,20 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
             string filename;
             filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Dark_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
 
+            //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
+            pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
+            if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Dark_runlist.at(nth_sample)[run].second));
+            run_tele_point_ra = tele_point_ra_dec.first;
+            run_tele_point_dec = tele_point_ra_dec.second;
+
             TFile*  input_file = TFile::Open(filename.c_str());
             TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(input_file,Dark_runlist.at(nth_sample)[run].second);
             TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
             TTree* Dark_tree = (TTree*) input_file->Get(root_file);
             Dark_tree->SetBranchAddress("Xoff",&Xoff);
             Dark_tree->SetBranchAddress("Yoff",&Yoff);
+            Dark_tree->SetBranchAddress("Xoff_derot",&Xoff_derot);
+            Dark_tree->SetBranchAddress("Yoff_derot",&Yoff_derot);
             Dark_tree->SetBranchAddress("theta2",&theta2);
             Dark_tree->SetBranchAddress("ra",&ra_sky);
             Dark_tree->SetBranchAddress("dec",&dec_sky);
@@ -1073,6 +1087,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
                 Dark_tree->GetEntry(entry);
                 R2off = Xoff*Xoff+Yoff*Yoff;
                 Phioff = atan2(Yoff,Xoff)+M_PI;
+                ra_sky = tele_point_ra_dec.first+Xoff_derot;
+                dec_sky = tele_point_ra_dec.second+Yoff_derot;
                 int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
                 int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
                 if (energy<0) continue;
@@ -1580,6 +1596,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     InfoTree.Branch("mean_tele_point_b",&mean_tele_point_b,"mean_tele_point_b/D");
     InfoTree.Branch("n_bad_matches",&n_bad_matches,"n_bad_matches/I");
     InfoTree.Branch("n_control_samples",&n_control_samples,"n_control_samples/I");
+    InfoTree.Branch("Dark_runlist_primary","std::vector<int>",&Dark_runlist_primary);
     InfoTree.Fill();
     InfoTree.Write();
     TTree StarTree("StarTree","star tree");
