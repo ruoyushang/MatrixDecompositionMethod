@@ -36,7 +36,7 @@
 #include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
 using namespace Eigen;
 
-int n_control_samples = 2;
+int n_control_samples = 5;
 int N_bins_for_deconv = 12; // 12 should be the lowest bin number
 const int N_energy_bins = 1;
 double energy_bins[N_energy_bins+1] = {pow(10,2.3),pow(10,4.0)};
@@ -89,7 +89,8 @@ double ra_sky = 0;
 double dec_sky = 0;
 double exposure_hours = 0.;
 
-int n_bad_matches = 0;
+int n_expect_matches = 0;
+int n_good_matches = 0;
 double mean_tele_point_ra = 0.;
 double mean_tele_point_dec = 0.;
 double mean_tele_point_l = 0.;
@@ -603,6 +604,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
     std::cout << "Load ON run info" << std::endl;
     vector<pair<double,double>> ON_pointing;
     vector<pair<double,double>> ON_pointing_radec;
+    vector<double> ON_weight;
     vector<double> ON_NSB;
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
@@ -621,12 +623,14 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
         TFile*  input_file = TFile::Open(ON_filename.c_str());
         TString root_file = "run_"+TString(ON_runnumber)+"/stereo/data_on";
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
+        ON_weight.push_back(double(Data_tree->GetEntries())/100000.);
         input_file->Close();
     }
 
     std::cout << "Load OFF run info" << std::endl;
     vector<pair<double,double>> OFF_pointing;
     vector<pair<double,double>> OFF_pointing_radec;
+    vector<double> OFF_weight;
     vector<double> OFF_NSB;
     for (int off_run=0;off_run<OFF_runlist.size();off_run++)
     {
@@ -645,6 +649,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
         TFile*  input_file = TFile::Open(OFF_filename.c_str());
         TString root_file = "run_"+TString(OFF_runnumber)+"/stereo/data_on";
         TTree* Dark_tree = (TTree*) input_file->Get(root_file);
+        OFF_weight.push_back(double(Dark_tree->GetEntries())/100000.);
         input_file->Close();
     }
 
@@ -689,11 +694,11 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     }
                     if (already_used_run) continue;
                     //double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                    double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
+                    double chi2 = pow(ON_weight[on_run]*ON_NSB[on_run]-OFF_weight[off_run]*OFF_NSB[off_run],2);
                     //if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)>0.2*0.2)
                     if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>4.0*4.0)
                     {
-                        chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                        chi2 = pow(ON_weight[on_run]*ON_pointing[on_run].first-OFF_weight[off_run]*OFF_pointing[off_run].first,2);
                     }
                     if ((diff_ra*diff_ra+diff_dec*diff_dec)<10.*10.)
                     {
@@ -715,11 +720,9 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     std::cout << best_match.first << " " << best_match.second << std::endl;
                     std::cout << "best_chi2 = " << best_chi2 << std::endl;
                     std::cout << best_pointing.first << " " << best_pointing.second << std::endl;
+                    n_good_matches += 1;
                 }
-                else
-                {
-                    n_bad_matches += 1;
-                }
+                n_expect_matches += 1;
             }
         }
     }
@@ -1594,7 +1597,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     InfoTree.Branch("mean_tele_point_dec",&mean_tele_point_dec,"mean_tele_point_dec/D");
     InfoTree.Branch("mean_tele_point_l",&mean_tele_point_l,"mean_tele_point_l/D");
     InfoTree.Branch("mean_tele_point_b",&mean_tele_point_b,"mean_tele_point_b/D");
-    InfoTree.Branch("n_bad_matches",&n_bad_matches,"n_bad_matches/I");
+    InfoTree.Branch("n_good_matches",&n_good_matches,"n_good_matches/I");
+    InfoTree.Branch("n_expect_matches",&n_expect_matches,"n_expect_matches/I");
     InfoTree.Branch("n_control_samples",&n_control_samples,"n_control_samples/I");
     InfoTree.Branch("Dark_runlist_primary","std::vector<int>",&Dark_runlist_primary);
     InfoTree.Fill();

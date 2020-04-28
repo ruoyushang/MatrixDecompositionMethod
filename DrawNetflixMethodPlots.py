@@ -34,13 +34,13 @@ MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_b
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 
-n_bad_matches = 0
+n_good_matches = 0
 exposure_hours = 0.
 source_ra = 0.
 source_dec = 0.
 source_l = 0.
 source_b = 0.
-n_control_samples = 2
+n_control_samples = 5
 
 Syst_MDM = 0.02
 
@@ -77,8 +77,8 @@ energy_fine_bin += [pow(10,4.0)]
 
 sample_list = []
 sky_coord = []
-sample_list += ['Crab']
-sky_coord += ['05 34 31.97 +22 00 52.1']
+#sample_list += ['Crab']
+#sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['CrabV5']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['Mrk421']
@@ -103,10 +103,10 @@ sky_coord += ['05 34 31.97 +22 00 52.1']
 #sky_coord += ['03 19 47 +18 45 42']
 #sample_list += ['PG1553V6']
 #sky_coord += ['15 55 44.7 +11 11 41']
-#sample_list += ['Segue1V6']
-#sky_coord += ['10 07 04 +16 04 55']
-#sample_list += ['Segue1V5']
-#sky_coord += ['10 07 04 +16 04 55']
+sample_list += ['Segue1V6']
+sky_coord += ['10 07 04 +16 04 55']
+sample_list += ['Segue1V5']
+sky_coord += ['10 07 04 +16 04 55']
 #sample_list += ['ComaV6']
 #sky_coord += ['12 59 48.7 +27 58 50']
 #sample_list += ['1ES1011V6']
@@ -120,6 +120,8 @@ sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['1ES1741V6']
 #sky_coord += ['17 44 01.2 +19 32 47']
 #sample_list += ['IC443HotSpot']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV5']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['RGBJ0710']
 #sky_coord += ['07 10 26.4 +59 09 00']
@@ -141,8 +143,6 @@ sky_coord += ['05 34 31.97 +22 00 52.1']
 #sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['MGRO_J1908_V5']
 #sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['IC443HotSpotV5']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['GemingaV6']
 #sky_coord += ['06 32 28 +17 22 00']
 #sample_list += ['GemingaV5']
@@ -153,8 +153,6 @@ sky_coord += ['05 34 31.97 +22 00 52.1']
 #sky_coord += ['00 25 21.6 +64 07 48']
 #sample_list += ['CTA1V5']
 #sky_coord += ['00 06 26 +72 59 01.0']
-#sample_list += ['2HWC_J1953V6']
-#sky_coord += ['19 53 02.4 +29 28 48']
 #sample_list += ['2HWC_J1953V6_new']
 #sky_coord += ['19 53 02.4 +29 28 48']
 #sample_list += ['2HWC_J1930V6']
@@ -168,22 +166,8 @@ other_stars += ['SNR G40.5']
 other_star_coord += [[286.786,6.498]]
 other_stars += ['ARGO J1910']
 other_star_coord += [[287.650,7.350]]
-other_stars += ['1ES 1218']
-other_star_coord += [[185.360,30.191]]
-other_stars += ['1ES 1215']
-other_star_coord += [[184.452,30.102]]
-other_stars += ['W Comae']
-other_star_coord += [[185.382,28.233]]
-other_stars += ['IC 443']
-other_star_coord += [[94.213,22.503]]
-other_stars += ['2HWC J1953']
-other_star_coord += [[298.260,29.480]]
 other_stars += ['PSR J1954']
 other_star_coord += [[298.830,28.590]]
-other_stars += ['2HWC J1930']
-other_star_coord += [[292.633,18.870]]
-other_stars += ['2HWC J1928']
-other_star_coord += [[292.150,17.780]]
 other_stars += ["4FGL J2017.9"]
 other_star_coord += [[304.490833333,36.4277777778]]
 other_stars += ["4FGL J2021.1"]
@@ -202,6 +186,19 @@ other_star_coord += [[305.584583333,38.6711111111]]
 bright_star_ra = []
 bright_star_dec = []
 bright_star_brightness = []
+
+def ConvertRaDecToGalactic(ra, dec):
+    delta = dec*ROOT.TMath.Pi()/180.
+    delta_G = 27.12825*ROOT.TMath.Pi()/180.
+    alpha = ra*ROOT.TMath.Pi()/180.
+    alpha_G = 192.85948*ROOT.TMath.Pi()/180.
+    l_NCP = 122.93192*ROOT.TMath.Pi()/180.
+    sin_b = ROOT.TMath.Sin(delta)*ROOT.TMath.Sin(delta_G)+ROOT.TMath.Cos(delta)*ROOT.TMath.Cos(delta_G)*ROOT.TMath.Cos(alpha-alpha_G)
+    cos_b = ROOT.TMath.Cos(ROOT.TMath.ASin(sin_b))
+    sin_l_NCP_m_l = ROOT.TMath.Cos(delta)*ROOT.TMath.Sin(alpha-alpha_G)/cos_b
+    b = (ROOT.TMath.ASin(sin_b))*180./ROOT.TMath.Pi()
+    l = (l_NCP-ROOT.TMath.ASin(sin_l_NCP_m_l))*180./ROOT.TMath.Pi()
+    return l, b
 
 def GetBrightStarInfo(file_list):
 
@@ -267,14 +264,14 @@ def GetSourceInfo(file_list):
 
     global MSCW_blind_cut
     global MSCL_blind_cut
-    global n_bad_matches
+    global n_good_matches
     global exposure_hours
     global source_ra
     global source_dec
     global source_l
     global source_b
 
-    n_bad_matches = 0
+    n_good_matches = 0
     exposure_hours = 0.
     for path in range(0,len(file_list)):
         print 'Read file: %s'%(file_list[path])
@@ -282,7 +279,7 @@ def GetSourceInfo(file_list):
         InputFile = ROOT.TFile(file_list[path])
         InfoTree = InputFile.Get("InfoTree")
         InfoTree.GetEntry(0)
-        n_bad_matches += InfoTree.n_bad_matches
+        n_good_matches += InfoTree.n_good_matches
         exposure_hours += InfoTree.exposure_hours
         MSCW_blind_cut = InfoTree.MSCW_cut_blind
         MSCL_blind_cut = InfoTree.MSCL_cut_blind
@@ -330,6 +327,11 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_OnBkgd.Reset()
     Hist2D_OnBkgd.Add(InputFile.Get(HistName))
 
+    if Hist2D_OnData.Integral()<1600.:
+        Hist2D_OnData.Reset()
+        Hist2D_OnDark.Reset()
+        Hist2D_OnBkgd.Reset()
+
     Hist_OnData_MSCL.Reset()
     Hist_OnData_MSCL.Add(Hist2D_OnData.ProjectionX("Hist1D_OnData_MSCL",bin_lower_y,bin_upper_y))
     Hist_OnData_MSCW.Reset()
@@ -361,6 +363,11 @@ def GetShowerHistogramsFromFile(FilePath):
         print 'Getting histogram %s'%(HistName)
         Hist2D_OffBkgd[nth_sample].Reset()
         Hist2D_OffBkgd[nth_sample].Add(InputFile.Get(HistName))
+
+        if Hist2D_OffData[nth_sample].Integral()<1600.:
+            Hist2D_OffData[nth_sample].Reset()
+            Hist2D_OffDark[nth_sample].Reset()
+            Hist2D_OffBkgd[nth_sample].Reset()
 
         Hist_OffData_MSCL[nth_sample].Reset()
         Hist_OffData_MSCL[nth_sample].Add(Hist2D_OffData[nth_sample].ProjectionX("Hist1D_OffData_MSCL_%s"%(nth_sample),bin_lower_y,bin_upper_y))
@@ -688,7 +695,7 @@ def PlotsStackedHistograms(tag):
         Hists += [Hist_OffBkgd_MSCW_Sum[nth_sample]]
         legends += ['predict. bkg.']
         colors += [4]
-        plotname = 'Stack_MSCW_MDM_Control%s_%s'%(nth_sample,tag)
+        plotname = 'Stack_MSCW_MDM_%s_Control%s'%(tag,nth_sample)
         title = 'MSCW'
         MakeChi2Plot(Hists,legends,colors,title,plotname,False,MSCW_lower_cut,MSCW_blind_cut,-1)
 
@@ -704,7 +711,7 @@ def PlotsStackedHistograms(tag):
         Hists += [Hist_OffBkgd_MSCL_Sum[nth_sample]]
         legends += ['predict. bkg.']
         colors += [4]
-        plotname = 'Stack_MSCL_MDM_Control%s_%s'%(nth_sample,tag)
+        plotname = 'Stack_MSCL_MDM_%s_Control%s'%(tag,nth_sample)
         title = 'MSCL'
         MakeChi2Plot(Hists,legends,colors,title,plotname,False,MSCL_lower_cut,MSCL_blind_cut,-1)
 
@@ -715,6 +722,7 @@ def CalculateSystError():
     Hist_SystErr_MSCL.Reset()
     Hist_SystErr_MSCW.Reset()
 
+    n_samples_used = 0.
     for nth_sample in range(0,n_control_samples-1):
 
         norm_bin_low_target = Hist_OffData_MSCL_Sum[nth_sample].FindBin(MSCL_lower_cut)
@@ -722,7 +730,11 @@ def CalculateSystError():
         Total_Bkgd = Hist_OffData_MSCL_Sum[nth_sample].Integral(norm_bin_low_target,norm_bin_up_target)
         Hist_Diff_MSCL = Hist_OffData_MSCL_Sum[nth_sample].Clone()
         Hist_Diff_MSCL.Add(Hist_OffBkgd_MSCL_Sum[nth_sample],-1.)
-        Syst_MDM += pow(Hist_Diff_MSCL.Integral(norm_bin_low_target,norm_bin_up_target)/Total_Bkgd,2)
+        if Total_Bkgd == 0.: continue
+        syst_this = Hist_Diff_MSCL.Integral(norm_bin_low_target,norm_bin_up_target)/Total_Bkgd
+        print '%s th sample syst = %s'%(nth_sample,syst_this)
+        n_samples_used += 1.
+        Syst_MDM += pow(syst_this,2)
         for binx in range(0,Hist_SystErr_MSCL.GetNbinsX()):
             syst_err = max(0.,pow(Hist_Diff_MSCL.GetBinContent(binx+1),2)-pow(Hist_Diff_MSCL.GetBinError(binx+1),2))
             old_syst = Hist_SystErr_MSCL.GetBinError(binx+1)
@@ -737,7 +749,7 @@ def CalculateSystError():
             new_syst = old_syst+syst_err
             Hist_SystErr_MSCW.SetBinError(binx+1,new_syst)
 
-    Syst_MDM = pow(Syst_MDM/n_control_samples,0.5)
+    Syst_MDM = pow(Syst_MDM/n_samples_used,0.5)
     print "Syst_MDM = %s"%(Syst_MDM) 
 
     for binx in range(0,Hist_SystErr_MSCL.GetNbinsX()):
@@ -1031,10 +1043,11 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     bright_star_markers = []
     if xtitle=="RA":
         for star in range(0,len(other_stars)):
+            if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>3.0*3.0: continue
             other_star_markers += [ROOT.TMarker(other_star_coord[star][0],other_star_coord[star][1],2)]
-            other_star_labels += [ROOT.TLatex(other_star_coord[star][0]+0.1,other_star_coord[star][1]+0.1,other_stars[star])]
+            other_star_labels += [ROOT.TLatex(other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
-            other_star_labels[len(other_star_labels)-1].SetTextSize(0.02)
+            other_star_labels[len(other_star_labels)-1].SetTextSize(0.015)
         for star in range(0,len(bright_star_ra)):
             bright_star_markers += [ROOT.TMarker(bright_star_ra[star],bright_star_dec[star],30)]
             bright_star_markers[len(bright_star_markers)-1].SetMarkerColor(2)
@@ -1042,10 +1055,11 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     else:
         for star in range(0,len(other_stars)):
             gal_l, gal_b = ConvertRaDecToGalactic(other_star_coord[star][0],other_star_coord[star][1])
+            if pow(source_l-gal_l,2)+pow(source_b-gal_b,2)>3.0*3.0: continue
             other_star_markers += [ROOT.TMarker(gal_l,gal_b,2)]
-            other_star_labels += [ROOT.TLatex(gal_l+0.1,gal_b+0.1,other_stars[star])]
+            other_star_labels += [ROOT.TLatex(gal_l-0.15,gal_b+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
-            other_star_labels[len(other_star_labels)-1].SetTextSize(0.02)
+            other_star_labels[len(other_star_labels)-1].SetTextSize(0.015)
         for star in range(0,len(bright_star_ra)):
             gal_l, gal_b = ConvertRaDecToGalactic(bright_star_ra[star],bright_star_dec[star])
             bright_star_markers += [ROOT.TMarker(gal_l,gal_b,30)]
@@ -1062,6 +1076,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     pad1.Draw()
     pad1.cd()
 
+    max_sig = 0.
     Hist_Skymap = Hist_SR.Clone()
     for bx in range(0,Hist_SR.GetNbinsX()):
         for by in range(0,Hist_SR.GetNbinsY()):
@@ -1072,6 +1087,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
             NBkg_Err = pow(pow(Hist_Bkg.GetBinError(bx+1,by+1),2)+pow(syst_method*Hist_Bkg.GetBinContent(bx+1,by+1),2),0.5)
             if syst_method==0.: NBkg_Err = pow(Hist_Bkg.GetBinContent(bx+1,by+1),0.5)
             Sig = 1.*CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
+            if Sig>max_sig: max_sig = Sig
             Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
 
     Hist_Skymap.GetYaxis().SetTitle(ytitle)
@@ -1084,7 +1100,29 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
         other_star_labels[star].Draw("same")
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
+    lumilab1 = ROOT.TLatex(0.15,0.9,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.04)
+    lumilab1.Draw()
     canvas.SaveAs('output_plots/SkymapSig_%s.png'%(name))
+
+    Hist_Skymap_Excess = Hist_SR.Clone()
+    for bx in range(0,Hist_SR.GetNbinsX()):
+        for by in range(0,Hist_SR.GetNbinsY()):
+            if Hist_Bkg.GetBinContent(bx+1,by+1)==0: continue
+            NSR = Hist_SR.GetBinContent(bx+1,by+1)
+            NBkg = Hist_Bkg.GetBinContent(bx+1,by+1)
+            Hist_Skymap_Excess.SetBinContent(bx+1,by+1,NSR-NBkg)
+
+    Hist_Skymap_Excess.GetYaxis().SetTitle(ytitle)
+    Hist_Skymap_Excess.GetXaxis().SetTitle(xtitle)
+    Hist_Skymap_Excess.Draw("COL4Z")
+    for star in range(0,len(other_star_markers)):
+        other_star_markers[star].Draw("same")
+        other_star_labels[star].Draw("same")
+    for star in range(0,len(bright_star_markers)):
+        bright_star_markers[star].Draw("same")
+    canvas.SaveAs('output_plots/SkymapExcess_%s.png'%(name))
 
 def SingleSourceAnalysis(source_list,doMap):
 
@@ -1151,7 +1189,7 @@ def SingleSourceAnalysis(source_list,doMap):
     Hist_OnBkgd_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Sum,smooth_size,False)
 
     Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,'RA','Dec','Skymap_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
-    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_smooth,'RA','Dec','Skymap_Smooth_Galactic_MDM_%s%s'%(source_name,PercentCrab))
+    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_smooth,'gal. l.','gal. b.','Skymap_Smooth_Galactic_MDM_%s%s'%(source_name,PercentCrab))
 
 def FindSourceIndex(source_name):
     for source in range(0,len(sample_list)):
@@ -1276,3 +1314,4 @@ print 'other_stars size = %s'%(len(other_stars))
 print 'other_star_coord size = %s'%(len(other_star_coord))
 
 SingleSourceAnalysis(sample_list,True)
+print 'n_good_matches = %s'%(n_good_matches)

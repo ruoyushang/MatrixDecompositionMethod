@@ -300,6 +300,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("WComaeV5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("MGRO_J1908_MatchedDark_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("CTA1V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
 
         return list;

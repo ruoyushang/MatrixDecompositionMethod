@@ -263,7 +263,7 @@ double BlindedChi2(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_model, TH2D* his
             double data_err = max(1.0,pow(data,0.5));
             double model_err = max(1.0,pow(abs(model),0.5));
             //weight = 1./(data_err*data_err+model_err*model_err);
-            //weight = 1./(data_err*data_err);
+            weight = 1./(data_err*data_err);
             double chi2_this = weight*pow(data-model,2);
             if (isnan(chi2_this))
             {
