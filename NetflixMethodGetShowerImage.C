@@ -693,12 +693,10 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                         }
                     }
                     if (already_used_run) continue;
-                    //double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                    double chi2 = pow(ON_weight[on_run]*ON_NSB[on_run]-OFF_weight[off_run]*OFF_NSB[off_run],2);
-                    //if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)>0.2*0.2)
+                    double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2)*pow(ON_weight[on_run]-OFF_weight[off_run],2);
                     if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>4.0*4.0)
                     {
-                        chi2 = pow(ON_weight[on_run]*ON_pointing[on_run].first-OFF_weight[off_run]*OFF_pointing[off_run].first,2);
+                        chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)*pow(ON_weight[on_run]-OFF_weight[off_run],2);
                     }
                     if ((diff_ra*diff_ra+diff_dec*diff_dec)<10.*10.)
                     {

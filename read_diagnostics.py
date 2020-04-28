@@ -74,11 +74,13 @@ List_Livetime = []
 Source_RunNumber = []
 Source_Elev = []
 Source_Azim = []
+Source_Livetime = []
 sourceFile = open('../data/output_list/SCTmatches_runlist.txt')
 for line in sourceFile:
     Source_RunNumber += [int(line)]
     Source_Elev += [0.]
     Source_Azim += [0.]
+    Source_Livetime += [0.]
 
 inputFile = open('diagnostics.txt')
 for line in inputFile:
@@ -134,6 +136,7 @@ for line in inputFile:
         if Source_RunNumber[entry]==int(RunNumber):
             Source_Elev[entry] = float(Elev)
             Source_Azim[entry] = float(Azim)
+            Source_Livetime[entry] = float(Livetime)
 
 
 List_Used = []
@@ -223,7 +226,7 @@ for entry in range(0,len(List_RunNumber)):
 #                    already_used = True
 #            if already_used: continue
 #
-#            chi2_this = pow(Elev-Source_Elev[entry2],2)
+#            chi2_this = pow(Elev-Source_Elev[entry2],2)*pow(Livetime-Source_Livetime[entry2],2)
 #            if chi2_this<chi2:
 #                chi2 = chi2_this
 #                matched_run = RunNumber
