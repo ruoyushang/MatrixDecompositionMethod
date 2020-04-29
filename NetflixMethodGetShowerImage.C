@@ -230,8 +230,10 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name=="Segue1V6")
     {
-            Source_RA = 151.767;
-                Source_Dec = 16.082;
+            //Source_RA = 151.767;
+            //    Source_Dec = 16.082;
+            Source_RA = 151.917;
+                Source_Dec = 16.767;
     }
     if (source_name=="ComaV6")
     {
@@ -325,8 +327,10 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name=="Segue1V5")
     {
-            Source_RA = 151.767;
-                Source_Dec = 16.082;
+            //Source_RA = 151.767;
+            //    Source_Dec = 16.082;
+            Source_RA = 151.917;
+                Source_Dec = 16.767;
     }
     if (source_name=="IC443HotSpotV5")
     {
@@ -676,6 +680,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                 {
                     double diff_ra = ON_pointing_radec[on_run].first-OFF_pointing_radec[off_run].first;
                     double diff_dec = ON_pointing_radec[on_run].second-OFF_pointing_radec[off_run].second;
+                    if ((diff_ra*diff_ra+diff_dec*diff_dec)<10.*10.) continue;
                     if (ON_runlist[on_run].first.find("Proton")==std::string::npos)
                     {
                         if (ON_runlist[on_run].first.compare(OFF_runlist[off_run].first) == 0) continue;
@@ -684,6 +689,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     {
                         if (int(ON_runlist[on_run2].second)==int(OFF_runlist[off_run].second)) continue; // this OFF run is in ON runlist
                     }
+                    if (abs(ON_weight[on_run]-OFF_weight[off_run])/ON_weight[on_run]>0.5) continue;
                     bool already_used_run = false;
                     for (int nth_sample_newrun=0;nth_sample_newrun<n_control_samples;nth_sample_newrun++)
                     {
@@ -693,14 +699,10 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                         }
                     }
                     if (already_used_run) continue;
-                    double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2)*pow(ON_weight[on_run]-OFF_weight[off_run],2);
+                    double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
                     if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>4.0*4.0)
                     {
-                        chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)*pow(ON_weight[on_run]-OFF_weight[off_run],2);
-                    }
-                    if ((diff_ra*diff_ra+diff_dec*diff_dec)<10.*10.)
-                    {
-                        chi2 += 10000.;
+                        chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
                     }
                     if (best_chi2>chi2)
                     {
@@ -1207,6 +1209,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
+            // redefine theta2
+            theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
             pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
             int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
             int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;

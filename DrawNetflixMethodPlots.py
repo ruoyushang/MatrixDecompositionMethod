@@ -119,10 +119,10 @@ sky_coord = []
 #sky_coord += ['14 42 48.277 +12 00 40.37']
 #sample_list += ['1ES1741V6']
 #sky_coord += ['17 44 01.2 +19 32 47']
-sample_list += ['IC443HotSpot']
-sky_coord += ['06 18 2.700 +22 39 36.00']
-sample_list += ['IC443HotSpotV5']
-sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpot']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV5']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['RGBJ0710']
 #sky_coord += ['07 10 26.4 +59 09 00']
 #sample_list += ['CasA']
@@ -139,10 +139,10 @@ sky_coord += ['06 18 2.700 +22 39 36.00']
 #sky_coord += ['12 21 26.3 +30 11 29']
 #sample_list += ['CygnusV6']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
-#sample_list += ['MGRO_J1908_V6_new']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V5']
-#sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V6_new']
+sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V5']
+sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['GemingaV6']
 #sky_coord += ['06 32 28 +17 22 00']
 #sample_list += ['GemingaV5']
@@ -1036,6 +1036,22 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
                 Hist_Smooth.SetBinError(bx1,by1,bin_error)
     return Hist_Smooth
 
+def GetSignificanceMap(Hist_SR,Hist_Bkg,syst_method):
+
+    Hist_Skymap = Hist_SR.Clone()
+    for bx in range(0,Hist_SR.GetNbinsX()):
+        for by in range(0,Hist_SR.GetNbinsY()):
+            if Hist_Bkg.GetBinContent(bx+1,by+1)==0: continue
+            NSR = Hist_SR.GetBinContent(bx+1,by+1)
+            NSR_Err = Hist_SR.GetBinError(bx+1,by+1)
+            NBkg = Hist_Bkg.GetBinContent(bx+1,by+1)
+            NBkg_Err = pow(pow(Hist_Bkg.GetBinError(bx+1,by+1),2)+pow(syst_method*Hist_Bkg.GetBinContent(bx+1,by+1),2),0.5)
+            if syst_method==0.: NBkg_Err = pow(Hist_Bkg.GetBinContent(bx+1,by+1),0.5)
+            Sig = 1.*CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
+            Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
+    return Hist_Skymap
+
+
 def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
 
     other_star_labels = []
@@ -1124,6 +1140,52 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
         bright_star_markers[star].Draw("same")
     canvas.SaveAs('output_plots/SkymapExcess_%s.png'%(name))
 
+    Hist_Skymap_Ratio = Hist_SR.Clone()
+    Hist_Skymap_Ratio.Add(Hist_Bkg,-1.)
+    Hist_Skymap_Ratio.Divide(Hist_Bkg)
+    for bx in range(0,Hist_SR.GetNbinsX()):
+        for by in range(0,Hist_SR.GetNbinsY()):
+            if Hist_Bkg.GetBinContent(bx+1,by+1)<30: 
+                Hist_Skymap_Ratio.SetBinContent(bx+1,by+1,0.)
+
+    Hist_Skymap_Ratio.GetYaxis().SetTitle(ytitle)
+    Hist_Skymap_Ratio.GetXaxis().SetTitle(xtitle)
+    Hist_Skymap_Ratio.Draw("COL4Z")
+    for star in range(0,len(other_star_markers)):
+        other_star_markers[star].Draw("same")
+        other_star_labels[star].Draw("same")
+    for star in range(0,len(bright_star_markers)):
+        bright_star_markers[star].Draw("same")
+    canvas.SaveAs('output_plots/SkymapRatio_%s.png'%(name))
+
+def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold):
+
+    Hist_Excess = Hist_data.Clone()
+    Hist_Excess.Add(Hist_bkgd,-1.)
+    for bx in range(0,Hist_Excess.GetNbinsX()):
+        for by in range(0,Hist_Excess.GetNbinsY()):
+            if not Hist_sig.GetBinContent(bx+1,by+1)>=highlight_threshold: 
+                Hist_Excess.SetBinContent(bx+1,by+1,0.)
+    excess_center_x_init = Hist_Excess.GetMean(1)
+    excess_center_y_init = Hist_Excess.GetMean(2)
+    excess_radius_init = pow(pow(Hist_Excess.GetRMS(1),2)+pow(Hist_Excess.GetRMS(2),2),0.5)
+
+    Hist_Excess.Reset()
+    Hist_Excess.Add(Hist_data)
+    Hist_Excess.Add(Hist_bkgd,-1.)
+    for bx in range(0,Hist_Excess.GetNbinsX()):
+        for by in range(0,Hist_Excess.GetNbinsY()):
+            bin_delta_ra = Hist_Excess.GetXaxis().GetBinCenter(bx+1)-excess_center_x_init
+            bin_delta_dec = Hist_Excess.GetYaxis().GetBinCenter(by+1)-excess_center_y_init
+            if pow(bin_delta_ra*bin_delta_ra+bin_delta_dec*bin_delta_dec,0.5)>(2.*excess_radius_init):
+                Hist_Excess.SetBinContent(bx+1,by+1,0.)
+    excess_center_x = Hist_Excess.GetMean(1)
+    excess_center_y = Hist_Excess.GetMean(2)
+    excess_radius = pow(pow(Hist_Excess.GetRMS(1),2)+pow(Hist_Excess.GetRMS(2),2),0.5)
+
+    return excess_center_x_init, excess_center_y_init, excess_radius_init
+    #return excess_center_x, excess_center_y, excess_radius
+
 def SingleSourceAnalysis(source_list,doMap):
 
     global ErecS_lower_cut
@@ -1190,6 +1252,21 @@ def SingleSourceAnalysis(source_list,doMap):
 
     Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,'RA','Dec','Skymap_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
     Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_smooth,'gal. l.','gal. b.','Skymap_Smooth_Galactic_MDM_%s%s'%(source_name,PercentCrab))
+
+    Hist_Significance_Skymap_smooth = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Syst_MDM)
+
+    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,5)
+    print 'Excess (5 sigma) center RA = %0.3f'%(excess_center_x)
+    print 'Excess (5 sigma) center Dec = %0.3f'%(excess_center_y)
+    print 'Excess (5 sigma) radius = %0.3f'%(excess_radius)
+    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,4)
+    print 'Excess (4 sigma) center RA = %0.3f'%(excess_center_x)
+    print 'Excess (4 sigma) center Dec = %0.3f'%(excess_center_y)
+    print 'Excess (4 sigma) radius = %0.3f'%(excess_radius)
+    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,3)
+    print 'Excess (3 sigma) center RA = %0.3f'%(excess_center_x)
+    print 'Excess (3 sigma) center Dec = %0.3f'%(excess_center_y)
+    print 'Excess (3 sigma) radius = %0.3f'%(excess_radius)
 
 def FindSourceIndex(source_name):
     for source in range(0,len(sample_list)):
@@ -1310,8 +1387,6 @@ smooth_size = 0.1
 #smooth_size = 0.05
 
 GetGammaSourceInfo()
-print 'other_stars size = %s'%(len(other_stars))
-print 'other_star_coord size = %s'%(len(other_star_coord))
 
 SingleSourceAnalysis(sample_list,True)
 print 'n_good_matches = %s'%(n_good_matches)
