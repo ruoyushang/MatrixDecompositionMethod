@@ -73,6 +73,7 @@ double Ycore = 0.;
 double SizeSecondMax = 0;
 double MSCL = 0;
 double Time = 0;
+int MJD = 0;
 double Shower_Ze = 0;
 double Shower_Az = 0;
 double SlantDepth = 0;
@@ -88,6 +89,8 @@ double theta2 = 0;
 double ra_sky = 0;
 double dec_sky = 0;
 double exposure_hours = 0.;
+int MJD_Start = 2147483647;
+int MJD_End = 0;
 
 int n_expect_matches = 0;
 int n_good_matches = 0;
@@ -628,12 +631,15 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
         TString root_file = "run_"+TString(ON_runnumber)+"/stereo/data_on";
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
         Data_tree->SetBranchAddress("Time",&Time);
+        Data_tree->SetBranchAddress("MJD",&MJD);
         Data_tree->GetEntry(0);
         double time_0 = Time;
         Data_tree->GetEntry(Data_tree->GetEntries()-1);
         double time_1 = Time;
         double exposure_thisrun = (time_1-time_0)/3600.;
         ON_time.push_back(exposure_thisrun);
+        if (MJD<MJD_Start) MJD_Start = MJD;
+        if (MJD>MJD_End) MJD_End = MJD;
         input_file->Close();
     }
 
@@ -1024,6 +1030,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     vector<TH2D> Hist_OnData_SR_CameraFoV;
     vector<TH2D> Hist_OnData_CR_CameraFoV;
     vector<TH2D> Hist_OnData_CR_CameraFoV_Raw;
+    vector<TH1D> Hist_OnData_SR_MJD;
+    vector<TH1D> Hist_OnData_CR_MJD;
     for (int e=0;e<N_energy_fine_bins;e++) 
     {
         char e_low[50];
@@ -1053,6 +1061,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
         Hist_OnData_SR_CameraFoV.push_back(TH2D("Hist_OnData_SR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,-3,3,150,-3,3));
         Hist_OnData_CR_CameraFoV.push_back(TH2D("Hist_OnData_CR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,-3,3,150,-3,3));
         Hist_OnData_CR_CameraFoV_Raw.push_back(TH2D("Hist_OnData_CR_CameraFoV_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,-3,3,150,-3,3));
+        Hist_OnData_SR_MJD.push_back(TH1D("Hist_OnData_SR_MJD_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,MJD_Start-1,MJD_End+1));
+        Hist_OnData_CR_MJD.push_back(TH1D("Hist_OnData_CR_MJD_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,MJD_Start-1,MJD_End+1));
     }
     vector<vector<TH1D>> Hist_OffData_SR_Energy;
     vector<vector<TH1D>> Hist_OffData_CR_Energy;
@@ -1162,7 +1172,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
                 if (!SelectNImages(3,4)) continue;
                 if (SizeSecondMax<600.) continue;
                 if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-                if (R2off>4.) continue;
+                //if (R2off>4.) continue;
                 if (nth_sample==0)
                 {
                     Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
@@ -1264,7 +1274,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
                 if (!SelectNImages(3,4)) continue;
                 if (SizeSecondMax<600.) continue;
                 if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-                if (R2off>4.) continue;
+                //if (R2off>4.) continue;
                 if (DarkFoV() || Dark_runlist.at(nth_sample)[run].first.find("Proton")!=std::string::npos)
                 {
                     if (SignalSelectionTheta2())
@@ -1331,6 +1341,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
         Data_tree->SetBranchAddress("Time",&Time);
         Data_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
         Data_tree->SetBranchAddress("Shower_Az",&Shower_Az);
+        Data_tree->SetBranchAddress("MJD",&MJD);
 
         // Get effective area and livetime and determine the cosmic electron counts for this run.
         //std::cout << "Get effective area and livetime..." << std::endl;
@@ -1378,7 +1389,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
             if (!SelectNImages(3,4)) continue;
             if (SizeSecondMax<600.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-            if (R2off>4.) continue;
+            //if (R2off>4.) continue;
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
@@ -1390,7 +1401,11 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
                 if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
                 {
                     Hist_OnData_SR_Energy.at(energy).Fill(ErecS*1000.);
-                    if (RoIFoV()) Hist_OnData_SR_RoI_Energy.at(energy).Fill(ErecS*1000.);
+                    if (RoIFoV()) 
+                    {
+                        Hist_OnData_SR_RoI_Energy.at(energy).Fill(ErecS*1000.);
+                        Hist_OnData_SR_MJD.at(energy_fine).Fill(MJD);
+                    }
                     Hist_OnData_SR_Skymap_Theta2.at(energy_fine).Fill(theta2);
                     Hist_OnData_SR_Skymap.at(energy_fine).Fill(ra_sky,dec_sky);
                     Hist_OnData_SR_CameraFoV.at(energy_fine).Fill(Xoff,Yoff);
@@ -1414,7 +1429,11 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
                     double weight_e = 0.;
                     if (dark_cr_content_e>0.) weight_e = dark_sr_content_e/dark_cr_content_e;
                     Hist_OnData_CR_Energy.at(energy).Fill(ErecS*1000.,weight_e);
-                    if (RoIFoV()) Hist_OnData_CR_RoI_Energy.at(energy).Fill(ErecS*1000.,weight_e);
+                    if (RoIFoV()) 
+                    {
+                        Hist_OnData_CR_RoI_Energy.at(energy).Fill(ErecS*1000.,weight_e);
+                        Hist_OnData_CR_MJD.at(energy_fine).Fill(MJD);
+                    }
                     Hist_OnData_CR_Skymap_Theta2.at(energy_fine).Fill(theta2,weight);
                     Hist_OnData_CR_Skymap_Theta2_Raw.at(energy_fine).Fill(theta2,1.);
                     Hist_OnData_CR_CameraFoV_Theta2.at(energy_fine).Fill(R2off,weight);
@@ -1756,6 +1775,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     InfoTree.Branch("MSCW_cut_blind",&MSCW_cut_blind,"MSCW_cut_blind/D");
     InfoTree.Branch("MSCL_cut_blind",&MSCL_cut_blind,"MSCL_cut_blind/D");
     InfoTree.Branch("exposure_hours",&exposure_hours,"exposure_hours/D");
+    InfoTree.Branch("MJD_Start",&MJD_Start,"MJD_Start/I");
+    InfoTree.Branch("MJD_End",&MJD_End,"MJD_End/I");
     InfoTree.Branch("mean_tele_point_ra",&mean_tele_point_ra,"mean_tele_point_ra/D");
     InfoTree.Branch("mean_tele_point_dec",&mean_tele_point_dec,"mean_tele_point_dec/D");
     InfoTree.Branch("mean_tele_point_l",&mean_tele_point_l,"mean_tele_point_l/D");
@@ -1836,6 +1857,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
         Hist_OnData_SR_CameraFoV.at(e).Write();
         Hist_OnData_CR_CameraFoV.at(e).Write();
         Hist_OnData_CR_CameraFoV_Raw.at(e).Write();
+        Hist_OnData_SR_MJD.at(e).Write();
+        Hist_OnData_CR_MJD.at(e).Write();
     }
     OutputFile.Close();
 

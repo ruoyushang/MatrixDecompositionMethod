@@ -41,6 +41,8 @@ source_dec = 0.
 source_l = 0.
 source_b = 0.
 n_control_samples = 5
+MJD_Start = 2147483647
+MJD_End = 0
 
 Syst_MDM = 0.02
 
@@ -103,8 +105,8 @@ sky_coord = []
 #sky_coord += ['03 19 47 +18 45 42']
 #sample_list += ['PG1553V6']
 #sky_coord += ['15 55 44.7 +11 11 41']
-#sample_list += ['Segue1V6']
-#sky_coord += ['10 07 04 +16 04 55']
+sample_list += ['Segue1V6']
+sky_coord += ['10 07 04 +16 04 55']
 #sample_list += ['Segue1V5']
 #sky_coord += ['10 07 04 +16 04 55']
 #sample_list += ['ComaV6']
@@ -119,8 +121,8 @@ sky_coord = []
 #sky_coord += ['14 42 48.277 +12 00 40.37']
 #sample_list += ['1ES1741V6']
 #sky_coord += ['17 44 01.2 +19 32 47']
-sample_list += ['IC443HotSpot']
-sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpot']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['IC443HotSpotV5']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['RGBJ0710']
@@ -270,6 +272,8 @@ def GetSourceInfo(file_list):
     global source_dec
     global source_l
     global source_b
+    global MJD_Start
+    global MJD_End
 
     n_good_matches = 0
     exposure_hours = 0.
@@ -287,6 +291,8 @@ def GetSourceInfo(file_list):
         source_dec = InfoTree.mean_tele_point_dec
         source_l = InfoTree.mean_tele_point_l
         source_b = InfoTree.mean_tele_point_b
+        MJD_Start = min(InfoTree.MJD_Start,MJD_Start)
+        MJD_End = max(InfoTree.MJD_End,MJD_End)
         HistName = "Hist_EffArea"
         Hist_EffArea.Reset()
         Hist_EffArea.Add(InputFile.Get(HistName))
@@ -444,7 +450,15 @@ def IntegralAndError(Hist,bin1,bin2):
         error = 1.
     return integral, error
 
-def MakeChi2Plot(Hists,legends,colors,title,name,doSum,range_lower,range_upper,syst):
+def set_histStyle( hist , color):
+    hist.SetFillColor(color)
+    #hist.SetLineColor(1)
+    hist.SetLineColor(color)
+    hist.SetMarkerColor(color)
+    hist.SetFillStyle(1001)
+    pass
+
+def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,range_upper,syst):
     
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
     pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
@@ -480,47 +494,35 @@ def MakeChi2Plot(Hists,legends,colors,title,name,doSum,range_lower,range_upper,s
                 max_hist = h
     Hists[max_hist].Draw("E")
 
-    fill_color = [0,0,0,30,38,46]
-    if doSum:
-        stack = ROOT.THStack("stack", "")
-        Hist_Sum = Hists[1].Clone()
-        Hist_Sum.Reset()
-        Hist_Sys = Hists[1].Clone()
-        Hist_Sys.Reset()
-        for h in range(0,len(Hists)):
-            if colors[h]==1: continue
-            if colors[h]==2: continue
-            if not legends[h]=='syst.':
-                set_histStyle( Hists[h] , fill_color[colors[h]])
-                stack.Add( Hists[h] )
-                Hist_Sum.Add( Hists[h] )
-            else:
-                Hist_Sys.Add( Hists[h] )
-        stack.Draw("hist same")
-        Hist_Err = Hist_Sum.Clone()
-        for binx in range(0,Hist_Err.GetNbinsX()):
-            old_err = Hist_Err.GetBinError(binx+1)
-            new_err = Hist_Sys.GetBinContent(binx+1)
-            Hist_Err.SetBinError(binx+1,pow(old_err*old_err+new_err*new_err,0.5))
-        Hist_Err.SetFillColor(1)
-        Hist_Err.SetFillStyle(3004)
-        Hist_Err.SetMarkerSize(0)
-        Hist_Err.Draw("e2 same")
-
     Hist_Bkgd = Hists[1].Clone()
     Hist_Bkgd.Reset()
     Hist_Syst = Hists[1].Clone()
     Hist_Syst.Reset()
     found_syst_hist = False
     for h in range(0,len(Hists)):
-        if colors[h]==0 or colors[h]==4:
-            Hist_Syst.Add(Hists[h].Clone())
+        if stack_it[h] or 'syst' in legends[h]:
+            Hist_Syst.Add(Hists[h])
             found_syst_hist = True
         if colors[h]==4:
             Hist_Bkgd.Add(Hists[h].Clone())
     if not found_syst_hist:
         for binx in range(0,Hist_Syst.GetNbinsX()):
-            Hist_Syst.SetBinError(binx+1,Syst_MDM*Hist_Syst.GetBinContent(binx+1))
+            syst_err = Syst_MDM*Hist_Syst.GetBinContent(binx+1)
+            stat_err = Hist_Bkgd.GetBinError(binx+1)
+            Hist_Syst.SetBinError(binx+1,pow(syst_err*syst_err+stat_err*stat_err,0.5))
+
+    fill_color = [0,0,0,30,38,46]
+    if doSum:
+        stack = ROOT.THStack("stack", "")
+        for h in range(1,len(Hists)):
+            if stack_it[h]:
+                set_histStyle( Hists[h] , fill_color[colors[h]])
+                stack.Add( Hists[h] )
+        stack.Draw("hist same")
+        Hist_Syst.SetFillColor(1)
+        Hist_Syst.SetFillStyle(3004)
+        Hist_Syst.SetMarkerSize(0)
+        Hist_Syst.Draw("e2 same")
 
     for h in range(0,len(Hists)):
         if colors[h]==0: continue
@@ -624,66 +626,114 @@ def PlotsStackedHistograms(tag):
     Hists = []
     legends = []
     colors = []
+    stack_it = []
     Hists += [Hist_OnData_MSCW_Sum]
     legends += ['obs. data']
     colors += [1]
+    stack_it += [False]
     Hists += [Hist_OnDark_MSCW_Sum]
     legends += ['init. bkg.']
     colors += [2]
+    stack_it += [False]
     Hists += [Hist_OnBkgd_MSCW_Sum]
     legends += ['predict. bkg.']
     colors += [4]
+    stack_it += [True]
     Hists += [Hist_SystErr_MSCW]
     legends += ['syst. error']
     colors += [0]
+    stack_it += [False]
     plotname = 'Stack_MSCW_MDM_%s'%(tag)
     title = 'MSCW'
-    MakeChi2Plot(Hists,legends,colors,title,plotname,False,MSCW_lower_cut,MSCW_blind_cut,-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_lower_cut,MSCW_blind_cut,-1)
 
     Hists = []
     legends = []
     colors = []
+    stack_it = []
     Hists += [Hist_OnData_MSCL_Sum]
     legends += ['obs. data']
     colors += [1]
+    stack_it += [False]
     Hists += [Hist_OnDark_MSCL_Sum]
     legends += ['init. bkg.']
     colors += [2]
+    stack_it += [False]
     Hists += [Hist_OnBkgd_MSCL_Sum]
     legends += ['predict. bkg.']
     colors += [4]
+    stack_it += [True]
     Hists += [Hist_SystErr_MSCL]
     legends += ['syst. error']
     colors += [0]
+    stack_it += [False]
     plotname = 'Stack_MSCL_MDM_%s'%(tag)
     title = 'MSCL'
-    MakeChi2Plot(Hists,legends,colors,title,plotname,False,MSCL_lower_cut,MSCL_blind_cut,-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_lower_cut,MSCL_blind_cut,-1)
 
     Hists = []
     legends = []
     colors = []
+    stack_it = []
     Hists += [Hist_OnData_Theta2_Sum]
     legends += ['obs. data']
     colors += [1]
+    stack_it += [False]
     Hists += [Hist_OnBkgd_Theta2_Sum]
     legends += ['predict. bkg.']
     colors += [4]
+    stack_it += [True]
     plotname = 'Stack_Theta2_MDM_%s'%(tag)
     title = 'squared angle from source location #theta^{2}'
-    MakeChi2Plot(Hists,legends,colors,title,plotname,False,0.,1.,-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
 
     Hists = []
     legends = []
     colors = []
+    stack_it = []
+    Hists += [Hist_OnData_MJD_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_MJD_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    plotname = 'Stack_MJD_MDM_%s'%(tag)
+    title = 'MJD'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
     Hists += [Hist_OnData_Energy_Sum]
     legends += ['obs. data']
     colors += [1]
+    stack_it += [False]
     Hists += [Hist_OnBkgd_Energy_Sum]
     legends += ['predict. bkg.']
     colors += [4]
+    stack_it += [True]
     plotname = 'Stack_Energy_MDM_%s'%(tag)
     title = 'energy [GeV]'
-    MakeChi2Plot(Hists,legends,colors,title,plotname,False,0.,pow(10,4.0),-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_RoI_Energy_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_RoI_Energy_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    plotname = 'Stack_RoI_Energy_MDM_%s'%(tag)
+    title = 'energy [GeV]'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
 
     for nth_sample in range(0,n_control_samples-1):
@@ -691,60 +741,74 @@ def PlotsStackedHistograms(tag):
         Hists = []
         legends = []
         colors = []
+        stack_it = []
         Hists += [Hist_OffData_MSCW_Sum[nth_sample]]
         legends += ['obs. data']
         colors += [1]
+        stack_it += [False]
         Hists += [Hist_OffDark_MSCW_Sum[nth_sample]]
         legends += ['init. bkg.']
         colors += [2]
+        stack_it += [False]
         Hists += [Hist_OffBkgd_MSCW_Sum[nth_sample]]
         legends += ['predict. bkg.']
         colors += [4]
+        stack_it += [False]
         plotname = 'Stack_MSCW_MDM_%s_Control%s'%(tag,nth_sample)
         title = 'MSCW'
-        MakeChi2Plot(Hists,legends,colors,title,plotname,False,MSCW_lower_cut,MSCW_blind_cut,-1)
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,MSCW_lower_cut,MSCW_blind_cut,-1)
 
         Hists = []
         legends = []
         colors = []
+        stack_it = []
         Hists += [Hist_OffData_MSCL_Sum[nth_sample]]
         legends += ['obs. data']
         colors += [1]
+        stack_it += [False]
         Hists += [Hist_OffDark_MSCL_Sum[nth_sample]]
         legends += ['init. bkg.']
         colors += [2]
+        stack_it += [False]
         Hists += [Hist_OffBkgd_MSCL_Sum[nth_sample]]
         legends += ['predict. bkg.']
         colors += [4]
+        stack_it += [False]
         plotname = 'Stack_MSCL_MDM_%s_Control%s'%(tag,nth_sample)
         title = 'MSCL'
-        MakeChi2Plot(Hists,legends,colors,title,plotname,False,MSCL_lower_cut,MSCL_blind_cut,-1)
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,MSCL_lower_cut,MSCL_blind_cut,-1)
 
         Hists = []
         legends = []
         colors = []
+        stack_it = []
         Hists += [Hist_OffData_Energy_Sum[nth_sample]]
         legends += ['obs. data']
         colors += [1]
+        stack_it += [False]
         Hists += [Hist_OffBkgd_Energy_Sum[nth_sample]]
         legends += ['predict. bkg.']
         colors += [4]
+        stack_it += [False]
         plotname = 'Stack_Energy_MDM_%s_Control%s'%(tag,nth_sample)
         title = 'energy [GeV]'
-        MakeChi2Plot(Hists,legends,colors,title,plotname,False,0.,1.,-1)
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,0.,1.,-1)
 
         Hists = []
         legends = []
         colors = []
+        stack_it = []
         Hists += [Hist_OffData_CameraFoV_Theta2_Sum[nth_sample]]
         legends += ['obs. data']
         colors += [1]
+        stack_it += [False]
         Hists += [Hist_OffBkgd_CameraFoV_Theta2_Sum[nth_sample]]
         legends += ['predict. bkg.']
         colors += [4]
+        stack_it += [False]
         plotname = 'Stack_CameraFoV_Theta2_MDM_%s_Control%s'%(tag,nth_sample)
         title = 'squared angle from camera center #theta^{2}'
-        MakeChi2Plot(Hists,legends,colors,title,plotname,False,0.,1.,-1)
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,0.,1.,-1)
 
 def CalculateSystError():
 
@@ -827,9 +891,18 @@ def NormalizeEnergyHistograms(FilePath):
     Hist_OnBkgd_Energy.Reset()
     Hist_OnBkgd_Energy.Add(InputFile.Get(HistName))
 
+    HistName = "Hist_OnData_SR_RoI_Energy_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnData_RoI_Energy.Reset()
+    Hist_OnData_RoI_Energy.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_CR_RoI_Energy_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnBkgd_RoI_Energy.Reset()
+    Hist_OnBkgd_RoI_Energy.Add(InputFile.Get(HistName))
+
     if Hist2D_OnData.Integral()<1600.:
         Hist_OnData_Energy.Reset()
         Hist_OnBkgd_Energy.Reset()
+        Hist_OnData_RoI_Energy.Reset()
+        Hist_OnBkgd_RoI_Energy.Reset()
 
     bkg_total, bkg_err = IntegralAndError(Hist_OnBkgd_MSCW,bin_lower,bin_upper)
     old_integral = Hist_OnBkgd_Energy.Integral()
@@ -843,8 +916,10 @@ def NormalizeEnergyHistograms(FilePath):
         bkgd_scale_err = 0
     if not bkg_total==0:
         Theta2HistScale(Hist_OnBkgd_Energy,bkgd_scale,bkgd_scale_err)
+        Theta2HistScale(Hist_OnBkgd_RoI_Energy,bkgd_scale,bkgd_scale_err)
     else:
         Hist_OnBkgd_Energy.Scale(0)
+        Hist_OnBkgd_RoI_Energy.Scale(0)
 
     for nth_sample in range(0,n_control_samples-1):
 
@@ -923,10 +998,44 @@ def NormalizeTheta2Histograms(FilePath):
     else:
         Hist_OnBkgd_Theta2.Scale(0)
 
+    HistName = "Hist_OnData_SR_MJD_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnData_MJD.Reset()
+    Hist_OnData_MJD.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_CR_MJD_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnBkgd_MJD.Reset()
+    Hist_OnBkgd_MJD.Add(InputFile.Get(HistName))
+
+    if Hist2D_OnData.Integral()<1600.:
+        Hist_OnData_MJD.Reset()
+        Hist_OnBkgd_MJD.Reset()
+
+    bkg_total, bkg_err = IntegralAndError(Hist_OnBkgd_RoI_Energy,bin_lower,bin_upper)
+    if bkg_total==0.:
+        Hist_OnData_MJD.Reset()
+        Hist_OnBkgd_MJD.Reset()
+        return
+
+    old_integral = Hist_OnBkgd_MJD.Integral()
+    bkgd_scale = 0
+    bkgd_scale_err = 0
+    if not bkg_total==0 and not old_integral==0:
+        bkgd_scale = bkg_total/old_integral
+        bkgd_scale_err = bkgd_scale*(bkg_err/bkg_total)
+    else:
+        bkgd_scale = 0
+        bkgd_scale_err = 0
+    if not bkg_total==0:
+        Theta2HistScale(Hist_OnBkgd_MJD,bkgd_scale,bkgd_scale_err)
+    else:
+        Hist_OnBkgd_MJD.Scale(0)
+
+
 def StackEnergyHistograms():
 
     Hist_OnData_Energy_Sum.Add(Hist_OnData_Energy)
     Hist_OnBkgd_Energy_Sum.Add(Hist_OnBkgd_Energy)
+    Hist_OnData_RoI_Energy_Sum.Add(Hist_OnData_RoI_Energy)
+    Hist_OnBkgd_RoI_Energy_Sum.Add(Hist_OnBkgd_RoI_Energy)
 
     for nth_sample in range(0,n_control_samples-1):
 
@@ -938,6 +1047,8 @@ def StackTheta2Histograms():
     Hist_OnData_Theta2_Sum.Add(Hist_OnData_Theta2)
     Hist_OnBkgd_Theta2_Sum.Add(Hist_OnBkgd_Theta2)
     Hist_OnBkgd_R2off_Sum.Add(Hist_OnBkgd_R2off)
+    Hist_OnData_MJD_Sum.Add(Hist_OnData_MJD)
+    Hist_OnBkgd_MJD_Sum.Add(Hist_OnBkgd_MJD)
 
 def NormalizeCameraFoVHistograms(FilePath):
 
@@ -1223,6 +1334,34 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
         bright_star_markers[star].Draw("same")
     canvas.SaveAs('output_plots/SkymapRatio_%s.png'%(name))
 
+    MapEdge_left = Hist_Skymap_Excess.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = Hist_Skymap_Excess.GetXaxis().GetBinLowEdge(Hist_Skymap_Excess.GetNbinsX()+1)
+    MapEdge_lower = Hist_Skymap_Excess.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = Hist_Skymap_Excess.GetYaxis().GetBinLowEdge(Hist_Skymap_Excess.GetNbinsY()+1)
+    MapCenter_x = (MapEdge_right+MapEdge_left)/2.
+    MapCenter_y = (MapEdge_upper+MapEdge_lower)/2.
+    MapSize_x = (MapEdge_right-MapEdge_left)/2.
+    MapSize_y = (MapEdge_upper-MapEdge_lower)/2.
+    Hist_Skymap_zoomin = ROOT.TH2D("Hist_Skymap_zoomin","",50,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,50,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
+    Hist_Skymap_zoomin.Rebin2D(n_rebin,n_rebin)
+    for bx in range(0,Hist_Skymap_Excess.GetNbinsX()):
+        for by in range(0,Hist_Skymap_Excess.GetNbinsY()):
+            bx_center = Hist_Skymap_Excess.GetXaxis().GetBinCenter(bx+1)
+            by_center = Hist_Skymap_Excess.GetYaxis().GetBinCenter(by+1)
+            bx2 = Hist_Skymap_zoomin.GetXaxis().FindBin(bx_center)
+            by2 = Hist_Skymap_zoomin.GetYaxis().FindBin(by_center)
+            Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Skymap.GetBinContent(bx+1,by+1))
+
+    Hist_Skymap_zoomin.GetYaxis().SetTitle(ytitle)
+    Hist_Skymap_zoomin.GetXaxis().SetTitle(xtitle)
+    Hist_Skymap_zoomin.Draw("COL4Z")
+    for star in range(0,len(other_star_markers)):
+        other_star_markers[star].Draw("same")
+        other_star_labels[star].Draw("same")
+    for star in range(0,len(bright_star_markers)):
+        bright_star_markers[star].Draw("same")
+    canvas.SaveAs('output_plots/SkymapZoomin_%s.png'%(name))
+
 def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold):
 
     Hist_Excess = Hist_data.Clone()
@@ -1270,6 +1409,7 @@ def SingleSourceAnalysis(source_list,doMap):
             InputFile = ROOT.TFile(FilePath_List[len(FilePath_List)-1])
             InfoTree = InputFile.Get("InfoTree")
             InfoTree.GetEntry(0)
+
             MSCW_blind_cut = InfoTree.MSCW_cut_blind
             MSCL_blind_cut = InfoTree.MSCL_cut_blind
             bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_lower_cut)
@@ -1368,6 +1508,10 @@ Hist_OnData_Energy_Sum = ROOT.TH1D("Hist_OnData_Energy_Sum","",len(energy_fine_b
 Hist_OnBkgd_Energy_Sum = ROOT.TH1D("Hist_OnBkgd_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnData_Energy = ROOT.TH1D("Hist_OnData_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnBkgd_Energy = ROOT.TH1D("Hist_OnBkgd_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_OnData_RoI_Energy_Sum = ROOT.TH1D("Hist_OnData_RoI_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_OnBkgd_RoI_Energy_Sum = ROOT.TH1D("Hist_OnBkgd_RoI_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_OnData_RoI_Energy = ROOT.TH1D("Hist_OnData_RoI_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_OnBkgd_RoI_Energy = ROOT.TH1D("Hist_OnBkgd_RoI_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 
 Hist_EffArea = ROOT.TH1D("Hist_EffArea","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_EffArea_Sum = ROOT.TH1D("Hist_EffArea_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
@@ -1387,7 +1531,6 @@ for elev in range(0,len(elev_range)):
         continue
     else:
         GetSourceInfo(FilePath_Folder)
-        break
 Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",150,source_ra-3,source_ra+3,150,source_dec-3,source_dec+3)
 Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",150,source_ra-3,source_ra+3,150,source_dec-3,source_dec+3)
 Hist_OnData_Skymap_Sum = ROOT.TH2D("Hist_OnData_Skymap_Sum","",150,source_ra-3,source_ra+3,150,source_dec-3,source_dec+3)
@@ -1396,6 +1539,12 @@ Hist_OnData_Skymap_Galactic = ROOT.TH2D("Hist_OnData_Skymap_Galactic","",150,sou
 Hist_OnBkgd_Skymap_Galactic = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic","",150,source_l-3,source_l+3,150,source_b-3,source_b+3)
 Hist_OnData_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_Skymap_Galactic_Sum","",150,source_l-3,source_l+3,150,source_b-3,source_b+3)
 Hist_OnBkgd_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sum","",150,source_l-3,source_l+3,150,source_b-3,source_b+3)
+print 'MJD_Start = %s'%(MJD_Start)
+print 'MJD_End = %s'%(MJD_End)
+Hist_OnData_MJD = ROOT.TH1D("Hist_OnData_MJD","",20,MJD_Start-1,MJD_End+1)
+Hist_OnBkgd_MJD = ROOT.TH1D("Hist_OnBkgd_MJD","",20,MJD_Start-1,MJD_End+1)
+Hist_OnData_MJD_Sum = ROOT.TH1D("Hist_OnData_MJD_Sum","",20,MJD_Start-1,MJD_End+1)
+Hist_OnBkgd_MJD_Sum = ROOT.TH1D("Hist_OnBkgd_MJD_Sum","",20,MJD_Start-1,MJD_End+1)
 
 Hist_SystErr_MSCL = ROOT.TH1D("Hist_SystErr_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_SystErr_MSCW = ROOT.TH1D("Hist_SystErr_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
