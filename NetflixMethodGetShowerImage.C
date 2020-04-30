@@ -106,7 +106,7 @@ vector<vector<double>> GammaSource_Data;
 bool CoincideWithBrightStars(double ra, double dec)
 {
     bool isCoincident = false;
-    double brightness_cut = 7.0;
+    double brightness_cut = 5.0;
     double radius_cut = 0.25;
     for (int star=0;star<BrightStars_Data.size();star++)
     {
@@ -123,7 +123,7 @@ bool CoincideWithBrightStars(double ra, double dec)
 bool CoincideWithGammaSources(double ra, double dec)
 {
     bool isCoincident = false;
-    double radius_cut = 0.4;
+    double radius_cut = 0.25;
     for (int star=0;star<GammaSource_Data.size();star++)
     {
         double star_ra = GammaSource_Data.at(star).at(0);
@@ -414,7 +414,7 @@ void GetGammaSources()
 
 void GetBrightStars()
 {
-    double brightness_cut = 7.0;
+    double brightness_cut = 5.0;
     std::ifstream astro_file("/home/rshang/EventDisplay/aux/AstroData/Catalogues/Hipparcos_MAG8_1997.dat");
     std::string line;
     // Read one line at a time into the variable line:
@@ -435,7 +435,7 @@ void GetBrightStars()
         if (lineData.size()!=5) continue;
         double star_ra = lineData.at(0);
         double star_dec = lineData.at(1);
-        double star_brightness = lineData.at(3);
+        double star_brightness = lineData.at(3)+lineData.at(4);
         if (star_brightness>brightness_cut) continue;
         if (pow((mean_tele_point_ra-star_ra)*(mean_tele_point_ra-star_ra)+(mean_tele_point_dec-star_dec)*(mean_tele_point_dec-star_dec),0.5)>6.) continue;
         BrightStars_Data.push_back(lineData);
@@ -1030,8 +1030,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
         sprintf(e_low, "%i", int(energy_fine_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_fine_bins[e+1]));
-        Hist_OnDark_SR_CameraFoV.push_back(TH2D("Hist_OnDark_SR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,0,5,6,0,2*M_PI));
-        Hist_OnDark_CR_CameraFoV.push_back(TH2D("Hist_OnDark_CR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,0,5,6,0,2*M_PI));
+        Hist_OnDark_SR_CameraFoV.push_back(TH2D("Hist_OnDark_SR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,5,6,0,2*M_PI));
+        Hist_OnDark_CR_CameraFoV.push_back(TH2D("Hist_OnDark_CR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,5,6,0,2*M_PI));
         Hist_OnDark_SR_Theta2.push_back(TH1D("Hist_OnDark_SR_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,10));
         Hist_OnDark_CR_Theta2.push_back(TH1D("Hist_OnDark_CR_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,10));
         Hist_OnData_SR_Skymap_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
@@ -1176,22 +1176,22 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
                         {
                             Hist_OffDark_MSCLW.at(nth_other_sample-1).at(energy).Fill(MSCL,MSCW);
                         }
-                        if (SignalSelectionTheta2())
-                        {
-                            Hist_OnDark_SR_CameraFoV.at(energy_fine).Fill(R2off,Phioff);
-                            Hist_OnDark_SR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff);
-                            Hist_OnDark_SR_Energy.at(energy).Fill(ErecS*1000.);
-                        }
-                        if (ControlSelectionTheta2())
-                        {
-                            Hist_OnDark_CR_CameraFoV.at(energy_fine).Fill(R2off,Phioff);
-                            Hist_OnDark_CR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff);
-                            Hist_OnDark_CR_Energy.at(energy).Fill(ErecS*1000.);
-                        }
                     }
                     else
                     {
                         Hist_OffData_MSCLW.at(nth_sample-1).at(energy).Fill(MSCL,MSCW);
+                    }
+                    if (SignalSelectionTheta2())
+                    {
+                        Hist_OnDark_SR_CameraFoV.at(energy_fine).Fill(R2off,Phioff);
+                        Hist_OnDark_SR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff);
+                        Hist_OnDark_SR_Energy.at(energy).Fill(ErecS*1000.);
+                    }
+                    if (ControlSelectionTheta2())
+                    {
+                        Hist_OnDark_CR_CameraFoV.at(energy_fine).Fill(R2off,Phioff);
+                        Hist_OnDark_CR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff);
+                        Hist_OnDark_CR_Energy.at(energy).Fill(ErecS*1000.);
                     }
                 }
             }

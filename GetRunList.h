@@ -225,8 +225,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("H1426");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("Crab");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            //list_temp = GetRunListFromFile("Crab");
+            //list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("S3_1227_V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("1ES0229");
@@ -239,8 +239,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("RGBJ0710");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("Mrk421");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            //list_temp = GetRunListFromFile("Mrk421");
+            //list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("WComaeV6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("OJ287V6");
@@ -296,8 +296,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("Segue1V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("CrabV5");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            //list_temp = GetRunListFromFile("CrabV5");
+            //list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("WComaeV5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("MGRO_J1908_MatchedDark_V5");

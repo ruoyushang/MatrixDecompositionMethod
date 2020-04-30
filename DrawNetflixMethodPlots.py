@@ -119,8 +119,8 @@ sky_coord = []
 #sky_coord += ['14 42 48.277 +12 00 40.37']
 #sample_list += ['1ES1741V6']
 #sky_coord += ['17 44 01.2 +19 32 47']
-#sample_list += ['IC443HotSpot']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
+sample_list += ['IC443HotSpot']
+sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['IC443HotSpotV5']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['RGBJ0710']
@@ -139,8 +139,8 @@ sky_coord = []
 #sky_coord += ['12 21 26.3 +30 11 29']
 #sample_list += ['CygnusV6']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
-sample_list += ['MGRO_J1908_V6_new']
-sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V6_new']
+#sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['MGRO_J1908_V5']
 #sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['GemingaV6']
@@ -844,7 +844,7 @@ def NormalizeEnergyHistograms(FilePath):
     if not bkg_total==0:
         Theta2HistScale(Hist_OnBkgd_Energy,bkgd_scale,bkgd_scale_err)
     else:
-        Hist_Bkgd_Energy.Scale(0)
+        Hist_OnBkgd_Energy.Scale(0)
 
     for nth_sample in range(0,n_control_samples-1):
 
@@ -872,7 +872,7 @@ def NormalizeEnergyHistograms(FilePath):
         if not bkg_total==0:
             Theta2HistScale(Hist_OffBkgd_Energy[nth_sample],bkgd_scale,bkgd_scale_err)
         else:
-            Hist_Bkgd_Energy.Scale(0)
+            Hist_OffBkgd_Energy[nth_sample].Scale(0)
 
 def NormalizeTheta2Histograms(FilePath):
 
