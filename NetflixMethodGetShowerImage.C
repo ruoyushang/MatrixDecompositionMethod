@@ -109,7 +109,8 @@ vector<vector<double>> GammaSource_Data;
 bool CoincideWithBrightStars(double ra, double dec)
 {
     bool isCoincident = false;
-    double brightness_cut = 5.0;
+    //double brightness_cut = 5.0;
+    double brightness_cut = 4.0;
     double radius_cut = 0.25;
     for (int star=0;star<BrightStars_Data.size();star++)
     {
@@ -417,7 +418,8 @@ void GetGammaSources()
 
 void GetBrightStars()
 {
-    double brightness_cut = 5.0;
+    //double brightness_cut = 5.0;
+    double brightness_cut = 4.0;
     std::ifstream astro_file("/home/rshang/EventDisplay/aux/AstroData/Catalogues/Hipparcos_MAG8_1997.dat");
     std::string line;
     // Read one line at a time into the variable line:
@@ -1061,8 +1063,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
         Hist_OnData_SR_CameraFoV.push_back(TH2D("Hist_OnData_SR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,-3,3,150,-3,3));
         Hist_OnData_CR_CameraFoV.push_back(TH2D("Hist_OnData_CR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,-3,3,150,-3,3));
         Hist_OnData_CR_CameraFoV_Raw.push_back(TH2D("Hist_OnData_CR_CameraFoV_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,-3,3,150,-3,3));
-        Hist_OnData_SR_MJD.push_back(TH1D("Hist_OnData_SR_MJD_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,MJD_Start-1,MJD_End+1));
-        Hist_OnData_CR_MJD.push_back(TH1D("Hist_OnData_CR_MJD_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,MJD_Start-1,MJD_End+1));
+        Hist_OnData_SR_MJD.push_back(TH1D("Hist_OnData_SR_MJD_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",800,56200-4000,56200+4000));
+        Hist_OnData_CR_MJD.push_back(TH1D("Hist_OnData_CR_MJD_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",800,56200-4000,56200+4000));
     }
     vector<vector<TH1D>> Hist_OffData_SR_Energy;
     vector<vector<TH1D>> Hist_OffData_CR_Energy;
@@ -1390,6 +1392,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
             if (SizeSecondMax<600.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
             //if (R2off>4.) continue;
+            if (TString(target).Contains("Crab") && theta2<0.3) continue;
+            if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
