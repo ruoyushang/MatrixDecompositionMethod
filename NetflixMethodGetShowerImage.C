@@ -105,6 +105,7 @@ double roi_dec = 0.;
 double roi_radius = 0.;
 vector<vector<double>> BrightStars_Data;
 vector<vector<double>> GammaSource_Data;
+vector<double> Dark_weight;
 
 bool CoincideWithBrightStars(double ra, double dec)
 {
@@ -611,6 +612,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
 {
 
     std::cout << "Load ON run info" << std::endl;
+    TH2D Hist_OnData_ElevNSB = TH2D("Hist_OnData_ElevNSB","",8,4,8,18,0,90);
     vector<pair<double,double>> ON_pointing;
     vector<pair<double,double>> ON_pointing_radec;
     vector<double> ON_time;
@@ -642,10 +644,12 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
         ON_time.push_back(exposure_thisrun);
         if (MJD<MJD_Start) MJD_Start = MJD;
         if (MJD>MJD_End) MJD_End = MJD;
+        Hist_OnData_ElevNSB.Fill(ON_NSB[ON_NSB.size()-1],ON_pointing[ON_pointing.size()-1].first,exposure_thisrun);
         input_file->Close();
     }
 
     std::cout << "Load OFF run info" << std::endl;
+    TH2D Hist_OffData_ElevNSB = TH2D("Hist_OffData_ElevNSB","",8,4,8,18,0,90);
     vector<pair<double,double>> OFF_pointing;
     vector<pair<double,double>> OFF_pointing_radec;
     vector<double> OFF_time;
@@ -674,6 +678,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
         double time_1 = Time;
         double exposure_thisrun = (time_1-time_0)/3600.;
         OFF_time.push_back(exposure_thisrun);
+        Hist_OffData_ElevNSB.Fill(OFF_NSB[OFF_NSB.size()-1],OFF_pointing[OFF_pointing.size()-1].first,exposure_thisrun);
         input_file->Close();
     }
 
@@ -685,9 +690,28 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
         new_list.push_back(the_runs);
     }
     vector<pair<double,double>> ON_pointing_radec_new;
-    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
+    for (int off_run=0;off_run<OFF_runlist.size();off_run++)
     {
-        for (int on_run=0;on_run<ON_runlist.size();on_run++)
+        bool already_used_run = false;
+        for (int new_run=0;new_run<new_list.at(0).size();new_run++)
+        {
+            if (int(new_list.at(0)[new_run].second)==int(OFF_runlist[off_run].second)) already_used_run = true;
+        }
+        if (already_used_run) continue;
+        int bin_nsb = Hist_OnData_ElevNSB.GetXaxis()->FindBin(OFF_NSB[off_run]);
+        int bin_elev = Hist_OnData_ElevNSB.GetYaxis()->FindBin(OFF_pointing[off_run].first);
+        double weight_on = Hist_OnData_ElevNSB.GetBinContent(bin_nsb,bin_elev);
+        double weight_off = Hist_OffData_ElevNSB.GetBinContent(bin_nsb,bin_elev);
+        pair<string,int> best_match;
+        best_match = OFF_runlist[off_run];
+        new_list.at(0).push_back(best_match);
+        double weight = 0.;
+        if (weight_off>0.) weight = weight_on/weight_off;
+        Dark_weight.push_back(weight);
+    }
+    for (int on_run=0;on_run<ON_runlist.size();on_run++)
+    {
+        for (int nth_sample=1;nth_sample<n_control_samples;nth_sample++)
         {
             std::cout << "Finding match for " << on_run << "-th ON run in " << nth_sample << "-th sample." << std::endl;
             double accumulated_time = 0.;
@@ -714,7 +738,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                         if (int(ON_runlist[on_run2].second)==int(OFF_runlist[off_run].second)) continue; // this OFF run is in ON runlist
                     }
                     bool already_used_run = false;
-                    for (int nth_sample_newrun=0;nth_sample_newrun<n_control_samples;nth_sample_newrun++)
+                    for (int nth_sample_newrun=1;nth_sample_newrun<n_control_samples;nth_sample_newrun++)
                     {
                         for (int new_run=0;new_run<new_list.at(nth_sample_newrun).size();new_run++)
                         {
@@ -922,10 +946,10 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
     {
         std::cout << "final Dark_runlist size = " << Dark_runlist.at(nth_sample).size() << std::endl;
-        for (int nth_run=0;nth_run<Dark_runlist.at(nth_sample).size();nth_run++)
-        {
-            std::cout << Dark_runlist.at(nth_sample).at(nth_run).first << ", " << Dark_runlist.at(nth_sample).at(nth_run).second << std::endl;
-        }
+        //for (int nth_run=0;nth_run<Dark_runlist.at(nth_sample).size();nth_run++)
+        //{
+        //    std::cout << Dark_runlist.at(nth_sample).at(nth_run).first << ", " << Dark_runlist.at(nth_sample).at(nth_run).second << std::endl;
+        //}
     }
     vector<int> Dark_runlist_primary;
     for (int run=0;run<Dark_runlist.at(0).size();run++)
@@ -958,6 +982,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     TH2D Hist_Dark_ShowerDirection = TH2D("Hist_Dark_ShowerDirection","",180,0,360,90,0,90);
     TH2D Hist_Data_ShowerDirection = TH2D("Hist_Data_ShowerDirection","",180,0,360,90,0,90);
     TH2D Hist_Data_MSCLW_incl = TH2D("Hist_Data_MSCLW_incl","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+    TH2D Hist_Dark_ElevNSB = TH2D("Hist_Dark_ElevNSB","",20,4,8,90,0,90);
+    TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,4,8,90,0,90);
 
     vector<TH2D> Hist_GammaDark_MSCLW;
     vector<TH2D> Hist_GammaMC_MSCLW;
@@ -1109,6 +1135,11 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
         for (int run=0;run<Dark_runlist.at(nth_sample).size();run++)
         {
 
+            if (nth_sample==0)
+            {
+                if (Dark_weight.at(run)==0.) continue;
+            }
+
             char run_number[50];
             char Dark_observation[50];
             sprintf(run_number, "%i", int(Dark_runlist.at(nth_sample)[run].second));
@@ -1145,9 +1176,9 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
             Dark_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
             Dark_tree->SetBranchAddress("Shower_Az",&Shower_Az);
 
+            double NSB_thisrun = GetRunPedestalVar(int(Dark_runlist.at(nth_sample)[run].second));
             if (nth_sample==0)
             {
-                double NSB_thisrun = GetRunPedestalVar(int(Dark_runlist.at(nth_sample)[run].second));
                 Hist_Dark_NSB.Fill(NSB_thisrun);
             }
 
@@ -1177,33 +1208,34 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
                 //if (R2off>4.) continue;
                 if (nth_sample==0)
                 {
-                    Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
+                    Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze,Dark_weight.at(run));
+                    Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze,Dark_weight.at(run));
                 }
                 if (DarkFoV() || Dark_runlist.at(nth_sample)[run].first.find("Proton")!=std::string::npos)
                 {
                     if (nth_sample==0)
                     {
-                        Hist_OnDark_MSCLW.at(energy).Fill(MSCL,MSCW);
+                        Hist_OnDark_MSCLW.at(energy).Fill(MSCL,MSCW,Dark_weight.at(run));
                         for (int nth_other_sample=1;nth_other_sample<n_control_samples;nth_other_sample++)
                         {
-                            Hist_OffDark_MSCLW.at(nth_other_sample-1).at(energy).Fill(MSCL,MSCW);
+                            Hist_OffDark_MSCLW.at(nth_other_sample-1).at(energy).Fill(MSCL,MSCW,Dark_weight.at(run));
+                        }
+                        if (SignalSelectionTheta2())
+                        {
+                            Hist_OnDark_SR_CameraFoV.at(energy_fine).Fill(R2off,Phioff,Dark_weight.at(run));
+                            Hist_OnDark_SR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff,Dark_weight.at(run));
+                            Hist_OnDark_SR_Energy.at(energy).Fill(ErecS*1000.,Dark_weight.at(run));
+                        }
+                        if (ControlSelectionTheta2())
+                        {
+                            Hist_OnDark_CR_CameraFoV.at(energy_fine).Fill(R2off,Phioff,Dark_weight.at(run));
+                            Hist_OnDark_CR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff,Dark_weight.at(run));
+                            Hist_OnDark_CR_Energy.at(energy).Fill(ErecS*1000.,Dark_weight.at(run));
                         }
                     }
                     else
                     {
                         Hist_OffData_MSCLW.at(nth_sample-1).at(energy).Fill(MSCL,MSCW);
-                    }
-                    if (SignalSelectionTheta2())
-                    {
-                        Hist_OnDark_SR_CameraFoV.at(energy_fine).Fill(R2off,Phioff);
-                        Hist_OnDark_SR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff);
-                        Hist_OnDark_SR_Energy.at(energy).Fill(ErecS*1000.);
-                    }
-                    if (ControlSelectionTheta2())
-                    {
-                        Hist_OnDark_CR_CameraFoV.at(energy_fine).Fill(R2off,Phioff);
-                        Hist_OnDark_CR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff);
-                        Hist_OnDark_CR_Energy.at(energy).Fill(ErecS*1000.);
                     }
                 }
             }
@@ -1395,6 +1427,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
             if (TString(target).Contains("Crab") && theta2<0.3) continue;
             if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
+            Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
             if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
                 Hist_Data_MSCLW_incl.Fill(MSCL,MSCW);
@@ -1812,6 +1845,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     Hist_Dark_ShowerDirection.Write();
     Hist_Data_ShowerDirection.Write();
     Hist_Data_MSCLW_incl.Write();
+    Hist_Dark_ElevNSB.Write();
+    Hist_Data_ElevNSB.Write();
     for (int e=0;e<N_energy_bins;e++)
     {
         Hist_GammaDark_MSCLW.at(e).Write();

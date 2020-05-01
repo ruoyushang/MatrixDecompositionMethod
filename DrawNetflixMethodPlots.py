@@ -15,11 +15,14 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
+selection_tag = ''
+
 folder_path = 'output_root'
 PercentCrab = '_Crab0'
 
-energy_fine_bin_cut_low = 0
+energy_fine_bin_cut_low = 3
 energy_fine_bin_cut_up = 20
+selection_tag += 'E%s'%(energy_fine_bin_cut_low)
 
 N_bins_for_deconv = 12
 gamma_hadron_dim_ratio = 1.
@@ -51,7 +54,7 @@ elev_range = []
 elev_range += [[45,85]]
 
 energy_list = []
-energy_list += [int(pow(10,2.0))]
+energy_list += [int(pow(10,2.3))]
 energy_list += [int(pow(10,4.0))]
 
 energy_fine_bin = []
@@ -79,10 +82,10 @@ energy_fine_bin += [pow(10,4.0)]
 
 sample_list = []
 sky_coord = []
-sample_list += ['Crab']
-sky_coord += ['05 34 31.97 +22 00 52.1']
-sample_list += ['CrabV5']
-sky_coord += ['05 34 31.97 +22 00 52.1']
+#sample_list += ['Crab']
+#sky_coord += ['05 34 31.97 +22 00 52.1']
+#sample_list += ['CrabV5']
+#sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['Mrk421']
 #sky_coord += ['11 04 19 +38 11 41']
 #sample_list += ['H1426']
@@ -129,8 +132,8 @@ sky_coord += ['05 34 31.97 +22 00 52.1']
 #sky_coord += ['07 10 26.4 +59 09 00']
 #sample_list += ['CasA']
 #sky_coord += ['23 23 13.8 +58 48 26']
-#sample_list += ['WComaeV6']
-#sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV6']
+sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['WComaeV5']
 #sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['M82']
@@ -619,7 +622,7 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
         pad1.SetLogx()
         pad2.SetLogx()
 
-    c_both.SaveAs('output_plots/%s.png'%(name))
+    c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
 
 def PlotsStackedHistograms(tag):
 
@@ -800,6 +803,8 @@ def PlotsStackedHistograms(tag):
         legends = []
         colors = []
         stack_it = []
+        Hist_OffData_CameraFoV_Theta2_Sum[nth_sample].GetXaxis().SetRangeUser(0,4)
+        Hist_OffBkgd_CameraFoV_Theta2_Sum[nth_sample].GetXaxis().SetRangeUser(0,4)
         Hists += [Hist_OffData_CameraFoV_Theta2_Sum[nth_sample]]
         legends += ['obs. data']
         colors += [1]
@@ -851,12 +856,12 @@ def CalculateSystError():
 
     for binx in range(0,Hist_SystErr_MSCL.GetNbinsX()):
             old_syst = Hist_SystErr_MSCL.GetBinError(binx+1)
-            new_syst = pow(old_syst/n_control_samples,0.5)
+            new_syst = pow(old_syst/(n_control_samples-1.),0.5)
             Hist_SystErr_MSCL.SetBinError(binx+1,new_syst)
 
     for binx in range(0,Hist_SystErr_MSCW.GetNbinsX()):
             old_syst = Hist_SystErr_MSCW.GetBinError(binx+1)
-            new_syst = pow(old_syst/n_control_samples,0.5)
+            new_syst = pow(old_syst/(n_control_samples-1.),0.5)
             Hist_SystErr_MSCW.SetBinError(binx+1,new_syst)
 
 def Theta2HistScale(Hist,scale,scale_err):
@@ -1313,11 +1318,15 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
-    lumilab1 = ROOT.TLatex(0.15,0.9,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
+    lumilab1 = ROOT.TLatex(0.15,0.90,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.04)
     lumilab1.Draw()
-    canvas.SaveAs('output_plots/SkymapSig_%s.png'%(name))
+    lumilab2 = ROOT.TLatex(0.15,0.95,'exposure %0.1f hrs'%(exposure_hours) )
+    lumilab2.SetNDC()
+    lumilab2.SetTextSize(0.04)
+    lumilab2.Draw()
+    canvas.SaveAs('output_plots/SkymapSig_%s_%s.png'%(name,selection_tag))
 
     Hist_Skymap_Excess = Hist_SR.Clone()
     for bx in range(0,Hist_SR.GetNbinsX()):
@@ -1336,7 +1345,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
-    canvas.SaveAs('output_plots/SkymapExcess_%s.png'%(name))
+    canvas.SaveAs('output_plots/SkymapExcess_%s_%s.png'%(name,selection_tag))
 
     Hist_Skymap_Ratio = Hist_SR.Clone()
     Hist_Skymap_Ratio.Add(Hist_Bkg,-1.)
@@ -1355,7 +1364,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
-    canvas.SaveAs('output_plots/SkymapRatio_%s.png'%(name))
+    canvas.SaveAs('output_plots/SkymapRatio_%s_%s.png'%(name,selection_tag))
 
     MapEdge_left = Hist_Skymap_Excess.GetXaxis().GetBinLowEdge(1)
     MapEdge_right = Hist_Skymap_Excess.GetXaxis().GetBinLowEdge(Hist_Skymap_Excess.GetNbinsX()+1)
@@ -1392,7 +1401,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
-    canvas.SaveAs('output_plots/SkymapZoomin_%s.png'%(name))
+    canvas.SaveAs('output_plots/SkymapZoomin_%s_%s.png'%(name,selection_tag))
 
 def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold):
 
@@ -1422,6 +1431,35 @@ def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold):
     return excess_center_x_init, excess_center_y_init, excess_radius_init
     #return excess_center_x, excess_center_y, excess_radius
 
+def Make2DProjectionPlot(Hist_Data,xtitle,ytitle,name,doProj):
+
+    canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,1)
+    pad1.SetBottomMargin(0.15)
+    pad1.SetRightMargin(0.15)
+    pad1.SetLeftMargin(0.15)
+    pad1.SetTopMargin(0.15)
+    pad1.SetBorderMode(0)
+    #pad1.SetGrid()
+    pad1.Draw()
+    pad1.cd()
+    Hist_Data.GetYaxis().SetTitle(ytitle)
+    Hist_Data.GetXaxis().SetTitle(xtitle)
+    Hist_Data.Draw("COL4Z")
+    #Hist_Data.Draw("CONT3 same")
+    bins = []
+    for b in range(0,Hist_Data.GetNbinsX()+1):
+        bins += [Hist_Data.GetXaxis().GetBinLowEdge(b+1)]
+    Hist_1D = ROOT.TH1D("Hist_1D","",len(bins)-1,array('d',bins))
+    for b in range(0,Hist_Data.GetNbinsX()):
+        hist_temp = Hist_Data.ProjectionY("hist_temp",b+1,b+1)
+        Hist_1D.SetBinContent(b+1,hist_temp.GetMean())
+        Hist_1D.SetBinError(b+1,hist_temp.GetRMS())
+    Hist_1D.SetLineColor(2)
+    if doProj: Hist_1D.Draw("E same")
+
+    canvas.SaveAs('output_plots/%s.png'%(name))
+
 def SingleSourceAnalysis(source_list,doMap):
 
     global ErecS_lower_cut
@@ -1429,6 +1467,8 @@ def SingleSourceAnalysis(source_list,doMap):
 
     FilePath_List = []
     ResetStackedShowerHistograms()
+    Hist_Data_ShowerElevNSB_Sum.Reset()
+    Hist_Dark_ShowerElevNSB_Sum.Reset()
     for source in range(0,len(source_list)):
         source_name = source_list[source]
         for elev in range(0,len(elev_range)):
@@ -1441,6 +1481,13 @@ def SingleSourceAnalysis(source_list,doMap):
             InputFile = ROOT.TFile(FilePath_List[len(FilePath_List)-1])
             InfoTree = InputFile.Get("InfoTree")
             InfoTree.GetEntry(0)
+
+            HistName = "Hist_Data_ElevNSB"
+            Hist_Data_ShowerElevNSB = InputFile.Get(HistName)
+            Hist_Data_ShowerElevNSB_Sum.Add(Hist_Data_ShowerElevNSB)
+            HistName = "Hist_Dark_ElevNSB"
+            Hist_Dark_ShowerElevNSB = InputFile.Get(HistName)
+            Hist_Dark_ShowerElevNSB_Sum.Add(Hist_Dark_ShowerElevNSB)
 
             MSCW_blind_cut = InfoTree.MSCW_cut_blind
             MSCL_blind_cut = InfoTree.MSCL_cut_blind
@@ -1466,6 +1513,9 @@ def SingleSourceAnalysis(source_list,doMap):
                     StackCameraFoVHistograms()
                     NormalizeSkyMapHistograms(FilePath_List[len(FilePath_List)-1])
                     StackSkymapHistograms()
+
+    Make2DProjectionPlot(Hist_Data_ShowerElevNSB_Sum,'Ped. Var.','Zenith','Data_ShowerElevNSB',False)
+    Make2DProjectionPlot(Hist_Dark_ShowerElevNSB_Sum,'Ped. Var.','Zenith','Dark_ShowerElevNSB',False)
 
     GetSourceInfo(FilePath_List)
     GetBrightStarInfo(FilePath_List)
@@ -1510,6 +1560,9 @@ def FindSourceIndex(source_name):
         if source_name==sample_list[source]:
             return source
     return 0
+
+Hist_Data_ShowerElevNSB_Sum = ROOT.TH2D("Hist_Data_ShowerElevNSB_Sum","",20,4,8,18,0,90)
+Hist_Dark_ShowerElevNSB_Sum = ROOT.TH2D("Hist_Dark_ShowerElevNSB_Sum","",20,4,8,18,0,90)
 
 Hist2D_OnData_Sum = ROOT.TH2D("Hist2D_OnData_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnBkgd_Sum = ROOT.TH2D("Hist2D_OnBkgd_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
