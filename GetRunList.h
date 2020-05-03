@@ -307,6 +307,15 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list_temp = GetRunListFromFile("CTA1V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
+        if (source=="WComaeV4")
+        {
+            list = GetRunListFromFile("WComaeV4");
+        }
+        if (source=="EverythingV4")
+        {
+            list_temp = GetRunListFromFile("WComae_MatchedDark_V4");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
 
         return list;
 }

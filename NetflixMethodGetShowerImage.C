@@ -36,7 +36,7 @@
 #include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
 using namespace Eigen;
 
-int n_control_samples = 5;
+int n_control_samples = 3;
 int N_bins_for_deconv = 12; // 12 should be the lowest bin number
 const int N_energy_bins = 1;
 double energy_bins[N_energy_bins+1] = {pow(10,2.3),pow(10,4.0)};
@@ -110,8 +110,8 @@ vector<double> Dark_weight;
 bool CoincideWithBrightStars(double ra, double dec)
 {
     bool isCoincident = false;
-    //double brightness_cut = 5.0;
-    double brightness_cut = 4.0;
+    double brightness_cut = 5.0;
+    //double brightness_cut = 4.0;
     double radius_cut = 0.25;
     for (int star=0;star<BrightStars_Data.size();star++)
     {
@@ -305,6 +305,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 185.382;
                 Source_Dec = 28.233;
     }
+    if (source_name=="WComaeV4")
+    {
+            Source_RA = 185.382;
+                Source_Dec = 28.233;
+    }
     if (source_name=="1ES1218V6")
     {
             Source_RA = 185.360;
@@ -384,8 +389,9 @@ pair<double,double> ConvertRaDecToGalactic(double Ra, double Dec)
     double sin_b = sin(delta)*sin(delta_G)+cos(delta)*cos(delta_G)*cos(alpha-alpha_G);
     double cos_b = cos(asin(sin_b));
     double sin_l_NCP_m_l = cos(delta)*sin(alpha-alpha_G)/cos_b;
+    double cos_l_NCP_m_l = (cos(delta_G)*sin(delta)-sin(delta_G)*cos(delta)*cos(alpha-alpha_G))/cos_b;
     double b = (asin(sin_b))*180./M_PI;
-    double l = (l_NCP-asin(sin_l_NCP_m_l))*180./M_PI;
+    double l = (l_NCP-atan2(sin_l_NCP_m_l,cos_l_NCP_m_l))*180./M_PI;
     double b_round = floor(b*pow(10,2))/pow(10,2);
     double l_round = floor(l*pow(10,2))/pow(10,2);
     return std::make_pair(l_round,b_round);
@@ -419,8 +425,8 @@ void GetGammaSources()
 
 void GetBrightStars()
 {
-    //double brightness_cut = 5.0;
-    double brightness_cut = 4.0;
+    double brightness_cut = 5.0;
+    //double brightness_cut = 4.0;
     std::ifstream astro_file("/home/rshang/EventDisplay/aux/AstroData/Catalogues/Hipparcos_MAG8_1997.dat");
     std::string line;
     // Read one line at a time into the variable line:
@@ -454,6 +460,7 @@ double GetRunPedestalVar(int run_number)
     string line;
     char delimiter = ' ';
     string acc_runnumber = "";
+    string acc_version = "";
     string acc_nsb = "";
     int nth_line = 0;
     int nth_delimiter = 0;
@@ -467,6 +474,7 @@ double GetRunPedestalVar(int run_number)
         while ( getline(myfile,line) )
         {
             acc_runnumber = "";
+            acc_version = "";
             acc_nsb = "";
             nth_delimiter = 0;
             for(int i = 0; i < line.size(); i++)
@@ -482,6 +490,7 @@ double GetRunPedestalVar(int run_number)
                     {
                         //cout << "acc_nsb = " << acc_nsb << '\n';
                         NSB = std::stod(acc_nsb,&sz);
+                        if (std::stoi(acc_version,nullptr,10)!=2) NSB = 0.;
                         //std::cout << "NSB = " << NSB << std::endl;
                     }
                     nth_delimiter += 1;
@@ -489,6 +498,10 @@ double GetRunPedestalVar(int run_number)
                 else if (nth_delimiter==0)
                 {
                     acc_runnumber += line[i];
+                }
+                else if (nth_delimiter==1)
+                {
+                    acc_version += line[i];
                 }
                 else if (nth_delimiter==103)
                 {
@@ -611,8 +624,10 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
 vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_runlist, vector<pair<string,int>> OFF_runlist, int n_control_samples)
 {
 
+    TH2D Hist_OnData_ElevNSB = TH2D("Hist_OnData_ElevNSB","",1,0,10,18,0,90);
+    TH2D Hist_OffData_ElevNSB = TH2D("Hist_OffData_ElevNSB","",1,0,10,18,0,90);
+
     std::cout << "Load ON run info" << std::endl;
-    TH2D Hist_OnData_ElevNSB = TH2D("Hist_OnData_ElevNSB","",8,4,8,18,0,90);
     vector<pair<double,double>> ON_pointing;
     vector<pair<double,double>> ON_pointing_radec;
     vector<double> ON_time;
@@ -649,7 +664,6 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
     }
 
     std::cout << "Load OFF run info" << std::endl;
-    TH2D Hist_OffData_ElevNSB = TH2D("Hist_OffData_ElevNSB","",8,4,8,18,0,90);
     vector<pair<double,double>> OFF_pointing;
     vector<pair<double,double>> OFF_pointing_radec;
     vector<double> OFF_time;
@@ -861,11 +875,13 @@ bool GammaFoV() {
     return true;
 }
 bool DarkFoV() {
-    //if (theta2<0.05) return false;
+    //if (R2off>5.) return false;
+    //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
 bool FoV() {
+    //if (R2off>5.) return false;
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
@@ -940,6 +956,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     }
     vector<pair<string,int>> Dark_runlist_init = GetRunList("Everything");
     if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("EverythingV5");
+    if (TString(target).Contains("V4")) Dark_runlist_init = GetRunList("EverythingV4");
     if (TString(target).Contains("Proton")) Dark_runlist_init = GetRunList("EverythingProton");
     std::cout << "initial Dark_runlist size = " << Dark_runlist_init.size() << std::endl;
     Dark_runlist = SelectOFFRunList(Data_runlist, Dark_runlist_init, n_control_samples);
@@ -982,8 +999,8 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     TH2D Hist_Dark_ShowerDirection = TH2D("Hist_Dark_ShowerDirection","",180,0,360,90,0,90);
     TH2D Hist_Data_ShowerDirection = TH2D("Hist_Data_ShowerDirection","",180,0,360,90,0,90);
     TH2D Hist_Data_MSCLW_incl = TH2D("Hist_Data_MSCLW_incl","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-    TH2D Hist_Dark_ElevNSB = TH2D("Hist_Dark_ElevNSB","",20,4,8,90,0,90);
-    TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,4,8,90,0,90);
+    TH2D Hist_Dark_ElevNSB = TH2D("Hist_Dark_ElevNSB","",20,0,10,90,0,90);
+    TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,0,10,90,0,90);
 
     vector<TH2D> Hist_GammaDark_MSCLW;
     vector<TH2D> Hist_GammaMC_MSCLW;
@@ -1423,9 +1440,9 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
             if (!SelectNImages(3,4)) continue;
             if (SizeSecondMax<600.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-            //if (R2off>4.) continue;
             if (TString(target).Contains("Crab") && theta2<0.3) continue;
             if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
+            //if (R2off>4.) continue;
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
             if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
