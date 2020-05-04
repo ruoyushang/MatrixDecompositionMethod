@@ -20,7 +20,7 @@ selection_tag = ''
 folder_path = 'output_root'
 PercentCrab = '_Crab0'
 
-energy_fine_bin_cut_low = 3
+energy_fine_bin_cut_low = 10
 energy_fine_bin_cut_up = 20
 selection_tag += 'E%s'%(energy_fine_bin_cut_low)
 
@@ -136,8 +136,8 @@ sky_coord = []
 #sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['WComaeV5']
 #sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV4']
-sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV4']
+#sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['M82']
 #sky_coord += ['09 55 52.7 +69 40 46']
 #sample_list += ['G079']
@@ -150,6 +150,8 @@ sky_coord += ['12 21 31.7 +28 13 59']
 #sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['MGRO_J1908_V5']
 #sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V4']
+sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['GemingaV6']
 #sky_coord += ['06 32 28 +17 22 00']
 #sample_list += ['GemingaV5']
@@ -167,28 +169,28 @@ sky_coord += ['12 21 31.7 +28 13 59']
 
 other_stars = []
 other_star_coord = []
-other_stars += ['PSR J1907']
-other_star_coord += [[286.978,6.038]]
-other_stars += ['SNR G40.5']
-other_star_coord += [[286.786,6.498]]
-other_stars += ['ARGO J1910']
-other_star_coord += [[287.650,7.350]]
-other_stars += ['PSR J1954']
-other_star_coord += [[298.830,28.590]]
-other_stars += ["4FGL J2017.9"]
-other_star_coord += [[304.490833333,36.4277777778]]
-other_stars += ["4FGL J2021.1"]
-other_star_coord += [[305.279583333,36.8561111111]]
-other_stars += ["4FGL J2015.5"]
-other_star_coord += [[303.8925,37.1761111111]]
-other_stars += ["4FGL J2021.9"]
-other_star_coord += [[305.48625,36.1577777778]]
-other_stars += ["4FGL J2013.5"]
-other_star_coord += [[303.384583333,36.2252777778]]
-other_stars += ["4FGL J2017.3"]
-other_star_coord += [[304.349166667,35.4225]]
-other_stars += ["4FGL J2022.3"]
-other_star_coord += [[305.584583333,38.6711111111]]
+#other_stars += ['PSR J1907']
+#other_star_coord += [[286.978,6.038]]
+#other_stars += ['SNR G40.5']
+#other_star_coord += [[286.786,6.498]]
+#other_stars += ['ARGO J1910']
+#other_star_coord += [[287.650,7.350]]
+#other_stars += ['PSR J1954']
+#other_star_coord += [[298.830,28.590]]
+#other_stars += ["4FGL J2017.9"]
+#other_star_coord += [[304.490833333,36.4277777778]]
+#other_stars += ["4FGL J2021.1"]
+#other_star_coord += [[305.279583333,36.8561111111]]
+#other_stars += ["4FGL J2015.5"]
+#other_star_coord += [[303.8925,37.1761111111]]
+#other_stars += ["4FGL J2021.9"]
+#other_star_coord += [[305.48625,36.1577777778]]
+#other_stars += ["4FGL J2013.5"]
+#other_star_coord += [[303.384583333,36.2252777778]]
+#other_stars += ["4FGL J2017.3"]
+#other_star_coord += [[304.349166667,35.4225]]
+#other_stars += ["4FGL J2022.3"]
+#other_star_coord += [[305.584583333,38.6711111111]]
 
 bright_star_ra = []
 bright_star_dec = []
@@ -1243,8 +1245,24 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,syst_method):
 
 def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
 
+    max_sig = 0.
+    Hist_Skymap = Hist_SR.Clone()
+    for bx in range(0,Hist_SR.GetNbinsX()):
+        for by in range(0,Hist_SR.GetNbinsY()):
+            if Hist_Bkg.GetBinContent(bx+1,by+1)==0: continue
+            NSR = Hist_SR.GetBinContent(bx+1,by+1)
+            NSR_Err = Hist_SR.GetBinError(bx+1,by+1)
+            NBkg = Hist_Bkg.GetBinContent(bx+1,by+1)
+            NBkg_Err = pow(pow(Hist_Bkg.GetBinError(bx+1,by+1),2)+pow(syst_method*Hist_Bkg.GetBinContent(bx+1,by+1),2),0.5)
+            if syst_method==0.: NBkg_Err = pow(Hist_Bkg.GetBinContent(bx+1,by+1),0.5)
+            Sig = 1.*CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
+            if Sig>max_sig: max_sig = Sig
+            Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
+
     other_star_labels = []
     other_star_markers = []
+    other_star_names = []
+    other_star_significance = []
     bright_star_labels = []
     bright_star_markers = []
     if xtitle=="RA":
@@ -1254,6 +1272,10 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
             other_star_labels += [ROOT.TLatex(other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
             other_star_labels[len(other_star_labels)-1].SetTextSize(0.02)
+            other_star_names += [other_stars[star]]
+            binx = Hist_Skymap.GetXaxis().FindBin(other_star_coord[star][0])
+            biny = Hist_Skymap.GetYaxis().FindBin(other_star_coord[star][1])
+            other_star_significance += [Hist_Skymap.GetBinContent(binx,biny)]
         for star in range(0,len(bright_star_ra)):
             bright_star_markers += [ROOT.TMarker(bright_star_ra[star],bright_star_dec[star],30)]
             bright_star_markers[len(bright_star_markers)-1].SetMarkerColor(2)
@@ -1269,6 +1291,10 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
             other_star_labels += [ROOT.TLatex(gal_l-0.15,gal_b+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
             other_star_labels[len(other_star_labels)-1].SetTextSize(0.02)
+            other_star_names += [other_stars[star]]
+            binx = Hist_Skymap.GetXaxis().FindBin(gal_l)
+            biny = Hist_Skymap.GetYaxis().FindBin(gal_b)
+            other_star_significance += [Hist_Skymap.GetBinContent(binx,biny)]
         for star in range(0,len(bright_star_ra)):
             gal_l, gal_b = ConvertRaDecToGalactic(bright_star_ra[star],bright_star_dec[star])
             bright_star_markers += [ROOT.TMarker(gal_l,gal_b,30)]
@@ -1302,23 +1328,8 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     legend.SetFillStyle(0)
     legend.SetLineColor(0)
     legend.Clear()
-    for star in range(0,len(other_stars)):
-        if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>3.0*3.0: continue
-        legend.AddEntry(other_stars[star],other_stars[star])
-
-    max_sig = 0.
-    Hist_Skymap = Hist_SR.Clone()
-    for bx in range(0,Hist_SR.GetNbinsX()):
-        for by in range(0,Hist_SR.GetNbinsY()):
-            if Hist_Bkg.GetBinContent(bx+1,by+1)==0: continue
-            NSR = Hist_SR.GetBinContent(bx+1,by+1)
-            NSR_Err = Hist_SR.GetBinError(bx+1,by+1)
-            NBkg = Hist_Bkg.GetBinContent(bx+1,by+1)
-            NBkg_Err = pow(pow(Hist_Bkg.GetBinError(bx+1,by+1),2)+pow(syst_method*Hist_Bkg.GetBinContent(bx+1,by+1),2),0.5)
-            if syst_method==0.: NBkg_Err = pow(Hist_Bkg.GetBinContent(bx+1,by+1),0.5)
-            Sig = 1.*CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
-            if Sig>max_sig: max_sig = Sig
-            Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
+    for star in range(0,len(other_star_names)):
+        legend.AddEntry(other_stars[star],'%s (%0.1f#sigma)'%(other_star_names[star],other_star_significance[star]))
 
     Hist_Contour = Hist_Skymap.Clone()
     Hist_Contour.Reset()
@@ -1344,11 +1355,11 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.80,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
+    lumilab1 = ROOT.TLatex(0.15,0.70,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.15)
     lumilab1.Draw()
-    lumilab2 = ROOT.TLatex(0.15,0.60,'exposure %0.1f hrs'%(exposure_hours) )
+    lumilab2 = ROOT.TLatex(0.15,0.50,'exposure %0.1f hrs'%(exposure_hours) )
     lumilab2.SetNDC()
     lumilab2.SetTextSize(0.15)
     lumilab2.Draw()

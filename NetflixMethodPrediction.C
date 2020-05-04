@@ -246,11 +246,6 @@ double BlindedChi2(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_model, TH2D* his
     {
         for (int by=1;by<=hist_data->GetNbinsY();by++)
         {
-            if (bx<binx_blind_upper && by<biny_blind_upper)
-            //if (bx<binx_blind_upper && by<biny_blind_upper && bx>=binx_blind_lower && by>=biny_blind_lower)
-            {
-                continue;
-            }
             if (bx>binx_upper || by>biny_upper) continue;
             double data = hist_data->GetBinContent(bx,by);
             double dark = hist_dark->GetBinContent(bx,by);
@@ -273,7 +268,16 @@ double BlindedChi2(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_model, TH2D* his
                 std::cout << "data = " << data << std::endl;
                 continue;
             }
-            chi2 += chi2_this;
+            if (bx<binx_blind_upper && by<biny_blind_upper)
+            //if (bx<binx_blind_upper && by<biny_blind_upper && bx>=binx_blind_lower && by>=biny_blind_lower)
+            {
+                if ((data-model)<0.) chi2 += chi2_this;
+                //continue;
+            }
+            else
+            {
+                chi2 += chi2_this;
+            }
             nbins += 1.;
         }
     }

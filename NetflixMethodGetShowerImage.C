@@ -330,6 +330,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 286.975;
                 Source_Dec = 6.269;
     }
+    if (source_name=="MGRO_J1908_V4")
+    {
+            Source_RA = 286.975;
+                Source_Dec = 6.269;
+    }
     if (source_name=="CygnusV6")
     {
             Source_RA = 304.646;
@@ -936,7 +941,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     vector<pair<string,int>> PhotonData_runlist = GetRunList("Crab");
     if (TString(target).Contains("Mrk421")) PhotonData_runlist = GetRunList("Crab");
     if (TString(target).Contains("Crab")) PhotonData_runlist = GetRunList("Mrk421");
-    if (TString(target).Contains("V5")) PhotonData_runlist = GetRunList("CrabV5");
+    //if (TString(target).Contains("V5")) PhotonData_runlist = GetRunList("CrabV5");
     PhotonData_runlist = SelectONRunList(PhotonData_runlist,TelElev_lower,TelElev_upper,0,360);
     
     std::cout << "Get a list of target observation runs" << std::endl;
