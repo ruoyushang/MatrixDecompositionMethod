@@ -63,6 +63,8 @@ MatrixXcd mtx_eigenvector_inv_vari(N_bins_for_deconv,N_bins_for_deconv);
 MatrixXcd mtx_eigenvector(N_bins_for_deconv,N_bins_for_deconv);
 MatrixXcd mtx_eigenvector_inv(N_bins_for_deconv,N_bins_for_deconv);
 MatrixXcd mtx_eigenvalue(N_bins_for_deconv,N_bins_for_deconv);
+MatrixXcd mtx_eigenval_data_redu(N_bins_for_deconv,N_bins_for_deconv);
+MatrixXcd mtx_data_redu(N_bins_for_deconv,N_bins_for_deconv);
 ComplexEigenSolver<MatrixXcd> eigensolver_bkgd;
 ComplexEigenSolver<MatrixXcd> eigensolver_bkgd_transpose;
 ComplexEigenSolver<MatrixXcd> eigensolver_data;
@@ -502,6 +504,23 @@ void MatrixFactorizationMethod()
     }
 
 }
+void GetReducedEigenvalueMatrix(int rank_cutoff)
+{
+    for (int i=0;i<mtx_data.cols();i++)
+    {
+        for (int j=0;j<mtx_data.rows();j++)
+        {
+            if (i==j && i==mtx_data.cols()-rank_cutoff-1) 
+            {
+                mtx_eigenval_data_redu(i,j) = eigensolver_data.eigenvalues()(i);
+            }
+            else
+            {
+                mtx_eigenval_data_redu(i,j) = 0;
+            }
+        }
+    }
+}
 void NetflixMethodPrediction(string target_data, double PercentCrab, double tel_elev_lower_input, double tel_elev_upper_input, double MSCW_cut_input, double MSCL_cut_input, int rank)
 {
 
@@ -581,6 +600,9 @@ void NetflixMethodPrediction(string target_data, double PercentCrab, double tel_
     std::cout << "Working on ON data..." << std::endl;
     vector<TH2D> Hist_OnBkgd_MSCLW;
     vector<TH2D> Hist_OnGamma_MSCLW;
+    vector<TH2D> Hist_Rank0_MSCLW;
+    vector<TH2D> Hist_Rank1_MSCLW;
+    vector<TH2D> Hist_Rank2_MSCLW;
     for (int e=0;e<N_energy_bins;e++) 
     {
         std::cout << "++++++++++++++++++++++++++++++++++++++" << std::endl;
@@ -598,6 +620,9 @@ void NetflixMethodPrediction(string target_data, double PercentCrab, double tel_
         TH2D* Hist_Dark = (TH2D*)InputDataFile.Get(filename_dark);
         Hist_OnBkgd_MSCLW.push_back(TH2D("Hist_OnBkgd_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnGamma_MSCLW.push_back(TH2D("Hist_OnGamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_Rank0_MSCLW.push_back(TH2D("Hist_Rank0_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_Rank1_MSCLW.push_back(TH2D("Hist_Rank1_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_Rank2_MSCLW.push_back(TH2D("Hist_Rank2_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
 
         mtx_gamma = fillMatrix(Hist_GammaMC);
         mtx_data = fillMatrix(Hist_Data);
@@ -646,6 +671,16 @@ void NetflixMethodPrediction(string target_data, double PercentCrab, double tel_
         std::cout << eigensolver_bkgd.eigenvalues()(mtx_data.cols()-3) << std::endl;
         std::cout << "=====================================================================" << std::endl;
 
+        GetReducedEigenvalueMatrix(0);
+        mtx_data_redu = eigensolver_data.eigenvectors()*mtx_eigenval_data_redu*eigensolver_data.eigenvectors().inverse();
+        fill2DHistogram(&Hist_Rank0_MSCLW.at(e),mtx_data_redu);
+        GetReducedEigenvalueMatrix(1);
+        mtx_data_redu = eigensolver_data.eigenvectors()*mtx_eigenval_data_redu*eigensolver_data.eigenvectors().inverse();
+        fill2DHistogram(&Hist_Rank1_MSCLW.at(e),mtx_data_redu);
+        GetReducedEigenvalueMatrix(2);
+        mtx_data_redu = eigensolver_data.eigenvectors()*mtx_eigenval_data_redu*eigensolver_data.eigenvectors().inverse();
+        fill2DHistogram(&Hist_Rank2_MSCLW.at(e),mtx_data_redu);
+
     }
 
     InputDataFile.Close();
@@ -655,6 +690,9 @@ void NetflixMethodPrediction(string target_data, double PercentCrab, double tel_
     {
         Hist_OnBkgd_MSCLW.at(e).Write();
         Hist_OnGamma_MSCLW.at(e).Write();
+        Hist_Rank0_MSCLW.at(e).Write();
+        Hist_Rank1_MSCLW.at(e).Write();
+        Hist_Rank2_MSCLW.at(e).Write();
     }
     for (int nth_sample=0;nth_sample<n_control_samples-1;nth_sample++)
     {

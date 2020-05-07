@@ -20,15 +20,17 @@ def ConvertRaDecToGalactic(ra, dec):
     sin_b = ROOT.TMath.Sin(delta)*ROOT.TMath.Sin(delta_G)+ROOT.TMath.Cos(delta)*ROOT.TMath.Cos(delta_G)*ROOT.TMath.Cos(alpha-alpha_G)
     cos_b = ROOT.TMath.Cos(ROOT.TMath.ASin(sin_b))
     sin_l_NCP_m_l = ROOT.TMath.Cos(delta)*ROOT.TMath.Sin(alpha-alpha_G)/cos_b
+    cos_l_NCP_m_l = (ROOT.TMath.Cos(delta_G)*ROOT.TMath.Sin(delta)-ROOT.TMath.Sin(delta_G)*ROOT.TMath.Cos(delta)*ROOT.TMath.Cos(alpha-alpha_G))/cos_b;
     b = (ROOT.TMath.ASin(sin_b))*180./ROOT.TMath.Pi()
-    l = (l_NCP-ROOT.TMath.ASin(sin_l_NCP_m_l))*180./ROOT.TMath.Pi()
+    l = (l_NCP-ROOT.TMath.ATan2(sin_l_NCP_m_l,cos_l_NCP_m_l))*180./ROOT.TMath.Pi()
     return l, b
 
+
 ## galactic center
-#target_ra = 266.415
-#target_dec = -29.006
-#range_ra = 2.0
-#range_dec = 2.0
+target_ra = 266.415
+target_dec = -29.006
+range_ra = 2.0
+range_dec = 2.0
 
 # W Comae
 #target_ra = 185.382083333
@@ -37,15 +39,22 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 1.0
 
 ## MGRO J1908
-target_ra = 286.975
-target_dec = 6.269
-range_ra = 1.0
-range_dec = 1.0
+#target_ra = 286.975
+#target_dec = 6.269
+#range_ra = 1.0
+#range_dec = 1.0
 
-search_for_on_data = False
+# IC 443
+#target_ra = 94.511
+#target_dec = 22.660
+#range_ra = 1.0
+#range_dec = 1.0
 
-V4 = True
-V5 = False
+
+search_for_on_data = True
+
+V4 = False
+V5 = True
 V6 = False
 
 
@@ -92,7 +101,9 @@ Source_Azim = []
 Source_Livetime = []
 #sourceFile = open('../data/output_list/WComaeV4_runlist.txt')
 #sourceFile = open('../data/output_list/WComaeV5_runlist.txt')
-sourceFile = open('../data/output_list/MGRO_J1908_V4_runlist.txt')
+#sourceFile = open('../data/output_list/MGRO_J1908_V5_runlist.txt')
+#sourceFile = open('../data/output_list/IC443HotSpotV4_runlist.txt')
+sourceFile = open('../data/output_list/IC443HotSpotV5_runlist.txt')
 for line in sourceFile:
     Source_RunNumber += [int(line)]
     Source_PedVar_DC += [0.]
@@ -209,7 +220,7 @@ if search_for_on_data:
         if abs(float(T1_RA)-target_ra)>range_ra: continue
         if abs(float(T1_Dec)-target_dec)>range_dec: continue
     
-        print 'RunNumber %s, L3_rate %s, Livetime %s'%(RunNumber,L3_rate,Livetime)
+        print 'RunNumber %s, L3_rate %s, Livetime %s, Elev %s'%(RunNumber,L3_rate,Livetime,Elev)
     
         List_Used += [RunNumber]
 
@@ -227,6 +238,7 @@ else:
     for entry2 in range(0,len(Source_RunNumber)):
         found_matches = 0
         entry_in_list = 0
+        if int(Source_RunNumber[entry2])<=36398: continue
         for entry in range(0,len(List_RunNumber)):
             RunNumber = List_RunNumber[entry]
             if int(Source_RunNumber[entry2])==int(RunNumber):

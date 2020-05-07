@@ -36,7 +36,7 @@
 #include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
 using namespace Eigen;
 
-int n_control_samples = 3;
+int n_control_samples = 4;
 int N_bins_for_deconv = 12; // 12 should be the lowest bin number
 const int N_energy_bins = 1;
 double energy_bins[N_energy_bins+1] = {pow(10,2.3),pow(10,4.0)};
@@ -272,8 +272,10 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name=="IC443HotSpot")
     {
-            Source_RA = 94.511;
-                Source_Dec = 22.660;
+            //Source_RA = 94.511;
+            //    Source_Dec = 22.660;
+            Source_RA = 94.213;
+                Source_Dec = 22.503;
     }
     if (source_name=="RGBJ0710")
     {
@@ -349,8 +351,17 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name=="IC443HotSpotV5")
     {
-            Source_RA = 94.511;
-                Source_Dec = 22.660;
+            //Source_RA = 94.511;
+            //    Source_Dec = 22.660;
+            Source_RA = 94.213;
+                Source_Dec = 22.503;
+    }
+    if (source_name=="IC443HotSpotV4")
+    {
+            //Source_RA = 94.511;
+            //    Source_Dec = 22.660;
+            Source_RA = 94.213;
+                Source_Dec = 22.503;
     }
     if (source_name=="2HWC_J1953V6")
     {
@@ -711,6 +722,10 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
     vector<pair<double,double>> ON_pointing_radec_new;
     for (int off_run=0;off_run<OFF_runlist.size();off_run++)
     {
+        for (int on_run=0;on_run<ON_runlist.size();on_run++)
+        {
+            if (int(ON_runlist[on_run].second)==int(OFF_runlist[off_run].second)) continue; // this OFF run is in ON runlist
+        }
         bool already_used_run = false;
         for (int new_run=0;new_run<new_list.at(0).size();new_run++)
         {
@@ -1152,7 +1167,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
 
 
     std::cout << "Prepare dark run samples..." << std::endl;
-    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
+    for (int nth_sample=0;nth_sample<1;nth_sample++)
     {
         for (int run=0;run<Dark_runlist.at(nth_sample).size();run++)
         {
@@ -1255,10 +1270,6 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
                             Hist_OnDark_CR_Energy.at(energy).Fill(ErecS*1000.,Dark_weight.at(run));
                         }
                     }
-                    else
-                    {
-                        Hist_OffData_MSCLW.at(nth_sample-1).at(energy).Fill(MSCL,MSCW);
-                    }
                 }
             }
             input_file->Close();
@@ -1333,6 +1344,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
                 //if (R2off>4.) continue;
                 if (DarkFoV() || Dark_runlist.at(nth_sample)[run].first.find("Proton")!=std::string::npos)
                 {
+                    Hist_OffData_MSCLW.at(nth_sample-1).at(energy).Fill(MSCL,MSCW);
                     if (SignalSelectionTheta2())
                     {
                         Hist_OffData_SR_CameraFoV_Theta2.at(nth_sample-1).at(energy_fine).Fill(R2off);
