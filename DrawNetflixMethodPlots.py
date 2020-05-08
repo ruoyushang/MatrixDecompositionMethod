@@ -20,7 +20,7 @@ selection_tag = ''
 folder_path = 'output_root'
 PercentCrab = '_Crab0'
 
-energy_fine_bin_cut_low = 3
+energy_fine_bin_cut_low = 7
 energy_fine_bin_cut_up = 20
 selection_tag += 'E%s'%(energy_fine_bin_cut_low)
 
@@ -82,6 +82,33 @@ energy_fine_bin += [pow(10,4.0)]
 
 sample_list = []
 sky_coord = []
+
+#sample_list += ['WComaeV6']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV5']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV4']
+#sky_coord += ['12 21 31.7 +28 13 59']
+
+#sample_list += ['IC443HotSpotV6']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV5']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV4']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+
+#sample_list += ['MGRO_J1908_V6_new']
+#sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V5']
+#sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V4']
+#sky_coord += ['19 07 54 +06 16 07']
+
+#sample_list += ['Segue1V6']
+#sky_coord += ['10 07 04 +16 04 55']
+sample_list += ['Segue1V5']
+sky_coord += ['10 07 04 +16 04 55']
+
 #sample_list += ['Crab']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['CrabV5']
@@ -108,10 +135,6 @@ sky_coord = []
 #sky_coord += ['03 19 47 +18 45 42']
 #sample_list += ['PG1553V6']
 #sky_coord += ['15 55 44.7 +11 11 41']
-#sample_list += ['Segue1V6']
-#sky_coord += ['10 07 04 +16 04 55']
-#sample_list += ['Segue1V5']
-#sky_coord += ['10 07 04 +16 04 55']
 #sample_list += ['ComaV6']
 #sky_coord += ['12 59 48.7 +27 58 50']
 #sample_list += ['1ES1011V6']
@@ -124,22 +147,10 @@ sky_coord = []
 #sky_coord += ['14 42 48.277 +12 00 40.37']
 #sample_list += ['1ES1741V6']
 #sky_coord += ['17 44 01.2 +19 32 47']
-#sample_list += ['IC443HotSpot']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
-sample_list += ['IC443HotSpotV5']
-sky_coord += ['06 18 2.700 +22 39 36.00']
-#sample_list += ['IC443HotSpotV4']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['RGBJ0710']
 #sky_coord += ['07 10 26.4 +59 09 00']
 #sample_list += ['CasA']
 #sky_coord += ['23 23 13.8 +58 48 26']
-#sample_list += ['WComaeV6']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV5']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV4']
-#sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['M82']
 #sky_coord += ['09 55 52.7 +69 40 46']
 #sample_list += ['G079']
@@ -148,12 +159,6 @@ sky_coord += ['06 18 2.700 +22 39 36.00']
 #sky_coord += ['12 21 26.3 +30 11 29']
 #sample_list += ['CygnusV6']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
-#sample_list += ['MGRO_J1908_V6_new']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V5']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V4']
-#sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['GemingaV6']
 #sky_coord += ['06 32 28 +17 22 00']
 #sample_list += ['GemingaV5']
@@ -348,19 +353,23 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_OnBkgd.Reset()
     Hist2D_OnBkgd.Add(InputFile.Get(HistName))
 
+    Hist2D_Rank0.Reset()
+    Hist2D_Rank1.Reset()
+    Hist2D_Rank2.Reset()
+
     HistName = "Hist_Rank0_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     print 'Getting histogram %s'%(HistName)
-    Hist2D_Rank0.Reset()
     Hist2D_Rank0.Add(InputFile.Get(HistName))
+    Hist2D_Rank1.Add(InputFile.Get(HistName))
+    Hist2D_Rank2.Add(InputFile.Get(HistName))
 
     HistName = "Hist_Rank1_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     print 'Getting histogram %s'%(HistName)
-    Hist2D_Rank1.Reset()
     Hist2D_Rank1.Add(InputFile.Get(HistName))
+    Hist2D_Rank2.Add(InputFile.Get(HistName))
 
     HistName = "Hist_Rank2_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     print 'Getting histogram %s'%(HistName)
-    Hist2D_Rank2.Reset()
     Hist2D_Rank2.Add(InputFile.Get(HistName))
 
     if Hist2D_OnData.Integral()<1600.:
@@ -734,6 +743,22 @@ def PlotsStackedHistograms(tag):
     legends = []
     colors = []
     stack_it = []
+    Hists += [Hist_OnData_RoI_Theta2_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_RoI_Theta2_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    plotname = 'Stack_RoI_Theta2_MDM_%s'%(tag)
+    title = 'squared angle from source location #theta^{2}'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
     Hist_OnData_MJD_Sum.GetXaxis().SetRangeUser(MJD_Start-1,MJD_End+1)
     Hist_OnBkgd_MJD_Sum.GetXaxis().SetRangeUser(MJD_Start-1,MJD_End+1)
     Hists += [Hist_OnData_MJD_Sum]
@@ -1017,6 +1042,12 @@ def NormalizeTheta2Histograms(FilePath):
     HistName = "Hist_OnData_CR_Skymap_Theta2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Theta2.Reset()
     Hist_OnBkgd_Theta2.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_SR_Skymap_RoI_Theta2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnData_RoI_Theta2.Reset()
+    Hist_OnData_RoI_Theta2.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_CR_Skymap_RoI_Theta2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnBkgd_RoI_Theta2.Reset()
+    Hist_OnBkgd_RoI_Theta2.Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_CR_CameraFoV_Theta2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_R2off.Reset()
     Hist_OnBkgd_R2off.Add(InputFile.Get(HistName))
@@ -1024,11 +1055,15 @@ def NormalizeTheta2Histograms(FilePath):
     if Hist2D_OnData.Integral()<1600.:
         Hist_OnData_Theta2.Reset()
         Hist_OnBkgd_Theta2.Reset()
+        Hist_OnData_RoI_Theta2.Reset()
+        Hist_OnBkgd_RoI_Theta2.Reset()
 
     bkg_total, bkg_err = IntegralAndError(Hist_OnBkgd_Energy,bin_lower,bin_upper)
     if bkg_total==0.:
         Hist_OnData_Theta2.Reset()
         Hist_OnBkgd_Theta2.Reset()
+        Hist_OnData_RoI_Theta2.Reset()
+        Hist_OnBkgd_RoI_Theta2.Reset()
         return
 
     old_integral = Hist_OnBkgd_R2off.Integral()
@@ -1042,8 +1077,10 @@ def NormalizeTheta2Histograms(FilePath):
         bkgd_scale_err = 0
     if not bkg_total==0:
         Theta2HistScale(Hist_OnBkgd_Theta2,bkgd_scale,bkgd_scale_err)
+        Theta2HistScale(Hist_OnBkgd_RoI_Theta2,bkgd_scale,bkgd_scale_err)
     else:
         Hist_OnBkgd_Theta2.Scale(0)
+        Hist_OnBkgd_RoI_Theta2.Scale(0)
 
     HistName = "Hist_OnData_SR_MJD_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnData_MJD.Reset()
@@ -1093,6 +1130,8 @@ def StackTheta2Histograms():
 
     Hist_OnData_Theta2_Sum.Add(Hist_OnData_Theta2)
     Hist_OnBkgd_Theta2_Sum.Add(Hist_OnBkgd_Theta2)
+    Hist_OnData_RoI_Theta2_Sum.Add(Hist_OnData_RoI_Theta2)
+    Hist_OnBkgd_RoI_Theta2_Sum.Add(Hist_OnBkgd_RoI_Theta2)
     Hist_OnBkgd_R2off_Sum.Add(Hist_OnBkgd_R2off)
     Hist_OnData_MJD_Sum.Add(Hist_OnData_MJD)
     Hist_OnBkgd_MJD_Sum.Add(Hist_OnBkgd_MJD)
@@ -1551,9 +1590,20 @@ def MatrixDecompositionDemo(name):
     pad3.Draw()
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.70,'Rank 1' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M_{Data}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.15)
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    Hist2D_OnData_Sum.GetYaxis().SetTitle('MSCW')
+    Hist2D_OnData_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_OnData_Sum.Draw("COL4Z")
+    canvas.SaveAs('output_plots/OnData_%s_%s.png'%(name,selection_tag))
+
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M = #sum_{i=1}^{i=1} #lambda_{i} q_{i} p_{i}^{T}' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
     pad1.cd()
     Hist2D_Rank0_Sum.GetYaxis().SetTitle('MSCW')
@@ -1562,9 +1612,9 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank0_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.70,'Rank 2' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M = #sum_{i=1}^{i=2} #lambda_{i} q_{i} p_{i}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.15)
+    lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
     pad1.cd()
     Hist2D_Rank1_Sum.GetYaxis().SetTitle('MSCW')
@@ -1573,15 +1623,75 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank1_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.70,'Rank 2' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M = #sum_{i=1}^{i=3} #lambda_{i} q_{i} p_{i}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.15)
+    lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
     pad1.cd()
     Hist2D_Rank2_Sum.GetYaxis().SetTitle('MSCW')
     Hist2D_Rank2_Sum.GetXaxis().SetTitle('MSCL')
     Hist2D_Rank2_Sum.Draw("COL4Z")
     canvas.SaveAs('output_plots/Rank2_%s_%s.png'%(name,selection_tag))
+
+def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
+    
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+    pad1.SetBottomMargin(0.2)
+    pad1.SetTopMargin(0.0)
+    pad1.SetLeftMargin(0.2)
+    pad1.SetBorderMode(0)
+    #if logy: pad1.SetGrid()
+    pad1.Draw()
+    pad3.Draw()
+
+    pad3.cd()
+    lumilab2 = ROOT.TLatex(0.15,0.50,'#epsilon = 1/#sum_{#gamma region} M_{data} (#sum_{#gamma region} M_{data} - #sum_{i=1}^{i=n} #lambda_{i} q_{i} p_{i}^{T})' )
+    lumilab2.SetNDC()
+    lumilab2.SetTextSize(0.2)
+    lumilab2.Draw()
+
+    pad1.cd()
+    if logy: pad1.SetLogy()
+
+    Hist.GetXaxis().SetTitleOffset(0.8)
+    Hist.GetXaxis().SetTitleSize(0.06)
+    Hist.GetXaxis().SetLabelSize(0.06)
+    Hist.GetYaxis().SetLabelSize(0.06)
+    Hist.GetYaxis().SetTitleOffset(1.2)
+    Hist.GetYaxis().SetTitleSize(0.06)
+    Hist.GetXaxis().SetTitle(title_x)
+    Hist.GetYaxis().SetTitle(title_y)
+    Hist.Draw("E")
+
+    pad3.cd()
+
+    c_both.SaveAs('output_plots/%s.png'%(name))
+
+def MakeRankResidualPlots(name):
+
+    bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_lower_cut)
+    bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
+    bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_lower_cut)
+    bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
+
+    data_integral = Hist2D_OnData_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)
+    bkgd_rank_integral = []
+    bkgd_rank_integral += [Hist2D_Rank0_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
+    bkgd_rank_integral += [Hist2D_Rank1_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
+    bkgd_rank_integral += [Hist2D_Rank2_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
+
+    Hist_Residual_Rank = ROOT.TH1D("Hist_Residual_Rank","",3,0,3)
+    for binx in range(0,len(bkgd_rank_integral)):
+        Hist_Residual_Rank.SetBinContent(binx+1,abs(1.-bkgd_rank_integral[binx]/data_integral))
+        ratio_err = bkgd_rank_integral[binx]/data_integral*1./pow(data_integral,0.5)
+        Hist_Residual_Rank.SetBinError(binx+1,ratio_err)
+
+    MakeOneHistPlot(Hist_Residual_Rank,'n ranks','Residual in gamma region','Residual_Rank_%s'%(name),True)
 
 def SingleSourceAnalysis(source_list,doMap):
 
@@ -1647,6 +1757,8 @@ def SingleSourceAnalysis(source_list,doMap):
 
     CalculateSystError()
     PlotsStackedHistograms('%s%s'%(source_list[0],PercentCrab))
+
+    MakeRankResidualPlots('%s%s'%(source_list[0],PercentCrab))
 
     if not doMap: return
 
@@ -1722,6 +1834,10 @@ Hist_OnData_Theta2_Sum = ROOT.TH1D("Hist_OnData_Theta2_Sum","",50,0,10)
 Hist_OnBkgd_Theta2_Sum = ROOT.TH1D("Hist_OnBkgd_Theta2_Sum","",50,0,10)
 Hist_OnData_Theta2 = ROOT.TH1D("Hist_OnData_Theta2","",50,0,10)
 Hist_OnBkgd_Theta2 = ROOT.TH1D("Hist_OnBkgd_Theta2","",50,0,10)
+Hist_OnData_RoI_Theta2_Sum = ROOT.TH1D("Hist_OnData_RoI_Theta2_Sum","",20,0,1)
+Hist_OnBkgd_RoI_Theta2_Sum = ROOT.TH1D("Hist_OnBkgd_RoI_Theta2_Sum","",20,0,1)
+Hist_OnData_RoI_Theta2 = ROOT.TH1D("Hist_OnData_RoI_Theta2","",20,0,1)
+Hist_OnBkgd_RoI_Theta2 = ROOT.TH1D("Hist_OnBkgd_RoI_Theta2","",20,0,1)
 Hist_OnData_Energy_Sum = ROOT.TH1D("Hist_OnData_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnBkgd_Energy_Sum = ROOT.TH1D("Hist_OnBkgd_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnData_Energy = ROOT.TH1D("Hist_OnData_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
@@ -1822,10 +1938,10 @@ for nth_sample in range(0,n_control_samples-1):
     Hist_OffBkgd_CameraFoV_Theta2 += [ROOT.TH1D("Hist_OffBkgd_CameraFoV_Theta2_%s"%(nth_sample),"",50,0,10)]
     Hist_OffBkgd_CameraFoV_Theta2_Sum += [ROOT.TH1D("Hist_OffBkgd_CameraFoV_Theta2_Sum_%s"%(nth_sample),"",50,0,10)]
 
-n_rebin = 1
-smooth_size = 0.05
-#n_rebin = 2
-#smooth_size = 0.1
+#n_rebin = 1
+#smooth_size = 0.05
+n_rebin = 2
+smooth_size = 0.1
 #n_rebin = 2
 #smooth_size = 0.15
 if energy_fine_bin[energy_fine_bin_cut_low]>500.:
