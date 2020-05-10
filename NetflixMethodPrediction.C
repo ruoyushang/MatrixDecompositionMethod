@@ -75,7 +75,6 @@ ComplexEigenSolver<MatrixXcd> eigensolver_init;
 ComplexEigenSolver<MatrixXcd> eigensolver_init_transpose;
 int binx_blind_global;
 int biny_blind_global;
-int NumberOfEigenvectors = 0;
 int VaryLeftOrRightVector;
 int VaryNthVector;
 
@@ -757,7 +756,7 @@ void GetReducedEigenvalueMatrix(int rank_cutoff)
         }
     }
 }
-void NetflixMethodPrediction(string target_data, double PercentCrab, double tel_elev_lower_input, double tel_elev_upper_input, double MSCW_cut_input, double MSCL_cut_input, int rank)
+void NetflixMethodPrediction(string target_data)
 {
 
     TH1::SetDefaultSumw2();
@@ -768,9 +767,8 @@ void NetflixMethodPrediction(string target_data, double PercentCrab, double tel_
     TelElev_upper = tel_elev_upper_input;
     MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_input-MSCW_plot_lower)+MSCW_cut_input;
     MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_input-MSCL_plot_lower)+MSCL_cut_input;
-    NumberOfEigenvectors = rank;
 
-    TFile InputDataFile("../Netflix_"+TString(target_data)+"_Crab"+std::to_string(int(PercentCrab))+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root");
+    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputDataFile.Get("InfoTree");
 
@@ -923,7 +921,7 @@ void NetflixMethodPrediction(string target_data, double PercentCrab, double tel_
 
     InputDataFile.Close();
 
-    TFile OutputFile("../Netflix_"+TString(target_data)+"_Crab"+std::to_string(int(PercentCrab))+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root","update");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+".root","update");
     for (int e=0;e<N_energy_bins;e++)
     {
         Hist_OnBkgd_MSCLW.at(e).Write();

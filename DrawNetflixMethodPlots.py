@@ -15,12 +15,15 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-selection_tag = ''
+root_file_tags = []
+root_file_tags += ['FoV9']
+
+selection_tag = 'FoV9'
 
 folder_path = 'output_root'
-PercentCrab = '_Crab0'
+PercentCrab = ''
 
-energy_fine_bin_cut_low = 6
+energy_fine_bin_cut_low = 3
 energy_fine_bin_cut_up = 20
 selection_tag += 'E%s'%(energy_fine_bin_cut_low)
 
@@ -48,10 +51,6 @@ MJD_Start = 2147483647
 MJD_End = 0
 
 Syst_MDM = 0.02
-
-elev_range = []
-#elev_range += [[25,45]]
-elev_range += [[45,85]]
 
 energy_list = []
 energy_list += [int(pow(10,2.3))]
@@ -85,8 +84,8 @@ sky_coord = []
 
 #sample_list += ['WComaeV6']
 #sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV5']
-#sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV5']
+sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['WComaeV4']
 #sky_coord += ['12 21 31.7 +28 13 59']
 
@@ -106,8 +105,8 @@ sky_coord = []
 
 #sample_list += ['Segue1V6']
 #sky_coord += ['10 07 04 +16 04 55']
-sample_list += ['Segue1V5']
-sky_coord += ['10 07 04 +16 04 55']
+#sample_list += ['Segue1V5']
+#sky_coord += ['10 07 04 +16 04 55']
 
 #sample_list += ['Crab']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
@@ -1710,10 +1709,8 @@ def SingleSourceAnalysis(source_list,doMap):
     Hist_Dark_ShowerElevNSB_Sum.Reset()
     for source in range(0,len(source_list)):
         source_name = source_list[source]
-        for elev in range(0,len(elev_range)):
-            file_elev_lower = elev_range[elev][0]
-            file_elev_upper = elev_range[elev][1]
-            FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+PercentCrab+"_TelElev%sto%s"%(int(file_elev_lower),int(file_elev_upper))+".root";
+        for elev in range(0,len(root_file_tags)):
+            FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+".root";
             FilePath_List += [FilePath]
             if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
             print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
@@ -1862,10 +1859,8 @@ source_l = 0.
 source_b = 0.
 source_idx = FindSourceIndex(sample_list[0])
 FilePath_Folder = []
-for elev in range(0,len(elev_range)):
-    file_elev_lower = elev_range[elev][0]
-    file_elev_upper = elev_range[elev][1]
-    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+PercentCrab+"_TelElev%sto%s"%(int(file_elev_lower),int(file_elev_upper))+".root";
+for elev in range(0,len(root_file_tags)):
+    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+".root";
     FilePath_Folder += [SourceFilePath]
     if not os.path.isfile(FilePath_Folder[0]): 
         continue

@@ -30,6 +30,7 @@
 #include "/home/rshang/EventDisplay/EVNDISP-480e/inc/VEvndispRunParameter.h"
 
 #include "GetRunList.h"
+#include "NetflixParameters.h"
 
 #include <complex>
 #include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
@@ -894,13 +895,13 @@ bool GammaFoV() {
     return true;
 }
 bool DarkFoV() {
-    //if (R2off>5.) return false;
+    if (R2off>camera_theta2_cut) return false;
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
 bool FoV() {
-    //if (R2off>5.) return false;
+    if (R2off>camera_theta2_cut) return false;
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
@@ -937,7 +938,7 @@ bool ControlSelectionTheta2()
     return true;
 }
 
-void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double tel_elev_lower_input, double tel_elev_upper_input, double MSCW_cut_input, double MSCL_cut_input)
+void NetflixMethodGetShowerImage(string target_data)
 {
 
     TH1::SetDefaultSumw2();
@@ -1859,7 +1860,7 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     mean_tele_point_l = mean_tele_point_l_b.first;
     mean_tele_point_b = mean_tele_point_l_b.second;
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_Crab"+std::to_string(int(PercentCrab))+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root","recreate");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+".root","recreate");
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("MSCW_cut_blind",&MSCW_cut_blind,"MSCW_cut_blind/D");
     InfoTree.Branch("MSCL_cut_blind",&MSCL_cut_blind,"MSCL_cut_blind/D");
