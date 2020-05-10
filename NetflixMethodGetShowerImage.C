@@ -236,10 +236,8 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name=="Segue1V6")
     {
-            //Source_RA = 151.767;
-            //    Source_Dec = 16.082;
-            Source_RA = 151.917;
-                Source_Dec = 16.767;
+            Source_RA = 151.767;
+                Source_Dec = 16.082;
     }
     if (source_name=="ComaV6")
     {
@@ -345,10 +343,8 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name=="Segue1V5")
     {
-            //Source_RA = 151.767;
-            //    Source_Dec = 16.082;
-            Source_RA = 151.917;
-                Source_Dec = 16.767;
+            Source_RA = 151.767;
+                Source_Dec = 16.082;
     }
     if (source_name=="IC443HotSpotV5")
     {
@@ -746,9 +742,9 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
         if (weight_off>0.) weight = weight_on/weight_off;
         Dark_weight.push_back(weight);
     }
-    for (int on_run=0;on_run<ON_runlist.size();on_run++)
+    for (int nth_sample=1;nth_sample<n_control_samples;nth_sample++)
     {
-        for (int nth_sample=1;nth_sample<n_control_samples;nth_sample++)
+        for (int on_run=0;on_run<ON_runlist.size();on_run++)
         {
             std::cout << "Finding match for " << on_run << "-th ON run in " << nth_sample << "-th sample." << std::endl;
             double accumulated_time = 0.;
@@ -1014,6 +1010,11 @@ void NetflixMethodGetShowerImage(string target_data, double PercentCrab, double 
     if (TString(target).Contains("MGRO_J1908")) 
     {
         roi_radius = 1.0;
+    }
+    if (TString(target).Contains("Segue1")) 
+    {
+        roi_ra = 151.757;
+        roi_dec = 17.007;
     }
 
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);

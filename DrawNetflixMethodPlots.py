@@ -20,7 +20,7 @@ selection_tag = ''
 folder_path = 'output_root'
 PercentCrab = '_Crab0'
 
-energy_fine_bin_cut_low = 7
+energy_fine_bin_cut_low = 6
 energy_fine_bin_cut_up = 20
 selection_tag += 'E%s'%(energy_fine_bin_cut_low)
 
@@ -1520,6 +1520,12 @@ def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold):
 
     Hist_Excess = Hist_data.Clone()
     Hist_Excess.Add(Hist_bkgd,-1.)
+
+    maxbin = Hist_Excess.GetMaximumBin()
+    xx, yy, zz = ROOT.Long(0), ROOT.Long(0), ROOT.Long(0)
+    Hist_Excess.GetBinXYZ(maxbin, xx, yy, zz)
+    print 'max excess at %s, %s'%(Hist_Excess.GetXaxis().GetBinCenter(xx),Hist_Excess.GetYaxis().GetBinCenter(yy))
+
     for bx in range(0,Hist_Excess.GetNbinsX()):
         for by in range(0,Hist_Excess.GetNbinsY()):
             if not Hist_sig.GetBinContent(bx+1,by+1)>=highlight_threshold: 

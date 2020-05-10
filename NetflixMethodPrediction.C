@@ -694,7 +694,7 @@ void LeastSquareSolutionMethod()
     mtx_data_bkgd = SpectralDecompositionMethod(2, 2);
     SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
     std::cout << "chi2 (right) = " << GetChi2Function(mtx_data_bkgd) << std::endl;
-    for (int iteration=0;iteration<20;iteration++)
+    for (int iteration=0;iteration<10;iteration++)
     {
         mtx_data_bkgd = SpectralDecompositionMethod(1, 2);
         SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
