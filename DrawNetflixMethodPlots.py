@@ -16,9 +16,11 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 root_file_tags = []
-root_file_tags += ['FoV9']
+#root_file_tags += ['FoV9']
+root_file_tags += ['Moderate']
 
-selection_tag = 'FoV9'
+#selection_tag = 'FoV9'
+selection_tag = 'Mode'
 
 folder_path = 'output_root'
 PercentCrab = ''
@@ -29,8 +31,8 @@ selection_tag += 'E%s'%(energy_fine_bin_cut_low)
 
 N_bins_for_deconv = 12
 gamma_hadron_dim_ratio = 1.
-MSCW_blind_cut = 0.3
-MSCL_blind_cut = 0.3
+MSCW_blind_cut = 0.5
+MSCL_blind_cut = 0.5
 MSCW_lower_cut = -1.
 MSCL_lower_cut = -1.
 MSCW_plot_lower = -1.
@@ -84,8 +86,8 @@ sky_coord = []
 
 #sample_list += ['WComaeV6']
 #sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV5']
-sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV5']
+#sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['WComaeV4']
 #sky_coord += ['12 21 31.7 +28 13 59']
 
@@ -98,8 +100,8 @@ sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['MGRO_J1908_V6_new']
 #sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V5']
-#sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V5']
+sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['MGRO_J1908_V4']
 #sky_coord += ['19 07 54 +06 16 07']
 
@@ -1803,6 +1805,24 @@ def FindSourceIndex(source_name):
 
 Hist_Data_ShowerElevNSB_Sum = ROOT.TH2D("Hist_Data_ShowerElevNSB_Sum","",20,0,10,18,0,90)
 Hist_Dark_ShowerElevNSB_Sum = ROOT.TH2D("Hist_Dark_ShowerElevNSB_Sum","",20,0,10,18,0,90)
+Hist_EffArea = ROOT.TH1D("Hist_EffArea","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_EffArea_Sum = ROOT.TH1D("Hist_EffArea_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+
+source_ra = 0.
+source_dec = 0.
+source_l = 0.
+source_b = 0.
+source_idx = FindSourceIndex(sample_list[0])
+FilePath_Folder = []
+for elev in range(0,len(root_file_tags)):
+    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+".root";
+    FilePath_Folder += [SourceFilePath]
+    if not os.path.isfile(FilePath_Folder[0]): 
+        continue
+    else:
+        GetSourceInfo(FilePath_Folder)
+MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
+MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
 
 Hist2D_OnData_Sum = ROOT.TH2D("Hist2D_OnData_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnBkgd_Sum = ROOT.TH2D("Hist2D_OnBkgd_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -1850,22 +1870,6 @@ Hist_OnBkgd_RoI_Energy_Sum = ROOT.TH1D("Hist_OnBkgd_RoI_Energy_Sum","",len(energ
 Hist_OnData_RoI_Energy = ROOT.TH1D("Hist_OnData_RoI_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnBkgd_RoI_Energy = ROOT.TH1D("Hist_OnBkgd_RoI_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 
-Hist_EffArea = ROOT.TH1D("Hist_EffArea","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
-Hist_EffArea_Sum = ROOT.TH1D("Hist_EffArea_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
-
-source_ra = 0.
-source_dec = 0.
-source_l = 0.
-source_b = 0.
-source_idx = FindSourceIndex(sample_list[0])
-FilePath_Folder = []
-for elev in range(0,len(root_file_tags)):
-    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+".root";
-    FilePath_Folder += [SourceFilePath]
-    if not os.path.isfile(FilePath_Folder[0]): 
-        continue
-    else:
-        GetSourceInfo(FilePath_Folder)
 Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",150,source_ra-3,source_ra+3,150,source_dec-3,source_dec+3)
 Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",150,source_ra-3,source_ra+3,150,source_dec-3,source_dec+3)
 Hist_OnData_Skymap_Sum = ROOT.TH2D("Hist_OnData_Skymap_Sum","",150,source_ra-3,source_ra+3,150,source_dec-3,source_dec+3)

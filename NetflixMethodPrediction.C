@@ -761,12 +761,17 @@ void NetflixMethodPrediction(string target_data)
 
     TH1::SetDefaultSumw2();
     sprintf(target, "%s", target_data.c_str());
-    MSCW_cut_blind = MSCW_cut_input;
-    MSCL_cut_blind = MSCL_cut_input;
+    MSCW_cut_blind = MSCW_cut_moderate;
+    MSCL_cut_blind = MSCL_cut_moderate;
+    if (TString(target).Contains("Crab"))
+    {
+        MSCW_cut_blind = MSCW_cut_loose;
+        MSCL_cut_blind = MSCL_cut_loose;
+    }
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
-    MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_input-MSCW_plot_lower)+MSCW_cut_input;
-    MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_input-MSCL_plot_lower)+MSCL_cut_input;
+    MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+    MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
     TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+".root");
     TTree* InfoTree = nullptr;
@@ -938,6 +943,7 @@ void NetflixMethodPrediction(string target_data)
             Hist_OffGamma_MSCLW.at(nth_sample).at(e).Write();
         }
     }
+    OutputFile.Close();
 
     std::cout << "Done." << std::endl;
 }

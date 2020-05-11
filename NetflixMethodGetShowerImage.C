@@ -59,6 +59,7 @@ double MSCL_plot_lower = -1.;
 double TelElev_lower = 70.;
 double TelElev_upper = 80.;
 char target[50] = "";
+double SizeSecondMax_Cut = 0.;
 
 // EventDisplay variables
 double TelElevation = 0;
@@ -944,12 +945,21 @@ void NetflixMethodGetShowerImage(string target_data)
     TH1::SetDefaultSumw2();
 
     sprintf(target, "%s", target_data.c_str());
-    MSCW_cut_blind = MSCW_cut_input;
-    MSCL_cut_blind = MSCL_cut_input;
+    MSCW_cut_blind = MSCW_cut_moderate;
+    MSCL_cut_blind = MSCL_cut_moderate;
+    if (TString(target).Contains("Crab"))
+    {
+        MSCW_cut_blind = MSCW_cut_loose;
+        MSCL_cut_blind = MSCL_cut_loose;
+    }
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
-    MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_input-MSCW_plot_lower)+MSCW_cut_input;
-    MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_input-MSCL_plot_lower)+MSCL_cut_input;
+    MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+    MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
+    SizeSecondMax_Cut = 600.;
+    if (TString(target).Contains("V4")) SizeSecondMax_Cut = 400.;
+    if (TString(target).Contains("V5")) SizeSecondMax_Cut = 400.;
 
     std::cout << "prepare photon template" << std::endl;
     vector<pair<string,int>> PhotonMC_runlist = GetRunList("Photon");
@@ -1220,6 +1230,7 @@ void NetflixMethodGetShowerImage(string target_data)
             Dark_tree->SetBranchAddress("Xcore",&Xcore);
             Dark_tree->SetBranchAddress("Ycore",&Ycore);
             Dark_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
+            Dark_tree->SetBranchAddress("EmissionHeight",&EmissionHeight);
             Dark_tree->SetBranchAddress("Time",&Time);
             Dark_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
             Dark_tree->SetBranchAddress("Shower_Az",&Shower_Az);
@@ -1251,7 +1262,8 @@ void NetflixMethodGetShowerImage(string target_data)
                 if (energy<0) continue;
                 if (energy>=N_energy_bins) continue;
                 if (!SelectNImages(3,4)) continue;
-                if (SizeSecondMax<600.) continue;
+                if (SizeSecondMax<SizeSecondMax_Cut) continue;
+                if (EmissionHeight<6.) continue;
                 if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
                 //if (R2off>4.) continue;
                 if (nth_sample==0)
@@ -1325,6 +1337,7 @@ void NetflixMethodGetShowerImage(string target_data)
             Dark_tree->SetBranchAddress("Xcore",&Xcore);
             Dark_tree->SetBranchAddress("Ycore",&Ycore);
             Dark_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
+            Dark_tree->SetBranchAddress("EmissionHeight",&EmissionHeight);
             Dark_tree->SetBranchAddress("Time",&Time);
             Dark_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
             Dark_tree->SetBranchAddress("Shower_Az",&Shower_Az);
@@ -1350,7 +1363,8 @@ void NetflixMethodGetShowerImage(string target_data)
                 if (energy<0) continue;
                 if (energy>=N_energy_bins) continue;
                 if (!SelectNImages(3,4)) continue;
-                if (SizeSecondMax<600.) continue;
+                if (SizeSecondMax<SizeSecondMax_Cut) continue;
+                if (EmissionHeight<6.) continue;
                 if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
                 //if (R2off>4.) continue;
                 if (DarkFoV() || Dark_runlist.at(nth_sample)[run].first.find("Proton")!=std::string::npos)
@@ -1417,6 +1431,7 @@ void NetflixMethodGetShowerImage(string target_data)
         Data_tree->SetBranchAddress("Xcore",&Xcore);
         Data_tree->SetBranchAddress("Ycore",&Ycore);
         Data_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
+        Data_tree->SetBranchAddress("EmissionHeight",&EmissionHeight);
         Data_tree->SetBranchAddress("Time",&Time);
         Data_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
         Data_tree->SetBranchAddress("Shower_Az",&Shower_Az);
@@ -1467,7 +1482,8 @@ void NetflixMethodGetShowerImage(string target_data)
             if (energy<0) continue;
             if (energy>=N_energy_bins) continue;
             if (!SelectNImages(3,4)) continue;
-            if (SizeSecondMax<600.) continue;
+            if (SizeSecondMax<SizeSecondMax_Cut) continue;
+            if (EmissionHeight<6.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
             if (TString(target).Contains("Crab") && theta2<0.3) continue;
             if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
@@ -1564,6 +1580,7 @@ void NetflixMethodGetShowerImage(string target_data)
         Data_tree->SetBranchAddress("Xcore",&Xcore);
         Data_tree->SetBranchAddress("Ycore",&Ycore);
         Data_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
+        Data_tree->SetBranchAddress("EmissionHeight",&EmissionHeight);
         Data_tree->SetBranchAddress("Time",&Time);
         Data_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
         Data_tree->SetBranchAddress("Shower_Az",&Shower_Az);
@@ -1619,6 +1636,7 @@ void NetflixMethodGetShowerImage(string target_data)
         Data_tree->SetBranchAddress("Xcore",&Xcore);
         Data_tree->SetBranchAddress("Ycore",&Ycore);
         Data_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
+        Data_tree->SetBranchAddress("EmissionHeight",&EmissionHeight);
         Data_tree->SetBranchAddress("Time",&Time);
         Data_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
         Data_tree->SetBranchAddress("Shower_Az",&Shower_Az);
@@ -1734,6 +1752,7 @@ void NetflixMethodGetShowerImage(string target_data)
         Data_tree->SetBranchAddress("Xcore",&Xcore);
         Data_tree->SetBranchAddress("Ycore",&Ycore);
         Data_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
+        Data_tree->SetBranchAddress("EmissionHeight",&EmissionHeight);
         Data_tree->SetBranchAddress("Time",&Time);
         Data_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
         Data_tree->SetBranchAddress("Shower_Az",&Shower_Az);
@@ -1762,7 +1781,8 @@ void NetflixMethodGetShowerImage(string target_data)
             if (energy<0) continue;
             if (energy>=N_energy_bins) continue;
             if (!SelectNImages(3,4)) continue;
-            if (SizeSecondMax<600.) continue;
+            if (SizeSecondMax<SizeSecondMax_Cut) continue;
+            if (EmissionHeight<6.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze,photon_weight);
             if (theta2<0.3)

@@ -1,9 +1,11 @@
 
-char output_file_tag[50] = "FoV9";
+char output_file_tag[50] = "Moderate";
 int NumberOfEigenvectors = 3;
 double PercentCrab = 0.;
 double tel_elev_lower_input = 45.;
 double tel_elev_upper_input = 85.;
-double MSCW_cut_input = 0.3;
-double MSCL_cut_input = 0.3;
+double MSCW_cut_moderate = 0.35;
+double MSCL_cut_moderate = 0.70;
+double MSCW_cut_loose = 0.5;
+double MSCL_cut_loose = 0.7;
 double camera_theta2_cut = 9.;
