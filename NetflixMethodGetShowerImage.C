@@ -38,7 +38,6 @@
 using namespace Eigen;
 
 int n_control_samples = 4;
-int N_bins_for_deconv = 12; // 12 should be the lowest bin number
 const int N_energy_bins = 1;
 double energy_bins[N_energy_bins+1] = {pow(10,2.3),pow(10,4.0)};
 const int N_energy_fine_bins = 20;
