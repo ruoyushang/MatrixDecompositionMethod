@@ -88,8 +88,8 @@ sky_coord = []
 #sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['WComaeV5']
 #sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV4']
-sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV4']
+#sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
@@ -102,8 +102,8 @@ sky_coord += ['12 21 31.7 +28 13 59']
 #sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['MGRO_J1908_V5']
 #sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V4']
-#sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V4']
+sky_coord += ['19 07 54 +06 16 07']
 
 #sample_list += ['Segue1V6']
 #sky_coord += ['10 07 04 +16 04 55']
@@ -1821,8 +1821,10 @@ for elev in range(0,len(root_file_tags)):
         continue
     else:
         GetSourceInfo(FilePath_Folder)
+print 'analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut)
 MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
 MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
+print 'plot range: MSCL = %s, MSCW = %s'%(MSCL_plot_upper,MSCW_plot_upper)
 
 Hist2D_OnData_Sum = ROOT.TH2D("Hist2D_OnData_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnBkgd_Sum = ROOT.TH2D("Hist2D_OnBkgd_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)

@@ -839,6 +839,15 @@ void LeastSquareSolutionMethod()
         SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
         std::cout << "chi2 (right) = " << GetChi2Function(mtx_data_bkgd) << std::endl;
     }
+    for (int iteration=0;iteration<5;iteration++)
+    {
+        mtx_data_bkgd = SpectralDecompositionMethod(1, 3, 1);
+        SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+        std::cout << "chi2 (left) = " << GetChi2Function(mtx_data_bkgd) << std::endl;
+        mtx_data_bkgd = SpectralDecompositionMethod(2, 3, 1);
+        SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+        std::cout << "chi2 (right) = " << GetChi2Function(mtx_data_bkgd) << std::endl;
+    }
     
     //for (int iteration=0;iteration<1;iteration++)
     //{
@@ -905,6 +914,8 @@ void NetflixMethodPrediction(string target_data)
 
     TH1::SetDefaultSumw2();
     sprintf(target, "%s", target_data.c_str());
+    TelElev_lower = tel_elev_lower_input;
+    TelElev_upper = tel_elev_upper_input;
     MSCW_cut_blind = MSCW_cut_moderate;
     MSCL_cut_blind = MSCL_cut_moderate;
     if (TString(target).Contains("Crab"))
@@ -912,8 +923,11 @@ void NetflixMethodPrediction(string target_data)
         MSCW_cut_blind = MSCW_cut_loose;
         MSCL_cut_blind = MSCL_cut_loose;
     }
-    TelElev_lower = tel_elev_lower_input;
-    TelElev_upper = tel_elev_upper_input;
+    if (TString(target).Contains("MGRO_J1908"))
+    {
+        MSCW_cut_blind = MSCW_cut_loose;
+        MSCL_cut_blind = MSCL_cut_loose;
+    }
     MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
     MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
