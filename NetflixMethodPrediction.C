@@ -703,6 +703,9 @@ MatrixXcd SpectralDecompositionMethod(int LeftOrRight, int entry_start, int entr
 {
     // LeftOrRight = 1, left
     // LeftOrRight = 2, right
+    
+    //LeftOrRight = 3;
+    double step_frac = 0.5;
 
     MatrixXcd mtx_r_init = mtx_eigenvector_init;
     MatrixXcd mtx_S = mtx_eigenvalue_init;
@@ -739,7 +742,7 @@ MatrixXcd SpectralDecompositionMethod(int LeftOrRight, int entry_start, int entr
     MatrixXcd mtx_r_final = mtx_r_init;
     // LeftOrRight = 1, left
     // LeftOrRight = 2, right
-    if (LeftOrRight==1)
+    if (LeftOrRight==1 || LeftOrRight==3)
     {
         for (int row=0;row<mtx_M3.rows();row++)
         {
@@ -762,9 +765,9 @@ MatrixXcd SpectralDecompositionMethod(int LeftOrRight, int entry_start, int entr
             int first_idx_col = (nth_entry-entry_start)*(mtx_input.rows());
             mtx_l_vari.col(mtx_l_vari.cols()-nth_entry) = vtr_l_vari_big.segment(first_idx_col,mtx_input.rows());
         }
-        mtx_l_final += mtx_l_vari;
+        mtx_l_final += mtx_l_vari*step_frac;
     }
-    else
+    else if (LeftOrRight==2 || LeftOrRight==3)
     {
         for (int col=0;col<mtx_M3.cols();col++)
         {
@@ -787,7 +790,7 @@ MatrixXcd SpectralDecompositionMethod(int LeftOrRight, int entry_start, int entr
             int first_idx_col = (nth_entry-entry_start)*(mtx_input.rows());
             mtx_r_vari.col(mtx_r_vari.cols()-nth_entry) = vtr_r_vari_big.segment(first_idx_col,mtx_input.rows());
         }
-        mtx_r_final += mtx_r_vari;
+        mtx_r_final += mtx_r_vari*step_frac;
     }
 
     MatrixXcd mtx_H_final = mtx_l_final.transpose()*mtx_r_final;

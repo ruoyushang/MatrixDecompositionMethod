@@ -51,6 +51,9 @@ source_b = 0.
 n_control_samples = 4
 MJD_Start = 2147483647
 MJD_End = 0
+roi_ra = ROOT.std.vector("double")(10)
+roi_dec = ROOT.std.vector("double")(10)
+roi_radius = ROOT.std.vector("double")(10)
 
 Syst_MDM = 0.02
 
@@ -86,8 +89,8 @@ sky_coord = []
 
 #sample_list += ['WComaeV6']
 #sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV5']
-#sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV5']
+sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['WComaeV4']
 #sky_coord += ['12 21 31.7 +28 13 59']
 
@@ -102,8 +105,8 @@ sky_coord = []
 #sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['MGRO_J1908_V5']
 #sky_coord += ['19 07 54 +06 16 07']
-sample_list += ['MGRO_J1908_V4']
-sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V4']
+#sky_coord += ['19 07 54 +06 16 07']
 
 #sample_list += ['Segue1V6']
 #sky_coord += ['10 07 04 +16 04 55']
@@ -293,8 +296,12 @@ def GetSourceInfo(file_list):
     global source_dec
     global source_l
     global source_b
+    global n_control_samples
     global MJD_Start
     global MJD_End
+    global roi_ra
+    global roi_dec
+    global roi_radius
 
     n_good_matches = 0
     exposure_hours = 0.
@@ -303,6 +310,9 @@ def GetSourceInfo(file_list):
         if not os.path.isfile(file_list[path]):continue
         InputFile = ROOT.TFile(file_list[path])
         InfoTree = InputFile.Get("InfoTree")
+        InfoTree.SetBranchAddress('roi_ra',ROOT.AddressOf(roi_ra))
+        InfoTree.SetBranchAddress('roi_dec',ROOT.AddressOf(roi_dec))
+        InfoTree.SetBranchAddress('roi_radius',ROOT.AddressOf(roi_radius))
         InfoTree.GetEntry(0)
         n_good_matches += InfoTree.n_good_matches
         exposure_hours += InfoTree.exposure_hours
@@ -312,6 +322,7 @@ def GetSourceInfo(file_list):
         source_dec = InfoTree.mean_tele_point_dec
         source_l = InfoTree.mean_tele_point_l
         source_b = InfoTree.mean_tele_point_b
+        n_control_samples = InfoTree.n_control_samples
         MJD_Start = min(InfoTree.MJD_Start,MJD_Start)
         MJD_End = max(InfoTree.MJD_End,MJD_End)
         HistName = "Hist_EffArea"
@@ -740,39 +751,56 @@ def PlotsStackedHistograms(tag):
     title = 'squared angle from source location #theta^{2}'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
 
-    Hists = []
-    legends = []
-    colors = []
-    stack_it = []
-    Hists += [Hist_OnData_RoI_Theta2_Sum]
-    legends += ['obs. data']
-    colors += [1]
-    stack_it += [False]
-    Hists += [Hist_OnBkgd_RoI_Theta2_Sum]
-    legends += ['predict. bkg.']
-    colors += [4]
-    stack_it += [True]
-    plotname = 'Stack_RoI_Theta2_MDM_%s'%(tag)
-    title = 'squared angle from source location #theta^{2}'
-    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
+    for nth_roi in range(0,len(roi_ra)):
+        Hists = []
+        legends = []
+        colors = []
+        stack_it = []
+        Hists += [Hist_OnData_RoI_Theta2_Sum[nth_roi]]
+        legends += ['obs. data']
+        colors += [1]
+        stack_it += [False]
+        Hists += [Hist_OnBkgd_RoI_Theta2_Sum[nth_roi]]
+        legends += ['predict. bkg.']
+        colors += [4]
+        stack_it += [True]
+        plotname = 'Stack_RoI_Theta2_MDM_V%s_%s'%(nth_roi,tag)
+        title = 'squared angle from source location #theta^{2}'
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
 
-    Hists = []
-    legends = []
-    colors = []
-    stack_it = []
-    Hist_OnData_MJD_Sum.GetXaxis().SetRangeUser(MJD_Start-1,MJD_End+1)
-    Hist_OnBkgd_MJD_Sum.GetXaxis().SetRangeUser(MJD_Start-1,MJD_End+1)
-    Hists += [Hist_OnData_MJD_Sum]
-    legends += ['obs. data']
-    colors += [1]
-    stack_it += [False]
-    Hists += [Hist_OnBkgd_MJD_Sum]
-    legends += ['predict. bkg.']
-    colors += [4]
-    stack_it += [True]
-    plotname = 'Stack_MJD_MDM_%s'%(tag)
-    title = 'MJD'
-    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
+        Hists = []
+        legends = []
+        colors = []
+        stack_it = []
+        Hist_OnData_RoI_MJD_Sum[nth_roi].GetXaxis().SetRangeUser(MJD_Start-1,MJD_End+1)
+        Hist_OnBkgd_RoI_MJD_Sum[nth_roi].GetXaxis().SetRangeUser(MJD_Start-1,MJD_End+1)
+        Hists += [Hist_OnData_RoI_MJD_Sum[nth_roi]]
+        legends += ['obs. data']
+        colors += [1]
+        stack_it += [False]
+        Hists += [Hist_OnBkgd_RoI_MJD_Sum[nth_roi]]
+        legends += ['predict. bkg.']
+        colors += [4]
+        stack_it += [True]
+        plotname = 'Stack_RoI_MJD_MDM_V%s_%s'%(nth_roi,tag)
+        title = 'MJD'
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
+
+        Hists = []
+        legends = []
+        colors = []
+        stack_it = []
+        Hists += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
+        legends += ['obs. data']
+        colors += [1]
+        stack_it += [False]
+        Hists += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
+        legends += ['predict. bkg.']
+        colors += [4]
+        stack_it += [True]
+        plotname = 'Stack_RoI_Energy_MDM_V%s_%s'%(nth_roi,tag)
+        title = 'energy [GeV]'
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
     Hists = []
     legends = []
@@ -787,22 +815,6 @@ def PlotsStackedHistograms(tag):
     colors += [4]
     stack_it += [True]
     plotname = 'Stack_Energy_MDM_%s'%(tag)
-    title = 'energy [GeV]'
-    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
-
-    Hists = []
-    legends = []
-    colors = []
-    stack_it = []
-    Hists += [Hist_OnData_RoI_Energy_Sum]
-    legends += ['obs. data']
-    colors += [1]
-    stack_it += [False]
-    Hists += [Hist_OnBkgd_RoI_Energy_Sum]
-    legends += ['predict. bkg.']
-    colors += [4]
-    stack_it += [True]
-    plotname = 'Stack_RoI_Energy_MDM_%s'%(tag)
     title = 'energy [GeV]'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
@@ -964,18 +976,20 @@ def NormalizeEnergyHistograms(FilePath):
     Hist_OnBkgd_Energy.Reset()
     Hist_OnBkgd_Energy.Add(InputFile.Get(HistName))
 
-    HistName = "Hist_OnData_SR_RoI_Energy_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_OnData_RoI_Energy.Reset()
-    Hist_OnData_RoI_Energy.Add(InputFile.Get(HistName))
-    HistName = "Hist_OnData_CR_RoI_Energy_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_OnBkgd_RoI_Energy.Reset()
-    Hist_OnBkgd_RoI_Energy.Add(InputFile.Get(HistName))
+    for nth_roi in range(0,len(roi_ra)):
+        HistName = "Hist_OnData_SR_RoI_Energy_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_RoI_Energy[nth_roi].Reset()
+        Hist_OnData_RoI_Energy[nth_roi].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_CR_RoI_Energy_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnBkgd_RoI_Energy[nth_roi].Reset()
+        Hist_OnBkgd_RoI_Energy[nth_roi].Add(InputFile.Get(HistName))
 
     if Hist2D_OnData.Integral()<1600.:
         Hist_OnData_Energy.Reset()
         Hist_OnBkgd_Energy.Reset()
-        Hist_OnData_RoI_Energy.Reset()
-        Hist_OnBkgd_RoI_Energy.Reset()
+        for nth_roi in range(0,len(roi_ra)):
+            Hist_OnData_RoI_Energy[nth_roi].Reset()
+            Hist_OnBkgd_RoI_Energy[nth_roi].Reset()
 
     bkg_total, bkg_err = IntegralAndError(Hist_OnBkgd_MSCW,bin_lower,bin_upper)
     old_integral = Hist_OnBkgd_Energy.Integral()
@@ -989,10 +1003,12 @@ def NormalizeEnergyHistograms(FilePath):
         bkgd_scale_err = 0
     if not bkg_total==0:
         Theta2HistScale(Hist_OnBkgd_Energy,bkgd_scale,bkgd_scale_err)
-        Theta2HistScale(Hist_OnBkgd_RoI_Energy,bkgd_scale,bkgd_scale_err)
+        for nth_roi in range(0,len(roi_ra)):
+            Theta2HistScale(Hist_OnBkgd_RoI_Energy[nth_roi],bkgd_scale,bkgd_scale_err)
     else:
         Hist_OnBkgd_Energy.Scale(0)
-        Hist_OnBkgd_RoI_Energy.Scale(0)
+        for nth_roi in range(0,len(roi_ra)):
+            Hist_OnBkgd_RoI_Energy[nth_roi].Scale(0)
 
     for nth_sample in range(0,n_control_samples-1):
 
@@ -1043,28 +1059,33 @@ def NormalizeTheta2Histograms(FilePath):
     HistName = "Hist_OnData_CR_Skymap_Theta2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Theta2.Reset()
     Hist_OnBkgd_Theta2.Add(InputFile.Get(HistName))
-    HistName = "Hist_OnData_SR_Skymap_RoI_Theta2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_OnData_RoI_Theta2.Reset()
-    Hist_OnData_RoI_Theta2.Add(InputFile.Get(HistName))
-    HistName = "Hist_OnData_CR_Skymap_RoI_Theta2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_OnBkgd_RoI_Theta2.Reset()
-    Hist_OnBkgd_RoI_Theta2.Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_CR_CameraFoV_Theta2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_R2off.Reset()
     Hist_OnBkgd_R2off.Add(InputFile.Get(HistName))
 
+    for nth_roi in range(0,len(roi_ra)):
+        HistName = "Hist_OnData_SR_Skymap_RoI_Theta2_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_RoI_Theta2[nth_roi].Reset()
+        Hist_OnData_RoI_Theta2[nth_roi].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_CR_Skymap_RoI_Theta2_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnBkgd_RoI_Theta2[nth_roi].Reset()
+        Hist_OnBkgd_RoI_Theta2[nth_roi].Add(InputFile.Get(HistName))
+
+
     if Hist2D_OnData.Integral()<1600.:
         Hist_OnData_Theta2.Reset()
         Hist_OnBkgd_Theta2.Reset()
-        Hist_OnData_RoI_Theta2.Reset()
-        Hist_OnBkgd_RoI_Theta2.Reset()
+        for nth_roi in range(0,len(roi_ra)):
+            Hist_OnData_RoI_Theta2[nth_roi].Reset()
+            Hist_OnBkgd_RoI_Theta2[nth_roi].Reset()
 
     bkg_total, bkg_err = IntegralAndError(Hist_OnBkgd_Energy,bin_lower,bin_upper)
     if bkg_total==0.:
         Hist_OnData_Theta2.Reset()
         Hist_OnBkgd_Theta2.Reset()
-        Hist_OnData_RoI_Theta2.Reset()
-        Hist_OnBkgd_RoI_Theta2.Reset()
+        for nth_roi in range(0,len(roi_ra)):
+            Hist_OnData_RoI_Theta2[nth_roi].Reset()
+            Hist_OnBkgd_RoI_Theta2[nth_roi].Reset()
         return
 
     old_integral = Hist_OnBkgd_R2off.Integral()
@@ -1078,49 +1099,56 @@ def NormalizeTheta2Histograms(FilePath):
         bkgd_scale_err = 0
     if not bkg_total==0:
         Theta2HistScale(Hist_OnBkgd_Theta2,bkgd_scale,bkgd_scale_err)
-        Theta2HistScale(Hist_OnBkgd_RoI_Theta2,bkgd_scale,bkgd_scale_err)
+        for nth_roi in range(0,len(roi_ra)):
+            Theta2HistScale(Hist_OnBkgd_RoI_Theta2[nth_roi],bkgd_scale,bkgd_scale_err)
     else:
         Hist_OnBkgd_Theta2.Scale(0)
-        Hist_OnBkgd_RoI_Theta2.Scale(0)
+        for nth_roi in range(0,len(roi_ra)):
+            Hist_OnBkgd_RoI_Theta2[nth_roi].Scale(0)
 
-    HistName = "Hist_OnData_SR_MJD_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_OnData_MJD.Reset()
-    Hist_OnData_MJD.Add(InputFile.Get(HistName))
-    HistName = "Hist_OnData_CR_MJD_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_OnBkgd_MJD.Reset()
-    Hist_OnBkgd_MJD.Add(InputFile.Get(HistName))
+    for nth_roi in range(0,len(roi_ra)):
+        HistName = "Hist_OnData_SR_RoI_MJD_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_RoI_MJD[nth_roi].Reset()
+        Hist_OnData_RoI_MJD[nth_roi].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_CR_RoI_MJD_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnBkgd_RoI_MJD[nth_roi].Reset()
+        Hist_OnBkgd_RoI_MJD[nth_roi].Add(InputFile.Get(HistName))
 
     if Hist2D_OnData.Integral()<1600.:
-        Hist_OnData_MJD.Reset()
-        Hist_OnBkgd_MJD.Reset()
+        for nth_roi in range(0,len(roi_ra)):
+            Hist_OnData_RoI_MJD[nth_roi].Reset()
+            Hist_OnBkgd_RoI_MJD[nth_roi].Reset()
 
-    bkg_total, bkg_err = IntegralAndError(Hist_OnBkgd_RoI_Energy,bin_lower,bin_upper)
-    if bkg_total==0.:
-        Hist_OnData_MJD.Reset()
-        Hist_OnBkgd_MJD.Reset()
-        return
+    for nth_roi in range(0,len(roi_ra)):
+        bkg_total, bkg_err = IntegralAndError(Hist_OnBkgd_RoI_Energy[nth_roi],bin_lower,bin_upper)
+        if bkg_total==0.:
+            Hist_OnData_RoI_MJD[nth_roi].Reset()
+            Hist_OnBkgd_RoI_MJD[nth_roi].Reset()
+            return
 
-    old_integral = Hist_OnBkgd_MJD.Integral()
-    bkgd_scale = 0
-    bkgd_scale_err = 0
-    if not bkg_total==0 and not old_integral==0:
-        bkgd_scale = bkg_total/old_integral
-        bkgd_scale_err = bkgd_scale*(bkg_err/bkg_total)
-    else:
+        old_integral = Hist_OnBkgd_RoI_MJD[nth_roi].Integral()
         bkgd_scale = 0
         bkgd_scale_err = 0
-    if not bkg_total==0:
-        Hist_OnBkgd_MJD.Scale(bkgd_scale)
-    else:
-        Hist_OnBkgd_MJD.Scale(0)
+        if not bkg_total==0 and not old_integral==0:
+            bkgd_scale = bkg_total/old_integral
+            bkgd_scale_err = bkgd_scale*(bkg_err/bkg_total)
+        else:
+            bkgd_scale = 0
+            bkgd_scale_err = 0
+        if not bkg_total==0:
+            Hist_OnBkgd_RoI_MJD[nth_roi].Scale(bkgd_scale)
+        else:
+            Hist_OnBkgd_RoI_MJD[nth_roi].Scale(0)
 
 
 def StackEnergyHistograms():
 
     Hist_OnData_Energy_Sum.Add(Hist_OnData_Energy)
     Hist_OnBkgd_Energy_Sum.Add(Hist_OnBkgd_Energy)
-    Hist_OnData_RoI_Energy_Sum.Add(Hist_OnData_RoI_Energy)
-    Hist_OnBkgd_RoI_Energy_Sum.Add(Hist_OnBkgd_RoI_Energy)
+
+    for nth_roi in range(0,len(roi_ra)):
+        Hist_OnData_RoI_Energy_Sum[nth_roi].Add(Hist_OnData_RoI_Energy[nth_roi])
+        Hist_OnBkgd_RoI_Energy_Sum[nth_roi].Add(Hist_OnBkgd_RoI_Energy[nth_roi])
 
     for nth_sample in range(0,n_control_samples-1):
 
@@ -1131,11 +1159,13 @@ def StackTheta2Histograms():
 
     Hist_OnData_Theta2_Sum.Add(Hist_OnData_Theta2)
     Hist_OnBkgd_Theta2_Sum.Add(Hist_OnBkgd_Theta2)
-    Hist_OnData_RoI_Theta2_Sum.Add(Hist_OnData_RoI_Theta2)
-    Hist_OnBkgd_RoI_Theta2_Sum.Add(Hist_OnBkgd_RoI_Theta2)
     Hist_OnBkgd_R2off_Sum.Add(Hist_OnBkgd_R2off)
-    Hist_OnData_MJD_Sum.Add(Hist_OnData_MJD)
-    Hist_OnBkgd_MJD_Sum.Add(Hist_OnBkgd_MJD)
+
+    for nth_roi in range(0,len(roi_ra)):
+        Hist_OnData_RoI_Theta2_Sum[nth_roi].Add(Hist_OnData_RoI_Theta2[nth_roi])
+        Hist_OnBkgd_RoI_Theta2_Sum[nth_roi].Add(Hist_OnBkgd_RoI_Theta2[nth_roi])
+        Hist_OnData_RoI_MJD_Sum[nth_roi].Add(Hist_OnData_RoI_MJD[nth_roi])
+        Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Add(Hist_OnBkgd_RoI_MJD[nth_roi])
 
 def NormalizeCameraFoVHistograms(FilePath):
 
@@ -1859,18 +1889,10 @@ Hist_OnData_Theta2_Sum = ROOT.TH1D("Hist_OnData_Theta2_Sum","",50,0,10)
 Hist_OnBkgd_Theta2_Sum = ROOT.TH1D("Hist_OnBkgd_Theta2_Sum","",50,0,10)
 Hist_OnData_Theta2 = ROOT.TH1D("Hist_OnData_Theta2","",50,0,10)
 Hist_OnBkgd_Theta2 = ROOT.TH1D("Hist_OnBkgd_Theta2","",50,0,10)
-Hist_OnData_RoI_Theta2_Sum = ROOT.TH1D("Hist_OnData_RoI_Theta2_Sum","",20,0,1)
-Hist_OnBkgd_RoI_Theta2_Sum = ROOT.TH1D("Hist_OnBkgd_RoI_Theta2_Sum","",20,0,1)
-Hist_OnData_RoI_Theta2 = ROOT.TH1D("Hist_OnData_RoI_Theta2","",20,0,1)
-Hist_OnBkgd_RoI_Theta2 = ROOT.TH1D("Hist_OnBkgd_RoI_Theta2","",20,0,1)
 Hist_OnData_Energy_Sum = ROOT.TH1D("Hist_OnData_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnBkgd_Energy_Sum = ROOT.TH1D("Hist_OnBkgd_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnData_Energy = ROOT.TH1D("Hist_OnData_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnBkgd_Energy = ROOT.TH1D("Hist_OnBkgd_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
-Hist_OnData_RoI_Energy_Sum = ROOT.TH1D("Hist_OnData_RoI_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
-Hist_OnBkgd_RoI_Energy_Sum = ROOT.TH1D("Hist_OnBkgd_RoI_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
-Hist_OnData_RoI_Energy = ROOT.TH1D("Hist_OnData_RoI_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
-Hist_OnBkgd_RoI_Energy = ROOT.TH1D("Hist_OnBkgd_RoI_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 
 Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",150,source_ra-3,source_ra+3,150,source_dec-3,source_dec+3)
 Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",150,source_ra-3,source_ra+3,150,source_dec-3,source_dec+3)
@@ -1880,15 +1902,39 @@ Hist_OnData_Skymap_Galactic = ROOT.TH2D("Hist_OnData_Skymap_Galactic","",150,sou
 Hist_OnBkgd_Skymap_Galactic = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic","",150,source_l-3,source_l+3,150,source_b-3,source_b+3)
 Hist_OnData_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_Skymap_Galactic_Sum","",150,source_l-3,source_l+3,150,source_b-3,source_b+3)
 Hist_OnBkgd_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sum","",150,source_l-3,source_l+3,150,source_b-3,source_b+3)
-print 'MJD_Start = %s'%(MJD_Start)
-print 'MJD_End = %s'%(MJD_End)
-Hist_OnData_MJD = ROOT.TH1D("Hist_OnData_MJD","",800,56200-4000,56200+4000)
-Hist_OnBkgd_MJD = ROOT.TH1D("Hist_OnBkgd_MJD","",800,56200-4000,56200+4000)
-Hist_OnData_MJD_Sum = ROOT.TH1D("Hist_OnData_MJD_Sum","",800,56200-4000,56200+4000)
-Hist_OnBkgd_MJD_Sum = ROOT.TH1D("Hist_OnBkgd_MJD_Sum","",800,56200-4000,56200+4000)
 
 Hist_SystErr_MSCL = ROOT.TH1D("Hist_SystErr_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_SystErr_MSCW = ROOT.TH1D("Hist_SystErr_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+
+print 'MJD_Start = %s'%(MJD_Start)
+print 'MJD_End = %s'%(MJD_End)
+print 'roi_ra = %s'%(roi_ra[0])
+print 'roi_dec = %s'%(roi_dec[0])
+Hist_OnData_RoI_Energy_Sum = [] 
+Hist_OnBkgd_RoI_Energy_Sum = [] 
+Hist_OnData_RoI_Energy = [] 
+Hist_OnBkgd_RoI_Energy = [] 
+Hist_OnData_RoI_Theta2_Sum = []
+Hist_OnBkgd_RoI_Theta2_Sum = []
+Hist_OnData_RoI_Theta2 = []
+Hist_OnBkgd_RoI_Theta2 = []
+Hist_OnData_RoI_MJD = [] 
+Hist_OnBkgd_RoI_MJD = [] 
+Hist_OnData_RoI_MJD_Sum = [] 
+Hist_OnBkgd_RoI_MJD_Sum = [] 
+for nth_roi in range(0,len(roi_ra)):
+    Hist_OnData_RoI_Energy_Sum += [ROOT.TH1D("Hist_OnData_RoI_Energy_Sum_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+    Hist_OnBkgd_RoI_Energy_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Energy_Sum_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+    Hist_OnData_RoI_Energy += [ROOT.TH1D("Hist_OnData_RoI_Energy_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+    Hist_OnBkgd_RoI_Energy += [ROOT.TH1D("Hist_OnBkgd_RoI_Energy_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+    Hist_OnData_RoI_Theta2_Sum += [ROOT.TH1D("Hist_OnData_RoI_Theta2_Sum_%s"%(nth_roi),"",20,0,0.5)]
+    Hist_OnBkgd_RoI_Theta2_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Theta2_Sum_%s"%(nth_roi),"",20,0,0.5)]
+    Hist_OnData_RoI_Theta2 += [ROOT.TH1D("Hist_OnData_RoI_Theta2_%s"%(nth_roi),"",20,0,0.5)]
+    Hist_OnBkgd_RoI_Theta2 += [ROOT.TH1D("Hist_OnBkgd_RoI_Theta2_%s"%(nth_roi),"",20,0,0.5)]
+    Hist_OnData_RoI_MJD += [ROOT.TH1D("Hist_OnData_RoI_MJD_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
+    Hist_OnBkgd_RoI_MJD += [ROOT.TH1D("Hist_OnBkgd_RoI_MJD_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
+    Hist_OnData_RoI_MJD_Sum += [ROOT.TH1D("Hist_OnData_RoI_MJD_Sum_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
+    Hist_OnBkgd_RoI_MJD_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_MJD_Sum_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
 
 
 Hist2D_OffData = []

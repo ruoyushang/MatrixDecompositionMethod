@@ -102,9 +102,9 @@ double mean_tele_point_l = 0.;
 double mean_tele_point_b = 0.;
 double run_tele_point_ra = 0.;
 double run_tele_point_dec = 0.;
-double roi_ra = 0.;
-double roi_dec = 0.;
-double roi_radius = 0.;
+vector<double> roi_ra;
+vector<double> roi_dec;
+vector<double> roi_radius;
 vector<vector<double>> BrightStars_Data;
 vector<vector<double>> GammaSource_Data;
 vector<double> Dark_weight;
@@ -906,11 +906,11 @@ bool FoV() {
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
-bool RoIFoV() {
-    double x = ra_sky-roi_ra;
-    double y = dec_sky-roi_dec;
+bool RoIFoV(int which_roi) {
+    double x = ra_sky-roi_ra.at(which_roi);
+    double y = dec_sky-roi_dec.at(which_roi);
     double radius = pow(x*x+y*y,0.5);
-    if (radius>roi_radius) return false;
+    if (radius>roi_radius.at(which_roi)) return false;
     return true;
 }
 bool SelectNImages(int Nmin, int Nmax)
@@ -1019,17 +1019,29 @@ void NetflixMethodGetShowerImage(string target_data)
     GetBrightStars();
     GetGammaSources();
 
-    roi_ra = mean_tele_point_ra;
-    roi_dec = mean_tele_point_dec;
-    roi_radius = 0.15;
+    roi_ra.push_back(mean_tele_point_ra);
+    roi_dec.push_back(mean_tele_point_dec);
+    roi_radius.push_back(0.15);
     if (TString(target).Contains("MGRO_J1908")) 
     {
-        roi_radius = 1.0;
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius.push_back(1.0);
     }
     if (TString(target).Contains("Segue1")) 
     {
-        roi_ra = 151.757;
-        roi_dec = 17.007;
+        roi_ra.push_back(151.757);
+        roi_dec.push_back(17.007);
+        roi_radius.push_back(0.15);
+    }
+    if (TString(target).Contains("WComae")) 
+    {
+        roi_ra.push_back(185.360);
+        roi_dec.push_back(30.191);
+        roi_radius.push_back(0.15);
+        roi_ra.push_back(184.452);
+        roi_dec.push_back(30.102);
+        roi_radius.push_back(0.15);
     }
 
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
@@ -1054,8 +1066,6 @@ void NetflixMethodGetShowerImage(string target_data)
     vector<TH1D> Hist_OnDark_CR_Energy;
     vector<TH1D> Hist_OnData_SR_Energy;
     vector<TH1D> Hist_OnData_CR_Energy;
-    vector<TH1D> Hist_OnData_SR_RoI_Energy;
-    vector<TH1D> Hist_OnData_CR_RoI_Energy;
 
     for (int e=0;e<N_energy_bins;e++) 
     {
@@ -1074,8 +1084,6 @@ void NetflixMethodGetShowerImage(string target_data)
         Hist_OnDark_CR_Energy.push_back(TH1D("Hist_OnDark_CR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_SR_Energy.push_back(TH1D("Hist_OnData_SR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_CR_Energy.push_back(TH1D("Hist_OnData_CR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
-        Hist_OnData_SR_RoI_Energy.push_back(TH1D("Hist_OnData_SR_RoI_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
-        Hist_OnData_CR_RoI_Energy.push_back(TH1D("Hist_OnData_CR_RoI_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
     }
     vector<vector<TH2D>> Hist_OffData_MSCLW;
     vector<vector<TH2D>> Hist_OffDark_MSCLW;
@@ -1104,8 +1112,6 @@ void NetflixMethodGetShowerImage(string target_data)
     vector<TH1D> Hist_OnDark_CR_Theta2;
     vector<TH1D> Hist_OnData_SR_Skymap_Theta2;
     vector<TH1D> Hist_OnData_CR_Skymap_Theta2;
-    vector<TH1D> Hist_OnData_SR_Skymap_RoI_Theta2;
-    vector<TH1D> Hist_OnData_CR_Skymap_RoI_Theta2;
     vector<TH1D> Hist_OnData_CR_Skymap_Theta2_Raw;
     vector<TH1D> Hist_OnData_SR_CameraFoV_Theta2;
     vector<TH1D> Hist_OnData_CR_CameraFoV_Theta2;
@@ -1118,8 +1124,6 @@ void NetflixMethodGetShowerImage(string target_data)
     vector<TH2D> Hist_OnData_SR_CameraFoV;
     vector<TH2D> Hist_OnData_CR_CameraFoV;
     vector<TH2D> Hist_OnData_CR_CameraFoV_Raw;
-    vector<TH1D> Hist_OnData_SR_MJD;
-    vector<TH1D> Hist_OnData_CR_MJD;
     for (int e=0;e<N_energy_fine_bins;e++) 
     {
         char e_low[50];
@@ -1132,8 +1136,6 @@ void NetflixMethodGetShowerImage(string target_data)
         Hist_OnDark_CR_Theta2.push_back(TH1D("Hist_OnDark_CR_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,10));
         Hist_OnData_SR_Skymap_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_CR_Skymap_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
-        Hist_OnData_SR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,1));
-        Hist_OnData_CR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_RoI_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,1));
         Hist_OnData_CR_Skymap_Theta2_Raw.push_back(TH1D("Hist_OnData_CR_Skymap_Theta2_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_SR_CameraFoV_Theta2.push_back(TH1D("Hist_OnData_SR_CameraFoV_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_CR_CameraFoV_Theta2.push_back(TH1D("Hist_OnData_CR_CameraFoV_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
@@ -1151,9 +1153,52 @@ void NetflixMethodGetShowerImage(string target_data)
         Hist_OnData_SR_CameraFoV.push_back(TH2D("Hist_OnData_SR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,-3,3,150,-3,3));
         Hist_OnData_CR_CameraFoV.push_back(TH2D("Hist_OnData_CR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,-3,3,150,-3,3));
         Hist_OnData_CR_CameraFoV_Raw.push_back(TH2D("Hist_OnData_CR_CameraFoV_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,-3,3,150,-3,3));
-        Hist_OnData_SR_MJD.push_back(TH1D("Hist_OnData_SR_MJD_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",800,56200-4000,56200+4000));
-        Hist_OnData_CR_MJD.push_back(TH1D("Hist_OnData_CR_MJD_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",800,56200-4000,56200+4000));
     }
+
+    vector<vector<TH1D>> Hist_OnData_SR_RoI_Energy;
+    vector<vector<TH1D>> Hist_OnData_CR_RoI_Energy;
+    vector<vector<TH1D>> Hist_OnData_SR_Skymap_RoI_Theta2;
+    vector<vector<TH1D>> Hist_OnData_CR_Skymap_RoI_Theta2;
+    vector<vector<TH1D>> Hist_OnData_SR_RoI_MJD;
+    vector<vector<TH1D>> Hist_OnData_CR_RoI_MJD;
+    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
+    {
+        char roi_tag[50];
+        sprintf(roi_tag, "%i", nth_roi);
+        vector<TH1D> Hist_OnData_OneRoI_SR_RoI_Energy;
+        vector<TH1D> Hist_OnData_OneRoI_CR_RoI_Energy;
+        vector<TH1D> Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2;
+        vector<TH1D> Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2;
+        vector<TH1D> Hist_OnData_OneRoI_SR_RoI_MJD;
+        vector<TH1D> Hist_OnData_OneRoI_CR_RoI_MJD;
+        for (int e=0;e<N_energy_bins;e++) 
+        {
+            char e_low[50];
+            sprintf(e_low, "%i", int(energy_bins[e]));
+            char e_up[50];
+            sprintf(e_up, "%i", int(energy_bins[e+1]));
+            Hist_OnData_OneRoI_SR_RoI_Energy.push_back(TH1D("Hist_OnData_SR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+            Hist_OnData_OneRoI_CR_RoI_Energy.push_back(TH1D("Hist_OnData_CR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+        }
+        Hist_OnData_SR_RoI_Energy.push_back(Hist_OnData_OneRoI_SR_RoI_Energy);
+        Hist_OnData_CR_RoI_Energy.push_back(Hist_OnData_OneRoI_CR_RoI_Energy);
+        for (int e=0;e<N_energy_fine_bins;e++) 
+        {
+            char e_low[50];
+            sprintf(e_low, "%i", int(energy_fine_bins[e]));
+            char e_up[50];
+            sprintf(e_up, "%i", int(energy_fine_bins[e+1]));
+            Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
+            Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
+            Hist_OnData_OneRoI_SR_RoI_MJD.push_back(TH1D("Hist_OnData_SR_RoI_MJD_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",800,56200-4000,56200+4000));
+            Hist_OnData_OneRoI_CR_RoI_MJD.push_back(TH1D("Hist_OnData_CR_RoI_MJD_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",800,56200-4000,56200+4000));
+        }
+        Hist_OnData_SR_Skymap_RoI_Theta2.push_back(Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2);
+        Hist_OnData_CR_Skymap_RoI_Theta2.push_back(Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2);
+        Hist_OnData_SR_RoI_MJD.push_back(Hist_OnData_OneRoI_SR_RoI_MJD);
+        Hist_OnData_CR_RoI_MJD.push_back(Hist_OnData_OneRoI_CR_RoI_MJD);
+    }
+
     vector<vector<TH1D>> Hist_OffData_SR_Energy;
     vector<vector<TH1D>> Hist_OffData_CR_Energy;
     vector<vector<TH1D>> Hist_OffData_SR_CameraFoV_Theta2;
@@ -1479,7 +1524,6 @@ void NetflixMethodGetShowerImage(string target_data)
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
             // redefine theta2
             theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
-            theta2_roi = pow(ra_sky-roi_ra,2)+pow(dec_sky-roi_dec,2);
             pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
             int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
             int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
@@ -1504,13 +1548,17 @@ void NetflixMethodGetShowerImage(string target_data)
                 if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
                 {
                     Hist_OnData_SR_Energy.at(energy).Fill(ErecS*1000.);
-                    if (RoIFoV()) 
+                    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
-                        Hist_OnData_SR_RoI_Energy.at(energy).Fill(ErecS*1000.);
-                        Hist_OnData_SR_MJD.at(energy_fine).Fill(MJD);
+                        if (RoIFoV(nth_roi)) 
+                        {
+                            Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.);
+                            Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy_fine).Fill(MJD);
+                        }
+                        theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
+                        Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy_fine).Fill(theta2_roi);
                     }
                     Hist_OnData_SR_Skymap_Theta2.at(energy_fine).Fill(theta2);
-                    Hist_OnData_SR_Skymap_RoI_Theta2.at(energy_fine).Fill(theta2_roi);
                     Hist_OnData_SR_Skymap.at(energy_fine).Fill(ra_sky,dec_sky);
                     Hist_OnData_SR_CameraFoV.at(energy_fine).Fill(Xoff,Yoff);
                     Hist_OnData_SR_Skymap_Galactic.at(energy_fine).Fill(evt_l_b.first,evt_l_b.second);
@@ -1533,13 +1581,17 @@ void NetflixMethodGetShowerImage(string target_data)
                     double weight_e = 0.;
                     if (dark_cr_content_e>0.) weight_e = dark_sr_content_e/dark_cr_content_e;
                     Hist_OnData_CR_Energy.at(energy).Fill(ErecS*1000.,weight_e);
-                    if (RoIFoV()) 
+                    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
-                        Hist_OnData_CR_RoI_Energy.at(energy).Fill(ErecS*1000.,weight_e);
-                        Hist_OnData_CR_MJD.at(energy_fine).Fill(MJD);
+                        if (RoIFoV(nth_roi)) 
+                        {
+                            Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight_e);
+                            Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy_fine).Fill(MJD);
+                        }
+                        theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
+                        Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(energy_fine).Fill(theta2_roi,weight);
                     }
                     Hist_OnData_CR_Skymap_Theta2.at(energy_fine).Fill(theta2,weight);
-                    Hist_OnData_CR_Skymap_RoI_Theta2.at(energy_fine).Fill(theta2_roi,weight);
                     Hist_OnData_CR_Skymap_Theta2_Raw.at(energy_fine).Fill(theta2,1.);
                     Hist_OnData_CR_CameraFoV_Theta2.at(energy_fine).Fill(R2off,weight);
                     Hist_OnData_CR_CameraFoV_Theta2_Raw.at(energy_fine).Fill(R2off,1.);
@@ -1669,7 +1721,6 @@ void NetflixMethodGetShowerImage(string target_data)
             dec_sky = mean_tele_point_dec+dec_sky;
             // redefine theta2
             theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
-            theta2_roi = pow(ra_sky-roi_ra,2)+pow(dec_sky-roi_dec,2);
             pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
             int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
             int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
@@ -1690,9 +1741,16 @@ void NetflixMethodGetShowerImage(string target_data)
                 if (FoV() && GammaFoV())
                 {
                     Hist_OnData_SR_Energy.at(energy).Fill(ErecS*1000.,photon_weight);
-                    if (RoIFoV()) Hist_OnData_SR_RoI_Energy.at(energy).Fill(ErecS*1000.,photon_weight);
+                    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
+                    {
+                        if (RoIFoV(nth_roi)) 
+                        {
+                            Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,photon_weight);
+                        }
+                        theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
+                        Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy_fine).Fill(theta2_roi,photon_weight);
+                    }
                     Hist_OnData_SR_Skymap_Theta2.at(energy_fine).Fill(theta2,photon_weight);
-                    Hist_OnData_SR_Skymap_RoI_Theta2.at(energy_fine).Fill(theta2_roi,photon_weight);
                     Hist_OnData_SR_Skymap.at(energy_fine).Fill(ra_sky,dec_sky,photon_weight);
                     Hist_OnData_SR_Skymap_Galactic.at(energy_fine).Fill(evt_l_b.first,evt_l_b.second,photon_weight);
                     Hist_OnData_SR_CameraFoV_Theta2.at(energy_fine).Fill(R2off,photon_weight);
@@ -1714,9 +1772,16 @@ void NetflixMethodGetShowerImage(string target_data)
                     double weight_e = 0.;
                     if (dark_cr_content_e>0.) weight_e = dark_sr_content_e/dark_cr_content_e;
                     Hist_OnData_CR_Energy.at(energy).Fill(ErecS*1000.,weight_e*photon_weight);
-                    if (RoIFoV()) Hist_OnData_CR_RoI_Energy.at(energy).Fill(ErecS*1000.,weight_e*photon_weight);
+                    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
+                    {
+                        if (RoIFoV(nth_roi)) 
+                        {
+                            Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight_e*photon_weight);
+                        }
+                        theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
+                        Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(energy_fine).Fill(theta2_roi,weight*photon_weight);
+                    }
                     Hist_OnData_CR_Skymap_Theta2.at(energy_fine).Fill(theta2,weight*photon_weight);
-                    Hist_OnData_CR_Skymap_RoI_Theta2.at(energy_fine).Fill(theta2_roi,weight*photon_weight);
                     Hist_OnData_CR_Skymap_Theta2_Raw.at(energy_fine).Fill(theta2,photon_weight);
                     Hist_OnData_CR_CameraFoV_Theta2.at(energy_fine).Fill(R2off,weight*photon_weight);
                     Hist_OnData_CR_CameraFoV_Theta2_Raw.at(energy_fine).Fill(R2off,photon_weight);
@@ -1899,6 +1964,9 @@ void NetflixMethodGetShowerImage(string target_data)
     InfoTree.Branch("n_expect_matches",&n_expect_matches,"n_expect_matches/I");
     InfoTree.Branch("n_control_samples",&n_control_samples,"n_control_samples/I");
     InfoTree.Branch("Dark_runlist_primary","std::vector<int>",&Dark_runlist_primary);
+    InfoTree.Branch("roi_ra","std::vector<double>",&roi_ra);
+    InfoTree.Branch("roi_dec","std::vector<double>",&roi_dec);
+    InfoTree.Branch("roi_radius","std::vector<double>",&roi_radius);
     InfoTree.Fill();
     InfoTree.Write();
     TTree StarTree("StarTree","star tree");
@@ -1935,8 +2003,21 @@ void NetflixMethodGetShowerImage(string target_data)
         Hist_OnDark_CR_Energy.at(e).Write();
         Hist_OnData_SR_Energy.at(e).Write();
         Hist_OnData_CR_Energy.at(e).Write();
-        Hist_OnData_SR_RoI_Energy.at(e).Write();
-        Hist_OnData_CR_RoI_Energy.at(e).Write();
+    }
+    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
+    {
+        for (int e=0;e<N_energy_bins;e++) 
+        {
+            Hist_OnData_SR_RoI_Energy.at(nth_roi).at(e).Write();
+            Hist_OnData_CR_RoI_Energy.at(nth_roi).at(e).Write();
+        }
+        for (int e=0;e<N_energy_fine_bins;e++) 
+        {
+            Hist_OnData_SR_RoI_MJD.at(nth_roi).at(e).Write();
+            Hist_OnData_CR_RoI_MJD.at(nth_roi).at(e).Write();
+            Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(e).Write();
+            Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(e).Write();
+        }
     }
     for (int nth_sample=0;nth_sample<n_control_samples-1;nth_sample++)
     {
@@ -1961,8 +2042,6 @@ void NetflixMethodGetShowerImage(string target_data)
         Hist_OnDark_CR_Theta2.at(e).Write();
         Hist_OnData_SR_Skymap_Theta2.at(e).Write();
         Hist_OnData_CR_Skymap_Theta2.at(e).Write();
-        Hist_OnData_SR_Skymap_RoI_Theta2.at(e).Write();
-        Hist_OnData_CR_Skymap_RoI_Theta2.at(e).Write();
         Hist_OnData_CR_Skymap_Theta2_Raw.at(e).Write();
         Hist_OnData_SR_CameraFoV_Theta2.at(e).Write();
         Hist_OnData_CR_CameraFoV_Theta2.at(e).Write();
@@ -1975,8 +2054,6 @@ void NetflixMethodGetShowerImage(string target_data)
         Hist_OnData_SR_CameraFoV.at(e).Write();
         Hist_OnData_CR_CameraFoV.at(e).Write();
         Hist_OnData_CR_CameraFoV_Raw.at(e).Write();
-        Hist_OnData_SR_MJD.at(e).Write();
-        Hist_OnData_CR_MJD.at(e).Write();
     }
     OutputFile.Close();
 
