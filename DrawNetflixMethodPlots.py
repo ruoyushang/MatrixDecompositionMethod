@@ -5,10 +5,10 @@ import array
 import math
 from array import *
 from ROOT import *
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
-from scipy import special
+#from astropy import units as u
+#from astropy.coordinates import SkyCoord
+#from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
+#from scipy import special
 
 ROOT.gStyle.SetOptStat(0)
 ROOT.TH1.SetDefaultSumw2()
@@ -91,8 +91,8 @@ sky_coord = []
 #sky_coord += ['12 21 31.7 +28 13 59']
 sample_list += ['WComaeV5']
 sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV4']
-#sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV4']
+sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
@@ -1344,6 +1344,20 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,syst_method):
             Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
     return Hist_Skymap
 
+def reflectXaxis(hist):
+
+    # taken from VPlotAnasumHistograms.cpp
+	
+    # temporary histogram
+    hT = ROOT.TH2D( "%s_REFLECTED"%(hist.GetName()), "", hist.GetNbinsX(), -1.*hist.GetXaxis().GetXmax(), -1.*hist.GetXaxis().GetXmin(), hist.GetNbinsY(), hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax() )
+    hT.SetStats( 0 )
+    hT.SetXTitle( hist.GetXaxis().GetTitle() );
+    hT.SetYTitle( hist.GetYaxis().GetTitle() );
+	
+    for binx in range(1,hist.GetNbinsX()+1):
+        for biny in range(1,hist.GetNbinsX()+1):
+            hT.SetBinContent( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinContent( binx, biny ) )
+    return hT
 
 def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
 
@@ -1360,6 +1374,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
             Sig = 1.*CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
             if Sig>max_sig: max_sig = Sig
             Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
+    Hist_Skymap = reflectXaxis(Hist_Skymap)
 
     other_star_labels = []
     other_star_markers = []
@@ -1370,39 +1385,39 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     if xtitle=="RA":
         for star in range(0,len(other_stars)):
             if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>3.0*3.0: continue
-            other_star_markers += [ROOT.TMarker(other_star_coord[star][0],other_star_coord[star][1],2)]
-            other_star_labels += [ROOT.TLatex(other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
+            other_star_markers += [ROOT.TMarker(-other_star_coord[star][0],other_star_coord[star][1],2)]
+            other_star_labels += [ROOT.TLatex(-other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
             other_star_labels[len(other_star_labels)-1].SetTextSize(0.02)
             other_star_names += [other_stars[star]]
-            binx = Hist_Skymap.GetXaxis().FindBin(other_star_coord[star][0])
+            binx = Hist_Skymap.GetXaxis().FindBin(-other_star_coord[star][0])
             biny = Hist_Skymap.GetYaxis().FindBin(other_star_coord[star][1])
             other_star_significance += [Hist_Skymap.GetBinContent(binx,biny)]
         for star in range(0,len(bright_star_ra)):
-            bright_star_markers += [ROOT.TMarker(bright_star_ra[star],bright_star_dec[star],30)]
+            bright_star_markers += [ROOT.TMarker(-bright_star_ra[star],bright_star_dec[star],30)]
             bright_star_markers[len(bright_star_markers)-1].SetMarkerColor(2)
             bright_star_markers[len(bright_star_markers)-1].SetMarkerSize(1.5)
-            bright_star_labels += [ROOT.TLatex(bright_star_ra[star]-0.15,bright_star_dec[star]+0.15,'b-mag %s'%(bright_star_brightness[star]))]
+            bright_star_labels += [ROOT.TLatex(-bright_star_ra[star]-0.15,bright_star_dec[star]+0.15,'b-mag %s'%(bright_star_brightness[star]))]
             bright_star_labels[len(bright_star_labels)-1].SetTextColor(2)
             bright_star_labels[len(bright_star_labels)-1].SetTextSize(0.02)
     else:
         for star in range(0,len(other_stars)):
             gal_l, gal_b = ConvertRaDecToGalactic(other_star_coord[star][0],other_star_coord[star][1])
             if pow(source_l-gal_l,2)+pow(source_b-gal_b,2)>3.0*3.0: continue
-            other_star_markers += [ROOT.TMarker(gal_l,gal_b,2)]
-            other_star_labels += [ROOT.TLatex(gal_l-0.15,gal_b+0.15,other_stars[star])]
+            other_star_markers += [ROOT.TMarker(-gal_l,gal_b,2)]
+            other_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
             other_star_labels[len(other_star_labels)-1].SetTextSize(0.02)
             other_star_names += [other_stars[star]]
-            binx = Hist_Skymap.GetXaxis().FindBin(gal_l)
+            binx = Hist_Skymap.GetXaxis().FindBin(-gal_l)
             biny = Hist_Skymap.GetYaxis().FindBin(gal_b)
             other_star_significance += [Hist_Skymap.GetBinContent(binx,biny)]
         for star in range(0,len(bright_star_ra)):
             gal_l, gal_b = ConvertRaDecToGalactic(bright_star_ra[star],bright_star_dec[star])
-            bright_star_markers += [ROOT.TMarker(gal_l,gal_b,30)]
+            bright_star_markers += [ROOT.TMarker(-gal_l,gal_b,30)]
             bright_star_markers[len(bright_star_markers)-1].SetMarkerColor(2)
             bright_star_markers[len(bright_star_markers)-1].SetMarkerSize(1.5)
-            bright_star_labels += [ROOT.TLatex(gal_l-0.15,gal_b+0.15,'b-mag %s'%(bright_star_brightness[star]))]
+            bright_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,'b-mag %s'%(bright_star_brightness[star]))]
             bright_star_labels[len(bright_star_labels)-1].SetTextColor(2)
             bright_star_labels[len(bright_star_labels)-1].SetTextSize(0.02)
 
@@ -1443,13 +1458,24 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     Hist_Contour.SetContourLevel(1,4)
     Hist_Contour.SetContourLevel(2,5)
 
-    pad1.cd()
     Hist_Skymap.GetYaxis().SetTitle(ytitle)
     Hist_Skymap.GetXaxis().SetTitle(xtitle)
     Hist_Skymap.SetMaximum(5)
     Hist_Skymap.SetMinimum(-5)
+
+    pad1.cd()
     Hist_Skymap.Draw("COL4Z")
     Hist_Contour.Draw("CONT3 same")
+    Hist_Skymap.GetXaxis().SetLabelOffset(999)
+    Hist_Skymap.GetXaxis().SetTickLength(0)
+    x1 = Hist_Skymap.GetXaxis().GetXmin()
+    x2 = Hist_Skymap.GetXaxis().GetXmax()
+    y1 = Hist_Skymap.GetYaxis().GetXmin()
+    y2 = Hist_Skymap.GetYaxis().GetXmax()
+    IncValues = ROOT.TF1( "IncValues", "-x", -x2, -x1 )
+    raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
+    raLowerAxis.SetLabelSize(Hist_Skymap.GetXaxis().GetLabelSize())
+    raLowerAxis.Draw()
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
@@ -1475,6 +1501,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
             NSR = Hist_SR.GetBinContent(bx+1,by+1)
             NBkg = Hist_Bkg.GetBinContent(bx+1,by+1)
             Hist_Skymap_Excess.SetBinContent(bx+1,by+1,NSR-NBkg)
+    Hist_Skymap_Excess = reflectXaxis(Hist_Skymap_Excess)
 
     pad1.cd()
     Hist_Skymap_Excess.GetYaxis().SetTitle(ytitle)
@@ -1486,6 +1513,16 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
+    Hist_Skymap_Excess.GetXaxis().SetLabelOffset(999)
+    Hist_Skymap_Excess.GetXaxis().SetTickLength(0)
+    x1 = Hist_Skymap_Excess.GetXaxis().GetXmin()
+    x2 = Hist_Skymap_Excess.GetXaxis().GetXmax()
+    y1 = Hist_Skymap_Excess.GetYaxis().GetXmin()
+    y2 = Hist_Skymap_Excess.GetYaxis().GetXmax()
+    IncValues = ROOT.TF1( "IncValues", "-x", -x2, -x1 )
+    raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
+    raLowerAxis.SetLabelSize(Hist_Skymap_Excess.GetXaxis().GetLabelSize())
+    raLowerAxis.Draw()
     canvas.SaveAs('output_plots/SkymapExcess_%s_%s.png'%(name,selection_tag))
 
     Hist_Skymap_Ratio = Hist_SR.Clone()
@@ -1495,6 +1532,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
         for by in range(0,Hist_SR.GetNbinsY()):
             if Hist_Bkg.GetBinContent(bx+1,by+1)<10: 
                 Hist_Skymap_Ratio.SetBinContent(bx+1,by+1,0.)
+    Hist_Skymap_Ratio = reflectXaxis(Hist_Skymap_Ratio)
 
     pad1.cd()
     Hist_Skymap_Ratio.GetYaxis().SetTitle(ytitle)
@@ -1506,6 +1544,16 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
+    Hist_Skymap_Ratio.GetXaxis().SetLabelOffset(999)
+    Hist_Skymap_Ratio.GetXaxis().SetTickLength(0)
+    x1 = Hist_Skymap_Ratio.GetXaxis().GetXmin()
+    x2 = Hist_Skymap_Ratio.GetXaxis().GetXmax()
+    y1 = Hist_Skymap_Ratio.GetYaxis().GetXmin()
+    y2 = Hist_Skymap_Ratio.GetYaxis().GetXmax()
+    IncValues = ROOT.TF1( "IncValues", "-x", -x2, -x1 )
+    raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
+    raLowerAxis.SetLabelSize(Hist_Skymap_Ratio.GetXaxis().GetLabelSize())
+    raLowerAxis.Draw()
     canvas.SaveAs('output_plots/SkymapRatio_%s_%s.png'%(name,selection_tag))
 
     MapEdge_left = Hist_Skymap_Excess.GetXaxis().GetBinLowEdge(1)
@@ -1545,6 +1593,16 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
+    Hist_Skymap_zoomin.GetXaxis().SetLabelOffset(999)
+    Hist_Skymap_zoomin.GetXaxis().SetTickLength(0)
+    x1 = Hist_Skymap_zoomin.GetXaxis().GetXmin()
+    x2 = Hist_Skymap_zoomin.GetXaxis().GetXmax()
+    y1 = Hist_Skymap_zoomin.GetYaxis().GetXmin()
+    y2 = Hist_Skymap_zoomin.GetYaxis().GetXmax()
+    IncValues = ROOT.TF1( "IncValues", "-x", -x2, -x1 )
+    raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
+    raLowerAxis.SetLabelSize(Hist_Skymap_zoomin.GetXaxis().GetLabelSize())
+    raLowerAxis.Draw()
     canvas.SaveAs('output_plots/SkymapZoomin_%s_%s.png'%(name,selection_tag))
 
 def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold):
