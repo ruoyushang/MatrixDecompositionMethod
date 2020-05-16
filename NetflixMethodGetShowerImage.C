@@ -37,24 +37,6 @@
 #include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
 using namespace Eigen;
 
-int n_control_samples = 4;
-const int N_energy_bins = 1;
-double energy_bins[N_energy_bins+1] = {pow(10,2.3),pow(10,4.0)};
-const int N_energy_fine_bins = 20;
-double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.1),pow(10,2.2),pow(10,2.3),pow(10,2.4),pow(10,2.5),pow(10,2.6),pow(10,2.7),pow(10,2.8),pow(10,2.9),pow(10,3.0),pow(10,3.1),pow(10,3.2),pow(10,3.3),pow(10,3.4),pow(10,3.5),pow(10,3.6),pow(10,3.7),pow(10,3.8),pow(10,3.9),pow(10,4.0)};
-double gamma_flux[N_energy_fine_bins] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
-double gamma_count[N_energy_fine_bins] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
-double raw_gamma_count[N_energy_fine_bins] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
-
-double gamma_hadron_dim_ratio = 1.;
-double MSCW_cut_lower = -1.0;
-double MSCL_cut_lower = -1.0;
-double MSCW_cut_blind = 1.0;
-double MSCL_cut_blind = 1.0;
-double MSCW_plot_upper = 3.;
-double MSCL_plot_upper = 3.;
-double MSCW_plot_lower = -1.;
-double MSCL_plot_lower = -1.;
 double TelElev_lower = 70.;
 double TelElev_upper = 80.;
 char target[50] = "";
@@ -270,7 +252,7 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 266.005;
                 Source_Dec = 19.546;
     }
-    if (source_name=="IC443HotSpot")
+    if (source_name=="IC443HotSpotV6")
     {
             //Source_RA = 94.511;
             //    Source_Dec = 22.660;
@@ -382,11 +364,6 @@ pair<double,double> GetSourceRaDec(TString source_name)
                 Source_Dec = 0.;
     }
     if (source_name=="Proton_NSB750")
-    {
-            Source_RA = 0.;
-                Source_Dec = 0.;
-    }
-    if (source_name=="Everything")
     {
             Source_RA = 0.;
                 Source_Dec = 0.;
@@ -639,7 +616,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
 {
 
     int nsb_bins = 1;
-    if (nsb_reweight) nsb_bins = 20;
+    if (nsb_reweight) nsb_bins = 10;
     TH2D Hist_OnData_ElevNSB = TH2D("Hist_OnData_ElevNSB","",nsb_bins,0,10,18,0,90);
     TH2D Hist_OffData_ElevNSB = TH2D("Hist_OffData_ElevNSB","",nsb_bins,0,10,18,0,90);
 
@@ -722,11 +699,11 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
     vector<pair<double,double>> ON_pointing_radec_new;
     for (int off_run=0;off_run<OFF_runlist.size();off_run++)
     {
+        bool already_used_run = false;
         for (int on_run=0;on_run<ON_runlist.size();on_run++)
         {
-            if (int(ON_runlist[on_run].second)==int(OFF_runlist[off_run].second)) continue; // this OFF run is in ON runlist
+            if (int(ON_runlist[on_run].second)==int(OFF_runlist[off_run].second)) already_used_run = true; // this OFF run is in ON runlist
         }
-        bool already_used_run = false;
         for (int new_run=0;new_run<new_list.at(0).size();new_run++)
         {
             if (int(new_list.at(0)[new_run].second)==int(OFF_runlist[off_run].second)) already_used_run = true;
@@ -743,9 +720,9 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
         if (weight_off>0.) weight = weight_on/weight_off;
         Dark_weight.push_back(weight);
     }
-    for (int nth_sample=1;nth_sample<n_control_samples;nth_sample++)
+    for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
-        for (int on_run=0;on_run<ON_runlist.size();on_run++)
+        for (int nth_sample=1;nth_sample<n_control_samples;nth_sample++)
         {
             std::cout << "Finding match for " << on_run << "-th ON run in " << nth_sample << "-th sample." << std::endl;
             double accumulated_time = 0.;
@@ -767,11 +744,11 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     {
                         if (ON_runlist[on_run].first.compare(OFF_runlist[off_run].first) == 0) continue;
                     }
+                    bool already_used_run = false;
                     for (int on_run2=0;on_run2<ON_runlist.size();on_run2++)
                     {
-                        if (int(ON_runlist[on_run2].second)==int(OFF_runlist[off_run].second)) continue; // this OFF run is in ON runlist
+                        if (int(ON_runlist[on_run2].second)==int(OFF_runlist[off_run].second)) already_used_run = true; // this OFF run is in ON runlist
                     }
-                    bool already_used_run = false;
                     for (int nth_sample_newrun=1;nth_sample_newrun<n_control_samples;nth_sample_newrun++)
                     {
                         for (int new_run=0;new_run<new_list.at(nth_sample_newrun).size();new_run++)
@@ -1054,6 +1031,7 @@ void NetflixMethodGetShowerImage(string target_data)
     TH2D Hist_Data_MSCLW_incl = TH2D("Hist_Data_MSCLW_incl","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
     TH2D Hist_Dark_ElevNSB = TH2D("Hist_Dark_ElevNSB","",20,0,10,90,0,90);
     TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,0,10,90,0,90);
+    TH1D Hist_Data_Unbiased_Energy = TH1D("Hist_Data_Unbiased_Energy","",N_energy_fine_bins,energy_fine_bins);
 
     vector<TH2D> Hist_GammaDark_MSCLW;
     vector<TH2D> Hist_GammaMC_MSCLW;
@@ -1538,6 +1516,7 @@ void NetflixMethodGetShowerImage(string target_data)
             //if (R2off>4.) continue;
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
+            Hist_Data_Unbiased_Energy.Fill(ErecS*1000.);
             if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
                 Hist_Data_MSCLW_incl.Fill(MSCL,MSCW);
@@ -1951,6 +1930,7 @@ void NetflixMethodGetShowerImage(string target_data)
 
     TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+".root","recreate");
     TTree InfoTree("InfoTree","info tree");
+    InfoTree.Branch("N_bins_for_deconv",&N_bins_for_deconv,"N_bins_for_deconv/I");
     InfoTree.Branch("MSCW_cut_blind",&MSCW_cut_blind,"MSCW_cut_blind/D");
     InfoTree.Branch("MSCL_cut_blind",&MSCL_cut_blind,"MSCL_cut_blind/D");
     InfoTree.Branch("exposure_hours",&exposure_hours,"exposure_hours/D");
@@ -1992,6 +1972,7 @@ void NetflixMethodGetShowerImage(string target_data)
     Hist_Data_MSCLW_incl.Write();
     Hist_Dark_ElevNSB.Write();
     Hist_Data_ElevNSB.Write();
+    Hist_Data_Unbiased_Energy.Write();
     for (int e=0;e<N_energy_bins;e++)
     {
         Hist_GammaDark_MSCLW.at(e).Write();

@@ -690,7 +690,7 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
         {
             int idx_m = idx_j + idx_i*mtx_input.cols();
             double weight = 1.;
-            weight = 1./max(1.,pow(mtx_data(idx_i,idx_j).real(),0.5));
+            //weight = 1./max(1.,pow(mtx_data(idx_i,idx_j).real(),0.5));
             if (idx_i<binx_blind_global && idx_j<biny_blind_global)
             {
                 weight = 0.; // blind gamma-ray region
@@ -738,10 +738,6 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     mtx_output = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
     mtx_output += mtx_r_vari*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
     mtx_output += mtx_eigenvector_init*mtx_eigenvalue_init*mtx_l_vari.transpose();
-
-    //mtx_eigenvector = mtx_r_final;
-    //mtx_eigenvalue = mtx_S;
-    //mtx_eigenvector_inv = mtx_l_final.transpose();
 
     return mtx_output;
 
@@ -961,32 +957,19 @@ void LeastSquareSolutionMethod()
     std::cout << "initial chi2 = " << GetChi2Function(mtx_dark,0) << std::endl;
     mtx_data_bkgd = mtx_dark;
 
-    //std::cout << "=================== 1st iteration =====================" << std::endl;
-    //for (int iteration=0;iteration<10;iteration++)
-    //{
-    //    mtx_data_bkgd = SpectralDecompositionMethod_v2(2, 1, 1);
-    //    std::cout << "chi2 (left,final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    //    mtx_data_bkgd = SpectralDecompositionMethod_v2(1, 1, 1);
-    //    std::cout << "chi2 (right,final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    //}
-    //std::cout << "=================== 2nd iteration =====================" << std::endl;
-    //for (int iteration=0;iteration<10;iteration++)
-    //{
-    //    mtx_data_bkgd = SpectralDecompositionMethod_v2(1, 2, 1);
-    //    std::cout << "chi2 (left,final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    //    mtx_data_bkgd = SpectralDecompositionMethod_v2(2, 2, 1);
-    //    std::cout << "chi2 (right,final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    //}
+    mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 2);
+    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+    std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
     
-    mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
-    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-    std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    mtx_data_bkgd = SpectralDecompositionMethod_v3(2, 1);
-    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-    std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    mtx_data_bkgd = SpectralDecompositionMethod_v3(3, 1);
-    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-    std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+    //mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
+    //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+    //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+    //mtx_data_bkgd = SpectralDecompositionMethod_v3(2, 1);
+    //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+    //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+    //mtx_data_bkgd = SpectralDecompositionMethod_v3(3, 1);
+    //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+    //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
     
 
 }

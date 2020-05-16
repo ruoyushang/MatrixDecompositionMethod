@@ -80,8 +80,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source=="PKS1424") {
             list = GetRunListFromFile("PKS1424");
         }
-        if (source=="IC443HotSpot") {
-            list = GetRunListFromFile("IC443HotSpot");
+        if (source=="IC443HotSpotV6") {
+            list = GetRunListFromFile("IC443HotSpotV6");
         }
         if (source=="H1426") {
             list = GetRunListFromFile("H1426");
@@ -211,57 +211,11 @@ vector<std::pair<string,int>> GetRunList(string source) {
         }
         if (source=="Everything")
         {
-            list_temp = GetRunListFromFile("TychoV6");
+            list_temp = GetRunListFromFile("IC443HotSpotV6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("Segue1V6");
+            list_temp = GetRunListFromFile("IC443_MatchedDark_V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("Ton599");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("3C264");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("PKS1424");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("IC443HotSpot");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("H1426");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            //list_temp = GetRunListFromFile("Crab");
-            //list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("S3_1227_V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("1ES0229");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("CasA");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("G079");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("M82");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("RGBJ0710");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            //list_temp = GetRunListFromFile("Mrk421");
-            //list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("WComaeV6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("OJ287V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("1ES1011V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("NGC1275V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("1ES0647V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("1ES1440V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("1ES1741V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("RBS0413V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("PG1553V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("PKS1441V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("MS1221V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
         if (source=="CTA1V5") {

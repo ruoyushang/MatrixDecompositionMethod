@@ -16,20 +16,19 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 root_file_tags = []
-#root_file_tags += ['FoV9']
-root_file_tags += ['Moderate']
+root_file_tags += ['16bins']
 
 #selection_tag = 'FoV9'
-selection_tag = 'Mode'
+selection_tag = root_file_tags[0]
 
 folder_path = 'output_root'
 PercentCrab = ''
 
-energy_fine_bin_cut_low = 3
+energy_fine_bin_cut_low = 0
 energy_fine_bin_cut_up = 20
 selection_tag += 'E%s'%(energy_fine_bin_cut_low)
 
-N_bins_for_deconv = 12
+N_bins_for_deconv = 8
 gamma_hadron_dim_ratio = 1.
 MSCW_blind_cut = 0.5
 MSCL_blind_cut = 0.5
@@ -48,7 +47,7 @@ source_ra = 0.
 source_dec = 0.
 source_l = 0.
 source_b = 0.
-n_control_samples = 4
+n_control_samples = 6
 MJD_Start = 2147483647
 MJD_End = 0
 roi_ra = ROOT.std.vector("double")(10)
@@ -58,7 +57,7 @@ roi_radius = ROOT.std.vector("double")(10)
 Syst_MDM = 0.02
 
 energy_list = []
-energy_list += [int(pow(10,2.3))]
+energy_list += [int(pow(10,2.0))]
 energy_list += [int(pow(10,4.0))]
 
 energy_fine_bin = []
@@ -89,17 +88,17 @@ sky_coord = []
 
 #sample_list += ['WComaeV6']
 #sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV5']
-sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV4']
-sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV5']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV4']
+#sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['IC443HotSpotV5']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
-#sample_list += ['IC443HotSpotV4']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
+sample_list += ['IC443HotSpotV4']
+sky_coord += ['06 18 2.700 +22 39 36.00']
 
 #sample_list += ['MGRO_J1908_V6_new']
 #sky_coord += ['19 07 54 +06 16 07']
@@ -288,6 +287,7 @@ def ResetStackedShowerHistograms():
 
 def GetSourceInfo(file_list):
 
+    global N_bins_for_deconv
     global MSCW_blind_cut
     global MSCL_blind_cut
     global n_good_matches
@@ -316,6 +316,7 @@ def GetSourceInfo(file_list):
         InfoTree.GetEntry(0)
         n_good_matches += InfoTree.n_good_matches
         exposure_hours += InfoTree.exposure_hours
+        N_bins_for_deconv = InfoTree.N_bins_for_deconv
         MSCW_blind_cut = InfoTree.MSCW_cut_blind
         MSCL_blind_cut = InfoTree.MSCL_cut_blind
         source_ra = InfoTree.mean_tele_point_ra
@@ -1530,7 +1531,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     Hist_Skymap_Ratio.Divide(Hist_Bkg)
     for bx in range(0,Hist_SR.GetNbinsX()):
         for by in range(0,Hist_SR.GetNbinsY()):
-            if Hist_Bkg.GetBinContent(bx+1,by+1)<10: 
+            if Hist_Bkg.GetBinContent(bx+1,by+1)<30: 
                 Hist_Skymap_Ratio.SetBinContent(bx+1,by+1,0.)
     Hist_Skymap_Ratio = reflectXaxis(Hist_Skymap_Ratio)
 
@@ -1797,6 +1798,7 @@ def SingleSourceAnalysis(source_list,doMap):
     ResetStackedShowerHistograms()
     Hist_Data_ShowerElevNSB_Sum.Reset()
     Hist_Dark_ShowerElevNSB_Sum.Reset()
+    Hist_Data_Unbiased_Energy_Sum.Reset()
     for source in range(0,len(source_list)):
         source_name = source_list[source]
         for elev in range(0,len(root_file_tags)):
@@ -1814,6 +1816,9 @@ def SingleSourceAnalysis(source_list,doMap):
             HistName = "Hist_Dark_ElevNSB"
             Hist_Dark_ShowerElevNSB = InputFile.Get(HistName)
             Hist_Dark_ShowerElevNSB_Sum.Add(Hist_Dark_ShowerElevNSB)
+            HistName = "Hist_Data_Unbiased_Energy"
+            Hist_Data_Unbiased_Energy = InputFile.Get(HistName)
+            Hist_Data_Unbiased_Energy_Sum.Add(Hist_Data_Unbiased_Energy)
 
             MSCW_blind_cut = InfoTree.MSCW_cut_blind
             MSCL_blind_cut = InfoTree.MSCL_cut_blind
@@ -1840,8 +1845,8 @@ def SingleSourceAnalysis(source_list,doMap):
                     NormalizeSkyMapHistograms(FilePath_List[len(FilePath_List)-1])
                     StackSkymapHistograms()
 
-    Make2DProjectionPlot(Hist_Data_ShowerElevNSB_Sum,'Ped. Var.','Zenith','Data_ShowerElevNSB',False)
-    Make2DProjectionPlot(Hist_Dark_ShowerElevNSB_Sum,'Ped. Var.','Zenith','Dark_ShowerElevNSB',False)
+    Make2DProjectionPlot(Hist_Data_ShowerElevNSB_Sum,'Ped. Var.','Zenith','Data_ShowerElevNSB_%s%s'%(source_name,PercentCrab),False)
+    Make2DProjectionPlot(Hist_Dark_ShowerElevNSB_Sum,'Ped. Var.','Zenith','Dark_ShowerElevNSB_%s%s'%(source_name,PercentCrab),False)
 
     MatrixDecompositionDemo(source_name)
 
@@ -1895,6 +1900,7 @@ Hist_Data_ShowerElevNSB_Sum = ROOT.TH2D("Hist_Data_ShowerElevNSB_Sum","",20,0,10
 Hist_Dark_ShowerElevNSB_Sum = ROOT.TH2D("Hist_Dark_ShowerElevNSB_Sum","",20,0,10,18,0,90)
 Hist_EffArea = ROOT.TH1D("Hist_EffArea","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_EffArea_Sum = ROOT.TH1D("Hist_EffArea_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_Data_Unbiased_Energy_Sum = ROOT.TH1D("Hist_Data_Unbiased_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 
 source_ra = 0.
 source_dec = 0.
