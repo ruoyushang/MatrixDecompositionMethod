@@ -304,11 +304,6 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 286.975;
                 Source_Dec = 6.269;
     }
-    if (source_name=="MGRO_J1908_V6_new")
-    {
-            Source_RA = 286.975;
-                Source_Dec = 6.269;
-    }
     if (source_name=="MGRO_J1908_V5")
     {
             Source_RA = 286.975;
@@ -930,11 +925,11 @@ void NetflixMethodGetShowerImage(string target_data)
         MSCW_cut_blind = MSCW_cut_loose;
         MSCL_cut_blind = MSCL_cut_loose;
     }
-    if (TString(target).Contains("MGRO_J1908"))
-    {
-        MSCW_cut_blind = MSCW_cut_loose;
-        MSCL_cut_blind = MSCL_cut_loose;
-    }
+    //if (TString(target).Contains("MGRO_J1908"))
+    //{
+    //    MSCW_cut_blind = MSCW_cut_loose;
+    //    MSCL_cut_blind = MSCL_cut_loose;
+    //}
     MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
     MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
@@ -1303,10 +1298,6 @@ void NetflixMethodGetShowerImage(string target_data)
                     if (nth_sample==0)
                     {
                         Hist_OnDark_MSCLW.at(energy).Fill(MSCL,MSCW,Dark_weight.at(run));
-                        for (int nth_other_sample=1;nth_other_sample<n_control_samples;nth_other_sample++)
-                        {
-                            Hist_OffDark_MSCLW.at(nth_other_sample-1).at(energy).Fill(MSCL,MSCW,Dark_weight.at(run));
-                        }
                         if (SignalSelectionTheta2())
                         {
                             Hist_OnDark_SR_CameraFoV.at(energy_fine).Fill(R2off,Phioff,Dark_weight.at(run));
@@ -1397,6 +1388,11 @@ void NetflixMethodGetShowerImage(string target_data)
                 if (DarkFoV() || Dark_runlist.at(nth_sample)[run].first.find("Proton")!=std::string::npos)
                 {
                     Hist_OffData_MSCLW.at(nth_sample-1).at(energy).Fill(MSCL,MSCW);
+                    for (int nth_other_sample=1;nth_other_sample<n_control_samples;nth_other_sample++)
+                    {
+                        if (nth_other_sample==nth_sample) continue;
+                        Hist_OffDark_MSCLW.at(nth_other_sample-1).at(energy).Fill(MSCL,MSCW);
+                    }
                     if (SignalSelectionTheta2())
                     {
                         Hist_OffData_SR_CameraFoV_Theta2.at(nth_sample-1).at(energy_fine).Fill(R2off);

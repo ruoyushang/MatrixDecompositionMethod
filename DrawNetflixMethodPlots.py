@@ -16,9 +16,9 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 root_file_tags = []
-root_file_tags += ['16bins']
+root_file_tags += ['16bins_constrained']
+#root_file_tags += ['16bins_unconstrained']
 
-#selection_tag = 'FoV9'
 selection_tag = root_file_tags[0]
 
 folder_path = 'output_root'
@@ -86,6 +86,9 @@ energy_fine_bin += [pow(10,4.0)]
 sample_list = []
 sky_coord = []
 
+#sample_list += ['OJ287V6']
+#sky_coord += ['08 54 49.1 +20 05 58.89']
+
 #sample_list += ['WComaeV6']
 #sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['WComaeV5']
@@ -93,14 +96,14 @@ sky_coord = []
 #sample_list += ['WComaeV4']
 #sky_coord += ['12 21 31.7 +28 13 59']
 
-#sample_list += ['IC443HotSpotV6']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
-#sample_list += ['IC443HotSpotV5']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
+sample_list += ['IC443HotSpotV6']
+sky_coord += ['06 18 2.700 +22 39 36.00']
+sample_list += ['IC443HotSpotV5']
+sky_coord += ['06 18 2.700 +22 39 36.00']
 sample_list += ['IC443HotSpotV4']
 sky_coord += ['06 18 2.700 +22 39 36.00']
 
-#sample_list += ['MGRO_J1908_V6_new']
+#sample_list += ['MGRO_J1908_V6']
 #sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['MGRO_J1908_V5']
 #sky_coord += ['19 07 54 +06 16 07']
@@ -124,8 +127,6 @@ sky_coord += ['06 18 2.700 +22 39 36.00']
 #sky_coord += ['14 27 00 +23 47 00']
 #sample_list += ['3C264']
 #sky_coord += ['11 45 5.009 +19 36 22.74']
-#sample_list += ['OJ287V6']
-#sky_coord += ['08 54 49.1 +20 05 58.89']
 #sample_list += ['1ES0229']
 #sky_coord += ['02 32 53.2 +20 16 21']
 #sample_list += ['S3_1227_V6']
@@ -519,6 +520,90 @@ def set_histStyle( hist , color):
     hist.SetMarkerColor(color)
     hist.SetFillStyle(1001)
     pass
+
+def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,logy):
+    
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.7,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.7)
+    pad1.SetBottomMargin(0.2)
+    pad1.SetTopMargin(0.0)
+    pad1.SetLeftMargin(0.2)
+    pad1.SetBorderMode(0)
+    if logy: pad1.SetGrid()
+    pad1.Draw()
+    pad3.Draw()
+
+    pad1.cd()
+    if logy: pad1.SetLogy()
+
+
+    min_heigh = 0
+    max_heigh = 0
+    max_hist = 0
+    mean = []
+    rms = []
+    amp = []
+    for h in range(0,len(Hists)):
+        mean += [0]
+        rms += [0]
+        amp += [0]
+        if Hists[h]!=0:
+            Hists[h].GetXaxis().SetTitleOffset(0.8)
+            Hists[h].GetXaxis().SetTitleSize(0.06)
+            Hists[h].GetXaxis().SetLabelSize(0.06)
+            Hists[h].GetYaxis().SetLabelSize(0.06)
+            Hists[h].GetYaxis().SetTitleOffset(1.2)
+            Hists[h].GetYaxis().SetTitleSize(0.06)
+            Hists[h].GetXaxis().SetTitle(title_x)
+            Hists[h].GetYaxis().SetTitle(title_y)
+            if max_heigh < Hists[h].GetMaximum(): 
+                max_heigh = Hists[h].GetMaximum()
+                max_hist = h
+            if min_heigh > Hists[h].GetMinimum(): 
+                min_heigh = Hists[h].GetMinimum()
+
+    gap = 0.1*(max_heigh-min_heigh)
+    if not y_max==0. and not y_min==0.:
+        Hists[0].SetMaximum(y_max)
+        Hists[0].SetMinimum(y_min)
+        Hists[0].Draw("E")
+    else:
+        if not logy:
+            Hists[max_hist].SetMaximum(max_heigh+gap)
+            Hists[max_hist].SetMinimum(min_heigh-gap)
+        Hists[max_hist].Draw("E")
+
+    for h in range(0,len(Hists)):
+        #if colors[h]==1 or colors[h]==2: Hists[0].SetLineWidth(3)
+        if Hists[h]!=0:
+            Hists[h].SetLineColor(colors[h])
+            Hists[h].SetLineWidth(2)
+            Hists[h].Draw("E same")
+
+    pad3.cd()
+    legend = ROOT.TLegend(0.1,0.1,0.9,0.9)
+    legend.SetNColumns(2)
+    legend.SetTextFont(42)
+    legend.SetBorderSize(0)
+    legend.SetTextSize(0.1)
+    legend.SetFillColor(0)
+    legend.SetFillStyle(0)
+    legend.SetLineColor(0)
+    legend.Clear()
+    for h in range(0,len(Hists)):
+        if Hists[h]!=0:
+            legend.AddEntry(Hists[h],'%s'%(legends[h]),"pl")
+    legend.Draw("SAME")
+
+
+    if logx: 
+        pad1.SetLogx()
+
+    c_both.SaveAs('output_plots/%s.png'%(name))
 
 def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,range_upper,syst):
     
@@ -1847,6 +1932,11 @@ def SingleSourceAnalysis(source_list,doMap):
 
     Make2DProjectionPlot(Hist_Data_ShowerElevNSB_Sum,'Ped. Var.','Zenith','Data_ShowerElevNSB_%s%s'%(source_name,PercentCrab),False)
     Make2DProjectionPlot(Hist_Dark_ShowerElevNSB_Sum,'Ped. Var.','Zenith','Dark_ShowerElevNSB_%s%s'%(source_name,PercentCrab),False)
+
+    hists = [Hist_Data_Unbiased_Energy_Sum]
+    legends = ['unfiltered cosmic-ray events']
+    colors = [1]
+    MakeComparisonPlot(hists,legends,colors,'E [GeV]','counts','Data_Unbiased_Energy_%s%s'%(source_name,PercentCrab),0,0,True,True)
 
     MatrixDecompositionDemo(source_name)
 

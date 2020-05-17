@@ -1,5 +1,11 @@
 
 char output_file_tag[50] = "16bins";
+
+char output_file2_tag[50] = "constrained";
+bool solution_w_constraints = true;
+//char output_file2_tag[50] = "unconstrained";
+//bool solution_w_constraints = false;
+
 int NumberOfEigenvectors = 3;
 double PercentCrab = 0.;
 double tel_elev_lower_input = 45.;

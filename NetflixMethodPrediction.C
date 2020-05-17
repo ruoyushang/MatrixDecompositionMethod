@@ -704,7 +704,7 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     int row_size_big = mtx_input.rows()*mtx_input.cols();
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    MatrixXd mtx_Constraint = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
+    MatrixXd mtx_Constraint = MatrixXd::Zero(NumberOfEigenvectors,2*entry_size*mtx_input.cols());
     for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
     {
         for (int idx_j=0; idx_j<mtx_input.cols(); idx_j++)
@@ -720,23 +720,37 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
             for (int idx_k=0; idx_k<entry_size; idx_k++)
             {
                 int idx_m = idx_j + mtx_input.cols()*idx_i;
+                int idx_n = idx_j + mtx_input.cols()*idx_k;
+                int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 int nth_entry = idx_k + entry_start;
 
-                int idx_n = idx_j + mtx_input.cols()*idx_k;
                 mtx_Big(idx_m,idx_n) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_r_init(idx_i,mtx_input.rows()-nth_entry).real();
-                mtx_Constraint(idx_m,idx_n) = mtx_r_init(idx_i,mtx_input.rows()-nth_entry).real();
-                int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 mtx_Big(idx_m,idx_w) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_l_init(idx_j,mtx_input.rows()-nth_entry).real();
-                mtx_Constraint(idx_m,idx_w) = mtx_l_init(idx_j,mtx_input.rows()-nth_entry).real();
+                for (int idx_k2=0; idx_k2<NumberOfEigenvectors; idx_k2++)
+                {
+                    int nth_entry2 = idx_k2 + 1;
+                    mtx_Constraint(idx_k2,idx_n) = mtx_r_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    mtx_Constraint(idx_k2,idx_w) = mtx_l_init(idx_j,mtx_input.rows()-nth_entry2).real();
+                }
             }
         }
     }
     VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
-    //vtr_vari_big = mtx_Big.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_Delta);
-    vtr_vari_big = SolutionWithConstraints(mtx_Big, mtx_Constraint, vtr_Delta);
-
+    if (solution_w_constraints) 
+    {
+        vtr_vari_big = SolutionWithConstraints(mtx_Big, mtx_Constraint, vtr_Delta);
+    }
+    else
+    {
+        vtr_vari_big = mtx_Big.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_Delta);
+    }
     //VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
     //vtr_vari_big = (mtx_Big.transpose()*mtx_Big).inverse()*mtx_Big.transpose()*vtr_Delta;
+
+    VectorXd vtr_should_be_zero = mtx_Constraint*vtr_vari_big;
+    std::cout << "vtr_should_be_zero = " << std::endl;
+    std::cout << vtr_should_be_zero << std::endl;
+
 
     MatrixXcd mtx_l_final = mtx_l_init;
     MatrixXcd mtx_r_final = mtx_r_init;
@@ -982,7 +996,7 @@ void LeastSquareSolutionMethod()
     std::cout << "initial chi2 = " << GetChi2Function(mtx_dark,0) << std::endl;
     mtx_data_bkgd = mtx_dark;
 
-    //mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
+    //mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 3);
     //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
     //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
     
@@ -1075,11 +1089,11 @@ void NetflixMethodPrediction(string target_data)
         MSCW_cut_blind = MSCW_cut_loose;
         MSCL_cut_blind = MSCL_cut_loose;
     }
-    if (TString(target).Contains("MGRO_J1908"))
-    {
-        MSCW_cut_blind = MSCW_cut_loose;
-        MSCL_cut_blind = MSCL_cut_loose;
-    }
+    //if (TString(target).Contains("MGRO_J1908"))
+    //{
+    //    MSCW_cut_blind = MSCW_cut_loose;
+    //    MSCL_cut_blind = MSCL_cut_loose;
+    //}
     MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
     MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
@@ -1234,9 +1248,10 @@ void NetflixMethodPrediction(string target_data)
 
     }
 
+    InputDataFile.Cp("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+".root");
     InputDataFile.Close();
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+".root","update");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+".root","update");
     for (int e=0;e<N_energy_bins;e++)
     {
         Hist_OnBkgd_MSCLW.at(e).Write();
