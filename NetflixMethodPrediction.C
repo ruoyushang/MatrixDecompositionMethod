@@ -670,6 +670,26 @@ pair<MatrixXcd,MatrixXcd> GetLocalDeltaVector(int region, int entry_cutoff)
     return std::make_pair(mtx_r_local_vari,mtx_l_local_vari);
 
 }
+VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, VectorXd vtr_delta)
+{
+
+    MatrixXd BTB = mtx_big.transpose()*mtx_big;
+    VectorXd BTD = mtx_big.transpose()*vtr_delta;
+
+    MatrixXd mtx_Bigger = MatrixXd::Zero(BTB.rows()+mtx_constraints.rows(),BTB.cols()+mtx_constraints.rows());
+    mtx_Bigger.block(0,0,BTB.rows(),BTB.cols()) = BTB;
+    mtx_Bigger.block(BTB.rows(),0,mtx_constraints.rows(),mtx_constraints.cols()) = mtx_constraints;
+    mtx_Bigger.block(0,BTB.cols(),mtx_constraints.cols(),mtx_constraints.rows()) = mtx_constraints.transpose();
+
+    VectorXd vtr_bigger_delta = VectorXd::Zero(BTB.rows()+mtx_constraints.rows());
+    vtr_bigger_delta.segment(0,BTB.rows()) = BTD;
+
+    VectorXd vtr_vari_bigger = VectorXd::Zero(BTB.cols()+mtx_constraints.rows());
+    vtr_vari_bigger = mtx_Bigger.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_bigger_delta);
+
+    return vtr_vari_bigger.segment(0,BTB.cols());
+
+}
 MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
 {
 
@@ -684,6 +704,7 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     int row_size_big = mtx_input.rows()*mtx_input.cols();
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
+    MatrixXd mtx_Constraint = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
     for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
     {
         for (int idx_j=0; idx_j<mtx_input.cols(); idx_j++)
@@ -703,13 +724,17 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
 
                 int idx_n = idx_j + mtx_input.cols()*idx_k;
                 mtx_Big(idx_m,idx_n) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_r_init(idx_i,mtx_input.rows()-nth_entry).real();
+                mtx_Constraint(idx_m,idx_n) = mtx_r_init(idx_i,mtx_input.rows()-nth_entry).real();
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 mtx_Big(idx_m,idx_w) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_l_init(idx_j,mtx_input.rows()-nth_entry).real();
+                mtx_Constraint(idx_m,idx_w) = mtx_l_init(idx_j,mtx_input.rows()-nth_entry).real();
             }
         }
     }
     VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
-    vtr_vari_big = mtx_Big.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_Delta);
+    //vtr_vari_big = mtx_Big.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_Delta);
+    vtr_vari_big = SolutionWithConstraints(mtx_Big, mtx_Constraint, vtr_Delta);
+
     //VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
     //vtr_vari_big = (mtx_Big.transpose()*mtx_Big).inverse()*mtx_Big.transpose()*vtr_Delta;
 
@@ -957,19 +982,19 @@ void LeastSquareSolutionMethod()
     std::cout << "initial chi2 = " << GetChi2Function(mtx_dark,0) << std::endl;
     mtx_data_bkgd = mtx_dark;
 
-    mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 2);
-    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-    std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    
     //mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
     //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
     //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    //mtx_data_bkgd = SpectralDecompositionMethod_v3(2, 1);
-    //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-    //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    //mtx_data_bkgd = SpectralDecompositionMethod_v3(3, 1);
-    //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-    //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+    
+    mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
+    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+    std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+    mtx_data_bkgd = SpectralDecompositionMethod_v3(2, 1);
+    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+    std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+    mtx_data_bkgd = SpectralDecompositionMethod_v3(3, 1);
+    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+    std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
     
 
 }
