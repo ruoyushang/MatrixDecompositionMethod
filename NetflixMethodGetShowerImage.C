@@ -752,23 +752,38 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                         }
                     }
                     if (already_used_run) continue;
-                    double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
-                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>4.0*4.0)
-                    {
-                        chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                    }
-                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.2*0.2 && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<4.*4.)
-                    {
-                        found_match = true;
-                    }
+
+                    // This selection gives control samples almost identical in MSCL/MSCW shapes
+                    //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
+                    //if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>4.0*4.0)
+                    //{
+                    //    chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    //}
+                    //if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.2*0.2 && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<4.*4.)
+                    //{
+                    //    found_match = true;
+                    //}
+                    //if (best_chi2>chi2)
+                    //{
+                    //    best_chi2 = chi2;
+                    //    best_match = OFF_runlist[off_run];
+                    //    best_pointing = OFF_pointing[off_run];
+                    //    best_off_run = off_run;
+                    //    best_time = OFF_time[off_run];
+                    //}
+
+                    double ref_elev = ON_pointing[on_run].first+(double(nth_sample)-double(n_control_samples)/2.)*5.;
+                    double chi2 = pow(ref_elev-OFF_pointing[off_run].first,2);
                     if (best_chi2>chi2)
                     {
+                        found_match = true;
                         best_chi2 = chi2;
                         best_match = OFF_runlist[off_run];
                         best_pointing = OFF_pointing[off_run];
                         best_off_run = off_run;
                         best_time = OFF_time[off_run];
                     }
+
                 }
                 if (found_match || best_chi2<10000.) 
                 {
@@ -993,18 +1008,24 @@ void NetflixMethodGetShowerImage(string target_data)
 
     roi_ra.push_back(mean_tele_point_ra);
     roi_dec.push_back(mean_tele_point_dec);
-    roi_radius.push_back(0.15);
+    roi_radius.push_back(0.2);
     if (TString(target).Contains("MGRO_J1908")) 
     {
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(1.0);
     }
+    if (TString(target).Contains("IC443")) 
+    {
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius.push_back(0.5);
+    }
     if (TString(target).Contains("Segue1")) 
     {
         roi_ra.push_back(151.757);
         roi_dec.push_back(17.007);
-        roi_radius.push_back(0.15);
+        roi_radius.push_back(0.5);
     }
     if (TString(target).Contains("WComae")) 
     {
@@ -1298,6 +1319,11 @@ void NetflixMethodGetShowerImage(string target_data)
                     if (nth_sample==0)
                     {
                         Hist_OnDark_MSCLW.at(energy).Fill(MSCL,MSCW,Dark_weight.at(run));
+                        for (int nth_other_sample=1;nth_other_sample<n_control_samples;nth_other_sample++)
+                        {
+                            if (int(Dark_runlist.at(nth_sample)[run].second)==int(Dark_runlist.at(nth_other_sample)[run].second)) continue;
+                            Hist_OffDark_MSCLW.at(nth_other_sample-1).at(energy).Fill(MSCL,MSCW);
+                        }
                         if (SignalSelectionTheta2())
                         {
                             Hist_OnDark_SR_CameraFoV.at(energy_fine).Fill(R2off,Phioff,Dark_weight.at(run));
@@ -1388,11 +1414,6 @@ void NetflixMethodGetShowerImage(string target_data)
                 if (DarkFoV() || Dark_runlist.at(nth_sample)[run].first.find("Proton")!=std::string::npos)
                 {
                     Hist_OffData_MSCLW.at(nth_sample-1).at(energy).Fill(MSCL,MSCW);
-                    for (int nth_other_sample=1;nth_other_sample<n_control_samples;nth_other_sample++)
-                    {
-                        if (nth_other_sample==nth_sample) continue;
-                        Hist_OffDark_MSCLW.at(nth_other_sample-1).at(energy).Fill(MSCL,MSCW);
-                    }
                     if (SignalSelectionTheta2())
                     {
                         Hist_OffData_SR_CameraFoV_Theta2.at(nth_sample-1).at(energy_fine).Fill(R2off);

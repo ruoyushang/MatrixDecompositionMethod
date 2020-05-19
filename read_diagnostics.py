@@ -27,10 +27,10 @@ def ConvertRaDecToGalactic(ra, dec):
 
 
 ## galactic center
-#target_ra = 266.415
-#target_dec = -29.006
-#range_ra = 2.0
-#range_dec = 2.0
+target_ra = 266.415
+target_dec = -29.006
+range_ra = 2.0
+range_dec = 2.0
 
 # W Comae
 #target_ra = 185.382083333
@@ -39,10 +39,10 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 1.0
 
 ## MGRO J1908
-target_ra = 286.975
-target_dec = 6.269
-range_ra = 1.0
-range_dec = 1.0
+#target_ra = 286.975
+#target_dec = 6.269
+#range_ra = 1.0
+#range_dec = 1.0
 
 # IC 443
 #target_ra = 94.511
@@ -62,7 +62,19 @@ range_dec = 1.0
 #range_ra = 1.0
 #range_dec = 1.0
 
-search_for_on_data = False
+## 2HWC J1928
+#target_ra = 292.15
+#target_dec = 17.78
+#range_ra = 1.0
+#range_dec = 1.0
+
+## Cygnus
+#target_ra = 304.645958333
+#target_dec = 36.8333333333
+#range_ra = 1.0
+#range_dec = 1.0
+
+search_for_on_data = True
 
 V4 = False
 V5 = False
@@ -114,17 +126,17 @@ Source_Livetime = []
 #sourceFile = open('../data/output_list/WComaeV5_runlist.txt')
 #sourceFile = open('../data/output_list/WComaeV6_runlist.txt')
 #sourceFile = open('../data/output_list/MGRO_J1908_V5_runlist.txt')
-sourceFile = open('../data/output_list/MGRO_J1908_V6_runlist.txt')
+#sourceFile = open('../data/output_list/MGRO_J1908_V6_runlist.txt')
 #sourceFile = open('../data/output_list/IC443HotSpotV4_runlist.txt')
 #sourceFile = open('../data/output_list/IC443HotSpotV5_runlist.txt')
 #sourceFile = open('../data/output_list/IC443HotSpotV6_runlist.txt')
 #sourceFile = open('../data/output_list/Segue1V5_runlist.txt')
-for line in sourceFile:
-    Source_RunNumber += [int(line)]
-    Source_PedVar_DC += [0.]
-    Source_Elev += [0.]
-    Source_Azim += [0.]
-    Source_Livetime += [0.]
+#for line in sourceFile:
+#    Source_RunNumber += [int(line)]
+#    Source_PedVar_DC += [0.]
+#    Source_Elev += [0.]
+#    Source_Azim += [0.]
+#    Source_Livetime += [0.]
 
 inputFile = open('diagnostics.txt')
 for line in inputFile:

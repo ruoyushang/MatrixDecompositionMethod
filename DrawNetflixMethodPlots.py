@@ -5,9 +5,10 @@ import array
 import math
 from array import *
 from ROOT import *
-#from astropy import units as u
-#from astropy.coordinates import SkyCoord
-#from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
+from astropy.time import Time
 #from scipy import special
 
 ROOT.gStyle.SetOptStat(0)
@@ -26,7 +27,7 @@ PercentCrab = ''
 
 energy_fine_bin_cut_low = 0
 energy_fine_bin_cut_up = 20
-selection_tag += 'E%s'%(energy_fine_bin_cut_low)
+selection_tag += '_E%s'%(energy_fine_bin_cut_low)
 
 N_bins_for_deconv = 8
 gamma_hadron_dim_ratio = 1.
@@ -96,19 +97,19 @@ sky_coord = []
 #sample_list += ['WComaeV4']
 #sky_coord += ['12 21 31.7 +28 13 59']
 
-sample_list += ['IC443HotSpotV6']
-sky_coord += ['06 18 2.700 +22 39 36.00']
-sample_list += ['IC443HotSpotV5']
-sky_coord += ['06 18 2.700 +22 39 36.00']
-sample_list += ['IC443HotSpotV4']
-sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV6']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV5']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV4']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
 
-#sample_list += ['MGRO_J1908_V6']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V5']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V4']
-#sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V6']
+sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V5']
+sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V4']
+sky_coord += ['19 07 54 +06 16 07']
 
 #sample_list += ['Segue1V6']
 #sky_coord += ['10 07 04 +16 04 55']
@@ -605,6 +606,89 @@ def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,log
 
     c_both.SaveAs('output_plots/%s.png'%(name))
 
+def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
+
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0.0,1,0.8)
+    pad1.SetBottomMargin(0.39)
+    pad1.SetTopMargin(0.0)
+    pad1.SetBorderMode(0)
+    pad1.Draw()
+    pad3.Draw()
+
+    pad1.cd()
+
+    time = Time(MJD_Start, format='mjd')
+    time.format = 'decimalyear'
+    year_start = int(time.value)
+    time = Time(MJD_End, format='mjd')
+    time.format = 'decimalyear'
+    year_end = int(time.value)
+
+    Hist_data_year = []
+    for hist in range(0,len(Hist_data)):
+        Hist_data_year += [ROOT.TH1D("Hist_data_year_%s"%(hist),"",year_end-year_start+1,year_start,year_end+1)]
+        for binx in range(0,Hist_data[hist].GetNbinsX()):
+            mjd = Hist_data[hist].GetBinCenter(binx+1)
+            time = Time(mjd, format='mjd')
+            time.format = 'decimalyear'
+            year = int(time.value)
+            Hist_data_year[hist].Fill(year,Hist_data[hist].GetBinContent(binx+1))
+        for binx in range(0,Hist_data_year[hist].GetNbinsX()):
+            Hist_data_year[hist].SetBinError(binx+1,pow(Hist_data_year[hist].GetBinContent(binx+1),0.5))
+    Hist_bkgd_year = []
+    for hist in range(0,len(Hist_data)):
+        Hist_bkgd_year += [ROOT.TH1D("Hist_bkgd_year_%s"%(hist),"",year_end-year_start+1,year_start,year_end+1)]
+        for binx in range(0,Hist_data[hist].GetNbinsX()):
+            mjd = Hist_data[hist].GetBinCenter(binx+1)
+            time = Time(mjd, format='mjd')
+            time.format = 'decimalyear'
+            year = int(time.value)
+            Hist_bkgd_year[hist].Fill(year,Hist_bkgd[hist].GetBinContent(binx+1))
+        for binx in range(0,Hist_bkgd_year[hist].GetNbinsX()):
+            Hist_bkgd_year[hist].SetBinError(binx+1,Hist_bkgd_year[hist].GetBinContent(binx+1)*Syst_MDM)
+    Hist_ratio_year = []
+    for hist in range(0,len(Hist_data_year)):
+        Hist_ratio_year += [ROOT.TH1D("Hist_ratio_year_%s"%(hist),"",year_end-year_start+1,year_start,year_end+1)]
+        Hist_ratio_year[hist].Add(Hist_data_year[hist])
+        Hist_ratio_year[hist].Add(Hist_bkgd_year[hist],-1.)
+        #Hist_ratio_year[hist].Divide(Hist_bkgd_year[hist])
+
+    max_heigh = 0
+    max_hist = 0
+    for h in range(0,len(Hist_ratio_year)):
+        if Hist_ratio_year[h]!=0:
+            Hist_ratio_year[h].SetLineColor(colors[h])
+            Hist_ratio_year[h].GetXaxis().SetTitle(title)
+            if max_heigh < Hist_ratio_year[h].GetMaximum(): 
+                max_heigh = Hist_ratio_year[h].GetMaximum()
+                max_hist = h
+
+    Hist_ratio_year[max_hist].Draw("E")
+    for h in range(0,len(Hist_ratio_year)):
+        Hist_ratio_year[h].SetLineWidth(3)
+        Hist_ratio_year[h].Draw("E same")
+
+    pad3.cd()
+    legend = ROOT.TLegend(0.55,0.1,0.94,0.9)
+    legend.SetTextFont(42)
+    legend.SetBorderSize(0)
+    #legend.SetTextSize(0.2)
+    legend.SetTextSize(0.15)
+    legend.SetFillColor(0)
+    legend.SetFillStyle(0)
+    legend.SetLineColor(0)
+    legend.Clear()
+    for h in range(0,len(Hist_ratio_year)):
+        legend.AddEntry(Hist_ratio_year[h],legends[h],"pl")
+    legend.Draw("SAME")
+
+    c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
+
 def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,range_upper,syst):
     
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
@@ -858,24 +942,6 @@ def PlotsStackedHistograms(tag):
         legends = []
         colors = []
         stack_it = []
-        Hist_OnData_RoI_MJD_Sum[nth_roi].GetXaxis().SetRangeUser(MJD_Start-1,MJD_End+1)
-        Hist_OnBkgd_RoI_MJD_Sum[nth_roi].GetXaxis().SetRangeUser(MJD_Start-1,MJD_End+1)
-        Hists += [Hist_OnData_RoI_MJD_Sum[nth_roi]]
-        legends += ['obs. data']
-        colors += [1]
-        stack_it += [False]
-        Hists += [Hist_OnBkgd_RoI_MJD_Sum[nth_roi]]
-        legends += ['predict. bkg.']
-        colors += [4]
-        stack_it += [True]
-        plotname = 'Stack_RoI_MJD_MDM_V%s_%s'%(nth_roi,tag)
-        title = 'MJD'
-        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
-
-        Hists = []
-        legends = []
-        colors = []
-        stack_it = []
         Hists += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
         legends += ['obs. data']
         colors += [1]
@@ -887,6 +953,19 @@ def PlotsStackedHistograms(tag):
         plotname = 'Stack_RoI_Energy_MDM_V%s_%s'%(nth_roi,tag)
         title = 'energy [GeV]'
         MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
+
+    Hist_data_mjd = []
+    Hist_bkgd_mjd = []
+    legends = []
+    colors = []
+    for nth_roi in range(0,len(roi_ra)):
+        legends += ['RoI %s'%(nth_roi)]
+        colors += [nth_roi+1]
+        Hist_data_mjd += [Hist_OnData_RoI_MJD_Sum[nth_roi]]
+        Hist_bkgd_mjd += [Hist_OnBkgd_RoI_MJD_Sum[nth_roi]]
+    plotname = 'LightCurve_RoI_Year_MDM_V%s_%s'%(nth_roi,tag)
+    title = 'Year'
+    MakeLightCurvePlot(Hist_data_mjd,Hist_bkgd_mjd,legends,colors,title,plotname)
 
     Hists = []
     legends = []
@@ -1577,6 +1656,10 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     lumilab2.SetNDC()
     lumilab2.SetTextSize(0.15)
     lumilab2.Draw()
+    lumilab3 = ROOT.TLatex(0.15,0.30,'E >%0.1f GeV (%.1f hrs)'%(energy_fine_bin[energy_fine_bin_cut_low],exposure_hours) )
+    lumilab3.SetNDC()
+    lumilab3.SetTextSize(0.15)
+    lumilab3.Draw()
     legend.Draw("SAME")
     canvas.SaveAs('output_plots/SkymapSig_%s_%s.png'%(name,selection_tag))
 
@@ -2161,4 +2244,5 @@ if energy_fine_bin[energy_fine_bin_cut_low]>1000.:
 GetGammaSourceInfo()
 
 SingleSourceAnalysis(sample_list,True)
+#SingleSourceAnalysis(sample_list,False)
 print 'n_good_matches = %s'%(n_good_matches)

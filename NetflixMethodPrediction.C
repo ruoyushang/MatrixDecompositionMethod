@@ -704,7 +704,8 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     int row_size_big = mtx_input.rows()*mtx_input.cols();
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    MatrixXd mtx_Constraint = MatrixXd::Zero(N_bins_for_deconv*entry_size,2*entry_size*mtx_input.cols());
+    //MatrixXd mtx_Constraint = MatrixXd::Zero(NumberOfEigenvectors*entry_size,2*entry_size*mtx_input.cols());
+    MatrixXd mtx_Constraint = MatrixXd::Zero(1*entry_size,2*entry_size*mtx_input.cols());
     for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
     {
         for (int idx_j=0; idx_j<mtx_input.cols(); idx_j++)
@@ -726,12 +727,17 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
 
                 mtx_Big(idx_m,idx_n) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_q_init(idx_i,mtx_input.rows()-nth_entry).real();
                 mtx_Big(idx_m,idx_w) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_p_init(idx_j,mtx_input.rows()-nth_entry).real();
-                for (int idx_k2=0; idx_k2<N_bins_for_deconv; idx_k2++)
+                //for (int idx_l=0; idx_l<NumberOfEigenvectors; idx_l++)
+                for (int idx_l=0; idx_l<1; idx_l++)
                 {
-                    int nth_entry2 = idx_k2 + 1;
-                    int idx_t = idx_k2 + N_bins_for_deconv*idx_k;
-                    mtx_Constraint(idx_t,idx_n) = mtx_q_init(idx_j,mtx_input.rows()-nth_entry2).real();
-                    mtx_Constraint(idx_t,idx_w) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    //int nth_entry2 = idx_l + 1;
+                    int nth_entry2 = idx_k + entry_start;
+                    //int idx_u = idx_l + idx_k*NumberOfEigenvectors;
+                    int idx_u = idx_l + idx_k*1;
+                    int idx_x = idx_l + idx_i*entry_size;
+                    int idx_y = idx_k + idx_i*entry_size + mtx_input.cols()*entry_size;
+                    mtx_Constraint(idx_u,idx_x) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry).real();
+                    mtx_Constraint(idx_u,idx_y) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
                 }
             }
         }
@@ -999,7 +1005,7 @@ void LeastSquareSolutionMethod()
 
     //mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 3);
     //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-    //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+    ////std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
     
     mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
     SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);

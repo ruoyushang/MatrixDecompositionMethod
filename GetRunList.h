@@ -217,6 +217,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("WComae_MatchedDark_V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("MGRO_J1908_MatchedDark_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
         if (source=="CTA1V5") {
             list = GetRunListFromFile("CTA1V5");
