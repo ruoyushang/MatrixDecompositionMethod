@@ -319,6 +319,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 304.646;
                 Source_Dec = 36.833;
     }
+    if (source_name=="CygnusV5")
+    {
+            Source_RA = 304.646;
+                Source_Dec = 36.833;
+    }
     if (source_name=="Segue1V5")
     {
             Source_RA = 151.767;
@@ -611,7 +616,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
 {
 
     int nsb_bins = 1;
-    if (nsb_reweight) nsb_bins = 10;
+    if (nsb_reweight) nsb_bins = 20;
     TH2D Hist_OnData_ElevNSB = TH2D("Hist_OnData_ElevNSB","",nsb_bins,0,10,18,0,90);
     TH2D Hist_OffData_ElevNSB = TH2D("Hist_OffData_ElevNSB","",nsb_bins,0,10,18,0,90);
 
@@ -692,32 +697,32 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
         new_list.push_back(the_runs);
     }
     vector<pair<double,double>> ON_pointing_radec_new;
-    for (int off_run=0;off_run<OFF_runlist.size();off_run++)
-    {
-        bool already_used_run = false;
-        for (int on_run=0;on_run<ON_runlist.size();on_run++)
-        {
-            if (int(ON_runlist[on_run].second)==int(OFF_runlist[off_run].second)) already_used_run = true; // this OFF run is in ON runlist
-        }
-        for (int new_run=0;new_run<new_list.at(0).size();new_run++)
-        {
-            if (int(new_list.at(0)[new_run].second)==int(OFF_runlist[off_run].second)) already_used_run = true;
-        }
-        if (already_used_run) continue;
-        int bin_nsb = Hist_OnData_ElevNSB.GetXaxis()->FindBin(OFF_NSB[off_run]);
-        int bin_elev = Hist_OnData_ElevNSB.GetYaxis()->FindBin(OFF_pointing[off_run].first);
-        double weight_on = Hist_OnData_ElevNSB.GetBinContent(bin_nsb,bin_elev);
-        double weight_off = Hist_OffData_ElevNSB.GetBinContent(bin_nsb,bin_elev);
-        pair<string,int> best_match;
-        best_match = OFF_runlist[off_run];
-        new_list.at(0).push_back(best_match);
-        double weight = 0.;
-        if (weight_off>0.) weight = weight_on/weight_off;
-        Dark_weight.push_back(weight);
-    }
+    //for (int off_run=0;off_run<OFF_runlist.size();off_run++)
+    //{
+    //    bool already_used_run = false;
+    //    for (int on_run=0;on_run<ON_runlist.size();on_run++)
+    //    {
+    //        if (int(ON_runlist[on_run].second)==int(OFF_runlist[off_run].second)) already_used_run = true; // this OFF run is in ON runlist
+    //    }
+    //    for (int new_run=0;new_run<new_list.at(0).size();new_run++)
+    //    {
+    //        if (int(new_list.at(0)[new_run].second)==int(OFF_runlist[off_run].second)) already_used_run = true;
+    //    }
+    //    if (already_used_run) continue;
+    //    int bin_nsb = Hist_OnData_ElevNSB.GetXaxis()->FindBin(OFF_NSB[off_run]);
+    //    int bin_elev = Hist_OnData_ElevNSB.GetYaxis()->FindBin(OFF_pointing[off_run].first);
+    //    double weight_on = Hist_OnData_ElevNSB.GetBinContent(bin_nsb,bin_elev);
+    //    double weight_off = Hist_OffData_ElevNSB.GetBinContent(bin_nsb,bin_elev);
+    //    pair<string,int> best_match;
+    //    best_match = OFF_runlist[off_run];
+    //    new_list.at(0).push_back(best_match);
+    //    double weight = 0.;
+    //    if (weight_off>0.) weight = weight_on/weight_off;
+    //    Dark_weight.push_back(weight);
+    //}
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
-        for (int nth_sample=1;nth_sample<n_control_samples;nth_sample++)
+        for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
         {
             std::cout << "Finding match for " << on_run << "-th ON run in " << nth_sample << "-th sample." << std::endl;
             double accumulated_time = 0.;
@@ -744,7 +749,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     {
                         if (int(ON_runlist[on_run2].second)==int(OFF_runlist[off_run].second)) already_used_run = true; // this OFF run is in ON runlist
                     }
-                    for (int nth_sample_newrun=1;nth_sample_newrun<n_control_samples;nth_sample_newrun++)
+                    for (int nth_sample_newrun=0;nth_sample_newrun<n_control_samples;nth_sample_newrun++)
                     {
                         for (int new_run=0;new_run<new_list.at(nth_sample_newrun).size();new_run++)
                         {
@@ -754,29 +759,17 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     if (already_used_run) continue;
 
                     // This selection gives control samples almost identical in MSCL/MSCW shapes
-                    //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
-                    //if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>4.0*4.0)
-                    //{
-                    //    chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                    //}
-                    //if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.2*0.2 && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<4.*4.)
-                    //{
-                    //    found_match = true;
-                    //}
-                    //if (best_chi2>chi2)
-                    //{
-                    //    best_chi2 = chi2;
-                    //    best_match = OFF_runlist[off_run];
-                    //    best_pointing = OFF_pointing[off_run];
-                    //    best_off_run = off_run;
-                    //    best_time = OFF_time[off_run];
-                    //}
-
-                    double ref_elev = ON_pointing[on_run].first+(double(nth_sample)-double(n_control_samples)/2.)*5.;
-                    double chi2 = pow(ref_elev-OFF_pointing[off_run].first,2);
-                    if (best_chi2>chi2)
+                    double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
+                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>4.0*4.0)
+                    {
+                        chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    }
+                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.2*0.2 && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<4.*4.)
                     {
                         found_match = true;
+                    }
+                    if (best_chi2>chi2)
+                    {
                         best_chi2 = chi2;
                         best_match = OFF_runlist[off_run];
                         best_pointing = OFF_pointing[off_run];
@@ -925,7 +918,7 @@ bool ControlSelectionTheta2()
     return true;
 }
 
-void NetflixMethodGetShowerImage(string target_data)
+void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input, double tel_elev_upper_input)
 {
 
     TH1::SetDefaultSumw2();
@@ -1055,7 +1048,6 @@ void NetflixMethodGetShowerImage(string target_data)
     vector<TH2D> Hist_GammaDataON_MSCLW;
     vector<TH2D> Hist_GammaDataOFF_MSCLW;
     vector<TH2D> Hist_OnData_MSCLW;
-    vector<TH2D> Hist_OnDark_MSCLW;
     vector<TH1D> Hist_OnDark_SR_Energy;
     vector<TH1D> Hist_OnDark_CR_Energy;
     vector<TH1D> Hist_OnData_SR_Energy;
@@ -1073,7 +1065,6 @@ void NetflixMethodGetShowerImage(string target_data)
         Hist_GammaDataON_MSCLW.push_back(TH2D("Hist_GammaDataON_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_GammaDataOFF_MSCLW.push_back(TH2D("Hist_GammaDataOFF_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnData_MSCLW.push_back(TH2D("Hist_OnData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
-        Hist_OnDark_MSCLW.push_back(TH2D("Hist_OnDark_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnDark_SR_Energy.push_back(TH1D("Hist_OnDark_SR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnDark_CR_Energy.push_back(TH1D("Hist_OnDark_CR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_SR_Energy.push_back(TH1D("Hist_OnData_SR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
@@ -1081,7 +1072,7 @@ void NetflixMethodGetShowerImage(string target_data)
     }
     vector<vector<TH2D>> Hist_OffData_MSCLW;
     vector<vector<TH2D>> Hist_OffDark_MSCLW;
-    for (int nth_sample=0;nth_sample<n_control_samples-1;nth_sample++)
+    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
     {
         char sample_tag[50];
         sprintf(sample_tag, "%i", nth_sample);
@@ -1197,7 +1188,7 @@ void NetflixMethodGetShowerImage(string target_data)
     vector<vector<TH1D>> Hist_OffData_CR_Energy;
     vector<vector<TH1D>> Hist_OffData_SR_CameraFoV_Theta2;
     vector<vector<TH1D>> Hist_OffData_CR_CameraFoV_Theta2;
-    for (int nth_sample=0;nth_sample<n_control_samples-1;nth_sample++)
+    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
     {
         char sample_tag[50];
         sprintf(sample_tag, "%i", nth_sample);
@@ -1231,15 +1222,10 @@ void NetflixMethodGetShowerImage(string target_data)
 
 
     std::cout << "Prepare dark run samples..." << std::endl;
-    for (int nth_sample=0;nth_sample<1;nth_sample++)
+    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
     {
         for (int run=0;run<Dark_runlist.at(nth_sample).size();run++)
         {
-
-            if (nth_sample==0)
-            {
-                if (Dark_weight.at(run)==0.) continue;
-            }
 
             char run_number[50];
             char Dark_observation[50];
@@ -1279,10 +1265,7 @@ void NetflixMethodGetShowerImage(string target_data)
             Dark_tree->SetBranchAddress("Shower_Az",&Shower_Az);
 
             double NSB_thisrun = GetRunPedestalVar(int(Dark_runlist.at(nth_sample)[run].second));
-            if (nth_sample==0)
-            {
-                Hist_Dark_NSB.Fill(NSB_thisrun);
-            }
+            Hist_Dark_NSB.Fill(NSB_thisrun);
 
             for (int entry=0;entry<Dark_tree->GetEntries();entry++) 
             {
@@ -1309,33 +1292,26 @@ void NetflixMethodGetShowerImage(string target_data)
                 if (EmissionHeight<6.) continue;
                 if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
                 //if (R2off>4.) continue;
-                if (nth_sample==0)
-                {
-                    Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze,Dark_weight.at(run));
-                    Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze,Dark_weight.at(run));
-                }
+                Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
+                Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
                 if (DarkFoV() || Dark_runlist.at(nth_sample)[run].first.find("Proton")!=std::string::npos)
                 {
-                    if (nth_sample==0)
+                    for (int nth_other_sample=0;nth_other_sample<n_control_samples;nth_other_sample++)
                     {
-                        Hist_OnDark_MSCLW.at(energy).Fill(MSCL,MSCW,Dark_weight.at(run));
-                        for (int nth_other_sample=1;nth_other_sample<n_control_samples;nth_other_sample++)
-                        {
-                            if (int(Dark_runlist.at(nth_sample)[run].second)==int(Dark_runlist.at(nth_other_sample)[run].second)) continue;
-                            Hist_OffDark_MSCLW.at(nth_other_sample-1).at(energy).Fill(MSCL,MSCW);
-                        }
-                        if (SignalSelectionTheta2())
-                        {
-                            Hist_OnDark_SR_CameraFoV.at(energy_fine).Fill(R2off,Phioff,Dark_weight.at(run));
-                            Hist_OnDark_SR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff,Dark_weight.at(run));
-                            Hist_OnDark_SR_Energy.at(energy).Fill(ErecS*1000.,Dark_weight.at(run));
-                        }
-                        if (ControlSelectionTheta2())
-                        {
-                            Hist_OnDark_CR_CameraFoV.at(energy_fine).Fill(R2off,Phioff,Dark_weight.at(run));
-                            Hist_OnDark_CR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff,Dark_weight.at(run));
-                            Hist_OnDark_CR_Energy.at(energy).Fill(ErecS*1000.,Dark_weight.at(run));
-                        }
+                        if (int(Dark_runlist.at(nth_sample)[run].second)==int(Dark_runlist.at(nth_other_sample)[run].second)) continue;
+                        Hist_OffDark_MSCLW.at(nth_other_sample).at(energy).Fill(MSCL,MSCW);
+                    }
+                    if (SignalSelectionTheta2())
+                    {
+                        Hist_OnDark_SR_CameraFoV.at(energy_fine).Fill(R2off,Phioff);
+                        Hist_OnDark_SR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff);
+                        Hist_OnDark_SR_Energy.at(energy).Fill(ErecS*1000.);
+                    }
+                    if (ControlSelectionTheta2())
+                    {
+                        Hist_OnDark_CR_CameraFoV.at(energy_fine).Fill(R2off,Phioff);
+                        Hist_OnDark_CR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff);
+                        Hist_OnDark_CR_Energy.at(energy).Fill(ErecS*1000.);
                     }
                 }
             }
@@ -1344,7 +1320,7 @@ void NetflixMethodGetShowerImage(string target_data)
         }
     }
 
-    for (int nth_sample=1;nth_sample<n_control_samples;nth_sample++)
+    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
     {
         for (int run=0;run<Dark_runlist.at(nth_sample).size();run++)
         {
@@ -1413,11 +1389,11 @@ void NetflixMethodGetShowerImage(string target_data)
                 //if (R2off>4.) continue;
                 if (DarkFoV() || Dark_runlist.at(nth_sample)[run].first.find("Proton")!=std::string::npos)
                 {
-                    Hist_OffData_MSCLW.at(nth_sample-1).at(energy).Fill(MSCL,MSCW);
+                    Hist_OffData_MSCLW.at(nth_sample).at(energy).Fill(MSCL,MSCW);
                     if (SignalSelectionTheta2())
                     {
-                        Hist_OffData_SR_CameraFoV_Theta2.at(nth_sample-1).at(energy_fine).Fill(R2off);
-                        Hist_OffData_SR_Energy.at(nth_sample-1).at(energy).Fill(ErecS*1000.);
+                        Hist_OffData_SR_CameraFoV_Theta2.at(nth_sample).at(energy_fine).Fill(R2off);
+                        Hist_OffData_SR_Energy.at(nth_sample).at(energy).Fill(ErecS*1000.);
                     }
                     if (ControlSelectionTheta2())
                     {
@@ -1427,13 +1403,13 @@ void NetflixMethodGetShowerImage(string target_data)
                         double dark_sr_content = Hist_OnDark_SR_CameraFoV.at(energy_fine).GetBinContent(binx,biny);
                         double weight = 0.;
                         if (dark_cr_content>0.) weight = dark_sr_content/dark_cr_content;
-                        Hist_OffData_CR_CameraFoV_Theta2.at(nth_sample-1).at(energy_fine).Fill(R2off,weight);
+                        Hist_OffData_CR_CameraFoV_Theta2.at(nth_sample).at(energy_fine).Fill(R2off,weight);
                         int bin_e = Hist_OnDark_SR_Energy.at(energy).FindBin(ErecS*1000.);
                         double dark_cr_content_e = Hist_OnDark_CR_Energy.at(energy).GetBinContent(bin_e);
                         double dark_sr_content_e = Hist_OnDark_SR_Energy.at(energy).GetBinContent(bin_e);
                         double weight_e = 0.;
                         if (dark_cr_content_e>0.) weight_e = dark_sr_content_e/dark_cr_content_e;
-                        Hist_OffData_CR_Energy.at(nth_sample-1).at(energy).Fill(ErecS*1000.,weight_e);
+                        Hist_OffData_CR_Energy.at(nth_sample).at(energy).Fill(ErecS*1000.,weight_e);
                     }
                 }
             }
@@ -1894,36 +1870,32 @@ void NetflixMethodGetShowerImage(string target_data)
 
     for (int e=0;e<N_energy_bins;e++) 
     {
-        int binx_lower = Hist_OnDark_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_lower);
-        int binx_blind = Hist_OnDark_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
-        int binx_upper = Hist_OnDark_MSCLW.at(e).GetXaxis()->FindBin(1.)-1;
-        int biny_lower = Hist_OnDark_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_lower);
-        int biny_blind = Hist_OnDark_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
-        int biny_upper = Hist_OnDark_MSCLW.at(e).GetYaxis()->FindBin(1.)-1;
-        double Dark_SR_Integral = Hist_OnDark_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        int binx_lower = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_lower);
+        int binx_blind = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
+        int binx_upper = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(1.)-1;
+        int biny_lower = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_lower);
+        int biny_blind = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
+        int biny_upper = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(1.)-1;
         double Data_SR_Integral = Hist_OnData_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-        double Dark_Integral = Hist_OnDark_MSCLW.at(e).Integral();
         double Data_Integral = Hist_OnData_MSCLW.at(e).Integral();
-        double Dark_CR_Integral = Dark_Integral-Dark_SR_Integral;
         double Data_CR_Integral = Data_Integral-Data_SR_Integral;
-        double Dark_CR_Error = pow(Dark_CR_Integral,0.5);
         double Data_CR_Error = pow(Data_CR_Integral,0.5);
-        double scale = Data_CR_Integral/Dark_CR_Integral;
-        Hist_OnDark_MSCLW.at(e).Scale(scale);
-        for (int nth_other_sample=1;nth_other_sample<n_control_samples;nth_other_sample++)
+        for (int nth_other_sample=0;nth_other_sample<n_control_samples;nth_other_sample++)
         {
-            double OffDark_SR_Integral = Hist_OffDark_MSCLW.at(nth_other_sample-1).at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-            double OffData_SR_Integral = Hist_OffData_MSCLW.at(nth_other_sample-1).at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-            double OffDark_Integral = Hist_OffDark_MSCLW.at(nth_other_sample-1).at(e).Integral();
-            double OffData_Integral = Hist_OffData_MSCLW.at(nth_other_sample-1).at(e).Integral();
+            double OffDark_SR_Integral = Hist_OffDark_MSCLW.at(nth_other_sample).at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+            double OffData_SR_Integral = Hist_OffData_MSCLW.at(nth_other_sample).at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+            double OffDark_Integral = Hist_OffDark_MSCLW.at(nth_other_sample).at(e).Integral();
+            double OffData_Integral = Hist_OffData_MSCLW.at(nth_other_sample).at(e).Integral();
             double OffDark_CR_Integral = OffDark_Integral-OffDark_SR_Integral;
             double OffData_CR_Integral = OffData_Integral-OffData_SR_Integral;
             double OffDark_CR_Error = pow(OffDark_CR_Integral,0.5);
             double OffData_CR_Error = pow(OffData_CR_Integral,0.5);
-            double offscale = OffData_CR_Integral/OffDark_CR_Integral;
-            Hist_OffDark_MSCLW.at(nth_other_sample-1).at(e).Scale(offscale);
+            double data_scale = Data_CR_Integral/OffData_CR_Integral;
+            double dark_scale = Data_CR_Integral/OffDark_CR_Integral;
+            Hist_OffData_MSCLW.at(nth_other_sample).at(e).Scale(data_scale);
+            Hist_OffDark_MSCLW.at(nth_other_sample).at(e).Scale(dark_scale);
         }
-        double gamma_total = Hist_OnData_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind)-Hist_OnDark_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        double gamma_total = Hist_OnData_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind)-Hist_OffData_MSCLW.at(0).at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
         gamma_total = max(0.,gamma_total);
         if (PercentCrab>0.)
         {
@@ -1945,7 +1917,7 @@ void NetflixMethodGetShowerImage(string target_data)
     mean_tele_point_l = mean_tele_point_l_b.first;
     mean_tele_point_b = mean_tele_point_l_b.second;
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+".root","recreate");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root","recreate");
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("N_bins_for_deconv",&N_bins_for_deconv,"N_bins_for_deconv/I");
     InfoTree.Branch("MSCW_cut_blind",&MSCW_cut_blind,"MSCW_cut_blind/D");
@@ -1996,7 +1968,6 @@ void NetflixMethodGetShowerImage(string target_data)
         Hist_GammaMC_MSCLW.at(e).Write();
         Hist_GammaData_MSCLW.at(e).Write();
         Hist_OnData_MSCLW.at(e).Write();
-        Hist_OnDark_MSCLW.at(e).Write();
         Hist_OnDark_SR_Energy.at(e).Write();
         Hist_OnDark_CR_Energy.at(e).Write();
         Hist_OnData_SR_Energy.at(e).Write();
@@ -2017,7 +1988,7 @@ void NetflixMethodGetShowerImage(string target_data)
             Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(e).Write();
         }
     }
-    for (int nth_sample=0;nth_sample<n_control_samples-1;nth_sample++)
+    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
     {
         for (int e=0;e<N_energy_bins;e++) 
         {

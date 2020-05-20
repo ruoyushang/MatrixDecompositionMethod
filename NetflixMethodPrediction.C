@@ -704,8 +704,8 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     int row_size_big = mtx_input.rows()*mtx_input.cols();
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    //MatrixXd mtx_Constraint = MatrixXd::Zero(NumberOfEigenvectors*entry_size,2*entry_size*mtx_input.cols());
-    MatrixXd mtx_Constraint = MatrixXd::Zero(1*entry_size,2*entry_size*mtx_input.cols());
+    MatrixXd mtx_Constraint = MatrixXd::Zero(NumberOfEigenvectors*entry_size,2*entry_size*mtx_input.cols());
+    //MatrixXd mtx_Constraint = MatrixXd::Zero(1*entry_size,2*entry_size*mtx_input.cols());
     for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
     {
         for (int idx_j=0; idx_j<mtx_input.cols(); idx_j++)
@@ -727,25 +727,39 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
 
                 mtx_Big(idx_m,idx_n) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_q_init(idx_i,mtx_input.rows()-nth_entry).real();
                 mtx_Big(idx_m,idx_w) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_p_init(idx_j,mtx_input.rows()-nth_entry).real();
-                //for (int idx_l=0; idx_l<NumberOfEigenvectors; idx_l++)
-                for (int idx_l=0; idx_l<1; idx_l++)
+                for (int idx_l=0; idx_l<NumberOfEigenvectors; idx_l++)
+                //for (int idx_l=0; idx_l<1; idx_l++)
                 {
-                    //int nth_entry2 = idx_l + 1;
-                    int nth_entry2 = idx_k + entry_start;
-                    //int idx_u = idx_l + idx_k*NumberOfEigenvectors;
-                    int idx_u = idx_l + idx_k*1;
+                    int nth_entry2 = idx_l + 1;
+                    //int nth_entry2 = idx_k + entry_start;
+                    int idx_u = idx_l + idx_k*NumberOfEigenvectors;
+                    //int idx_u = idx_l + idx_k*1;
                     int idx_x = idx_l + idx_i*entry_size;
                     int idx_y = idx_k + idx_i*entry_size + mtx_input.cols()*entry_size;
-                    mtx_Constraint(idx_u,idx_x) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry).real();
-                    mtx_Constraint(idx_u,idx_y) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    if (nth_entry>=nth_entry2)
+                    {
+                        mtx_Constraint(idx_u,idx_x) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry).real();
+                        mtx_Constraint(idx_u,idx_y) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    }
                 }
             }
         }
     }
     VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
-    if (solution_w_constraints) 
+    if (solution_w_constraints && entry_start>1) 
     {
         vtr_vari_big = SolutionWithConstraints(mtx_Big, mtx_Constraint, vtr_Delta);
+        VectorXd vtr_should_be_zero = mtx_Constraint*vtr_vari_big;
+        std::cout << "entry_start = " << entry_start << std::endl;
+        std::cout << "mtx_Constraint = " << std::endl;
+        std::cout << mtx_Constraint << std::endl;
+        std::cout << "vtr_should_be_zero = " << std::endl;
+        std::cout << vtr_should_be_zero << std::endl;
+        for (int i=0;i<vtr_should_be_zero.size();i++)
+        {
+            if (isnan(vtr_should_be_zero(i))) return mtx_input;
+            if (abs(vtr_should_be_zero(i))>0.1) return mtx_input;
+        }
     }
     else
     {
@@ -753,10 +767,6 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     }
     //VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
     //vtr_vari_big = (mtx_Big.transpose()*mtx_Big).inverse()*mtx_Big.transpose()*vtr_Delta;
-
-    VectorXd vtr_should_be_zero = mtx_Constraint*vtr_vari_big;
-    std::cout << "vtr_should_be_zero = " << std::endl;
-    std::cout << vtr_should_be_zero << std::endl;
 
 
     MatrixXcd mtx_p_final = mtx_p_init;
@@ -1003,20 +1013,22 @@ void LeastSquareSolutionMethod()
     std::cout << "initial chi2 = " << GetChi2Function(mtx_dark,0) << std::endl;
     mtx_data_bkgd = mtx_dark;
 
-    //mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 3);
+    //mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 2);
     //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-    ////std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    
-    mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
-    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-    //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    mtx_data_bkgd = SpectralDecompositionMethod_v3(2, 1);
-    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-    //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-    mtx_data_bkgd = SpectralDecompositionMethod_v3(3, 1);
-    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
     //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
     
+    for (int iteration=0;iteration<5;iteration++)
+    {
+        mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
+        SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+        //std::cout << "chi2 (rank 1) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        mtx_data_bkgd = SpectralDecompositionMethod_v3(2, 1);
+        SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+        //std::cout << "chi2 (rank 2) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        mtx_data_bkgd = SpectralDecompositionMethod_v3(3, 1);
+        SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+        //std::cout << "chi2 (rank 3) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+    }
 
 }
 void MatrixFactorizationMethod()
@@ -1082,7 +1094,7 @@ void GetReducedEigenvalueMatrix(int rank_cutoff)
         }
     }
 }
-void NetflixMethodPrediction(string target_data)
+void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input)
 {
 
     TH1::SetDefaultSumw2();
@@ -1104,14 +1116,14 @@ void NetflixMethodPrediction(string target_data)
     MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
     MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
-    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+".root");
+    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputDataFile.Get("InfoTree");
 
     std::cout << "Working on OFF data..." << std::endl;
     vector<vector<TH2D>> Hist_OffBkgd_MSCLW;
     vector<vector<TH2D>> Hist_OffGamma_MSCLW;
-    for (int nth_sample=0;nth_sample<n_control_samples-1;nth_sample++)
+    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
     {
         std::cout << "++++++++++++++++++++++++++++++++++++++" << std::endl;
         std::cout << "sample = " << nth_sample << std::endl;
@@ -1170,6 +1182,7 @@ void NetflixMethodPrediction(string target_data)
 
     std::cout << "Working on ON data..." << std::endl;
     vector<TH2D> Hist_OnBkgd_MSCLW;
+    vector<TH2D> Hist_OnDark_MSCLW;
     vector<TH2D> Hist_OnGamma_MSCLW;
     vector<TH2D> Hist_Rank0_MSCLW;
     vector<TH2D> Hist_Rank1_MSCLW;
@@ -1182,24 +1195,21 @@ void NetflixMethodPrediction(string target_data)
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
-        TString filename_gamma  = "Hist_GammaData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-        if (PercentCrab>0.) filename_gamma  = "Hist_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-        TString filename_data  = "Hist_OnData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-        TString filename_dark  = "Hist_OnDark_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-        TH2D* Hist_GammaMC = (TH2D*)InputDataFile.Get(filename_gamma);
-        TH2D* Hist_Data = (TH2D*)InputDataFile.Get(filename_data);
-        TH2D* Hist_Dark = (TH2D*)InputDataFile.Get(filename_dark);
         Hist_OnBkgd_MSCLW.push_back(TH2D("Hist_OnBkgd_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_OnDark_MSCLW.push_back(TH2D("Hist_OnDark_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnGamma_MSCLW.push_back(TH2D("Hist_OnGamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Rank0_MSCLW.push_back(TH2D("Hist_Rank0_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Rank1_MSCLW.push_back(TH2D("Hist_Rank1_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Rank2_MSCLW.push_back(TH2D("Hist_Rank2_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
 
+        TString filename_gamma  = "Hist_GammaData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+        if (PercentCrab>0.) filename_gamma  = "Hist_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+        TString filename_data  = "Hist_OnData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+        TH2D* Hist_GammaMC = (TH2D*)InputDataFile.Get(filename_gamma);
+        TH2D* Hist_Data = (TH2D*)InputDataFile.Get(filename_data);
         mtx_gamma = fillMatrix(Hist_GammaMC);
         mtx_data = fillMatrix(Hist_Data);
-        mtx_dark = fillMatrix(Hist_Dark);
         eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
-        eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
 
         int binx_lower = Hist_Data->GetXaxis()->FindBin(MSCL_cut_lower);
         binx_blind_global = Hist_Data->GetXaxis()->FindBin(MSCL_cut_blind)-1;
@@ -1208,17 +1218,35 @@ void NetflixMethodPrediction(string target_data)
         biny_blind_global = Hist_Data->GetYaxis()->FindBin(MSCW_cut_blind)-1;
         int biny_upper = Hist_Data->GetYaxis()->FindBin(1.)-1;
 
-        //MatrixFactorizationMethod();
-        LeastSquareSolutionMethod();
+        for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
+        {
+            char sample_tag[50];
+            sprintf(sample_tag, "%i", nth_sample);
+            TString filename_dark  = "Hist_OffData_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            TH2D* Hist_Dark = (TH2D*)InputDataFile.Get(filename_dark);
 
-        fill2DHistogram(&Hist_OnBkgd_MSCLW.at(e),mtx_data_bkgd);
+            mtx_dark = fillMatrix(Hist_Dark);
+            eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
+
+            //MatrixFactorizationMethod();
+            LeastSquareSolutionMethod();
+
+            TH2D Hist_Bkgd_Temp = TH2D("Hist_Bkgd_Temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+            double scale = 1./double(n_control_samples);
+            fill2DHistogram(&Hist_Bkgd_Temp,mtx_data_bkgd);
+            Hist_OnBkgd_MSCLW.at(e).Add(&Hist_Bkgd_Temp,scale);
+            Hist_OnDark_MSCLW.at(e).Add(Hist_Dark,scale);
+
+        }
+
+        mtx_data_bkgd = fillMatrix(&Hist_OnBkgd_MSCLW.at(e));
         eigensolver_bkgd = ComplexEigenSolver<MatrixXcd>(mtx_data_bkgd);
 
-        fill2DHistogramAbs(&Hist_OnGamma_MSCLW.at(e),mtx_gamma);
-        double gamma_total = Hist_Data->Integral(binx_lower,binx_upper,biny_lower,biny_upper)-Hist_OnBkgd_MSCLW.at(e).Integral(binx_lower,binx_upper,biny_lower,biny_upper);
-        gamma_total = max(0.,gamma_total);
-        double scale_gamma = double(gamma_total)/double(Hist_OnGamma_MSCLW.at(e).Integral(binx_lower,binx_upper,biny_lower,biny_upper));
-        Hist_OnGamma_MSCLW.at(e).Scale(scale_gamma);
+        //fill2DHistogramAbs(&Hist_OnGamma_MSCLW.at(e),mtx_gamma);
+        //double gamma_total = Hist_Data->Integral(binx_lower,binx_upper,biny_lower,biny_upper)-Hist_OnBkgd_MSCLW.at(e).Integral(binx_lower,binx_upper,biny_lower,biny_upper);
+        //gamma_total = max(0.,gamma_total);
+        //double scale_gamma = double(gamma_total)/double(Hist_OnGamma_MSCLW.at(e).Integral(binx_lower,binx_upper,biny_lower,biny_upper));
+        //Hist_OnGamma_MSCLW.at(e).Scale(scale_gamma);
 
         std::cout << "=====================================================================" << std::endl;
         std::cout << "eigensolver_data.eigenvalues()(mtx_data.cols()-1):" << std::endl;
@@ -1255,19 +1283,20 @@ void NetflixMethodPrediction(string target_data)
 
     }
 
-    InputDataFile.Cp("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+".root");
+    InputDataFile.Cp("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root");
     InputDataFile.Close();
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+".root","update");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root","update");
     for (int e=0;e<N_energy_bins;e++)
     {
         Hist_OnBkgd_MSCLW.at(e).Write();
+        Hist_OnDark_MSCLW.at(e).Write();
         Hist_OnGamma_MSCLW.at(e).Write();
         Hist_Rank0_MSCLW.at(e).Write();
         Hist_Rank1_MSCLW.at(e).Write();
         Hist_Rank2_MSCLW.at(e).Write();
     }
-    for (int nth_sample=0;nth_sample<n_control_samples-1;nth_sample++)
+    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
     {
         for (int e=0;e<N_energy_bins;e++) 
         {

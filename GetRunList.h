@@ -246,6 +246,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("WComaeV5");
         }
+        if (source=="CygnusV5")
+        {
+            list = GetRunListFromFile("CygnusV5");
+        }
         if (source=="EverythingV5")
         {
             list_temp = GetRunListFromFile("Segue1V5");

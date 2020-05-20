@@ -1,23 +1,21 @@
 
-char output_file_tag[50] = "16bins";
+char output_file_tag[50] = "8bins";
 
-char output_file2_tag[50] = "constrained";
-bool solution_w_constraints = true;
-//char output_file2_tag[50] = "unconstrained";
-//bool solution_w_constraints = false;
+//char output_file2_tag[50] = "constrained";
+//bool solution_w_constraints = true;
+char output_file2_tag[50] = "unconstrained";
+bool solution_w_constraints = false;
 
 int NumberOfEigenvectors = 3;
 double PercentCrab = 0.;
-double tel_elev_lower_input = 45.;
-double tel_elev_upper_input = 85.;
 double MSCW_cut_moderate = 0.35;
 double MSCL_cut_moderate = 0.5;
 double MSCW_cut_loose = 0.5;
 double MSCL_cut_loose = 0.7;
 double camera_theta2_cut = 9.;
-int N_bins_for_deconv = 16; // 8 should be the lowest bin number
+int N_bins_for_deconv = 8; // 8 should be the lowest bin number
 
-int n_control_samples = 6;
+int n_control_samples = 5;
 const int N_energy_bins = 1;
 double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,4.0)};
 const int N_energy_fine_bins = 20;

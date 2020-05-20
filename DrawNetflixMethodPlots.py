@@ -16,9 +16,10 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
+method_tag = '8bins_unconstrained'
+
 root_file_tags = []
-root_file_tags += ['16bins_constrained']
-#root_file_tags += ['16bins_unconstrained']
+root_file_tags += [method_tag+'_TelElev45to85']
 
 selection_tag = root_file_tags[0]
 
@@ -48,7 +49,7 @@ source_ra = 0.
 source_dec = 0.
 source_l = 0.
 source_b = 0.
-n_control_samples = 6
+n_control_samples = 5
 MJD_Start = 2147483647
 MJD_End = 0
 roi_ra = ROOT.std.vector("double")(10)
@@ -97,24 +98,29 @@ sky_coord = []
 #sample_list += ['WComaeV4']
 #sky_coord += ['12 21 31.7 +28 13 59']
 
-#sample_list += ['IC443HotSpotV6']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
+sample_list += ['IC443HotSpotV6']
+sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['IC443HotSpotV5']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['IC443HotSpotV4']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
 
-sample_list += ['MGRO_J1908_V6']
-sky_coord += ['19 07 54 +06 16 07']
-sample_list += ['MGRO_J1908_V5']
-sky_coord += ['19 07 54 +06 16 07']
-sample_list += ['MGRO_J1908_V4']
-sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V6']
+#sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V5']
+#sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V4']
+#sky_coord += ['19 07 54 +06 16 07']
 
 #sample_list += ['Segue1V6']
 #sky_coord += ['10 07 04 +16 04 55']
 #sample_list += ['Segue1V5']
 #sky_coord += ['10 07 04 +16 04 55']
+
+#sample_list += ['CygnusV6']
+#sky_coord += ['20 18 35.03 +36 50 00.0']
+#sample_list += ['CygnusV5']
+#sky_coord += ['20 18 35.03 +36 50 00.0']
 
 #sample_list += ['Crab']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
@@ -162,8 +168,6 @@ sky_coord += ['19 07 54 +06 16 07']
 #sky_coord += ['20 32 28.56 +40 19 41.52']
 #sample_list += ['1ES1218V6']
 #sky_coord += ['12 21 26.3 +30 11 29']
-#sample_list += ['CygnusV6']
-#sky_coord += ['20 18 35.03 +36 50 00.0']
 #sample_list += ['GemingaV6']
 #sky_coord += ['06 32 28 +17 22 00']
 #sample_list += ['GemingaV5']
@@ -275,7 +279,7 @@ def ResetStackedShowerHistograms():
     Hist2D_Rank1_Sum.Reset()
     Hist2D_Rank2_Sum.Reset()
 
-    for nth_sample in range(0,n_control_samples-1):
+    for nth_sample in range(0,n_control_samples):
 
         Hist2D_OffData_Sum[nth_sample].Reset()
         Hist2D_OffBkgd_Sum[nth_sample].Reset()
@@ -410,7 +414,7 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist_OnBkgd_MSCW.Reset()
     Hist_OnBkgd_MSCW.Add(Hist2D_OnBkgd.ProjectionY("Hist1D_OnBkgd_MSCW",bin_lower_x,bin_upper_x))
 
-    for nth_sample in range(0,n_control_samples-1):
+    for nth_sample in range(0,n_control_samples):
 
         HistName = "Hist_OffData_MSCLW_V%s_ErecS%sto%s"%(nth_sample,ErecS_lower_cut_int,ErecS_upper_cut_int)
         print 'Getting histogram %s'%(HistName)
@@ -470,7 +474,7 @@ def StackShowerHistograms():
     Hist_OnBkgd_MSCL_Sum.Add(Hist_OnBkgd_MSCL)
     Hist_OnBkgd_MSCW_Sum.Add(Hist_OnBkgd_MSCW)
 
-    for nth_sample in range(0,n_control_samples-1):
+    for nth_sample in range(0,n_control_samples):
 
         Hist2D_OffData_Sum[nth_sample].Add(Hist2D_OffData[nth_sample])
         Hist2D_OffDark_Sum[nth_sample].Add(Hist2D_OffDark[nth_sample])
@@ -984,7 +988,7 @@ def PlotsStackedHistograms(tag):
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
 
-    for nth_sample in range(0,n_control_samples-1):
+    for nth_sample in range(0,n_control_samples):
 
         Hists = []
         legends = []
@@ -1040,7 +1044,7 @@ def PlotsStackedHistograms(tag):
         stack_it += [False]
         plotname = 'Stack_Energy_MDM_%s_Control%s'%(tag,nth_sample)
         title = 'energy [GeV]'
-        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,0.,1.,-1)
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,0.,pow(10,4.0),-1)
 
         Hists = []
         legends = []
@@ -1068,7 +1072,7 @@ def CalculateSystError():
     Hist_SystErr_MSCW.Reset()
 
     n_samples_used = 0.
-    for nth_sample in range(0,n_control_samples-1):
+    for nth_sample in range(0,n_control_samples):
 
         norm_bin_low_target = Hist_OffData_MSCL_Sum[nth_sample].FindBin(MSCL_lower_cut)
         norm_bin_up_target = Hist_OffData_MSCL_Sum[nth_sample].FindBin(MSCL_blind_cut)-1
@@ -1099,12 +1103,12 @@ def CalculateSystError():
 
     for binx in range(0,Hist_SystErr_MSCL.GetNbinsX()):
             old_syst = Hist_SystErr_MSCL.GetBinError(binx+1)
-            new_syst = pow(old_syst/(n_control_samples-1.),0.5)
+            new_syst = pow(old_syst/(n_control_samples),0.5)
             Hist_SystErr_MSCL.SetBinError(binx+1,new_syst)
 
     for binx in range(0,Hist_SystErr_MSCW.GetNbinsX()):
             old_syst = Hist_SystErr_MSCW.GetBinError(binx+1)
-            new_syst = pow(old_syst/(n_control_samples-1.),0.5)
+            new_syst = pow(old_syst/(n_control_samples),0.5)
             Hist_SystErr_MSCW.SetBinError(binx+1,new_syst)
 
 def Theta2HistScale(Hist,scale,scale_err):
@@ -1175,7 +1179,7 @@ def NormalizeEnergyHistograms(FilePath):
         for nth_roi in range(0,len(roi_ra)):
             Hist_OnBkgd_RoI_Energy[nth_roi].Scale(0)
 
-    for nth_sample in range(0,n_control_samples-1):
+    for nth_sample in range(0,n_control_samples):
 
         HistName = "Hist_OffData_SR_Energy_V%s_ErecS%sto%s"%(nth_sample,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_OffData_Energy[nth_sample].Reset()
@@ -1187,6 +1191,21 @@ def NormalizeEnergyHistograms(FilePath):
         if Hist2D_OffData[nth_sample].Integral()<1600.:
             Hist_OffData_Energy[nth_sample].Reset()
             Hist_OffBkgd_Energy[nth_sample].Reset()
+
+        data_total, data_err = IntegralAndError(Hist_OffData_MSCW[nth_sample],bin_lower,bin_upper)
+        old_integral = Hist_OffData_Energy[nth_sample].Integral()
+        data_scale = 0
+        data_scale_err = 0
+        if not data_total==0 and not old_integral==0:
+            data_scale = data_total/old_integral
+            data_scale_err = data_scale*(data_err/data_total)
+        else:
+            data_scale = 0
+            data_scale_err = 0
+        if not data_total==0:
+            Theta2HistScale(Hist_OffData_Energy[nth_sample],data_scale,data_scale_err)
+        else:
+            Hist_OffData_Energy[nth_sample].Scale(0)
 
         bkg_total, bkg_err = IntegralAndError(Hist_OffBkgd_MSCW[nth_sample],bin_lower,bin_upper)
         old_integral = Hist_OffBkgd_Energy[nth_sample].Integral()
@@ -1315,7 +1334,7 @@ def StackEnergyHistograms():
         Hist_OnData_RoI_Energy_Sum[nth_roi].Add(Hist_OnData_RoI_Energy[nth_roi])
         Hist_OnBkgd_RoI_Energy_Sum[nth_roi].Add(Hist_OnBkgd_RoI_Energy[nth_roi])
 
-    for nth_sample in range(0,n_control_samples-1):
+    for nth_sample in range(0,n_control_samples):
 
         Hist_OffData_Energy_Sum[nth_sample].Add(Hist_OffData_Energy[nth_sample])
         Hist_OffBkgd_Energy_Sum[nth_sample].Add(Hist_OffBkgd_Energy[nth_sample])
@@ -1347,7 +1366,7 @@ def NormalizeCameraFoVHistograms(FilePath):
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
 
-    for nth_sample in range(0,n_control_samples-1):
+    for nth_sample in range(0,n_control_samples):
 
         HistName = "Hist_OffData_SR_CameraFoV_Theta2_V%s_ErecS%sto%s"%(nth_sample,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_OffData_CameraFoV_Theta2[nth_sample].Reset()
@@ -1359,6 +1378,26 @@ def NormalizeCameraFoVHistograms(FilePath):
         if Hist2D_OffData[nth_sample].Integral()<1600.:
             Hist_OffData_CameraFoV_Theta2[nth_sample].Reset()
             Hist_OffBkgd_CameraFoV_Theta2[nth_sample].Reset()
+
+        data_total, data_err = IntegralAndError(Hist_OffData_Energy[nth_sample],bin_lower,bin_upper)
+        if data_total==0.:
+            Hist_OffData_CameraFoV_Theta2[nth_sample].Reset()
+            Hist_OffBkgd_CameraFoV_Theta2[nth_sample].Reset()
+            return
+
+        old_integral = Hist_OffData_CameraFoV_Theta2[nth_sample].Integral()
+        data_scale = 0
+        data_scale_err = 0
+        if not data_total==0 and not old_integral==0:
+            data_scale = data_total/old_integral
+            data_scale_err = data_scale*(data_err/data_total)
+        else:
+            data_scale = 0
+            data_scale_err = 0
+        if not data_total==0:
+            Theta2HistScale(Hist_OffData_CameraFoV_Theta2[nth_sample],data_scale,data_scale_err)
+        else:
+            Hist_OffData_CameraFoV_Theta2[nth_sample].Scale(0)
 
         bkg_total, bkg_err = IntegralAndError(Hist_OffBkgd_Energy[nth_sample],bin_lower,bin_upper)
         if bkg_total==0.:
@@ -1382,7 +1421,7 @@ def NormalizeCameraFoVHistograms(FilePath):
 
 def StackCameraFoVHistograms():
 
-    for nth_sample in range(0,n_control_samples-1):
+    for nth_sample in range(0,n_control_samples):
         Hist_OffData_CameraFoV_Theta2_Sum[nth_sample].Add(Hist_OffData_CameraFoV_Theta2[nth_sample])
         Hist_OffBkgd_CameraFoV_Theta2_Sum[nth_sample].Add(Hist_OffBkgd_CameraFoV_Theta2[nth_sample])
 
@@ -2200,7 +2239,7 @@ Hist_OffData_CameraFoV_Theta2 = []
 Hist_OffData_CameraFoV_Theta2_Sum = []
 Hist_OffBkgd_CameraFoV_Theta2 = []
 Hist_OffBkgd_CameraFoV_Theta2_Sum = []
-for nth_sample in range(0,n_control_samples-1):
+for nth_sample in range(0,n_control_samples):
     Hist2D_OffData += [ROOT.TH2D("Hist2D_OffData_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist2D_OffData_Sum += [ROOT.TH2D("Hist2D_OffData_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist2D_OffDark += [ROOT.TH2D("Hist2D_OffDark_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
