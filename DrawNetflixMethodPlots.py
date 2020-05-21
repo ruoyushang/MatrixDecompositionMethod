@@ -17,6 +17,7 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 method_tag = '8bins_unconstrained'
+#method_tag = '8bins_constrained'
 
 root_file_tags = []
 root_file_tags += [method_tag+'_TelElev45to85']
@@ -91,15 +92,15 @@ sky_coord = []
 #sample_list += ['OJ287V6']
 #sky_coord += ['08 54 49.1 +20 05 58.89']
 
-#sample_list += ['WComaeV6']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV5']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV4']
-#sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV6']
+sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV5']
+sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV4']
+sky_coord += ['12 21 31.7 +28 13 59']
 
-sample_list += ['IC443HotSpotV6']
-sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV6']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['IC443HotSpotV5']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['IC443HotSpotV4']
@@ -185,28 +186,6 @@ sky_coord += ['06 18 2.700 +22 39 36.00']
 
 other_stars = []
 other_star_coord = []
-#other_stars += ['PSR J1907']
-#other_star_coord += [[286.978,6.038]]
-#other_stars += ['SNR G40.5']
-#other_star_coord += [[286.786,6.498]]
-#other_stars += ['ARGO J1910']
-#other_star_coord += [[287.650,7.350]]
-#other_stars += ['PSR J1954']
-#other_star_coord += [[298.830,28.590]]
-#other_stars += ["4FGL J2017.9"]
-#other_star_coord += [[304.490833333,36.4277777778]]
-#other_stars += ["4FGL J2021.1"]
-#other_star_coord += [[305.279583333,36.8561111111]]
-#other_stars += ["4FGL J2015.5"]
-#other_star_coord += [[303.8925,37.1761111111]]
-#other_stars += ["4FGL J2021.9"]
-#other_star_coord += [[305.48625,36.1577777778]]
-#other_stars += ["4FGL J2013.5"]
-#other_star_coord += [[303.384583333,36.2252777778]]
-#other_stars += ["4FGL J2017.3"]
-#other_star_coord += [[304.349166667,35.4225]]
-#other_stars += ["4FGL J2022.3"]
-#other_star_coord += [[305.584583333,38.6711111111]]
 
 bright_star_ra = []
 bright_star_dec = []
@@ -221,7 +200,7 @@ def ConvertRaDecToGalactic(ra, dec):
     sin_b = ROOT.TMath.Sin(delta)*ROOT.TMath.Sin(delta_G)+ROOT.TMath.Cos(delta)*ROOT.TMath.Cos(delta_G)*ROOT.TMath.Cos(alpha-alpha_G)
     cos_b = ROOT.TMath.Cos(ROOT.TMath.ASin(sin_b))
     sin_l_NCP_m_l = ROOT.TMath.Cos(delta)*ROOT.TMath.Sin(alpha-alpha_G)/cos_b
-    cos_l_NCP_m_l = (ROOT.TMath.Cos(delta_G)*ROOT.TMath.Sin(delta)-ROOT.TMath.Sin(delta_G)*ROOT.TMath.Cos(delta)*ROOT.TMath.Cos(alpha-alpha_G))/cos_b;
+    cos_l_NCP_m_l = (ROOT.TMath.Cos(delta_G)*ROOT.TMath.Sin(delta)-ROOT.TMath.Sin(delta_G)*ROOT.TMath.Cos(delta)*ROOT.TMath.Cos(alpha-alpha_G))/cos_b
     b = (ROOT.TMath.ASin(sin_b))*180./ROOT.TMath.Pi()
     l = (l_NCP-ROOT.TMath.ATan2(sin_l_NCP_m_l,cos_l_NCP_m_l))*180./ROOT.TMath.Pi()
     return l, b
@@ -655,14 +634,40 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
             Hist_bkgd_year[hist].Fill(year,Hist_bkgd[hist].GetBinContent(binx+1))
         for binx in range(0,Hist_bkgd_year[hist].GetNbinsX()):
             Hist_bkgd_year[hist].SetBinError(binx+1,Hist_bkgd_year[hist].GetBinContent(binx+1)*Syst_MDM)
+
+    # Crab https://arxiv.org/pdf/1508.06442.pdf
+    func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 200, 4000)
+    func_crab.SetParameters(37.5,-2.467,-0.16)
+
+    Crab_unit_events = 0.
+    for binx in range(0,Hist_EffArea_Sum.GetNbinsX()):
+        if Hist_EffArea_Sum.GetBinContent(binx+1)==0.: continue
+        deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
+        Crab_unit_events += Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE*func_crab.Eval(Hist_EffArea_Sum.GetBinCenter(binx+1))
+
+    Hist_diff_year = []
+    for hist in range(0,len(Hist_data_year)):
+        Hist_diff_year += [ROOT.TH1D("Hist_diff_year_%s"%(hist),"",year_end-year_start+1,year_start,year_end+1)]
+        Hist_diff_year[hist].Add(Hist_data_year[hist])
+        Hist_diff_year[hist].Add(Hist_bkgd_year[hist],-1.)
+
     Hist_ratio_year = []
     for hist in range(0,len(Hist_data_year)):
         Hist_ratio_year += [ROOT.TH1D("Hist_ratio_year_%s"%(hist),"",year_end-year_start+1,year_start,year_end+1)]
         Hist_ratio_year[hist].Add(Hist_data_year[hist])
         Hist_ratio_year[hist].Add(Hist_bkgd_year[hist],-1.)
-        #Hist_ratio_year[hist].Divide(Hist_bkgd_year[hist])
+        bkgd_total = Hist_data_year[hist].Integral()
+        for binx in range(0,Hist_data_year[hist].GetNbinsX()):
+            bkgd_this_year = Hist_data_year[hist].GetBinContent(binx+1)
+            if bkgd_this_year==0.:
+                Hist_ratio_year[hist].SetBinContent(binx+1,0.)
+                Hist_ratio_year[hist].SetBinError(binx+1,0.)
+            else:
+                Hist_ratio_year[hist].SetBinContent(binx+1,Hist_ratio_year[hist].GetBinContent(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
+                Hist_ratio_year[hist].SetBinError(binx+1,Hist_ratio_year[hist].GetBinError(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
 
     max_heigh = 0
+    min_heigh = 0
     max_hist = 0
     for h in range(0,len(Hist_ratio_year)):
         if Hist_ratio_year[h]!=0:
@@ -671,7 +676,11 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
             if max_heigh < Hist_ratio_year[h].GetMaximum(): 
                 max_heigh = Hist_ratio_year[h].GetMaximum()
                 max_hist = h
+            if min_heigh > Hist_ratio_year[h].GetMinimum(): 
+                min_heigh = Hist_ratio_year[h].GetMinimum()
 
+    Hist_ratio_year[max_hist].SetMaximum(max_heigh+0.1*max_heigh)
+    Hist_ratio_year[max_hist].SetMinimum(min_heigh-0.1*min_heigh)
     Hist_ratio_year[max_hist].Draw("E")
     for h in range(0,len(Hist_ratio_year)):
         Hist_ratio_year[h].SetLineWidth(3)
@@ -1555,8 +1564,8 @@ def reflectXaxis(hist):
     # temporary histogram
     hT = ROOT.TH2D( "%s_REFLECTED"%(hist.GetName()), "", hist.GetNbinsX(), -1.*hist.GetXaxis().GetXmax(), -1.*hist.GetXaxis().GetXmin(), hist.GetNbinsY(), hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax() )
     hT.SetStats( 0 )
-    hT.SetXTitle( hist.GetXaxis().GetTitle() );
-    hT.SetYTitle( hist.GetYaxis().GetTitle() );
+    hT.SetXTitle( hist.GetXaxis().GetTitle() )
+    hT.SetYTitle( hist.GetYaxis().GetTitle() )
 	
     for binx in range(1,hist.GetNbinsX()+1):
         for biny in range(1,hist.GetNbinsX()+1):
@@ -1588,7 +1597,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     bright_star_markers = []
     if xtitle=="RA":
         for star in range(0,len(other_stars)):
-            if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>3.0*3.0: continue
+            if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>2.5*2.5: continue
             other_star_markers += [ROOT.TMarker(-other_star_coord[star][0],other_star_coord[star][1],2)]
             other_star_labels += [ROOT.TLatex(-other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
@@ -1607,7 +1616,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     else:
         for star in range(0,len(other_stars)):
             gal_l, gal_b = ConvertRaDecToGalactic(other_star_coord[star][0],other_star_coord[star][1])
-            if pow(source_l-gal_l,2)+pow(source_b-gal_b,2)>3.0*3.0: continue
+            if pow(source_l-gal_l,2)+pow(source_b-gal_b,2)>2.5*2.5: continue
             other_star_markers += [ROOT.TMarker(-gal_l,gal_b,2)]
             other_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
@@ -2009,7 +2018,7 @@ def SingleSourceAnalysis(source_list,doMap):
     for source in range(0,len(source_list)):
         source_name = source_list[source]
         for elev in range(0,len(root_file_tags)):
-            FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+".root";
+            FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+".root"
             FilePath_List += [FilePath]
             if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
             print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
@@ -2121,7 +2130,7 @@ source_b = 0.
 source_idx = FindSourceIndex(sample_list[0])
 FilePath_Folder = []
 for elev in range(0,len(root_file_tags)):
-    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+".root";
+    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+".root"
     FilePath_Folder += [SourceFilePath]
     if not os.path.isfile(FilePath_Folder[0]): 
         continue

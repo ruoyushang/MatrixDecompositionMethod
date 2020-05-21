@@ -74,7 +74,7 @@ range_dec = 2.0
 #range_ra = 1.0
 #range_dec = 1.0
 
-search_for_on_data = True
+search_for_on_data = False
 
 V4 = False
 V5 = False
@@ -131,12 +131,13 @@ Source_Livetime = []
 #sourceFile = open('../data/output_list/IC443HotSpotV5_runlist.txt')
 #sourceFile = open('../data/output_list/IC443HotSpotV6_runlist.txt')
 #sourceFile = open('../data/output_list/Segue1V5_runlist.txt')
-#for line in sourceFile:
-#    Source_RunNumber += [int(line)]
-#    Source_PedVar_DC += [0.]
-#    Source_Elev += [0.]
-#    Source_Azim += [0.]
-#    Source_Livetime += [0.]
+sourceFile = open('../data/output_list/SgrAV6_runlist.txt')
+for line in sourceFile:
+    Source_RunNumber += [int(line)]
+    Source_PedVar_DC += [0.]
+    Source_Elev += [0.]
+    Source_Azim += [0.]
+    Source_Livetime += [0.]
 
 inputFile = open('diagnostics.txt')
 for line in inputFile:
@@ -265,81 +266,82 @@ else:
         List_Produced += [RunNumber]
     
     n_matches = 5
-    for entry2 in range(0,len(Source_RunNumber)):
-        found_matches = 0
-        entry_in_list = 0
-        if int(Source_RunNumber[entry2])<=36398: continue
-        for entry in range(0,len(List_RunNumber)):
-            RunNumber = List_RunNumber[entry]
-            if int(Source_RunNumber[entry2])==int(RunNumber):
-                entry_in_list = entry
-        for entry in range(0,len(List_RunNumber)):
-            if found_matches>=n_matches: continue
-            for direction in range(0,2):
-                entry_plus = 0
-                if direction==0: entry_plus = entry_in_list+entry+1
-                else: entry_plus = entry_in_list-entry-1
-                if entry_plus<0: continue
-                if entry_plus>=len(List_RunNumber): continue
-                RunNumber = List_RunNumber[entry_plus]
-                Elev = List_Elev[entry_plus]
-                Azim = List_Azim[entry_plus]
-                T1_RA = List_T1_RA[entry_plus]
-                T1_Dec = List_T1_Dec[entry_plus]
-                T2_RA = List_T2_RA[entry_plus]
-                T2_Dec = List_T2_Dec[entry_plus]
-                T3_RA = List_T3_RA[entry_plus]
-                T3_Dec = List_T3_Dec[entry_plus]
-                T4_RA = List_T4_RA[entry_plus]
-                T4_Dec = List_T4_Dec[entry_plus]
-                PedVar_DC = List_PedVar_DC[entry_plus]
-                PedVar_PE = List_PedVar_PE[entry_plus]
-                L3_rate = List_L3_rate[entry_plus]
-                Livetime = List_Livetime[entry_plus]
-                if L3_rate<150.: continue
-                #if L3_rate>450.: continue
-                if Livetime<15.: continue
-                if V4:
-                    if int(RunNumber)<=36398: continue
-                    if int(RunNumber)>=46642: continue
-                if V5:
-                    if int(RunNumber)<46642: continue
-                    if int(RunNumber)>=63373: continue
-                if V6:
-                    if int(RunNumber)<63373: continue
-                if abs(float(T1_RA)-target_ra)<10. and abs(float(T1_Dec)-target_dec)<10.: continue
-                if abs(float(T2_RA)-target_ra)<10. and abs(float(T2_Dec)-target_dec)<10.: continue
-                if abs(float(T3_RA)-target_ra)<10. and abs(float(T3_Dec)-target_dec)<10.: continue
-                if abs(float(T4_RA)-target_ra)<10. and abs(float(T4_Dec)-target_dec)<10.: continue
-                if not (T1_RA==0. and T1_Dec==0.):
-                    gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
-                    if abs(gal_b)<10.: continue
-                elif not (T2_RA==0. and T2_Dec==0.):
-                    gal_l, gal_b = ConvertRaDecToGalactic(T2_RA,T2_Dec)
-                    if abs(gal_b)<10.: continue
-                elif not (T3_RA==0. and T3_Dec==0.):
-                    gal_l, gal_b = ConvertRaDecToGalactic(T3_RA,T3_Dec)
-                    if abs(gal_b)<10.: continue
-                elif not (T4_RA==0. and T4_Dec==0.):
-                    gal_l, gal_b = ConvertRaDecToGalactic(T4_RA,T4_Dec)
-                    if abs(gal_b)<10.: continue
-                else: continue # there is no pointing info
-                #if abs(Livetime-Source_Livetime[entry2])/Source_Livetime[entry2]>0.5: continue
-                if abs(Elev-Source_Elev[entry2])>5.: continue
-                if abs(PedVar_DC-Source_PedVar_DC[entry2])>0.5: continue
-                already_used = False
-                for entry3 in range(0,len(List_Produced)):
-                    if int(List_Produced[entry3])==int(RunNumber): 
-                        #print 'RunNumber %s is in the List_Produced'%(RunNumber)
-                        already_used = True
-                for entry3 in range(0,len(List_Used)):
-                    if int(List_Used[entry3])==int(RunNumber): 
-                        #print 'RunNumber %s is in the List_Produced'%(RunNumber)
-                        already_used = True
-                if already_used: continue
-                List_Used += [RunNumber]
-                found_matches += 1
-                print 'Size of the list: %s / %s'%(len(List_Used),n_matches*len(Source_RunNumber))
+    for nth_sample in range(0,n_matches):
+        for entry2 in range(0,len(Source_RunNumber)):
+            found_matches = 0
+            entry_in_list = 0
+            if int(Source_RunNumber[entry2])<=36398: continue
+            for entry in range(0,len(List_RunNumber)):
+                RunNumber = List_RunNumber[entry]
+                if int(Source_RunNumber[entry2])==int(RunNumber):
+                    entry_in_list = entry
+            for entry in range(0,len(List_RunNumber)):
+                if found_matches>=1: continue
+                for direction in range(0,2):
+                    entry_plus = 0
+                    if direction==0: entry_plus = entry_in_list+entry+1
+                    else: entry_plus = entry_in_list-entry-1
+                    if entry_plus<0: continue
+                    if entry_plus>=len(List_RunNumber): continue
+                    RunNumber = List_RunNumber[entry_plus]
+                    Elev = List_Elev[entry_plus]
+                    Azim = List_Azim[entry_plus]
+                    T1_RA = List_T1_RA[entry_plus]
+                    T1_Dec = List_T1_Dec[entry_plus]
+                    T2_RA = List_T2_RA[entry_plus]
+                    T2_Dec = List_T2_Dec[entry_plus]
+                    T3_RA = List_T3_RA[entry_plus]
+                    T3_Dec = List_T3_Dec[entry_plus]
+                    T4_RA = List_T4_RA[entry_plus]
+                    T4_Dec = List_T4_Dec[entry_plus]
+                    PedVar_DC = List_PedVar_DC[entry_plus]
+                    PedVar_PE = List_PedVar_PE[entry_plus]
+                    L3_rate = List_L3_rate[entry_plus]
+                    Livetime = List_Livetime[entry_plus]
+                    if L3_rate<150.: continue
+                    #if L3_rate>450.: continue
+                    if Livetime<15.: continue
+                    if V4:
+                        if int(RunNumber)<=36398: continue
+                        if int(RunNumber)>=46642: continue
+                    if V5:
+                        if int(RunNumber)<46642: continue
+                        if int(RunNumber)>=63373: continue
+                    if V6:
+                        if int(RunNumber)<63373: continue
+                    if abs(float(T1_RA)-target_ra)<10. and abs(float(T1_Dec)-target_dec)<10.: continue
+                    if abs(float(T2_RA)-target_ra)<10. and abs(float(T2_Dec)-target_dec)<10.: continue
+                    if abs(float(T3_RA)-target_ra)<10. and abs(float(T3_Dec)-target_dec)<10.: continue
+                    if abs(float(T4_RA)-target_ra)<10. and abs(float(T4_Dec)-target_dec)<10.: continue
+                    if not (T1_RA==0. and T1_Dec==0.):
+                        gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
+                        if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                    elif not (T2_RA==0. and T2_Dec==0.):
+                        gal_l, gal_b = ConvertRaDecToGalactic(T2_RA,T2_Dec)
+                        if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                    elif not (T3_RA==0. and T3_Dec==0.):
+                        gal_l, gal_b = ConvertRaDecToGalactic(T3_RA,T3_Dec)
+                        if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                    elif not (T4_RA==0. and T4_Dec==0.):
+                        gal_l, gal_b = ConvertRaDecToGalactic(T4_RA,T4_Dec)
+                        if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                    else: continue # there is no pointing info
+                    #if abs(Livetime-Source_Livetime[entry2])/Source_Livetime[entry2]>0.5: continue
+                    if abs(Elev-Source_Elev[entry2])>5.: continue
+                    if abs(PedVar_DC-Source_PedVar_DC[entry2])>1.0: continue
+                    already_used = False
+                    for entry3 in range(0,len(List_Produced)):
+                        if int(List_Produced[entry3])==int(RunNumber): 
+                            #print 'RunNumber %s is in the List_Produced'%(RunNumber)
+                            already_used = True
+                    for entry3 in range(0,len(List_Used)):
+                        if int(List_Used[entry3])==int(RunNumber): 
+                            #print 'RunNumber %s is in the List_Produced'%(RunNumber)
+                            already_used = True
+                    if already_used: continue
+                    List_Used += [RunNumber]
+                    found_matches += 1
+                    print 'Size of the list: %s / %s'%(len(List_Used),n_matches*len(Source_RunNumber))
 
         
 for entry in range(0,len(List_Used)):
