@@ -764,7 +764,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     {
                         chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
                     }
-                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.2*0.2 && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<4.*4.)
+                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<2.0*2.0 && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<5.*5.)
                     {
                         found_match = true;
                     }
@@ -778,7 +778,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     }
 
                 }
-                if (found_match || best_chi2<10000.) 
+                if (found_match && best_chi2<10000.) 
                 {
                     new_list.at(nth_sample).push_back(best_match);
                     ON_pointing_radec_new.push_back(ON_pointing_radec[on_run]);
@@ -933,11 +933,10 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         MSCW_cut_blind = MSCW_cut_loose;
         MSCL_cut_blind = MSCL_cut_loose;
     }
-    //if (TString(target).Contains("MGRO_J1908"))
-    //{
-    //    MSCW_cut_blind = MSCW_cut_loose;
-    //    MSCL_cut_blind = MSCL_cut_loose;
-    //}
+    if (TString(target).Contains("SgrA"))
+    {
+        n_control_samples = 2;
+    }
     MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
     MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
@@ -999,35 +998,47 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
     GetBrightStars();
     GetGammaSources();
 
-    roi_ra.push_back(mean_tele_point_ra);
-    roi_dec.push_back(mean_tele_point_dec);
-    roi_radius.push_back(0.2);
     if (TString(target).Contains("MGRO_J1908")) 
     {
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(1.0);
     }
-    if (TString(target).Contains("IC443")) 
+    else if (TString(target).Contains("IC443")) 
     {
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(0.5);
     }
-    if (TString(target).Contains("Segue1")) 
+    else if (TString(target).Contains("Segue1")) 
     {
         roi_ra.push_back(151.757);
         roi_dec.push_back(17.007);
         roi_radius.push_back(0.5);
     }
-    if (TString(target).Contains("WComae")) 
+    else if (TString(target).Contains("WComae")) 
     {
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius.push_back(0.3);
+
         roi_ra.push_back(185.360);
         roi_dec.push_back(30.191);
-        roi_radius.push_back(0.15);
+        roi_radius.push_back(0.3);
+
         roi_ra.push_back(184.452);
         roi_dec.push_back(30.102);
-        roi_radius.push_back(0.15);
+        roi_radius.push_back(0.3);
+
+        roi_ra.push_back(186.528);
+        roi_dec.push_back(27.247);
+        roi_radius.push_back(0.3);
+    }
+    else
+    {
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius.push_back(0.3);
     }
 
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);

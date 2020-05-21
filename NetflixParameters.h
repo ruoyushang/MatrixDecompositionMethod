@@ -16,8 +16,10 @@ double camera_theta2_cut = 9.;
 int N_bins_for_deconv = 8; // 8 should be the lowest bin number
 
 int n_control_samples = 5;
-const int N_energy_bins = 1;
-double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,4.0)};
+//const int N_energy_bins = 1;
+//double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,4.0)};
+const int N_energy_bins = 4;
+double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.3),pow(10,2.6),pow(10,3.0),pow(10,4.0)};
 const int N_energy_fine_bins = 20;
 double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.1),pow(10,2.2),pow(10,2.3),pow(10,2.4),pow(10,2.5),pow(10,2.6),pow(10,2.7),pow(10,2.8),pow(10,2.9),pow(10,3.0),pow(10,3.1),pow(10,3.2),pow(10,3.3),pow(10,3.4),pow(10,3.5),pow(10,3.6),pow(10,3.7),pow(10,3.8),pow(10,3.9),pow(10,4.0)};
 double gamma_flux[N_energy_fine_bins] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};

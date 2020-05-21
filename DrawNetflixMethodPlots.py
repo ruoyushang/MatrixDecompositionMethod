@@ -21,13 +21,14 @@ method_tag = '8bins_unconstrained'
 
 root_file_tags = []
 root_file_tags += [method_tag+'_TelElev45to85']
+#root_file_tags += [method_tag+'_TelElev25to45']
 
 selection_tag = root_file_tags[0]
 
 folder_path = 'output_root'
 PercentCrab = ''
 
-energy_fine_bin_cut_low = 0
+energy_fine_bin_cut_low = 3
 energy_fine_bin_cut_up = 20
 selection_tag += '_E%s'%(energy_fine_bin_cut_low)
 
@@ -61,6 +62,9 @@ Syst_MDM = 0.02
 
 energy_list = []
 energy_list += [int(pow(10,2.0))]
+energy_list += [int(pow(10,2.3))]
+energy_list += [int(pow(10,2.6))]
+energy_list += [int(pow(10,3.0))]
 energy_list += [int(pow(10,4.0))]
 
 energy_fine_bin = []
@@ -89,15 +93,18 @@ energy_fine_bin += [pow(10,4.0)]
 sample_list = []
 sky_coord = []
 
+#sample_list += ['SgrAV6']
+#sky_coord += ['17 45 39.6 -29 00 22']
+
 #sample_list += ['OJ287V6']
 #sky_coord += ['08 54 49.1 +20 05 58.89']
 
-sample_list += ['WComaeV6']
-sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV5']
-sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV4']
-sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV6']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV5']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV4']
+#sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
@@ -173,8 +180,6 @@ sky_coord += ['12 21 31.7 +28 13 59']
 #sky_coord += ['06 32 28 +17 22 00']
 #sample_list += ['GemingaV5']
 #sky_coord += ['06 32 28 +17 22 00']
-#sample_list += ['SgrAV6']
-#sky_coord += ['17 45 39.6 -29 00 22']
 #sample_list += ['TychoV6']
 #sky_coord += ['00 25 21.6 +64 07 48']
 #sample_list += ['CTA1V5']
@@ -592,113 +597,81 @@ def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,log
 def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
 
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
-    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
-    pad3.SetBottomMargin(0.0)
-    pad3.SetTopMargin(0.03)
-    pad3.SetBorderMode(1)
-    pad1 = ROOT.TPad("pad1","pad1",0,0.0,1,0.8)
-    pad1.SetBottomMargin(0.39)
-    pad1.SetTopMargin(0.0)
-    pad1.SetBorderMode(0)
-    pad1.Draw()
-    pad3.Draw()
+    n_roi = len(Hist_data)
+    pads = []
 
-    pad1.cd()
+    nbins_per_year = 1
 
-    time = Time(MJD_Start, format='mjd')
-    time.format = 'decimalyear'
-    year_start = int(time.value)
-    time = Time(MJD_End, format='mjd')
-    time.format = 'decimalyear'
-    year_end = int(time.value)
+    step_size = 1./float(n_roi)
+    for roi in range(0,n_roi):
+        pads += [ROOT.TPad("pad%s"%(roi),"",0,1-(roi+1)*step_size,1,1-(roi)*step_size)]
+        pads[roi].SetBorderMode(1)
+        pads[roi].SetTopMargin(0.0)
+        pads[roi].SetBottomMargin(0.0)
+        if roi==0:
+            pads[roi].SetTopMargin(0.1/step_size)
+        if roi==n_roi-1:
+            pads[roi].SetBottomMargin(0.1/step_size)
+        pads[roi].Draw("same")
 
     Hist_data_year = []
-    for hist in range(0,len(Hist_data)):
-        Hist_data_year += [ROOT.TH1D("Hist_data_year_%s"%(hist),"",year_end-year_start+1,year_start,year_end+1)]
-        for binx in range(0,Hist_data[hist].GetNbinsX()):
-            mjd = Hist_data[hist].GetBinCenter(binx+1)
-            time = Time(mjd, format='mjd')
-            time.format = 'decimalyear'
-            year = int(time.value)
-            Hist_data_year[hist].Fill(year,Hist_data[hist].GetBinContent(binx+1))
-        for binx in range(0,Hist_data_year[hist].GetNbinsX()):
-            Hist_data_year[hist].SetBinError(binx+1,pow(Hist_data_year[hist].GetBinContent(binx+1),0.5))
     Hist_bkgd_year = []
-    for hist in range(0,len(Hist_data)):
-        Hist_bkgd_year += [ROOT.TH1D("Hist_bkgd_year_%s"%(hist),"",year_end-year_start+1,year_start,year_end+1)]
-        for binx in range(0,Hist_data[hist].GetNbinsX()):
-            mjd = Hist_data[hist].GetBinCenter(binx+1)
+    Hist_ratio_year = []
+    for roi in range(0,n_roi):
+        pads[roi].cd()
+
+        time = Time(MJD_Start, format='mjd')
+        time.format = 'decimalyear'
+        year_start = int(time.value)
+        time = Time(MJD_End, format='mjd')
+        time.format = 'decimalyear'
+        year_end = int(time.value)
+
+        Hist_data_year += [ROOT.TH1D("Hist_data_year_%s"%(roi),"",(year_end-year_start+1)*nbins_per_year,year_start-0.5,year_end+0.5)]
+        for binx in range(0,Hist_data[roi].GetNbinsX()):
+            mjd = Hist_data[roi].GetBinCenter(binx+1)
             time = Time(mjd, format='mjd')
             time.format = 'decimalyear'
-            year = int(time.value)
-            Hist_bkgd_year[hist].Fill(year,Hist_bkgd[hist].GetBinContent(binx+1))
-        for binx in range(0,Hist_bkgd_year[hist].GetNbinsX()):
-            Hist_bkgd_year[hist].SetBinError(binx+1,Hist_bkgd_year[hist].GetBinContent(binx+1)*Syst_MDM)
+            year = time.value
+            Hist_data_year[roi].Fill(year,Hist_data[roi].GetBinContent(binx+1))
+        for binx in range(0,Hist_data_year[roi].GetNbinsX()):
+            Hist_data_year[roi].SetBinError(binx+1,pow(Hist_data_year[roi].GetBinContent(binx+1),0.5))
 
-    # Crab https://arxiv.org/pdf/1508.06442.pdf
-    func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 200, 4000)
-    func_crab.SetParameters(37.5,-2.467,-0.16)
+        Hist_bkgd_year += [ROOT.TH1D("Hist_bkgd_year_%s"%(roi),"",(year_end-year_start+1)*nbins_per_year,year_start-0.5,year_end+0.5)]
+        for binx in range(0,Hist_data[roi].GetNbinsX()):
+            mjd = Hist_data[roi].GetBinCenter(binx+1)
+            time = Time(mjd, format='mjd')
+            time.format = 'decimalyear'
+            year = time.value
+            Hist_bkgd_year[roi].Fill(year,Hist_bkgd[roi].GetBinContent(binx+1))
+        for binx in range(0,Hist_bkgd_year[roi].GetNbinsX()):
+            Hist_bkgd_year[roi].SetBinError(binx+1,Hist_bkgd_year[roi].GetBinContent(binx+1)*Syst_MDM)
 
-    Crab_unit_events = 0.
-    for binx in range(0,Hist_EffArea_Sum.GetNbinsX()):
-        if Hist_EffArea_Sum.GetBinContent(binx+1)==0.: continue
-        deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
-        Crab_unit_events += Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE*func_crab.Eval(Hist_EffArea_Sum.GetBinCenter(binx+1))
+        # Crab https://arxiv.org/pdf/1508.06442.pdf
+        func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 200, 4000)
+        func_crab.SetParameters(37.5,-2.467,-0.16)
 
-    Hist_diff_year = []
-    for hist in range(0,len(Hist_data_year)):
-        Hist_diff_year += [ROOT.TH1D("Hist_diff_year_%s"%(hist),"",year_end-year_start+1,year_start,year_end+1)]
-        Hist_diff_year[hist].Add(Hist_data_year[hist])
-        Hist_diff_year[hist].Add(Hist_bkgd_year[hist],-1.)
+        Crab_unit_events = 0.
+        for binx in range(0,Hist_EffArea_Sum.GetNbinsX()):
+            if Hist_EffArea_Sum.GetBinContent(binx+1)==0.: continue
+            deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
+            Crab_unit_events += Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE*func_crab.Eval(Hist_EffArea_Sum.GetBinCenter(binx+1))
 
-    Hist_ratio_year = []
-    for hist in range(0,len(Hist_data_year)):
-        Hist_ratio_year += [ROOT.TH1D("Hist_ratio_year_%s"%(hist),"",year_end-year_start+1,year_start,year_end+1)]
-        Hist_ratio_year[hist].Add(Hist_data_year[hist])
-        Hist_ratio_year[hist].Add(Hist_bkgd_year[hist],-1.)
-        bkgd_total = Hist_data_year[hist].Integral()
-        for binx in range(0,Hist_data_year[hist].GetNbinsX()):
-            bkgd_this_year = Hist_data_year[hist].GetBinContent(binx+1)
+        Hist_ratio_year += [ROOT.TH1D("Hist_ratio_year_%s"%(roi),"",(year_end-year_start+1)*nbins_per_year,year_start-0.5,year_end+0.5)]
+        Hist_ratio_year[roi].Add(Hist_data_year[roi])
+        Hist_ratio_year[roi].Add(Hist_bkgd_year[roi],-1.)
+        bkgd_total = Hist_data_year[roi].Integral()
+        for binx in range(0,Hist_data_year[roi].GetNbinsX()):
+            bkgd_this_year = Hist_data_year[roi].GetBinContent(binx+1)
             if bkgd_this_year==0.:
-                Hist_ratio_year[hist].SetBinContent(binx+1,0.)
-                Hist_ratio_year[hist].SetBinError(binx+1,0.)
+                Hist_ratio_year[roi].SetBinContent(binx+1,0.)
+                Hist_ratio_year[roi].SetBinError(binx+1,0.)
             else:
-                Hist_ratio_year[hist].SetBinContent(binx+1,Hist_ratio_year[hist].GetBinContent(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
-                Hist_ratio_year[hist].SetBinError(binx+1,Hist_ratio_year[hist].GetBinError(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
+                Hist_ratio_year[roi].SetBinContent(binx+1,Hist_ratio_year[roi].GetBinContent(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
+                Hist_ratio_year[roi].SetBinError(binx+1,Hist_ratio_year[roi].GetBinError(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
 
-    max_heigh = 0
-    min_heigh = 0
-    max_hist = 0
-    for h in range(0,len(Hist_ratio_year)):
-        if Hist_ratio_year[h]!=0:
-            Hist_ratio_year[h].SetLineColor(colors[h])
-            Hist_ratio_year[h].GetXaxis().SetTitle(title)
-            if max_heigh < Hist_ratio_year[h].GetMaximum(): 
-                max_heigh = Hist_ratio_year[h].GetMaximum()
-                max_hist = h
-            if min_heigh > Hist_ratio_year[h].GetMinimum(): 
-                min_heigh = Hist_ratio_year[h].GetMinimum()
-
-    Hist_ratio_year[max_hist].SetMaximum(max_heigh+0.1*max_heigh)
-    Hist_ratio_year[max_hist].SetMinimum(min_heigh-0.1*min_heigh)
-    Hist_ratio_year[max_hist].Draw("E")
-    for h in range(0,len(Hist_ratio_year)):
-        Hist_ratio_year[h].SetLineWidth(3)
-        Hist_ratio_year[h].Draw("E same")
-
-    pad3.cd()
-    legend = ROOT.TLegend(0.55,0.1,0.94,0.9)
-    legend.SetTextFont(42)
-    legend.SetBorderSize(0)
-    #legend.SetTextSize(0.2)
-    legend.SetTextSize(0.15)
-    legend.SetFillColor(0)
-    legend.SetFillStyle(0)
-    legend.SetLineColor(0)
-    legend.Clear()
-    for h in range(0,len(Hist_ratio_year)):
-        legend.AddEntry(Hist_ratio_year[h],legends[h],"pl")
-    legend.Draw("SAME")
+        Hist_ratio_year[roi].SetLineWidth(3)
+        Hist_ratio_year[roi].Draw("E same")
 
     c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
 
@@ -1822,7 +1795,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     raLowerAxis.Draw()
     canvas.SaveAs('output_plots/SkymapZoomin_%s_%s.png'%(name,selection_tag))
 
-def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold):
+def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold, init_x, init_y):
 
     Hist_Excess = Hist_data.Clone()
     Hist_Excess.Add(Hist_bkgd,-1.)
@@ -1834,6 +1807,11 @@ def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold):
 
     for bx in range(0,Hist_Excess.GetNbinsX()):
         for by in range(0,Hist_Excess.GetNbinsY()):
+            bin_x = Hist_Excess.GetXaxis().GetBinCenter(bx+1)
+            bin_y = Hist_Excess.GetYaxis().GetBinCenter(by+1)
+            distance = pow(pow(bin_x-init_x,2)+pow(bin_y-init_y,2),0.5)
+            if distance > 0.5:
+                Hist_Excess.SetBinContent(bx+1,by+1,0.)
             if not Hist_sig.GetBinContent(bx+1,by+1)>=highlight_threshold: 
                 Hist_Excess.SetBinContent(bx+1,by+1,0.)
     excess_center_x_init = Hist_Excess.GetMean(1)
@@ -2098,15 +2076,19 @@ def SingleSourceAnalysis(source_list,doMap):
 
     Hist_Significance_Skymap_smooth = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Syst_MDM)
 
-    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,5)
+    init_x = source_ra
+    init_y = source_dec
+    #init_x = 186.5
+    #init_y = 27.2
+    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,5,init_x,init_y)
     print 'Excess (5 sigma) center RA = %0.3f'%(excess_center_x)
     print 'Excess (5 sigma) center Dec = %0.3f'%(excess_center_y)
     print 'Excess (5 sigma) radius = %0.3f'%(excess_radius)
-    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,4)
+    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,4,init_x,init_y)
     print 'Excess (4 sigma) center RA = %0.3f'%(excess_center_x)
     print 'Excess (4 sigma) center Dec = %0.3f'%(excess_center_y)
     print 'Excess (4 sigma) radius = %0.3f'%(excess_radius)
-    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,3)
+    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,3,init_x,init_y)
     print 'Excess (3 sigma) center RA = %0.3f'%(excess_center_x)
     print 'Excess (3 sigma) center Dec = %0.3f'%(excess_center_y)
     print 'Excess (3 sigma) radius = %0.3f'%(excess_radius)

@@ -991,7 +991,17 @@ MatrixXcd SpectralDecompositionMethod(int LeftOrRight, int entry_start, int entr
 
     return mtx_output;
 }
-void LeastSquareSolutionMethod()
+bool CheckIfEigenvalueMakeSense()
+{
+    eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
+    double lambda_data = eigensolver_data.eigenvalues()(mtx_data.cols()-1).real();
+    eigensolver_bkgd = ComplexEigenSolver<MatrixXcd>(mtx_data_bkgd);
+    double lambda_bkgd = eigensolver_bkgd.eigenvalues()(mtx_data.cols()-1).real();
+    double diff = abs(lambda_data-lambda_bkgd)/lambda_data;
+    if (diff>1.0) return false;
+    return true;
+}
+void LeastSquareSolutionMethod(int rank_variation)
 {
 
     for (int col=0;col<N_bins_for_deconv;col++)
@@ -1019,15 +1029,38 @@ void LeastSquareSolutionMethod()
     
     for (int iteration=0;iteration<5;iteration++)
     {
-        mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
-        SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-        //std::cout << "chi2 (rank 1) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-        mtx_data_bkgd = SpectralDecompositionMethod_v3(2, 1);
-        SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-        //std::cout << "chi2 (rank 2) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-        mtx_data_bkgd = SpectralDecompositionMethod_v3(3, 1);
-        SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-        //std::cout << "chi2 (rank 3) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        if (rank_variation==1)
+        {
+            mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+            //std::cout << "chi2 (rank 1) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        }
+        else if (rank_variation==2)
+        {
+            mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+            //std::cout << "chi2 (rank 1) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+            mtx_data_bkgd = SpectralDecompositionMethod_v3(2, 1);
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+            //std::cout << "chi2 (rank 2) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        }
+        else
+        {
+            mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+            //std::cout << "chi2 (rank 1) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+            mtx_data_bkgd = SpectralDecompositionMethod_v3(2, 1);
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+            //std::cout << "chi2 (rank 2) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+            mtx_data_bkgd = SpectralDecompositionMethod_v3(3, 1);
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
+            //std::cout << "chi2 (rank 3) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        }
+    }
+
+    if (!CheckIfEigenvalueMakeSense())
+    {
+        mtx_data_bkgd = mtx_dark;
     }
 
 }
@@ -1099,6 +1132,10 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
 
     TH1::SetDefaultSumw2();
     sprintf(target, "%s", target_data.c_str());
+
+    //int rank_variation = 1;
+    int rank_variation = 3;
+
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
     MSCW_cut_blind = MSCW_cut_moderate;
@@ -1108,11 +1145,11 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
         MSCW_cut_blind = MSCW_cut_loose;
         MSCL_cut_blind = MSCL_cut_loose;
     }
-    //if (TString(target).Contains("MGRO_J1908"))
-    //{
-    //    MSCW_cut_blind = MSCW_cut_loose;
-    //    MSCL_cut_blind = MSCL_cut_loose;
-    //}
+    if (TString(target).Contains("SgrA"))
+    {
+        n_control_samples = 2;
+        rank_variation = 1;
+    }
     MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
     MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
@@ -1164,7 +1201,7 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
             int biny_upper = Hist_Data->GetYaxis()->FindBin(1.)-1;
 
             //MatrixFactorizationMethod();
-            LeastSquareSolutionMethod();
+            LeastSquareSolutionMethod(rank_variation);
 
             fill2DHistogram(&Hist_OffBkgd_OneSample_MSCLW.at(e),mtx_data_bkgd);
             eigensolver_bkgd = ComplexEigenSolver<MatrixXcd>(mtx_data_bkgd);
@@ -1229,7 +1266,7 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
             eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
 
             //MatrixFactorizationMethod();
-            LeastSquareSolutionMethod();
+            LeastSquareSolutionMethod(rank_variation);
 
             TH2D Hist_Bkgd_Temp = TH2D("Hist_Bkgd_Temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
             double scale = 1./double(n_control_samples);
