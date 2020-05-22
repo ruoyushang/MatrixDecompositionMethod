@@ -1054,8 +1054,8 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         roi_dec.push_back(30.191);
         roi_radius.push_back(0.3);
 
-        roi_ra.push_back(184.452);
-        roi_dec.push_back(30.102);
+        roi_ra.push_back(184.616);
+        roi_dec.push_back(30.130);
         roi_radius.push_back(0.3);
 
         roi_ra.push_back(186.528);

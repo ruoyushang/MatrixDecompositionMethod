@@ -21,12 +21,12 @@ method_tag = '8bins_unconstrained'
 #method_tag = '16bins_unconstrained'
 
 root_file_tags = []
-root_file_tags += [method_tag+'_TelElev45to85']
+#root_file_tags += [method_tag+'_TelElev45to85']
 #root_file_tags += [method_tag+'_TelElev25to45']
 
 # 1ES 1215 flare
-#root_file_tags += [method_tag+'_TelElev45to85_MJD54875to55250']
-#root_file_tags += [method_tag+'_TelElev45to85_MJD57250to57500']
+root_file_tags += [method_tag+'_TelElev45to85_MJD54700to55100']
+root_file_tags += [method_tag+'_TelElev45to85_MJD57000to57580']
 
 selection_tag = root_file_tags[0]
 
@@ -642,7 +642,7 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
     Hist_ratio_mjd = []
     IncValues = ROOT.TF1( "IncValues", "x", float(year_start) , float(year_end) )
     raLowerAxis = []
-    days_per_bin = 365.
+    days_per_bin = 90.
     for roi in range(0,n_roi):
 
         Hist_data_mjd += [ROOT.TH1D("Hist_data_mjd_%s"%(roi),"",int((MJD_End+1-MJD_Start)/days_per_bin),MJD_Start,MJD_End+1)]
@@ -1609,9 +1609,10 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
             other_star_labels[len(other_star_labels)-1].SetTextSize(0.02)
             other_star_names += [other_stars[star]]
-            binx = Hist_Skymap.GetXaxis().FindBin(-other_star_coord[star][0])
-            biny = Hist_Skymap.GetYaxis().FindBin(other_star_coord[star][1])
-            other_star_significance += [Hist_Skymap.GetBinContent(binx,biny)]
+            #binx = Hist_Skymap.GetXaxis().FindBin(-other_star_coord[star][0])
+            #biny = Hist_Skymap.GetYaxis().FindBin(other_star_coord[star][1])
+            #other_star_significance += [Hist_Skymap.GetBinContent(binx,biny)]
+            other_star_significance += [FindLocalMaximum(Hist_Skymap, -other_star_coord[star][0], other_star_coord[star][1])]
         for star in range(0,len(bright_star_ra)):
             bright_star_markers += [ROOT.TMarker(-bright_star_ra[star],bright_star_dec[star],30)]
             bright_star_markers[len(bright_star_markers)-1].SetMarkerColor(2)
@@ -1628,9 +1629,10 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
             other_star_labels[len(other_star_labels)-1].SetTextSize(0.02)
             other_star_names += [other_stars[star]]
-            binx = Hist_Skymap.GetXaxis().FindBin(-gal_l)
-            biny = Hist_Skymap.GetYaxis().FindBin(gal_b)
-            other_star_significance += [Hist_Skymap.GetBinContent(binx,biny)]
+            #binx = Hist_Skymap.GetXaxis().FindBin(-gal_l)
+            #biny = Hist_Skymap.GetYaxis().FindBin(gal_b)
+            #other_star_significance += [Hist_Skymap.GetBinContent(binx,biny)]
+            other_star_significance += [FindLocalMaximum(Hist_Skymap, -gal_l, gal_b)]
         for star in range(0,len(bright_star_ra)):
             gal_l, gal_b = ConvertRaDecToGalactic(bright_star_ra[star],bright_star_dec[star])
             bright_star_markers += [ROOT.TMarker(-gal_l,gal_b,30)]
@@ -1827,6 +1829,19 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     raLowerAxis.SetLabelSize(Hist_Skymap_zoomin.GetXaxis().GetLabelSize())
     raLowerAxis.Draw()
     canvas.SaveAs('output_plots/SkymapZoomin_%s_%s.png'%(name,selection_tag))
+
+def FindLocalMaximum(Hist_sig, init_x, init_y):
+
+    max_sig = 0.
+    for bx in range(0,Hist_sig.GetNbinsX()):
+        for by in range(0,Hist_sig.GetNbinsY()):
+            bin_x = Hist_sig.GetXaxis().GetBinCenter(bx+1)
+            bin_y = Hist_sig.GetYaxis().GetBinCenter(by+1)
+            distance = pow(pow(bin_x-init_x,2)+pow(bin_y-init_y,2),0.5)
+            if distance < 0.2:
+                if max_sig < Hist_sig.GetBinContent(bx+1,by+1):
+                    max_sig = Hist_sig.GetBinContent(bx+1,by+1)
+    return max_sig
 
 def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold, init_x, init_y):
 
@@ -2113,6 +2128,8 @@ def SingleSourceAnalysis(source_list,doMap):
     init_y = source_dec
     #init_x = 186.5
     #init_y = 27.2
+    #init_x = 184.452083333
+    #init_y = 30.1016666667
     excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,5,init_x,init_y)
     print 'Excess (5 sigma) center RA = %0.3f'%(excess_center_x)
     print 'Excess (5 sigma) center Dec = %0.3f'%(excess_center_y)
