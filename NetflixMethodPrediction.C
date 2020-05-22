@@ -998,9 +998,14 @@ bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, int rank)
     ComplexEigenSolver<MatrixXcd> eigensolver_input = ComplexEigenSolver<MatrixXcd>(mtx_input);
     double lambda_input = eigensolver_input.eigenvalues()(mtx_input.cols()-rank).real();
     double diff = abs(lambda_dark-lambda_input)/lambda_dark;
-    std::cout << "lambda_dark = " << lambda_dark << std::endl;
-    std::cout << "lambda_input = " << lambda_input << std::endl;
+    //std::cout << "lambda_dark = " << lambda_dark << std::endl;
+    //std::cout << "lambda_input = " << lambda_input << std::endl;
     if (diff>0.2) return false;
+
+    double init_chi2 = GetChi2Function(mtx_data_bkgd,0);
+    double current_chi2 = GetChi2Function(mtx_input,0);
+    if (current_chi2>init_chi2) return false;
+
     return true;
 }
 void LeastSquareSolutionMethod(int rank_variation)
@@ -1018,12 +1023,16 @@ void LeastSquareSolutionMethod(int rank_variation)
     }
 
     SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_dark);
+    mtx_data_bkgd = mtx_dark;
+
+    if (eigensolver_data.eigenvalues()(mtx_data.cols()-1)==0.) return;
+    if (eigensolver_dark.eigenvalues()(mtx_dark.cols()-1)==0.) return;
 
     mtx_eigenvector = mtx_eigenvector_init;
     mtx_eigenvalue = mtx_eigenvalue_init;
     mtx_eigenvector_inv = mtx_eigenvector_inv_init;
+
     std::cout << "initial chi2 = " << GetChi2Function(mtx_dark,0) << std::endl;
-    mtx_data_bkgd = mtx_dark;
 
     //mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 2);
     //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);

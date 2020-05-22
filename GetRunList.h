@@ -197,10 +197,6 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("2HWC_J1953V6");
         }
-        if (source=="2HWC_J1953V6_new")
-        {
-            list = GetRunListFromFile("2HWC_J1953V6_new");
-        }
         if (source=="2HWC_J1930V6")
         {
             list = GetRunListFromFile("2HWC_J1930V6");

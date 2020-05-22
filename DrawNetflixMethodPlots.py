@@ -21,8 +21,8 @@ method_tag = '8bins_unconstrained'
 #method_tag = '16bins_unconstrained'
 
 root_file_tags = []
-#root_file_tags += [method_tag+'_TelElev45to85']
-root_file_tags += [method_tag+'_TelElev25to45']
+root_file_tags += [method_tag+'_TelElev45to85']
+#root_file_tags += [method_tag+'_TelElev25to45']
 
 selection_tag = root_file_tags[0]
 
@@ -94,8 +94,8 @@ energy_fine_bin += [pow(10,4.0)]
 sample_list = []
 sky_coord = []
 
-sample_list += ['SgrAV6']
-sky_coord += ['17 45 39.6 -29 00 22']
+#sample_list += ['SgrAV6']
+#sky_coord += ['17 45 39.6 -29 00 22']
 
 #sample_list += ['OJ287V6']
 #sky_coord += ['08 54 49.1 +20 05 58.89']
@@ -123,8 +123,8 @@ sky_coord += ['17 45 39.6 -29 00 22']
 
 #sample_list += ['Segue1V6']
 #sky_coord += ['10 07 04 +16 04 55']
-#sample_list += ['Segue1V5']
-#sky_coord += ['10 07 04 +16 04 55']
+sample_list += ['Segue1V5']
+sky_coord += ['10 07 04 +16 04 55']
 
 #sample_list += ['CygnusV6']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
@@ -376,7 +376,7 @@ def GetShowerHistogramsFromFile(FilePath):
     print 'Getting histogram %s'%(HistName)
     Hist2D_Rank2.Add(InputFile.Get(HistName))
 
-    if Hist2D_OnData.Integral()<1600.:
+    if Hist2D_OnData.Integral()<1600. or Hist2D_OnDark.Integral()<1600.:
         Hist2D_OnData.Reset()
         Hist2D_OnDark.Reset()
         Hist2D_OnBkgd.Reset()
@@ -416,7 +416,7 @@ def GetShowerHistogramsFromFile(FilePath):
         Hist2D_OffBkgd[nth_sample].Reset()
         Hist2D_OffBkgd[nth_sample].Add(InputFile.Get(HistName))
 
-        if Hist2D_OffData[nth_sample].Integral()<1600.:
+        if Hist2D_OffData[nth_sample].Integral()<1600. or Hist2D_OffDark[nth_sample].Integral()<1600.:
             Hist2D_OffData[nth_sample].Reset()
             Hist2D_OffDark[nth_sample].Reset()
             Hist2D_OffBkgd[nth_sample].Reset()

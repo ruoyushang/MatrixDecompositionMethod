@@ -10,6 +10,9 @@ from astropy.coordinates import SkyCoord
 from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
 from scipy import special
 
+def GetDistance(x1,y1,x2,y2):
+    distance = pow((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2),0.5)
+    return distance
 
 def ConvertRaDecToGalactic(ra, dec):
     delta = dec*ROOT.TMath.Pi()/180.
@@ -27,10 +30,10 @@ def ConvertRaDecToGalactic(ra, dec):
 
 
 ## galactic center
-target_ra = 266.415
-target_dec = -29.006
-range_ra = 2.0
-range_dec = 2.0
+#target_ra = 266.415
+#target_dec = -29.006
+#range_ra = 2.0
+#range_dec = 2.0
 
 # W Comae
 #target_ra = 185.382083333
@@ -65,20 +68,26 @@ range_dec = 2.0
 ## 2HWC J1928
 #target_ra = 292.15
 #target_dec = 17.78
-#range_ra = 1.0
-#range_dec = 1.0
+#range_ra = 2.0
+#range_dec = 2.0
+
+## 2HWC J1953
+#target_ra = 298.26
+#target_dec = 29.48
+#range_ra = 2.0
+#range_dec = 2.0
 
 ## Cygnus
-#target_ra = 304.645958333
-#target_dec = 36.8333333333
-#range_ra = 1.0
-#range_dec = 1.0
+target_ra = 304.645958333
+target_dec = 36.8333333333
+range_ra = 1.0
+range_dec = 1.0
 
 search_for_on_data = False
 
 V4 = False
-V5 = False
-V6 = True
+V5 = True
+V6 = False
 
 
 RunNumber = 0
@@ -131,7 +140,8 @@ Source_Livetime = []
 #sourceFile = open('../data/output_list/IC443HotSpotV5_runlist.txt')
 #sourceFile = open('../data/output_list/IC443HotSpotV6_runlist.txt')
 #sourceFile = open('../data/output_list/Segue1V5_runlist.txt')
-sourceFile = open('../data/output_list/SgrAV6_runlist.txt')
+#sourceFile = open('../data/output_list/SgrAV6_runlist.txt')
+sourceFile = open('../data/output_list/CygnusV6_runlist.txt')
 for line in sourceFile:
     Source_RunNumber += [int(line)]
     Source_PedVar_DC += [0.]
@@ -316,15 +326,27 @@ else:
                     if not (T1_RA==0. and T1_Dec==0.):
                         gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
                         if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                        if GetDistance(T1_RA,T1_Dec,83.633,22.014)<3.: continue  # Crab
+                        if GetDistance(T1_RA,T1_Dec,166.079,38.195)<3.: continue  # Mrk 421
+                        if GetDistance(T1_RA,T1_Dec,98.117,17.367)<3.: continue  # Geminga
                     elif not (T2_RA==0. and T2_Dec==0.):
                         gal_l, gal_b = ConvertRaDecToGalactic(T2_RA,T2_Dec)
                         if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                        if GetDistance(T2_RA,T2_Dec,83.633,22.014)<3.: continue  # Crab
+                        if GetDistance(T2_RA,T2_Dec,166.079,38.195)<3.: continue  # Mrk 421
+                        if GetDistance(T2_RA,T2_Dec,98.117,17.367)<3.: continue  # Geminga
                     elif not (T3_RA==0. and T3_Dec==0.):
                         gal_l, gal_b = ConvertRaDecToGalactic(T3_RA,T3_Dec)
                         if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                        if GetDistance(T3_RA,T3_Dec,83.633,22.014)<3.: continue  # Crab
+                        if GetDistance(T3_RA,T3_Dec,166.079,38.195)<3.: continue  # Mrk 421
+                        if GetDistance(T3_RA,T3_Dec,98.117,17.367)<3.: continue  # Geminga
                     elif not (T4_RA==0. and T4_Dec==0.):
                         gal_l, gal_b = ConvertRaDecToGalactic(T4_RA,T4_Dec)
                         if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                        if GetDistance(T4_RA,T4_Dec,83.633,22.014)<3.: continue  # Crab
+                        if GetDistance(T4_RA,T4_Dec,166.079,38.195)<3.: continue  # Mrk 421
+                        if GetDistance(T4_RA,T4_Dec,98.117,17.367)<3.: continue  # Geminga
                     else: continue # there is no pointing info
                     #if abs(Livetime-Source_Livetime[entry2])/Source_Livetime[entry2]>0.5: continue
                     if abs(Elev-Source_Elev[entry2])>5.: continue

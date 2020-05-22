@@ -348,11 +348,6 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 298.260;
                 Source_Dec = 29.480;
     }
-    if (source_name=="2HWC_J1953V6_new")
-    {
-            Source_RA = 298.260;
-                Source_Dec = 29.480;
-    }
     if (source_name=="2HWC_J1930V6")
     {
             Source_RA = 292.150;
