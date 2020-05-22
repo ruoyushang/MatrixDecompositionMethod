@@ -24,6 +24,10 @@ root_file_tags = []
 root_file_tags += [method_tag+'_TelElev45to85']
 #root_file_tags += [method_tag+'_TelElev25to45']
 
+# 1ES 1215 flare
+#root_file_tags += [method_tag+'_TelElev45to85_MJD54875to55250']
+#root_file_tags += [method_tag+'_TelElev45to85_MJD57250to57500']
+
 selection_tag = root_file_tags[0]
 
 folder_path = 'output_root'
@@ -100,12 +104,15 @@ sky_coord = []
 #sample_list += ['OJ287V6']
 #sky_coord += ['08 54 49.1 +20 05 58.89']
 
-#sample_list += ['WComaeV6']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV5']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV4']
-#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['2HWC_J1953V6']
+#sky_coord += ['19 53 02.4 +29 28 48']
+
+sample_list += ['WComaeV6']
+sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV5']
+sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV4']
+sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
@@ -123,8 +130,8 @@ sky_coord = []
 
 #sample_list += ['Segue1V6']
 #sky_coord += ['10 07 04 +16 04 55']
-sample_list += ['Segue1V5']
-sky_coord += ['10 07 04 +16 04 55']
+#sample_list += ['Segue1V5']
+#sky_coord += ['10 07 04 +16 04 55']
 
 #sample_list += ['CygnusV6']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
@@ -185,8 +192,6 @@ sky_coord += ['10 07 04 +16 04 55']
 #sky_coord += ['00 25 21.6 +64 07 48']
 #sample_list += ['CTA1V5']
 #sky_coord += ['00 06 26 +72 59 01.0']
-#sample_list += ['2HWC_J1953V6_new']
-#sky_coord += ['19 53 02.4 +29 28 48']
 #sample_list += ['2HWC_J1930V6']
 #sky_coord += ['19 30 32 +18 52 12']
 
@@ -601,52 +606,58 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
     n_roi = len(Hist_data)
     pads = []
 
-    nbins_per_year = 1
+    #step_size = 1./float(n_roi)
+    #for roi in range(0,n_roi):
+    #    pads += [ROOT.TPad("pad%s"%(roi),"",0,1-(roi+1)*step_size,1,1-(roi)*step_size)]
+    #    pads[roi].SetBorderMode(1)
+    #    pads[roi].SetTopMargin(0.0)
+    #    pads[roi].SetBottomMargin(0.0)
+    #    if roi==0:
+    #        pads[roi].SetTopMargin(0.1/step_size)
+    #    if roi==n_roi-1:
+    #        pads[roi].SetBottomMargin(0.1/step_size)
+    #    pads[roi].Draw("same")
 
-    step_size = 1./float(n_roi)
+    step_size = 0.5
+    for nth_pad in range(0,2):
+        pads += [ROOT.TPad("pad%s"%(nth_pad),"",0,1-(nth_pad+1)*step_size,1,1-(nth_pad)*step_size)]
+        pads[nth_pad].SetBorderMode(1)
+        pads[nth_pad].SetTopMargin(0.0)
+        pads[nth_pad].SetBottomMargin(0.0)
+        if nth_pad==0:
+            pads[nth_pad].SetTopMargin(0.1/step_size)
+        if nth_pad==1:
+            pads[nth_pad].SetBottomMargin(0.1/step_size)
+        pads[nth_pad].Draw("same")
+
+    time = Time(MJD_Start, format='mjd')
+    time.format = 'decimalyear'
+    year_start = int(time.value)
+    time = Time(MJD_End, format='mjd')
+    time.format = 'decimalyear'
+    year_end = int(time.value)
+
+    Hist_data_mjd = []
+    Hist_bkgd_mjd = []
+    Hist_ratio_mjd = []
+    IncValues = ROOT.TF1( "IncValues", "x", float(year_start) , float(year_end) )
+    raLowerAxis = []
+    days_per_bin = 365.
     for roi in range(0,n_roi):
-        pads += [ROOT.TPad("pad%s"%(roi),"",0,1-(roi+1)*step_size,1,1-(roi)*step_size)]
-        pads[roi].SetBorderMode(1)
-        pads[roi].SetTopMargin(0.0)
-        pads[roi].SetBottomMargin(0.0)
-        if roi==0:
-            pads[roi].SetTopMargin(0.1/step_size)
-        if roi==n_roi-1:
-            pads[roi].SetBottomMargin(0.1/step_size)
-        pads[roi].Draw("same")
 
-    Hist_data_year = []
-    Hist_bkgd_year = []
-    Hist_ratio_year = []
-    for roi in range(0,n_roi):
-        pads[roi].cd()
-
-        time = Time(MJD_Start, format='mjd')
-        time.format = 'decimalyear'
-        year_start = int(time.value)
-        time = Time(MJD_End, format='mjd')
-        time.format = 'decimalyear'
-        year_end = int(time.value)
-
-        Hist_data_year += [ROOT.TH1D("Hist_data_year_%s"%(roi),"",(year_end-year_start+1)*nbins_per_year,year_start-0.5,year_end+0.5)]
+        Hist_data_mjd += [ROOT.TH1D("Hist_data_mjd_%s"%(roi),"",int((MJD_End+1-MJD_Start)/days_per_bin),MJD_Start,MJD_End+1)]
         for binx in range(0,Hist_data[roi].GetNbinsX()):
             mjd = Hist_data[roi].GetBinCenter(binx+1)
-            time = Time(mjd, format='mjd')
-            time.format = 'decimalyear'
-            year = time.value
-            Hist_data_year[roi].Fill(year,Hist_data[roi].GetBinContent(binx+1))
-        for binx in range(0,Hist_data_year[roi].GetNbinsX()):
-            Hist_data_year[roi].SetBinError(binx+1,pow(Hist_data_year[roi].GetBinContent(binx+1),0.5))
+            Hist_data_mjd[roi].Fill(mjd,Hist_data[roi].GetBinContent(binx+1))
+        for binx in range(0,Hist_data_mjd[roi].GetNbinsX()):
+            Hist_data_mjd[roi].SetBinError(binx+1,pow(Hist_data_mjd[roi].GetBinContent(binx+1),0.5))
 
-        Hist_bkgd_year += [ROOT.TH1D("Hist_bkgd_year_%s"%(roi),"",(year_end-year_start+1)*nbins_per_year,year_start-0.5,year_end+0.5)]
+        Hist_bkgd_mjd += [ROOT.TH1D("Hist_bkgd_mjd_%s"%(roi),"",int((MJD_End+1-MJD_Start)/days_per_bin),MJD_Start,MJD_End+1)]
         for binx in range(0,Hist_data[roi].GetNbinsX()):
             mjd = Hist_data[roi].GetBinCenter(binx+1)
-            time = Time(mjd, format='mjd')
-            time.format = 'decimalyear'
-            year = time.value
-            Hist_bkgd_year[roi].Fill(year,Hist_bkgd[roi].GetBinContent(binx+1))
-        for binx in range(0,Hist_bkgd_year[roi].GetNbinsX()):
-            Hist_bkgd_year[roi].SetBinError(binx+1,Hist_bkgd_year[roi].GetBinContent(binx+1)*Syst_MDM)
+            Hist_bkgd_mjd[roi].Fill(mjd,Hist_bkgd[roi].GetBinContent(binx+1))
+        for binx in range(0,Hist_bkgd_mjd[roi].GetNbinsX()):
+            Hist_bkgd_mjd[roi].SetBinError(binx+1,Hist_bkgd_mjd[roi].GetBinContent(binx+1)*Syst_MDM)
 
         # Crab https://arxiv.org/pdf/1508.06442.pdf
         func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 200, 4000)
@@ -658,23 +669,44 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
             deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
             Crab_unit_events += Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE*func_crab.Eval(Hist_EffArea_Sum.GetBinCenter(binx+1))
 
-        Hist_ratio_year += [ROOT.TH1D("Hist_ratio_year_%s"%(roi),"",(year_end-year_start+1)*nbins_per_year,year_start-0.5,year_end+0.5)]
-        Hist_ratio_year[roi].Add(Hist_data_year[roi])
-        Hist_ratio_year[roi].Add(Hist_bkgd_year[roi],-1.)
-        bkgd_total = Hist_data_year[roi].Integral()
-        for binx in range(0,Hist_data_year[roi].GetNbinsX()):
-            bkgd_this_year = Hist_data_year[roi].GetBinContent(binx+1)
+        Hist_ratio_mjd += [ROOT.TH1D("Hist_ratio_mjd_%s"%(roi),"",int((MJD_End+1-MJD_Start)/days_per_bin),MJD_Start,MJD_End+1)]
+        Hist_ratio_mjd[roi].Add(Hist_data_mjd[roi])
+        Hist_ratio_mjd[roi].Add(Hist_bkgd_mjd[roi],-1.)
+        bkgd_total = Hist_data_mjd[roi].Integral()
+        for binx in range(0,Hist_data_mjd[roi].GetNbinsX()):
+            bkgd_this_year = Hist_data_mjd[roi].GetBinContent(binx+1)
             if bkgd_this_year==0.:
-                Hist_ratio_year[roi].SetBinContent(binx+1,0.)
-                Hist_ratio_year[roi].SetBinError(binx+1,0.)
+                Hist_ratio_mjd[roi].SetBinContent(binx+1,0.)
+                Hist_ratio_mjd[roi].SetBinError(binx+1,0.)
             else:
-                Hist_ratio_year[roi].SetBinContent(binx+1,Hist_ratio_year[roi].GetBinContent(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
-                Hist_ratio_year[roi].SetBinError(binx+1,Hist_ratio_year[roi].GetBinError(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
+                Hist_ratio_mjd[roi].SetBinContent(binx+1,Hist_ratio_mjd[roi].GetBinContent(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
+                Hist_ratio_mjd[roi].SetBinError(binx+1,Hist_ratio_mjd[roi].GetBinError(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
 
-        Hist_ratio_year[roi].SetLineWidth(3)
-        Hist_ratio_year[roi].Draw("E same")
+        pads[0].cd()
+        Hist_ratio_mjd[roi].SetLineWidth(3)
+        Hist_ratio_mjd[roi].Draw("E")
+        c_both.Update()
+        x1 = ROOT.gPad.GetUxmin()
+        x2 = ROOT.gPad.GetUxmax()
+        y1 = ROOT.gPad.GetUymin()
+        y2 = ROOT.gPad.GetUymax()
+        print 'y2 = %s'%(y2)
+        raLowerAxis += [ROOT.TGaxis( x1, y2, x2, y2,"IncValues", 510, "-")]
+        raLowerAxis[roi].SetLabelSize(Hist_ratio_mjd[roi].GetXaxis().GetLabelSize())
+        raLowerAxis[roi].SetTitle("MJD")
+        raLowerAxis[roi].Draw()
 
-    c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
+        pads[1].cd()
+        Hist_data_mjd[roi].SetLineWidth(3)
+        Hist_data_mjd[roi].Draw("E")
+        Hist_bkgd_mjd[roi].SetLineWidth(3)
+        Hist_bkgd_mjd[roi].SetLineColor(2)
+        Hist_bkgd_mjd[roi].Draw("E same")
+        Hist_data_mjd[roi].Draw("E same")
+
+        c_both.SaveAs('output_plots/%s_RoI%s_%s.png'%(name,roi,selection_tag))
+
+    #c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
 
 def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,range_upper,syst):
     
@@ -1674,14 +1706,14 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.15)
     lumilab1.Draw()
-    lumilab2 = ROOT.TLatex(0.15,0.50,'exposure %0.1f hrs'%(exposure_hours) )
-    lumilab2.SetNDC()
-    lumilab2.SetTextSize(0.15)
-    lumilab2.Draw()
-    lumilab3 = ROOT.TLatex(0.15,0.30,'E >%0.1f GeV (%.1f hrs)'%(energy_fine_bin[energy_fine_bin_cut_low],exposure_hours) )
+    lumilab3 = ROOT.TLatex(0.15,0.50,'E >%0.1f GeV (%.1f hrs)'%(energy_fine_bin[energy_fine_bin_cut_low],exposure_hours) )
     lumilab3.SetNDC()
     lumilab3.SetTextSize(0.15)
     lumilab3.Draw()
+    lumilab4 = ROOT.TLatex(0.15,0.30,'MJD %s-%s'%(MJD_Start,MJD_End) )
+    lumilab4.SetNDC()
+    lumilab4.SetTextSize(0.15)
+    lumilab4.Draw()
     legend.Draw("SAME")
     canvas.SaveAs('output_plots/SkymapSig_%s_%s.png'%(name,selection_tag))
 
@@ -2110,15 +2142,17 @@ source_ra = 0.
 source_dec = 0.
 source_l = 0.
 source_b = 0.
-source_idx = FindSourceIndex(sample_list[0])
-FilePath_Folder = []
-for elev in range(0,len(root_file_tags)):
-    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+".root"
-    FilePath_Folder += [SourceFilePath]
-    if not os.path.isfile(FilePath_Folder[0]): 
-        continue
-    else:
-        GetSourceInfo(FilePath_Folder)
+for source in range(0,len(sample_list)):
+    source_idx = FindSourceIndex(sample_list[source])
+    FilePath_Folder = []
+    for elev in range(0,len(root_file_tags)):
+        SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+".root"
+        FilePath_Folder += [SourceFilePath]
+        if not os.path.isfile(FilePath_Folder[0]): 
+            continue
+        else:
+            GetSourceInfo(FilePath_Folder)
+            break
 print 'analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut)
 MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
 MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut

@@ -40,6 +40,7 @@ using namespace Eigen;
 double TelElev_lower = 70.;
 double TelElev_upper = 80.;
 char target[50] = "";
+char mjd_cut_tag[50] = "";
 double SizeSecondMax_Cut = 0.;
 
 // EventDisplay variables
@@ -57,6 +58,7 @@ double SizeSecondMax = 0;
 double MSCL = 0;
 double Time = 0;
 int MJD = 0;
+UInt_t MJD_UInt_t = 0;
 double Shower_Ze = 0;
 double Shower_Az = 0;
 double SlantDepth = 0;
@@ -545,6 +547,32 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     input_file->Close();
     return std::make_pair(TelElevation_avg,TelAzimuth_avg);
 }
+bool MJDSelection(string file_name,int run, int MJD_start_cut, int MJD_end_cut)
+{
+    if (MJD_start_cut==0 && MJD_end_cut==0) return true;
+    if (run>100000) return true;
+    char run_number[50];
+    sprintf(run_number, "%i", int(run));
+    TFile*  input_file = TFile::Open(file_name.c_str());
+
+    //VEvndispRunParameter* fPar = 0;
+    //fPar = ( VEvndispRunParameter* )input_file->Get( "run_"+TString(run_number)+"/stereo/runparameterV2" );
+    //std::cout << "NSB scale = " << fPar->fNSBscale << std::endl;
+
+    TTree* pointing_tree = nullptr;
+    pointing_tree = (TTree*) input_file->Get("run_"+TString(run_number)+"/stereo/pointingDataReduced");
+    pointing_tree->SetBranchAddress("MJD",&MJD_UInt_t);
+    double total_entries = (double)pointing_tree->GetEntries();
+    pointing_tree->GetEntry(0);
+    if (MJD_UInt_t<MJD_start_cut || MJD_UInt_t>MJD_end_cut) 
+    {
+        input_file->Close();
+        return false;
+    }
+    input_file->Close();
+    return true;
+}
+
 bool PointingSelection(string file_name,int run, double Elev_cut_lower, double Elev_cut_upper, double Azim_cut_lower, double Azim_cut_upper)
 {
     if (run>100000) return true;
@@ -588,7 +616,7 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
     return true;
 }
 
-vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, double Elev_cut_lower, double Elev_cut_upper, double Azim_cut_lower, double Azim_cut_upper)
+vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, double Elev_cut_lower, double Elev_cut_upper, double Azim_cut_lower, double Azim_cut_upper, int MJD_start_cut, int MJD_end_cut)
 {
     vector<pair<string,int>> new_list;
     for (int run=0;run<Data_runlist.size();run++)
@@ -602,6 +630,7 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
         filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Data_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
 
         if (!PointingSelection(filename,int(Data_runlist[run].second),Elev_cut_lower,Elev_cut_upper,Azim_cut_lower,Azim_cut_upper)) continue;
+        if (!MJDSelection(filename,int(Data_runlist[run].second),MJD_start_cut,MJD_end_cut)) continue;
         new_list.push_back(std::make_pair(Data_runlist[run].first,Data_runlist[run].second));
 
     }
@@ -913,11 +942,15 @@ bool ControlSelectionTheta2()
     return true;
 }
 
-void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input, double tel_elev_upper_input)
+void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut)
 {
 
     TH1::SetDefaultSumw2();
 
+    if (MJD_start_cut!=0 || MJD_end_cut!=0)
+    {
+        sprintf(mjd_cut_tag, "_MJD%dto%d", MJD_start_cut, MJD_end_cut);
+    }
     sprintf(target, "%s", target_data.c_str());
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
@@ -945,12 +978,12 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
     if (TString(target).Contains("Mrk421")) PhotonData_runlist = GetRunList("Crab");
     if (TString(target).Contains("Crab")) PhotonData_runlist = GetRunList("Mrk421");
     //if (TString(target).Contains("V5")) PhotonData_runlist = GetRunList("CrabV5");
-    PhotonData_runlist = SelectONRunList(PhotonData_runlist,TelElev_lower,TelElev_upper,0,360);
+    PhotonData_runlist = SelectONRunList(PhotonData_runlist,TelElev_lower,TelElev_upper,0,360,MJD_start_cut,MJD_end_cut);
     
     std::cout << "Get a list of target observation runs" << std::endl;
     vector<pair<string,int>> Data_runlist_init = GetRunList(target);
     vector<pair<string,int>> Data_runlist;
-    if (!TString(target).Contains("Proton")) Data_runlist = SelectONRunList(Data_runlist_init,TelElev_lower,TelElev_upper,0,360);
+    if (!TString(target).Contains("Proton")) Data_runlist = SelectONRunList(Data_runlist_init,TelElev_lower,TelElev_upper,0,360,MJD_start_cut,MJD_end_cut);
     else Data_runlist = Data_runlist_init;
     std::cout << "Data_runlist size = " << Data_runlist.size() << std::endl;
     if (Data_runlist.size()==0) return;
@@ -1923,7 +1956,7 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
     mean_tele_point_l = mean_tele_point_l_b.first;
     mean_tele_point_b = mean_tele_point_l_b.second;
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+".root","recreate");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+".root","recreate");
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("N_bins_for_deconv",&N_bins_for_deconv,"N_bins_for_deconv/I");
     InfoTree.Branch("MSCW_cut_blind",&MSCW_cut_blind,"MSCW_cut_blind/D");
