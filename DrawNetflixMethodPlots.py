@@ -18,17 +18,18 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 method_tag = '8bins_unconstrained'
 #method_tag = '8bins_constrained'
+#method_tag = '16bins_unconstrained'
 
 root_file_tags = []
-root_file_tags += [method_tag+'_TelElev45to85']
-#root_file_tags += [method_tag+'_TelElev25to45']
+#root_file_tags += [method_tag+'_TelElev45to85']
+root_file_tags += [method_tag+'_TelElev25to45']
 
 selection_tag = root_file_tags[0]
 
 folder_path = 'output_root'
 PercentCrab = ''
 
-energy_fine_bin_cut_low = 3
+energy_fine_bin_cut_low = 0
 energy_fine_bin_cut_up = 20
 selection_tag += '_E%s'%(energy_fine_bin_cut_low)
 
@@ -93,8 +94,8 @@ energy_fine_bin += [pow(10,4.0)]
 sample_list = []
 sky_coord = []
 
-#sample_list += ['SgrAV6']
-#sky_coord += ['17 45 39.6 -29 00 22']
+sample_list += ['SgrAV6']
+sky_coord += ['17 45 39.6 -29 00 22']
 
 #sample_list += ['OJ287V6']
 #sky_coord += ['08 54 49.1 +20 05 58.89']

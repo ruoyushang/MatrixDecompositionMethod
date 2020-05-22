@@ -1,5 +1,8 @@
 
 char output_file_tag[50] = "8bins";
+int N_bins_for_deconv = 8; // 8 should be the lowest bin number
+//char output_file_tag[50] = "16bins";
+//int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
 //char output_file2_tag[50] = "constrained";
 //bool solution_w_constraints = true;
@@ -13,7 +16,6 @@ double MSCL_cut_moderate = 0.5;
 double MSCW_cut_loose = 0.5;
 double MSCL_cut_loose = 0.7;
 double camera_theta2_cut = 9.;
-int N_bins_for_deconv = 8; // 8 should be the lowest bin number
 
 int n_control_samples = 5;
 //const int N_energy_bins = 1;

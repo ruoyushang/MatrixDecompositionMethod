@@ -991,14 +991,16 @@ MatrixXcd SpectralDecompositionMethod(int LeftOrRight, int entry_start, int entr
 
     return mtx_output;
 }
-bool CheckIfEigenvalueMakeSense()
+bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, int rank)
 {
-    eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
-    double lambda_data = eigensolver_data.eigenvalues()(mtx_data.cols()-1).real();
-    eigensolver_bkgd = ComplexEigenSolver<MatrixXcd>(mtx_data_bkgd);
-    double lambda_bkgd = eigensolver_bkgd.eigenvalues()(mtx_data.cols()-1).real();
-    double diff = abs(lambda_data-lambda_bkgd)/lambda_data;
-    if (diff>1.0) return false;
+    eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
+    double lambda_dark = eigensolver_dark.eigenvalues()(mtx_dark.cols()-rank).real();
+    ComplexEigenSolver<MatrixXcd> eigensolver_input = ComplexEigenSolver<MatrixXcd>(mtx_input);
+    double lambda_input = eigensolver_input.eigenvalues()(mtx_input.cols()-rank).real();
+    double diff = abs(lambda_dark-lambda_input)/lambda_dark;
+    std::cout << "lambda_dark = " << lambda_dark << std::endl;
+    std::cout << "lambda_input = " << lambda_input << std::endl;
+    if (diff>0.2) return false;
     return true;
 }
 void LeastSquareSolutionMethod(int rank_variation)
@@ -1027,38 +1029,54 @@ void LeastSquareSolutionMethod(int rank_variation)
     //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
     //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
     
+    MatrixXcd mtx_temp = mtx_dark;
     for (int iteration=0;iteration<5;iteration++)
     {
         if (rank_variation==1)
         {
-            mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
+            mtx_temp = SpectralDecompositionMethod_v3(1, 1);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp,1)) break;
+            mtx_data_bkgd = mtx_temp;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
             //std::cout << "chi2 (rank 1) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
         else if (rank_variation==2)
         {
-            mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
+            mtx_temp = SpectralDecompositionMethod_v3(1, 1);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp,1)) break;
+            mtx_data_bkgd = mtx_temp;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
             //std::cout << "chi2 (rank 1) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-            mtx_data_bkgd = SpectralDecompositionMethod_v3(2, 1);
+            
+            mtx_temp = SpectralDecompositionMethod_v3(2, 1);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp,2)) break;
+            mtx_data_bkgd = mtx_temp;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
             //std::cout << "chi2 (rank 2) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
         else
         {
-            mtx_data_bkgd = SpectralDecompositionMethod_v3(1, 1);
+            mtx_temp = SpectralDecompositionMethod_v3(1, 1);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp,1)) break;
+            mtx_data_bkgd = mtx_temp;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
             //std::cout << "chi2 (rank 1) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-            mtx_data_bkgd = SpectralDecompositionMethod_v3(2, 1);
+            //
+            mtx_temp = SpectralDecompositionMethod_v3(2, 1);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp,2)) break;
+            mtx_data_bkgd = mtx_temp;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
             //std::cout << "chi2 (rank 2) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-            mtx_data_bkgd = SpectralDecompositionMethod_v3(3, 1);
+            //
+            mtx_temp = SpectralDecompositionMethod_v3(3, 1);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp,3)) break;
+            mtx_data_bkgd = mtx_temp;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
             //std::cout << "chi2 (rank 3) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
     }
 
-    if (!CheckIfEigenvalueMakeSense())
+    if (!CheckIfEigenvalueMakeSense(mtx_data_bkgd,1))
     {
         mtx_data_bkgd = mtx_dark;
     }
