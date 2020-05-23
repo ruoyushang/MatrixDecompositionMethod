@@ -1032,6 +1032,12 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(1.0);
     }
+    else if (TString(target).Contains("Cygnus")) 
+    {
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius.push_back(1.0);
+    }
     else if (TString(target).Contains("IC443")) 
     {
         roi_ra.push_back(mean_tele_point_ra);

@@ -78,16 +78,22 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 2.0
 
 ## Cygnus
-target_ra = 304.645958333
-target_dec = 36.8333333333
+#target_ra = 304.645958333
+#target_dec = 36.8333333333
+#range_ra = 1.0
+#range_dec = 1.0
+
+# Crab
+target_ra = 83.6332083333
+target_dec = 22.0144722222
 range_ra = 1.0
 range_dec = 1.0
 
-search_for_on_data = False
+search_for_on_data = True
 
 V4 = False
-V5 = True
-V6 = False
+V5 = False
+V6 = True
 
 
 RunNumber = 0
@@ -141,13 +147,14 @@ Source_Livetime = []
 #sourceFile = open('../data/output_list/IC443HotSpotV6_runlist.txt')
 #sourceFile = open('../data/output_list/Segue1V5_runlist.txt')
 #sourceFile = open('../data/output_list/SgrAV6_runlist.txt')
-sourceFile = open('../data/output_list/CygnusV6_runlist.txt')
-for line in sourceFile:
-    Source_RunNumber += [int(line)]
-    Source_PedVar_DC += [0.]
-    Source_Elev += [0.]
-    Source_Azim += [0.]
-    Source_Livetime += [0.]
+#sourceFile = open('../data/output_list/CygnusV6_runlist.txt')
+#sourceFile = open('../data/output_list/CygnusV5_runlist.txt')
+#for line in sourceFile:
+#    Source_RunNumber += [int(line)]
+#    Source_PedVar_DC += [0.]
+#    Source_Elev += [0.]
+#    Source_Azim += [0.]
+#    Source_Livetime += [0.]
 
 inputFile = open('diagnostics.txt')
 for line in inputFile:
@@ -325,25 +332,29 @@ else:
                     if abs(float(T4_RA)-target_ra)<10. and abs(float(T4_Dec)-target_dec)<10.: continue
                     if not (T1_RA==0. and T1_Dec==0.):
                         gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
-                        if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                        if abs(gal_b)<10.: continue
+                        #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
                         if GetDistance(T1_RA,T1_Dec,83.633,22.014)<3.: continue  # Crab
                         if GetDistance(T1_RA,T1_Dec,166.079,38.195)<3.: continue  # Mrk 421
                         if GetDistance(T1_RA,T1_Dec,98.117,17.367)<3.: continue  # Geminga
                     elif not (T2_RA==0. and T2_Dec==0.):
                         gal_l, gal_b = ConvertRaDecToGalactic(T2_RA,T2_Dec)
-                        if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                        if abs(gal_b)<10.: continue
+                        #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
                         if GetDistance(T2_RA,T2_Dec,83.633,22.014)<3.: continue  # Crab
                         if GetDistance(T2_RA,T2_Dec,166.079,38.195)<3.: continue  # Mrk 421
                         if GetDistance(T2_RA,T2_Dec,98.117,17.367)<3.: continue  # Geminga
                     elif not (T3_RA==0. and T3_Dec==0.):
                         gal_l, gal_b = ConvertRaDecToGalactic(T3_RA,T3_Dec)
-                        if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                        if abs(gal_b)<10.: continue
+                        #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
                         if GetDistance(T3_RA,T3_Dec,83.633,22.014)<3.: continue  # Crab
                         if GetDistance(T3_RA,T3_Dec,166.079,38.195)<3.: continue  # Mrk 421
                         if GetDistance(T3_RA,T3_Dec,98.117,17.367)<3.: continue  # Geminga
                     elif not (T4_RA==0. and T4_Dec==0.):
                         gal_l, gal_b = ConvertRaDecToGalactic(T4_RA,T4_Dec)
-                        if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+                        if abs(gal_b)<10.: continue
+                        #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
                         if GetDistance(T4_RA,T4_Dec,83.633,22.014)<3.: continue  # Crab
                         if GetDistance(T4_RA,T4_Dec,166.079,38.195)<3.: continue  # Mrk 421
                         if GetDistance(T4_RA,T4_Dec,98.117,17.367)<3.: continue  # Geminga
@@ -368,3 +379,4 @@ else:
         
 for entry in range(0,len(List_Used)):
     print List_Used[entry]
+print 'total %s runs.'%(len(List_Used))

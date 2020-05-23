@@ -21,12 +21,24 @@ method_tag = '8bins_unconstrained'
 #method_tag = '16bins_unconstrained'
 
 root_file_tags = []
-#root_file_tags += [method_tag+'_TelElev45to85']
+root_file_tags += [method_tag+'_TelElev45to85']
 #root_file_tags += [method_tag+'_TelElev25to45']
 
 # 1ES 1215 flare
-root_file_tags += [method_tag+'_TelElev45to85_MJD54700to55100']
-root_file_tags += [method_tag+'_TelElev45to85_MJD57000to57580']
+#root_file_tags += [method_tag+'_TelElev45to85_MJD54700to55100']
+#root_file_tags += [method_tag+'_TelElev45to85_MJD57000to57500']
+
+# WComae and 1ES 1218 flare
+#root_file_tags += [method_tag+'_TelElev45to85_MJD54400to54700']
+
+# Cygnus flare
+#root_file_tags += [method_tag+'_TelElev45to85_MJD55423to55515']
+#root_file_tags += [method_tag+'_TelElev45to85_MJD56513to56695']
+
+# Segue 1 flare
+#root_file_tags += [method_tag+'_TelElev45to85_MJD55100to55400']
+#root_file_tags += [method_tag+'_TelElev45to85_MJD55400to55800']
+#root_file_tags += [method_tag+'_TelElev45to85_MJD55800to56100']
 
 selection_tag = root_file_tags[0]
 
@@ -101,18 +113,18 @@ sky_coord = []
 #sample_list += ['SgrAV6']
 #sky_coord += ['17 45 39.6 -29 00 22']
 
-#sample_list += ['OJ287V6']
-#sky_coord += ['08 54 49.1 +20 05 58.89']
+sample_list += ['OJ287V6']
+sky_coord += ['08 54 49.1 +20 05 58.89']
 
 #sample_list += ['2HWC_J1953V6']
 #sky_coord += ['19 53 02.4 +29 28 48']
 
-sample_list += ['WComaeV6']
-sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV5']
-sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV4']
-sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV6']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV5']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV4']
+#sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
@@ -600,6 +612,38 @@ def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,log
 
     c_both.SaveAs('output_plots/%s.png'%(name))
 
+def GetCrabFlux():
+
+    # Crab https://arxiv.org/pdf/1508.06442.pdf
+    func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 200, 4000)
+    func_crab.SetParameters(37.5,-2.467,-0.16)
+
+    bin_lower = Hist_OnData_Energy.FindBin(ErecS_lower_cut)
+    bin_upper = Hist_OnData_Energy.FindBin(ErecS_upper_cut)-1
+    flux_crab_total = 0.
+    for binx in range(0,Hist_EffArea_Sum.GetNbinsX()):
+        if binx+1<bin_lower: continue
+        if binx+1>bin_upper: continue
+        deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
+        flux_crab_this_energy = func_crab.Eval(Hist_EffArea_Sum.GetBinCenter(binx+1))
+        flux_crab_total += flux_crab_this_energy*deltaE
+    return flux_crab_total
+
+def GetBackgroundFlux():
+
+    bin_lower = Hist_OnData_Energy.FindBin(ErecS_lower_cut)
+    bin_upper = Hist_OnData_Energy.FindBin(ErecS_upper_cut)-1
+    flux_bkgd_total = 0.
+    for binx in range(0,Hist_EffArea_Sum.GetNbinsX()):
+        if Hist_EffArea_Sum.GetBinContent(binx+1)==0.: continue
+        if binx+1<bin_lower: continue
+        if binx+1>bin_upper: continue
+        deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
+        bkg_this_energy, bkg_err_this_energy = IntegralAndError(Hist_OnBkgd_Energy_Sum,binx+1,binx+2)
+        flux_bkgd_this_energy = bkg_this_energy/(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
+        flux_bkgd_total += flux_bkgd_this_energy*deltaE
+    return flux_bkgd_total
+
 def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
 
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
@@ -632,15 +676,15 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
 
     time = Time(MJD_Start, format='mjd')
     time.format = 'decimalyear'
-    year_start = int(time.value)
+    year_start = time.value
     time = Time(MJD_End, format='mjd')
     time.format = 'decimalyear'
-    year_end = int(time.value)
+    year_end = time.value
 
     Hist_data_mjd = []
     Hist_bkgd_mjd = []
     Hist_ratio_mjd = []
-    IncValues = ROOT.TF1( "IncValues", "x", float(year_start) , float(year_end) )
+    IncValues = ROOT.TF1( "IncValues", "x", year_start , year_end )
     raLowerAxis = []
     days_per_bin = 90.
     for roi in range(0,n_roi):
@@ -659,28 +703,22 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
         for binx in range(0,Hist_bkgd_mjd[roi].GetNbinsX()):
             Hist_bkgd_mjd[roi].SetBinError(binx+1,Hist_bkgd_mjd[roi].GetBinContent(binx+1)*Syst_MDM)
 
-        # Crab https://arxiv.org/pdf/1508.06442.pdf
-        func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 200, 4000)
-        func_crab.SetParameters(37.5,-2.467,-0.16)
-
-        Crab_unit_events = 0.
-        for binx in range(0,Hist_EffArea_Sum.GetNbinsX()):
-            if Hist_EffArea_Sum.GetBinContent(binx+1)==0.: continue
-            deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
-            Crab_unit_events += Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE*func_crab.Eval(Hist_EffArea_Sum.GetBinCenter(binx+1))
 
         Hist_ratio_mjd += [ROOT.TH1D("Hist_ratio_mjd_%s"%(roi),"",int((MJD_End+1-MJD_Start)/days_per_bin),MJD_Start,MJD_End+1)]
         Hist_ratio_mjd[roi].Add(Hist_data_mjd[roi])
         Hist_ratio_mjd[roi].Add(Hist_bkgd_mjd[roi],-1.)
-        bkgd_total = Hist_data_mjd[roi].Integral()
+        Hist_ratio_mjd[roi].Divide(Hist_bkgd_mjd[roi])
+        bkgd_flux = GetBackgroundFlux()
+        crab_flux = GetCrabFlux()
         for binx in range(0,Hist_data_mjd[roi].GetNbinsX()):
-            bkgd_this_year = Hist_data_mjd[roi].GetBinContent(binx+1)
-            if bkgd_this_year==0.:
-                Hist_ratio_mjd[roi].SetBinContent(binx+1,0.)
-                Hist_ratio_mjd[roi].SetBinError(binx+1,0.)
-            else:
-                Hist_ratio_mjd[roi].SetBinContent(binx+1,Hist_ratio_mjd[roi].GetBinContent(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
-                Hist_ratio_mjd[roi].SetBinError(binx+1,Hist_ratio_mjd[roi].GetBinError(binx+1)*1./Crab_unit_events*bkgd_total/bkgd_this_year)
+            Hist_ratio_mjd[roi].SetBinContent(binx+1,Hist_ratio_mjd[roi].GetBinContent(binx+1)*bkgd_flux/crab_flux)
+            Hist_ratio_mjd[roi].SetBinError(binx+1,Hist_ratio_mjd[roi].GetBinError(binx+1)*bkgd_flux/crab_flux)
+
+        #ratio_threshold = 0.05
+        ratio_threshold = 0.5
+        for binx in range(0,Hist_data_mjd[roi].GetNbinsX()):
+            if Hist_ratio_mjd[roi].GetBinContent(binx+1)>ratio_threshold:
+                print '>%s Crab, bin edge: %s, %s'%(ratio_threshold,Hist_ratio_mjd[roi].GetBinLowEdge(binx+1),Hist_ratio_mjd[roi].GetBinLowEdge(binx+2))
 
         pads[0].cd()
         Hist_ratio_mjd[roi].SetLineWidth(3)
@@ -690,7 +728,6 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
         x2 = ROOT.gPad.GetUxmax()
         y1 = ROOT.gPad.GetUymin()
         y2 = ROOT.gPad.GetUymax()
-        print 'y2 = %s'%(y2)
         raLowerAxis += [ROOT.TGaxis( x1, y2, x2, y2,"IncValues", 510, "-")]
         raLowerAxis[roi].SetLabelSize(Hist_ratio_mjd[roi].GetXaxis().GetLabelSize())
         raLowerAxis[roi].SetTitle("MJD")
@@ -761,7 +798,7 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
             stat_err = Hist_Bkgd.GetBinError(binx+1)
             Hist_Syst.SetBinError(binx+1,pow(syst_err*syst_err+stat_err*stat_err,0.5))
 
-    fill_color = [0,0,0,30,38,46]
+    fill_color = [0,0,46,0,38,30]
     if doSum:
         stack = ROOT.THStack("stack", "")
         for h in range(1,len(Hists)):
@@ -884,10 +921,6 @@ def PlotsStackedHistograms(tag):
     legends += ['obs. data']
     colors += [1]
     stack_it += [False]
-    Hists += [Hist_OnDark_MSCW_Sum]
-    legends += ['init. bkg.']
-    colors += [2]
-    stack_it += [False]
     Hists += [Hist_OnBkgd_MSCW_Sum]
     legends += ['predict. bkg.']
     colors += [4]
@@ -904,13 +937,25 @@ def PlotsStackedHistograms(tag):
     legends = []
     colors = []
     stack_it = []
-    Hists += [Hist_OnData_MSCL_Sum]
+    Hists += [Hist_OnData_MSCW_Sum]
     legends += ['obs. data']
     colors += [1]
     stack_it += [False]
-    Hists += [Hist_OnDark_MSCL_Sum]
+    Hists += [Hist_OnDark_MSCW_Sum]
     legends += ['init. bkg.']
     colors += [2]
+    stack_it += [True]
+    plotname = 'Stack_MSCW_Dark_%s'%(tag)
+    title = 'MSCW'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_lower_cut,MSCW_blind_cut,-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_MSCL_Sum]
+    legends += ['obs. data']
+    colors += [1]
     stack_it += [False]
     Hists += [Hist_OnBkgd_MSCL_Sum]
     legends += ['predict. bkg.']
@@ -921,6 +966,22 @@ def PlotsStackedHistograms(tag):
     colors += [0]
     stack_it += [False]
     plotname = 'Stack_MSCL_MDM_%s'%(tag)
+    title = 'MSCL'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_lower_cut,MSCL_blind_cut,-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_MSCL_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnDark_MSCL_Sum]
+    legends += ['init. bkg.']
+    colors += [2]
+    stack_it += [True]
+    plotname = 'Stack_MSCL_Dark_%s'%(tag)
     title = 'MSCL'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_lower_cut,MSCL_blind_cut,-1)
 
@@ -1753,10 +1814,14 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     Hist_Skymap_Ratio = Hist_SR.Clone()
     Hist_Skymap_Ratio.Add(Hist_Bkg,-1.)
     Hist_Skymap_Ratio.Divide(Hist_Bkg)
+    bkgd_flux = GetBackgroundFlux()
+    crab_flux = GetCrabFlux()
     for bx in range(0,Hist_SR.GetNbinsX()):
         for by in range(0,Hist_SR.GetNbinsY()):
-            if Hist_Bkg.GetBinContent(bx+1,by+1)<30: 
+            if Hist_Bkg.GetBinContent(bx+1,by+1)<100: 
                 Hist_Skymap_Ratio.SetBinContent(bx+1,by+1,0.)
+            else:
+                Hist_Skymap_Ratio.SetBinContent(bx+1,by+1,Hist_Skymap_Ratio.GetBinContent(bx+1,by+1)*bkgd_flux/crab_flux)
     Hist_Skymap_Ratio = reflectXaxis(Hist_Skymap_Ratio)
 
     pad1.cd()
@@ -1879,8 +1944,8 @@ def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold, init_x, in
     excess_center_y = Hist_Excess.GetMean(2)
     excess_radius = pow(pow(Hist_Excess.GetRMS(1),2)+pow(Hist_Excess.GetRMS(2),2),0.5)
 
-    return excess_center_x_init, excess_center_y_init, excess_radius_init
-    #return excess_center_x, excess_center_y, excess_radius
+    #return excess_center_x_init, excess_center_y_init, excess_radius_init
+    return excess_center_x, excess_center_y, excess_radius
 
 def Make2DProjectionPlot(Hist_Data,xtitle,ytitle,name,doProj):
 
@@ -2225,8 +2290,16 @@ Hist_OnBkgd_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sum",""
 Hist_SystErr_MSCL = ROOT.TH1D("Hist_SystErr_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_SystErr_MSCW = ROOT.TH1D("Hist_SystErr_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 
+time = Time(MJD_Start, format='mjd')
+time.format = 'decimalyear'
+year_start = time.value
+time = Time(MJD_End, format='mjd')
+time.format = 'decimalyear'
+year_end = time.value
 print 'MJD_Start = %s'%(MJD_Start)
 print 'MJD_End = %s'%(MJD_End)
+print 'year_start = %s'%(year_start)
+print 'year_end = %s'%(year_end)
 print 'roi_ra = %s'%(roi_ra[0])
 print 'roi_dec = %s'%(roi_dec[0])
 Hist_OnData_RoI_Energy_Sum = [] 
