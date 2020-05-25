@@ -17,6 +17,7 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 method_tag = '8bins_unconstrained'
+#method_tag = '8bins_unconstrained_Modified'
 #method_tag = '8bins_constrained'
 #method_tag = '16bins_unconstrained'
 
@@ -25,8 +26,8 @@ root_file_tags += [method_tag+'_TelElev45to85']
 #root_file_tags += [method_tag+'_TelElev25to45']
 
 # 1ES 1215 flare
-#root_file_tags += [method_tag+'_TelElev45to85_MJD54700to55100']
-#root_file_tags += [method_tag+'_TelElev45to85_MJD57000to57500']
+#root_file_tags += [method_tag+'_TelElev45to85_MJD54746to55018']
+#root_file_tags += [method_tag+'_TelElev45to85_MJD57367to57549']
 
 # WComae and 1ES 1218 flare
 #root_file_tags += [method_tag+'_TelElev45to85_MJD54400to54700']
@@ -110,11 +111,14 @@ energy_fine_bin += [pow(10,4.0)]
 sample_list = []
 sky_coord = []
 
+sample_list += ['CrabV5']
+sky_coord += ['05 34 31.97 +22 00 52.1']
+
 #sample_list += ['SgrAV6']
 #sky_coord += ['17 45 39.6 -29 00 22']
 
-sample_list += ['OJ287V6']
-sky_coord += ['08 54 49.1 +20 05 58.89']
+#sample_list += ['OJ287V6']
+#sky_coord += ['08 54 49.1 +20 05 58.89']
 
 #sample_list += ['2HWC_J1953V6']
 #sky_coord += ['19 53 02.4 +29 28 48']
@@ -151,8 +155,6 @@ sky_coord += ['08 54 49.1 +20 05 58.89']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
 
 #sample_list += ['Crab']
-#sky_coord += ['05 34 31.97 +22 00 52.1']
-#sample_list += ['CrabV5']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['Mrk421']
 #sky_coord += ['11 04 19 +38 11 41']
@@ -437,6 +439,10 @@ def GetShowerHistogramsFromFile(FilePath):
             Hist2D_OffData[nth_sample].Reset()
             Hist2D_OffDark[nth_sample].Reset()
             Hist2D_OffBkgd[nth_sample].Reset()
+        if math.isnan(Hist2D_OffData[nth_sample].Integral()) or math.isnan(Hist2D_OffDark[nth_sample].Integral()):
+            Hist2D_OffData[nth_sample].Reset()
+            Hist2D_OffDark[nth_sample].Reset()
+            Hist2D_OffBkgd[nth_sample].Reset()
 
         Hist_OffData_MSCL[nth_sample].Reset()
         Hist_OffData_MSCL[nth_sample].Add(Hist2D_OffData[nth_sample].ProjectionX("Hist1D_OffData_MSCL_%s"%(nth_sample),bin_lower_y,bin_upper_y))
@@ -615,7 +621,7 @@ def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,log
 def GetCrabFlux():
 
     # Crab https://arxiv.org/pdf/1508.06442.pdf
-    func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 200, 4000)
+    func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 100, 10000)
     func_crab.SetParameters(37.5,-2.467,-0.16)
 
     bin_lower = Hist_OnData_Energy.FindBin(ErecS_lower_cut)
@@ -626,7 +632,7 @@ def GetCrabFlux():
         if binx+1>bin_upper: continue
         deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
         flux_crab_this_energy = func_crab.Eval(Hist_EffArea_Sum.GetBinCenter(binx+1))
-        flux_crab_total += flux_crab_this_energy*deltaE
+        flux_crab_total += flux_crab_this_energy*Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE
     return flux_crab_total
 
 def GetBackgroundFlux():
@@ -640,9 +646,215 @@ def GetBackgroundFlux():
         if binx+1>bin_upper: continue
         deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
         bkg_this_energy, bkg_err_this_energy = IntegralAndError(Hist_OnBkgd_Energy_Sum,binx+1,binx+2)
-        flux_bkgd_this_energy = bkg_this_energy/(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
-        flux_bkgd_total += flux_bkgd_this_energy*deltaE
+        flux_bkgd_this_energy = bkg_this_energy
+        flux_bkgd_total += flux_bkgd_this_energy
     return flux_bkgd_total
+
+def GetCrabFluxInterval(lower_cut,upper_cut):
+
+    # Crab https://arxiv.org/pdf/1508.06442.pdf
+    func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 100, 10000)
+    func_crab.SetParameters(37.5,-2.467,-0.16)
+
+    bin_lower = Hist_OnData_Energy.FindBin(lower_cut)
+    bin_upper = Hist_OnData_Energy.FindBin(upper_cut)-1
+    flux_crab_total = 0.
+    for binx in range(0,Hist_EffArea_Sum.GetNbinsX()):
+        if binx+1<bin_lower: continue
+        if binx+1>bin_upper: continue
+        deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
+        flux_crab_this_energy = func_crab.Eval(Hist_EffArea_Sum.GetBinCenter(binx+1))
+        flux_crab_total += flux_crab_this_energy*Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE
+    return flux_crab_total
+
+def GetBackgroundFluxInterval(lower_cut,upper_cut):
+
+    bin_lower = Hist_OnData_Energy.FindBin(lower_cut)
+    bin_upper = Hist_OnData_Energy.FindBin(upper_cut)-1
+    flux_bkgd_total = 0.
+    for binx in range(0,Hist_EffArea_Sum.GetNbinsX()):
+        if Hist_EffArea_Sum.GetBinContent(binx+1)==0.: continue
+        if binx+1<bin_lower: continue
+        if binx+1>bin_upper: continue
+        deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
+        bkg_this_energy, bkg_err_this_energy = IntegralAndError(Hist_OnBkgd_Energy_Sum,binx+1,binx+2)
+        flux_bkgd_this_energy = bkg_this_energy
+        flux_bkgd_total += flux_bkgd_this_energy
+    return flux_bkgd_total
+
+def MakeCrabUnitSpectrumPlot(Hist_data,Hist_bkgd,legends,colors,title,name):
+
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    n_roi = len(Hist_data)
+    pads = []
+
+    nth_pad = 0
+    pads += [ROOT.TPad("pad%s"%(nth_pad),"",0,1-0.7,1,1)]
+    pads[nth_pad].SetBorderMode(1)
+    pads[nth_pad].SetTopMargin(0.0)
+    pads[nth_pad].SetBottomMargin(0.0)
+    pads[nth_pad].SetTopMargin(0.2)
+    pads[nth_pad].Draw("same")
+    nth_pad = 1
+    pads += [ROOT.TPad("pad%s"%(nth_pad),"",0,0,1,1-0.7)]
+    pads[nth_pad].SetBorderMode(1)
+    pads[nth_pad].SetTopMargin(0.0)
+    pads[nth_pad].SetBottomMargin(0.0)
+    pads[nth_pad].SetBottomMargin(0.2)
+    pads[nth_pad].Draw("same")
+
+    # Crab https://arxiv.org/pdf/1508.06442.pdf
+    Func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 100, 10000)
+    Func_crab.SetParameters(37.5,-2.467,-0.16)
+
+    Hist_data_energy = []
+    Hist_bkgd_energy = []
+    Hist_ratio_energy = []
+    for roi in range(0,n_roi):
+
+        Hist_data_energy += [ROOT.TH1D("Hist_data_energy_%s"%(roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+        for binx in range(0,Hist_data[roi].GetNbinsX()):
+            Hist_data_energy[roi].SetBinContent(binx+1,Hist_data[roi].GetBinContent(binx+1))
+        for binx in range(0,Hist_data_energy[roi].GetNbinsX()):
+            Hist_data_energy[roi].SetBinError(binx+1,pow(Hist_data_energy[roi].GetBinContent(binx+1),0.5))
+
+        Hist_bkgd_energy += [ROOT.TH1D("Hist_bkgd_energy_%s"%(roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+        for binx in range(0,Hist_data[roi].GetNbinsX()):
+            Hist_bkgd_energy[roi].SetBinContent(binx+1,Hist_bkgd[roi].GetBinContent(binx+1))
+        for binx in range(0,Hist_bkgd_energy[roi].GetNbinsX()):
+            Hist_bkgd_energy[roi].SetBinError(binx+1,Hist_bkgd_energy[roi].GetBinContent(binx+1)*Syst_MDM)
+
+        Hist_ratio_energy += [ROOT.TH1D("Hist_ratio_energy_%s"%(roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+        Hist_ratio_energy[roi].Add(Hist_data_energy[roi])
+        Hist_ratio_energy[roi].Add(Hist_bkgd_energy[roi],-1.)
+        Hist_ratio_energy[roi].Divide(Hist_bkgd_energy[roi])
+        for binx in range(0,Hist_data_energy[roi].GetNbinsX()):
+            lower_cut = Hist_data[roi].GetBinLowEdge(binx+1)
+            upper_cut = Hist_data[roi].GetBinLowEdge(binx+2)
+            deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
+            bkgd_flux = Hist_bkgd_energy[roi].GetBinContent(binx+1)/(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
+            crab_flux = func_crab.Eval(Hist_EffArea_Sum.GetBinCenter(binx+1))
+            Hist_ratio_energy[roi].SetBinContent(binx+1,Hist_ratio_energy[roi].GetBinContent(binx+1)*bkgd_flux/crab_flux)
+            Hist_ratio_energy[roi].SetBinError(binx+1,Hist_ratio_energy[roi].GetBinError(binx+1)*bkgd_flux/crab_flux)
+
+        pads[0].cd()
+        Hist_ratio_energy[roi].SetLineColor(1)
+        Hist_ratio_energy[roi].SetLineWidth(3)
+        Hist_ratio_energy[roi].SetMinimum(-0.1)
+        Hist_ratio_energy[roi].Draw("E")
+
+        pads[1].cd()
+        Hist_data_energy[roi].GetXaxis().SetTitle("MJD")
+        Hist_data_energy[roi].SetLineColor(1)
+        Hist_data_energy[roi].SetLineWidth(3)
+        Hist_data_energy[roi].Draw("E")
+        fill_color = 38
+        stack = ROOT.THStack("stack", "")
+        set_histStyle( Hist_bkgd_energy[roi] , fill_color)
+        stack.Add( Hist_bkgd_energy[roi] )
+        stack.Draw("hist same")
+        Hist_data_energy[roi].Draw("E same")
+
+        pads[0].SetLogx()
+        pads[1].SetLogx()
+        pads[1].SetLogy()
+
+        c_both.SaveAs('output_plots/%s_RoI%s_%s.png'%(name,roi,selection_tag))
+
+def MakeSpectrumInNonCrabUnit(Hists,title,name,syst):
+    
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.7,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.7)
+    pad1.SetBottomMargin(0.2)
+    pad1.SetTopMargin(0.0)
+    pad1.SetLeftMargin(0.1)
+    pad1.SetRightMargin(0.1)
+    pad1.SetBorderMode(0)
+    pad1.SetGrid()
+    pad1.Draw()
+    pad3.Draw()
+
+    pad1.cd()
+
+    Hist_EffArea_tmp = Hist_EffArea_Sum.Clone()
+
+    # Crab https://arxiv.org/pdf/1508.06442.pdf
+    func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 200, 4000)
+    func_crab.SetParameters(37.5,-2.467,-0.16)
+
+    Hist_MDM = Hists[0].Clone()
+    Hist_MDM.Add(Hists[1],-1.)
+
+    for binx in range(0,Hist_MDM.GetNbinsX()):
+        if Hist_EffArea_Sum.GetBinContent(binx+1)==0.: continue
+        deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
+        scale = 1./(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
+        Hist_MDM.SetBinContent(binx+1,Hist_MDM.GetBinContent(binx+1)*scale)
+        Hist_MDM.SetBinError(binx+1,Hist_MDM.GetBinError(binx+1)*scale)
+
+    Hist_MDM.GetYaxis().SetTitle("flux [counts/GeV/s/cm2]")
+    Hist_MDM.GetXaxis().SetTitle(title)
+    Hist_MDM.GetXaxis().SetTitleOffset(1.3)
+    Hist_MDM.GetXaxis().SetTitleSize(0.05)
+    Hist_MDM.Draw("E")
+
+    if 'Crab' in name:
+        func_crab.SetLineColor(4)
+        func_crab.Draw("same")
+    # MGRO J1908
+    if 'MGRO_J1908' in name:
+        func_1908 = ROOT.TF1("func_1908","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
+        func_1908.SetParameters(4.23,-2.2)
+        func_1908.SetLineColor(4)
+        func_1908.Draw("same")
+    # IC 443 https://arxiv.org/pdf/0905.3291.pdf
+    if 'IC443' in name:
+        print 'Compare to official IC 443 flux...'
+        func_ic443 = ROOT.TF1("func_ic443","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
+        func_ic443.SetParameters(0.838,-2.99)
+        func_ic443.SetLineColor(4)
+        func_ic443.Draw("same")
+    # 1ES 1218 https://arxiv.org/pdf/0810.0301.pdf
+    if '1ES1218' in name:
+        func_1218 = ROOT.TF1("func_1218","[0]*pow(10,-12)*pow(x/500.,[1])", 200, 4000)
+        func_1218.SetParameters(7.5,-3.08)
+        func_1218.SetLineColor(4)
+        func_1218.Draw("same")
+
+
+    pad3.cd()
+
+    legend = ROOT.TLegend(0.15,0.1,0.94,0.9)
+    legend.SetTextFont(42)
+    legend.SetBorderSize(0)
+    legend.SetTextSize(0.1)
+    legend.SetFillColor(0)
+    legend.SetFillStyle(0)
+    legend.SetLineColor(0)
+    legend.Clear()
+    legend.AddEntry(Hist_MDM,"MDM flux","pl")
+    if len(Hists)==3:
+        legend.AddEntry(Hist_Ring,"Ring flux","pl")
+    if 'IC443' in name:
+        legend.AddEntry(func_ic443,"flux from arXiv:0905.3291","pl")
+    if 'MGRO_J1908' in name:
+        legend.AddEntry(func_1908,"flux from arXiv:1404.7185","pl")
+    legend.Draw("SAME")
+
+    #lumilab1 = ROOT.TLatex(0.15,0.80,'Exposure %.1f hrs'%(exposure_hours) )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.15)
+    #lumilab1.Draw()
+
+    pad1.SetLogy()
+    pad1.SetLogx()
+
+    c_both.SaveAs('output_plots/%s.png'%(name))
+
 
 def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
 
@@ -715,12 +927,16 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
             Hist_ratio_mjd[roi].SetBinError(binx+1,Hist_ratio_mjd[roi].GetBinError(binx+1)*bkgd_flux/crab_flux)
 
         #ratio_threshold = 0.05
-        ratio_threshold = 0.5
+        ratio_threshold = 0.1
         for binx in range(0,Hist_data_mjd[roi].GetNbinsX()):
+            if Hist_ratio_mjd[roi].GetBinError(binx+1)==0.: continue
+            significance = Hist_ratio_mjd[roi].GetBinContent(binx+1)/Hist_ratio_mjd[roi].GetBinError(binx+1)
+            if significance<4.0: continue
             if Hist_ratio_mjd[roi].GetBinContent(binx+1)>ratio_threshold:
                 print '>%s Crab, bin edge: %s, %s'%(ratio_threshold,Hist_ratio_mjd[roi].GetBinLowEdge(binx+1),Hist_ratio_mjd[roi].GetBinLowEdge(binx+2))
 
         pads[0].cd()
+        Hist_ratio_mjd[roi].SetLineColor(1)
         Hist_ratio_mjd[roi].SetLineWidth(3)
         Hist_ratio_mjd[roi].Draw("E")
         c_both.Update()
@@ -730,20 +946,22 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
         y2 = ROOT.gPad.GetUymax()
         raLowerAxis += [ROOT.TGaxis( x1, y2, x2, y2,"IncValues", 510, "-")]
         raLowerAxis[roi].SetLabelSize(Hist_ratio_mjd[roi].GetXaxis().GetLabelSize())
-        raLowerAxis[roi].SetTitle("MJD")
+        raLowerAxis[roi].SetTitle("Year")
         raLowerAxis[roi].Draw()
 
         pads[1].cd()
+        Hist_data_mjd[roi].GetXaxis().SetTitle("MJD")
+        Hist_data_mjd[roi].SetLineColor(1)
         Hist_data_mjd[roi].SetLineWidth(3)
         Hist_data_mjd[roi].Draw("E")
-        Hist_bkgd_mjd[roi].SetLineWidth(3)
-        Hist_bkgd_mjd[roi].SetLineColor(2)
-        Hist_bkgd_mjd[roi].Draw("E same")
+        fill_color = 38
+        stack = ROOT.THStack("stack", "")
+        set_histStyle( Hist_bkgd_mjd[roi] , fill_color)
+        stack.Add( Hist_bkgd_mjd[roi] )
+        stack.Draw("hist same")
         Hist_data_mjd[roi].Draw("E same")
 
         c_both.SaveAs('output_plots/%s_RoI%s_%s.png'%(name,roi,selection_tag))
-
-    #c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
 
 def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,range_upper,syst):
     
@@ -790,7 +1008,7 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
         if stack_it[h] or 'syst' in legends[h]:
             Hist_Syst.Add(Hists[h])
             found_syst_hist = True
-        if colors[h]==4:
+        if colors[h]!=0 and colors[h]!=1:
             Hist_Bkgd.Add(Hists[h].Clone())
     if not found_syst_hist:
         for binx in range(0,Hist_Syst.GetNbinsX()):
@@ -1034,6 +1252,19 @@ def PlotsStackedHistograms(tag):
         title = 'energy [GeV]'
         MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
+        Hists = []
+        legends = []
+        colors = []
+        Hists += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
+        legends += ['obs. data']
+        colors += [1]
+        Hists += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
+        legends += ['MDM bkg.']
+        colors += [4]
+        title = 'energy [GeV]'
+        plotname = 'CrabUnit_RoI_Energy_MDM_V%s_%s'%(nth_roi,tag)
+        MakeSpectrumInNonCrabUnit(Hists,title,plotname,-1)
+
     Hist_data_mjd = []
     Hist_bkgd_mjd = []
     legends = []
@@ -1046,6 +1277,19 @@ def PlotsStackedHistograms(tag):
     plotname = 'LightCurve_RoI_Year_MDM_V%s_%s'%(nth_roi,tag)
     title = 'Year'
     MakeLightCurvePlot(Hist_data_mjd,Hist_bkgd_mjd,legends,colors,title,plotname)
+
+    Hist_data_energy = []
+    Hist_bkgd_energy = []
+    legends = []
+    colors = []
+    for nth_roi in range(0,len(roi_ra)):
+        legends += ['RoI %s'%(nth_roi)]
+        colors += [nth_roi+1]
+        Hist_data_energy += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
+        Hist_bkgd_energy += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
+    plotname = 'Spectrum_RoI_CrabUnit_MDM_V%s_%s'%(nth_roi,tag)
+    title = 'GeV'
+    MakeCrabUnitSpectrumPlot(Hist_data_energy,Hist_bkgd_energy,legends,colors,title,plotname)
 
     Hists = []
     legends = []
@@ -2191,10 +2435,8 @@ def SingleSourceAnalysis(source_list,doMap):
 
     init_x = source_ra
     init_y = source_dec
-    #init_x = 186.5
-    #init_y = 27.2
-    #init_x = 184.452083333
-    #init_y = 30.1016666667
+    init_x = 82
+    init_y = 22
     excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,5,init_x,init_y)
     print 'Excess (5 sigma) center RA = %0.3f'%(excess_center_x)
     print 'Excess (5 sigma) center Dec = %0.3f'%(excess_center_y)

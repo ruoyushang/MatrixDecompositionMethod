@@ -900,13 +900,16 @@ bool GammaFoV() {
 }
 bool DarkFoV() {
     if (R2off>camera_theta2_cut) return false;
-    //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
 bool FoV() {
     if (R2off>camera_theta2_cut) return false;
-    //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    double x = ra_sky-mean_tele_point_ra;
+    double y = dec_sky-mean_tele_point_dec;
+    if (source_theta2_cut>(x*x+y*y)) return false;
+    if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
@@ -958,8 +961,11 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
     MSCL_cut_blind = MSCL_cut_moderate;
     if (TString(target).Contains("Crab"))
     {
-        MSCW_cut_blind = MSCW_cut_loose;
-        MSCL_cut_blind = MSCL_cut_loose;
+        if (source_theta2_cut==0.)
+        {
+            MSCW_cut_blind = MSCW_cut_loose;
+            MSCL_cut_blind = MSCL_cut_loose;
+        }
     }
     if (TString(target).Contains("SgrA"))
     {
@@ -975,8 +981,8 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
     std::cout << "prepare photon template" << std::endl;
     vector<pair<string,int>> PhotonMC_runlist = GetRunList("Photon");
     vector<pair<string,int>> PhotonData_runlist = GetRunList("Crab");
-    if (TString(target).Contains("Mrk421")) PhotonData_runlist = GetRunList("Crab");
-    if (TString(target).Contains("Crab")) PhotonData_runlist = GetRunList("Mrk421");
+    //if (TString(target).Contains("Mrk421")) PhotonData_runlist = GetRunList("Crab");
+    //if (TString(target).Contains("Crab")) PhotonData_runlist = GetRunList("Mrk421");
     //if (TString(target).Contains("V5")) PhotonData_runlist = GetRunList("CrabV5");
     PhotonData_runlist = SelectONRunList(PhotonData_runlist,TelElev_lower,TelElev_upper,0,360,MJD_start_cut,MJD_end_cut);
     
@@ -1031,6 +1037,15 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(1.0);
+    }
+    else if (TString(target).Contains("Crab")) 
+    {
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius.push_back(0.5);
+        roi_ra.push_back(84.365);
+        roi_dec.push_back(21.210);
+        roi_radius.push_back(0.3);
     }
     else if (TString(target).Contains("Cygnus")) 
     {
@@ -1549,8 +1564,8 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
             if (SizeSecondMax<SizeSecondMax_Cut) continue;
             if (EmissionHeight<6.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-            if (TString(target).Contains("Crab") && theta2<0.3) continue;
-            if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
+            //if (TString(target).Contains("Crab") && theta2<0.3) continue;
+            //if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             //if (R2off>4.) continue;
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
@@ -1962,6 +1977,24 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
     mean_tele_point_l = mean_tele_point_l_b.first;
     mean_tele_point_b = mean_tele_point_l_b.second;
 
+    vector<int> Data_runlist_number;
+    vector<string> Data_runlist_name;
+    vector<int> Dark_runlist_number;
+    vector<string> Dark_runlist_name;
+    for (int run=0;run<Data_runlist.size();run++)
+    {
+        Data_runlist_name.push_back(Data_runlist[run].first);
+        Data_runlist_number.push_back(Data_runlist[run].second);
+    }
+    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
+    {
+        for (int run=0;run<Dark_runlist.at(nth_sample).size();run++)
+        {
+            Dark_runlist_name.push_back(Dark_runlist.at(nth_sample)[run].first);
+            Dark_runlist_number.push_back(Dark_runlist.at(nth_sample)[run].second);
+        }
+    }
+
     TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+".root","recreate");
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("N_bins_for_deconv",&N_bins_for_deconv,"N_bins_for_deconv/I");
@@ -1981,6 +2014,10 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
     InfoTree.Branch("roi_ra","std::vector<double>",&roi_ra);
     InfoTree.Branch("roi_dec","std::vector<double>",&roi_dec);
     InfoTree.Branch("roi_radius","std::vector<double>",&roi_radius);
+    InfoTree.Branch("Data_runlist_name","std::vector<std::string>",&Data_runlist_name);
+    InfoTree.Branch("Data_runlist_number","std::vector<int>",&Data_runlist_number);
+    InfoTree.Branch("Dark_runlist_name","std::vector<std::string>",&Dark_runlist_name);
+    InfoTree.Branch("Dark_runlist_number","std::vector<int>",&Dark_runlist_number);
     InfoTree.Fill();
     InfoTree.Write();
     TTree StarTree("StarTree","star tree");

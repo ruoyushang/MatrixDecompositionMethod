@@ -993,18 +993,39 @@ MatrixXcd SpectralDecompositionMethod(int LeftOrRight, int entry_start, int entr
 }
 bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, int rank)
 {
+    eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
+    double lambda_data = eigensolver_data.eigenvalues()(mtx_data.cols()-rank).real();
     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
     double lambda_dark = eigensolver_dark.eigenvalues()(mtx_dark.cols()-rank).real();
     ComplexEigenSolver<MatrixXcd> eigensolver_input = ComplexEigenSolver<MatrixXcd>(mtx_input);
     double lambda_input = eigensolver_input.eigenvalues()(mtx_input.cols()-rank).real();
-    double diff = abs(lambda_dark-lambda_input)/lambda_dark;
+    double diff_data = (lambda_data-lambda_dark)/lambda_dark;
+    double diff_input = (lambda_input-lambda_dark)/lambda_dark;
+    //std::cout << "rank = " << rank << std::endl;
+    //std::cout << "lambda_data = " << lambda_data << std::endl;
     //std::cout << "lambda_dark = " << lambda_dark << std::endl;
     //std::cout << "lambda_input = " << lambda_input << std::endl;
-    if (diff>0.2) return false;
+    if (rank<3)
+    {
+        if (diff_data<0. && diff_input>0.) 
+        {
+            std::cout << "break at rank " << rank << " (unphysical result.)" << std::endl;
+            return false;
+        }
+        if (abs(diff_input)>0.2) 
+        {
+            std::cout << "break at rank " << rank << " (deviate from initial by 20%.)" << std::endl;
+            return false;
+        }
+    }
 
     double init_chi2 = GetChi2Function(mtx_data_bkgd,0);
     double current_chi2 = GetChi2Function(mtx_input,0);
-    if (current_chi2>init_chi2) return false;
+    if (current_chi2>init_chi2) 
+    {
+        std::cout << "break at rank " << rank << " (chi2 increasing.)" << std::endl;
+        return false;
+    }
 
     return true;
 }
@@ -1174,8 +1195,11 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
     MSCL_cut_blind = MSCL_cut_moderate;
     if (TString(target).Contains("Crab"))
     {
-        MSCW_cut_blind = MSCW_cut_loose;
-        MSCL_cut_blind = MSCL_cut_loose;
+        if (source_theta2_cut==0.)
+        {
+            MSCW_cut_blind = MSCW_cut_loose;
+            MSCL_cut_blind = MSCL_cut_loose;
+        }
     }
     if (TString(target).Contains("SgrA"))
     {
@@ -1224,6 +1248,13 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
             mtx_dark = fillMatrix(Hist_Dark);
             eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
             eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
+
+            std::cout << "Hist_Data->Integral() = " << Hist_Data->Integral() << std::endl;
+            std::cout << "Hist_Dark->Integral() = " << Hist_Dark->Integral() << std::endl;
+            if (isnan(Hist_Dark->Integral()) || isnan(Hist_Data->Integral()))
+            {
+                continue;
+            }
 
             int binx_lower = Hist_Data->GetXaxis()->FindBin(MSCL_cut_lower);
             binx_blind_global = Hist_Data->GetXaxis()->FindBin(MSCL_cut_blind)-1;
@@ -1296,6 +1327,13 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
 
             mtx_dark = fillMatrix(Hist_Dark);
             eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
+
+            std::cout << "Hist_Data->Integral() = " << Hist_Data->Integral() << std::endl;
+            std::cout << "Hist_Dark->Integral() = " << Hist_Dark->Integral() << std::endl;
+            if (isnan(Hist_Dark->Integral()) || isnan(Hist_Data->Integral()))
+            {
+                continue;
+            }
 
             //MatrixFactorizationMethod();
             LeastSquareSolutionMethod(rank_variation);
