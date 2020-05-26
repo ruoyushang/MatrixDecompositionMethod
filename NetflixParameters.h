@@ -16,7 +16,7 @@ double MSCL_cut_moderate = 0.5;
 double MSCW_cut_loose = 0.6;
 double MSCL_cut_loose = 0.8;
 double camera_theta2_cut = 9.;
-double source_theta2_cut = 0.2;
+double source_theta2_cut = 0.;
 
 int n_control_samples = 5;
 //const int N_energy_bins = 1;

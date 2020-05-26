@@ -111,14 +111,14 @@ energy_fine_bin += [pow(10,4.0)]
 sample_list = []
 sky_coord = []
 
-sample_list += ['CrabV5']
-sky_coord += ['05 34 31.97 +22 00 52.1']
+#sample_list += ['CrabV5']
+#sky_coord += ['05 34 31.97 +22 00 52.1']
 
 #sample_list += ['SgrAV6']
 #sky_coord += ['17 45 39.6 -29 00 22']
 
-#sample_list += ['OJ287V6']
-#sky_coord += ['08 54 49.1 +20 05 58.89']
+sample_list += ['OJ287V6']
+sky_coord += ['08 54 49.1 +20 05 58.89']
 
 #sample_list += ['2HWC_J1953V6']
 #sky_coord += ['19 53 02.4 +29 28 48']
@@ -892,6 +892,10 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
     time = Time(MJD_End, format='mjd')
     time.format = 'decimalyear'
     year_end = time.value
+
+    # Crab https://arxiv.org/pdf/1508.06442.pdf
+    Func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 100, 10000)
+    Func_crab.SetParameters(37.5,-2.467,-0.16)
 
     Hist_data_mjd = []
     Hist_bkgd_mjd = []

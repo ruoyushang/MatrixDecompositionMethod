@@ -980,7 +980,7 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
 
     std::cout << "prepare photon template" << std::endl;
     vector<pair<string,int>> PhotonMC_runlist = GetRunList("Photon");
-    vector<pair<string,int>> PhotonData_runlist = GetRunList("Crab");
+    vector<pair<string,int>> PhotonData_runlist = GetRunList("CrabV5");
     //if (TString(target).Contains("Mrk421")) PhotonData_runlist = GetRunList("Crab");
     //if (TString(target).Contains("Crab")) PhotonData_runlist = GetRunList("Mrk421");
     //if (TString(target).Contains("V5")) PhotonData_runlist = GetRunList("CrabV5");
@@ -1046,6 +1046,12 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         roi_ra.push_back(84.365);
         roi_dec.push_back(21.210);
         roi_radius.push_back(0.3);
+    }
+    else if (TString(target).Contains("Geminga")) 
+    {
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius.push_back(1.0);
     }
     else if (TString(target).Contains("Cygnus")) 
     {
