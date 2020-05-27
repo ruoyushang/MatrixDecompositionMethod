@@ -86,6 +86,7 @@ double mean_tele_point_l = 0.;
 double mean_tele_point_b = 0.;
 double run_tele_point_ra = 0.;
 double run_tele_point_dec = 0.;
+vector<string> roi_name;
 vector<double> roi_ra;
 vector<double> roi_dec;
 vector<double> roi_radius;
@@ -96,8 +97,6 @@ vector<double> Dark_weight;
 bool CoincideWithBrightStars(double ra, double dec)
 {
     bool isCoincident = false;
-    double brightness_cut = 5.0;
-    //double brightness_cut = 4.0;
     double radius_cut = 0.25;
     for (int star=0;star<BrightStars_Data.size();star++)
     {
@@ -413,8 +412,6 @@ void GetGammaSources()
 
 void GetBrightStars()
 {
-    double brightness_cut = 5.0;
-    //double brightness_cut = 4.0;
     std::ifstream astro_file("/home/rshang/EventDisplay/aux/AstroData/Catalogues/Hipparcos_MAG8_1997.dat");
     std::string line;
     // Read one line at a time into the variable line:
@@ -437,7 +434,7 @@ void GetBrightStars()
         double star_dec = lineData.at(1);
         double star_brightness = lineData.at(3)+lineData.at(4);
         if (star_brightness>brightness_cut) continue;
-        if (pow((mean_tele_point_ra-star_ra)*(mean_tele_point_ra-star_ra)+(mean_tele_point_dec-star_dec)*(mean_tele_point_dec-star_dec),0.5)>6.) continue;
+        if (pow((mean_tele_point_ra-star_ra)*(mean_tele_point_ra-star_ra)+(mean_tele_point_dec-star_dec)*(mean_tele_point_dec-star_dec),0.5)>3.0) continue;
         BrightStars_Data.push_back(lineData);
     }
     std::cout << "I found " << BrightStars_Data.size() << " bright stars" << std::endl;
@@ -909,7 +906,7 @@ bool FoV() {
     double x = ra_sky-mean_tele_point_ra;
     double y = dec_sky-mean_tele_point_dec;
     if (source_theta2_cut>(x*x+y*y)) return false;
-    if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
@@ -938,8 +935,8 @@ bool ControlSelectionTheta2()
 {
     if (SignalSelectionTheta2()) return false;
     if (MSCW<MSCW_cut_blind && MSCL<MSCL_cut_blind) return false;
-    //if (MSCL>MSCL_cut_blind+1.0) return false;
-    //if (MSCW>MSCW_cut_blind+1.0) return false;
+    //if (MSCL>MSCL_cut_blind) return false;
+    //if (MSCW>MSCW_cut_blind) return false;
     if (MSCL>MSCL_plot_upper) return false;
     if (MSCW>MSCW_plot_upper) return false;
     return true;
@@ -1034,65 +1031,83 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
 
     if (TString(target).Contains("MGRO_J1908")) 
     {
+        roi_name.push_back("MGRO J1908+06");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(1.0);
     }
     else if (TString(target).Contains("Crab")) 
     {
+        roi_name.push_back("Crab");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(0.5);
-        roi_ra.push_back(84.365);
-        roi_dec.push_back(21.210);
-        roi_radius.push_back(0.3);
+        //roi_ra.push_back(84.365);
+        //roi_dec.push_back(21.210);
+        //roi_radius.push_back(0.3);
     }
     else if (TString(target).Contains("Geminga")) 
     {
+        roi_name.push_back("Geminga");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(1.0);
     }
     else if (TString(target).Contains("Cygnus")) 
     {
+        roi_name.push_back("Cygnus");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(1.0);
     }
     else if (TString(target).Contains("IC443")) 
     {
+        roi_name.push_back("IC 443");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(0.5);
     }
-    else if (TString(target).Contains("Segue1")) 
-    {
-        roi_ra.push_back(151.757);
-        roi_dec.push_back(17.007);
-        roi_radius.push_back(0.5);
-    }
+    //else if (TString(target).Contains("Segue1")) 
+    //{
+    //    roi_ra.push_back(151.757);
+    //    roi_dec.push_back(17.007);
+    //    roi_radius.push_back(0.5);
+    //}
     else if (TString(target).Contains("WComae")) 
     {
+        roi_name.push_back("W Comae");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(0.3);
 
+        roi_name.push_back("1ES 1218+304");
         roi_ra.push_back(185.360);
         roi_dec.push_back(30.191);
         roi_radius.push_back(0.3);
 
+        roi_name.push_back("1ES 1215+303");
         roi_ra.push_back(184.616);
         roi_dec.push_back(30.130);
         roi_radius.push_back(0.3);
 
+        roi_name.push_back("unknown");
         roi_ra.push_back(186.528);
         roi_dec.push_back(27.247);
         roi_radius.push_back(0.3);
     }
     else
     {
+        roi_name.push_back("Center");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
+        roi_radius.push_back(0.3);
+    }
+
+    for (int star=0;star<BrightStars_Data.size();star++)
+    {
+        roi_name.push_back("b-mag "+ std::to_string(BrightStars_Data.at(star).at(3)));
+        roi_ra.push_back(BrightStars_Data.at(star).at(0));
+        roi_dec.push_back(BrightStars_Data.at(star).at(1));
         roi_radius.push_back(0.3);
     }
 
@@ -2017,6 +2032,7 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
     InfoTree.Branch("n_expect_matches",&n_expect_matches,"n_expect_matches/I");
     InfoTree.Branch("n_control_samples",&n_control_samples,"n_control_samples/I");
     InfoTree.Branch("Dark_runlist_primary","std::vector<int>",&Dark_runlist_primary);
+    InfoTree.Branch("roi_name","std::vector<std::string>",&roi_name);
     InfoTree.Branch("roi_ra","std::vector<double>",&roi_ra);
     InfoTree.Branch("roi_dec","std::vector<double>",&roi_dec);
     InfoTree.Branch("roi_radius","std::vector<double>",&roi_radius);

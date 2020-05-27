@@ -13,7 +13,7 @@ int NumberOfEigenvectors = 3;
 double PercentCrab = 0.;
 double MSCW_cut_moderate = 0.35;
 double MSCL_cut_moderate = 0.5;
-double MSCW_cut_loose = 0.6;
+double MSCW_cut_loose = 0.8;
 double MSCL_cut_loose = 0.8;
 double camera_theta2_cut = 9.;
 double source_theta2_cut = 0.;
@@ -38,3 +38,6 @@ double MSCW_plot_upper = 3.;
 double MSCL_plot_upper = 3.;
 double MSCW_plot_lower = -1.;
 double MSCL_plot_lower = -1.;
+
+//double brightness_cut = 6.0;
+double brightness_cut = 5.0;

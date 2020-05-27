@@ -21,25 +21,21 @@ method_tag = '8bins_unconstrained'
 #method_tag = '8bins_constrained'
 #method_tag = '16bins_unconstrained'
 
+#elev_bins = [25,35,45,55,65,75,85]
+elev_bins = [25,45,85]
+
 root_file_tags = []
-root_file_tags += [method_tag+'_TelElev45to85']
-#root_file_tags += [method_tag+'_TelElev25to45']
+for elev in range(0,len(elev_bins)-1):
+    root_file_tags += [method_tag+'_TelElev%sto%s'%(elev_bins[elev],elev_bins[elev+1])]
 
 # 1ES 1215 flare
-#root_file_tags += [method_tag+'_TelElev45to85_MJD54746to55018']
-#root_file_tags += [method_tag+'_TelElev45to85_MJD57367to57549']
+#for elev in range(0,len(elev_bins)-1):
+#    root_file_tags += [method_tag+'_TelElev%sto%s_MJD54746to55018'%(elev_bins[elev],elev_bins[elev+1])]
+#    root_file_tags += [method_tag+'_TelElev%sto%s_MJD57367to57549'%(elev_bins[elev],elev_bins[elev+1])]
 
 # WComae and 1ES 1218 flare
-#root_file_tags += [method_tag+'_TelElev45to85_MJD54400to54700']
-
-# Cygnus flare
-#root_file_tags += [method_tag+'_TelElev45to85_MJD55423to55515']
-#root_file_tags += [method_tag+'_TelElev45to85_MJD56513to56695']
-
-# Segue 1 flare
-#root_file_tags += [method_tag+'_TelElev45to85_MJD55100to55400']
-#root_file_tags += [method_tag+'_TelElev45to85_MJD55400to55800']
-#root_file_tags += [method_tag+'_TelElev45to85_MJD55800to56100']
+#for elev in range(0,len(elev_bins)-1):
+#    root_file_tags += [method_tag+'_TelElev%sto%s_MJD54400to54700'%(elev_bins[elev],elev_bins[elev+1])]
 
 selection_tag = root_file_tags[0]
 
@@ -72,6 +68,7 @@ source_b = 0.
 n_control_samples = 5
 MJD_Start = 2147483647
 MJD_End = 0
+roi_name = ROOT.std.vector("string")(10)
 roi_ra = ROOT.std.vector("double")(10)
 roi_dec = ROOT.std.vector("double")(10)
 roi_radius = ROOT.std.vector("double")(10)
@@ -111,14 +108,14 @@ energy_fine_bin += [pow(10,4.0)]
 sample_list = []
 sky_coord = []
 
-#sample_list += ['CrabV5']
-#sky_coord += ['05 34 31.97 +22 00 52.1']
+sample_list += ['CrabV5']
+sky_coord += ['05 34 31.97 +22 00 52.1']
 
 #sample_list += ['SgrAV6']
 #sky_coord += ['17 45 39.6 -29 00 22']
 
-sample_list += ['OJ287V6']
-sky_coord += ['08 54 49.1 +20 05 58.89']
+#sample_list += ['OJ287V6']
+#sky_coord += ['08 54 49.1 +20 05 58.89']
 
 #sample_list += ['2HWC_J1953V6']
 #sky_coord += ['19 53 02.4 +29 28 48']
@@ -153,6 +150,11 @@ sky_coord += ['08 54 49.1 +20 05 58.89']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
 #sample_list += ['CygnusV5']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
+
+#sample_list += ['GemingaV6']
+#sky_coord += ['06 32 28 +17 22 00']
+#sample_list += ['GemingaV5']
+#sky_coord += ['06 32 28 +17 22 00']
 
 #sample_list += ['Crab']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
@@ -198,10 +200,6 @@ sky_coord += ['08 54 49.1 +20 05 58.89']
 #sky_coord += ['20 32 28.56 +40 19 41.52']
 #sample_list += ['1ES1218V6']
 #sky_coord += ['12 21 26.3 +30 11 29']
-#sample_list += ['GemingaV6']
-#sky_coord += ['06 32 28 +17 22 00']
-#sample_list += ['GemingaV5']
-#sky_coord += ['06 32 28 +17 22 00']
 #sample_list += ['TychoV6']
 #sky_coord += ['00 25 21.6 +64 07 48']
 #sample_list += ['CTA1V5']
@@ -243,9 +241,9 @@ def GetBrightStarInfo(file_list):
         StarTree = InputFile.Get("StarTree")
         for entry in range(0,StarTree.GetEntries()):
             StarTree.GetEntry(entry)
-            if StarTree.star_brightness>5.0: continue
             distance_to_center = pow(pow(source_ra-StarTree.star_ra,2)+pow(source_dec-StarTree.star_dec,2),0.5)
-            if distance_to_center>2.: continue
+            #if StarTree.star_brightness>5.0: continue
+            #if distance_to_center>2.5: continue
             bright_star_ra += [StarTree.star_ra]
             bright_star_dec += [StarTree.star_dec]
             bright_star_brightness += [StarTree.star_brightness]
@@ -309,6 +307,7 @@ def GetSourceInfo(file_list):
     global n_control_samples
     global MJD_Start
     global MJD_End
+    global roi_name
     global roi_ra
     global roi_dec
     global roi_radius
@@ -320,6 +319,7 @@ def GetSourceInfo(file_list):
         if not os.path.isfile(file_list[path]):continue
         InputFile = ROOT.TFile(file_list[path])
         InfoTree = InputFile.Get("InfoTree")
+        InfoTree.SetBranchAddress('roi_name',ROOT.AddressOf(roi_name))
         InfoTree.SetBranchAddress('roi_ra',ROOT.AddressOf(roi_ra))
         InfoTree.SetBranchAddress('roi_dec',ROOT.AddressOf(roi_dec))
         InfoTree.SetBranchAddress('roi_radius',ROOT.AddressOf(roi_radius))
@@ -732,7 +732,9 @@ def MakeCrabUnitSpectrumPlot(Hist_data,Hist_bkgd,legends,colors,title,name):
             lower_cut = Hist_data[roi].GetBinLowEdge(binx+1)
             upper_cut = Hist_data[roi].GetBinLowEdge(binx+2)
             deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
-            bkgd_flux = Hist_bkgd_energy[roi].GetBinContent(binx+1)/(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
+            bkgd_flux = 0.
+            if Hist_EffArea_Sum.GetBinContent(binx+1)!=0.:
+                bkgd_flux = Hist_bkgd_energy[roi].GetBinContent(binx+1)/(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
             crab_flux = func_crab.Eval(Hist_EffArea_Sum.GetBinCenter(binx+1))
             Hist_ratio_energy[roi].SetBinContent(binx+1,Hist_ratio_energy[roi].GetBinContent(binx+1)*bkgd_flux/crab_flux)
             Hist_ratio_energy[roi].SetBinError(binx+1,Hist_ratio_energy[roi].GetBinError(binx+1)*bkgd_flux/crab_flux)
@@ -1229,7 +1231,7 @@ def PlotsStackedHistograms(tag):
         colors = []
         stack_it = []
         Hists += [Hist_OnData_RoI_Theta2_Sum[nth_roi]]
-        legends += ['obs. data']
+        legends += ['obs. data (%s)'%(roi_name[nth_roi])]
         colors += [1]
         stack_it += [False]
         Hists += [Hist_OnBkgd_RoI_Theta2_Sum[nth_roi]]
@@ -1245,7 +1247,7 @@ def PlotsStackedHistograms(tag):
         colors = []
         stack_it = []
         Hists += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
-        legends += ['obs. data']
+        legends += ['obs. data (%s)'%(roi_name[nth_roi])]
         colors += [1]
         stack_it += [False]
         Hists += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
@@ -1260,7 +1262,7 @@ def PlotsStackedHistograms(tag):
         legends = []
         colors = []
         Hists += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
-        legends += ['obs. data']
+        legends += ['obs. data (%s)'%(roi_name[nth_roi])]
         colors += [1]
         Hists += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
         legends += ['MDM bkg.']
@@ -1274,7 +1276,7 @@ def PlotsStackedHistograms(tag):
     legends = []
     colors = []
     for nth_roi in range(0,len(roi_ra)):
-        legends += ['RoI %s'%(nth_roi)]
+        legends += ['%s'%(roi_name[nth_roi])]
         colors += [nth_roi+1]
         Hist_data_mjd += [Hist_OnData_RoI_MJD_Sum[nth_roi]]
         Hist_bkgd_mjd += [Hist_OnBkgd_RoI_MJD_Sum[nth_roi]]
@@ -1287,7 +1289,7 @@ def PlotsStackedHistograms(tag):
     legends = []
     colors = []
     for nth_roi in range(0,len(roi_ra)):
-        legends += ['RoI %s'%(nth_roi)]
+        legends += ['%s'%(roi_name[nth_roi])]
         colors += [nth_roi+1]
         Hist_data_energy += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
         Hist_bkgd_energy += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
@@ -2476,11 +2478,10 @@ for source in range(0,len(sample_list)):
     for elev in range(0,len(root_file_tags)):
         SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+".root"
         FilePath_Folder += [SourceFilePath]
-        if not os.path.isfile(FilePath_Folder[0]): 
+        if not os.path.isfile(FilePath_Folder[elev]): 
             continue
         else:
             GetSourceInfo(FilePath_Folder)
-            break
 print 'analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut)
 MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
 MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
@@ -2536,14 +2537,14 @@ Hist_OnBkgd_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sum",""
 Hist_SystErr_MSCL = ROOT.TH1D("Hist_SystErr_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_SystErr_MSCW = ROOT.TH1D("Hist_SystErr_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 
+print 'MJD_Start = %s'%(MJD_Start)
+print 'MJD_End = %s'%(MJD_End)
 time = Time(MJD_Start, format='mjd')
 time.format = 'decimalyear'
 year_start = time.value
 time = Time(MJD_End, format='mjd')
 time.format = 'decimalyear'
 year_end = time.value
-print 'MJD_Start = %s'%(MJD_Start)
-print 'MJD_End = %s'%(MJD_End)
 print 'year_start = %s'%(year_start)
 print 'year_end = %s'%(year_end)
 print 'roi_ra = %s'%(roi_ra[0])
