@@ -40,4 +40,5 @@ double MSCW_plot_lower = -1.;
 double MSCL_plot_lower = -1.;
 
 //double brightness_cut = 6.0;
-double brightness_cut = 5.0;
+double brightness_cut = 5.5;
+//double brightness_cut = 5.0;

@@ -906,7 +906,7 @@ bool FoV() {
     double x = ra_sky-mean_tele_point_ra;
     double y = dec_sky-mean_tele_point_dec;
     if (source_theta2_cut>(x*x+y*y)) return false;
-    //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
@@ -935,8 +935,8 @@ bool ControlSelectionTheta2()
 {
     if (SignalSelectionTheta2()) return false;
     if (MSCW<MSCW_cut_blind && MSCL<MSCL_cut_blind) return false;
-    //if (MSCL>MSCL_cut_blind) return false;
-    //if (MSCW>MSCW_cut_blind) return false;
+    //if (MSCL<MSCL_cut_blind) return false;
+    //if (MSCW<MSCW_cut_blind) return false;
     if (MSCL>MSCL_plot_upper) return false;
     if (MSCW>MSCW_plot_upper) return false;
     return true;

@@ -26,20 +26,18 @@ elev_bins = [25,45,85]
 
 root_file_tags = []
 for elev in range(0,len(elev_bins)-1):
+    # all time
     root_file_tags += [method_tag+'_TelElev%sto%s'%(elev_bins[elev],elev_bins[elev+1])]
-
-# 1ES 1215 flare
-#for elev in range(0,len(elev_bins)-1):
-#    root_file_tags += [method_tag+'_TelElev%sto%s_MJD54746to55018'%(elev_bins[elev],elev_bins[elev+1])]
-#    root_file_tags += [method_tag+'_TelElev%sto%s_MJD57367to57549'%(elev_bins[elev],elev_bins[elev+1])]
-
-# WComae and 1ES 1218 flare
-#for elev in range(0,len(elev_bins)-1):
-#    root_file_tags += [method_tag+'_TelElev%sto%s_MJD54400to54700'%(elev_bins[elev],elev_bins[elev+1])]
+    # 1ES 1215 flare
+    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD54746to55018'%(elev_bins[elev],elev_bins[elev+1])]
+    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD57367to57549'%(elev_bins[elev],elev_bins[elev+1])]
+    # WComae and 1ES 1218 flare
+    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD54400to54700'%(elev_bins[elev],elev_bins[elev+1])]
 
 selection_tag = root_file_tags[0]
 
-folder_path = 'output_root'
+folder_path = 'output_test'
+#folder_path = 'output_root'
 PercentCrab = ''
 
 energy_fine_bin_cut_low = 0
@@ -108,8 +106,8 @@ energy_fine_bin += [pow(10,4.0)]
 sample_list = []
 sky_coord = []
 
-sample_list += ['CrabV5']
-sky_coord += ['05 34 31.97 +22 00 52.1']
+#sample_list += ['CrabV5']
+#sky_coord += ['05 34 31.97 +22 00 52.1']
 
 #sample_list += ['SgrAV6']
 #sky_coord += ['17 45 39.6 -29 00 22']
@@ -120,12 +118,12 @@ sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['2HWC_J1953V6']
 #sky_coord += ['19 53 02.4 +29 28 48']
 
-#sample_list += ['WComaeV6']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV5']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV4']
-#sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV6']
+sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV5']
+sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV4']
+sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
