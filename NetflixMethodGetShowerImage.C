@@ -26,6 +26,7 @@
 #include "TROOT.h"
 #include "TChain.h"
 #include "TBranch.h"
+#include "TRandom.h"
 
 #include "/home/rshang/EventDisplay/EVNDISP-480e/inc/VEvndispRunParameter.h"
 
@@ -91,13 +92,13 @@ vector<double> roi_ra;
 vector<double> roi_dec;
 vector<double> roi_radius;
 vector<vector<double>> BrightStars_Data;
+vector<vector<double>> FaintStars_Data;
 vector<vector<double>> GammaSource_Data;
 vector<double> Dark_weight;
 
 bool CoincideWithBrightStars(double ra, double dec)
 {
     bool isCoincident = false;
-    double radius_cut = 0.25;
     for (int star=0;star<BrightStars_Data.size();star++)
     {
         double star_ra = BrightStars_Data.at(star).at(0);
@@ -105,7 +106,7 @@ bool CoincideWithBrightStars(double ra, double dec)
         double star_brightness = BrightStars_Data.at(star).at(3);
         double radius = pow((ra-star_ra)*(ra-star_ra)+(dec-star_dec)*(dec-star_dec),0.5);
         if (star_brightness>brightness_cut) continue;
-        if (radius>radius_cut) continue;
+        if (radius>bright_star_radius_cut) continue;
         isCoincident = true;
     }
     return isCoincident;
@@ -113,13 +114,12 @@ bool CoincideWithBrightStars(double ra, double dec)
 bool CoincideWithGammaSources(double ra, double dec)
 {
     bool isCoincident = false;
-    double radius_cut = 0.25;
     for (int star=0;star<GammaSource_Data.size();star++)
     {
         double star_ra = GammaSource_Data.at(star).at(0);
         double star_dec = GammaSource_Data.at(star).at(1);
         double radius = pow((ra-star_ra)*(ra-star_ra)+(dec-star_dec)*(dec-star_dec),0.5);
-        if (radius>radius_cut) continue;
+        if (radius>bright_star_radius_cut) continue;
         isCoincident = true;
     }
     return isCoincident;
@@ -315,6 +315,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 286.975;
                 Source_Dec = 6.269;
     }
+    if (source_name=="MGRO_J2031_V6")
+    {
+            Source_RA = 307.180;
+                Source_Dec = 41.310;
+    }
     if (source_name=="CygnusV6")
     {
             Source_RA = 304.646;
@@ -433,9 +438,16 @@ void GetBrightStars()
         double star_ra = lineData.at(0);
         double star_dec = lineData.at(1);
         double star_brightness = lineData.at(3)+lineData.at(4);
-        if (star_brightness>brightness_cut) continue;
         if (pow((mean_tele_point_ra-star_ra)*(mean_tele_point_ra-star_ra)+(mean_tele_point_dec-star_dec)*(mean_tele_point_dec-star_dec),0.5)>3.0) continue;
-        BrightStars_Data.push_back(lineData);
+        if (star_brightness<brightness_cut)
+        {
+            BrightStars_Data.push_back(lineData);
+        }
+        //else if (star_brightness<brightness_cut+1.0)
+        else
+        {
+            FaintStars_Data.push_back(lineData);
+        }
     }
     std::cout << "I found " << BrightStars_Data.size() << " bright stars" << std::endl;
 }
@@ -884,45 +896,6 @@ double GetCrabFlux(double energy_gev)
     double flux = 3.75*pow(10,-7)*pow(energy_gev/1000.,-2.467-0.16*log(energy_gev/1000.));
     return flux;
 }
-bool GammaFoV() {
-    double x = ra_sky-mean_tele_point_ra;
-    double y = dec_sky-(mean_tele_point_dec-0.3);
-    double size1 = 0.5;
-    double diff1 = pow(x*x+y*y-size1,3)-2.*(x*x*y*y*y);
-    double size2 = 0.9;
-    double diff2 = pow(x*x+y*y-size2,3)-2.*(x*x*y*y*y);
-    if (diff1<0) return false;
-    if (diff2>0) return false;
-    return true;
-}
-bool DarkFoV() {
-    if (R2off>camera_theta2_cut) return false;
-    if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
-    if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
-    return true;
-}
-bool FoV() {
-    if (R2off>camera_theta2_cut) return false;
-    double x = ra_sky-mean_tele_point_ra;
-    double y = dec_sky-mean_tele_point_dec;
-    if (source_theta2_cut>(x*x+y*y)) return false;
-    if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
-    //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
-    return true;
-}
-bool RoIFoV(int which_roi) {
-    double x = ra_sky-roi_ra.at(which_roi);
-    double y = dec_sky-roi_dec.at(which_roi);
-    double radius = pow(x*x+y*y,0.5);
-    if (radius>roi_radius.at(which_roi)) return false;
-    return true;
-}
-bool SelectNImages(int Nmin, int Nmax)
-{
-    if (NImages<Nmin) return false;
-    if (NImages>Nmax) return false;
-    return true;
-}
 bool SignalSelectionTheta2()
 {
     if (MSCW>MSCW_cut_blind) return false;
@@ -941,11 +914,114 @@ bool ControlSelectionTheta2()
     if (MSCW>MSCW_plot_upper) return false;
     return true;
 }
+bool GammaFoV() {
+    double x = ra_sky-mean_tele_point_ra;
+    double y = dec_sky-(mean_tele_point_dec-0.3);
+    double size1 = 0.5;
+    double diff1 = pow(x*x+y*y-size1,3)-2.*(x*x*y*y*y);
+    double size2 = 0.9;
+    double diff2 = pow(x*x+y*y-size2,3)-2.*(x*x*y*y*y);
+    if (diff1<0) return false;
+    if (diff2>0) return false;
+    return true;
+}
+bool DarkFoV() {
+    if (R2off>camera_theta2_cut) return false;
+    //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
+    return true;
+}
+bool FoV(bool remove_bright_stars) {
+    if (R2off>camera_theta2_cut) return false;
+    double x = ra_sky-mean_tele_point_ra;
+    double y = dec_sky-mean_tele_point_dec;
+    if (source_theta2_cut>(x*x+y*y)) return false;
+    if (remove_bright_stars && CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
+    return true;
+}
+bool RoIFoV(int which_roi) {
+    double x = ra_sky-roi_ra.at(which_roi);
+    double y = dec_sky-roi_dec.at(which_roi);
+    double radius = pow(x*x+y*y,0.5);
+    if (radius>roi_radius.at(which_roi)) return false;
+    return true;
+}
+bool SelectNImages(int Nmin, int Nmax)
+{
+    if (NImages<Nmin) return false;
+    if (NImages>Nmax) return false;
+    return true;
+}
+vector<vector<double>> FillBrightStarHoles(double sky_ra, double sky_dec)
+{
+    vector<vector<double>> event_locations;
+    double new_sky_ra = 0.;
+    double new_sky_dec = 0.;
+    double new_sky_weight = 0.;
+    for (int star=0;star<BrightStars_Data.size();star++)
+    {
+        vector<double> event_location_single_star;
+        double star_ra = BrightStars_Data.at(star).at(0);
+        double star_dec = BrightStars_Data.at(star).at(1);
+        double distance = pow(pow(star_ra-sky_ra,2)+pow(star_dec-sky_dec,2),0.5);
+        if (distance>bright_star_radius_cut && distance<2.*bright_star_radius_cut)
+        {
+            double nbins_star = 0.;
+            double nbins_ring = 0.;
+            TH2D Hist_Skymap = TH2D("Hist_Skymap","",20,star_ra-2.*bright_star_radius_cut,star_ra+2.*bright_star_radius_cut,20,star_dec-2.*bright_star_radius_cut,star_dec+2.*bright_star_radius_cut);
+            for (int binx=1;binx<= Hist_Skymap.GetNbinsX();binx++)
+            {
+                for (int biny=1;biny<= Hist_Skymap.GetNbinsY();biny++)
+                {
+                    double bin_ra = Hist_Skymap.GetXaxis()->GetBinCenter(binx);
+                    double bin_dec = Hist_Skymap.GetYaxis()->GetBinCenter(biny);
+                    double bin_distance = pow(pow(star_ra-bin_ra,2)+pow(star_dec-bin_dec,2),0.5);
+                    if (bin_distance<bright_star_radius_cut) nbins_star += 1.;
+                    if (bin_distance>bright_star_radius_cut && bin_distance<2.*bright_star_radius_cut) 
+                    {
+                        bool coincide_with_other_stars = false;
+                        for (int other_star=0;other_star<BrightStars_Data.size();other_star++)
+                        {
+                            if (other_star==star) continue;
+                            double other_star_ra = BrightStars_Data.at(other_star).at(0);
+                            double other_star_dec = BrightStars_Data.at(other_star).at(1);
+                            double other_distance = pow(pow(other_star_ra-sky_ra,2)+pow(other_star_dec-sky_dec,2),0.5);
+                            if (other_distance<bright_star_radius_cut) coincide_with_other_stars = true;
+                        }
+                        if (!coincide_with_other_stars) nbins_ring += 1.;
+                    }
+                }
+            }
+            new_sky_weight = nbins_star/nbins_ring;
+            double new_radius = pow(gRandom->Uniform(bright_star_radius_cut*bright_star_radius_cut),0.5);
+            double new_phase = gRandom->Uniform(2.*M_PI);
+            new_sky_ra = new_radius*cos(new_phase)+star_ra;
+            new_sky_dec = new_radius*sin(new_phase)+star_dec;
+            event_location_single_star.push_back(new_sky_ra);
+            event_location_single_star.push_back(new_sky_dec);
+            event_location_single_star.push_back(new_sky_weight);
+            event_locations.push_back(event_location_single_star);
+        }
+    }
+    return event_locations;
+}
 
-void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut)
+void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, bool isON)
 {
 
     TH1::SetDefaultSumw2();
+
+    TString ONOFF_tag;
+    if (isON) 
+    {
+        source_theta2_cut = 0.;
+        ONOFF_tag = "ON";
+    }
+    else
+    {
+        ONOFF_tag = "OFF";
+    }
 
     if (MJD_start_cut!=0 || MJD_end_cut!=0)
     {
@@ -1036,15 +1112,19 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(1.0);
     }
+    else if (TString(target).Contains("MGRO_J2031")) 
+    {
+        roi_name.push_back("MGRO J2031+41");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius.push_back(1.0);
+    }
     else if (TString(target).Contains("Crab")) 
     {
         roi_name.push_back("Crab");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(0.5);
-        //roi_ra.push_back(84.365);
-        //roi_dec.push_back(21.210);
-        //roi_radius.push_back(0.3);
     }
     else if (TString(target).Contains("Geminga")) 
     {
@@ -1052,6 +1132,10 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(1.0);
+        roi_name.push_back("deficit");
+        roi_ra.push_back(98.837);
+        roi_dec.push_back(16.087);
+        roi_radius.push_back(0.3);
     }
     else if (TString(target).Contains("Cygnus")) 
     {
@@ -1067,12 +1151,6 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(0.5);
     }
-    //else if (TString(target).Contains("Segue1")) 
-    //{
-    //    roi_ra.push_back(151.757);
-    //    roi_dec.push_back(17.007);
-    //    roi_radius.push_back(0.5);
-    //}
     else if (TString(target).Contains("WComae")) 
     {
         roi_name.push_back("W Comae");
@@ -1089,11 +1167,6 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         roi_ra.push_back(184.616);
         roi_dec.push_back(30.130);
         roi_radius.push_back(0.3);
-
-        roi_name.push_back("unknown");
-        roi_ra.push_back(186.528);
-        roi_dec.push_back(27.247);
-        roi_radius.push_back(0.3);
     }
     else
     {
@@ -1103,12 +1176,12 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         roi_radius.push_back(0.3);
     }
 
-    for (int star=0;star<BrightStars_Data.size();star++)
+    for (int star=0;star<FaintStars_Data.size();star++)
     {
-        roi_name.push_back("b-mag "+ std::to_string(BrightStars_Data.at(star).at(3)));
-        roi_ra.push_back(BrightStars_Data.at(star).at(0));
-        roi_dec.push_back(BrightStars_Data.at(star).at(1));
-        roi_radius.push_back(0.3);
+        roi_name.push_back("b-mag "+ std::to_string(FaintStars_Data.at(star).at(3)));
+        roi_ra.push_back(FaintStars_Data.at(star).at(0));
+        roi_dec.push_back(FaintStars_Data.at(star).at(1));
+        roi_radius.push_back(bright_star_radius_cut);
     }
 
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
@@ -1591,14 +1664,14 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
             Hist_Data_Unbiased_Energy.Fill(ErecS*1000.);
-            if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
+            if (FoV(true) || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
                 Hist_Data_MSCLW_incl.Fill(MSCL,MSCW);
                 Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW);
             }
             if (SignalSelectionTheta2())
             {
-                if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
+                if (FoV(true) || Data_runlist[run].first.find("Proton")!=std::string::npos)
                 {
                     Hist_OnData_SR_Energy.at(energy).Fill(ErecS*1000.);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
@@ -1620,7 +1693,7 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
             }
             if (ControlSelectionTheta2())
             {
-                if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
+                if (FoV(true) || Data_runlist[run].first.find("Proton")!=std::string::npos)
                 {
                     int binx = Hist_OnDark_SR_CameraFoV.at(energy_fine).GetXaxis()->FindBin(R2off);
                     int biny = Hist_OnDark_SR_CameraFoV.at(energy_fine).GetYaxis()->FindBin(Phioff);
@@ -1653,6 +1726,34 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
                     Hist_OnData_CR_Skymap_Galactic.at(energy_fine).Fill(evt_l_b.first,evt_l_b.second,weight);
                     Hist_OnData_CR_CameraFoV.at(energy_fine).Fill(Xoff,Yoff,weight);
                     Hist_OnData_CR_CameraFoV_Raw.at(energy_fine).Fill(Xoff,Yoff,1.);
+
+                    //vector<vector<double>> new_locations = FillBrightStarHoles(ra_sky,dec_sky);
+                    //for (int star=0;star<new_locations.size();star++)
+                    //{
+                    //    double new_ra_sky = new_locations.at(star).at(0);
+                    //    double new_dec_sky = new_locations.at(star).at(1);
+                    //    double new_weight_sky = new_locations.at(star).at(2);
+                    //    if (new_weight_sky==0.) continue;
+                    //    pair<double,double> new_evt_l_b = ConvertRaDecToGalactic(new_ra_sky,new_dec_sky);
+                    //    Hist_OnData_CR_Energy.at(energy).Fill(ErecS*1000.,weight*new_weight_sky);
+                    //    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
+                    //    {
+                    //        theta2_roi = pow(new_ra_sky-roi_ra.at(nth_roi),2)+pow(new_dec_sky-roi_dec.at(nth_roi),2);
+                    //        if (theta2_roi<bright_star_radius_cut*bright_star_radius_cut) 
+                    //        {
+                    //            Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight*new_weight_sky);
+                    //            Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy_fine).Fill(MJD,weight*new_weight_sky);
+                    //        }
+                    //        Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(energy_fine).Fill(theta2_roi,weight*new_weight_sky);
+                    //    }
+                    //    double new_theta2 = pow(new_ra_sky-mean_tele_point_ra,2)+pow(new_dec_sky-mean_tele_point_dec,2);
+                    //    Hist_OnData_CR_Skymap_Theta2.at(energy_fine).Fill(new_theta2,weight*new_weight_sky);
+                    //    Hist_OnData_CR_Skymap.at(energy_fine).Fill(new_ra_sky,new_dec_sky,weight*new_weight_sky);
+                    //    Hist_OnData_CR_Skymap_Galactic.at(energy_fine).Fill(new_evt_l_b.first,new_evt_l_b.second,weight*new_weight_sky);
+                    //    Hist_OnData_CR_CameraFoV_Theta2.at(energy_fine).Fill(R2off,weight*new_weight_sky);
+                    //    Hist_OnData_CR_CameraFoV.at(energy_fine).Fill(Xoff,Yoff,weight*new_weight_sky);
+                    //}
+
                 }
             }
         }
@@ -1713,7 +1814,7 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
             if (energy<0) continue;
             if (energy>=N_energy_bins) continue;
             if (!SelectNImages(3,4)) continue;
-            if (FoV() && GammaFoV()) raw_gamma_count[energy_fine] += 1.;
+            if (FoV(true) && GammaFoV()) raw_gamma_count[energy_fine] += 1.;
         }
     }
 
@@ -1784,14 +1885,14 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
             if (!SelectNImages(3,4)) continue;
             if (theta2<0.3) Hist_GammaMC_MSCLW.at(energy).Fill(MSCL,MSCW,1.);
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze,photon_weight);
-            if (FoV() && GammaFoV())
+            if (FoV(true) && GammaFoV())
             {
                 Hist_Data_MSCLW_incl.Fill(MSCL,MSCW,photon_weight);
                 Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW,photon_weight);
             }
             if (SignalSelectionTheta2())
             {
-                if (FoV() && GammaFoV())
+                if (FoV(true) && GammaFoV())
                 {
                     Hist_OnData_SR_Energy.at(energy).Fill(ErecS*1000.,photon_weight);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
@@ -1811,7 +1912,7 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
             }
             if (ControlSelectionTheta2())
             {
-                if (FoV() && GammaFoV())
+                if (FoV(true) && GammaFoV())
                 {
                     int binx = Hist_OnDark_SR_CameraFoV.at(energy_fine).GetXaxis()->FindBin(R2off);
                     int biny = Hist_OnDark_SR_CameraFoV.at(energy_fine).GetYaxis()->FindBin(Phioff);
@@ -2016,7 +2117,7 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         }
     }
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+".root","recreate");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("N_bins_for_deconv",&N_bins_for_deconv,"N_bins_for_deconv/I");
     InfoTree.Branch("MSCW_cut_blind",&MSCW_cut_blind,"MSCW_cut_blind/D");
@@ -2057,6 +2158,21 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         StarTree.Fill();
     }
     StarTree.Write();
+    TTree FaintStarTree("FaintStarTree","faint star tree");
+    double faint_star_ra;
+    double faint_star_dec;
+    double faint_star_brightness;
+    FaintStarTree.Branch("faint_star_ra",&faint_star_ra,"faint_star_ra/D");
+    FaintStarTree.Branch("faint_star_dec",&faint_star_dec,"faint_star_dec/D");
+    FaintStarTree.Branch("faint_star_brightness",&faint_star_brightness,"faint_star_brightness/D");
+    for (int star=0;star<FaintStars_Data.size();star++)
+    {
+        faint_star_ra = FaintStars_Data.at(star).at(0);
+        faint_star_dec = FaintStars_Data.at(star).at(1);
+        faint_star_brightness = FaintStars_Data.at(star).at(3);
+        FaintStarTree.Fill();
+    }
+    FaintStarTree.Write();
     Hist_Dark_NSB.Write();
     Hist_Data_NSB.Write();
     Hist_EffArea.Write();

@@ -1175,11 +1175,22 @@ void GetReducedEigenvalueMatrix(int rank_cutoff)
         }
     }
 }
-void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut)
+void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, bool isON)
 {
 
     TH1::SetDefaultSumw2();
     sprintf(target, "%s", target_data.c_str());
+
+    TString ONOFF_tag;
+    if (isON) 
+    {
+        source_theta2_cut = 0.;
+        ONOFF_tag = "ON";
+    }
+    else
+    {
+        ONOFF_tag = "OFF";
+    }
 
     if (MJD_start_cut!=0 || MJD_end_cut!=0)
     {
@@ -1209,7 +1220,7 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
     MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
     MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
-    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+".root");
+    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputDataFile.Get("InfoTree");
 
@@ -1390,10 +1401,10 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
 
     }
 
-    InputDataFile.Cp("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+".root");
+    InputDataFile.Cp("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
     InputDataFile.Close();
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+".root","update");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","update");
     for (int e=0;e<N_energy_bins;e++)
     {
         Hist_OnBkgd_MSCLW.at(e).Write();

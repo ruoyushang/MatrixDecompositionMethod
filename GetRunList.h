@@ -169,6 +169,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("MGRO_J1908_V6");
         }
+        if (source=="MGRO_J2031_V6")
+        {
+            list = GetRunListFromFile("MGRO_J2031_V6");
+        }
         if (source=="CygnusV6")
         {
             list = GetRunListFromFile("CygnusV6");
@@ -218,6 +222,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list_temp = GetRunListFromFile("SgrA_MatchedDark_V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("Cygnus_MatchedDark_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("Geminga_MatchedDark_V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
         if (source=="CTA1V5") {

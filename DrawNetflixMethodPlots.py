@@ -16,31 +16,36 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-method_tag = '8bins_unconstrained'
+#method_tag = '8bins_unconstrained'
 #method_tag = '8bins_unconstrained_Modified'
 #method_tag = '8bins_constrained'
-#method_tag = '16bins_unconstrained'
+method_tag = '16bins_unconstrained'
+#method_tag = '16bins_unconstrained_Modified'
 
 #elev_bins = [25,35,45,55,65,75,85]
-elev_bins = [25,45,85]
+elev_bins = [45,85]
 
+ONOFF_tag = 'ON'
+#ONOFF_tag = 'OFF'
 root_file_tags = []
 for elev in range(0,len(elev_bins)-1):
     # all time
-    root_file_tags += [method_tag+'_TelElev%sto%s'%(elev_bins[elev],elev_bins[elev+1])]
+    root_file_tags += [method_tag+'_TelElev%sto%s_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
     # 1ES 1215 flare
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD54746to55018'%(elev_bins[elev],elev_bins[elev+1])]
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD57367to57549'%(elev_bins[elev],elev_bins[elev+1])]
+    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD54746to55018_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD57367to57549_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
     # WComae and 1ES 1218 flare
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD54400to54700'%(elev_bins[elev],elev_bins[elev+1])]
+    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD54400to54700_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+    # Geminga flare
+    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56000to56500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
 
 selection_tag = root_file_tags[0]
 
-folder_path = 'output_test'
-#folder_path = 'output_root'
+#folder_path = 'output_test'
+folder_path = 'output_root'
 PercentCrab = ''
 
-energy_fine_bin_cut_low = 0
+energy_fine_bin_cut_low = 10
 energy_fine_bin_cut_up = 20
 selection_tag += '_E%s'%(energy_fine_bin_cut_low)
 
@@ -115,15 +120,18 @@ sky_coord = []
 #sample_list += ['OJ287V6']
 #sky_coord += ['08 54 49.1 +20 05 58.89']
 
+#sample_list += ['2HWC_J1930V6']
+#sky_coord += ['19 30 32 +18 52 12']
+
 #sample_list += ['2HWC_J1953V6']
 #sky_coord += ['19 53 02.4 +29 28 48']
 
-sample_list += ['WComaeV6']
-sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV5']
-sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV4']
-sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV6']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV5']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV4']
+#sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
@@ -138,6 +146,9 @@ sky_coord += ['12 21 31.7 +28 13 59']
 #sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['MGRO_J1908_V4']
 #sky_coord += ['19 07 54 +06 16 07']
+
+sample_list += ['MGRO_J2031_V6']
+sky_coord += ['20 28 43.2 +41 18 36']
 
 #sample_list += ['Segue1V6']
 #sky_coord += ['10 07 04 +16 04 55']
@@ -202,8 +213,6 @@ sky_coord += ['12 21 31.7 +28 13 59']
 #sky_coord += ['00 25 21.6 +64 07 48']
 #sample_list += ['CTA1V5']
 #sky_coord += ['00 06 26 +72 59 01.0']
-#sample_list += ['2HWC_J1930V6']
-#sky_coord += ['19 30 32 +18 52 12']
 
 other_stars = []
 other_star_coord = []
@@ -211,6 +220,9 @@ other_star_coord = []
 bright_star_ra = []
 bright_star_dec = []
 bright_star_brightness = []
+faint_star_ra = []
+faint_star_dec = []
+faint_star_brightness = []
 
 def ConvertRaDecToGalactic(ra, dec):
     delta = dec*ROOT.TMath.Pi()/180.
@@ -231,6 +243,9 @@ def GetBrightStarInfo(file_list):
     global bright_star_ra
     global bright_star_dec
     global bright_star_brightness
+    global faint_star_ra
+    global faint_star_dec
+    global faint_star_brightness
 
     for path in range(0,len(file_list)):
         print 'Read file: %s'%(file_list[path])
@@ -240,11 +255,16 @@ def GetBrightStarInfo(file_list):
         for entry in range(0,StarTree.GetEntries()):
             StarTree.GetEntry(entry)
             distance_to_center = pow(pow(source_ra-StarTree.star_ra,2)+pow(source_dec-StarTree.star_dec,2),0.5)
-            #if StarTree.star_brightness>5.0: continue
-            #if distance_to_center>2.5: continue
             bright_star_ra += [StarTree.star_ra]
             bright_star_dec += [StarTree.star_dec]
             bright_star_brightness += [StarTree.star_brightness]
+        FaintStarTree = InputFile.Get("FaintStarTree")
+        for entry in range(0,FaintStarTree.GetEntries()):
+            FaintStarTree.GetEntry(entry)
+            distance_to_center = pow(pow(source_ra-FaintStarTree.faint_star_ra,2)+pow(source_dec-FaintStarTree.faint_star_dec,2),0.5)
+            faint_star_ra += [FaintStarTree.faint_star_ra]
+            faint_star_dec += [FaintStarTree.faint_star_dec]
+            faint_star_brightness += [FaintStarTree.faint_star_brightness]
         InputFile.Close()
 
 def GetGammaSourceInfo():
@@ -927,6 +947,7 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
         bkgd_flux = GetBackgroundFlux()
         crab_flux = GetCrabFlux()
         for binx in range(0,Hist_data_mjd[roi].GetNbinsX()):
+            if crab_flux==0.: continue
             Hist_ratio_mjd[roi].SetBinContent(binx+1,Hist_ratio_mjd[roi].GetBinContent(binx+1)*bkgd_flux/crab_flux)
             Hist_ratio_mjd[roi].SetBinError(binx+1,Hist_ratio_mjd[roi].GetBinError(binx+1)*bkgd_flux/crab_flux)
 
@@ -967,6 +988,43 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
 
         c_both.SaveAs('output_plots/%s_RoI%s_%s.png'%(name,roi,selection_tag))
 
+def MakeStarEffectPlot(Hist_data,Hist_bkgd,legends,colors,name,range_lower,range_upper):
+
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    pad = ROOT.TPad("pad","pad",0,0,1,1)
+    pad.SetBottomMargin(0.1)
+    pad.SetTopMargin(0.1)
+    pad.SetLeftMargin(0.15)
+    pad.SetBorderMode(1)
+    pad.Draw()
+    pad.cd()
+
+    norm_bin_low_target = Hist_data[0].FindBin(range_lower)
+    norm_bin_up_target = Hist_data[0].FindBin(range_upper)-1
+
+    n_roi = 0
+    star_brightness, star_effect, star_brightness_err, star_effect_err = array( 'd' ), array( 'd' ) , array( 'd' ) , array( 'd' )
+    for roi in range(0,len(Hist_data)):
+        if not 'b-mag' in legends[roi]: continue
+        star_brightness.append(float(legends[roi].strip('b-mag ')))
+        star_brightness_err.append(0.)
+        data_count = Hist_data[roi].Integral(norm_bin_low_target,norm_bin_up_target)
+        bkgd_count = Hist_bkgd[roi].Integral(norm_bin_low_target,norm_bin_up_target)
+        star_effect.append( (data_count-bkgd_count)/bkgd_count )
+        star_effect_err.append( pow(data_count,0.5)/bkgd_count )
+        n_roi += 1
+
+    gr = ROOT.TGraphErrors( n_roi, star_brightness, star_effect , star_brightness_err, star_effect_err )
+    gr.SetLineColor( 1 )
+    gr.SetLineWidth( 4 )
+    gr.SetMarkerColor( 1 )
+    gr.SetMarkerStyle( 21 )
+    gr.GetXaxis().SetTitle( 'b-mag' )
+    gr.GetYaxis().SetTitle( 'star syst.' )
+    gr.Draw( 'AP' )
+
+    c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
+
 def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,range_upper,syst):
     
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
@@ -989,8 +1047,11 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
 
     pad1.cd()
 
-    norm_bin_low_target = Hists[0].FindBin(range_lower)
-    norm_bin_up_target = Hists[0].FindBin(range_upper)-1
+    norm_bin_low_target = 1
+    norm_bin_up_target = Hists[0].GetNbinsX()
+    if 'MSCW' in name or 'MSCL' in name:
+        norm_bin_low_target = Hists[0].FindBin(range_lower)
+        norm_bin_up_target = Hists[0].FindBin(range_upper)-1
 
     max_heigh = 0
     max_hist = 0
@@ -1229,14 +1290,14 @@ def PlotsStackedHistograms(tag):
         colors = []
         stack_it = []
         Hists += [Hist_OnData_RoI_Theta2_Sum[nth_roi]]
-        legends += ['obs. data (%s)'%(roi_name[nth_roi])]
+        legends += ['%s'%(roi_name[nth_roi])]
         colors += [1]
         stack_it += [False]
         Hists += [Hist_OnBkgd_RoI_Theta2_Sum[nth_roi]]
         legends += ['predict. bkg.']
         colors += [4]
         stack_it += [True]
-        plotname = 'Stack_RoI_Theta2_MDM_V%s_%s'%(nth_roi,tag)
+        plotname = 'Stack_RoI%s_Theta2_MDM_%s'%(nth_roi,tag)
         title = 'squared angle from source location #theta^{2}'
         MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
 
@@ -1252,7 +1313,7 @@ def PlotsStackedHistograms(tag):
         legends += ['predict. bkg.']
         colors += [4]
         stack_it += [True]
-        plotname = 'Stack_RoI_Energy_MDM_V%s_%s'%(nth_roi,tag)
+        plotname = 'Stack_RoI%s_Energy_MDM_%s'%(nth_roi,tag)
         title = 'energy [GeV]'
         MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
@@ -1266,7 +1327,7 @@ def PlotsStackedHistograms(tag):
         legends += ['MDM bkg.']
         colors += [4]
         title = 'energy [GeV]'
-        plotname = 'CrabUnit_RoI_Energy_MDM_V%s_%s'%(nth_roi,tag)
+        plotname = 'CrabUnit_RoI%s_Energy_MDM_%s'%(nth_roi,tag)
         MakeSpectrumInNonCrabUnit(Hists,title,plotname,-1)
 
     Hist_data_mjd = []
@@ -1278,7 +1339,7 @@ def PlotsStackedHistograms(tag):
         colors += [nth_roi+1]
         Hist_data_mjd += [Hist_OnData_RoI_MJD_Sum[nth_roi]]
         Hist_bkgd_mjd += [Hist_OnBkgd_RoI_MJD_Sum[nth_roi]]
-    plotname = 'LightCurve_RoI_Year_MDM_V%s_%s'%(nth_roi,tag)
+    plotname = 'LightCurve_RoI_Year_MDM_%s'%(tag)
     title = 'Year'
     MakeLightCurvePlot(Hist_data_mjd,Hist_bkgd_mjd,legends,colors,title,plotname)
 
@@ -1291,9 +1352,21 @@ def PlotsStackedHistograms(tag):
         colors += [nth_roi+1]
         Hist_data_energy += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
         Hist_bkgd_energy += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
-    plotname = 'Spectrum_RoI_CrabUnit_MDM_V%s_%s'%(nth_roi,tag)
+    plotname = 'Spectrum_RoI%s_CrabUnit_MDM_%s'%(nth_roi,tag)
     title = 'GeV'
     MakeCrabUnitSpectrumPlot(Hist_data_energy,Hist_bkgd_energy,legends,colors,title,plotname)
+
+    Hist_data_theta2 = []
+    Hist_bkgd_theta2 = []
+    legends = []
+    colors = []
+    for nth_roi in range(0,len(roi_ra)):
+        legends += ['%s'%(roi_name[nth_roi])]
+        colors += [nth_roi+1]
+        Hist_data_theta2 += [Hist_OnData_RoI_Theta2_Sum[nth_roi]]
+        Hist_bkgd_theta2 += [Hist_OnBkgd_RoI_Theta2_Sum[nth_roi]]
+    plotname = 'StarEffect_RoI%s_MDM_%s'%(nth_roi,tag)
+    MakeStarEffectPlot(Hist_data_theta2,Hist_bkgd_theta2,legends,colors,plotname,0.,0.075)
 
     Hists = []
     legends = []
@@ -1910,6 +1983,8 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     other_star_significance = []
     bright_star_labels = []
     bright_star_markers = []
+    faint_star_labels = []
+    faint_star_markers = []
     if xtitle=="RA":
         for star in range(0,len(other_stars)):
             if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>2.5*2.5: continue
@@ -1929,6 +2004,13 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
             bright_star_labels += [ROOT.TLatex(-bright_star_ra[star]-0.15,bright_star_dec[star]+0.15,'b-mag %s'%(bright_star_brightness[star]))]
             bright_star_labels[len(bright_star_labels)-1].SetTextColor(2)
             bright_star_labels[len(bright_star_labels)-1].SetTextSize(0.02)
+        for star in range(0,len(faint_star_ra)):
+            faint_star_markers += [ROOT.TMarker(-faint_star_ra[star],faint_star_dec[star],30)]
+            faint_star_markers[len(faint_star_markers)-1].SetMarkerColor(3)
+            faint_star_markers[len(faint_star_markers)-1].SetMarkerSize(1.5)
+            faint_star_labels += [ROOT.TLatex(-faint_star_ra[star]-0.15,faint_star_dec[star]+0.15,'b-mag %s'%(faint_star_brightness[star]))]
+            faint_star_labels[len(faint_star_labels)-1].SetTextColor(3)
+            faint_star_labels[len(faint_star_labels)-1].SetTextSize(0.02)
     else:
         for star in range(0,len(other_stars)):
             gal_l, gal_b = ConvertRaDecToGalactic(other_star_coord[star][0],other_star_coord[star][1])
@@ -1950,6 +2032,14 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
             bright_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,'b-mag %s'%(bright_star_brightness[star]))]
             bright_star_labels[len(bright_star_labels)-1].SetTextColor(2)
             bright_star_labels[len(bright_star_labels)-1].SetTextSize(0.02)
+        for star in range(0,len(faint_star_ra)):
+            gal_l, gal_b = ConvertRaDecToGalactic(faint_star_ra[star],faint_star_dec[star])
+            faint_star_markers += [ROOT.TMarker(-gal_l,gal_b,30)]
+            faint_star_markers[len(faint_star_markers)-1].SetMarkerColor(3)
+            faint_star_markers[len(faint_star_markers)-1].SetMarkerSize(1.5)
+            faint_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,'b-mag %s'%(faint_star_brightness[star]))]
+            faint_star_labels[len(faint_star_labels)-1].SetTextColor(3)
+            faint_star_labels[len(faint_star_labels)-1].SetTextSize(0.02)
 
     canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
     pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
@@ -2012,6 +2102,9 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.70,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
     lumilab1.SetNDC()
@@ -2047,6 +2140,9 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     Hist_Skymap_Excess.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Excess.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap_Excess.GetXaxis().GetXmin()
@@ -2062,14 +2158,14 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     Hist_Skymap_Ratio = Hist_SR.Clone()
     Hist_Skymap_Ratio.Add(Hist_Bkg,-1.)
     Hist_Skymap_Ratio.Divide(Hist_Bkg)
-    bkgd_flux = GetBackgroundFlux()
-    crab_flux = GetCrabFlux()
-    for bx in range(0,Hist_SR.GetNbinsX()):
-        for by in range(0,Hist_SR.GetNbinsY()):
-            if Hist_Bkg.GetBinContent(bx+1,by+1)<100: 
-                Hist_Skymap_Ratio.SetBinContent(bx+1,by+1,0.)
-            else:
-                Hist_Skymap_Ratio.SetBinContent(bx+1,by+1,Hist_Skymap_Ratio.GetBinContent(bx+1,by+1)*bkgd_flux/crab_flux)
+    #bkgd_flux = GetBackgroundFlux()
+    #crab_flux = GetCrabFlux()
+    #for bx in range(0,Hist_SR.GetNbinsX()):
+    #    for by in range(0,Hist_SR.GetNbinsY()):
+    #        if Hist_Bkg.GetBinContent(bx+1,by+1)<100: 
+    #            Hist_Skymap_Ratio.SetBinContent(bx+1,by+1,0.)
+    #        else:
+    #            Hist_Skymap_Ratio.SetBinContent(bx+1,by+1,Hist_Skymap_Ratio.GetBinContent(bx+1,by+1)*bkgd_flux/crab_flux)
     Hist_Skymap_Ratio = reflectXaxis(Hist_Skymap_Ratio)
 
     pad1.cd()
@@ -2082,6 +2178,9 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     Hist_Skymap_Ratio.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Ratio.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap_Ratio.GetXaxis().GetXmin()
@@ -2131,6 +2230,9 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].Draw("same")
         bright_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     Hist_Skymap_zoomin.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_zoomin.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap_zoomin.GetXaxis().GetXmin()
@@ -2161,10 +2263,13 @@ def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold, init_x, in
     Hist_Excess = Hist_data.Clone()
     Hist_Excess.Add(Hist_bkgd,-1.)
 
-    maxbin = Hist_Excess.GetMaximumBin()
     xx, yy, zz = ROOT.Long(0), ROOT.Long(0), ROOT.Long(0)
+    maxbin = Hist_Excess.GetMaximumBin()
     Hist_Excess.GetBinXYZ(maxbin, xx, yy, zz)
     print 'max excess at %s, %s'%(Hist_Excess.GetXaxis().GetBinCenter(xx),Hist_Excess.GetYaxis().GetBinCenter(yy))
+    minbin = Hist_Excess.GetMinimumBin()
+    Hist_Excess.GetBinXYZ(minbin, xx, yy, zz)
+    print 'min excess at %s, %s'%(Hist_Excess.GetXaxis().GetBinCenter(xx),Hist_Excess.GetYaxis().GetBinCenter(yy))
 
     for bx in range(0,Hist_Excess.GetNbinsX()):
         for by in range(0,Hist_Excess.GetNbinsY()):

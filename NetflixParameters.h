@@ -1,8 +1,8 @@
 
-char output_file_tag[50] = "8bins";
-int N_bins_for_deconv = 8; // 8 should be the lowest bin number
-//char output_file_tag[50] = "16bins";
-//int N_bins_for_deconv = 16; // 8 should be the lowest bin number
+//char output_file_tag[50] = "8bins";
+//int N_bins_for_deconv = 8; // 8 should be the lowest bin number
+char output_file_tag[50] = "16bins";
+int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
 //char output_file2_tag[50] = "constrained";
 //bool solution_w_constraints = true;
@@ -16,7 +16,7 @@ double MSCL_cut_moderate = 0.5;
 double MSCW_cut_loose = 0.8;
 double MSCL_cut_loose = 0.8;
 double camera_theta2_cut = 9.;
-double source_theta2_cut = 0.;
+double source_theta2_cut = 0.2;
 
 int n_control_samples = 5;
 //const int N_energy_bins = 1;
@@ -39,6 +39,6 @@ double MSCL_plot_upper = 3.;
 double MSCW_plot_lower = -1.;
 double MSCL_plot_lower = -1.;
 
-//double brightness_cut = 6.0;
+//double brightness_cut = 0.;
 double brightness_cut = 5.5;
-//double brightness_cut = 5.0;
+double bright_star_radius_cut = 0.25;
