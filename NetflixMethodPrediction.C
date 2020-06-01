@@ -110,6 +110,15 @@ MatrixXcd fillMatrix(TH2D* hist)
     }
     return matrix;
 }
+void fill1DHistogram(TH1D* hist,MatrixXcd mtx, int rank)
+{
+    for (int binx=0;binx<hist->GetNbinsX();binx++)
+    {
+        hist->SetBinContent(binx+1,mtx(binx,mtx.cols()-1-rank).real());
+    }
+    double integral = hist->Integral();
+    hist->Scale(abs(integral)/integral);
+}
 MatrixXcd MakeRealEigenvectors(MatrixXcd mtx_input)
 {
     MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
@@ -1298,6 +1307,18 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
     vector<TH2D> Hist_Rank0_MSCLW;
     vector<TH2D> Hist_Rank1_MSCLW;
     vector<TH2D> Hist_Rank2_MSCLW;
+    vector<TH1D> Hist_Data_Rank0_LeftVector;
+    vector<TH1D> Hist_Data_Rank1_LeftVector;
+    vector<TH1D> Hist_Data_Rank2_LeftVector;
+    vector<TH1D> Hist_Data_Rank0_RightVector;
+    vector<TH1D> Hist_Data_Rank1_RightVector;
+    vector<TH1D> Hist_Data_Rank2_RightVector;
+    vector<TH1D> Hist_Bkgd_Rank0_LeftVector;
+    vector<TH1D> Hist_Bkgd_Rank1_LeftVector;
+    vector<TH1D> Hist_Bkgd_Rank2_LeftVector;
+    vector<TH1D> Hist_Bkgd_Rank0_RightVector;
+    vector<TH1D> Hist_Bkgd_Rank1_RightVector;
+    vector<TH1D> Hist_Bkgd_Rank2_RightVector;
     for (int e=0;e<N_energy_bins;e++) 
     {
         std::cout << "++++++++++++++++++++++++++++++++++++++" << std::endl;
@@ -1312,6 +1333,19 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
         Hist_Rank0_MSCLW.push_back(TH2D("Hist_Rank0_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Rank1_MSCLW.push_back(TH2D("Hist_Rank1_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Rank2_MSCLW.push_back(TH2D("Hist_Rank2_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+
+        Hist_Data_Rank0_LeftVector.push_back(TH1D("Hist_Data_Rank0_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Data_Rank1_LeftVector.push_back(TH1D("Hist_Data_Rank1_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Data_Rank2_LeftVector.push_back(TH1D("Hist_Data_Rank2_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Data_Rank0_RightVector.push_back(TH1D("Hist_Data_Rank0_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Data_Rank1_RightVector.push_back(TH1D("Hist_Data_Rank1_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Data_Rank2_RightVector.push_back(TH1D("Hist_Data_Rank2_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Bkgd_Rank0_LeftVector.push_back(TH1D("Hist_Bkgd_Rank0_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Bkgd_Rank1_LeftVector.push_back(TH1D("Hist_Bkgd_Rank1_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Bkgd_Rank2_LeftVector.push_back(TH1D("Hist_Bkgd_Rank2_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Bkgd_Rank0_RightVector.push_back(TH1D("Hist_Bkgd_Rank0_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Bkgd_Rank1_RightVector.push_back(TH1D("Hist_Bkgd_Rank1_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Bkgd_Rank2_RightVector.push_back(TH1D("Hist_Bkgd_Rank2_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
 
         TString filename_gamma  = "Hist_GammaData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         if (PercentCrab>0.) filename_gamma  = "Hist_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -1399,6 +1433,19 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
         mtx_data_redu = eigensolver_data.eigenvectors()*mtx_eigenval_data_redu*eigensolver_data.eigenvectors().inverse();
         fill2DHistogram(&Hist_Rank2_MSCLW.at(e),mtx_data_redu);
 
+        fill1DHistogram(&Hist_Data_Rank0_LeftVector.at(e),eigensolver_data.eigenvectors().inverse().transpose(),0);
+        fill1DHistogram(&Hist_Data_Rank1_LeftVector.at(e),eigensolver_data.eigenvectors().inverse().transpose(),1);
+        fill1DHistogram(&Hist_Data_Rank2_LeftVector.at(e),eigensolver_data.eigenvectors().inverse().transpose(),2);
+        fill1DHistogram(&Hist_Data_Rank0_RightVector.at(e),eigensolver_data.eigenvectors(),0);
+        fill1DHistogram(&Hist_Data_Rank1_RightVector.at(e),eigensolver_data.eigenvectors(),1);
+        fill1DHistogram(&Hist_Data_Rank2_RightVector.at(e),eigensolver_data.eigenvectors(),2);
+        fill1DHistogram(&Hist_Bkgd_Rank0_LeftVector.at(e),eigensolver_bkgd.eigenvectors().inverse().transpose(),0);
+        fill1DHistogram(&Hist_Bkgd_Rank1_LeftVector.at(e),eigensolver_bkgd.eigenvectors().inverse().transpose(),1);
+        fill1DHistogram(&Hist_Bkgd_Rank2_LeftVector.at(e),eigensolver_bkgd.eigenvectors().inverse().transpose(),2);
+        fill1DHistogram(&Hist_Bkgd_Rank0_RightVector.at(e),eigensolver_bkgd.eigenvectors(),0);
+        fill1DHistogram(&Hist_Bkgd_Rank1_RightVector.at(e),eigensolver_bkgd.eigenvectors(),1);
+        fill1DHistogram(&Hist_Bkgd_Rank2_RightVector.at(e),eigensolver_bkgd.eigenvectors(),2);
+
     }
 
     InputDataFile.Cp("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
@@ -1413,6 +1460,18 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
         Hist_Rank0_MSCLW.at(e).Write();
         Hist_Rank1_MSCLW.at(e).Write();
         Hist_Rank2_MSCLW.at(e).Write();
+        Hist_Data_Rank0_LeftVector.at(e).Write();
+        Hist_Data_Rank1_LeftVector.at(e).Write();
+        Hist_Data_Rank2_LeftVector.at(e).Write();
+        Hist_Data_Rank0_RightVector.at(e).Write();
+        Hist_Data_Rank1_RightVector.at(e).Write();
+        Hist_Data_Rank2_RightVector.at(e).Write();
+        Hist_Bkgd_Rank0_LeftVector.at(e).Write();
+        Hist_Bkgd_Rank1_LeftVector.at(e).Write();
+        Hist_Bkgd_Rank2_LeftVector.at(e).Write();
+        Hist_Bkgd_Rank0_RightVector.at(e).Write();
+        Hist_Bkgd_Rank1_RightVector.at(e).Write();
+        Hist_Bkgd_Rank2_RightVector.at(e).Write();
     }
     for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
     {

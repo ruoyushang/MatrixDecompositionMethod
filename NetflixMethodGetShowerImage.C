@@ -443,8 +443,7 @@ void GetBrightStars()
         {
             BrightStars_Data.push_back(lineData);
         }
-        //else if (star_brightness<brightness_cut+1.0)
-        else
+        else if (star_brightness<faint_brightness_cut)
         {
             FaintStars_Data.push_back(lineData);
         }
@@ -1118,6 +1117,14 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(1.0);
+        roi_name.push_back("PSR J2032+4127");
+        roi_ra.push_back(308.041666667);
+        roi_dec.push_back(41.4594444444);
+        roi_radius.push_back(1.0);
+        roi_name.push_back("VER J2019+407");
+        roi_ra.push_back(305.02);
+        roi_dec.push_back(40.7572222222);
+        roi_radius.push_back(0.3);
     }
     else if (TString(target).Contains("Crab")) 
     {
