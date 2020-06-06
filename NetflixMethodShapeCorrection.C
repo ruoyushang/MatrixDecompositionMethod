@@ -89,6 +89,7 @@ void NetflixMethodShapeCorrection(string target_data, double tel_elev_lower_inpu
     GetGammaSources();
 
 
+    TH1D Hist_Elev = TH1D("Hist_Elev","",N_elev_bins,elev_bins);
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
     TH1D Hist_ErecS_fine = TH1D("Hist_ErecS_fine","",N_energy_fine_bins,energy_fine_bins);
 
@@ -141,10 +142,37 @@ void NetflixMethodShapeCorrection(string target_data, double tel_elev_lower_inpu
         Hist_OnData_CR_Energy.push_back(TH1D("Hist_OnData_CR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
     }
 
-    vector<TH2D> Hist_OnDark_SR_CameraFoV;
-    vector<TH2D> Hist_OnDark_CR_CameraFoV;
-    vector<TH1D> Hist_OnDark_SR_Theta2;
-    vector<TH1D> Hist_OnDark_CR_Theta2;
+    vector<vector<TH2D>> Hist_OnDark_SR_CameraFoV;
+    vector<vector<TH2D>> Hist_OnDark_CR_CameraFoV;
+    vector<vector<TH1D>> Hist_OnDark_SR_Theta2;
+    vector<vector<TH1D>> Hist_OnDark_CR_Theta2;
+    for (int elev=0;elev<N_elev_bins;elev++) 
+    {
+        char elev_low[50];
+        sprintf(elev_low, "%i", int(elev_bins[elev]));
+        char elev_up[50];
+        sprintf(elev_up, "%i", int(elev_bins[elev+1]));
+        vector<TH2D> Hist_OnDark_SR_CameraFoV_ThisElev;
+        vector<TH2D> Hist_OnDark_CR_CameraFoV_ThisElev;
+        vector<TH1D> Hist_OnDark_SR_Theta2_ThisElev;
+        vector<TH1D> Hist_OnDark_CR_Theta2_ThisElev;
+        for (int e=0;e<N_energy_fine_bins;e++) 
+        {
+            char e_low[50];
+            sprintf(e_low, "%i", int(energy_fine_bins[e]));
+            char e_up[50];
+            sprintf(e_up, "%i", int(energy_fine_bins[e+1]));
+            Hist_OnDark_SR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_SR_CameraFoV_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,0,2*M_PI));
+            Hist_OnDark_CR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_CR_CameraFoV_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,0,2*M_PI));
+            Hist_OnDark_SR_Theta2_ThisElev.push_back(TH1D("Hist_OnDark_SR_Theta2_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,10));
+            Hist_OnDark_CR_Theta2_ThisElev.push_back(TH1D("Hist_OnDark_CR_Theta2_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,10));
+        }
+        Hist_OnDark_SR_CameraFoV.push_back(Hist_OnDark_SR_CameraFoV_ThisElev);
+        Hist_OnDark_CR_CameraFoV.push_back(Hist_OnDark_CR_CameraFoV_ThisElev);
+        Hist_OnDark_SR_Theta2.push_back(Hist_OnDark_SR_Theta2_ThisElev);
+        Hist_OnDark_CR_Theta2.push_back(Hist_OnDark_CR_Theta2_ThisElev);
+    }
+
     vector<TH1D> Hist_OnData_SR_Skymap_Theta2;
     vector<TH1D> Hist_OnData_CR_Skymap_Theta2;
     vector<TH1D> Hist_OnData_CR_Skymap_Theta2_Raw;
@@ -165,10 +193,6 @@ void NetflixMethodShapeCorrection(string target_data, double tel_elev_lower_inpu
         sprintf(e_low, "%i", int(energy_fine_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_fine_bins[e+1]));
-        Hist_OnDark_SR_CameraFoV.push_back(TH2D("Hist_OnDark_SR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,0,2*M_PI));
-        Hist_OnDark_CR_CameraFoV.push_back(TH2D("Hist_OnDark_CR_CameraFoV_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,0,2*M_PI));
-        Hist_OnDark_SR_Theta2.push_back(TH1D("Hist_OnDark_SR_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,10));
-        Hist_OnDark_CR_Theta2.push_back(TH1D("Hist_OnDark_CR_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,10));
         Hist_OnData_SR_Skymap_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_CR_Skymap_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_CR_Skymap_Theta2_Raw.push_back(TH1D("Hist_OnData_CR_Skymap_Theta2_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
@@ -320,9 +344,12 @@ void NetflixMethodShapeCorrection(string target_data, double tel_elev_lower_inpu
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
             int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
+            int elevation = Hist_Elev.FindBin(90.-Shower_Ze)-1;
             int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
             if (energy<0) continue;
             if (energy>=N_energy_bins) continue;
+            if (elevation<0) continue;
+            if (elevation>=N_elev_bins) continue;
             if (!SelectNImages(3,4)) continue;
             if (SizeSecondMax<SizeSecondMax_Cut) continue;
             if (EmissionHeight<6.) continue;
@@ -392,9 +419,12 @@ void NetflixMethodShapeCorrection(string target_data, double tel_elev_lower_inpu
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
             int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
+            int elevation = Hist_Elev.FindBin(90.-Shower_Ze)-1;
             int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
             if (energy<0) continue;
             if (energy>=N_energy_bins) continue;
+            if (elevation<0) continue;
+            if (elevation>=N_elev_bins) continue;
             if (!SelectNImages(3,4)) continue;
             if (SizeSecondMax<SizeSecondMax_Cut) continue;
             if (EmissionHeight<6.) continue;
@@ -410,14 +440,14 @@ void NetflixMethodShapeCorrection(string target_data, double tel_elev_lower_inpu
                 if (dark_content>0.) weight = bkgd_content/dark_content;
                 if (SignalSelectionTheta2())
                 {
-                    Hist_OnDark_SR_CameraFoV.at(energy_fine).Fill(R2off,Phioff,weight);
-                    Hist_OnDark_SR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff,weight);
+                    Hist_OnDark_SR_CameraFoV.at(elevation).at(energy_fine).Fill(R2off,Phioff,weight);
+                    Hist_OnDark_SR_Theta2.at(elevation).at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff,weight);
                     Hist_OnDark_SR_Energy.at(energy).Fill(ErecS*1000.,weight);
                 }
                 if (ControlSelectionTheta2())
                 {
-                    Hist_OnDark_CR_CameraFoV.at(energy_fine).Fill(R2off,Phioff,weight);
-                    Hist_OnDark_CR_Theta2.at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff,weight);
+                    Hist_OnDark_CR_CameraFoV.at(elevation).at(energy_fine).Fill(R2off,Phioff,weight);
+                    Hist_OnDark_CR_Theta2.at(elevation).at(energy_fine).Fill(Xoff*Xoff+Yoff*Yoff,weight);
                     Hist_OnDark_CR_Energy.at(energy).Fill(ErecS*1000.,weight);
                 }
             }
@@ -484,9 +514,12 @@ void NetflixMethodShapeCorrection(string target_data, double tel_elev_lower_inpu
             theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
             pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
             int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
+            int elevation = Hist_Elev.FindBin(90.-Shower_Ze)-1;
             int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
             if (energy<0) continue;
             if (energy>=N_energy_bins) continue;
+            if (elevation<0) continue;
+            if (elevation>=N_elev_bins) continue;
             if (!SelectNImages(3,4)) continue;
             if (SizeSecondMax<SizeSecondMax_Cut) continue;
             if (EmissionHeight<6.) continue;
@@ -520,10 +553,10 @@ void NetflixMethodShapeCorrection(string target_data, double tel_elev_lower_inpu
             {
                 if (FoV(true))
                 {
-                    int binx = Hist_OnDark_SR_CameraFoV.at(energy_fine).GetXaxis()->FindBin(R2off);
-                    int biny = Hist_OnDark_SR_CameraFoV.at(energy_fine).GetYaxis()->FindBin(Phioff);
-                    double dark_cr_content = Hist_OnDark_CR_CameraFoV.at(energy_fine).GetBinContent(binx,biny);
-                    double dark_sr_content = Hist_OnDark_SR_CameraFoV.at(energy_fine).GetBinContent(binx,biny);
+                    int binx = Hist_OnDark_SR_CameraFoV.at(elevation).at(energy_fine).GetXaxis()->FindBin(R2off);
+                    int biny = Hist_OnDark_SR_CameraFoV.at(elevation).at(energy_fine).GetYaxis()->FindBin(Phioff);
+                    double dark_cr_content = Hist_OnDark_CR_CameraFoV.at(elevation).at(energy_fine).GetBinContent(binx,biny);
+                    double dark_sr_content = Hist_OnDark_SR_CameraFoV.at(elevation).at(energy_fine).GetBinContent(binx,biny);
                     double weight = 0.;
                     if (dark_cr_content>0.) weight = dark_sr_content/dark_cr_content;
                     int bin_e = Hist_OnDark_SR_Energy.at(energy).FindBin(ErecS*1000.);
@@ -610,10 +643,6 @@ void NetflixMethodShapeCorrection(string target_data, double tel_elev_lower_inpu
     }
     for (int e=0;e<N_energy_fine_bins;e++) 
     {
-        Hist_OnDark_SR_CameraFoV.at(e).Write();
-        Hist_OnDark_CR_CameraFoV.at(e).Write();
-        Hist_OnDark_SR_Theta2.at(e).Write();
-        Hist_OnDark_CR_Theta2.at(e).Write();
         Hist_OnData_SR_Skymap_Theta2.at(e).Write();
         Hist_OnData_CR_Skymap_Theta2.at(e).Write();
         Hist_OnData_CR_Skymap_Theta2_Raw.at(e).Write();

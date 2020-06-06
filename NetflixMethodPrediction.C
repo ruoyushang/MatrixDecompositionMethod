@@ -1069,7 +1069,9 @@ void LeastSquareSolutionMethod(int rank_variation)
     //std::cout << "chi2 (final) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
     
     MatrixXcd mtx_temp = mtx_dark;
-    for (int iteration=0;iteration<5;iteration++)
+    int n_iterations = 5;
+    //int n_iterations = 2;
+    for (int iteration=0;iteration<n_iterations;iteration++)
     {
         if (rank_variation==1)
         {
@@ -1207,7 +1209,7 @@ void NetflixMethodPrediction(string target_data, double tel_elev_lower_input, do
     }
 
     //int rank_variation = 1;
-    int rank_variation = 3;
+    int rank_variation = NumberOfEigenvectors;
 
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
