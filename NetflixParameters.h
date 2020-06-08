@@ -1,8 +1,8 @@
 
-char output_file_tag[50] = "8bins";
-int N_bins_for_deconv = 8; // 8 should be the lowest bin number
-//char output_file_tag[50] = "16bins";
-//int N_bins_for_deconv = 16; // 8 should be the lowest bin number
+//char output_file_tag[50] = "8bins";
+//int N_bins_for_deconv = 8; // 8 should be the lowest bin number
+char output_file_tag[50] = "16bins";
+int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
 //char output_file2_tag[50] = "constrained";
 //bool solution_w_constraints = true;

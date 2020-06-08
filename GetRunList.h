@@ -77,14 +77,14 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source=="3C264") {
             list = GetRunListFromFile("3C264");
         }
-        if (source=="PKS1424") {
-            list = GetRunListFromFile("PKS1424");
+        if (source=="PKS1424V6") {
+            list = GetRunListFromFile("PKS1424V6");
         }
         if (source=="IC443HotSpotV6") {
             list = GetRunListFromFile("IC443HotSpotV6");
         }
-        if (source=="H1426") {
-            list = GetRunListFromFile("H1426");
+        if (source=="H1426V6") {
+            list = GetRunListFromFile("H1426V6");
         }
         if (source=="Crab") {
             list = GetRunListFromFile("Crab");
@@ -93,9 +93,9 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("S3_1227_V6");
         }
-        if (source=="1ES0229")
+        if (source=="1ES0229V6")
         {
-            list = GetRunListFromFile("1ES0229");
+            list = GetRunListFromFile("1ES0229V6");
         }
         if (source=="SgrAV6")
         {
@@ -207,6 +207,12 @@ vector<std::pair<string,int>> GetRunList(string source) {
         }
         if (source=="Everything")
         {
+            list_temp = GetRunListFromFile("PKS1424V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("H1426V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("1ES0229V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("OJ287V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("IC443HotSpotV6");
@@ -256,6 +262,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("CygnusV5");
         }
+        if (source=="MGRO_J2031_V5")
+        {
+            list = GetRunListFromFile("MGRO_J2031_V5");
+        }
         if (source=="EverythingV5")
         {
             list_temp = GetRunListFromFile("Segue1V5");
@@ -279,6 +289,9 @@ vector<std::pair<string,int>> GetRunList(string source) {
         }
         if (source=="MGRO_J1908_V4") {
             list = GetRunListFromFile("MGRO_J1908_V4");
+        }
+        if (source=="MGRO_J2031_V4") {
+            list = GetRunListFromFile("MGRO_J2031_V4");
         }
         if (source=="IC443HotSpotV4")
         {

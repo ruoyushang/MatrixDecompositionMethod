@@ -194,7 +194,7 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 38.222;
                 Source_Dec = 20.273;
     }
-    if (source_name=="PKS1424")
+    if (source_name=="PKS1424V6")
     {
             Source_RA = 216.750;
                 Source_Dec = 23.783;
@@ -322,6 +322,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
                 Source_Dec = 41.310;
     }
     if (source_name=="MGRO_J2031_V5")
+    {
+            Source_RA = 307.180;
+                Source_Dec = 41.310;
+    }
+    if (source_name=="MGRO_J2031_V4")
     {
             Source_RA = 307.180;
                 Source_Dec = 41.310;
@@ -1292,8 +1297,8 @@ void NetflixMethodGetShowerImage(string target_data, double tel_elev_lower_input
             sprintf(e_low, "%i", int(energy_fine_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_fine_bins[e+1]));
-            Hist_OnDark_SR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_SR_CameraFoV_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,0,2*M_PI));
-            Hist_OnDark_CR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_CR_CameraFoV_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,0,2*M_PI));
+            Hist_OnDark_SR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_SR_CameraFoV_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,12,0,2*M_PI));
+            Hist_OnDark_CR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_CR_CameraFoV_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,12,0,2*M_PI));
             Hist_OnDark_SR_Theta2_ThisElev.push_back(TH1D("Hist_OnDark_SR_Theta2_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,10));
             Hist_OnDark_CR_Theta2_ThisElev.push_back(TH1D("Hist_OnDark_CR_Theta2_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,10));
         }

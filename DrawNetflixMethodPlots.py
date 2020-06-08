@@ -16,14 +16,14 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-method_tag = '8bins_unconstrained'
+#method_tag = '8bins_unconstrained'
 #method_tag = '8bins_unconstrained_Modified'
 #method_tag = '8bins_constrained'
-#method_tag = '16bins_unconstrained'
+method_tag = '16bins_unconstrained'
 #method_tag = '16bins_unconstrained_Modified'
 
-#elev_bins = [45,55,65,75,85]
-elev_bins = [45,65,85]
+elev_bins = [45,55,65,75,85]
+#elev_bins = [45,65,85]
 #elev_bins = [45,85]
 
 ONOFF_tag = 'ON'
@@ -130,8 +130,11 @@ sky_coord = []
 #sample_list += ['1ES0229V6']
 #sky_coord += ['02 32 53.2 +20 16 21']
 
-sample_list += ['H1426V6']
-sky_coord += ['14 28 32.609 +42 40 21.05']
+#sample_list += ['H1426V6']
+#sky_coord += ['14 28 32.609 +42 40 21.05']
+
+#sample_list += ['PKS1424V6']
+#sky_coord += ['14 27 00 +23 47 00']
 
 #sample_list += ['2HWC_J1930V6']
 #sky_coord += ['19 30 32 +18 52 12']
@@ -153,16 +156,18 @@ sky_coord += ['14 28 32.609 +42 40 21.05']
 #sample_list += ['IC443HotSpotV4']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
 
-#sample_list += ['MGRO_J1908_V6']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V5']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V4']
-#sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V6']
+sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V5']
+sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V4']
+sky_coord += ['19 07 54 +06 16 07']
 
 #sample_list += ['MGRO_J2031_V6']
 #sky_coord += ['20 28 43.2 +41 18 36']
 #sample_list += ['MGRO_J2031_V5']
+#sky_coord += ['20 28 43.2 +41 18 36']
+#sample_list += ['MGRO_J2031_V4']
 #sky_coord += ['20 28 43.2 +41 18 36']
 
 #sample_list += ['Segue1V6']
@@ -184,8 +189,6 @@ sky_coord += ['14 28 32.609 +42 40 21.05']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['Mrk421']
 #sky_coord += ['11 04 19 +38 11 41']
-#sample_list += ['PKS1424']
-#sky_coord += ['14 27 00 +23 47 00']
 #sample_list += ['3C264']
 #sky_coord += ['11 45 5.009 +19 36 22.74']
 #sample_list += ['S3_1227_V6']
