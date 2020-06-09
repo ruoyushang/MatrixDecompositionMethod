@@ -16,10 +16,11 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
+#method_tag = '8bins_constrained'
 #method_tag = '8bins_unconstrained'
 #method_tag = '8bins_unconstrained_Modified'
-#method_tag = '8bins_constrained'
-method_tag = '16bins_unconstrained'
+method_tag = '16bins_constrained'
+#method_tag = '16bins_unconstrained'
 #method_tag = '16bins_unconstrained_Modified'
 
 elev_bins = [45,55,65,75,85]
@@ -142,12 +143,12 @@ sky_coord = []
 #sample_list += ['2HWC_J1953V6']
 #sky_coord += ['19 53 02.4 +29 28 48']
 
-#sample_list += ['WComaeV6']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV5']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV4']
-#sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV6']
+sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV5']
+sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV4']
+sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
@@ -156,12 +157,12 @@ sky_coord = []
 #sample_list += ['IC443HotSpotV4']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
 
-sample_list += ['MGRO_J1908_V6']
-sky_coord += ['19 07 54 +06 16 07']
-sample_list += ['MGRO_J1908_V5']
-sky_coord += ['19 07 54 +06 16 07']
-sample_list += ['MGRO_J1908_V4']
-sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V6']
+#sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V5']
+#sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V4']
+#sky_coord += ['19 07 54 +06 16 07']
 
 #sample_list += ['MGRO_J2031_V6']
 #sky_coord += ['20 28 43.2 +41 18 36']

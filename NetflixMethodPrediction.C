@@ -759,11 +759,11 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     {
         vtr_vari_big = SolutionWithConstraints(mtx_Big, mtx_Constraint, vtr_Delta);
         VectorXd vtr_should_be_zero = mtx_Constraint*vtr_vari_big;
-        std::cout << "entry_start = " << entry_start << std::endl;
-        std::cout << "mtx_Constraint = " << std::endl;
-        std::cout << mtx_Constraint << std::endl;
-        std::cout << "vtr_should_be_zero = " << std::endl;
-        std::cout << vtr_should_be_zero << std::endl;
+        //std::cout << "entry_start = " << entry_start << std::endl;
+        //std::cout << "mtx_Constraint = " << std::endl;
+        //std::cout << mtx_Constraint << std::endl;
+        //std::cout << "vtr_should_be_zero = " << std::endl;
+        //std::cout << vtr_should_be_zero << std::endl;
         for (int i=0;i<vtr_should_be_zero.size();i++)
         {
             if (isnan(vtr_should_be_zero(i))) return mtx_input;

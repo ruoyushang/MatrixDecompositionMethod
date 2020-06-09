@@ -802,12 +802,13 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     if (already_used_run) continue;
 
                     // This selection gives control samples almost identical in MSCL/MSCW shapes
-                    double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
-                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>4.0*4.0)
-                    {
-                        chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                    }
-                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<2.0*2.0 && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<5.*5.)
+                    //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
+                    //if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>4.0*4.0)
+                    //{
+                    //    chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    //}
+                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.5*0.5 && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<5.*5.)
                     {
                         found_match = true;
                     }
