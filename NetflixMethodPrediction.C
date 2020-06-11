@@ -482,6 +482,11 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
             mtx_eigenvector_vari(row,col) = 0.;
             mtx_eigenvector_inv_vari(row,col) = 0.;
             mtx_eigenvalue_init(row,col) = mtx_lambdanu(row,col);
+            //if (solution_w_constraints && row<N_bins_for_deconv-1 && col<N_bins_for_deconv-1) 
+            //{
+            //    double scale = mtx_lambdanu(N_bins_for_deconv-1,N_bins_for_deconv-1).real()/mtx_lambdanu_dark(N_bins_for_deconv-1,N_bins_for_deconv-1).real();
+            //    mtx_eigenvalue_init(row,col) = mtx_lambdanu_dark(row,col)*scale;
+            //}
             mtx_eigenvalue_vari(row,col) = 0.;
             mtx_eigenvector_dark(row,col) = mtx_U_r_dark(row,col);
             mtx_eigenvector_inv_dark(row,col) = mtx_U_l_dark.transpose()(row,col);

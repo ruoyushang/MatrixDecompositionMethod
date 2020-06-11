@@ -4,10 +4,10 @@
 char output_file_tag[50] = "16bins";
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
-char output_file2_tag[50] = "constrained";
-bool solution_w_constraints = true;
-//char output_file2_tag[50] = "unconstrained";
-//bool solution_w_constraints = false;
+//char output_file2_tag[50] = "constrained";
+//bool solution_w_constraints = true;
+char output_file2_tag[50] = "unconstrained";
+bool solution_w_constraints = false;
 
 //int NumberOfEigenvectors = 1;
 int NumberOfEigenvectors = 3;

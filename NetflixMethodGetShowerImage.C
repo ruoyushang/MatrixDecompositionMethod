@@ -779,7 +779,6 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                 bool found_match = false;
                 for (int off_run=0;off_run<OFF_runlist.size();off_run++)
                 {
-                    if (found_match) break;
                     double diff_ra = ON_pointing_radec[on_run].first-OFF_pointing_radec[off_run].first;
                     double diff_dec = ON_pointing_radec[on_run].second-OFF_pointing_radec[off_run].second;
                     if ((diff_ra*diff_ra+diff_dec*diff_dec)<10.*10.) continue;
@@ -812,7 +811,11 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     {
                         found_match = true;
                     }
-                    if (best_chi2>chi2)
+                    if (ON_NSB[on_run]==0. && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<5.*5.)
+                    {
+                        found_match = true;
+                    }
+                    if (found_match && best_chi2>chi2)
                     {
                         best_chi2 = chi2;
                         best_match = OFF_runlist[off_run];
@@ -822,7 +825,7 @@ vector<vector<pair<string,int>>> SelectOFFRunList(vector<pair<string,int>> ON_ru
                     }
 
                 }
-                if (found_match && best_chi2<10000.) 
+                if (best_chi2<10000.) 
                 {
                     new_list.at(nth_sample).push_back(best_match);
                     ON_pointing_radec_new.push_back(ON_pointing_radec[on_run]);
