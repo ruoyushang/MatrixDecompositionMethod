@@ -201,6 +201,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 83.633;
                 Source_Dec = 22.014;
     }
+    if (source_name=="CrabV4")
+    {
+            Source_RA = 83.633;
+                Source_Dec = 22.014;
+    }
     if (source_name=="Mrk421")
     {
             Source_RA = 166.079;
@@ -694,7 +699,7 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
     return new_list;
 }
 
-vector<vector<pair<string,int>>> SelectDarkRunList(vector<pair<string,int>> ON_runlist, vector<pair<string,int>> OFF_runlist, bool nsb_reweight)
+vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,int>> ON_runlist, vector<pair<string,int>> OFF_runlist, bool nsb_reweight)
 {
 
     int nsb_bins = 1;
@@ -772,72 +777,83 @@ vector<vector<pair<string,int>>> SelectDarkRunList(vector<pair<string,int>> ON_r
     }
 
     std::cout << "Select matched runs" << std::endl;
-    vector<vector<pair<string,int>>> new_list;
+    vector<vector<vector<pair<string,int>>>> new_list;
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
-        vector<pair<string,int>> the_runs;
-        new_list.push_back(the_runs);
+        vector<vector<pair<string,int>>> the_samples;
+        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+        {
+            vector<pair<string,int>> the_runs;
+            the_samples.push_back(the_runs);
+        }
+        new_list.push_back(the_samples);
     }
     vector<pair<double,double>> ON_pointing_radec_new;
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
-        double accumulated_time = 0.;
-        while (accumulated_time<2.0*ON_time[on_run])
+        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
-            pair<string,int> best_match;
-            pair<double,double> best_pointing;
-            double best_chi2 = 10000.;
-            int best_off_run = 0;
-            double best_time = 0.;
-            bool found_match = false;
-            for (int off_run=0;off_run<OFF_runlist.size();off_run++)
+            double accumulated_time = 0.;
+            while (accumulated_time<2.0*ON_time[on_run])
             {
-                double diff_ra = ON_pointing_radec[on_run].first-OFF_pointing_radec[off_run].first;
-                double diff_dec = ON_pointing_radec[on_run].second-OFF_pointing_radec[off_run].second;
-                if ((diff_ra*diff_ra+diff_dec*diff_dec)<10.*10.) continue;
-                if (ON_runlist[on_run].first.find("Proton")==std::string::npos)
+                pair<string,int> best_match;
+                pair<double,double> best_pointing;
+                double best_chi2 = 10000.;
+                int best_off_run = 0;
+                double best_time = 0.;
+                bool found_match = false;
+                for (int off_run=0;off_run<OFF_runlist.size();off_run++)
                 {
-                    if (ON_runlist[on_run].first.compare(OFF_runlist[off_run].first) == 0) continue;
-                }
-                bool already_used_run = false;
-                for (int on_run2=0;on_run2<ON_runlist.size();on_run2++)
-                {
-                    if (int(ON_runlist[on_run2].second)==int(OFF_runlist[off_run].second)) already_used_run = true; // this OFF run is in ON runlist
-                }
-                for (int new_run=0;new_run<new_list.at(on_run).size();new_run++)
-                {
-                    if (int(new_list.at(on_run)[new_run].second)==int(OFF_runlist[off_run].second)) already_used_run = true;
-                }
-                if (already_used_run) continue;
+                    double diff_ra = ON_pointing_radec[on_run].first-OFF_pointing_radec[off_run].first;
+                    double diff_dec = ON_pointing_radec[on_run].second-OFF_pointing_radec[off_run].second;
+                    if ((diff_ra*diff_ra+diff_dec*diff_dec)<10.*10.) continue;
+                    if (ON_runlist[on_run].first.find("Proton")==std::string::npos)
+                    {
+                        if (ON_runlist[on_run].first.compare(OFF_runlist[off_run].first) == 0) continue;
+                    }
+                    bool already_used_run = false;
+                    for (int on_run2=0;on_run2<ON_runlist.size();on_run2++)
+                    {
+                        if (int(ON_runlist[on_run2].second)==int(OFF_runlist[off_run].second)) already_used_run = true; // this OFF run is in ON runlist
+                    }
+                    for (int nth_other_sample=0;nth_other_sample<n_dark_samples;nth_other_sample++)
+                    {
+                        for (int new_run=0;new_run<new_list.at(on_run).at(nth_other_sample).size();new_run++)
+                        {
+                            if (int(new_list.at(on_run).at(nth_other_sample)[new_run].second)==int(OFF_runlist[off_run].second)) already_used_run = true;
+                        }
+                    }
+                    if (already_used_run) continue;
 
-                double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.5*0.5 && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<5.*5.)
-                {
-                    found_match = true;
+                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.5*0.5 && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<5.*5.)
+                    {
+                        found_match = true;
+                    }
+                    if (ON_NSB[on_run]==0. && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<5.*5.)
+                    {
+                        found_match = true;
+                    }
+                    if (found_match && best_chi2>chi2)
+                    {
+                        best_chi2 = chi2;
+                        best_match = OFF_runlist[off_run];
+                        best_pointing = OFF_pointing[off_run];
+                        best_off_run = off_run;
+                        best_time = OFF_time[off_run];
+                    }
                 }
-                if (ON_NSB[on_run]==0. && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<5.*5.)
+                if (best_chi2<10000.) 
                 {
-                    found_match = true;
+                    new_list.at(on_run).at(nth_sample).push_back(best_match);
+                    ON_pointing_radec_new.push_back(ON_pointing_radec[on_run]);
+                    n_good_matches += 1;
+                    accumulated_time += best_time;
                 }
-                if (found_match && best_chi2>chi2)
+                else
                 {
-                    best_chi2 = chi2;
-                    best_match = OFF_runlist[off_run];
-                    best_pointing = OFF_pointing[off_run];
-                    best_off_run = off_run;
-                    best_time = OFF_time[off_run];
+                    break;  // searched whole OFF list and found no match.
                 }
-            }
-            if (best_chi2<10000.) 
-            {
-                new_list.at(on_run).push_back(best_match);
-                ON_pointing_radec_new.push_back(ON_pointing_radec[on_run]);
-                n_good_matches += 1;
-                accumulated_time += best_time;
-            }
-            else
-            {
-                break;  // searched whole OFF list and found no match.
             }
         }
     }
@@ -1156,11 +1172,16 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
 
     std::cout << "Get a list of dark runs" << std::endl;
-    vector<vector<pair<string,int>>> Dark_runlist;
+    vector<vector<vector<pair<string,int>>>> Dark_runlist;
     for (int on_run=0;on_run<Data_runlist.size();on_run++)
     {
-        vector<pair<string,int>> the_runs;
-        Dark_runlist.push_back(the_runs);
+        vector<vector<pair<string,int>>> the_samples;
+        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+        {
+            vector<pair<string,int>> the_runs;
+            the_samples.push_back(the_runs);
+        }
+        Dark_runlist.push_back(the_samples);
     }
     vector<pair<string,int>> Dark_runlist_init = GetRunList("Everything");
     if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("EverythingV5");
@@ -1308,7 +1329,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
 
     vector<vector<TH2D>> Hist_OnData_MSCLW;
-    vector<vector<TH2D>> Hist_OnDark_MSCLW;
     vector<vector<TH1D>> Hist_OnData_SR_Energy;
     vector<vector<TH1D>> Hist_OnData_CR_Energy;
     vector<vector<TH1D>> Hist_OnData_SR_Skymap_Theta2;
@@ -1322,7 +1342,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         char sample_tag[50];
         sprintf(sample_tag, "%i", on_run);
         vector<TH2D> Hist_OnData_OneSample_MSCLW;
-        vector<TH2D> Hist_OnDark_OneSample_MSCLW;
         vector<TH1D> Hist_OnData_OneSample_SR_Skymap_Theta2;
         vector<TH1D> Hist_OnData_OneSample_CR_Skymap_Theta2;
         vector<TH2D> Hist_OnData_OneSample_SR_Skymap;
@@ -1338,18 +1357,16 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
             Hist_OnData_OneSample_MSCLW.push_back(TH2D("Hist_OnData_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
-            Hist_OnDark_OneSample_MSCLW.push_back(TH2D("Hist_OnDark_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnData_OneSample_SR_Skymap_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
             Hist_OnData_OneSample_CR_Skymap_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
             Hist_OnData_OneSample_SR_Skymap.push_back(TH2D("Hist_OnData_SR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,150,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
             Hist_OnData_OneSample_CR_Skymap.push_back(TH2D("Hist_OnData_CR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,150,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
             Hist_OnData_OneSample_SR_Energy.push_back(TH1D("Hist_OnData_SR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnData_OneSample_CR_Energy.push_back(TH1D("Hist_OnData_CR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
-            Hist_OnData_OneSample_SR_Zenith.push_back(TH1D("Hist_OnData_SR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90);
+            Hist_OnData_OneSample_SR_Zenith.push_back(TH1D("Hist_OnData_SR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
             Hist_OnData_OneSample_CR_Zenith.push_back(TH1D("Hist_OnData_CR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
         }
         Hist_OnData_MSCLW.push_back(Hist_OnData_OneSample_MSCLW);
-        Hist_OnDark_MSCLW.push_back(Hist_OnDark_OneSample_MSCLW);
         Hist_OnData_SR_Skymap_Theta2.push_back(Hist_OnData_OneSample_SR_Skymap_Theta2);
         Hist_OnData_CR_Skymap_Theta2.push_back(Hist_OnData_OneSample_CR_Skymap_Theta2);
         Hist_OnData_SR_Skymap.push_back(Hist_OnData_OneSample_SR_Skymap);
@@ -1358,6 +1375,30 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_CR_Energy.push_back(Hist_OnData_OneSample_CR_Energy);
         Hist_OnData_SR_Zenith.push_back(Hist_OnData_OneSample_SR_Zenith);
         Hist_OnData_CR_Zenith.push_back(Hist_OnData_OneSample_CR_Zenith);
+    }
+
+    vector<vector<vector<TH2D>>> Hist_OnDark_MSCLW;
+    for (int on_run=0;on_run<Data_runlist.size();on_run++)
+    {
+        char run_tag[50];
+        sprintf(run_tag, "%i", on_run);
+        vector<vector<TH2D>> Hist_OnDark_OneRun_MSCLW;
+        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+        {
+            char sample_tag[50];
+            sprintf(sample_tag, "%i", nth_sample);
+            vector<TH2D> Hist_OnDark_OneSample_MSCLW;
+            for (int e=0;e<N_energy_bins;e++) 
+            {
+                char e_low[50];
+                sprintf(e_low, "%i", int(energy_bins[e]));
+                char e_up[50];
+                sprintf(e_up, "%i", int(energy_bins[e+1]));
+                Hist_OnDark_OneSample_MSCLW.push_back(TH2D("Hist_OnDark_MSCLW_R"+TString(run_tag)+"_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+            }
+            Hist_OnDark_OneRun_MSCLW.push_back(Hist_OnDark_OneSample_MSCLW);
+        }
+        Hist_OnDark_MSCLW.push_back(Hist_OnDark_OneRun_MSCLW);
     }
 
     vector<vector<TH2D>> Hist_OnDark_SR_CameraFoV;
@@ -1474,103 +1515,106 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     std::cout << "Prepare dark run samples..." << std::endl;
     for (int on_run=0;on_run<Data_runlist.size();on_run++)
     {
-        for (int off_run=0;off_run<Dark_runlist.at(on_run).size();off_run++)
+        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
-
-            char run_number[50];
-            char Dark_observation[50];
-            sprintf(run_number, "%i", int(Dark_runlist.at(on_run)[off_run].second));
-            sprintf(Dark_observation, "%s", Dark_runlist.at(on_run)[off_run].first.c_str());
-            string filename;
-            filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Dark_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
-
-            //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
-            pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
-            if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Dark_runlist.at(on_run)[off_run].second));
-            run_tele_point_ra = tele_point_ra_dec.first;
-            run_tele_point_dec = tele_point_ra_dec.second;
-
-            TFile*  input_file = TFile::Open(filename.c_str());
-            TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(input_file,Dark_runlist.at(on_run)[off_run].second);
-            TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
-            TTree* Dark_tree = (TTree*) input_file->Get(root_file);
-            Dark_tree->SetBranchAddress("Xoff",&Xoff);
-            Dark_tree->SetBranchAddress("Yoff",&Yoff);
-            Dark_tree->SetBranchAddress("Xoff_derot",&Xoff_derot);
-            Dark_tree->SetBranchAddress("Yoff_derot",&Yoff_derot);
-            Dark_tree->SetBranchAddress("theta2",&theta2);
-            Dark_tree->SetBranchAddress("ra",&ra_sky);
-            Dark_tree->SetBranchAddress("dec",&dec_sky);
-            Dark_tree->SetBranchAddress("ErecS",&ErecS);
-            Dark_tree->SetBranchAddress("EChi2S",&EChi2S);
-            Dark_tree->SetBranchAddress("MSCW",&MSCW);
-            Dark_tree->SetBranchAddress("MSCL",&MSCL);
-            Dark_tree->SetBranchAddress("NImages",&NImages);
-            Dark_tree->SetBranchAddress("Xcore",&Xcore);
-            Dark_tree->SetBranchAddress("Ycore",&Ycore);
-            Dark_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
-            Dark_tree->SetBranchAddress("EmissionHeight",&EmissionHeight);
-            Dark_tree->SetBranchAddress("Time",&Time);
-            Dark_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
-            Dark_tree->SetBranchAddress("Shower_Az",&Shower_Az);
-
-            Dark_tree->GetEntry(0);
-            double time_0 = Time;
-            Dark_tree->GetEntry(Dark_tree->GetEntries()-1);
-            double time_1 = Time;
-
-            double NSB_thisrun = GetRunPedestalVar(int(Dark_runlist.at(on_run)[off_run].second));
-            Hist_Dark_NSB.Fill(NSB_thisrun);
-
-            for (int entry=0;entry<Dark_tree->GetEntries();entry++) 
+            for (int off_run=0;off_run<Dark_runlist.at(on_run).at(nth_sample).size();off_run++)
             {
-                ErecS = 0;
-                EChi2S = 0;
-                NImages = 0;
-                Xcore = 0;
-                Ycore = 0;
-                SizeSecondMax = 0;
-                MSCW = 0;
-                MSCL = 0;
-                R2off = 0;
-                Dark_tree->GetEntry(entry);
-                R2off = Xoff*Xoff+Yoff*Yoff;
-                Phioff = atan2(Yoff,Xoff)+M_PI;
-                ra_sky = tele_point_ra_dec.first+Xoff_derot;
-                dec_sky = tele_point_ra_dec.second+Yoff_derot;
-                int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
-                int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
-                int elevation = Hist_Elev.FindBin(90.-Shower_Ze)-1;
-                if (energy<0) continue;
-                if (energy>=N_energy_bins) continue;
-                if (elevation<0) continue;
-                if (elevation>=N_elev_bins) continue;
-                if (!SelectNImages(3,4)) continue;
-                if (SizeSecondMax<SizeSecondMax_Cut) continue;
-                if (EmissionHeight<6.) continue;
-                if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-                //if (R2off>4.) continue;
-                Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
-                Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
-                if (DarkFoV() || Dark_runlist.at(on_run)[off_run].first.find("Proton")!=std::string::npos)
+
+                char run_number[50];
+                char Dark_observation[50];
+                sprintf(run_number, "%i", int(Dark_runlist.at(on_run).at(nth_sample)[off_run].second));
+                sprintf(Dark_observation, "%s", Dark_runlist.at(on_run).at(nth_sample)[off_run].first.c_str());
+                string filename;
+                filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Dark_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
+
+                //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
+                pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
+                if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Dark_runlist.at(on_run).at(nth_sample)[off_run].second));
+                run_tele_point_ra = tele_point_ra_dec.first;
+                run_tele_point_dec = tele_point_ra_dec.second;
+
+                TFile*  input_file = TFile::Open(filename.c_str());
+                TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(input_file,Dark_runlist.at(on_run).at(nth_sample)[off_run].second);
+                TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
+                TTree* Dark_tree = (TTree*) input_file->Get(root_file);
+                Dark_tree->SetBranchAddress("Xoff",&Xoff);
+                Dark_tree->SetBranchAddress("Yoff",&Yoff);
+                Dark_tree->SetBranchAddress("Xoff_derot",&Xoff_derot);
+                Dark_tree->SetBranchAddress("Yoff_derot",&Yoff_derot);
+                Dark_tree->SetBranchAddress("theta2",&theta2);
+                Dark_tree->SetBranchAddress("ra",&ra_sky);
+                Dark_tree->SetBranchAddress("dec",&dec_sky);
+                Dark_tree->SetBranchAddress("ErecS",&ErecS);
+                Dark_tree->SetBranchAddress("EChi2S",&EChi2S);
+                Dark_tree->SetBranchAddress("MSCW",&MSCW);
+                Dark_tree->SetBranchAddress("MSCL",&MSCL);
+                Dark_tree->SetBranchAddress("NImages",&NImages);
+                Dark_tree->SetBranchAddress("Xcore",&Xcore);
+                Dark_tree->SetBranchAddress("Ycore",&Ycore);
+                Dark_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
+                Dark_tree->SetBranchAddress("EmissionHeight",&EmissionHeight);
+                Dark_tree->SetBranchAddress("Time",&Time);
+                Dark_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
+                Dark_tree->SetBranchAddress("Shower_Az",&Shower_Az);
+
+                Dark_tree->GetEntry(0);
+                double time_0 = Time;
+                Dark_tree->GetEntry(Dark_tree->GetEntries()-1);
+                double time_1 = Time;
+
+                double NSB_thisrun = GetRunPedestalVar(int(Dark_runlist.at(on_run).at(nth_sample)[off_run].second));
+                Hist_Dark_NSB.Fill(NSB_thisrun);
+
+                for (int entry=0;entry<Dark_tree->GetEntries();entry++) 
                 {
-                    Hist_OnDark_MSCLW.at(on_run).at(energy).Fill(MSCL,MSCW);
-                    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
+                    ErecS = 0;
+                    EChi2S = 0;
+                    NImages = 0;
+                    Xcore = 0;
+                    Ycore = 0;
+                    SizeSecondMax = 0;
+                    MSCW = 0;
+                    MSCL = 0;
+                    R2off = 0;
+                    Dark_tree->GetEntry(entry);
+                    R2off = Xoff*Xoff+Yoff*Yoff;
+                    Phioff = atan2(Yoff,Xoff)+M_PI;
+                    ra_sky = tele_point_ra_dec.first+Xoff_derot;
+                    dec_sky = tele_point_ra_dec.second+Yoff_derot;
+                    int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
+                    int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
+                    int elevation = Hist_Elev.FindBin(90.-Shower_Ze)-1;
+                    if (energy<0) continue;
+                    if (energy>=N_energy_bins) continue;
+                    if (elevation<0) continue;
+                    if (elevation>=N_elev_bins) continue;
+                    if (!SelectNImages(3,4)) continue;
+                    if (SizeSecondMax<SizeSecondMax_Cut) continue;
+                    if (EmissionHeight<6.) continue;
+                    if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+                    //if (R2off>4.) continue;
+                    Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
+                    Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
+                    if (DarkFoV())
                     {
-                        Hist_OffDark_MSCLW.at(nth_sample).at(energy).Fill(MSCL,MSCW);
-                    }
-                    if (SignalSelectionTheta2())
-                    {
-                        Hist_OnDark_SR_CameraFoV.at(elevation).at(energy_fine).Fill(R2off,Phioff);
-                    }
-                    if (ControlSelectionTheta2())
-                    {
-                        Hist_OnDark_CR_CameraFoV.at(elevation).at(energy_fine).Fill(R2off,Phioff);
+                        Hist_OnDark_MSCLW.at(on_run).at(nth_sample).at(energy).Fill(MSCL,MSCW);
+                        for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
+                        {
+                            Hist_OffDark_MSCLW.at(nth_sample).at(energy).Fill(MSCL,MSCW);
+                        }
+                        if (SignalSelectionTheta2())
+                        {
+                            Hist_OnDark_SR_CameraFoV.at(elevation).at(energy_fine).Fill(R2off,Phioff);
+                        }
+                        if (ControlSelectionTheta2())
+                        {
+                            Hist_OnDark_CR_CameraFoV.at(elevation).at(energy_fine).Fill(R2off,Phioff);
+                        }
                     }
                 }
-            }
-            input_file->Close();
+                input_file->Close();
 
+            }
         }
     }
 
@@ -1784,7 +1828,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         for (int e=0;e<N_energy_bins;e++) 
         {
             Hist_OnData_MSCLW.at(on_run).at(e).Write();
-            Hist_OnDark_MSCLW.at(on_run).at(e).Write();
             Hist_OnData_SR_Skymap_Theta2.at(on_run).at(e).Write();
             Hist_OnData_CR_Skymap_Theta2.at(on_run).at(e).Write();
             Hist_OnData_SR_Skymap.at(on_run).at(e).Write();
@@ -1793,6 +1836,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_OnData_CR_Energy.at(on_run).at(e).Write();
             Hist_OnData_SR_Zenith.at(on_run).at(e).Write();
             Hist_OnData_CR_Zenith.at(on_run).at(e).Write();
+        }
+        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+        {
+            for (int e=0;e<N_energy_bins;e++) 
+            {
+                Hist_OnDark_MSCLW.at(on_run).at(nth_sample).at(e).Write();
+            }
         }
     }
     OutputFile.Close();
