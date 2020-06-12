@@ -648,6 +648,16 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
     MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
+    mean_tele_point_ra = 0.;
+    mean_tele_point_dec = 0.;
+    pair<double,double> source_ra_dec = GetSourceRaDec(TString(target));
+    mean_tele_point_ra = source_ra_dec.first;
+    mean_tele_point_dec = source_ra_dec.second;
+    pair<double,double> tele_point_l_b = ConvertRaDecToGalactic(mean_tele_point_ra, mean_tele_point_dec);
+    mean_tele_point_l = tele_point_l_b.first;
+    mean_tele_point_b = tele_point_l_b.second;
+
+
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
     TH1D Hist_ErecS_fine = TH1D("Hist_ErecS_fine","",N_energy_fine_bins,energy_fine_bins);
     TH1D Hist_EffArea = TH1D("Hist_EffArea","",N_energy_fine_bins,energy_fine_bins);
@@ -729,108 +739,17 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
     std::cout << "Working on ON data..." << std::endl;
 
-    mean_tele_point_ra = 0.;
-    mean_tele_point_dec = 0.;
-    pair<double,double> source_ra_dec = GetSourceRaDec(TString(target));
-    mean_tele_point_ra = source_ra_dec.first;
-    mean_tele_point_dec = source_ra_dec.second;
-    pair<double,double> tele_point_l_b = ConvertRaDecToGalactic(mean_tele_point_ra, mean_tele_point_dec);
-    mean_tele_point_l = tele_point_l_b.first;
-    mean_tele_point_b = tele_point_l_b.second;
+    vector<string>* Data_runlist_name_ptr = new std::vector<string>(10);
+    vector<int>* Data_runlist_number_ptr = new std::vector<int>(10);
+    vector<string>* roi_name_ptr = new std::vector<string>(10);
+    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TTree* InfoTree_ptr = nullptr;
+    InfoTree_ptr = (TTree*) InputDataFile.Get("InfoTree");
+    InfoTree_ptr->SetBranchAddress("Data_runlist_number",&Data_runlist_number_ptr);
+    InfoTree_ptr->SetBranchAddress("Data_runlist_name",&Data_runlist_name_ptr);
+    InfoTree_ptr->SetBranchAddress("roi_name",&roi_name_ptr);
+    InfoTree_ptr->GetEntry(0);
 
-    GetBrightStars();
-    GetGammaSources();
-
-    if (TString(target).Contains("MGRO_J1908")) 
-    {
-        roi_name.push_back("MGRO J1908+06");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(1.0);
-    }
-    else if (TString(target).Contains("MGRO_J2031")) 
-    {
-        roi_name.push_back("MGRO J2031+41");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(1.0);
-        roi_name.push_back("PSR J2032+4127");
-        roi_ra.push_back(308.041666667);
-        roi_dec.push_back(41.4594444444);
-        roi_radius.push_back(1.0);
-        roi_name.push_back("Jet 1");
-        roi_ra.push_back(305.161);
-        roi_dec.push_back(40.845);
-        roi_radius.push_back(0.3);
-        roi_name.push_back("Jet 2");
-        roi_ra.push_back(310.593);
-        roi_dec.push_back(41.950);
-        roi_radius.push_back(0.3);
-    }
-    else if (TString(target).Contains("Crab")) 
-    {
-        roi_name.push_back("Crab");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(0.5);
-    }
-    else if (TString(target).Contains("Geminga")) 
-    {
-        roi_name.push_back("Geminga");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(1.0);
-        roi_name.push_back("deficit");
-        roi_ra.push_back(98.837);
-        roi_dec.push_back(16.087);
-        roi_radius.push_back(0.3);
-    }
-    else if (TString(target).Contains("Cygnus")) 
-    {
-        roi_name.push_back("Cygnus");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(1.0);
-    }
-    else if (TString(target).Contains("IC443")) 
-    {
-        roi_name.push_back("IC 443");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(0.5);
-    }
-    else if (TString(target).Contains("WComae")) 
-    {
-        roi_name.push_back("W Comae");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(0.3);
-
-        roi_name.push_back("1ES 1218+304");
-        roi_ra.push_back(185.360);
-        roi_dec.push_back(30.191);
-        roi_radius.push_back(0.3);
-
-        roi_name.push_back("1ES 1215+303");
-        roi_ra.push_back(184.616);
-        roi_dec.push_back(30.130);
-        roi_radius.push_back(0.3);
-    }
-    else
-    {
-        roi_name.push_back("Center");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(0.3);
-    }
-
-    for (int star=0;star<FaintStars_Data.size();star++)
-    {
-        roi_name.push_back("b-mag "+ std::to_string(FaintStars_Data.at(star).at(3)));
-        roi_ra.push_back(FaintStars_Data.at(star).at(0));
-        roi_dec.push_back(FaintStars_Data.at(star).at(1));
-        roi_radius.push_back(bright_star_radius_cut);
-    }
 
     vector<TH2D> Hist_OneGroup_Data_MSCLW;
     vector<TH2D> Hist_OneGroup_Dark_MSCLW;
@@ -946,7 +865,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<vector<TH1D>> Hist_OnData_SR_RoI_MJD_OneGroup;
     vector<vector<TH1D>> Hist_OnData_CR_RoI_MJD;
     vector<vector<TH1D>> Hist_OnData_CR_RoI_MJD_OneGroup;
-    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
+    for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
     {
         char roi_tag[50];
         sprintf(roi_tag, "%i", nth_roi);
@@ -1002,17 +921,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_CR_RoI_MJD_OneGroup.push_back(Hist_OnData_OneRoI_CR_RoI_MJD_OneGroup);
     }
 
-    int group_size_limit = 10000;
+    int group_size_limit = 20;
     int group_size = 0;
-
-    vector<string>* Data_runlist_name_ptr = new std::vector<string>(10);
-    vector<int>* Data_runlist_number_ptr = new std::vector<int>(10);
-    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
-    TTree* InfoTree_ptr = nullptr;
-    InfoTree_ptr = (TTree*) InputDataFile.Get("InfoTree");
-    InfoTree_ptr->SetBranchAddress("Data_runlist_number",&Data_runlist_number_ptr);
-    InfoTree_ptr->SetBranchAddress("Data_runlist_name",&Data_runlist_name_ptr);
-    InfoTree_ptr->GetEntry(0);
 
     group_size = 0;
     exposure_hours = 0.;
@@ -1024,156 +934,13 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         char sample_tag[50];
         sprintf(sample_tag, "%i", on_run);
 
-        vector<TH2D> Hist_OnDark_SR_CameraFoV;
-        vector<TH2D> Hist_OnDark_CR_CameraFoV;
-        for (int e_fine=0;e_fine<N_energy_fine_bins;e_fine++) 
-        {
-            char e_fine_low[50];
-            sprintf(e_fine_low, "%i", int(energy_fine_bins[e_fine]));
-            char e_fine_up[50];
-            sprintf(e_fine_up, "%i", int(energy_fine_bins[e_fine+1]));
-            Hist_OnDark_SR_CameraFoV.push_back(TH2D("Hist_OnDark_SR_CameraFoV_V"+TString(sample_tag)+"_ErecS"+TString(e_fine_low)+TString("to")+TString(e_fine_up),"",40,0,10,12,0,2*M_PI));
-            Hist_OnDark_CR_CameraFoV.push_back(TH2D("Hist_OnDark_CR_CameraFoV_V"+TString(sample_tag)+"_ErecS"+TString(e_fine_low)+TString("to")+TString(e_fine_up),"",40,0,10,12,0,2*M_PI));
-            TString filename_sr_fov  = "Hist_OnDark_SR_CameraFoV_V"+TString(sample_tag)+"_ErecS"+TString(e_fine_low)+TString("to")+TString(e_fine_up);
-            Hist_OnDark_SR_CameraFoV.at(e_fine).Add((TH2D*)InputDataFile.Get(filename_sr_fov));
-            TString filename_cr_fov  = "Hist_OnDark_CR_CameraFoV_V"+TString(sample_tag)+"_ErecS"+TString(e_fine_low)+TString("to")+TString(e_fine_up);
-            Hist_OnDark_CR_CameraFoV.at(e_fine).Add((TH2D*)InputDataFile.Get(filename_cr_fov));
-        }
-
-        char run_number[50];
-        char Data_observation[50];
-        sprintf(run_number, "%i", int(Data_runlist_number_ptr->at(on_run)));
-        sprintf(Data_observation, "%s", Data_runlist_name_ptr->at(on_run).c_str());
-        string filename;
-        filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Data_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
-
-        //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
-        pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
-        if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist_number_ptr->at(on_run)));
-        run_tele_point_ra = tele_point_ra_dec.first;
-        run_tele_point_dec = tele_point_ra_dec.second;
-
-        TFile*  input_file = TFile::Open(filename.c_str());
-        TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
-        TTree* Data_tree = (TTree*) input_file->Get(root_file);
-        Data_tree->SetBranchAddress("Xoff",&Xoff);
-        Data_tree->SetBranchAddress("Yoff",&Yoff);
-        Data_tree->SetBranchAddress("theta2",&theta2);
-        Data_tree->SetBranchAddress("Xoff_derot",&Xoff_derot);
-        Data_tree->SetBranchAddress("Yoff_derot",&Yoff_derot);
-        Data_tree->SetBranchAddress("ErecS",&ErecS);
-        Data_tree->SetBranchAddress("EChi2S",&EChi2S);
-        Data_tree->SetBranchAddress("MSCW",&MSCW);
-        Data_tree->SetBranchAddress("MSCL",&MSCL);
-        Data_tree->SetBranchAddress("NImages",&NImages);
-        Data_tree->SetBranchAddress("Xcore",&Xcore);
-        Data_tree->SetBranchAddress("Ycore",&Ycore);
-        Data_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
-        Data_tree->SetBranchAddress("EmissionHeight",&EmissionHeight);
-        Data_tree->SetBranchAddress("Time",&Time);
-        Data_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
-        Data_tree->SetBranchAddress("Shower_Az",&Shower_Az);
-        Data_tree->SetBranchAddress("MJD",&MJD);
-
-        // Get effective area and livetime and determine the cosmic electron counts for this run.
-        TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(input_file,Data_runlist_number_ptr->at(on_run));
-        Data_tree->GetEntry(0);
-        double time_0 = Time;
-        Data_tree->GetEntry(Data_tree->GetEntries()-1);
-        double time_1 = Time;
-        exposure_hours += (time_1-time_0)/3600.;
-        if (MJD<MJD_Start) MJD_Start = MJD;
-        if (MJD>MJD_End) MJD_End = MJD;
-
-        for (int e=0;e<N_energy_fine_bins;e++) 
-        {
-            double eff_area = i_hEffAreaP->GetBinContent( i_hEffAreaP->FindBin( log10(0.5*(energy_fine_bins[e]+energy_fine_bins[e+1])/1000.)));
-            Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)+eff_area*(time_1-time_0));
-        }
-
-        for (int entry=0;entry<Data_tree->GetEntries();entry++) 
-        {
-            ErecS = 0;
-            EChi2S = 0;
-            NImages = 0;
-            Xcore = 0;
-            Ycore = 0;
-            SizeSecondMax = 0;
-            MSCW = 0;
-            MSCL = 0;
-            R2off = 0;
-            Data_tree->GetEntry(entry);
-            R2off = Xoff*Xoff+Yoff*Yoff;
-            Phioff = atan2(Yoff,Xoff)+M_PI;
-            ra_sky = tele_point_ra_dec.first+Xoff_derot;
-            dec_sky = tele_point_ra_dec.second+Yoff_derot;
-            // redefine theta2
-            theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
-            pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
-            int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
-            int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
-            if (energy<0) continue;
-            if (energy>=N_energy_bins) continue;
-            if (!SelectNImages(3,4)) continue;
-            if (SizeSecondMax<SizeSecondMax_Cut) continue;
-            if (EmissionHeight<6.) continue;
-            if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-            if (SignalSelectionTheta2())
-            {
-                if (FoV(true))
-                {
-                    Hist_OnData_SR_Energy_OneGroup.at(energy).Fill(ErecS*1000.);
-                    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
-                    {
-                        if (RoIFoV(nth_roi)) 
-                        {
-                            Hist_OnData_SR_RoI_Energy_OneGroup.at(nth_roi).at(energy).Fill(ErecS*1000.);
-                            Hist_OnData_SR_RoI_MJD_OneGroup.at(nth_roi).at(energy).Fill(MJD);
-                        }
-                        theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                        Hist_OnData_SR_Skymap_RoI_Theta2_OneGroup.at(nth_roi).at(energy).Fill(theta2_roi);
-                    }
-                    Hist_OnData_SR_Skymap_Theta2_OneGroup.at(energy).Fill(theta2);
-                    Hist_OnData_SR_Skymap_OneGroup.at(energy).Fill(ra_sky,dec_sky);
-                    Hist_OnData_SR_Skymap_Galactic_OneGroup.at(energy).Fill(evt_l_b.first,evt_l_b.second);
-                }
-            }
-            if (ControlSelectionTheta2())
-            {
-                if (FoV(true))
-                {
-                    int binx = Hist_OnDark_SR_CameraFoV.at(energy_fine).GetXaxis()->FindBin(R2off);
-                    int biny = Hist_OnDark_SR_CameraFoV.at(energy_fine).GetYaxis()->FindBin(Phioff);
-                    double dark_cr_content = Hist_OnDark_CR_CameraFoV.at(energy_fine).GetBinContent(binx,biny);
-                    double dark_sr_content = Hist_OnDark_SR_CameraFoV.at(energy_fine).GetBinContent(binx,biny);
-                    double weight = 0.;
-                    if (dark_cr_content>0.) weight = dark_sr_content/dark_cr_content;
-                    Hist_OnData_CR_Energy_OneGroup.at(energy).Fill(ErecS*1000.,weight);
-                    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
-                    {
-                        if (RoIFoV(nth_roi)) 
-                        {
-                            Hist_OnData_CR_RoI_Energy_OneGroup.at(nth_roi).at(energy).Fill(ErecS*1000.,weight);
-                            Hist_OnData_CR_RoI_MJD_OneGroup.at(nth_roi).at(energy).Fill(MJD,weight);
-                        }
-                        theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                        Hist_OnData_CR_Skymap_RoI_Theta2_OneGroup.at(nth_roi).at(energy).Fill(theta2_roi,weight);
-                    }
-                    Hist_OnData_CR_Skymap_Theta2_OneGroup.at(energy).Fill(theta2,weight);
-                    Hist_OnData_CR_Skymap_OneGroup.at(energy).Fill(ra_sky,dec_sky,weight);
-                    Hist_OnData_CR_Skymap_Galactic_OneGroup.at(energy).Fill(evt_l_b.first,evt_l_b.second,weight);
-
-                }
-            }
-        }
-        input_file->Close();
-
         int binx_lower = Hist_OneGroup_Data_MSCLW.at(0).GetXaxis()->FindBin(MSCL_cut_lower);
         binx_blind_global = Hist_OneGroup_Data_MSCLW.at(0).GetXaxis()->FindBin(MSCL_cut_blind)-1;
         int binx_upper = Hist_OneGroup_Data_MSCLW.at(0).GetXaxis()->FindBin(1.)-1;
         int biny_lower = Hist_OneGroup_Data_MSCLW.at(0).GetYaxis()->FindBin(MSCW_cut_lower);
         biny_blind_global = Hist_OneGroup_Data_MSCLW.at(0).GetYaxis()->FindBin(MSCW_cut_blind)-1;
         int biny_upper = Hist_OneGroup_Data_MSCLW.at(0).GetYaxis()->FindBin(1.)-1;
+        TString hist_name;
         for (int e=0;e<N_energy_bins;e++) 
         {
             std::cout << "++++++++++++++++++++++++++++++++++++++" << std::endl;
@@ -1182,10 +949,22 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
-            TString filename_data  = "Hist_OnData_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            TString filename_dark  = "Hist_OnDark_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OneGroup_Data_MSCLW.at(e).Add( (TH2D*)InputDataFile.Get(filename_data) );
-            Hist_OneGroup_Dark_MSCLW.at(e).Add( (TH2D*)InputDataFile.Get(filename_dark) );
+            hist_name  = "Hist_OnData_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_OneGroup_Data_MSCLW.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_OnDark_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_OneGroup_Dark_MSCLW.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_OnData_SR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_OnData_SR_Skymap_Theta2_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_OnData_CR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_OnData_SR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_OnData_SR_Skymap_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_OnData_CR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_OnData_CR_Skymap_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_OnData_SR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_OnData_SR_Energy_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_OnData_CR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_OnData_CR_Energy_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         }
         group_size += 1;
 
@@ -1214,12 +993,16 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     int biny_upper = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(1.)-1;
                     double Bkgd_SR_Integral = Hist_OneGroup_Bkgd_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
                     double Old_Integral = Hist_OnData_CR_Energy_OneGroup.at(e).Integral();
-                    double scale = Bkgd_SR_Integral/Old_Integral;
+                    double scale = 0.;
+                    if (Old_Integral>0.)
+                    {
+                        scale = Bkgd_SR_Integral/Old_Integral;
+                    }
                     Hist_OnData_CR_Energy_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_Galactic_OneGroup.at(e).Scale(scale);
-                    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
+                    for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
                     {
                         Hist_OnData_CR_RoI_Energy_OneGroup.at(nth_roi).at(e).Scale(scale);
                         Hist_OnData_CR_Skymap_RoI_Theta2_OneGroup.at(nth_roi).at(e).Scale(scale);
@@ -1233,7 +1016,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     Hist_OnData_CR_Skymap.at(e).Add(&Hist_OnData_CR_Skymap_OneGroup.at(e));
                     Hist_OnData_SR_Skymap_Galactic.at(e).Add(&Hist_OnData_SR_Skymap_Galactic_OneGroup.at(e));
                     Hist_OnData_CR_Skymap_Galactic.at(e).Add(&Hist_OnData_CR_Skymap_Galactic_OneGroup.at(e));
-                    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
+                    for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
                     {
                         Hist_OnData_SR_RoI_Energy.at(nth_roi).at(e).Add(&Hist_OnData_SR_RoI_Energy_OneGroup.at(nth_roi).at(e));
                         Hist_OnData_CR_RoI_Energy.at(nth_roi).at(e).Add(&Hist_OnData_CR_RoI_Energy_OneGroup.at(nth_roi).at(e));
@@ -1254,7 +1037,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 Hist_OnData_CR_Skymap_OneGroup.at(e).Reset();
                 Hist_OnData_SR_Skymap_Galactic_OneGroup.at(e).Reset();
                 Hist_OnData_CR_Skymap_Galactic_OneGroup.at(e).Reset();
-                for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
+                for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
                 {
                     Hist_OnData_SR_RoI_Energy_OneGroup.at(nth_roi).at(e).Reset();
                     Hist_OnData_CR_RoI_Energy_OneGroup.at(nth_roi).at(e).Reset();
@@ -1317,8 +1100,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 fill1DHistogram(&Hist_Bkgd_Rank2_RightVector.at(e),eigensolver_bkgd.eigenvectors(),2);
 
             }
+            group_size = 0;
         }
-        group_size = 0;
     }
     InputDataFile.Close();
 
@@ -1328,55 +1111,23 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)/(3600.*exposure_hours));
     }
 
+    TFile InputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TTree* InfoTree = nullptr;
+    InfoTree = (TTree*) InputFile.Get("InfoTree");
+    TTree* StarTree = nullptr;
+    StarTree = (TTree*) InputFile.Get("StarTree");
+    TTree* FaintStarTree = nullptr;
+    FaintStarTree = (TTree*) InputFile.Get("FaintStarTree");
+
     TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
-    TTree InfoTree("InfoTree","info tree");
-    InfoTree.Branch("N_bins_for_deconv",&N_bins_for_deconv,"N_bins_for_deconv/I");
-    InfoTree.Branch("MSCW_cut_blind",&MSCW_cut_blind,"MSCW_cut_blind/D");
-    InfoTree.Branch("MSCL_cut_blind",&MSCL_cut_blind,"MSCL_cut_blind/D");
-    InfoTree.Branch("exposure_hours",&exposure_hours,"exposure_hours/D");
-    InfoTree.Branch("MJD_Start",&MJD_Start,"MJD_Start/I");
-    InfoTree.Branch("MJD_End",&MJD_End,"MJD_End/I");
-    InfoTree.Branch("mean_tele_point_ra",&mean_tele_point_ra,"mean_tele_point_ra/D");
-    InfoTree.Branch("mean_tele_point_dec",&mean_tele_point_dec,"mean_tele_point_dec/D");
-    InfoTree.Branch("mean_tele_point_l",&mean_tele_point_l,"mean_tele_point_l/D");
-    InfoTree.Branch("mean_tele_point_b",&mean_tele_point_b,"mean_tele_point_b/D");
-    InfoTree.Branch("roi_name","std::vector<std::string>",&roi_name);
-    InfoTree.Branch("roi_ra","std::vector<double>",&roi_ra);
-    InfoTree.Branch("roi_dec","std::vector<double>",&roi_dec);
-    InfoTree.Branch("roi_radius","std::vector<double>",&roi_radius);
-    InfoTree.Branch("Skymap_size",&Skymap_size,"Skymap_size/D");
-    InfoTree.Fill();
-    InfoTree.Write();
-    TTree StarTree("StarTree","star tree");
-    double star_ra;
-    double star_dec;
-    double star_brightness;
-    StarTree.Branch("star_ra",&star_ra,"star_ra/D");
-    StarTree.Branch("star_dec",&star_dec,"star_dec/D");
-    StarTree.Branch("star_brightness",&star_brightness,"star_brightness/D");
-    for (int star=0;star<BrightStars_Data.size();star++)
-    {
-        star_ra = BrightStars_Data.at(star).at(0);
-        star_dec = BrightStars_Data.at(star).at(1);
-        star_brightness = BrightStars_Data.at(star).at(3);
-        StarTree.Fill();
-    }
-    StarTree.Write();
-    TTree FaintStarTree("FaintStarTree","faint star tree");
-    double faint_star_ra;
-    double faint_star_dec;
-    double faint_star_brightness;
-    FaintStarTree.Branch("faint_star_ra",&faint_star_ra,"faint_star_ra/D");
-    FaintStarTree.Branch("faint_star_dec",&faint_star_dec,"faint_star_dec/D");
-    FaintStarTree.Branch("faint_star_brightness",&faint_star_brightness,"faint_star_brightness/D");
-    for (int star=0;star<FaintStars_Data.size();star++)
-    {
-        faint_star_ra = FaintStars_Data.at(star).at(0);
-        faint_star_dec = FaintStars_Data.at(star).at(1);
-        faint_star_brightness = FaintStars_Data.at(star).at(3);
-        FaintStarTree.Fill();
-    }
-    FaintStarTree.Write();
+
+    TTree *newtree = InfoTree->CloneTree();
+    newtree->Write();
+    TTree *newstartree = StarTree->CloneTree();
+    newstartree->Write();
+    TTree *newfaintstartree = FaintStarTree->CloneTree();
+    newfaintstartree->Write();
+
     Hist_EffArea.Write();
     for (int e=0;e<N_energy_bins;e++)
     {
@@ -1412,7 +1163,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_SR_Energy.at(e).Write();
         Hist_OnData_CR_Energy.at(e).Write();
     }
-    for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
+    for (int nth_roi=0;nth_roi<Hist_OnData_SR_RoI_Energy.size();nth_roi++)
     {
         for (int e=0;e<N_energy_bins;e++) 
         {
@@ -1437,6 +1188,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_CR_Skymap_Galactic.at(e).Write();
     }
     OutputFile.Close();
+    InputFile.Close();
 
     std::cout << "Done." << std::endl;
 
