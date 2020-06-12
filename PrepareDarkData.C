@@ -1538,46 +1538,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
 
 
-    for (int e=0;e<N_energy_bins;e++) 
-    {
-        int binx_lower = Hist_OnDark_MSCLW.at(0).at(e).GetXaxis()->FindBin(MSCL_cut_lower);
-        int binx_blind = Hist_OnDark_MSCLW.at(0).at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
-        int binx_upper = Hist_OnDark_MSCLW.at(0).at(e).GetXaxis()->FindBin(1.)-1;
-        int biny_lower = Hist_OnDark_MSCLW.at(0).at(e).GetYaxis()->FindBin(MSCW_cut_lower);
-        int biny_blind = Hist_OnDark_MSCLW.at(0).at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
-        int biny_upper = Hist_OnDark_MSCLW.at(0).at(e).GetYaxis()->FindBin(1.)-1;
-        for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
-        {
-            double Data_SR_Integral = Hist_OffData_MSCLW.at(nth_sample).at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-            double Data_Integral = Hist_OffData_MSCLW.at(nth_sample).at(e).Integral();
-            double Data_CR_Integral = Data_Integral-Data_SR_Integral;
-            double Dark_SR_Integral = Hist_OffDark_MSCLW.at(nth_sample).at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-            double Dark_Integral = Hist_OffDark_MSCLW.at(nth_sample).at(e).Integral();
-            double Dark_CR_Integral = Dark_Integral-Dark_SR_Integral;
-            double dark_scale = Data_CR_Integral/Dark_CR_Integral;
-            Hist_OffDark_MSCLW.at(nth_sample).at(e).Scale(dark_scale);
-        }
-        for (int run=0;run<Data_runlist.size();run++)
-        {
-            double Data_SR_Integral = Hist_OnData_MSCLW.at(run).at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-            double Data_Integral = Hist_OnData_MSCLW.at(run).at(e).Integral();
-            double Data_CR_Integral = Data_Integral-Data_SR_Integral;
-            double Dark_SR_Integral = Hist_OnDark_MSCLW.at(run).at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-            double Dark_Integral = Hist_OnDark_MSCLW.at(run).at(e).Integral();
-            double Dark_CR_Integral = Dark_Integral-Dark_SR_Integral;
-            if (Dark_CR_Integral!=0)
-            {
-                double dark_scale = Data_CR_Integral/Dark_CR_Integral;
-                Hist_OnDark_MSCLW.at(run).at(e).Scale(dark_scale);
-            }
-            else
-            {
-                Hist_OnData_MSCLW.at(run).at(e).Scale(0.);
-                Hist_OnDark_MSCLW.at(run).at(e).Scale(0.);
-            }
-        }
-    }
-
     vector<int> Data_runlist_number;
     vector<string> Data_runlist_name;
     for (int run=0;run<Data_runlist.size();run++)
