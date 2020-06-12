@@ -1315,6 +1315,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<vector<TH1D>> Hist_OnData_CR_Skymap_Theta2;
     vector<vector<TH2D>> Hist_OnData_SR_Skymap;
     vector<vector<TH2D>> Hist_OnData_CR_Skymap;
+    vector<vector<TH1D>> Hist_OnData_SR_Zenith;
+    vector<vector<TH1D>> Hist_OnData_CR_Zenith;
     for (int on_run=0;on_run<Data_runlist.size();on_run++)
     {
         char sample_tag[50];
@@ -1327,6 +1329,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         vector<TH2D> Hist_OnData_OneSample_CR_Skymap;
         vector<TH1D> Hist_OnData_OneSample_SR_Energy;
         vector<TH1D> Hist_OnData_OneSample_CR_Energy;
+        vector<TH1D> Hist_OnData_OneSample_SR_Zenith;
+        vector<TH1D> Hist_OnData_OneSample_CR_Zenith;
         for (int e=0;e<N_energy_bins;e++) 
         {
             char e_low[50];
@@ -1341,6 +1345,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_OnData_OneSample_CR_Skymap.push_back(TH2D("Hist_OnData_CR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,150,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
             Hist_OnData_OneSample_SR_Energy.push_back(TH1D("Hist_OnData_SR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnData_OneSample_CR_Energy.push_back(TH1D("Hist_OnData_CR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+            Hist_OnData_OneSample_SR_Zenith.push_back(TH1D("Hist_OnData_SR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90);
+            Hist_OnData_OneSample_CR_Zenith.push_back(TH1D("Hist_OnData_CR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
         }
         Hist_OnData_MSCLW.push_back(Hist_OnData_OneSample_MSCLW);
         Hist_OnDark_MSCLW.push_back(Hist_OnDark_OneSample_MSCLW);
@@ -1350,6 +1356,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_CR_Skymap.push_back(Hist_OnData_OneSample_CR_Skymap);
         Hist_OnData_SR_Energy.push_back(Hist_OnData_OneSample_SR_Energy);
         Hist_OnData_CR_Energy.push_back(Hist_OnData_OneSample_CR_Energy);
+        Hist_OnData_SR_Zenith.push_back(Hist_OnData_OneSample_SR_Zenith);
+        Hist_OnData_CR_Zenith.push_back(Hist_OnData_OneSample_CR_Zenith);
     }
 
     vector<vector<TH2D>> Hist_OnDark_SR_CameraFoV;
@@ -1670,6 +1678,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_SR_Skymap_Theta2.at(run).at(energy).Fill(theta2);
                     Hist_OnData_SR_Skymap.at(run).at(energy).Fill(ra_sky,dec_sky);
                     Hist_OnData_SR_Energy.at(run).at(energy).Fill(ErecS*1000.);
+                    Hist_OnData_SR_Zenith.at(run).at(energy).Fill(Shower_Ze);
                 }
             }
             if (ControlSelectionTheta2())
@@ -1685,6 +1694,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_CR_Skymap_Theta2.at(run).at(energy).Fill(theta2,weight);
                     Hist_OnData_CR_Skymap.at(run).at(energy).Fill(ra_sky,dec_sky,weight);
                     Hist_OnData_CR_Energy.at(run).at(energy).Fill(ErecS*1000.,weight);
+                    Hist_OnData_CR_Zenith.at(run).at(energy).Fill(Shower_Ze,weight);
                 }
             }
         }
@@ -1781,6 +1791,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_OnData_CR_Skymap.at(on_run).at(e).Write();
             Hist_OnData_SR_Energy.at(on_run).at(e).Write();
             Hist_OnData_CR_Energy.at(on_run).at(e).Write();
+            Hist_OnData_SR_Zenith.at(on_run).at(e).Write();
+            Hist_OnData_CR_Zenith.at(on_run).at(e).Write();
         }
     }
     OutputFile.Close();

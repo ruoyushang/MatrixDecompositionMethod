@@ -807,6 +807,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH1D> Hist_OnData_SR_Energy_OneGroup;
     vector<TH1D> Hist_OnData_CR_Energy;
     vector<TH1D> Hist_OnData_CR_Energy_OneGroup;
+    vector<TH1D> Hist_OnData_SR_Zenith;
+    vector<TH1D> Hist_OnData_SR_Zenith_OneGroup;
+    vector<TH1D> Hist_OnData_CR_Zenith;
+    vector<TH1D> Hist_OnData_CR_Zenith_OneGroup;
     for (int e=0;e<N_energy_bins;e++) 
     {
         char e_low[50];
@@ -817,6 +821,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_SR_Energy_OneGroup.push_back(TH1D("Hist_OnData_SR_Energy_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_CR_Energy.push_back(TH1D("Hist_OnData_CR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_CR_Energy_OneGroup.push_back(TH1D("Hist_OnData_CR_Energy_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+        Hist_OnData_SR_Zenith.push_back(TH1D("Hist_OnData_SR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+        Hist_OnData_SR_Zenith_OneGroup.push_back(TH1D("Hist_OnData_SR_Zenith_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+        Hist_OnData_CR_Zenith.push_back(TH1D("Hist_OnData_CR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+        Hist_OnData_CR_Zenith_OneGroup.push_back(TH1D("Hist_OnData_CR_Zenith_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
     }
 
     vector<TH1D> Hist_OnData_SR_Skymap_Theta2;
@@ -965,6 +973,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             Hist_OnData_SR_Energy_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
             hist_name  = "Hist_OnData_CR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
             Hist_OnData_CR_Energy_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_OnData_SR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_OnData_SR_Zenith_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_OnData_CR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_OnData_CR_Zenith_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         }
         group_size += 1;
 
@@ -999,6 +1011,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                         scale = Bkgd_SR_Integral/Old_Integral;
                     }
                     Hist_OnData_CR_Energy_OneGroup.at(e).Scale(scale);
+                    Hist_OnData_CR_Zenith_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_Galactic_OneGroup.at(e).Scale(scale);
@@ -1010,6 +1023,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     }
                     Hist_OnData_SR_Energy.at(e).Add(&Hist_OnData_SR_Energy_OneGroup.at(e));
                     Hist_OnData_CR_Energy.at(e).Add(&Hist_OnData_CR_Energy_OneGroup.at(e));
+                    Hist_OnData_SR_Zenith.at(e).Add(&Hist_OnData_SR_Zenith_OneGroup.at(e));
+                    Hist_OnData_CR_Zenith.at(e).Add(&Hist_OnData_CR_Zenith_OneGroup.at(e));
                     Hist_OnData_SR_Skymap_Theta2.at(e).Add(&Hist_OnData_SR_Skymap_Theta2_OneGroup.at(e));
                     Hist_OnData_CR_Skymap_Theta2.at(e).Add(&Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e));
                     Hist_OnData_SR_Skymap.at(e).Add(&Hist_OnData_SR_Skymap_OneGroup.at(e));
@@ -1031,6 +1046,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 Hist_OneGroup_Bkgd_MSCLW.at(e).Reset();
                 Hist_OnData_SR_Energy_OneGroup.at(e).Reset();
                 Hist_OnData_CR_Energy_OneGroup.at(e).Reset();
+                Hist_OnData_SR_Zenith_OneGroup.at(e).Reset();
+                Hist_OnData_CR_Zenith_OneGroup.at(e).Reset();
                 Hist_OnData_SR_Skymap_Theta2_OneGroup.at(e).Reset();
                 Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e).Reset();
                 Hist_OnData_SR_Skymap_OneGroup.at(e).Reset();
@@ -1162,6 +1179,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     {
         Hist_OnData_SR_Energy.at(e).Write();
         Hist_OnData_CR_Energy.at(e).Write();
+        Hist_OnData_SR_Zenith.at(e).Write();
+        Hist_OnData_CR_Zenith.at(e).Write();
     }
     for (int nth_roi=0;nth_roi<Hist_OnData_SR_RoI_Energy.size();nth_roi++)
     {
