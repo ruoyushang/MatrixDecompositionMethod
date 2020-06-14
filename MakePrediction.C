@@ -948,7 +948,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     for (int e=0;e<N_energy_bins;e++) 
     {
         group_size_limit.push_back(20);
-        if (energy_bins[e]>=1000.)
+        if (energy_bins[e]>=pow(10,3.0))
         {
             group_size_limit.at(e) = 100;
         }
@@ -967,7 +967,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-        for (int on_run=0;on_run<2*Data_runlist_name_ptr->size();on_run++)
+        for (int on_run=0;on_run<Data_runlist_name_ptr->size();on_run++)
         {
 
             char sample_tag[50];
@@ -1012,7 +1012,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
             group_size.at(e) += 1;
 
-            if (group_size.at(e)==group_size_limit.at(e) || on_run==2*Data_runlist_number_ptr->size()-1)
+            if (group_size.at(e)==group_size_limit.at(e) || on_run==Data_runlist_number_ptr->size()-1)
             {
                 mtx_data = fillMatrix(&Hist_OneGroup_Data_MSCLW.at(e));
                 eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
