@@ -226,7 +226,7 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 216.750;
                 Source_Dec = 23.783;
     }
-    if (source_name=="3C264")
+    if (source_name=="3C264V6")
     {
             Source_RA = 176.271;
                 Source_Dec = 19.606;
@@ -1335,9 +1335,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<vector<TH1D>> Hist_OnData_CR_Skymap_Theta2;
     vector<vector<TH2D>> Hist_OnData_SR_Skymap;
     vector<vector<TH2D>> Hist_OnData_CR_Skymap;
+    vector<vector<TH2D>> Hist_OnData_SR_Skymap_Galactic;
+    vector<vector<TH2D>> Hist_OnData_CR_Skymap_Galactic;
     vector<vector<TH1D>> Hist_OnData_SR_Zenith;
     vector<vector<TH1D>> Hist_OnData_CR_Zenith;
-    for (int on_run=0;on_run<Data_runlist.size();on_run++)
+    for (int on_run=0;on_run<2*Data_runlist.size();on_run++)
     {
         char sample_tag[50];
         sprintf(sample_tag, "%i", on_run);
@@ -1346,6 +1348,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         vector<TH1D> Hist_OnData_OneSample_CR_Skymap_Theta2;
         vector<TH2D> Hist_OnData_OneSample_SR_Skymap;
         vector<TH2D> Hist_OnData_OneSample_CR_Skymap;
+        vector<TH2D> Hist_OnData_OneSample_SR_Skymap_Galactic;
+        vector<TH2D> Hist_OnData_OneSample_CR_Skymap_Galactic;
         vector<TH1D> Hist_OnData_OneSample_SR_Energy;
         vector<TH1D> Hist_OnData_OneSample_CR_Energy;
         vector<TH1D> Hist_OnData_OneSample_SR_Zenith;
@@ -1365,12 +1369,19 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_OnData_OneSample_CR_Energy.push_back(TH1D("Hist_OnData_CR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnData_OneSample_SR_Zenith.push_back(TH1D("Hist_OnData_SR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
             Hist_OnData_OneSample_CR_Zenith.push_back(TH1D("Hist_OnData_CR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
+            pair<double,double> tele_point_l_b = ConvertRaDecToGalactic(mean_tele_point_ra, mean_tele_point_dec);
+            mean_tele_point_l = tele_point_l_b.first;
+            mean_tele_point_b = tele_point_l_b.second;
+            Hist_OnData_OneSample_SR_Skymap_Galactic.push_back(TH2D("Hist_OnData_SR_Skymap_Galactic_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,150,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+            Hist_OnData_OneSample_CR_Skymap_Galactic.push_back(TH2D("Hist_OnData_CR_Skymap_Galactic_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,150,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
         }
         Hist_OnData_MSCLW.push_back(Hist_OnData_OneSample_MSCLW);
         Hist_OnData_SR_Skymap_Theta2.push_back(Hist_OnData_OneSample_SR_Skymap_Theta2);
         Hist_OnData_CR_Skymap_Theta2.push_back(Hist_OnData_OneSample_CR_Skymap_Theta2);
         Hist_OnData_SR_Skymap.push_back(Hist_OnData_OneSample_SR_Skymap);
         Hist_OnData_CR_Skymap.push_back(Hist_OnData_OneSample_CR_Skymap);
+        Hist_OnData_SR_Skymap_Galactic.push_back(Hist_OnData_OneSample_SR_Skymap_Galactic);
+        Hist_OnData_CR_Skymap_Galactic.push_back(Hist_OnData_OneSample_CR_Skymap_Galactic);
         Hist_OnData_SR_Energy.push_back(Hist_OnData_OneSample_SR_Energy);
         Hist_OnData_CR_Energy.push_back(Hist_OnData_OneSample_CR_Energy);
         Hist_OnData_SR_Zenith.push_back(Hist_OnData_OneSample_SR_Zenith);
@@ -1378,7 +1389,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
 
     vector<vector<vector<TH2D>>> Hist_OnDark_MSCLW;
-    for (int on_run=0;on_run<Data_runlist.size();on_run++)
+    for (int on_run=0;on_run<2*Data_runlist.size();on_run++)
     {
         char run_tag[50];
         sprintf(run_tag, "%i", on_run);
@@ -1597,7 +1608,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
                     if (DarkFoV())
                     {
-                        Hist_OnDark_MSCLW.at(on_run).at(nth_sample).at(energy).Fill(MSCL,MSCW);
+                        if (Yoff>0.)
+                        {
+                            Hist_OnDark_MSCLW.at(on_run).at(nth_sample).at(energy).Fill(MSCL,MSCW);
+                        }
+                        else
+                        {
+                            Hist_OnDark_MSCLW.at(Data_runlist.size()+on_run).at(nth_sample).at(energy).Fill(MSCL,MSCW);
+                        }
                         for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
                         {
                             Hist_OffDark_MSCLW.at(nth_sample).at(energy).Fill(MSCL,MSCW);
@@ -1713,16 +1731,35 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
             if (FoV(true) || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
-                Hist_OnData_MSCLW.at(run).at(energy).Fill(MSCL,MSCW);
+                if (Yoff>0.)
+                {
+                    Hist_OnData_MSCLW.at(run).at(energy).Fill(MSCL,MSCW);
+                }
+                else
+                {
+                    Hist_OnData_MSCLW.at(Data_runlist.size()+run).at(energy).Fill(MSCL,MSCW);
+                }
             }
             if (SignalSelectionTheta2())
             {
                 if (FoV(true))
                 {
-                    Hist_OnData_SR_Skymap_Theta2.at(run).at(energy).Fill(theta2);
-                    Hist_OnData_SR_Skymap.at(run).at(energy).Fill(ra_sky,dec_sky);
-                    Hist_OnData_SR_Energy.at(run).at(energy).Fill(ErecS*1000.);
-                    Hist_OnData_SR_Zenith.at(run).at(energy).Fill(Shower_Ze);
+                    if (Yoff>0.)
+                    {
+                        Hist_OnData_SR_Skymap_Theta2.at(run).at(energy).Fill(theta2);
+                        Hist_OnData_SR_Skymap.at(run).at(energy).Fill(ra_sky,dec_sky);
+                        Hist_OnData_SR_Skymap_Galactic.at(run).at(energy).Fill(evt_l_b.first,evt_l_b.second);
+                        Hist_OnData_SR_Energy.at(run).at(energy).Fill(ErecS*1000.);
+                        Hist_OnData_SR_Zenith.at(run).at(energy).Fill(Shower_Ze);
+                    }
+                    else
+                    {
+                        Hist_OnData_SR_Skymap_Theta2.at(Data_runlist.size()+run).at(energy).Fill(theta2);
+                        Hist_OnData_SR_Skymap.at(Data_runlist.size()+run).at(energy).Fill(ra_sky,dec_sky);
+                        Hist_OnData_SR_Skymap_Galactic.at(Data_runlist.size()+run).at(energy).Fill(evt_l_b.first,evt_l_b.second);
+                        Hist_OnData_SR_Energy.at(Data_runlist.size()+run).at(energy).Fill(ErecS*1000.);
+                        Hist_OnData_SR_Zenith.at(Data_runlist.size()+run).at(energy).Fill(Shower_Ze);
+                    }
                 }
             }
             if (ControlSelectionTheta2())
@@ -1735,10 +1772,22 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     double dark_sr_content = Hist_OnDark_SR_CameraFoV.at(elevation).at(energy_fine).GetBinContent(binx,biny);
                     double weight = 0.;
                     if (dark_cr_content>0.) weight = dark_sr_content/dark_cr_content;
-                    Hist_OnData_CR_Skymap_Theta2.at(run).at(energy).Fill(theta2,weight);
-                    Hist_OnData_CR_Skymap.at(run).at(energy).Fill(ra_sky,dec_sky,weight);
-                    Hist_OnData_CR_Energy.at(run).at(energy).Fill(ErecS*1000.,weight);
-                    Hist_OnData_CR_Zenith.at(run).at(energy).Fill(Shower_Ze,weight);
+                    if (Yoff>0.)
+                    {
+                        Hist_OnData_CR_Skymap_Theta2.at(run).at(energy).Fill(theta2,weight);
+                        Hist_OnData_CR_Skymap.at(run).at(energy).Fill(ra_sky,dec_sky,weight);
+                        Hist_OnData_CR_Skymap_Galactic.at(run).at(energy).Fill(evt_l_b.first,evt_l_b.second,weight);
+                        Hist_OnData_CR_Energy.at(run).at(energy).Fill(ErecS*1000.,weight);
+                        Hist_OnData_CR_Zenith.at(run).at(energy).Fill(Shower_Ze,weight);
+                    }
+                    else
+                    {
+                        Hist_OnData_CR_Skymap_Theta2.at(Data_runlist.size()+run).at(energy).Fill(theta2,weight);
+                        Hist_OnData_CR_Skymap.at(Data_runlist.size()+run).at(energy).Fill(ra_sky,dec_sky,weight);
+                        Hist_OnData_CR_Skymap_Galactic.at(Data_runlist.size()+run).at(energy).Fill(evt_l_b.first,evt_l_b.second,weight);
+                        Hist_OnData_CR_Energy.at(Data_runlist.size()+run).at(energy).Fill(ErecS*1000.,weight);
+                        Hist_OnData_CR_Zenith.at(Data_runlist.size()+run).at(energy).Fill(Shower_Ze,weight);
+                    }
                 }
             }
         }
@@ -1823,7 +1872,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_OffDark_MSCLW.at(nth_sample).at(e).Write();
         }
     }
-    for (int on_run=0;on_run<Data_runlist.size();on_run++)
+    for (int on_run=0;on_run<2*Data_runlist.size();on_run++)
     {
         for (int e=0;e<N_energy_bins;e++) 
         {
@@ -1832,6 +1881,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_OnData_CR_Skymap_Theta2.at(on_run).at(e).Write();
             Hist_OnData_SR_Skymap.at(on_run).at(e).Write();
             Hist_OnData_CR_Skymap.at(on_run).at(e).Write();
+            Hist_OnData_SR_Skymap_Galactic.at(on_run).at(e).Write();
+            Hist_OnData_CR_Skymap_Galactic.at(on_run).at(e).Write();
             Hist_OnData_SR_Energy.at(on_run).at(e).Write();
             Hist_OnData_CR_Energy.at(on_run).at(e).Write();
             Hist_OnData_SR_Zenith.at(on_run).at(e).Write();

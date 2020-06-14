@@ -17,9 +17,9 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 #method_tag = '8bins_constrained'
-#method_tag = '8bins_unconstrained'
+method_tag = '8bins_unconstrained'
 #method_tag = '8bins_unconstrained_Modified'
-method_tag = '16bins_constrained'
+#method_tag = '16bins_constrained'
 #method_tag = '16bins_unconstrained'
 #method_tag = '16bins_unconstrained_Modified'
 
@@ -52,7 +52,7 @@ folder_path = 'output_test'
 PercentCrab = ''
 
 energy_bin_cut_low = 0
-energy_bin_cut_up = 4
+energy_bin_cut_up = 5
 selection_tag += '_E%s'%(energy_bin_cut_low)
 
 N_bins_for_deconv = 8
@@ -91,6 +91,7 @@ energy_bin += [int(pow(10,2.0))]
 energy_bin += [int(pow(10,2.3))]
 energy_bin += [int(pow(10,2.6))]
 energy_bin += [int(pow(10,3.0))]
+energy_bin += [int(pow(10,3.4))]
 energy_bin += [int(pow(10,4.0))]
 
 energy_fine_bin = []
@@ -119,8 +120,10 @@ energy_fine_bin += [pow(10,4.0)]
 sample_list = []
 sky_coord = []
 
-sample_list += ['CrabV5']
-sky_coord += ['05 34 31.97 +22 00 52.1']
+#sample_list += ['CrabV5']
+#sky_coord += ['05 34 31.97 +22 00 52.1']
+#sample_list += ['CrabV4']
+#sky_coord += ['05 34 31.97 +22 00 52.1']
 
 #sample_list += ['SgrAV6']
 #sky_coord += ['17 45 39.6 -29 00 22']
@@ -137,18 +140,21 @@ sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['PKS1424V6']
 #sky_coord += ['14 27 00 +23 47 00']
 
+#sample_list += ['3C264V6']
+#sky_coord += ['11 45 5.009 +19 36 22.74']
+
 #sample_list += ['2HWC_J1930V6']
 #sky_coord += ['19 30 32 +18 52 12']
 
 #sample_list += ['2HWC_J1953V6']
 #sky_coord += ['19 53 02.4 +29 28 48']
 
-#sample_list += ['WComaeV6']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV5']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV4']
-#sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV6']
+sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV5']
+sky_coord += ['12 21 31.7 +28 13 59']
+sample_list += ['WComaeV4']
+sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
@@ -190,8 +196,6 @@ sky_coord += ['05 34 31.97 +22 00 52.1']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['Mrk421']
 #sky_coord += ['11 04 19 +38 11 41']
-#sample_list += ['3C264']
-#sky_coord += ['11 45 5.009 +19 36 22.74']
 #sample_list += ['S3_1227_V6']
 #sky_coord += ['12 30 14.1 +25 18 07']
 #sample_list += ['MS1221V6']
@@ -1441,6 +1445,22 @@ def PlotsStackedHistograms(tag):
     title = 'energy [GeV]'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_Zenith_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_Zenith_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    plotname = 'Stack_Zenith_MDM_%s'%(tag)
+    title = 'Zenith [degree]'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
+
 
     for nth_sample in range(0,n_control_samples):
 
@@ -1591,6 +1611,13 @@ def NormalizeEnergyHistograms(FilePath):
     Hist_OnBkgd_Energy.Reset()
     Hist_OnBkgd_Energy.Add(InputFile.Get(HistName))
 
+    HistName = "Hist_OnData_SR_Zenith_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnData_Zenith.Reset()
+    Hist_OnData_Zenith.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_CR_Zenith_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnBkgd_Zenith.Reset()
+    Hist_OnBkgd_Zenith.Add(InputFile.Get(HistName))
+
     for nth_roi in range(0,len(roi_ra)):
         HistName = "Hist_OnData_SR_RoI_Energy_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_OnData_RoI_Energy[nth_roi].Reset()
@@ -1602,6 +1629,8 @@ def NormalizeEnergyHistograms(FilePath):
     if Hist2D_OnData.Integral()<1600.:
         Hist_OnData_Energy.Reset()
         Hist_OnBkgd_Energy.Reset()
+        Hist_OnData_Zenith.Reset()
+        Hist_OnBkgd_Zenith.Reset()
         for nth_roi in range(0,len(roi_ra)):
             Hist_OnData_RoI_Energy[nth_roi].Reset()
             Hist_OnBkgd_RoI_Energy[nth_roi].Reset()
@@ -1648,6 +1677,8 @@ def StackEnergyHistograms():
 
     Hist_OnData_Energy_Sum.Add(Hist_OnData_Energy)
     Hist_OnBkgd_Energy_Sum.Add(Hist_OnBkgd_Energy)
+    Hist_OnData_Zenith_Sum.Add(Hist_OnData_Zenith)
+    Hist_OnBkgd_Zenith_Sum.Add(Hist_OnBkgd_Zenith)
 
     for nth_roi in range(0,len(roi_ra)):
         Hist_OnData_RoI_Energy_Sum[nth_roi].Add(Hist_OnData_RoI_Energy[nth_roi])
@@ -2497,6 +2528,10 @@ Hist_OnData_Energy_Sum = ROOT.TH1D("Hist_OnData_Energy_Sum","",len(energy_fine_b
 Hist_OnBkgd_Energy_Sum = ROOT.TH1D("Hist_OnBkgd_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnData_Energy = ROOT.TH1D("Hist_OnData_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnBkgd_Energy = ROOT.TH1D("Hist_OnBkgd_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_OnData_Zenith_Sum = ROOT.TH1D("Hist_OnData_Zenith_Sum","",45,0,90)
+Hist_OnBkgd_Zenith_Sum = ROOT.TH1D("Hist_OnBkgd_Zenith_Sum","",45,0,90)
+Hist_OnData_Zenith = ROOT.TH1D("Hist_OnData_Zenith","",45,0,90)
+Hist_OnBkgd_Zenith = ROOT.TH1D("Hist_OnBkgd_Zenith","",45,0,90)
 
 Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",150,source_ra-Skymap_size,source_ra+Skymap_size,150,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",150,source_ra-Skymap_size,source_ra+Skymap_size,150,source_dec-Skymap_size,source_dec+Skymap_size)
