@@ -51,7 +51,7 @@ folder_path = 'output_test'
 #folder_path = 'output_root'
 PercentCrab = ''
 
-energy_bin_cut_low = 0
+energy_bin_cut_low = 1
 energy_bin_cut_up = 5
 selection_tag += '_E%s'%(energy_bin_cut_low)
 
@@ -76,7 +76,7 @@ source_ra = 0.
 source_dec = 0.
 source_l = 0.
 source_b = 0.
-n_control_samples = 5
+n_control_samples = 3
 MJD_Start = 2147483647
 MJD_End = 0
 roi_name = ROOT.std.vector("string")(10)
@@ -134,14 +134,20 @@ sky_coord = []
 #sample_list += ['1ES0229V6']
 #sky_coord += ['02 32 53.2 +20 16 21']
 
-sample_list += ['H1426V6']
-sky_coord += ['14 28 32.609 +42 40 21.05']
+#sample_list += ['H1426V6']
+#sky_coord += ['14 28 32.609 +42 40 21.05']
 
-#sample_list += ['PKS1424V6']
-#sky_coord += ['14 27 00 +23 47 00']
+sample_list += ['PKS1424V6']
+sky_coord += ['14 27 00 +23 47 00']
 
 #sample_list += ['3C264V6']
 #sky_coord += ['11 45 5.009 +19 36 22.74']
+
+#sample_list += ['PG1553V5']
+#sky_coord += ['15 55 44.7 +11 11 41']
+
+#sample_list += ['1ES1011V6']
+#sky_coord += ['10 15 4.139 +49 26 0.71']
 
 #sample_list += ['2HWC_J1930V6']
 #sky_coord += ['19 30 32 +18 52 12']
@@ -204,12 +210,8 @@ sky_coord += ['14 28 32.609 +42 40 21.05']
 #sky_coord += ['14 43 56.9 +25 01 44']
 #sample_list += ['RBS0413V6']
 #sky_coord += ['03 19 47 +18 45 42']
-#sample_list += ['PG1553V6']
-#sky_coord += ['15 55 44.7 +11 11 41']
 #sample_list += ['ComaV6']
 #sky_coord += ['12 59 48.7 +27 58 50']
-#sample_list += ['1ES1011V6']
-#sky_coord += ['10 15 4.139 +49 26 0.71']
 #sample_list += ['NGC1275V6']
 #sky_coord += ['03 19 48.1 +41 30 42']
 #sample_list += ['1ES0647V6']
@@ -2022,12 +2024,12 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
-    #for star in range(0,len(bright_star_markers)):
-    #    bright_star_markers[star].Draw("same")
-    #    bright_star_labels[star].Draw("same")
-    #for star in range(0,len(faint_star_markers)):
-    #    faint_star_markers[star].Draw("same")
-    #    faint_star_labels[star].Draw("same")
+    for star in range(0,len(bright_star_markers)):
+        bright_star_markers[star].Draw("same")
+        bright_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.70,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
     lumilab1.SetNDC()
@@ -2060,12 +2062,12 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
-    #for star in range(0,len(bright_star_markers)):
-    #    bright_star_markers[star].Draw("same")
-    #    bright_star_labels[star].Draw("same")
-    #for star in range(0,len(faint_star_markers)):
-    #    faint_star_markers[star].Draw("same")
-    #    faint_star_labels[star].Draw("same")
+    for star in range(0,len(bright_star_markers)):
+        bright_star_markers[star].Draw("same")
+        bright_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     Hist_Skymap_Excess.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Excess.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap_Excess.GetXaxis().GetXmin()
@@ -2094,12 +2096,12 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
-    #for star in range(0,len(bright_star_markers)):
-    #    bright_star_markers[star].Draw("same")
-    #    bright_star_labels[star].Draw("same")
-    #for star in range(0,len(faint_star_markers)):
-    #    faint_star_markers[star].Draw("same")
-    #    faint_star_labels[star].Draw("same")
+    for star in range(0,len(bright_star_markers)):
+        bright_star_markers[star].Draw("same")
+        bright_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     Hist_Skymap_Ratio.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Ratio.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap_Ratio.GetXaxis().GetXmin()
@@ -2146,12 +2148,12 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,xtitle,ytitle,name):
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
-    #for star in range(0,len(bright_star_markers)):
-    #    bright_star_markers[star].Draw("same")
-    #    bright_star_labels[star].Draw("same")
-    #for star in range(0,len(faint_star_markers)):
-    #    faint_star_markers[star].Draw("same")
-    #    faint_star_labels[star].Draw("same")
+    for star in range(0,len(bright_star_markers)):
+        bright_star_markers[star].Draw("same")
+        bright_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     Hist_Skymap_zoomin.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_zoomin.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap_zoomin.GetXaxis().GetXmin()

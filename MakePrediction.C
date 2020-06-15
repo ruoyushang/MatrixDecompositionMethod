@@ -954,6 +954,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         }
         group_size.push_back(0);
     }
+    int FirstRun = 0;
+    int LastRun = Data_runlist_name_ptr->size();
+    //FirstRun = int(double(Data_runlist_name_ptr->size())*0.5);
+    //LastRun = int(double(Data_runlist_name_ptr->size())*0.5);
 
     exposure_hours = 0.;
     MJD_Start = 2147483647;
@@ -967,7 +971,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-        for (int on_run=0;on_run<Data_runlist_name_ptr->size();on_run++)
+        for (int on_run=FirstRun;on_run<LastRun;on_run++)
         {
 
             char sample_tag[50];
@@ -1002,6 +1006,23 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             Hist_OnData_SR_Zenith_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
             hist_name  = "Hist_OnData_CR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
             Hist_OnData_CR_Zenith_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+            for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
+            {
+                char roi_tag[50];
+                sprintf(roi_tag, "%i", nth_roi);
+                hist_name  = "Hist_OnData_SR_RoI_Energy_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_SR_RoI_Energy_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_SR_Skymap_RoI_Theta2_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_SR_Skymap_RoI_Theta2_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_SR_RoI_MJD_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_SR_RoI_MJD_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_CR_RoI_Energy_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_CR_RoI_Energy_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_CR_Skymap_RoI_Theta2_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_CR_Skymap_RoI_Theta2_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_CR_RoI_MJD_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_CR_RoI_MJD_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+            }
             for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
             {
                 char sample2_tag[50];
