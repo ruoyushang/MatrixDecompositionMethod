@@ -206,7 +206,7 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 83.633;
                 Source_Dec = 22.014;
     }
-    if (source_name=="Mrk421")
+    if (source_name=="Mrk421V5")
     {
             Source_RA = 166.079;
                 Source_Dec = 38.195;
@@ -237,6 +237,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
                 Source_Dec = 20.100;
     }
     if (source_name=="RBS0413V6")
+    {
+            Source_RA = 49.946;
+                Source_Dec = 18.762;
+    }
+    if (source_name=="RBS0413V5")
     {
             Source_RA = 49.946;
                 Source_Dec = 18.762;
@@ -1203,6 +1208,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             MSCL_cut_blind = MSCL_cut_loose;
         }
     }
+    if (TString(target).Contains("Mrk421"))
+    {
+        if (source_theta2_cut==0.)
+        {
+            MSCW_cut_blind = MSCW_cut_loose;
+            MSCL_cut_blind = MSCL_cut_loose;
+        }
+    }
     MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
     MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
@@ -1305,6 +1318,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     else if (TString(target).Contains("Crab")) 
     {
         roi_name.push_back("Crab");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius.push_back(0.5);
+    }
+    else if (TString(target).Contains("Mrk421")) 
+    {
+        roi_name.push_back("Mrk421");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(0.5);

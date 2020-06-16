@@ -51,7 +51,7 @@ folder_path = 'output_test'
 #folder_path = 'output_root'
 PercentCrab = ''
 
-energy_bin_cut_low = 1
+energy_bin_cut_low = 0
 energy_bin_cut_up = 5
 selection_tag += '_E%s'%(energy_bin_cut_low)
 
@@ -125,6 +125,9 @@ sky_coord = []
 #sample_list += ['CrabV4']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
 
+#sample_list += ['Mrk421V5']
+#sky_coord += ['11 04 19 +38 11 41']
+
 #sample_list += ['SgrAV6']
 #sky_coord += ['17 45 39.6 -29 00 22']
 
@@ -137,17 +140,25 @@ sky_coord = []
 #sample_list += ['H1426V6']
 #sky_coord += ['14 28 32.609 +42 40 21.05']
 
-sample_list += ['PKS1424V6']
-sky_coord += ['14 27 00 +23 47 00']
+#sample_list += ['PKS1424V6']
+#sky_coord += ['14 27 00 +23 47 00']
 
 #sample_list += ['3C264V6']
 #sky_coord += ['11 45 5.009 +19 36 22.74']
 
-#sample_list += ['PG1553V5']
-#sky_coord += ['15 55 44.7 +11 11 41']
+sample_list += ['PG1553V5']
+sky_coord += ['15 55 44.7 +11 11 41']
 
 #sample_list += ['1ES1011V6']
 #sky_coord += ['10 15 4.139 +49 26 0.71']
+
+#sample_list += ['RBS0413V6']
+#sky_coord += ['03 19 47 +18 45 42']
+#sample_list += ['RBS0413V5']
+#sky_coord += ['03 19 47 +18 45 42']
+
+#sample_list += ['1ES0647V6']
+#sky_coord += ['06 50 46.490 +25 02 59.62']
 
 #sample_list += ['2HWC_J1930V6']
 #sky_coord += ['19 30 32 +18 52 12']
@@ -200,22 +211,16 @@ sky_coord += ['14 27 00 +23 47 00']
 
 #sample_list += ['Crab']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
-#sample_list += ['Mrk421']
-#sky_coord += ['11 04 19 +38 11 41']
 #sample_list += ['S3_1227_V6']
 #sky_coord += ['12 30 14.1 +25 18 07']
 #sample_list += ['MS1221V6']
 #sky_coord += ['12 24 24.2 +24 36 24']
 #sample_list += ['PKS1441V6']
 #sky_coord += ['14 43 56.9 +25 01 44']
-#sample_list += ['RBS0413V6']
-#sky_coord += ['03 19 47 +18 45 42']
 #sample_list += ['ComaV6']
 #sky_coord += ['12 59 48.7 +27 58 50']
 #sample_list += ['NGC1275V6']
 #sky_coord += ['03 19 48.1 +41 30 42']
-#sample_list += ['1ES0647V6']
-#sky_coord += ['06 50 46.490 +25 02 59.62']
 #sample_list += ['1ES1440V6']
 #sky_coord += ['14 42 48.277 +12 00 40.37']
 #sample_list += ['1ES1741V6']
