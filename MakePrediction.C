@@ -674,10 +674,43 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     if (TString(target).Contains("V4")) SizeSecondMax_Cut = 400.;
     if (TString(target).Contains("V5")) SizeSecondMax_Cut = 400.;
 
+    vector<int> group_size_limit;
+    vector<int> group_size;
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        group_size_limit.push_back(20);
+        if (energy_bins[e]>=pow(10,2.6))
+        {
+            group_size_limit.at(e) = 20;
+        }
+        if (energy_bins[e]>=pow(10,3.0))
+        {
+            group_size_limit.at(e) = 100;
+        }
+        group_size.push_back(0);
+    }
+
+    vector<string>* Data_runlist_name_ptr = new std::vector<string>(10);
+    vector<int>* Data_runlist_number_ptr = new std::vector<int>(10);
+    vector<string>* roi_name_ptr = new std::vector<string>(10);
+    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TTree* InfoTree_ptr = nullptr;
+    InfoTree_ptr = (TTree*) InputDataFile.Get("InfoTree");
+    InfoTree_ptr->SetBranchAddress("Data_runlist_number",&Data_runlist_number_ptr);
+    InfoTree_ptr->SetBranchAddress("Data_runlist_name",&Data_runlist_name_ptr);
+    InfoTree_ptr->SetBranchAddress("roi_name",&roi_name_ptr);
+    InfoTree_ptr->GetEntry(0);
+
+    int FirstRun = 0;
+    int LastRun = Data_runlist_name_ptr->size();
+    //FirstRun = int(double(Data_runlist_name_ptr->size())*0.5);
+    //LastRun = int(double(Data_runlist_name_ptr->size())*0.5);
+
+
     std::cout << "Working on OFF data..." << std::endl;
     vector<vector<TH2D>> Hist_OffData_MSCLW;
     vector<vector<TH2D>> Hist_OffBkgd_MSCLW;
-    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
+    for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {
         std::cout << "++++++++++++++++++++++++++++++++++++++" << std::endl;
         std::cout << "sample = " << nth_sample << std::endl;
@@ -693,70 +726,98 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
-
-            vector<string>* Data_runlist_name_ptr = new std::vector<string>(10);
-            vector<int>* Data_runlist_number_ptr = new std::vector<int>(10);
-            TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
-            TTree* InfoTree = nullptr;
-            InfoTree = (TTree*) InputDataFile.Get("InfoTree");
-            InfoTree->SetBranchAddress("Data_runlist_number",&Data_runlist_number_ptr);
-            InfoTree->SetBranchAddress("Data_runlist_name",&Data_runlist_name_ptr);
-            InfoTree->GetEntry(0);
-
-            TString filename_data  = "Hist_OffData_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            TString filename_dark  = "Hist_OffDark_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            TH2D* Hist_Data = (TH2D*)InputDataFile.Get(filename_data);
-            TH2D* Hist_Dark = (TH2D*)InputDataFile.Get(filename_dark);
             Hist_OffData_OneSample_MSCLW.push_back(TH2D("Hist_OffData2_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OffBkgd_OneSample_MSCLW.push_back(TH2D("Hist_OffBkgd_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
-
-            NormalizaDarkMatrix(Hist_Data, Hist_Dark);
-
-            mtx_data = fillMatrix(Hist_Data);
-            mtx_dark = fillMatrix(Hist_Dark);
-            eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
-            eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-
-            std::cout << "Hist_Data->Integral() = " << Hist_Data->Integral() << std::endl;
-            std::cout << "Hist_Dark->Integral() = " << Hist_Dark->Integral() << std::endl;
-            if (isnan(Hist_Dark->Integral()) || isnan(Hist_Data->Integral()))
-            {
-                continue;
-            }
-
-            int binx_lower = Hist_Data->GetXaxis()->FindBin(MSCL_cut_lower);
-            binx_blind_global = Hist_Data->GetXaxis()->FindBin(MSCL_cut_blind)-1;
-            int binx_upper = Hist_Data->GetXaxis()->FindBin(1.)-1;
-            int biny_lower = Hist_Data->GetYaxis()->FindBin(MSCW_cut_lower);
-            biny_blind_global = Hist_Data->GetYaxis()->FindBin(MSCW_cut_blind)-1;
-            int biny_upper = Hist_Data->GetYaxis()->FindBin(1.)-1;
-
-            LeastSquareSolutionMethod(rank_variation);
-
-            Hist_OffData_OneSample_MSCLW.at(e).Add(Hist_Data);
-            fill2DHistogram(&Hist_OffBkgd_OneSample_MSCLW.at(e),mtx_data_bkgd);
-            eigensolver_bkgd = ComplexEigenSolver<MatrixXcd>(mtx_data_bkgd);
-
-            InputDataFile.Close();
-
         }
         Hist_OffData_MSCLW.push_back(Hist_OffData_OneSample_MSCLW);
         Hist_OffBkgd_MSCLW.push_back(Hist_OffBkgd_OneSample_MSCLW);
+    }
 
+    vector<vector<TH2D>> Hist_OneGroup_OffData_MSCLW;
+    vector<vector<TH2D>> Hist_OneGroup_OffDark_MSCLW;
+    for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+    {
+        char sample_tag[50];
+        sprintf(sample_tag, "%i", nth_sample);
+        vector<TH2D> Hist_OneSample_OffData_MSCLW;
+        vector<TH2D> Hist_OneSample_OffDark_MSCLW;
+        for (int e=0;e<N_energy_bins;e++) 
+        {
+            char e_low[50];
+            sprintf(e_low, "%i", int(energy_bins[e]));
+            char e_up[50];
+            sprintf(e_up, "%i", int(energy_bins[e+1]));
+            Hist_OneSample_OffData_MSCLW.push_back(TH2D("Hist_OneSample_OffData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+            Hist_OneSample_OffDark_MSCLW.push_back(TH2D("Hist_OneSample_OffDark_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        }
+        Hist_OneGroup_OffData_MSCLW.push_back(Hist_OneSample_OffData_MSCLW);
+        Hist_OneGroup_OffDark_MSCLW.push_back(Hist_OneSample_OffDark_MSCLW);
+    }
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        std::cout << "++++++++++++++++++++++++++++++++++++++" << std::endl;
+        std::cout << "energy = " << energy_bins[e] << std::endl;
+        char e_low[50];
+        sprintf(e_low, "%i", int(energy_bins[e]));
+        char e_up[50];
+        sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+        {
+            char sample2_tag[50];
+            sprintf(sample2_tag, "%i", nth_sample);
+
+            for (int on_run=FirstRun;on_run<LastRun;on_run++)
+            {
+
+                char sample_tag[50];
+                sprintf(sample_tag, "%i", on_run);
+
+                int binx_lower = Hist_OffData_MSCLW.at(0).at(0).GetXaxis()->FindBin(MSCL_cut_lower);
+                binx_blind_global = Hist_OffData_MSCLW.at(0).at(0).GetXaxis()->FindBin(MSCL_cut_blind)-1;
+                int binx_upper = Hist_OffData_MSCLW.at(0).at(0).GetXaxis()->FindBin(1.)-1;
+                int biny_lower = Hist_OffData_MSCLW.at(0).at(0).GetYaxis()->FindBin(MSCW_cut_lower);
+                biny_blind_global = Hist_OffData_MSCLW.at(0).at(0).GetYaxis()->FindBin(MSCW_cut_blind)-1;
+                int biny_upper = Hist_OffData_MSCLW.at(0).at(0).GetYaxis()->FindBin(1.)-1;
+
+                TString hist_name;
+                hist_name  = "Hist_OnDark_MSCLW_R"+TString(sample_tag)+"_V"+TString(sample2_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                for (int nth_other_sample=0;nth_other_sample<n_dark_samples;nth_other_sample++)
+                {
+                    if (nth_sample==nth_other_sample) continue;
+                    char sample2_tag[50];
+                    sprintf(sample2_tag, "%i", nth_other_sample);
+                    hist_name  = "Hist_OnDark_MSCLW_R"+TString(sample_tag)+"_V"+TString(sample2_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                    Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                }
+
+                group_size.at(e) += 1;
+
+                if (group_size.at(e)==group_size_limit.at(e) || on_run==Data_runlist_number_ptr->size()-1)
+                {
+                    mtx_data = fillMatrix(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e));
+                    eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
+                    NormalizaDarkMatrix(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e), &Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
+                    mtx_dark = fillMatrix(&Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
+                    eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
+                    LeastSquareSolutionMethod(rank_variation);
+                    TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+                    fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
+                    Hist_OffData_MSCLW.at(nth_sample).at(e).Add(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e));
+                    Hist_OffBkgd_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
+
+                    Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e).Reset();
+                    Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e).Reset();
+                    group_size.at(e) = 0;
+
+                }
+            }
+
+        }
     }
 
     std::cout << "Working on ON data..." << std::endl;
-
-    vector<string>* Data_runlist_name_ptr = new std::vector<string>(10);
-    vector<int>* Data_runlist_number_ptr = new std::vector<int>(10);
-    vector<string>* roi_name_ptr = new std::vector<string>(10);
-    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
-    TTree* InfoTree_ptr = nullptr;
-    InfoTree_ptr = (TTree*) InputDataFile.Get("InfoTree");
-    InfoTree_ptr->SetBranchAddress("Data_runlist_number",&Data_runlist_number_ptr);
-    InfoTree_ptr->SetBranchAddress("Data_runlist_name",&Data_runlist_name_ptr);
-    InfoTree_ptr->SetBranchAddress("roi_name",&roi_name_ptr);
-    InfoTree_ptr->GetEntry(0);
 
 
     vector<vector<TH2D>> Hist_OneGroup_Dark_MSCLW;
@@ -950,26 +1011,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_CR_RoI_MJD.push_back(Hist_OnData_OneRoI_CR_RoI_MJD);
         Hist_OnData_CR_RoI_MJD_OneGroup.push_back(Hist_OnData_OneRoI_CR_RoI_MJD_OneGroup);
     }
-
-    vector<int> group_size_limit;
-    vector<int> group_size;
-    for (int e=0;e<N_energy_bins;e++) 
-    {
-        group_size_limit.push_back(10);
-        if (energy_bins[e]>=pow(10,2.6))
-        {
-            group_size_limit.at(e) = 20;
-        }
-        if (energy_bins[e]>=pow(10,3.0))
-        {
-            group_size_limit.at(e) = 100;
-        }
-        group_size.push_back(0);
-    }
-    int FirstRun = 0;
-    int LastRun = Data_runlist_name_ptr->size();
-    //FirstRun = int(double(Data_runlist_name_ptr->size())*0.5);
-    //LastRun = int(double(Data_runlist_name_ptr->size())*0.5);
 
     exposure_hours = 0.;
     MJD_Start = 2147483647;
@@ -1239,7 +1280,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Bkgd_Rank1_RightVector.at(e).Write();
         Hist_Bkgd_Rank2_RightVector.at(e).Write();
     }
-    for (int nth_sample=0;nth_sample<n_control_samples;nth_sample++)
+    for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {
         for (int e=0;e<N_energy_bins;e++) 
         {
