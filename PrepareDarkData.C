@@ -1237,6 +1237,29 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnDark_Incl_CR_Zenith.push_back(TH1D("Hist_OnDark_Incl_CR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
     }
 
+    vector<TH2D> Hist_OnData_CR_Skymap_Syst;
+    vector<TH2D> Hist_OnData_CR_Skymap_Raw;
+    vector<TH2D> Hist_OnDark_CR_Skymap_Raw;
+    vector<TH2D> Hist_OnData_CR_Skymap_Galactic_Syst;
+    vector<TH2D> Hist_OnData_CR_Skymap_Galactic_Raw;
+    vector<TH2D> Hist_OnDark_CR_Skymap_Galactic_Raw;
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        char e_low[50];
+        sprintf(e_low, "%i", int(energy_bins[e]));
+        char e_up[50];
+        sprintf(e_up, "%i", int(energy_bins[e+1]));
+        Hist_OnData_CR_Skymap_Syst.push_back(TH2D("Hist_OnData_CR_Skymap_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,150,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnData_CR_Skymap_Raw.push_back(TH2D("Hist_OnData_CR_Skymap_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,150,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnDark_CR_Skymap_Raw.push_back(TH2D("Hist_OnDark_CR_Skymap_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,150,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        pair<double,double> tele_point_l_b = ConvertRaDecToGalactic(mean_tele_point_ra, mean_tele_point_dec);
+        mean_tele_point_l = tele_point_l_b.first;
+        mean_tele_point_b = tele_point_l_b.second;
+        Hist_OnData_CR_Skymap_Galactic_Syst.push_back(TH2D("Hist_OnData_CR_Skymap_Galactic_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,150,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+        Hist_OnData_CR_Skymap_Galactic_Raw.push_back(TH2D("Hist_OnData_CR_Skymap_Galactic_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,150,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+        Hist_OnDark_CR_Skymap_Galactic_Raw.push_back(TH2D("Hist_OnDark_CR_Skymap_Galactic_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",150,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,150,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+    }
+
     vector<vector<TH2D>> Hist_OnData_MSCLW;
     vector<vector<TH1D>> Hist_OnData_SR_Energy;
     vector<vector<TH1D>> Hist_OnData_CR_Energy;
@@ -1400,10 +1423,60 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
 
     std::cout << "Prepare dark run samples..." << std::endl;
-    for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+    for (int on_run=0;on_run<Data_runlist.size();on_run++)
     {
-        std::cout << "Prepare" << nth_sample << "-th dark samples..." << std::endl;
-        for (int on_run=0;on_run<Data_runlist.size();on_run++)
+        char run_number[50];
+        char Data_observation[50];
+        sprintf(run_number, "%i", int(Data_runlist[on_run].second));
+        sprintf(Data_observation, "%s", Data_runlist[on_run].first.c_str());
+        string filename;
+        filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Data_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
+        //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
+        pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
+        if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[on_run].second));
+
+        TFile*  input_file = TFile::Open(filename.c_str());
+        TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
+        TTree* Data_tree = (TTree*) input_file->Get(root_file);
+        SetEventDisplayTreeBranch(Data_tree);
+
+        for (int entry=0;entry<Data_tree->GetEntries();entry++) 
+        {
+            ErecS = 0;
+            EChi2S = 0;
+            NImages = 0;
+            Xcore = 0;
+            Ycore = 0;
+            SizeSecondMax = 0;
+            MSCW = 0;
+            MSCL = 0;
+            R2off = 0;
+            Data_tree->GetEntry(entry);
+            R2off = Xoff*Xoff+Yoff*Yoff;
+            Phioff = atan2(Yoff,Xoff)+M_PI;
+            ra_sky = tele_point_ra_dec.first+Xoff_derot;
+            dec_sky = tele_point_ra_dec.second+Yoff_derot;
+            // redefine theta2
+            theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
+            pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
+            int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
+            int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
+            int elevation = Hist_Elev.FindBin(90.-Shower_Ze)-1;
+            if (energy<0) continue;
+            if (energy>=N_energy_bins) continue;
+            if (elevation<0) continue;
+            if (elevation>=N_elev_bins) continue;
+            if (!SelectNImages(3,4)) continue;
+            if (SizeSecondMax<SizeSecondMax_Cut) continue;
+            if (EmissionHeight<6.) continue;
+            if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+            if (ControlSelectionTheta2())
+            {
+                Hist_OnData_CR_Skymap_Raw.at(energy).Fill(ra_sky,dec_sky);
+                Hist_OnData_CR_Skymap_Galactic_Raw.at(energy).Fill(evt_l_b.first,evt_l_b.second);
+            }
+        }
+        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
             for (int off_run=0;off_run<Dark_runlist.at(on_run).at(nth_sample).size();off_run++)
             {
@@ -1414,12 +1487,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 sprintf(Dark_observation, "%s", Dark_runlist.at(on_run).at(nth_sample)[off_run].first.c_str());
                 string filename;
                 filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Dark_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
-
-                //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
-                pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
-                if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Dark_runlist.at(on_run).at(nth_sample)[off_run].second));
-                run_tele_point_ra = tele_point_ra_dec.first;
-                run_tele_point_dec = tele_point_ra_dec.second;
 
                 TFile*  input_file = TFile::Open(filename.c_str());
                 TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(input_file,Dark_runlist.at(on_run).at(nth_sample)[off_run].second);
@@ -1451,6 +1518,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Phioff = atan2(Yoff,Xoff)+M_PI;
                     ra_sky = tele_point_ra_dec.first+Xoff_derot;
                     dec_sky = tele_point_ra_dec.second+Yoff_derot;
+                    pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
                     int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
                     int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
                     int elevation = Hist_Elev.FindBin(90.-Shower_Ze)-1;
@@ -1465,9 +1533,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     //if (R2off>4.) continue;
                     Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
                     Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
+                    double weight = Dark_weight.at(on_run).at(nth_sample);
                     if (DarkFoV())
                     {
-                        double weight = Dark_weight.at(on_run).at(nth_sample);
                         //int zenith_bin = Hist_OnDark_Incl_CR_Zenith.at(energy).FindBin(Shower_Ze);
                         //double dark_count = Hist_OnDark_Incl_CR_Zenith.at(energy).GetBinContent(zenith_bin);
                         //double data_count = Hist_OnData_Incl_CR_Zenith.at(energy).GetBinContent(zenith_bin);
@@ -1483,12 +1551,41 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                             Hist_OnDark_CR_CameraFoV.at(elevation).at(energy_fine).Fill(R2off,Phioff,weight);
                         }
                     }
+                    if (ControlSelectionTheta2())
+                    {
+                        Hist_OnDark_CR_Skymap_Raw.at(energy).Fill(ra_sky,dec_sky,weight);
+                        Hist_OnDark_CR_Skymap_Galactic_Raw.at(energy).Fill(evt_l_b.first,evt_l_b.second,weight);
+                    }
                 }
                 input_file->Close();
-
             }
         }
     }
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        double data_integral = Hist_OnData_CR_Skymap_Raw.at(e).Integral();
+        double dark_integral = Hist_OnDark_CR_Skymap_Raw.at(e).Integral();
+        double scale = 0.;
+        if (dark_integral>0.) scale = data_integral/dark_integral;
+        Hist_OnDark_CR_Skymap_Raw.at(e).Scale(scale);
+        Hist_OnData_CR_Skymap_Syst.at(e).Reset();
+        Hist_OnData_CR_Skymap_Syst.at(e).Add(&Hist_OnDark_CR_Skymap_Raw.at(e));
+        Hist_OnData_CR_Skymap_Syst.at(e).Add(&Hist_OnData_CR_Skymap_Raw.at(e),-1.);
+        Hist_OnData_CR_Skymap_Syst.at(e).Divide(&Hist_OnDark_CR_Skymap_Raw.at(e));
+    }
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        double data_integral = Hist_OnData_CR_Skymap_Galactic_Raw.at(e).Integral();
+        double dark_integral = Hist_OnDark_CR_Skymap_Galactic_Raw.at(e).Integral();
+        double scale = 0.;
+        if (dark_integral>0.) scale = data_integral/dark_integral;
+        Hist_OnDark_CR_Skymap_Galactic_Raw.at(e).Scale(scale);
+        Hist_OnData_CR_Skymap_Galactic_Syst.at(e).Reset();
+        Hist_OnData_CR_Skymap_Galactic_Syst.at(e).Add(&Hist_OnDark_CR_Skymap_Galactic_Raw.at(e));
+        Hist_OnData_CR_Skymap_Galactic_Syst.at(e).Add(&Hist_OnData_CR_Skymap_Galactic_Raw.at(e),-1.);
+        Hist_OnData_CR_Skymap_Galactic_Syst.at(e).Divide(&Hist_OnDark_CR_Skymap_Galactic_Raw.at(e));
+    }
+
 
     std::cout << "Prepare ON run samples..." << std::endl;
     for (int run=0;run<Data_runlist.size();run++)
@@ -1692,6 +1789,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     Hist_Dark_ElevNSB.Write();
     Hist_Data_ElevNSB.Write();
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        Hist_OnData_CR_Skymap_Syst.at(e).Write();
+        Hist_OnData_CR_Skymap_Galactic_Syst.at(e).Write();
+    }
     for (int on_run=0;on_run<Data_runlist.size();on_run++)
     {
         for (int e=0;e<N_energy_bins;e++) 
