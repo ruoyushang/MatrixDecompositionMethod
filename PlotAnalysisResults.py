@@ -18,10 +18,8 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 #method_tag = '8bins_constrained'
 method_tag = '8bins_unconstrained'
-#method_tag = '8bins_unconstrained_Modified'
 #method_tag = '16bins_constrained'
 #method_tag = '16bins_unconstrained'
-#method_tag = '16bins_unconstrained_Modified'
 
 #elev_bins = [45,55,65,75,85]
 #elev_bins = [45,65,85]
@@ -32,9 +30,9 @@ ONOFF_tag = 'ON'
 root_file_tags = []
 for elev in range(0,len(elev_bins)-1):
     # all time
-    #root_file_tags += [method_tag+'_TelElev%sto%s_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+    root_file_tags += [method_tag+'_TelElev%sto%s_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
     # 1ES 1215 flare
-    root_file_tags += [method_tag+'_TelElev%sto%s_MJD56373to57549_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56372to56464_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
     # WComae and 1ES 1218 flare
     #root_file_tags += [method_tag+'_TelElev%sto%s_MJD54400to54700_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
     # Geminga
@@ -140,8 +138,8 @@ sky_coord = []
 #sample_list += ['H1426V6']
 #sky_coord += ['14 28 32.609 +42 40 21.05']
 
-#sample_list += ['PKS1424V6']
-#sky_coord += ['14 27 00 +23 47 00']
+sample_list += ['PKS1424V6']
+sky_coord += ['14 27 00 +23 47 00']
 
 #sample_list += ['3C264V6']
 #sky_coord += ['11 45 5.009 +19 36 22.74']
@@ -166,12 +164,12 @@ sky_coord = []
 #sample_list += ['2HWC_J1953V6']
 #sky_coord += ['19 53 02.4 +29 28 48']
 
-sample_list += ['WComaeV6']
-sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV5']
-sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV4']
-sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV6']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV5']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV4']
+#sky_coord += ['12 21 31.7 +28 13 59']
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
@@ -249,6 +247,15 @@ bright_star_brightness = []
 faint_star_ra = []
 faint_star_dec = []
 faint_star_brightness = []
+
+#NRGBs = 5
+#NCont = 104
+#stops = [0.00,0.40,0.50,0.60,1.00]
+#red =   [0.00,1.00,1.00,1.00,1.00]
+#green = [0.00,1.00,1.00,1.00,0.00]
+#blue =  [1.00,1.00,1.00,1.00,0.00]
+#ROOT.TColor.CreateGradientColorTable(NRGBs,array('d',stops),array('d',red),array('d',green),array('d',blue),NCont)
+#ROOT.gStyle.SetNumberContours(NCont)
 
 def ConvertRaDecToGalactic(ra, dec):
     delta = dec*ROOT.TMath.Pi()/180.
@@ -1632,6 +1639,12 @@ def NormalizeEnergyHistograms(FilePath):
         HistName = "Hist_OnData_CR_RoI_Energy_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_OnBkgd_RoI_Energy[nth_roi].Reset()
         Hist_OnBkgd_RoI_Energy[nth_roi].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_SR_RoI_MJD_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_RoI_MJD[nth_roi].Reset()
+        Hist_OnData_RoI_MJD[nth_roi].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_CR_RoI_MJD_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnBkgd_RoI_MJD[nth_roi].Reset()
+        Hist_OnBkgd_RoI_MJD[nth_roi].Add(InputFile.Get(HistName))
 
     if Hist2D_OnData.Integral()<1600.:
         Hist_OnData_Energy.Reset()
@@ -1641,6 +1654,8 @@ def NormalizeEnergyHistograms(FilePath):
         for nth_roi in range(0,len(roi_ra)):
             Hist_OnData_RoI_Energy[nth_roi].Reset()
             Hist_OnBkgd_RoI_Energy[nth_roi].Reset()
+            Hist_OnData_RoI_MJD[nth_roi].Reset()
+            Hist_OnBkgd_RoI_MJD[nth_roi].Reset()
 
 def NormalizeTheta2Histograms(FilePath):
 
@@ -1690,6 +1705,8 @@ def StackEnergyHistograms():
     for nth_roi in range(0,len(roi_ra)):
         Hist_OnData_RoI_Energy_Sum[nth_roi].Add(Hist_OnData_RoI_Energy[nth_roi])
         Hist_OnBkgd_RoI_Energy_Sum[nth_roi].Add(Hist_OnBkgd_RoI_Energy[nth_roi])
+        Hist_OnData_RoI_MJD_Sum[nth_roi].Add(Hist_OnData_RoI_MJD[nth_roi])
+        Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Add(Hist_OnBkgd_RoI_MJD[nth_roi])
 
 def StackTheta2Histograms():
 
@@ -1907,14 +1924,16 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     for bx in range(0,Hist_SR.GetNbinsX()):
         for by in range(0,Hist_SR.GetNbinsY()):
             if Hist_Bkg.GetBinContent(bx+1,by+1)==0: continue
-            Shape_Err = 0.85*Hist_Syst.GetBinContent(bx+1,by+1)
             NSR = Hist_SR.GetBinContent(bx+1,by+1)
             NSR_Err = Hist_SR.GetBinError(bx+1,by+1)
             NBkg = Hist_Bkg.GetBinContent(bx+1,by+1)
+            Shape_Err = 0.85*Hist_Syst.GetBinContent(bx+1,by+1)
             Shape_Err = 0.
             if Shape_Err!=0.:
                 if (NSR-NBkg)/Shape_Err<0.: Shape_Err = 0. 
-            NBkg_Err = pow(pow(syst_method*Hist_Bkg.GetBinContent(bx+1,by+1),2)+pow(Shape_Err,2),0.5)
+            Norm_Err = syst_method*Hist_Bkg.GetBinContent(bx+1,by+1)
+            Stat_Err = pow(abs(Hist_Bkg.GetBinContent(bx+1,by+1)),0.5)
+            NBkg_Err = pow(pow(Stat_Err,2)+pow(Norm_Err,2)+pow(Shape_Err,2),0.5)
             if syst_method==0.: NBkg_Err = pow(Hist_Bkg.GetBinContent(bx+1,by+1),0.5)
             Sig = 1.*CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
             if Sig>max_sig: max_sig = Sig

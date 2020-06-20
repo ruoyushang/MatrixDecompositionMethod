@@ -509,8 +509,9 @@ void LeastSquareSolutionMethod(int rank_variation)
     std::cout << "initial chi2 = " << GetChi2Function(mtx_dark,0) << std::endl;
 
     MatrixXcd mtx_temp = mtx_dark;
+    //mtx_temp = SpectralDecompositionMethod_v3(1, 2);
+    //mtx_data_bkgd = mtx_temp;
     int n_iterations = 5;
-    //int n_iterations = 2;
     for (int iteration=0;iteration<n_iterations;iteration++)
     {
         if (rank_variation==1)
@@ -674,37 +675,29 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     if (TString(target).Contains("V4")) SizeSecondMax_Cut = 400.;
     if (TString(target).Contains("V5")) SizeSecondMax_Cut = 400.;
 
-    vector<int> group_size_limit;
     vector<int> group_size;
     for (int e=0;e<N_energy_bins;e++) 
     {
-        group_size_limit.push_back(20);
-        if (energy_bins[e]>=pow(10,2.6))
-        {
-            group_size_limit.at(e) = 20;
-        }
-        if (energy_bins[e]>=pow(10,3.0))
-        {
-            group_size_limit.at(e) = 100;
-        }
         group_size.push_back(0);
     }
 
     vector<string>* Data_runlist_name_ptr = new std::vector<string>(10);
     vector<int>* Data_runlist_number_ptr = new std::vector<int>(10);
+    vector<int>* Data_runlist_MJD_ptr = new std::vector<int>(10);
+    vector<double>* Data_runlist_elev_ptr = new std::vector<double>(10);
     vector<string>* roi_name_ptr = new std::vector<string>(10);
-    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+"_"+ONOFF_tag+".root");
     TTree* InfoTree_ptr = nullptr;
     InfoTree_ptr = (TTree*) InputDataFile.Get("InfoTree");
-    InfoTree_ptr->SetBranchAddress("Data_runlist_number",&Data_runlist_number_ptr);
     InfoTree_ptr->SetBranchAddress("Data_runlist_name",&Data_runlist_name_ptr);
+    InfoTree_ptr->SetBranchAddress("Data_runlist_number",&Data_runlist_number_ptr);
+    InfoTree_ptr->SetBranchAddress("Data_runlist_MJD",&Data_runlist_MJD_ptr);
+    InfoTree_ptr->SetBranchAddress("Data_runlist_elev",&Data_runlist_elev_ptr);
     InfoTree_ptr->SetBranchAddress("roi_name",&roi_name_ptr);
     InfoTree_ptr->GetEntry(0);
 
     int FirstRun = 0;
     int LastRun = Data_runlist_name_ptr->size();
-    //FirstRun = int(double(Data_runlist_name_ptr->size())*0.5);
-    //LastRun = int(double(Data_runlist_name_ptr->size())*0.5);
 
 
     std::cout << "Working on OFF data..." << std::endl;
@@ -770,31 +763,41 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             for (int on_run=FirstRun;on_run<LastRun;on_run++)
             {
 
-                char sample_tag[50];
-                sprintf(sample_tag, "%i", on_run);
-
-                int binx_lower = Hist_OffData_MSCLW.at(0).at(0).GetXaxis()->FindBin(MSCL_cut_lower);
-                binx_blind_global = Hist_OffData_MSCLW.at(0).at(0).GetXaxis()->FindBin(MSCL_cut_blind)-1;
-                int binx_upper = Hist_OffData_MSCLW.at(0).at(0).GetXaxis()->FindBin(1.)-1;
-                int biny_lower = Hist_OffData_MSCLW.at(0).at(0).GetYaxis()->FindBin(MSCW_cut_lower);
-                biny_blind_global = Hist_OffData_MSCLW.at(0).at(0).GetYaxis()->FindBin(MSCW_cut_blind)-1;
-                int biny_upper = Hist_OffData_MSCLW.at(0).at(0).GetYaxis()->FindBin(1.)-1;
-
-                TString hist_name;
-                hist_name  = "Hist_OnDark_MSCLW_R"+TString(sample_tag)+"_V"+TString(sample2_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-                Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-                for (int nth_other_sample=0;nth_other_sample<n_dark_samples;nth_other_sample++)
+                bool use_this_run = true;
+                if (MJD_start_cut!=0 || MJD_end_cut!=0)
                 {
-                    if (nth_sample==nth_other_sample) continue;
-                    char sample2_tag[50];
-                    sprintf(sample2_tag, "%i", nth_other_sample);
-                    hist_name  = "Hist_OnDark_MSCLW_R"+TString(sample_tag)+"_V"+TString(sample2_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-                    Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                    if (MJD_start_cut>Data_runlist_MJD_ptr->at(on_run)) use_this_run = false;
+                    if (MJD_end_cut<Data_runlist_MJD_ptr->at(on_run)) use_this_run = false;
                 }
 
-                group_size.at(e) += 1;
+                if (use_this_run)
+                {
+                    char sample_tag[50];
+                    sprintf(sample_tag, "%i", on_run);
 
-                if (group_size.at(e)==group_size_limit.at(e) || on_run==Data_runlist_number_ptr->size()-1)
+                    int binx_lower = Hist_OffData_MSCLW.at(0).at(0).GetXaxis()->FindBin(MSCL_cut_lower);
+                    binx_blind_global = Hist_OffData_MSCLW.at(0).at(0).GetXaxis()->FindBin(MSCL_cut_blind)-1;
+                    int binx_upper = Hist_OffData_MSCLW.at(0).at(0).GetXaxis()->FindBin(1.)-1;
+                    int biny_lower = Hist_OffData_MSCLW.at(0).at(0).GetYaxis()->FindBin(MSCW_cut_lower);
+                    biny_blind_global = Hist_OffData_MSCLW.at(0).at(0).GetYaxis()->FindBin(MSCW_cut_blind)-1;
+                    int biny_upper = Hist_OffData_MSCLW.at(0).at(0).GetYaxis()->FindBin(1.)-1;
+
+                    TString hist_name;
+                    hist_name  = "Hist_OnDark_MSCLW_R"+TString(sample_tag)+"_V"+TString(sample2_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                    Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                    for (int nth_other_sample=0;nth_other_sample<n_dark_samples;nth_other_sample++)
+                    {
+                        if (nth_sample==nth_other_sample) continue;
+                        char sample2_tag[50];
+                        sprintf(sample2_tag, "%i", nth_other_sample);
+                        hist_name  = "Hist_OnDark_MSCLW_R"+TString(sample_tag)+"_V"+TString(sample2_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                        Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                    }
+
+                    group_size.at(e) += 1;
+                }
+
+                if (group_size.at(e)==group_size_limit[e] || on_run==Data_runlist_number_ptr->size()-1)
                 {
                     mtx_data = fillMatrix(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e));
                     eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
@@ -1037,65 +1040,78 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         for (int on_run=FirstRun;on_run<LastRun;on_run++)
         {
 
-            char sample_tag[50];
-            sprintf(sample_tag, "%i", on_run);
-
-            int binx_lower = Hist_OneGroup_Data_MSCLW.at(0).GetXaxis()->FindBin(MSCL_cut_lower);
-            binx_blind_global = Hist_OneGroup_Data_MSCLW.at(0).GetXaxis()->FindBin(MSCL_cut_blind)-1;
-            int binx_upper = Hist_OneGroup_Data_MSCLW.at(0).GetXaxis()->FindBin(1.)-1;
-            int biny_lower = Hist_OneGroup_Data_MSCLW.at(0).GetYaxis()->FindBin(MSCW_cut_lower);
-            biny_blind_global = Hist_OneGroup_Data_MSCLW.at(0).GetYaxis()->FindBin(MSCW_cut_blind)-1;
-            int biny_upper = Hist_OneGroup_Data_MSCLW.at(0).GetYaxis()->FindBin(1.)-1;
-            hist_name  = "Hist_OnData_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OneGroup_Data_MSCLW.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            hist_name  = "Hist_OnData_SR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OnData_SR_Skymap_Theta2_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            hist_name  = "Hist_OnData_CR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            hist_name  = "Hist_OnData_SR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OnData_SR_Skymap_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            hist_name  = "Hist_OnData_CR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OnData_CR_Skymap_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            hist_name  = "Hist_OnData_SR_Skymap_Galactic_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OnData_SR_Skymap_Galactic_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            hist_name  = "Hist_OnData_CR_Skymap_Galactic_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OnData_CR_Skymap_Galactic_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            hist_name  = "Hist_OnData_SR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OnData_SR_Energy_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            hist_name  = "Hist_OnData_CR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OnData_CR_Energy_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            hist_name  = "Hist_OnData_SR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OnData_SR_Zenith_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            hist_name  = "Hist_OnData_CR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-            Hist_OnData_CR_Zenith_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
+            bool use_this_run = true;
+            if (MJD_start_cut!=0 || MJD_end_cut!=0)
             {
-                char roi_tag[50];
-                sprintf(roi_tag, "%i", nth_roi);
-                hist_name  = "Hist_OnData_SR_RoI_Energy_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-                Hist_OnData_SR_RoI_Energy_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-                hist_name  = "Hist_OnData_SR_Skymap_RoI_Theta2_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-                Hist_OnData_SR_Skymap_RoI_Theta2_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-                hist_name  = "Hist_OnData_SR_RoI_MJD_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-                Hist_OnData_SR_RoI_MJD_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-                hist_name  = "Hist_OnData_CR_RoI_Energy_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-                Hist_OnData_CR_RoI_Energy_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-                hist_name  = "Hist_OnData_CR_Skymap_RoI_Theta2_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-                Hist_OnData_CR_Skymap_RoI_Theta2_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-                hist_name  = "Hist_OnData_CR_RoI_MJD_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-                Hist_OnData_CR_RoI_MJD_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-            }
-            for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
-            {
-                char sample2_tag[50];
-                sprintf(sample2_tag, "%i", nth_sample);
-                hist_name  = "Hist_OnDark_MSCLW_R"+TString(sample_tag)+"_V"+TString(sample2_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-                Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                if (MJD_start_cut>Data_runlist_MJD_ptr->at(on_run)) use_this_run = false;
+                if (MJD_end_cut<Data_runlist_MJD_ptr->at(on_run)) use_this_run = false;
+                if (use_this_run) std::cout << Data_runlist_MJD_ptr->at(on_run) << std::endl;
             }
 
-            group_size.at(e) += 1;
+            if (use_this_run)
+            {
+                if (MJD_Start>Data_runlist_MJD_ptr->at(on_run)) MJD_Start = Data_runlist_MJD_ptr->at(on_run);
+                if (MJD_End<Data_runlist_MJD_ptr->at(on_run)) MJD_End = Data_runlist_MJD_ptr->at(on_run);
+                char sample_tag[50];
+                sprintf(sample_tag, "%i", on_run);
 
-            if (group_size.at(e)==group_size_limit.at(e) || on_run==Data_runlist_number_ptr->size()-1)
+                int binx_lower = Hist_OneGroup_Data_MSCLW.at(0).GetXaxis()->FindBin(MSCL_cut_lower);
+                binx_blind_global = Hist_OneGroup_Data_MSCLW.at(0).GetXaxis()->FindBin(MSCL_cut_blind)-1;
+                int binx_upper = Hist_OneGroup_Data_MSCLW.at(0).GetXaxis()->FindBin(1.)-1;
+                int biny_lower = Hist_OneGroup_Data_MSCLW.at(0).GetYaxis()->FindBin(MSCW_cut_lower);
+                biny_blind_global = Hist_OneGroup_Data_MSCLW.at(0).GetYaxis()->FindBin(MSCW_cut_blind)-1;
+                int biny_upper = Hist_OneGroup_Data_MSCLW.at(0).GetYaxis()->FindBin(1.)-1;
+                hist_name  = "Hist_OnData_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OneGroup_Data_MSCLW.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_SR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_SR_Skymap_Theta2_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_CR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_SR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_SR_Skymap_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_CR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_CR_Skymap_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_SR_Skymap_Galactic_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_SR_Skymap_Galactic_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_CR_Skymap_Galactic_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_CR_Skymap_Galactic_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_SR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_SR_Energy_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_CR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_CR_Energy_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_SR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_SR_Zenith_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_CR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_CR_Zenith_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
+                {
+                    char roi_tag[50];
+                    sprintf(roi_tag, "%i", nth_roi);
+                    hist_name  = "Hist_OnData_SR_RoI_Energy_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                    Hist_OnData_SR_RoI_Energy_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                    hist_name  = "Hist_OnData_SR_Skymap_RoI_Theta2_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                    Hist_OnData_SR_Skymap_RoI_Theta2_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                    hist_name  = "Hist_OnData_SR_RoI_MJD_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                    Hist_OnData_SR_RoI_MJD_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                    hist_name  = "Hist_OnData_CR_RoI_Energy_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                    Hist_OnData_CR_RoI_Energy_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                    hist_name  = "Hist_OnData_CR_Skymap_RoI_Theta2_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                    Hist_OnData_CR_Skymap_RoI_Theta2_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                    hist_name  = "Hist_OnData_CR_RoI_MJD_R"+TString(sample_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                    Hist_OnData_CR_RoI_MJD_OneGroup.at(nth_roi).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                }
+                for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+                {
+                    char sample2_tag[50];
+                    sprintf(sample2_tag, "%i", nth_sample);
+                    hist_name  = "Hist_OnDark_MSCLW_R"+TString(sample_tag)+"_V"+TString(sample2_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                    Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                }
+
+                group_size.at(e) += 1;
+            }
+
+            if (group_size.at(e)==group_size_limit[e] || on_run==Data_runlist_number_ptr->size()-1)
             {
                 mtx_data = fillMatrix(&Hist_OneGroup_Data_MSCLW.at(e));
                 eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
@@ -1250,7 +1266,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)/(3600.*exposure_hours));
     }
 
-    TFile InputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TFile InputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+"_"+ONOFF_tag+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputFile.Get("InfoTree");
     TTree* StarTree = nullptr;
@@ -1266,6 +1282,12 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     newstartree->Write();
     TTree *newfaintstartree = FaintStarTree->CloneTree();
     newfaintstartree->Write();
+
+    TTree NewInfoTree("NewInfoTree","new info tree");
+    NewInfoTree.Branch("MJD_Start",&MJD_Start,"MJD_Start/I");
+    NewInfoTree.Branch("MJD_End",&MJD_End,"MJD_End/I");
+    NewInfoTree.Fill();
+    NewInfoTree.Write();
 
     Hist_EffArea.Write();
     for (int e=0;e<N_energy_bins;e++)

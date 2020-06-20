@@ -653,6 +653,21 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     input_file->Close();
     return std::make_pair(TelElevation_avg,TelAzimuth_avg);
 }
+int GetRunMJD(string file_name,int run)
+{
+    int run_mjd = 0;
+    char run_number[50];
+    sprintf(run_number, "%i", int(run));
+    TFile*  input_file = TFile::Open(file_name.c_str());
+    TTree* pointing_tree = nullptr;
+    pointing_tree = (TTree*) input_file->Get("run_"+TString(run_number)+"/stereo/pointingDataReduced");
+    pointing_tree->SetBranchAddress("MJD",&MJD_UInt_t);
+    double total_entries = (double)pointing_tree->GetEntries();
+    pointing_tree->GetEntry(0);
+    run_mjd = MJD_UInt_t;
+    input_file->Close();
+    return run_mjd;
+}
 bool MJDSelection(string file_name,int run, int MJD_start_cut, int MJD_end_cut)
 {
     if (MJD_start_cut==0 && MJD_end_cut==0) return true;
@@ -1726,10 +1741,20 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     vector<int> Data_runlist_number;
     vector<string> Data_runlist_name;
+    vector<double> Data_runlist_elev;
+    vector<int> Data_runlist_MJD;
     for (int run=0;run<Data_runlist.size();run++)
     {
         Data_runlist_name.push_back(Data_runlist[run].first);
         Data_runlist_number.push_back(Data_runlist[run].second);
+        char run_number[50];
+        char Data_observation[50];
+        sprintf(run_number, "%i", int(Data_runlist[run].second));
+        sprintf(Data_observation, "%s", Data_runlist[run].first.c_str());
+        string filename;
+        filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Data_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
+        Data_runlist_elev.push_back(GetRunElevAzim(filename,int(Data_runlist[run].second)).first);
+        Data_runlist_MJD.push_back(GetRunMJD(filename,int(Data_runlist[run].second)));
     }
 
     TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
@@ -1748,6 +1773,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     InfoTree.Branch("mean_tele_point_b",&mean_tele_point_b,"mean_tele_point_b/D");
     InfoTree.Branch("Data_runlist_name","std::vector<std::string>",&Data_runlist_name);
     InfoTree.Branch("Data_runlist_number","std::vector<int>",&Data_runlist_number);
+    InfoTree.Branch("Data_runlist_MJD","std::vector<int>",&Data_runlist_MJD);
+    InfoTree.Branch("Data_runlist_elev","std::vector<double>",&Data_runlist_elev);
     InfoTree.Branch("roi_name","std::vector<std::string>",&roi_name);
     InfoTree.Branch("roi_ra","std::vector<double>",&roi_ra);
     InfoTree.Branch("roi_dec","std::vector<double>",&roi_dec);
