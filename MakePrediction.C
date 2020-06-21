@@ -511,7 +511,7 @@ void LeastSquareSolutionMethod(int rank_variation)
     MatrixXcd mtx_temp = mtx_dark;
     //mtx_temp = SpectralDecompositionMethod_v3(1, 3);
     //mtx_data_bkgd = mtx_temp;
-    int n_iterations = 5;
+    int n_iterations = 1;
     for (int iteration=0;iteration<n_iterations;iteration++)
     {
         if (rank_variation==1)
