@@ -509,7 +509,7 @@ void LeastSquareSolutionMethod(int rank_variation)
     std::cout << "initial chi2 = " << GetChi2Function(mtx_dark,0) << std::endl;
 
     MatrixXcd mtx_temp = mtx_dark;
-    //mtx_temp = SpectralDecompositionMethod_v3(1, 2);
+    //mtx_temp = SpectralDecompositionMethod_v3(1, 3);
     //mtx_data_bkgd = mtx_temp;
     int n_iterations = 5;
     for (int iteration=0;iteration<n_iterations;iteration++)
@@ -703,6 +703,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     std::cout << "Working on OFF data..." << std::endl;
     vector<vector<TH2D>> Hist_OffData_MSCLW;
     vector<vector<TH2D>> Hist_OffBkgd_MSCLW;
+    vector<vector<TH2D>> Hist_OnSyst_MSCLW;
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {
         std::cout << "++++++++++++++++++++++++++++++++++++++" << std::endl;
@@ -711,6 +712,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(sample_tag, "%i", nth_sample);
         vector<TH2D> Hist_OffData_OneSample_MSCLW;
         vector<TH2D> Hist_OffBkgd_OneSample_MSCLW;
+        vector<TH2D> Hist_OnSyst_OneSample_MSCLW;
         for (int e=0;e<N_energy_bins;e++) 
         {
             std::cout << "++++++++++++++++++++++++++++++++++++++" << std::endl;
@@ -721,9 +723,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_up, "%i", int(energy_bins[e+1]));
             Hist_OffData_OneSample_MSCLW.push_back(TH2D("Hist_OffData2_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OffBkgd_OneSample_MSCLW.push_back(TH2D("Hist_OffBkgd_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+            Hist_OnSyst_OneSample_MSCLW.push_back(TH2D("Hist_OnSyst_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         }
         Hist_OffData_MSCLW.push_back(Hist_OffData_OneSample_MSCLW);
         Hist_OffBkgd_MSCLW.push_back(Hist_OffBkgd_OneSample_MSCLW);
+        Hist_OnSyst_MSCLW.push_back(Hist_OnSyst_OneSample_MSCLW);
     }
 
     vector<vector<TH2D>> Hist_OneGroup_OffData_MSCLW;
@@ -1125,6 +1129,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,1./double(n_dark_samples));
                     Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),1./double(n_dark_samples));
+                    Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
                 }
                 if (!isnan(Hist_OneGroup_Bkgd_MSCLW.at(e).Integral()) && !isnan(Hist_OneGroup_Data_MSCLW.at(e).Integral()))
                 {
@@ -1317,6 +1322,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         {
             Hist_OffData_MSCLW.at(nth_sample).at(e).Write();
             Hist_OffBkgd_MSCLW.at(nth_sample).at(e).Write();
+            Hist_OnSyst_MSCLW.at(nth_sample).at(e).Write();
         }
     }
     for (int e=0;e<N_energy_bins;e++)
