@@ -685,6 +685,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<int>* Data_runlist_number_ptr = new std::vector<int>(10);
     vector<int>* Data_runlist_MJD_ptr = new std::vector<int>(10);
     vector<double>* Data_runlist_elev_ptr = new std::vector<double>(10);
+    vector<double>* Data_runlist_exposure_ptr = new std::vector<double>(10);
     vector<string>* roi_name_ptr = new std::vector<string>(10);
     TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+"_"+ONOFF_tag+".root");
     TTree* InfoTree_ptr = nullptr;
@@ -693,6 +694,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     InfoTree_ptr->SetBranchAddress("Data_runlist_number",&Data_runlist_number_ptr);
     InfoTree_ptr->SetBranchAddress("Data_runlist_MJD",&Data_runlist_MJD_ptr);
     InfoTree_ptr->SetBranchAddress("Data_runlist_elev",&Data_runlist_elev_ptr);
+    InfoTree_ptr->SetBranchAddress("Data_runlist_exposure",&Data_runlist_exposure_ptr);
     InfoTree_ptr->SetBranchAddress("roi_name",&roi_name_ptr);
     InfoTree_ptr->GetEntry(0);
 
@@ -1054,6 +1056,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
             if (use_this_run)
             {
+                if (e==0)
+                {
+                    exposure_hours += Data_runlist_exposure_ptr->at(on_run);
+                }
                 if (MJD_Start>Data_runlist_MJD_ptr->at(on_run)) MJD_Start = Data_runlist_MJD_ptr->at(on_run);
                 if (MJD_End<Data_runlist_MJD_ptr->at(on_run)) MJD_End = Data_runlist_MJD_ptr->at(on_run);
                 char sample_tag[50];
@@ -1291,6 +1297,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     TTree NewInfoTree("NewInfoTree","new info tree");
     NewInfoTree.Branch("MJD_Start",&MJD_Start,"MJD_Start/I");
     NewInfoTree.Branch("MJD_End",&MJD_End,"MJD_End/I");
+    NewInfoTree.Branch("exposure_hours",&exposure_hours,"exposure_hours/D");
     NewInfoTree.Fill();
     NewInfoTree.Write();
 

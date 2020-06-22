@@ -221,6 +221,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 38.222;
                 Source_Dec = 20.273;
     }
+    if (source_name=="1ES0229V5")
+    {
+            Source_RA = 38.222;
+                Source_Dec = 20.273;
+    }
     if (source_name=="PKS1424V6")
     {
             Source_RA = 216.750;
@@ -298,7 +303,7 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 94.213;
                 Source_Dec = 22.503;
     }
-    if (source_name=="RGBJ0710")
+    if (source_name=="RGBJ0710V5")
     {
             Source_RA = 107.610;
                 Source_Dec = 59.150;
@@ -1603,6 +1608,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
 
     std::cout << "Prepare ON run samples..." << std::endl;
+    vector<double> Data_runlist_exposure;
     for (int run=0;run<Data_runlist.size();run++)
     {
         char run_number[50];
@@ -1630,6 +1636,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         double time_0 = Time;
         Data_tree->GetEntry(Data_tree->GetEntries()-1);
         double time_1 = Time;
+        Data_runlist_exposure.push_back((time_1-time_0)/3600.);
         exposure_hours += (time_1-time_0)/3600.;
         double NSB_thisrun = GetRunPedestalVar(int(Data_runlist[run].second));
         Hist_Data_NSB.Fill(NSB_thisrun);
@@ -1775,6 +1782,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     InfoTree.Branch("Data_runlist_number","std::vector<int>",&Data_runlist_number);
     InfoTree.Branch("Data_runlist_MJD","std::vector<int>",&Data_runlist_MJD);
     InfoTree.Branch("Data_runlist_elev","std::vector<double>",&Data_runlist_elev);
+    InfoTree.Branch("Data_runlist_exposure","std::vector<double>",&Data_runlist_exposure);
     InfoTree.Branch("roi_name","std::vector<std::string>",&roi_name);
     InfoTree.Branch("roi_ra","std::vector<double>",&roi_ra);
     InfoTree.Branch("roi_dec","std::vector<double>",&roi_dec);

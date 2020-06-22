@@ -17,9 +17,9 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 #method_tag = '8bins_constrained'
-method_tag = '8bins_unconstrained'
+#method_tag = '8bins_unconstrained'
 #method_tag = '16bins_constrained'
-#method_tag = '16bins_unconstrained'
+method_tag = '16bins_unconstrained'
 
 #elev_bins = [45,55,65,75,85]
 #elev_bins = [45,65,85]
@@ -30,7 +30,7 @@ ONOFF_tag = 'ON'
 root_file_tags = []
 for elev in range(0,len(elev_bins)-1):
     # all time
-    root_file_tags += [method_tag+'_TelElev%sto%s_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+    #root_file_tags += [method_tag+'_TelElev%sto%s_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
     # 1ES 1215 flare
     #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56372to56464_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
     # WComae and 1ES 1218 flare
@@ -42,6 +42,10 @@ for elev in range(0,len(elev_bins)-1):
     # MGRO J2031
     #root_file_tags += [method_tag+'_TelElev%sto%s_MJD55000to57997_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
     #root_file_tags += [method_tag+'_TelElev%sto%s_MJD57997to59000_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+    # 3 slices of 1ES 0229
+    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD55000to56500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56501to57500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+    root_file_tags += [method_tag+'_TelElev%sto%s_MJD57501to59500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
 
 selection_tag = root_file_tags[0]
 
@@ -134,10 +138,10 @@ sky_coord = []
 #sample_list += ['OJ287V6']
 #sky_coord += ['08 54 49.1 +20 05 58.89']
 
-#sample_list += ['1ES0229V6']
-#sky_coord += ['02 32 53.2 +20 16 21']
-#sample_list += ['1ES0229V5']
-#sky_coord += ['02 32 53.2 +20 16 21']
+sample_list += ['1ES0229V6']
+sky_coord += ['02 32 53.2 +20 16 21']
+sample_list += ['1ES0229V5']
+sky_coord += ['02 32 53.2 +20 16 21']
 
 #sample_list += ['H1426V6']
 #sky_coord += ['14 28 32.609 +42 40 21.05']
@@ -147,16 +151,7 @@ sky_coord = []
 
 #sample_list += ['3C264V6']
 #sky_coord += ['11 45 5.009 +19 36 22.74']
-
-
-#sample_list += ['H1426V6']
-#sky_coord += ['14 28 32.609 +42 40 21.05']
-
-#sample_list += ['PKS1424V6']
-#sky_coord += ['14 27 00 +23 47 00']
-
-#sample_list += ['3C264V6']
-#sky_coord += ['11 45 5.009 +19 36 22.74']
+# The VERITAS observations of 3C 264 were taken from February through May 2017, from February through April 2018, and from January through May 2019.
 
 #sample_list += ['PG1553V5']
 #sky_coord += ['15 55 44.7 +11 11 41']
@@ -172,8 +167,8 @@ sky_coord = []
 #sample_list += ['1ES0647V6']
 #sky_coord += ['06 50 46.490 +25 02 59.62']
 
-sample_list += ['RGBJ0710V5']
-sky_coord += ['07 10 26.4 +59 09 00']
+#sample_list += ['RGBJ0710V5']
+#sky_coord += ['07 10 26.4 +59 09 00']
 
 #sample_list += ['2HWC_J1930V6']
 #sky_coord += ['19 30 32 +18 52 12']
@@ -187,6 +182,7 @@ sky_coord += ['07 10 26.4 +59 09 00']
 #sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['WComaeV4']
 #sky_coord += ['12 21 31.7 +28 13 59']
+# https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
 
 #sample_list += ['IC443HotSpotV6']
 #sky_coord += ['06 18 2.700 +22 39 36.00']
@@ -213,6 +209,7 @@ sky_coord += ['07 10 26.4 +59 09 00']
 #sky_coord += ['10 07 04 +16 04 55']
 #sample_list += ['Segue1V5']
 #sky_coord += ['10 07 04 +16 04 55']
+# only V5 data published
 
 #sample_list += ['CygnusV6']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
@@ -391,7 +388,6 @@ def GetSourceInfo(file_list):
         InfoTree.SetBranchAddress('roi_dec',ROOT.AddressOf(roi_dec))
         InfoTree.SetBranchAddress('roi_radius',ROOT.AddressOf(roi_radius))
         InfoTree.GetEntry(0)
-        exposure_hours += InfoTree.exposure_hours
         N_bins_for_deconv = InfoTree.N_bins_for_deconv
         MSCW_blind_cut = InfoTree.MSCW_cut_blind
         MSCL_blind_cut = InfoTree.MSCL_cut_blind
@@ -400,13 +396,19 @@ def GetSourceInfo(file_list):
         source_dec = InfoTree.mean_tele_point_dec
         source_l = InfoTree.mean_tele_point_l
         source_b = InfoTree.mean_tele_point_b
-        MJD_Start = min(InfoTree.MJD_Start,MJD_Start)
-        MJD_End = max(InfoTree.MJD_End,MJD_End)
+
+        NewInfoTree = InputFile.Get("NewInfoTree")
+        NewInfoTree.GetEntry(0)
+        MJD_Start = min(NewInfoTree.MJD_Start,MJD_Start)
+        MJD_End = max(NewInfoTree.MJD_End,MJD_End)
+        exposure_hours += NewInfoTree.exposure_hours
+
         HistName = "Hist_EffArea"
         Hist_EffArea.Reset()
         Hist_EffArea.Add(InputFile.Get(HistName))
-        Hist_EffArea.Scale(exposure_hours*3600.)
+        Hist_EffArea.Scale(NewInfoTree.exposure_hours*3600.)
         Hist_EffArea_Sum.Add(Hist_EffArea)
+
         InputFile.Close()
 
 def GetShowerHistogramsFromFile(FilePath):
