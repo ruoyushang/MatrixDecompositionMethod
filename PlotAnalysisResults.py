@@ -25,12 +25,12 @@ method_tag = '16bins_unconstrained'
 #elev_bins = [45,65,85]
 elev_bins = [45,85]
 
-ONOFF_tag = 'ON'
-#ONOFF_tag = 'OFF'
+#ONOFF_tag = 'ON'
+ONOFF_tag = 'OFF'
 root_file_tags = []
 for elev in range(0,len(elev_bins)-1):
     # all time
-    #root_file_tags += [method_tag+'_TelElev%sto%s_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+    root_file_tags += [method_tag+'_TelElev%sto%s_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
     # 1ES 1215 flare
     #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56372to56464_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
     # WComae and 1ES 1218 flare
@@ -45,7 +45,7 @@ for elev in range(0,len(elev_bins)-1):
     # 3 slices of 1ES 0229
     #root_file_tags += [method_tag+'_TelElev%sto%s_MJD55000to56500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
     #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56501to57500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
-    root_file_tags += [method_tag+'_TelElev%sto%s_MJD57501to59500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD57501to59500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
 
 selection_tag = root_file_tags[0]
 
@@ -1973,10 +1973,10 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
             NSR = Hist_SR.GetBinContent(bx+1,by+1)
             NSR_Err = Hist_SR.GetBinError(bx+1,by+1)
             NBkg = Hist_Bkg.GetBinContent(bx+1,by+1)
-            Shape_Err = 0.85*Hist_Syst.GetBinContent(bx+1,by+1)
+            Shape_Err = Hist_Syst.GetBinContent(bx+1,by+1)
             Shape_Err = 0.
-            if Shape_Err!=0.:
-                if (NSR-NBkg)/Shape_Err<0.: Shape_Err = 0. 
+            #if Shape_Err!=0.:
+            #    if (NSR-NBkg)/Shape_Err<0.: Shape_Err = 0. 
             Norm_Err = syst_method*Hist_Bkg.GetBinContent(bx+1,by+1)
             #Stat_Err = pow(abs(Hist_Bkg.GetBinContent(bx+1,by+1)),0.5)
             Stat_Err = Hist_Bkg.GetBinError(bx+1,by+1)
@@ -1988,7 +1988,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     Hist_Skymap = reflectXaxis(Hist_Skymap)
 
     Hist_Skymap_Syst = Hist_Syst.Clone()
-    #Hist_Skymap_Syst.Divide(Hist_Bkg)
+    Hist_Skymap_Syst.Divide(Hist_Bkg)
     Hist_Skymap_Syst = reflectXaxis(Hist_Skymap_Syst)
 
     other_star_labels = []
@@ -2138,6 +2138,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     pad1.cd()
     #Hist_Skymap_Syst.SetMaximum(0.1)
     #Hist_Skymap_Syst.SetMinimum(-0.1)
+    pad1.SetLogz(1)
     Hist_Skymap_Syst.Draw("COL4Z")
     Hist_Contour.Draw("CONT3 same")
     Hist_Skymap_Syst.GetXaxis().SetLabelOffset(999)
@@ -2174,6 +2175,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     lumilab4.Draw()
     legend.Draw("SAME")
     canvas.SaveAs('output_plots/SkymapSyst_%s_%s.png'%(name,selection_tag))
+    pad1.SetLogz(0)
 
 
     Hist_Skymap_Excess = Hist_SR.Clone()
@@ -2252,8 +2254,8 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     MapCenter_y = (MapEdge_upper+MapEdge_lower)/2.
     MapSize_x = (MapEdge_right-MapEdge_left)/2.
     MapSize_y = (MapEdge_upper-MapEdge_lower)/2.
-    Hist_Skymap_zoomin = ROOT.TH2D("Hist_Skymap_zoomin","",50,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,50,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
-    Hist_Contour_zoomin = ROOT.TH2D("Hist_Contour_zoomin","",50,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,50,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
+    Hist_Skymap_zoomin = ROOT.TH2D("Hist_Skymap_zoomin","",25,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,25,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
+    Hist_Contour_zoomin = ROOT.TH2D("Hist_Contour_zoomin","",25,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,25,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
     Hist_Skymap_zoomin.Rebin2D(n_rebin,n_rebin)
     Hist_Contour_zoomin.Rebin2D(n_rebin,n_rebin)
     for bx in range(0,Hist_Skymap_Excess.GetNbinsX()):
@@ -2500,6 +2502,121 @@ def MakeRankResidualPlots(name):
 
     MakeOneHistPlot(Hist_Residual_Rank,'n ranks','Residual in gamma region','Residual_Rank_%s'%(name),True)
 
+def SystematicAnalysis():
+
+    FilePath_List = []
+    for elev in range(0,len(root_file_tags)):
+        FilePath = "%s/Netflix_"%(folder_path)+"Syst_%s"%(root_file_tags[elev])+".root"
+        FilePath_List += [FilePath]
+        print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
+        if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
+        InputFile = ROOT.TFile(FilePath_List[len(FilePath_List)-1])
+        InfoTree = InputFile.Get("InfoTree")
+        InfoTree.GetEntry(0)
+        MSCW_blind_cut = InfoTree.MSCW_cut_blind
+        MSCL_blind_cut = InfoTree.MSCL_cut_blind
+        bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_lower_cut)
+        bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
+        bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_lower_cut)
+        bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
+
+        Hist2D_OnData_AllGroups = []
+        Hist2D_OnDark_AllGroups = []
+        Hist2D_OnBkgd_AllGroups = []
+        for nth_group in range(0,InfoTree.number_groups):
+            Hist2D_OnData_AllGroups += [ROOT.TH2D("Hist2D_OnData_%s"%(nth_group),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+            Hist2D_OnDark_AllGroups += [ROOT.TH2D("Hist2D_OnDark_%s"%(nth_group),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+            Hist2D_OnBkgd_AllGroups += [ROOT.TH2D("Hist2D_OnBkgd_%s"%(nth_group),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+
+        for e in range(0,len(energy_bin)-1):
+            ErecS_lower_cut = energy_bin[e]
+            ErecS_upper_cut = energy_bin[e+1]
+            if ErecS_upper_cut<=energy_bin[energy_bin_cut_low]: continue
+            if ErecS_lower_cut>=energy_bin[energy_bin_cut_up]: continue
+            ErecS_lower_cut_int = int(ErecS_lower_cut)
+            ErecS_upper_cut_int = int(ErecS_upper_cut)
+
+            for nth_group in range(0,InfoTree.number_groups):
+                HistName = "Hist_NthGroup_Data_MSCLW_V%s_ErecS%sto%s"%(nth_group,ErecS_lower_cut_int,ErecS_upper_cut_int)
+                Hist2D_OnData_AllGroups[nth_group].Add(InputFile.Get(HistName))
+                HistName = "Hist_NthGroup_Bkgd_MSCLW_V%s_ErecS%sto%s"%(nth_group,ErecS_lower_cut_int,ErecS_upper_cut_int)
+                Hist2D_OnBkgd_AllGroups[nth_group].Add(InputFile.Get(HistName))
+                HistName = "Hist_NthGroup_Dark_MSCLW_V%s_ErecS%sto%s"%(nth_group,ErecS_lower_cut_int,ErecS_upper_cut_int)
+                Hist2D_OnDark_AllGroups[nth_group].Add(InputFile.Get(HistName))
+
+        bkgd_syst_err = 0.
+        dark_syst_err = 0.
+        Hist_Syst_Bkgd = ROOT.TH1D("Hist_Syst_Bkgd","",19,-0.2,0.2)
+        Hist_Syst_Dark = ROOT.TH1D("Hist_Syst_Dark","",19,-0.2,0.2)
+        for nth_group in range(0,InfoTree.number_groups):
+            Total_Data = Hist2D_OnData_AllGroups[nth_group].Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)
+            if Total_Data == 0.: continue
+
+            Hist2D_Diff = Hist2D_OnData_AllGroups[nth_group].Clone()
+            Hist2D_Diff.Add(Hist2D_OnBkgd_AllGroups[nth_group],-1.)
+            syst_this = Hist2D_Diff.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)/Total_Data
+            Hist_Syst_Bkgd.Fill(syst_this)
+            bkgd_syst_err += pow(syst_this,2)/InfoTree.number_groups
+
+            Hist2D_Diff = Hist2D_OnData_AllGroups[nth_group].Clone()
+            Hist2D_Diff.Add(Hist2D_OnDark_AllGroups[nth_group],-1.)
+            syst_this = Hist2D_Diff.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)/Total_Data
+            Hist_Syst_Dark.Fill(syst_this)
+            dark_syst_err += pow(syst_this,2)/InfoTree.number_groups
+
+        bkgd_syst_err = pow(bkgd_syst_err,0.5)
+        dark_syst_err = pow(dark_syst_err,0.5)
+
+        c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+        pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+        pad3.SetBottomMargin(0.0)
+        pad3.SetTopMargin(0.03)
+        pad3.SetBorderMode(1)
+        pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+        pad1.SetBottomMargin(0.2)
+        pad1.SetTopMargin(0.0)
+        pad1.SetLeftMargin(0.2)
+        pad1.SetBorderMode(0)
+        pad1.Draw()
+        pad3.Draw()
+
+        pad3.cd()
+        lumilab1 = ROOT.TLatex(0.15,0.70,'Total exposure = %0.1f h'%(InfoTree.exposure_hours) )
+        lumilab1.SetNDC()
+        lumilab1.SetTextSize(0.2)
+        lumilab1.Draw()
+        lumilab2 = ROOT.TLatex(0.15,0.50,'Inital syst. error = %0.3f'%(dark_syst_err) )
+        lumilab2.SetNDC()
+        lumilab2.SetTextSize(0.2)
+        lumilab2.Draw()
+        lumilab3 = ROOT.TLatex(0.15,0.30,'MDM syst. error = %0.3f'%(bkgd_syst_err) )
+        lumilab3.SetNDC()
+        lumilab3.SetTextSize(0.2)
+        lumilab3.Draw()
+
+        pad1.cd()
+
+        Hist_Syst_Bkgd.GetXaxis().SetTitleOffset(0.8)
+        Hist_Syst_Bkgd.GetXaxis().SetTitleSize(0.06)
+        Hist_Syst_Bkgd.GetXaxis().SetLabelSize(0.06)
+        Hist_Syst_Bkgd.GetYaxis().SetLabelSize(0.06)
+        Hist_Syst_Bkgd.GetYaxis().SetTitleOffset(1.2)
+        Hist_Syst_Bkgd.GetYaxis().SetTitleSize(0.06)
+        Hist_Syst_Bkgd.GetXaxis().SetTitle('relative error')
+        Hist_Syst_Bkgd.GetYaxis().SetTitle('number of measurements')
+        Hist_Syst_Bkgd.SetFillStyle(3325)
+        Hist_Syst_Dark.SetFillStyle(3352)
+        Hist_Syst_Bkgd.SetFillColor(38)
+        Hist_Syst_Dark.SetFillColor(46)
+        Hist_Syst_Bkgd.SetLineColor(4)
+        Hist_Syst_Dark.SetLineColor(2)
+        Hist_Syst_Bkgd.SetLineWidth(2)
+        Hist_Syst_Bkgd.Draw("hist")
+        Hist_Syst_Dark.Draw("hist same")
+        pad3.cd()
+        c_both.SaveAs('output_plots/SystAnalysis.png')
+
+
 def SingleSourceAnalysis(source_list,doMap):
 
     global ErecS_lower_cut
@@ -2670,18 +2787,18 @@ Hist_OnBkgd_Zenith_Sum = ROOT.TH1D("Hist_OnBkgd_Zenith_Sum","",45,0,90)
 Hist_OnData_Zenith = ROOT.TH1D("Hist_OnData_Zenith","",45,0,90)
 Hist_OnBkgd_Zenith = ROOT.TH1D("Hist_OnBkgd_Zenith","",45,0,90)
 
-Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",150,source_ra-Skymap_size,source_ra+Skymap_size,150,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",150,source_ra-Skymap_size,source_ra+Skymap_size,150,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst","",150,source_ra-Skymap_size,source_ra+Skymap_size,150,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnData_Skymap_Sum = ROOT.TH2D("Hist_OnData_Skymap_Sum","",150,source_ra-Skymap_size,source_ra+Skymap_size,150,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Sum","",150,source_ra-Skymap_size,source_ra+Skymap_size,150,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_Sum","",150,source_ra-Skymap_size,source_ra+Skymap_size,150,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnData_Skymap_Galactic = ROOT.TH2D("Hist_OnData_Skymap_Galactic","",150,source_l-Skymap_size,source_l+Skymap_size,150,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic","",150,source_l-Skymap_size,source_l+Skymap_size,150,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic_Syst = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst","",150,source_l-Skymap_size,source_l+Skymap_size,150,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnData_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_Skymap_Galactic_Sum","",150,source_l-Skymap_size,source_l+Skymap_size,150,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sum","",150,source_l-Skymap_size,source_l+Skymap_size,150,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic_Syst_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst_Sum","",150,source_l-Skymap_size,source_l+Skymap_size,150,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap_Syst = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnData_Skymap_Sum = ROOT.TH2D("Hist_OnData_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap_Syst_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnData_Skymap_Galactic = ROOT.TH2D("Hist_OnData_Skymap_Galactic","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnBkgd_Skymap_Galactic = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnBkgd_Skymap_Galactic_Syst = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnData_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_Skymap_Galactic_Sum","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnBkgd_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sum","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnBkgd_Skymap_Galactic_Syst_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst_Sum","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
 
 Hist_SystErr_MSCL = ROOT.TH1D("Hist_SystErr_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_SystErr_MSCW = ROOT.TH1D("Hist_SystErr_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -2773,21 +2890,22 @@ for nth_sample in range(0,n_control_samples):
 
 #n_rebin = 1
 #smooth_size = 0.05
-n_rebin = 2
+n_rebin = 1
 smooth_size = 0.1
-#n_rebin = 2
+#n_rebin = 1
 #smooth_size = 0.15
 if energy_bin[energy_bin_cut_low]>500.:
-    n_rebin = 2
+    #n_rebin = 2
     smooth_size = 0.15
 if energy_bin[energy_bin_cut_low]>1000.:
-    n_rebin = 4
+    #n_rebin = 4
     smooth_size = 0.2
 
 GetGammaSourceInfo()
 
+SystematicAnalysis()
+
 SingleSourceAnalysis(sample_list,True)
-#SingleSourceAnalysis(sample_list,False)
 print 'n_good_matches = %s'%(n_good_matches)
 
 print "Syst_MDM = %s"%(Syst_MDM) 
