@@ -409,9 +409,12 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     }
     else
     {
-        vtr_vari_big = mtx_Big.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_Delta);
+        //vtr_vari_big = (mtx_Big.transpose()*mtx_Big).ldlt().solve(mtx_Big.transpose()*vtr_Delta);
+        //vtr_vari_big = mtx_Big.colPivHouseholderQr().solve(vtr_Delta);
+        //vtr_vari_big = mtx_Big.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_Delta);
+        JacobiSVD<MatrixXd> svd(mtx_Big, ComputeThinU | ComputeThinV);
+        vtr_vari_big = svd.solve(vtr_Delta);
     }
-    //VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
     //vtr_vari_big = (mtx_Big.transpose()*mtx_Big).inverse()*mtx_Big.transpose()*vtr_Delta;
 
 
@@ -437,9 +440,9 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     mtx_p_final += mtx_p_vari*step_frac;
     mtx_q_final += mtx_q_vari*step_frac;
 
+    mtx_eigenvector_init += mtx_q_vari;
+    mtx_eigenvector_inv_init += mtx_p_vari.transpose();
     mtx_output = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
-    mtx_output += mtx_q_vari*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
-    mtx_output += mtx_eigenvector_init*mtx_eigenvalue_init*mtx_p_vari.transpose();
 
     return mtx_output;
 
@@ -458,19 +461,19 @@ bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, int rank)
     //std::cout << "lambda_data = " << lambda_data << std::endl;
     //std::cout << "lambda_dark = " << lambda_dark << std::endl;
     //std::cout << "lambda_input = " << lambda_input << std::endl;
-    //if (rank<10)
-    //{
-    //    if (diff_data<0. && diff_input>0.) 
-    //    {
-    //        std::cout << "break at rank " << rank << " (unphysical result.)" << std::endl;
-    //        return false;
-    //    }
-    //    //if (abs(diff_input)>0.2) 
-    //    //{
-    //    //    std::cout << "break at rank " << rank << " (deviate from initial by 20%.)" << std::endl;
-    //    //    return false;
-    //    //}
-    //}
+    if (rank<10)
+    {
+        //if (diff_data<0. && diff_input>0.) 
+        //{
+        //    std::cout << "break at rank " << rank << " (unphysical result.)" << std::endl;
+        //    return false;
+        //}
+        if (abs(diff_input)>1.0) 
+        {
+            std::cout << "break at rank " << rank << " (deviate from initial by 100%.)" << std::endl;
+            return false;
+        }
+    }
 
     double init_chi2 = GetChi2Function(mtx_data_bkgd,0);
     double current_chi2 = GetChi2Function(mtx_input,0);
@@ -496,6 +499,8 @@ void LeastSquareSolutionMethod(int rank_variation)
         }
     }
 
+    //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data);
+    //mtx_data = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
     SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_dark);
     mtx_data_bkgd = mtx_dark;
 
@@ -506,64 +511,28 @@ void LeastSquareSolutionMethod(int rank_variation)
     mtx_eigenvalue = mtx_eigenvalue_init;
     mtx_eigenvector_inv = mtx_eigenvector_inv_init;
 
-    std::cout << "initial chi2 = " << GetChi2Function(mtx_dark,0) << std::endl;
+    std::cout << "initial chi2 in CR = " << GetChi2Function(mtx_dark,0) << std::endl;
 
     MatrixXcd mtx_temp = mtx_dark;
-    //mtx_temp = SpectralDecompositionMethod_v3(1, 3);
+    //mtx_temp = SpectralDecompositionMethod_v3(1, 2);
     //mtx_data_bkgd = mtx_temp;
-    int n_iterations = 1;
+    //int n_iterations = 100;
+    int n_iterations = 2;
     for (int iteration=0;iteration<n_iterations;iteration++)
     {
-        if (rank_variation==1)
-        {
-            mtx_temp = SpectralDecompositionMethod_v3(1, 1);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp,1)) break;
-            mtx_data_bkgd = mtx_temp;
-            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-            //std::cout << "chi2 (rank 1) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-        }
-        else if (rank_variation==2)
-        {
-            mtx_temp = SpectralDecompositionMethod_v3(1, 1);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp,1)) break;
-            mtx_data_bkgd = mtx_temp;
-            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-            //std::cout << "chi2 (rank 1) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-            
-            mtx_temp = SpectralDecompositionMethod_v3(2, 1);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp,2)) break;
-            mtx_data_bkgd = mtx_temp;
-            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-            //std::cout << "chi2 (rank 2) = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-        }
-        else
-        {
-            mtx_temp = SpectralDecompositionMethod_v3(1, 1);
-            if (CheckIfEigenvalueMakeSense(mtx_temp,1))
-            {
-                mtx_data_bkgd = mtx_temp;
-                SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-            }
-            //
-            mtx_temp = SpectralDecompositionMethod_v3(2, 1);
-            if (CheckIfEigenvalueMakeSense(mtx_temp,2))
-            {
-                mtx_data_bkgd = mtx_temp;
-                SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-            }
-            //
-            mtx_temp = SpectralDecompositionMethod_v3(3, 1);
-            if (CheckIfEigenvalueMakeSense(mtx_temp,3))
-            {
-                mtx_data_bkgd = mtx_temp;
-                SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data_bkgd);
-            }
-        }
-    }
-
-    if (!CheckIfEigenvalueMakeSense(mtx_data_bkgd,1))
-    {
-        mtx_data_bkgd = mtx_dark;
+        std::cout << "iteration = " << iteration<< std::endl;
+        mtx_temp = SpectralDecompositionMethod_v3(1, 1);
+        if (!CheckIfEigenvalueMakeSense(mtx_temp, 1)) break;
+        mtx_data_bkgd = mtx_temp;
+        std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        mtx_temp = SpectralDecompositionMethod_v3(2, 1);
+        if (!CheckIfEigenvalueMakeSense(mtx_temp, 2)) break;
+        mtx_data_bkgd = mtx_temp;
+        std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        mtx_temp = SpectralDecompositionMethod_v3(3, 1);
+        if (!CheckIfEigenvalueMakeSense(mtx_temp, 3)) break;
+        mtx_data_bkgd = mtx_temp;
+        std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
     }
 
 }
@@ -865,6 +834,12 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH1D> Hist_Bkgd_Rank0_RightVector;
     vector<TH1D> Hist_Bkgd_Rank1_RightVector;
     vector<TH1D> Hist_Bkgd_Rank2_RightVector;
+    vector<TH1D> Hist_Dark_Rank0_LeftVector;
+    vector<TH1D> Hist_Dark_Rank1_LeftVector;
+    vector<TH1D> Hist_Dark_Rank2_LeftVector;
+    vector<TH1D> Hist_Dark_Rank0_RightVector;
+    vector<TH1D> Hist_Dark_Rank1_RightVector;
+    vector<TH1D> Hist_Dark_Rank2_RightVector;
     for (int e=0;e<N_energy_bins;e++) 
     {
         char e_low[50];
@@ -893,6 +868,12 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Bkgd_Rank0_RightVector.push_back(TH1D("Hist_Bkgd_Rank0_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Bkgd_Rank1_RightVector.push_back(TH1D("Hist_Bkgd_Rank1_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Bkgd_Rank2_RightVector.push_back(TH1D("Hist_Bkgd_Rank2_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Dark_Rank0_LeftVector.push_back(TH1D("Hist_Dark_Rank0_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Dark_Rank1_LeftVector.push_back(TH1D("Hist_Dark_Rank1_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Dark_Rank2_LeftVector.push_back(TH1D("Hist_Dark_Rank2_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Dark_Rank0_RightVector.push_back(TH1D("Hist_Dark_Rank0_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Dark_Rank1_RightVector.push_back(TH1D("Hist_Dark_Rank1_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Dark_Rank2_RightVector.push_back(TH1D("Hist_Dark_Rank2_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
     }
 
     vector<TH1D> Hist_OnData_SR_Energy;
@@ -1130,6 +1111,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 mtx_data = fillMatrix(&Hist_OneGroup_Data_MSCLW.at(e));
                 eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
                 for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+                //for (int nth_sample=0;nth_sample<1;nth_sample++)
                 {
                     NormalizaDarkMatrix(&Hist_OneGroup_Data_MSCLW.at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
                     mtx_dark = fillMatrix(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
@@ -1139,6 +1121,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,1./double(n_dark_samples));
                     Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),1./double(n_dark_samples));
+                    //Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd);
+                    //Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
                     Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
                 }
                 if (!isnan(Hist_OneGroup_Bkgd_MSCLW.at(e).Integral()) && !isnan(Hist_OneGroup_Data_MSCLW.at(e).Integral()))
@@ -1273,6 +1257,12 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 fill1DHistogram(&Hist_Bkgd_Rank0_RightVector.at(e),eigensolver_bkgd.eigenvectors(),0);
                 fill1DHistogram(&Hist_Bkgd_Rank1_RightVector.at(e),eigensolver_bkgd.eigenvectors(),1);
                 fill1DHistogram(&Hist_Bkgd_Rank2_RightVector.at(e),eigensolver_bkgd.eigenvectors(),2);
+                fill1DHistogram(&Hist_Dark_Rank0_LeftVector.at(e),eigensolver_dark.eigenvectors().inverse().transpose(),0);
+                fill1DHistogram(&Hist_Dark_Rank1_LeftVector.at(e),eigensolver_dark.eigenvectors().inverse().transpose(),1);
+                fill1DHistogram(&Hist_Dark_Rank2_LeftVector.at(e),eigensolver_dark.eigenvectors().inverse().transpose(),2);
+                fill1DHistogram(&Hist_Dark_Rank0_RightVector.at(e),eigensolver_dark.eigenvectors(),0);
+                fill1DHistogram(&Hist_Dark_Rank1_RightVector.at(e),eigensolver_dark.eigenvectors(),1);
+                fill1DHistogram(&Hist_Dark_Rank2_RightVector.at(e),eigensolver_dark.eigenvectors(),2);
             
                 group_size.at(e) = 0;
 
@@ -1332,6 +1322,12 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Bkgd_Rank0_RightVector.at(e).Write();
         Hist_Bkgd_Rank1_RightVector.at(e).Write();
         Hist_Bkgd_Rank2_RightVector.at(e).Write();
+        Hist_Dark_Rank0_LeftVector.at(e).Write();
+        Hist_Dark_Rank1_LeftVector.at(e).Write();
+        Hist_Dark_Rank2_LeftVector.at(e).Write();
+        Hist_Dark_Rank0_RightVector.at(e).Write();
+        Hist_Dark_Rank1_RightVector.at(e).Write();
+        Hist_Dark_Rank2_RightVector.at(e).Write();
     }
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {
