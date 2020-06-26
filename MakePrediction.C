@@ -485,7 +485,7 @@ bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, int rank)
 
     return true;
 }
-void LeastSquareSolutionMethod(int rank_variation)
+void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
 {
 
     for (int col=0;col<N_bins_for_deconv;col++)
@@ -514,10 +514,6 @@ void LeastSquareSolutionMethod(int rank_variation)
     std::cout << "initial chi2 in CR = " << GetChi2Function(mtx_dark,0) << std::endl;
 
     MatrixXcd mtx_temp = mtx_dark;
-    //mtx_temp = SpectralDecompositionMethod_v3(1, 2);
-    //mtx_data_bkgd = mtx_temp;
-    //int n_iterations = 100;
-    int n_iterations = 2;
     for (int iteration=0;iteration<n_iterations;iteration++)
     {
         std::cout << "iteration = " << iteration<< std::endl;
@@ -533,7 +529,13 @@ void LeastSquareSolutionMethod(int rank_variation)
         if (!CheckIfEigenvalueMakeSense(mtx_temp, 3)) break;
         mtx_data_bkgd = mtx_temp;
         std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        mtx_temp = SpectralDecompositionMethod_v3(4, 1);
+        if (!CheckIfEigenvalueMakeSense(mtx_temp, 4)) break;
+        mtx_data_bkgd = mtx_temp;
+        std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
     }
+    //mtx_temp = SpectralDecompositionMethod_v3(1, 3);
+    //mtx_data_bkgd = mtx_temp;
 
 }
 void GetReducedEigenvalueMatrix(int rank_cutoff)
@@ -779,7 +781,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     NormalizaDarkMatrix(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e), &Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
                     mtx_dark = fillMatrix(&Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-                    LeastSquareSolutionMethod(rank_variation);
+                    LeastSquareSolutionMethod(rank_variation, n_iterations);
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     Hist_OffData_MSCLW.at(nth_sample).at(e).Add(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e));
@@ -1116,7 +1118,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     NormalizaDarkMatrix(&Hist_OneGroup_Data_MSCLW.at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
                     mtx_dark = fillMatrix(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-                    LeastSquareSolutionMethod(rank_variation);
+                    LeastSquareSolutionMethod(rank_variation, n_iterations);
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,1./double(n_dark_samples));

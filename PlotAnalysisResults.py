@@ -25,8 +25,8 @@ method_tag = '16bins_unconstrained'
 #elev_bins = [45,65,85]
 elev_bins = [45,85]
 
-#ONOFF_tag = 'ON'
-ONOFF_tag = 'OFF'
+ONOFF_tag = 'ON'
+#ONOFF_tag = 'OFF'
 root_file_tags = []
 for elev in range(0,len(elev_bins)-1):
     # all time
@@ -138,10 +138,10 @@ sky_coord = []
 #sample_list += ['OJ287V6']
 #sky_coord += ['08 54 49.1 +20 05 58.89']
 
-sample_list += ['1ES0229V6']
-sky_coord += ['02 32 53.2 +20 16 21']
-sample_list += ['1ES0229V5']
-sky_coord += ['02 32 53.2 +20 16 21']
+#sample_list += ['1ES0229V6']
+#sky_coord += ['02 32 53.2 +20 16 21']
+#sample_list += ['1ES0229V5']
+#sky_coord += ['02 32 53.2 +20 16 21']
 
 #sample_list += ['H1426V6']
 #sky_coord += ['14 28 32.609 +42 40 21.05']
@@ -211,10 +211,10 @@ sky_coord += ['02 32 53.2 +20 16 21']
 #sky_coord += ['10 07 04 +16 04 55']
 # only V5 data published
 
-#sample_list += ['CygnusV6']
-#sky_coord += ['20 18 35.03 +36 50 00.0']
-#sample_list += ['CygnusV5']
-#sky_coord += ['20 18 35.03 +36 50 00.0']
+sample_list += ['CygnusV6']
+sky_coord += ['20 18 35.03 +36 50 00.0']
+sample_list += ['CygnusV5']
+sky_coord += ['20 18 35.03 +36 50 00.0']
 
 #sample_list += ['GemingaV6']
 #sky_coord += ['06 32 28 +17 22 00']
@@ -460,6 +460,12 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist1D_Bkgd_Rank0_RightVector.Reset()
     Hist1D_Bkgd_Rank1_RightVector.Reset()
     Hist1D_Bkgd_Rank2_RightVector.Reset()
+    Hist1D_Dark_Rank0_LeftVector.Reset()
+    Hist1D_Dark_Rank1_LeftVector.Reset()
+    Hist1D_Dark_Rank2_LeftVector.Reset()
+    Hist1D_Dark_Rank0_RightVector.Reset()
+    Hist1D_Dark_Rank1_RightVector.Reset()
+    Hist1D_Dark_Rank2_RightVector.Reset()
 
     HistName = "Hist_Rank0_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank0.Add(InputFile.Get(HistName))
@@ -497,6 +503,18 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist1D_Bkgd_Rank1_RightVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Bkgd_Rank2_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Bkgd_Rank2_RightVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Dark_Rank0_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Dark_Rank0_LeftVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Dark_Rank1_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Dark_Rank1_LeftVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Dark_Rank2_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Dark_Rank2_LeftVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Dark_Rank0_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Dark_Rank0_RightVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Dark_Rank1_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Dark_Rank1_RightVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Dark_Rank2_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Dark_Rank2_RightVector.Add(InputFile.Get(HistName))
 
     Hists = []
     legends = []
@@ -504,9 +522,12 @@ def GetShowerHistogramsFromFile(FilePath):
     Hists += [Hist1D_Data_Rank0_LeftVector]
     legends += ['data vector']
     colors += [1]
+    Hists += [Hist1D_Dark_Rank0_LeftVector]
+    legends += ['inital vector']
+    colors += [2]
     Hists += [Hist1D_Bkgd_Rank0_LeftVector]
     legends += ['predict. vector']
-    colors += [2]
+    colors += [3]
     MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{1}}','Rank0_LeftVector_%s'%(ErecS_lower_cut),0,0,False,False)
     Hists = []
     legends = []
@@ -514,9 +535,12 @@ def GetShowerHistogramsFromFile(FilePath):
     Hists += [Hist1D_Data_Rank1_LeftVector]
     legends += ['data vector']
     colors += [1]
+    Hists += [Hist1D_Dark_Rank1_LeftVector]
+    legends += ['initial vector']
+    colors += [2]
     Hists += [Hist1D_Bkgd_Rank1_LeftVector]
     legends += ['predict. vector']
-    colors += [2]
+    colors += [3]
     MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{2}}','Rank1_LeftVector_%s'%(ErecS_lower_cut),0,0,False,False)
     Hists = []
     legends = []
@@ -524,9 +548,12 @@ def GetShowerHistogramsFromFile(FilePath):
     Hists += [Hist1D_Data_Rank2_LeftVector]
     legends += ['data vector']
     colors += [1]
+    Hists += [Hist1D_Dark_Rank2_LeftVector]
+    legends += ['initial vector']
+    colors += [2]
     Hists += [Hist1D_Bkgd_Rank2_LeftVector]
     legends += ['predict. vector']
-    colors += [2]
+    colors += [3]
     MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{3}}','Rank2_LeftVector_%s'%(ErecS_lower_cut),0,0,False,False)
     Hists = []
     legends = []
@@ -534,9 +561,12 @@ def GetShowerHistogramsFromFile(FilePath):
     Hists += [Hist1D_Data_Rank0_RightVector]
     legends += ['data vector']
     colors += [1]
+    Hists += [Hist1D_Dark_Rank0_RightVector]
+    legends += ['initial vector']
+    colors += [2]
     Hists += [Hist1D_Bkgd_Rank0_RightVector]
     legends += ['predict. vector']
-    colors += [2]
+    colors += [3]
     MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{1}}','Rank0_RightVector_%s'%(ErecS_lower_cut),0,0,False,False)
     Hists = []
     legends = []
@@ -544,9 +574,12 @@ def GetShowerHistogramsFromFile(FilePath):
     Hists += [Hist1D_Data_Rank1_RightVector]
     legends += ['data vector']
     colors += [1]
+    Hists += [Hist1D_Dark_Rank1_RightVector]
+    legends += ['initial vector']
+    colors += [2]
     Hists += [Hist1D_Bkgd_Rank1_RightVector]
     legends += ['predict. vector']
-    colors += [2]
+    colors += [3]
     MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{2}}','Rank1_RightVector_%s'%(ErecS_lower_cut),0,0,False,False)
     Hists = []
     legends = []
@@ -554,9 +587,12 @@ def GetShowerHistogramsFromFile(FilePath):
     Hists += [Hist1D_Data_Rank2_RightVector]
     legends += ['data vector']
     colors += [1]
+    Hists += [Hist1D_Dark_Rank2_RightVector]
+    legends += ['initial vector']
+    colors += [2]
     Hists += [Hist1D_Bkgd_Rank2_RightVector]
     legends += ['predict. vector']
-    colors += [2]
+    colors += [3]
     MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{3}}','Rank2_RightVector_%s'%(ErecS_lower_cut),0,0,False,False)
 
     if Hist2D_OnData.Integral()<1600. or Hist2D_OnDark.Integral()<1600.:
@@ -693,22 +729,25 @@ def set_histStyle( hist , color):
 def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,logy):
     
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
-    pad3 = ROOT.TPad("pad3","pad3",0,0.7,1,1)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
     pad3.SetBottomMargin(0.0)
     pad3.SetTopMargin(0.03)
     pad3.SetBorderMode(1)
-    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.7)
-    pad1.SetBottomMargin(0.2)
+    pad1 = ROOT.TPad("pad1","pad1",0,0.3,1,0.8)
+    pad1.SetBottomMargin(0.0)
     pad1.SetTopMargin(0.0)
-    pad1.SetLeftMargin(0.2)
     pad1.SetBorderMode(0)
-    if logy: pad1.SetGrid()
+    pad2 = ROOT.TPad("pad2","pad2",0,0,1,0.3)
+    pad2.SetBottomMargin(0.39)
+    pad2.SetTopMargin(0.0)
+    pad2.SetBorderMode(0)
+    pad1.SetGrid()
+    pad2.Draw()
     pad1.Draw()
     pad3.Draw()
 
     pad1.cd()
     if logy: pad1.SetLogy()
-
 
     min_heigh = 0
     max_heigh = 0
@@ -754,8 +793,7 @@ def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,log
             Hists[h].Draw("E same")
 
     pad3.cd()
-    legend = ROOT.TLegend(0.1,0.1,0.9,0.9)
-    legend.SetNColumns(2)
+    legend = ROOT.TLegend(0.5,0.1,0.9,0.9)
     legend.SetTextFont(42)
     legend.SetBorderSize(0)
     legend.SetTextSize(0.1)
@@ -768,6 +806,30 @@ def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,log
             legend.AddEntry(Hists[h],'%s'%(legends[h]),"pl")
     legend.Draw("SAME")
 
+    pad2.cd()
+    Hist_Band = Hists[1].Clone()
+    Hist_Band.Add(Hists[0],-1)
+    Hist_Band.GetXaxis().SetTitle(title_x)
+    Hist_Band.GetXaxis().SetTitleOffset(1.1)
+    Hist_Band.GetXaxis().SetTitleSize(0.13)
+    Hist_Band.GetXaxis().SetLabelSize(0.1)
+    Hist_Band.GetYaxis().SetLabelSize(0.1)
+    Hist_Band.GetYaxis().SetTitleOffset(0.3)
+    Hist_Band.GetYaxis().SetTitle("error")
+    Hist_Band.GetYaxis().SetTitleSize(0.10)
+    Hist_Band.GetYaxis().SetNdivisions(505)
+    Hist_Band.Draw("hist")
+    line2 = ROOT.TLine(Hist_Band.GetBinLowEdge(1),1,Hist_Band.GetBinLowEdge(Hist_Band.GetNbinsX()+1),1)
+    line2.SetLineStyle(1)
+    line2.SetLineColor(1)
+    line2.SetLineWidth(2)
+    line2.Draw("same")
+    for h in range(0,len(Hists)):
+        Hist_Err = Hists[h].Clone()
+        Hist_Err.Add(Hists[0],-1.)
+        Hist_Err.SetLineColor(colors[h])
+        Hist_Err.SetLineWidth(2)
+        Hist_Err.Draw("hist same")
 
     if logx: 
         pad1.SetLogx()
@@ -2442,6 +2504,38 @@ def MatrixDecompositionDemo(name):
     Hist2D_Rank2_Sum.Draw("COL4Z")
     canvas.SaveAs('output_plots/Rank2_%s_%s.png'%(name,selection_tag))
 
+    Hist2D_ErrBkgd = ROOT.TH2D("Hist2D_ErrBkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+    Hist2D_ErrBkgd.Add(Hist2D_OnData_Sum)
+    Hist2D_ErrBkgd.Add(Hist2D_OnBkgd_Sum,-1)
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.50,'Error distribution' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    Hist2D_ErrBkgd.SetMaximum(Hist2D_OnData_Sum.GetMaximum()*0.05);
+    Hist2D_ErrBkgd.SetMinimum(-Hist2D_OnData_Sum.GetMaximum()*0.05);
+    Hist2D_ErrBkgd.GetYaxis().SetTitle('MSCW')
+    Hist2D_ErrBkgd.GetXaxis().SetTitle('MSCL')
+    Hist2D_ErrBkgd.Draw("COL4Z")
+    canvas.SaveAs('output_plots/ErrorBkgd_%s_%s.png'%(name,selection_tag))
+
+    Hist2D_ErrDark = ROOT.TH2D("Hist2D_ErrDark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+    Hist2D_ErrDark.Add(Hist2D_OnData_Sum)
+    Hist2D_ErrDark.Add(Hist2D_OnDark_Sum,-1)
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.50,'Error distribution' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    Hist2D_ErrDark.SetMaximum(Hist2D_OnData_Sum.GetMaximum()*0.1);
+    Hist2D_ErrDark.SetMinimum(-Hist2D_OnData_Sum.GetMaximum()*0.1);
+    Hist2D_ErrDark.GetYaxis().SetTitle('MSCW')
+    Hist2D_ErrDark.GetXaxis().SetTitle('MSCL')
+    Hist2D_ErrDark.Draw("COL4Z")
+    canvas.SaveAs('output_plots/ErrorDark_%s_%s.png'%(name,selection_tag))
+
 def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
     
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
@@ -2502,6 +2596,57 @@ def MakeRankResidualPlots(name):
 
     MakeOneHistPlot(Hist_Residual_Rank,'n ranks','Residual in gamma region','Residual_Rank_%s'%(name),True)
 
+def MakeSystematicPlots(hists, colors, fillstyles, legends, exposure, name):
+
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+    pad1.SetBottomMargin(0.2)
+    pad1.SetTopMargin(0.0)
+    pad1.SetLeftMargin(0.2)
+    pad1.SetBorderMode(0)
+    pad1.Draw()
+    pad3.Draw()
+
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.70,'Total exposure = %0.1f h'%(exposure) )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.15)
+    lumilab1.Draw()
+    legend = ROOT.TLegend(0.55,0.1,0.94,0.9)
+    legend.SetTextFont(42)
+    legend.SetBorderSize(0)
+    legend.SetTextSize(0.15)
+    legend.SetFillColor(0)
+    legend.SetFillStyle(0)
+    legend.SetLineColor(0)
+    legend.Clear()
+    for h in range(0,len(hists)):
+        legend.AddEntry(hists[h],legends[h])
+    legend.Draw("same")
+
+    pad1.cd()
+
+    hists[0].GetXaxis().SetTitleOffset(0.8)
+    hists[0].GetXaxis().SetTitleSize(0.06)
+    hists[0].GetXaxis().SetLabelSize(0.06)
+    hists[0].GetYaxis().SetLabelSize(0.06)
+    hists[0].GetYaxis().SetTitleOffset(1.2)
+    hists[0].GetYaxis().SetTitleSize(0.06)
+    hists[0].GetXaxis().SetTitle('relative error')
+    hists[0].GetYaxis().SetTitle('number of measurements')
+    for h in range(0,len(hists)):
+        hists[h].SetFillStyle(fillstyles[h])
+        hists[h].SetFillColor(colors[h])
+        hists[h].SetLineColor(colors[h])
+        hists[h].SetLineWidth(2)
+        hists[h].Draw("hist same")
+    pad3.cd()
+    c_both.SaveAs('output_plots/%s.png'%(name))
+
 def SystematicAnalysis():
 
     FilePath_List = []
@@ -2526,7 +2671,10 @@ def SystematicAnalysis():
         for nth_group in range(0,InfoTree.number_groups):
             Hist2D_OnData_AllGroups += [ROOT.TH2D("Hist2D_OnData_%s"%(nth_group),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
             Hist2D_OnDark_AllGroups += [ROOT.TH2D("Hist2D_OnDark_%s"%(nth_group),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
-            Hist2D_OnBkgd_AllGroups += [ROOT.TH2D("Hist2D_OnBkgd_%s"%(nth_group),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+            Hist2D_OnBkgd_AllIterations = []
+            for nth_iteration in range(0,10):
+                Hist2D_OnBkgd_AllIterations += [ROOT.TH2D("Hist2D_OnBkgd_%s_%s"%(nth_group,nth_iteration),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+            Hist2D_OnBkgd_AllGroups += [Hist2D_OnBkgd_AllIterations]
 
         for e in range(0,len(energy_bin)-1):
             ErecS_lower_cut = energy_bin[e]
@@ -2539,82 +2687,75 @@ def SystematicAnalysis():
             for nth_group in range(0,InfoTree.number_groups):
                 HistName = "Hist_NthGroup_Data_MSCLW_V%s_ErecS%sto%s"%(nth_group,ErecS_lower_cut_int,ErecS_upper_cut_int)
                 Hist2D_OnData_AllGroups[nth_group].Add(InputFile.Get(HistName))
-                HistName = "Hist_NthGroup_Bkgd_MSCLW_V%s_ErecS%sto%s"%(nth_group,ErecS_lower_cut_int,ErecS_upper_cut_int)
-                Hist2D_OnBkgd_AllGroups[nth_group].Add(InputFile.Get(HistName))
+                for nth_iteration in range(0,10):
+                    HistName = "Hist_NthGroup_Bkgd_MSCLW_I%s_V%s_ErecS%sto%s"%(nth_iteration,nth_group,ErecS_lower_cut_int,ErecS_upper_cut_int)
+                    Hist2D_OnBkgd_AllGroups[nth_group][nth_iteration].Add(InputFile.Get(HistName))
                 HistName = "Hist_NthGroup_Dark_MSCLW_V%s_ErecS%sto%s"%(nth_group,ErecS_lower_cut_int,ErecS_upper_cut_int)
                 Hist2D_OnDark_AllGroups[nth_group].Add(InputFile.Get(HistName))
 
-        bkgd_syst_err = 0.
-        dark_syst_err = 0.
-        Hist_Syst_Bkgd = ROOT.TH1D("Hist_Syst_Bkgd","",19,-0.2,0.2)
-        Hist_Syst_Dark = ROOT.TH1D("Hist_Syst_Dark","",19,-0.2,0.2)
-        for nth_group in range(0,InfoTree.number_groups):
-            Total_Data = Hist2D_OnData_AllGroups[nth_group].Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)
-            if Total_Data == 0.: continue
+        for nth_iteration in range(0,10):
+            bkgd_chi2 = 0.
+            bkgd_syst_err = 0.
+            dark_syst_err = 0.
+            Hist_Chi2_Bkgd = ROOT.TH1D("Hist_Chi2_Bkgd","",39,-0.02,0.02)
+            Hist_Syst_Bkgd = ROOT.TH1D("Hist_Syst_Bkgd","",39,-0.2,0.2)
+            Hist_Syst_Dark = ROOT.TH1D("Hist_Syst_Dark","",39,-0.2,0.2)
+            for nth_group in range(0,InfoTree.number_groups):
+                Total_Data = Hist2D_OnData_AllGroups[nth_group].Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)
+                if Total_Data == 0.: continue
 
-            Hist2D_Diff = Hist2D_OnData_AllGroups[nth_group].Clone()
-            Hist2D_Diff.Add(Hist2D_OnBkgd_AllGroups[nth_group],-1.)
-            syst_this = Hist2D_Diff.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)/Total_Data
-            Hist_Syst_Bkgd.Fill(syst_this)
-            bkgd_syst_err += pow(syst_this,2)/InfoTree.number_groups
+                Hist2D_Diff = Hist2D_OnData_AllGroups[nth_group].Clone()
+                Hist2D_Diff.Add(Hist2D_OnBkgd_AllGroups[nth_group][nth_iteration],-1.)
+                Hist2D_Chi2Diff = Hist2D_OnBkgd_AllGroups[nth_group][9].Clone()
+                Hist2D_Chi2Diff.Add(Hist2D_OnBkgd_AllGroups[nth_group][nth_iteration],-1.)
+                syst_this = Hist2D_Diff.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)/Total_Data
+                Hist_Syst_Bkgd.Fill(syst_this)
+                bkgd_syst_err += pow(syst_this,2)/InfoTree.number_groups
+                chi2_this = 0.
+                for binx in range(0,Hist2D_Chi2Diff.GetNbinsX()):
+                    for biny in range(0,Hist2D_Chi2Diff.GetNbinsY()):
+                        if binx>bin_upper_x : continue
+                        if biny>bin_upper_y : continue
+                        chi2_this += pow(Hist2D_Chi2Diff.GetBinContent(binx+1,biny+1),2)
+                chi2_this = pow(chi2_this,0.5)/Total_Data
+                Hist_Chi2_Bkgd.Fill(chi2_this)
+                bkgd_chi2 += pow(chi2_this,2)/InfoTree.number_groups
 
-            Hist2D_Diff = Hist2D_OnData_AllGroups[nth_group].Clone()
-            Hist2D_Diff.Add(Hist2D_OnDark_AllGroups[nth_group],-1.)
-            syst_this = Hist2D_Diff.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)/Total_Data
-            Hist_Syst_Dark.Fill(syst_this)
-            dark_syst_err += pow(syst_this,2)/InfoTree.number_groups
+                Hist2D_Diff = Hist2D_OnData_AllGroups[nth_group].Clone()
+                Hist2D_Diff.Add(Hist2D_OnDark_AllGroups[nth_group],-1.)
+                syst_this = Hist2D_Diff.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)/Total_Data
+                Hist_Syst_Dark.Fill(syst_this)
+                dark_syst_err += pow(syst_this,2)/InfoTree.number_groups
 
-        bkgd_syst_err = pow(bkgd_syst_err,0.5)
-        dark_syst_err = pow(dark_syst_err,0.5)
+            bkgd_chi2 = pow(bkgd_chi2,0.5)
+            bkgd_syst_err = pow(bkgd_syst_err,0.5)
+            dark_syst_err = pow(dark_syst_err,0.5)
 
-        c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
-        pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
-        pad3.SetBottomMargin(0.0)
-        pad3.SetTopMargin(0.03)
-        pad3.SetBorderMode(1)
-        pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
-        pad1.SetBottomMargin(0.2)
-        pad1.SetTopMargin(0.0)
-        pad1.SetLeftMargin(0.2)
-        pad1.SetBorderMode(0)
-        pad1.Draw()
-        pad3.Draw()
+            hists = []
+            colors = []
+            fillstyles = []
+            legends = []
+            hists += [Hist_Chi2_Bkgd]
+            colors += [38]
+            fillstyles += [3325]
+            legends += ['MDM converge err. = %0.3f'%(bkgd_chi2)]
+            name = "Converge_I%s"%(nth_iteration)
+            MakeSystematicPlots(hists, colors, fillstyles, legends, InfoTree.exposure_hours, name)
 
-        pad3.cd()
-        lumilab1 = ROOT.TLatex(0.15,0.70,'Total exposure = %0.1f h'%(InfoTree.exposure_hours) )
-        lumilab1.SetNDC()
-        lumilab1.SetTextSize(0.2)
-        lumilab1.Draw()
-        lumilab2 = ROOT.TLatex(0.15,0.50,'Inital syst. error = %0.3f'%(dark_syst_err) )
-        lumilab2.SetNDC()
-        lumilab2.SetTextSize(0.2)
-        lumilab2.Draw()
-        lumilab3 = ROOT.TLatex(0.15,0.30,'MDM syst. error = %0.3f'%(bkgd_syst_err) )
-        lumilab3.SetNDC()
-        lumilab3.SetTextSize(0.2)
-        lumilab3.Draw()
-
-        pad1.cd()
-
-        Hist_Syst_Bkgd.GetXaxis().SetTitleOffset(0.8)
-        Hist_Syst_Bkgd.GetXaxis().SetTitleSize(0.06)
-        Hist_Syst_Bkgd.GetXaxis().SetLabelSize(0.06)
-        Hist_Syst_Bkgd.GetYaxis().SetLabelSize(0.06)
-        Hist_Syst_Bkgd.GetYaxis().SetTitleOffset(1.2)
-        Hist_Syst_Bkgd.GetYaxis().SetTitleSize(0.06)
-        Hist_Syst_Bkgd.GetXaxis().SetTitle('relative error')
-        Hist_Syst_Bkgd.GetYaxis().SetTitle('number of measurements')
-        Hist_Syst_Bkgd.SetFillStyle(3325)
-        Hist_Syst_Dark.SetFillStyle(3352)
-        Hist_Syst_Bkgd.SetFillColor(38)
-        Hist_Syst_Dark.SetFillColor(46)
-        Hist_Syst_Bkgd.SetLineColor(4)
-        Hist_Syst_Dark.SetLineColor(2)
-        Hist_Syst_Bkgd.SetLineWidth(2)
-        Hist_Syst_Bkgd.Draw("hist")
-        Hist_Syst_Dark.Draw("hist same")
-        pad3.cd()
-        c_both.SaveAs('output_plots/SystAnalysis.png')
+            hists = []
+            colors = []
+            fillstyles = []
+            legends = []
+            hists += [Hist_Syst_Bkgd]
+            colors += [38]
+            fillstyles += [3325]
+            legends += ['MDM syst. = %0.3f'%(bkgd_syst_err)]
+            hists += [Hist_Syst_Dark]
+            colors += [46]
+            fillstyles += [3352]
+            legends += ['Initial syst. = %0.3f'%(dark_syst_err)]
+            name = "SystAnalysis_I%s"%(nth_iteration)
+            MakeSystematicPlots(hists, colors, fillstyles, legends, InfoTree.exposure_hours, name)
 
 
 def SingleSourceAnalysis(source_list,doMap):
@@ -2773,6 +2914,12 @@ Hist1D_Bkgd_Rank2_LeftVector = ROOT.TH1D("Hist1D_Bkgd_Rank2_LeftVector","",N_bin
 Hist1D_Bkgd_Rank0_RightVector = ROOT.TH1D("Hist1D_Bkgd_Rank0_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Bkgd_Rank1_RightVector = ROOT.TH1D("Hist1D_Bkgd_Rank1_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Bkgd_Rank2_RightVector = ROOT.TH1D("Hist1D_Bkgd_Rank2_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Dark_Rank0_LeftVector = ROOT.TH1D("Hist1D_Dark_Rank0_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Dark_Rank1_LeftVector = ROOT.TH1D("Hist1D_Dark_Rank1_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Dark_Rank2_LeftVector = ROOT.TH1D("Hist1D_Dark_Rank2_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Dark_Rank0_RightVector = ROOT.TH1D("Hist1D_Dark_Rank0_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Dark_Rank1_RightVector = ROOT.TH1D("Hist1D_Dark_Rank1_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Dark_Rank2_RightVector = ROOT.TH1D("Hist1D_Dark_Rank2_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 
 Hist_OnData_Theta2_Sum = ROOT.TH1D("Hist_OnData_Theta2_Sum","",50,0,10)
 Hist_OnBkgd_Theta2_Sum = ROOT.TH1D("Hist_OnBkgd_Theta2_Sum","",50,0,10)

@@ -1,8 +1,8 @@
 
-char output_file_tag[50] = "8bins";
-int N_bins_for_deconv = 8; // 8 should be the lowest bin number
-//char output_file_tag[50] = "16bins";
-//int N_bins_for_deconv = 16; // 8 should be the lowest bin number
+//char output_file_tag[50] = "8bins";
+//int N_bins_for_deconv = 8; // 8 should be the lowest bin number
+char output_file_tag[50] = "16bins";
+int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
 //char output_file2_tag[50] = "constrained";
 //bool solution_w_constraints = true;
@@ -10,7 +10,8 @@ char output_file2_tag[50] = "unconstrained";
 bool solution_w_constraints = false;
 
 //int NumberOfEigenvectors = 1;
-int NumberOfEigenvectors = 3;
+//int NumberOfEigenvectors = 3;
+int NumberOfEigenvectors = 4;
 double PercentCrab = 0.;
 double MSCW_cut_moderate = 0.5;
 double MSCL_cut_moderate = 0.6;
@@ -19,6 +20,7 @@ double MSCL_cut_loose = 1.0;
 double camera_theta2_cut = 9.;
 double source_theta2_cut = 0.2;
 
+int n_iterations = 10;
 int n_dark_samples = 5;
 const int N_energy_bins = 5;
 double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.3),pow(10,2.6),pow(10,3.0),pow(10,3.4),pow(10,4.0)};
@@ -30,9 +32,9 @@ double raw_gamma_count[N_energy_fine_bins] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0
 const int N_elev_bins = 12;
 double elev_bins[N_elev_bins+1] = {25,30,35,40,45,50,55,60,65,70,75,80,85};
 
-//int group_size_limit[N_energy_bins] = {20,20,20,100,100};
-int group_size_limit[N_energy_bins] = {50,50,50,1000,1000};
-//int group_size_limit[N_energy_bins] = {1000,1000,1000,1000,1000};
+//int group_size_limit[N_energy_bins] = {50,50,50,1000,1000};
+//int group_size_limit[N_energy_bins] = {100,100,100,1000,1000};
+int group_size_limit[N_energy_bins] = {1000,1000,1000,1000,1000};
 
 double gamma_hadron_dim_ratio = 1.;
 double MSCW_cut_lower = -1.0;
