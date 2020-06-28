@@ -517,22 +517,34 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
     for (int iteration=0;iteration<n_iterations;iteration++)
     {
         std::cout << "iteration = " << iteration<< std::endl;
-        mtx_temp = SpectralDecompositionMethod_v3(1, 1);
-        if (!CheckIfEigenvalueMakeSense(mtx_temp, 1)) break;
-        mtx_data_bkgd = mtx_temp;
-        std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-        mtx_temp = SpectralDecompositionMethod_v3(2, 1);
-        if (!CheckIfEigenvalueMakeSense(mtx_temp, 2)) break;
-        mtx_data_bkgd = mtx_temp;
-        std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-        mtx_temp = SpectralDecompositionMethod_v3(3, 1);
-        if (!CheckIfEigenvalueMakeSense(mtx_temp, 3)) break;
-        mtx_data_bkgd = mtx_temp;
-        std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-        mtx_temp = SpectralDecompositionMethod_v3(4, 1);
-        if (!CheckIfEigenvalueMakeSense(mtx_temp, 4)) break;
-        mtx_data_bkgd = mtx_temp;
-        std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        if (NumberOfEigenvectors>=1)
+        {
+            mtx_temp = SpectralDecompositionMethod_v3(1, 1);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, 1)) break;
+            mtx_data_bkgd = mtx_temp;
+            std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        }
+        if (NumberOfEigenvectors>=2)
+        {
+            mtx_temp = SpectralDecompositionMethod_v3(2, 1);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, 2)) break;
+            mtx_data_bkgd = mtx_temp;
+            std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        }
+        if (NumberOfEigenvectors>=3)
+        {
+            mtx_temp = SpectralDecompositionMethod_v3(3, 1);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, 3)) break;
+            mtx_data_bkgd = mtx_temp;
+            std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        }
+        if (NumberOfEigenvectors>=4)
+        {
+            mtx_temp = SpectralDecompositionMethod_v3(4, 1);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, 4)) break;
+            mtx_data_bkgd = mtx_temp;
+            std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+        }
     }
     //mtx_temp = SpectralDecompositionMethod_v3(1, 3);
     //mtx_data_bkgd = mtx_temp;
@@ -824,24 +836,31 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH2D> Hist_Rank0_MSCLW;
     vector<TH2D> Hist_Rank1_MSCLW;
     vector<TH2D> Hist_Rank2_MSCLW;
+    vector<TH2D> Hist_Rank3_MSCLW;
     vector<TH1D> Hist_Data_Rank0_LeftVector;
     vector<TH1D> Hist_Data_Rank1_LeftVector;
     vector<TH1D> Hist_Data_Rank2_LeftVector;
+    vector<TH1D> Hist_Data_Rank3_LeftVector;
     vector<TH1D> Hist_Data_Rank0_RightVector;
     vector<TH1D> Hist_Data_Rank1_RightVector;
     vector<TH1D> Hist_Data_Rank2_RightVector;
+    vector<TH1D> Hist_Data_Rank3_RightVector;
     vector<TH1D> Hist_Bkgd_Rank0_LeftVector;
     vector<TH1D> Hist_Bkgd_Rank1_LeftVector;
     vector<TH1D> Hist_Bkgd_Rank2_LeftVector;
+    vector<TH1D> Hist_Bkgd_Rank3_LeftVector;
     vector<TH1D> Hist_Bkgd_Rank0_RightVector;
     vector<TH1D> Hist_Bkgd_Rank1_RightVector;
     vector<TH1D> Hist_Bkgd_Rank2_RightVector;
+    vector<TH1D> Hist_Bkgd_Rank3_RightVector;
     vector<TH1D> Hist_Dark_Rank0_LeftVector;
     vector<TH1D> Hist_Dark_Rank1_LeftVector;
     vector<TH1D> Hist_Dark_Rank2_LeftVector;
+    vector<TH1D> Hist_Dark_Rank3_LeftVector;
     vector<TH1D> Hist_Dark_Rank0_RightVector;
     vector<TH1D> Hist_Dark_Rank1_RightVector;
     vector<TH1D> Hist_Dark_Rank2_RightVector;
+    vector<TH1D> Hist_Dark_Rank3_RightVector;
     for (int e=0;e<N_energy_bins;e++) 
     {
         char e_low[50];
@@ -857,25 +876,32 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Rank0_MSCLW.push_back(TH2D("Hist_Rank0_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Rank1_MSCLW.push_back(TH2D("Hist_Rank1_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Rank2_MSCLW.push_back(TH2D("Hist_Rank2_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_Rank3_MSCLW.push_back(TH2D("Hist_Rank3_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
 
         Hist_Data_Rank0_LeftVector.push_back(TH1D("Hist_Data_Rank0_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Data_Rank1_LeftVector.push_back(TH1D("Hist_Data_Rank1_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Data_Rank2_LeftVector.push_back(TH1D("Hist_Data_Rank2_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Data_Rank3_LeftVector.push_back(TH1D("Hist_Data_Rank3_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Data_Rank0_RightVector.push_back(TH1D("Hist_Data_Rank0_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Data_Rank1_RightVector.push_back(TH1D("Hist_Data_Rank1_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Data_Rank2_RightVector.push_back(TH1D("Hist_Data_Rank2_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Data_Rank3_RightVector.push_back(TH1D("Hist_Data_Rank3_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Bkgd_Rank0_LeftVector.push_back(TH1D("Hist_Bkgd_Rank0_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Bkgd_Rank1_LeftVector.push_back(TH1D("Hist_Bkgd_Rank1_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Bkgd_Rank2_LeftVector.push_back(TH1D("Hist_Bkgd_Rank2_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Bkgd_Rank3_LeftVector.push_back(TH1D("Hist_Bkgd_Rank3_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Bkgd_Rank0_RightVector.push_back(TH1D("Hist_Bkgd_Rank0_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Bkgd_Rank1_RightVector.push_back(TH1D("Hist_Bkgd_Rank1_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Bkgd_Rank2_RightVector.push_back(TH1D("Hist_Bkgd_Rank2_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Bkgd_Rank3_RightVector.push_back(TH1D("Hist_Bkgd_Rank3_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Dark_Rank0_LeftVector.push_back(TH1D("Hist_Dark_Rank0_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Dark_Rank1_LeftVector.push_back(TH1D("Hist_Dark_Rank1_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Dark_Rank2_LeftVector.push_back(TH1D("Hist_Dark_Rank2_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Dark_Rank3_LeftVector.push_back(TH1D("Hist_Dark_Rank3_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Dark_Rank0_RightVector.push_back(TH1D("Hist_Dark_Rank0_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Dark_Rank1_RightVector.push_back(TH1D("Hist_Dark_Rank1_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Dark_Rank2_RightVector.push_back(TH1D("Hist_Dark_Rank2_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Dark_Rank3_RightVector.push_back(TH1D("Hist_Dark_Rank3_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
     }
 
     vector<TH1D> Hist_OnData_SR_Energy;
@@ -1246,25 +1272,34 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 GetReducedEigenvalueMatrix(2);
                 mtx_data_redu = eigensolver_data.eigenvectors()*mtx_eigenval_data_redu*eigensolver_data.eigenvectors().inverse();
                 fill2DHistogram(&Hist_Rank2_MSCLW.at(e),mtx_data_redu);
+                GetReducedEigenvalueMatrix(3);
+                mtx_data_redu = eigensolver_data.eigenvectors()*mtx_eigenval_data_redu*eigensolver_data.eigenvectors().inverse();
+                fill2DHistogram(&Hist_Rank3_MSCLW.at(e),mtx_data_redu);
 
                 fill1DHistogram(&Hist_Data_Rank0_LeftVector.at(e),eigensolver_data.eigenvectors().inverse().transpose(),0);
                 fill1DHistogram(&Hist_Data_Rank1_LeftVector.at(e),eigensolver_data.eigenvectors().inverse().transpose(),1);
                 fill1DHistogram(&Hist_Data_Rank2_LeftVector.at(e),eigensolver_data.eigenvectors().inverse().transpose(),2);
+                fill1DHistogram(&Hist_Data_Rank3_LeftVector.at(e),eigensolver_data.eigenvectors().inverse().transpose(),2);
                 fill1DHistogram(&Hist_Data_Rank0_RightVector.at(e),eigensolver_data.eigenvectors(),0);
                 fill1DHistogram(&Hist_Data_Rank1_RightVector.at(e),eigensolver_data.eigenvectors(),1);
                 fill1DHistogram(&Hist_Data_Rank2_RightVector.at(e),eigensolver_data.eigenvectors(),2);
+                fill1DHistogram(&Hist_Data_Rank3_RightVector.at(e),eigensolver_data.eigenvectors(),3);
                 fill1DHistogram(&Hist_Bkgd_Rank0_LeftVector.at(e),eigensolver_bkgd.eigenvectors().inverse().transpose(),0);
                 fill1DHistogram(&Hist_Bkgd_Rank1_LeftVector.at(e),eigensolver_bkgd.eigenvectors().inverse().transpose(),1);
                 fill1DHistogram(&Hist_Bkgd_Rank2_LeftVector.at(e),eigensolver_bkgd.eigenvectors().inverse().transpose(),2);
+                fill1DHistogram(&Hist_Bkgd_Rank3_LeftVector.at(e),eigensolver_bkgd.eigenvectors().inverse().transpose(),3);
                 fill1DHistogram(&Hist_Bkgd_Rank0_RightVector.at(e),eigensolver_bkgd.eigenvectors(),0);
                 fill1DHistogram(&Hist_Bkgd_Rank1_RightVector.at(e),eigensolver_bkgd.eigenvectors(),1);
                 fill1DHistogram(&Hist_Bkgd_Rank2_RightVector.at(e),eigensolver_bkgd.eigenvectors(),2);
+                fill1DHistogram(&Hist_Bkgd_Rank3_RightVector.at(e),eigensolver_bkgd.eigenvectors(),3);
                 fill1DHistogram(&Hist_Dark_Rank0_LeftVector.at(e),eigensolver_dark.eigenvectors().inverse().transpose(),0);
                 fill1DHistogram(&Hist_Dark_Rank1_LeftVector.at(e),eigensolver_dark.eigenvectors().inverse().transpose(),1);
                 fill1DHistogram(&Hist_Dark_Rank2_LeftVector.at(e),eigensolver_dark.eigenvectors().inverse().transpose(),2);
+                fill1DHistogram(&Hist_Dark_Rank3_LeftVector.at(e),eigensolver_dark.eigenvectors().inverse().transpose(),3);
                 fill1DHistogram(&Hist_Dark_Rank0_RightVector.at(e),eigensolver_dark.eigenvectors(),0);
                 fill1DHistogram(&Hist_Dark_Rank1_RightVector.at(e),eigensolver_dark.eigenvectors(),1);
                 fill1DHistogram(&Hist_Dark_Rank2_RightVector.at(e),eigensolver_dark.eigenvectors(),2);
+                fill1DHistogram(&Hist_Dark_Rank3_RightVector.at(e),eigensolver_dark.eigenvectors(),3);
             
                 group_size.at(e) = 0;
 
@@ -1312,24 +1347,31 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Rank0_MSCLW.at(e).Write();
         Hist_Rank1_MSCLW.at(e).Write();
         Hist_Rank2_MSCLW.at(e).Write();
+        Hist_Rank3_MSCLW.at(e).Write();
         Hist_Data_Rank0_LeftVector.at(e).Write();
         Hist_Data_Rank1_LeftVector.at(e).Write();
         Hist_Data_Rank2_LeftVector.at(e).Write();
+        Hist_Data_Rank3_LeftVector.at(e).Write();
         Hist_Data_Rank0_RightVector.at(e).Write();
         Hist_Data_Rank1_RightVector.at(e).Write();
         Hist_Data_Rank2_RightVector.at(e).Write();
+        Hist_Data_Rank3_RightVector.at(e).Write();
         Hist_Bkgd_Rank0_LeftVector.at(e).Write();
         Hist_Bkgd_Rank1_LeftVector.at(e).Write();
         Hist_Bkgd_Rank2_LeftVector.at(e).Write();
+        Hist_Bkgd_Rank3_LeftVector.at(e).Write();
         Hist_Bkgd_Rank0_RightVector.at(e).Write();
         Hist_Bkgd_Rank1_RightVector.at(e).Write();
         Hist_Bkgd_Rank2_RightVector.at(e).Write();
+        Hist_Bkgd_Rank3_RightVector.at(e).Write();
         Hist_Dark_Rank0_LeftVector.at(e).Write();
         Hist_Dark_Rank1_LeftVector.at(e).Write();
         Hist_Dark_Rank2_LeftVector.at(e).Write();
+        Hist_Dark_Rank3_LeftVector.at(e).Write();
         Hist_Dark_Rank0_RightVector.at(e).Write();
         Hist_Dark_Rank1_RightVector.at(e).Write();
         Hist_Dark_Rank2_RightVector.at(e).Write();
+        Hist_Dark_Rank3_RightVector.at(e).Write();
     }
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {
