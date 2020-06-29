@@ -33,8 +33,8 @@ const int N_elev_bins = 12;
 double elev_bins[N_elev_bins+1] = {25,30,35,40,45,50,55,60,65,70,75,80,85};
 
 //int group_size_limit[N_energy_bins] = {50,50,50,1000,1000};
-//int group_size_limit[N_energy_bins] = {100,100,100,1000,1000};
-int group_size_limit[N_energy_bins] = {1000,1000,1000,1000,1000};
+int group_size_limit[N_energy_bins] = {100,100,100,1000,1000};
+//int group_size_limit[N_energy_bins] = {1000,1000,1000,1000,1000};
 
 double gamma_hadron_dim_ratio = 1.;
 double MSCW_cut_lower = -1.0;

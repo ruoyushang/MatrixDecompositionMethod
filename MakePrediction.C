@@ -336,6 +336,20 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, Vec
     return vtr_vari_bigger.segment(0,BTB.cols());
 
 }
+
+MatrixXd SmoothingVectors(MatrixXd mtx_input)
+{
+    MatrixXd mtx_output = mtx_input;
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        for (int row=1;row<mtx_input.rows()-1;row++)
+        {
+            mtx_output(row,col) = (mtx_input(row+1,col)+mtx_input(row-1,col))/2.;
+        }
+    }
+    return mtx_output;
+}
+
 MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
 {
 
@@ -392,7 +406,7 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
         }
     }
     VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
-    if (solution_w_constraints && entry_start>1) 
+    if (solution_w_constraints && entry_start>0) 
     {
         vtr_vari_big = SolutionWithConstraints(mtx_Big, mtx_Constraint, vtr_Delta);
         VectorXd vtr_should_be_zero = mtx_Constraint*vtr_vari_big;
@@ -436,6 +450,12 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
                 mtx_q_vari(idx_i,mtx_q_vari.cols()-nth_entry) = vtr_vari_big(idx_w);
             }
         }
+    }
+
+    if (entry_start>2)
+    {
+        mtx_p_vari = SmoothingVectors(mtx_p_vari);
+        mtx_q_vari = SmoothingVectors(mtx_q_vari);
     }
     mtx_p_final += mtx_p_vari*step_frac;
     mtx_q_final += mtx_q_vari*step_frac;

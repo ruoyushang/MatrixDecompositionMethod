@@ -26,7 +26,128 @@ method_tag = '16bins_unconstrained'
 elev_bins = [45,85]
 
 ONOFF_tag = 'ON'
+sample_list = []
+sky_coord = []
+
+##ONOFF_tag = 'OFF'
+#sample_list += ['SgrAV6']
+#sky_coord += ['17 45 39.6 -29 00 22']
+
 #ONOFF_tag = 'OFF'
+#sample_list += ['OJ287V6']
+#sky_coord += ['08 54 49.1 +20 05 58.89']
+
+#ONOFF_tag = 'OFF'
+#sample_list += ['1ES0229V6']
+#sky_coord += ['02 32 53.2 +20 16 21']
+#sample_list += ['1ES0229V5']
+#sky_coord += ['02 32 53.2 +20 16 21']
+
+#ONOFF_tag = 'OFF'
+#sample_list += ['H1426V6']
+#sky_coord += ['14 28 32.609 +42 40 21.05']
+
+#ONOFF_tag = 'OFF'
+#sample_list += ['PKS1424V6']
+#sky_coord += ['14 27 00 +23 47 00']
+
+#ONOFF_tag = 'OFF'
+#sample_list += ['3C264V6']
+#sky_coord += ['11 45 5.009 +19 36 22.74']
+# The VERITAS observations of 3C 264 were taken from February through May 2017, from February through April 2018, and from January through May 2019.
+
+#ONOFF_tag = 'OFF'
+#sample_list += ['PG1553V5']
+#sky_coord += ['15 55 44.7 +11 11 41']
+
+#ONOFF_tag = 'OFF'
+#sample_list += ['1ES1011V6']
+#sky_coord += ['10 15 4.139 +49 26 0.71']
+
+#ONOFF_tag = 'OFF'
+#sample_list += ['RBS0413V6']
+#sky_coord += ['03 19 47 +18 45 42']
+#sample_list += ['RBS0413V5']
+#sky_coord += ['03 19 47 +18 45 42']
+
+#ONOFF_tag = 'OFF'
+#sample_list += ['1ES0647V6']
+#sky_coord += ['06 50 46.490 +25 02 59.62']
+
+#ONOFF_tag = 'OFF'
+#sample_list += ['RGBJ0710V5']
+#sky_coord += ['07 10 26.4 +59 09 00']
+
+#ONOFF_tag = 'OFF'
+#sample_list += ['Segue1V6']
+#sky_coord += ['10 07 04 +16 04 55']
+#sample_list += ['Segue1V5']
+#sky_coord += ['10 07 04 +16 04 55']
+# only V5 data published
+
+#ONOFF_tag = 'ON'
+#sample_list += ['CrabV5']
+#sky_coord += ['05 34 31.97 +22 00 52.1']
+#sample_list += ['CrabV4']
+#sky_coord += ['05 34 31.97 +22 00 52.1']
+
+#ONOFF_tag = 'ON'
+#sample_list += ['Mrk421V5']
+#sky_coord += ['11 04 19 +38 11 41']
+
+##ONOFF_tag = 'ON'
+#sample_list += ['2HWC_J1930V6']
+#sky_coord += ['19 30 32 +18 52 12']
+
+##ONOFF_tag = 'ON'
+#sample_list += ['2HWC_J1953V6']
+#sky_coord += ['19 53 02.4 +29 28 48']
+
+#ONOFF_tag = 'ON'
+#sample_list += ['WComaeV6']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV5']
+#sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV4']
+#sky_coord += ['12 21 31.7 +28 13 59']
+# https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
+
+#ONOFF_tag = 'ON'
+#sample_list += ['IC443HotSpotV6']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV5']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV4']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+
+#ONOFF_tag = 'ON'
+#sample_list += ['MGRO_J1908_V6']
+#sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V5']
+#sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['MGRO_J1908_V4']
+#sky_coord += ['19 07 54 +06 16 07']
+
+#ONOFF_tag = 'ON'
+#sample_list += ['MGRO_J2031_V6']
+#sky_coord += ['20 28 43.2 +41 18 36']
+#sample_list += ['MGRO_J2031_V5']
+#sky_coord += ['20 28 43.2 +41 18 36']
+#sample_list += ['MGRO_J2031_V4']
+#sky_coord += ['20 28 43.2 +41 18 36']
+
+##ONOFF_tag = 'ON'
+#sample_list += ['CygnusV6']
+#sky_coord += ['20 18 35.03 +36 50 00.0']
+#sample_list += ['CygnusV5']
+#sky_coord += ['20 18 35.03 +36 50 00.0']
+
+ONOFF_tag = 'ON'
+sample_list += ['GemingaV6']
+sky_coord += ['06 32 28 +17 22 00']
+sample_list += ['GemingaV5']
+sky_coord += ['06 32 28 +17 22 00']
+
 root_file_tags = []
 for elev in range(0,len(elev_bins)-1):
     # all time
@@ -120,106 +241,6 @@ energy_fine_bin += [pow(10,3.7)]
 energy_fine_bin += [pow(10,3.8)]
 energy_fine_bin += [pow(10,3.9)]
 energy_fine_bin += [pow(10,4.0)]
-
-sample_list = []
-sky_coord = []
-
-#sample_list += ['CrabV5']
-#sky_coord += ['05 34 31.97 +22 00 52.1']
-#sample_list += ['CrabV4']
-#sky_coord += ['05 34 31.97 +22 00 52.1']
-
-#sample_list += ['Mrk421V5']
-#sky_coord += ['11 04 19 +38 11 41']
-
-#sample_list += ['SgrAV6']
-#sky_coord += ['17 45 39.6 -29 00 22']
-
-#sample_list += ['OJ287V6']
-#sky_coord += ['08 54 49.1 +20 05 58.89']
-
-#sample_list += ['1ES0229V6']
-#sky_coord += ['02 32 53.2 +20 16 21']
-#sample_list += ['1ES0229V5']
-#sky_coord += ['02 32 53.2 +20 16 21']
-
-#sample_list += ['H1426V6']
-#sky_coord += ['14 28 32.609 +42 40 21.05']
-
-#sample_list += ['PKS1424V6']
-#sky_coord += ['14 27 00 +23 47 00']
-
-#sample_list += ['3C264V6']
-#sky_coord += ['11 45 5.009 +19 36 22.74']
-# The VERITAS observations of 3C 264 were taken from February through May 2017, from February through April 2018, and from January through May 2019.
-
-#sample_list += ['PG1553V5']
-#sky_coord += ['15 55 44.7 +11 11 41']
-
-#sample_list += ['1ES1011V6']
-#sky_coord += ['10 15 4.139 +49 26 0.71']
-
-#sample_list += ['RBS0413V6']
-#sky_coord += ['03 19 47 +18 45 42']
-#sample_list += ['RBS0413V5']
-#sky_coord += ['03 19 47 +18 45 42']
-
-#sample_list += ['1ES0647V6']
-#sky_coord += ['06 50 46.490 +25 02 59.62']
-
-#sample_list += ['RGBJ0710V5']
-#sky_coord += ['07 10 26.4 +59 09 00']
-
-#sample_list += ['2HWC_J1930V6']
-#sky_coord += ['19 30 32 +18 52 12']
-
-#sample_list += ['2HWC_J1953V6']
-#sky_coord += ['19 53 02.4 +29 28 48']
-
-#sample_list += ['WComaeV6']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV5']
-#sky_coord += ['12 21 31.7 +28 13 59']
-#sample_list += ['WComaeV4']
-#sky_coord += ['12 21 31.7 +28 13 59']
-# https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
-
-#sample_list += ['IC443HotSpotV6']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
-#sample_list += ['IC443HotSpotV5']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
-#sample_list += ['IC443HotSpotV4']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
-
-#sample_list += ['MGRO_J1908_V6']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V5']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V4']
-#sky_coord += ['19 07 54 +06 16 07']
-
-#sample_list += ['MGRO_J2031_V6']
-#sky_coord += ['20 28 43.2 +41 18 36']
-#sample_list += ['MGRO_J2031_V5']
-#sky_coord += ['20 28 43.2 +41 18 36']
-#sample_list += ['MGRO_J2031_V4']
-#sky_coord += ['20 28 43.2 +41 18 36']
-
-#sample_list += ['Segue1V6']
-#sky_coord += ['10 07 04 +16 04 55']
-#sample_list += ['Segue1V5']
-#sky_coord += ['10 07 04 +16 04 55']
-# only V5 data published
-
-sample_list += ['CygnusV6']
-sky_coord += ['20 18 35.03 +36 50 00.0']
-sample_list += ['CygnusV5']
-sky_coord += ['20 18 35.03 +36 50 00.0']
-
-#sample_list += ['GemingaV6']
-#sky_coord += ['06 32 28 +17 22 00']
-#sample_list += ['GemingaV5']
-#sky_coord += ['06 32 28 +17 22 00']
 
 #sample_list += ['Crab']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
@@ -343,6 +364,7 @@ def ResetStackedShowerHistograms():
     Hist2D_Rank0_Sum.Reset()
     Hist2D_Rank1_Sum.Reset()
     Hist2D_Rank2_Sum.Reset()
+    Hist2D_Rank3_Sum.Reset()
 
     for nth_sample in range(0,n_control_samples):
 
@@ -447,37 +469,50 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_Rank0.Reset()
     Hist2D_Rank1.Reset()
     Hist2D_Rank2.Reset()
+    Hist2D_Rank3.Reset()
 
     Hist1D_Data_Rank0_LeftVector.Reset()
     Hist1D_Data_Rank1_LeftVector.Reset()
     Hist1D_Data_Rank2_LeftVector.Reset()
+    Hist1D_Data_Rank3_LeftVector.Reset()
     Hist1D_Data_Rank0_RightVector.Reset()
     Hist1D_Data_Rank1_RightVector.Reset()
     Hist1D_Data_Rank2_RightVector.Reset()
+    Hist1D_Data_Rank3_RightVector.Reset()
     Hist1D_Bkgd_Rank0_LeftVector.Reset()
     Hist1D_Bkgd_Rank1_LeftVector.Reset()
     Hist1D_Bkgd_Rank2_LeftVector.Reset()
+    Hist1D_Bkgd_Rank3_LeftVector.Reset()
     Hist1D_Bkgd_Rank0_RightVector.Reset()
     Hist1D_Bkgd_Rank1_RightVector.Reset()
     Hist1D_Bkgd_Rank2_RightVector.Reset()
+    Hist1D_Bkgd_Rank3_RightVector.Reset()
     Hist1D_Dark_Rank0_LeftVector.Reset()
     Hist1D_Dark_Rank1_LeftVector.Reset()
     Hist1D_Dark_Rank2_LeftVector.Reset()
+    Hist1D_Dark_Rank3_LeftVector.Reset()
     Hist1D_Dark_Rank0_RightVector.Reset()
     Hist1D_Dark_Rank1_RightVector.Reset()
     Hist1D_Dark_Rank2_RightVector.Reset()
+    Hist1D_Dark_Rank3_RightVector.Reset()
 
     HistName = "Hist_Rank0_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank0.Add(InputFile.Get(HistName))
     Hist2D_Rank1.Add(InputFile.Get(HistName))
     Hist2D_Rank2.Add(InputFile.Get(HistName))
+    Hist2D_Rank3.Add(InputFile.Get(HistName))
 
     HistName = "Hist_Rank1_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank1.Add(InputFile.Get(HistName))
     Hist2D_Rank2.Add(InputFile.Get(HistName))
+    Hist2D_Rank3.Add(InputFile.Get(HistName))
 
     HistName = "Hist_Rank2_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank2.Add(InputFile.Get(HistName))
+    Hist2D_Rank3.Add(InputFile.Get(HistName))
+
+    HistName = "Hist_Rank3_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist2D_Rank3.Add(InputFile.Get(HistName))
 
     HistName = "Hist_Data_Rank0_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Data_Rank0_LeftVector.Add(InputFile.Get(HistName))
@@ -485,36 +520,48 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist1D_Data_Rank1_LeftVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Data_Rank2_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Data_Rank2_LeftVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Data_Rank3_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Data_Rank3_LeftVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Data_Rank0_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Data_Rank0_RightVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Data_Rank1_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Data_Rank1_RightVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Data_Rank2_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Data_Rank2_RightVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Data_Rank3_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Data_Rank3_RightVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Bkgd_Rank0_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Bkgd_Rank0_LeftVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Bkgd_Rank1_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Bkgd_Rank1_LeftVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Bkgd_Rank2_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Bkgd_Rank2_LeftVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Bkgd_Rank3_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Bkgd_Rank3_LeftVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Bkgd_Rank0_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Bkgd_Rank0_RightVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Bkgd_Rank1_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Bkgd_Rank1_RightVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Bkgd_Rank2_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Bkgd_Rank2_RightVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Bkgd_Rank3_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Bkgd_Rank3_RightVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Dark_Rank0_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Dark_Rank0_LeftVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Dark_Rank1_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Dark_Rank1_LeftVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Dark_Rank2_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Dark_Rank2_LeftVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Dark_Rank3_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Dark_Rank3_LeftVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Dark_Rank0_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Dark_Rank0_RightVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Dark_Rank1_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Dark_Rank1_RightVector.Add(InputFile.Get(HistName))
     HistName = "Hist_Dark_Rank2_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Dark_Rank2_RightVector.Add(InputFile.Get(HistName))
+    HistName = "Hist_Dark_Rank3_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist1D_Dark_Rank3_RightVector.Add(InputFile.Get(HistName))
 
     Hists = []
     legends = []
@@ -558,6 +605,19 @@ def GetShowerHistogramsFromFile(FilePath):
     Hists = []
     legends = []
     colors = []
+    Hists += [Hist1D_Data_Rank3_LeftVector]
+    legends += ['data vector']
+    colors += [1]
+    Hists += [Hist1D_Dark_Rank3_LeftVector]
+    legends += ['initial vector']
+    colors += [2]
+    Hists += [Hist1D_Bkgd_Rank3_LeftVector]
+    legends += ['predict. vector']
+    colors += [3]
+    MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{3}}','Rank3_LeftVector_%s'%(ErecS_lower_cut),0,0,False,False)
+    Hists = []
+    legends = []
+    colors = []
     Hists += [Hist1D_Data_Rank0_RightVector]
     legends += ['data vector']
     colors += [1]
@@ -594,6 +654,19 @@ def GetShowerHistogramsFromFile(FilePath):
     legends += ['predict. vector']
     colors += [3]
     MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{3}}','Rank2_RightVector_%s'%(ErecS_lower_cut),0,0,False,False)
+    Hists = []
+    legends = []
+    colors = []
+    Hists += [Hist1D_Data_Rank3_RightVector]
+    legends += ['data vector']
+    colors += [1]
+    Hists += [Hist1D_Dark_Rank3_RightVector]
+    legends += ['initial vector']
+    colors += [2]
+    Hists += [Hist1D_Bkgd_Rank3_RightVector]
+    legends += ['predict. vector']
+    colors += [3]
+    MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{3}}','Rank3_RightVector_%s'%(ErecS_lower_cut),0,0,False,False)
 
     if Hist2D_OnData.Integral()<1600. or Hist2D_OnDark.Integral()<1600.:
         Hist2D_OnData.Reset()
@@ -602,6 +675,7 @@ def GetShowerHistogramsFromFile(FilePath):
         Hist2D_Rank0.Reset()
         Hist2D_Rank1.Reset()
         Hist2D_Rank2.Reset()
+        Hist2D_Rank3.Reset()
 
     Hist_OnData_MSCL.Reset()
     Hist_OnData_MSCL.Add(Hist2D_OnData.ProjectionX("Hist1D_OnData_MSCL",bin_lower_y,bin_upper_y))
@@ -665,9 +739,11 @@ def StackShowerHistograms():
     Hist2D_Rank0_Sum.Add(Hist2D_Rank0)
     Hist2D_Rank1_Sum.Add(Hist2D_Rank1)
     Hist2D_Rank2_Sum.Add(Hist2D_Rank2)
+    Hist2D_Rank3_Sum.Add(Hist2D_Rank3)
     Hist2D_AllRanks_Sum.Add(Hist2D_Rank0)
     Hist2D_AllRanks_Sum.Add(Hist2D_Rank1)
     Hist2D_AllRanks_Sum.Add(Hist2D_Rank2)
+    Hist2D_AllRanks_Sum.Add(Hist2D_Rank3)
 
     Hist_OnData_MSCL_Sum.Add(Hist_OnData_MSCL)
     Hist_OnData_MSCW_Sum.Add(Hist_OnData_MSCW)
@@ -818,6 +894,9 @@ def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,log
     Hist_Band.GetYaxis().SetTitle("error")
     Hist_Band.GetYaxis().SetTitleSize(0.10)
     Hist_Band.GetYaxis().SetNdivisions(505)
+    plot_max = max(Hist_Band.GetMaximum(),-1.*Hist_Band.GetMinimum())
+    Hist_Band.SetMaximum(plot_max*1.1)
+    Hist_Band.SetMinimum(-1.*plot_max*1.1)
     Hist_Band.Draw("hist")
     line2 = ROOT.TLine(Hist_Band.GetBinLowEdge(1),1,Hist_Band.GetBinLowEdge(Hist_Band.GetNbinsX()+1),1)
     line2.SetLineStyle(1)
@@ -2472,6 +2551,17 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/OnData_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M_{Initial}' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    Hist2D_OnDark_Sum.GetYaxis().SetTitle('MSCW')
+    Hist2D_OnDark_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_OnDark_Sum.Draw("COL4Z")
+    canvas.SaveAs('output_plots/OnDark_%s_%s.png'%(name,selection_tag))
+
+    pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.50,'M = #sum_{i=1}^{i=1} #lambda_{i} q_{i} p_{i}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
@@ -2504,37 +2594,46 @@ def MatrixDecompositionDemo(name):
     Hist2D_Rank2_Sum.Draw("COL4Z")
     canvas.SaveAs('output_plots/Rank2_%s_%s.png'%(name,selection_tag))
 
-    Hist2D_ErrBkgd = ROOT.TH2D("Hist2D_ErrBkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
-    Hist2D_ErrBkgd.Add(Hist2D_OnData_Sum)
-    Hist2D_ErrBkgd.Add(Hist2D_OnBkgd_Sum,-1)
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'Error distribution' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M = #sum_{i=1}^{i=3} #lambda_{i} q_{i} p_{i}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_ErrBkgd.SetMaximum(Hist2D_OnData_Sum.GetMaximum()*0.05);
-    Hist2D_ErrBkgd.SetMinimum(-Hist2D_OnData_Sum.GetMaximum()*0.05);
-    Hist2D_ErrBkgd.GetYaxis().SetTitle('MSCW')
-    Hist2D_ErrBkgd.GetXaxis().SetTitle('MSCL')
-    Hist2D_ErrBkgd.Draw("COL4Z")
-    canvas.SaveAs('output_plots/ErrorBkgd_%s_%s.png'%(name,selection_tag))
+    Hist2D_Rank3_Sum.GetYaxis().SetTitle('MSCW')
+    Hist2D_Rank3_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank3_Sum.Draw("COL4Z")
+    canvas.SaveAs('output_plots/Rank3_%s_%s.png'%(name,selection_tag))
 
     Hist2D_ErrDark = ROOT.TH2D("Hist2D_ErrDark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
     Hist2D_ErrDark.Add(Hist2D_OnData_Sum)
     Hist2D_ErrDark.Add(Hist2D_OnDark_Sum,-1)
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'Error distribution' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'Error map of initial matrix' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_ErrDark.SetMaximum(Hist2D_OnData_Sum.GetMaximum()*0.1);
-    Hist2D_ErrDark.SetMinimum(-Hist2D_OnData_Sum.GetMaximum()*0.1);
     Hist2D_ErrDark.GetYaxis().SetTitle('MSCW')
     Hist2D_ErrDark.GetXaxis().SetTitle('MSCL')
     Hist2D_ErrDark.Draw("COL4Z")
     canvas.SaveAs('output_plots/ErrorDark_%s_%s.png'%(name,selection_tag))
+
+    Hist2D_ErrBkgd = ROOT.TH2D("Hist2D_ErrBkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+    Hist2D_ErrBkgd.Add(Hist2D_OnData_Sum)
+    Hist2D_ErrBkgd.Add(Hist2D_OnBkgd_Sum,-1)
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.50,'Error map of MDM prediction' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    Hist2D_ErrBkgd.SetMaximum(Hist2D_ErrDark.GetMaximum());
+    Hist2D_ErrBkgd.SetMinimum(Hist2D_ErrDark.GetMinimum());
+    Hist2D_ErrBkgd.GetYaxis().SetTitle('MSCW')
+    Hist2D_ErrBkgd.GetXaxis().SetTitle('MSCL')
+    Hist2D_ErrBkgd.Draw("COL4Z")
+    canvas.SaveAs('output_plots/ErrorBkgd_%s_%s.png'%(name,selection_tag))
 
 def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
     
@@ -2587,8 +2686,9 @@ def MakeRankResidualPlots(name):
     bkgd_rank_integral += [Hist2D_Rank0_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
     bkgd_rank_integral += [Hist2D_Rank1_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
     bkgd_rank_integral += [Hist2D_Rank2_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
+    bkgd_rank_integral += [Hist2D_Rank3_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
 
-    Hist_Residual_Rank = ROOT.TH1D("Hist_Residual_Rank","",3,0,3)
+    Hist_Residual_Rank = ROOT.TH1D("Hist_Residual_Rank","",4,0,4)
     for binx in range(0,len(bkgd_rank_integral)):
         Hist_Residual_Rank.SetBinContent(binx+1,abs(1.-bkgd_rank_integral[binx]/data_integral))
         ratio_err = bkgd_rank_integral[binx]/data_integral*1./pow(data_integral,0.5)
@@ -2672,7 +2772,7 @@ def SystematicAnalysis():
             Hist2D_OnData_AllGroups += [ROOT.TH2D("Hist2D_OnData_%s"%(nth_group),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
             Hist2D_OnDark_AllGroups += [ROOT.TH2D("Hist2D_OnDark_%s"%(nth_group),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
             Hist2D_OnBkgd_AllIterations = []
-            for nth_iteration in range(0,10):
+            for nth_iteration in range(0,20):
                 Hist2D_OnBkgd_AllIterations += [ROOT.TH2D("Hist2D_OnBkgd_%s_%s"%(nth_group,nth_iteration),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
             Hist2D_OnBkgd_AllGroups += [Hist2D_OnBkgd_AllIterations]
 
@@ -2687,26 +2787,26 @@ def SystematicAnalysis():
             for nth_group in range(0,InfoTree.number_groups):
                 HistName = "Hist_NthGroup_Data_MSCLW_V%s_ErecS%sto%s"%(nth_group,ErecS_lower_cut_int,ErecS_upper_cut_int)
                 Hist2D_OnData_AllGroups[nth_group].Add(InputFile.Get(HistName))
-                for nth_iteration in range(0,10):
+                for nth_iteration in range(0,20):
                     HistName = "Hist_NthGroup_Bkgd_MSCLW_I%s_V%s_ErecS%sto%s"%(nth_iteration,nth_group,ErecS_lower_cut_int,ErecS_upper_cut_int)
                     Hist2D_OnBkgd_AllGroups[nth_group][nth_iteration].Add(InputFile.Get(HistName))
                 HistName = "Hist_NthGroup_Dark_MSCLW_V%s_ErecS%sto%s"%(nth_group,ErecS_lower_cut_int,ErecS_upper_cut_int)
                 Hist2D_OnDark_AllGroups[nth_group].Add(InputFile.Get(HistName))
 
-        for nth_iteration in range(0,10):
+        Hist2D_Converge = ROOT.TH2D("Hist_Converge","",20,0,20,20,0.,0.02)
+        for nth_iteration in range(0,20):
             bkgd_chi2 = 0.
             bkgd_syst_err = 0.
             dark_syst_err = 0.
-            Hist_Chi2_Bkgd = ROOT.TH1D("Hist_Chi2_Bkgd","",39,-0.02,0.02)
-            Hist_Syst_Bkgd = ROOT.TH1D("Hist_Syst_Bkgd","",39,-0.2,0.2)
-            Hist_Syst_Dark = ROOT.TH1D("Hist_Syst_Dark","",39,-0.2,0.2)
+            Hist_Syst_Bkgd = ROOT.TH1D("Hist_Syst_Bkgd","",19,-0.2,0.2)
+            Hist_Syst_Dark = ROOT.TH1D("Hist_Syst_Dark","",19,-0.2,0.2)
             for nth_group in range(0,InfoTree.number_groups):
                 Total_Data = Hist2D_OnData_AllGroups[nth_group].Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)
                 if Total_Data == 0.: continue
 
                 Hist2D_Diff = Hist2D_OnData_AllGroups[nth_group].Clone()
                 Hist2D_Diff.Add(Hist2D_OnBkgd_AllGroups[nth_group][nth_iteration],-1.)
-                Hist2D_Chi2Diff = Hist2D_OnBkgd_AllGroups[nth_group][9].Clone()
+                Hist2D_Chi2Diff = Hist2D_OnBkgd_AllGroups[nth_group][19].Clone()
                 Hist2D_Chi2Diff.Add(Hist2D_OnBkgd_AllGroups[nth_group][nth_iteration],-1.)
                 syst_this = Hist2D_Diff.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)/Total_Data
                 Hist_Syst_Bkgd.Fill(syst_this)
@@ -2718,8 +2818,8 @@ def SystematicAnalysis():
                         if biny>bin_upper_y : continue
                         chi2_this += pow(Hist2D_Chi2Diff.GetBinContent(binx+1,biny+1),2)
                 chi2_this = pow(chi2_this,0.5)/Total_Data
-                Hist_Chi2_Bkgd.Fill(chi2_this)
                 bkgd_chi2 += pow(chi2_this,2)/InfoTree.number_groups
+                Hist2D_Converge.Fill(nth_iteration,chi2_this)
 
                 Hist2D_Diff = Hist2D_OnData_AllGroups[nth_group].Clone()
                 Hist2D_Diff.Add(Hist2D_OnDark_AllGroups[nth_group],-1.)
@@ -2735,17 +2835,6 @@ def SystematicAnalysis():
             colors = []
             fillstyles = []
             legends = []
-            hists += [Hist_Chi2_Bkgd]
-            colors += [38]
-            fillstyles += [3325]
-            legends += ['MDM converge err. = %0.3f'%(bkgd_chi2)]
-            name = "Converge_I%s"%(nth_iteration)
-            MakeSystematicPlots(hists, colors, fillstyles, legends, InfoTree.exposure_hours, name)
-
-            hists = []
-            colors = []
-            fillstyles = []
-            legends = []
             hists += [Hist_Syst_Bkgd]
             colors += [38]
             fillstyles += [3325]
@@ -2756,6 +2845,31 @@ def SystematicAnalysis():
             legends += ['Initial syst. = %0.3f'%(dark_syst_err)]
             name = "SystAnalysis_I%s"%(nth_iteration)
             MakeSystematicPlots(hists, colors, fillstyles, legends, InfoTree.exposure_hours, name)
+
+        canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
+        pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+        pad3.SetBottomMargin(0.0)
+        pad3.SetTopMargin(0.03)
+        pad3.SetBorderMode(1)
+        pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+        pad1.SetBottomMargin(0.15)
+        pad1.SetRightMargin(0.15)
+        pad1.SetLeftMargin(0.15)
+        pad1.SetTopMargin(0.0)
+        pad1.SetBorderMode(0)
+        pad1.Draw()
+        pad3.Draw()
+        pad3.cd()
+        lumilab1 = ROOT.TLatex(0.15,0.50,'#chi^{2} = #sum_{ij} (N^{nth}_{ij}-N^{20th}_{ij})^{2} / (#sum_{ij} N^{data}_{ij})^{2}' )
+        lumilab1.SetNDC()
+        lumilab1.SetTextSize(0.3)
+        lumilab1.Draw()
+        pad1.cd()
+        Hist2D_Converge.GetYaxis().SetTitle('#sqrt{#chi^{2}}')
+        Hist2D_Converge.GetXaxis().SetTitle('iterations')
+        Hist2D_Converge.Draw("COL4Z")
+        canvas.SaveAs('output_plots/Converge_%s.png'%(selection_tag))
+
 
 
 def SingleSourceAnalysis(source_list,doMap):
@@ -2897,29 +3011,37 @@ Hist_OnDark_MSCW = ROOT.TH1D("Hist_OnDark_MSCW","",N_bins_for_deconv,MSCW_plot_l
 Hist2D_Rank0 = ROOT.TH2D("Hist2D_Rank0","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank1 = ROOT.TH2D("Hist2D_Rank1","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank2 = ROOT.TH2D("Hist2D_Rank2","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_Rank3 = ROOT.TH2D("Hist2D_Rank3","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_AllRanks_Sum = ROOT.TH2D("Hist2D_AllRanks_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank0_Sum = ROOT.TH2D("Hist2D_Rank0_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank1_Sum = ROOT.TH2D("Hist2D_Rank1_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank2_Sum = ROOT.TH2D("Hist2D_Rank2_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_Rank3_Sum = ROOT.TH2D("Hist2D_Rank3_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 
 Hist1D_Data_Rank0_LeftVector = ROOT.TH1D("Hist1D_Data_Rank0_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Data_Rank1_LeftVector = ROOT.TH1D("Hist1D_Data_Rank1_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Data_Rank2_LeftVector = ROOT.TH1D("Hist1D_Data_Rank2_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Data_Rank3_LeftVector = ROOT.TH1D("Hist1D_Data_Rank3_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Data_Rank0_RightVector = ROOT.TH1D("Hist1D_Data_Rank0_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Data_Rank1_RightVector = ROOT.TH1D("Hist1D_Data_Rank1_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Data_Rank2_RightVector = ROOT.TH1D("Hist1D_Data_Rank2_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Data_Rank3_RightVector = ROOT.TH1D("Hist1D_Data_Rank3_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Bkgd_Rank0_LeftVector = ROOT.TH1D("Hist1D_Bkgd_Rank0_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Bkgd_Rank1_LeftVector = ROOT.TH1D("Hist1D_Bkgd_Rank1_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Bkgd_Rank2_LeftVector = ROOT.TH1D("Hist1D_Bkgd_Rank2_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Bkgd_Rank3_LeftVector = ROOT.TH1D("Hist1D_Bkgd_Rank3_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Bkgd_Rank0_RightVector = ROOT.TH1D("Hist1D_Bkgd_Rank0_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Bkgd_Rank1_RightVector = ROOT.TH1D("Hist1D_Bkgd_Rank1_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Bkgd_Rank2_RightVector = ROOT.TH1D("Hist1D_Bkgd_Rank2_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Bkgd_Rank3_RightVector = ROOT.TH1D("Hist1D_Bkgd_Rank3_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Dark_Rank0_LeftVector = ROOT.TH1D("Hist1D_Dark_Rank0_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Dark_Rank1_LeftVector = ROOT.TH1D("Hist1D_Dark_Rank1_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Dark_Rank2_LeftVector = ROOT.TH1D("Hist1D_Dark_Rank2_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Dark_Rank3_LeftVector = ROOT.TH1D("Hist1D_Dark_Rank3_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Dark_Rank0_RightVector = ROOT.TH1D("Hist1D_Dark_Rank0_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Dark_Rank1_RightVector = ROOT.TH1D("Hist1D_Dark_Rank1_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Dark_Rank2_RightVector = ROOT.TH1D("Hist1D_Dark_Rank2_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
+Hist1D_Dark_Rank3_RightVector = ROOT.TH1D("Hist1D_Dark_Rank3_RightVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 
 Hist_OnData_Theta2_Sum = ROOT.TH1D("Hist_OnData_Theta2_Sum","",50,0,10)
 Hist_OnBkgd_Theta2_Sum = ROOT.TH1D("Hist_OnBkgd_Theta2_Sum","",50,0,10)
