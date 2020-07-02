@@ -37,11 +37,11 @@ sky_coord = []
 #sample_list += ['OJ287V6']
 #sky_coord += ['08 54 49.1 +20 05 58.89']
 
-#ONOFF_tag = 'OFF'
-#sample_list += ['1ES0229V6']
-#sky_coord += ['02 32 53.2 +20 16 21']
-#sample_list += ['1ES0229V5']
-#sky_coord += ['02 32 53.2 +20 16 21']
+ONOFF_tag = 'OFF'
+sample_list += ['1ES0229V6']
+sky_coord += ['02 32 53.2 +20 16 21']
+sample_list += ['1ES0229V5']
+sky_coord += ['02 32 53.2 +20 16 21']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['H1426V6']
@@ -136,17 +136,23 @@ sky_coord = []
 #sample_list += ['MGRO_J2031_V4']
 #sky_coord += ['20 28 43.2 +41 18 36']
 
-##ONOFF_tag = 'ON'
+#ONOFF_tag = 'ON'
 #sample_list += ['CygnusV6']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
 #sample_list += ['CygnusV5']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
 
-ONOFF_tag = 'ON'
-sample_list += ['GemingaV6']
-sky_coord += ['06 32 28 +17 22 00']
-sample_list += ['GemingaV5']
-sky_coord += ['06 32 28 +17 22 00']
+#ONOFF_tag = 'ON'
+#sample_list += ['GemingaV6']
+#sky_coord += ['06 32 28 +17 22 00']
+#sample_list += ['GemingaV5']
+#sky_coord += ['06 32 28 +17 22 00']
+
+#ONOFF_tag = 'ON'
+#sample_list += ['ComaV4']
+#sky_coord += ['12 59 48.7 +27 58 50']
+#sample_list += ['ComaV6']
+#sky_coord += ['12 59 48.7 +27 58 50']
 
 root_file_tags = []
 for elev in range(0,len(elev_bins)-1):
@@ -2119,7 +2125,6 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
             #if Shape_Err!=0.:
             #    if (NSR-NBkg)/Shape_Err<0.: Shape_Err = 0. 
             Norm_Err = syst_method*Hist_Bkg.GetBinContent(bx+1,by+1)
-            #Stat_Err = pow(abs(Hist_Bkg.GetBinContent(bx+1,by+1)),0.5)
             Stat_Err = Hist_Bkg.GetBinError(bx+1,by+1)
             NBkg_Err = pow(pow(Stat_Err,2)+pow(Norm_Err,2)+pow(Shape_Err,2),0.5)
             if syst_method==0.: NBkg_Err = pow(Hist_Bkg.GetBinContent(bx+1,by+1),0.5)
@@ -2793,7 +2798,7 @@ def SystematicAnalysis():
                 HistName = "Hist_NthGroup_Dark_MSCLW_V%s_ErecS%sto%s"%(nth_group,ErecS_lower_cut_int,ErecS_upper_cut_int)
                 Hist2D_OnDark_AllGroups[nth_group].Add(InputFile.Get(HistName))
 
-        Hist2D_Converge = ROOT.TH2D("Hist_Converge","",20,0,20,20,0.,0.02)
+        Hist2D_Converge = ROOT.TH2D("Hist_Converge","",20,0,20,20,0.,0.01)
         for nth_iteration in range(0,20):
             bkgd_chi2 = 0.
             bkgd_syst_err = 0.

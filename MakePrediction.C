@@ -337,14 +337,14 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, Vec
 
 }
 
-MatrixXd SmoothingVectors(MatrixXd mtx_input)
+MatrixXcd SmoothingVectors(MatrixXcd mtx_input)
 {
-    MatrixXd mtx_output = mtx_input;
-    for (int col=0;col<mtx_input.cols();col++)
+    MatrixXcd mtx_output = mtx_input;
+    for (int col=0;col<mtx_input.cols()-2;col++)
     {
         for (int row=1;row<mtx_input.rows()-1;row++)
         {
-            mtx_output(row,col) = (mtx_input(row+1,col)+mtx_input(row-1,col))/2.;
+            mtx_output(row,col) = (mtx_input(row+1,col)+mtx_input(row,col)+mtx_input(row-1,col))/3.;
         }
     }
     return mtx_output;
@@ -358,6 +358,9 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     MatrixXcd mtx_q_init = mtx_eigenvector_init;
     MatrixXcd mtx_S = mtx_eigenvalue_init;
     MatrixXcd mtx_p_init = mtx_eigenvector_inv_init.transpose();
+    mtx_q_init = SmoothingVectors(mtx_q_init);
+    mtx_p_init = SmoothingVectors(mtx_p_init);
+
     MatrixXcd mtx_input = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
     MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
 
@@ -452,11 +455,6 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
         }
     }
 
-    if (entry_start>2)
-    {
-        mtx_p_vari = SmoothingVectors(mtx_p_vari);
-        mtx_q_vari = SmoothingVectors(mtx_q_vari);
-    }
     mtx_p_final += mtx_p_vari*step_frac;
     mtx_q_final += mtx_q_vari*step_frac;
 
@@ -566,7 +564,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
             std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
     }
-    //mtx_temp = SpectralDecompositionMethod_v3(1, 3);
+    //mtx_temp = SpectralDecompositionMethod_v3(1, 4);
     //mtx_data_bkgd = mtx_temp;
 
 }
