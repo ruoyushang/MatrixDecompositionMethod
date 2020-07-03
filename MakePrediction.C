@@ -517,8 +517,6 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
         }
     }
 
-    //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data);
-    //mtx_data = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
     SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_dark);
     mtx_data_bkgd = mtx_dark;
 
@@ -539,6 +537,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
         {
             mtx_temp = SpectralDecompositionMethod_v3(1, 1);
             if (!CheckIfEigenvalueMakeSense(mtx_temp, 1)) break;
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
             mtx_data_bkgd = mtx_temp;
             std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
@@ -546,6 +545,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
         {
             mtx_temp = SpectralDecompositionMethod_v3(2, 1);
             if (!CheckIfEigenvalueMakeSense(mtx_temp, 2)) break;
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
             mtx_data_bkgd = mtx_temp;
             std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
@@ -553,6 +553,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
         {
             mtx_temp = SpectralDecompositionMethod_v3(3, 1);
             if (!CheckIfEigenvalueMakeSense(mtx_temp, 3)) break;
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
             mtx_data_bkgd = mtx_temp;
             std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
@@ -560,6 +561,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
         {
             mtx_temp = SpectralDecompositionMethod_v3(4, 1);
             if (!CheckIfEigenvalueMakeSense(mtx_temp, 4)) break;
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
             mtx_data_bkgd = mtx_temp;
             std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
