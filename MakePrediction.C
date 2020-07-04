@@ -367,8 +367,7 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     int row_size_big = mtx_input.rows()*mtx_input.cols();
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    MatrixXd mtx_Constraint = MatrixXd::Zero(NumberOfEigenvectors*entry_size,2*entry_size*mtx_input.cols());
-    //MatrixXd mtx_Constraint = MatrixXd::Zero(1*entry_size,2*entry_size*mtx_input.cols());
+    MatrixXd mtx_Constraint = MatrixXd::Zero(NumberOfEigenvectors*row_size_big,2*entry_size*mtx_input.cols());
     for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
     {
         for (int idx_j=0; idx_j<mtx_input.cols(); idx_j++)
@@ -391,19 +390,13 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
                 mtx_Big(idx_m,idx_n) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_q_init(idx_i,mtx_input.rows()-nth_entry).real();
                 mtx_Big(idx_m,idx_w) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_p_init(idx_j,mtx_input.rows()-nth_entry).real();
                 for (int idx_l=0; idx_l<NumberOfEigenvectors; idx_l++)
-                //for (int idx_l=0; idx_l<1; idx_l++)
                 {
                     int nth_entry2 = idx_l + 1;
-                    //int nth_entry2 = idx_k + entry_start;
-                    int idx_u = idx_l + idx_k*NumberOfEigenvectors;
-                    //int idx_u = idx_l + idx_k*1;
-                    int idx_x = idx_l + idx_i*entry_size;
-                    int idx_y = idx_k + idx_i*entry_size + mtx_input.cols()*entry_size;
-                    if (nth_entry>=nth_entry2)
-                    {
-                        mtx_Constraint(idx_u,idx_x) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry).real();
-                        mtx_Constraint(idx_u,idx_y) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
-                    }
+                    if (nth_entry2>=nth_entry) continue;
+                    //if (nth_entry2==nth_entry) continue;
+                    int idx_u = idx_l + idx_m*NumberOfEigenvectors;
+                    mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    mtx_Constraint(idx_u,idx_w) = mtx_p_init(idx_j,mtx_input.rows()-nth_entry2).real();
                 }
             }
         }
@@ -413,11 +406,6 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     {
         vtr_vari_big = SolutionWithConstraints(mtx_Big, mtx_Constraint, vtr_Delta);
         VectorXd vtr_should_be_zero = mtx_Constraint*vtr_vari_big;
-        //std::cout << "entry_start = " << entry_start << std::endl;
-        //std::cout << "mtx_Constraint = " << std::endl;
-        //std::cout << mtx_Constraint << std::endl;
-        //std::cout << "vtr_should_be_zero = " << std::endl;
-        //std::cout << vtr_should_be_zero << std::endl;
         for (int i=0;i<vtr_should_be_zero.size();i++)
         {
             if (isnan(vtr_should_be_zero(i))) return mtx_input;
@@ -458,9 +446,17 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     mtx_p_final += mtx_p_vari*step_frac;
     mtx_q_final += mtx_q_vari*step_frac;
 
+    MatrixXcd mtx_H_init = mtx_eigenvector_inv_init*mtx_eigenvector_init;
+    std::cout << "mtx_H_init:" << std::endl;
+    std::cout << mtx_H_init.block(mtx_H_init.rows()-4,mtx_H_init.cols()-4,4,4) << std::endl;
+
     mtx_eigenvector_init += mtx_q_vari;
     mtx_eigenvector_inv_init += mtx_p_vari.transpose();
     mtx_output = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
+
+    MatrixXcd mtx_H_final = mtx_eigenvector_inv_init*mtx_eigenvector_init;
+    std::cout << "mtx_H_final:" << std::endl;
+    std::cout << mtx_H_final.block(mtx_H_init.rows()-4,mtx_H_init.cols()-4,4,4) << std::endl;
 
     return mtx_output;
 
@@ -566,7 +562,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
             std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
     }
-    //mtx_temp = SpectralDecompositionMethod_v3(1, 4);
+    //mtx_temp = SpectralDecompositionMethod_v3(1, NumberOfEigenvectors);
     //mtx_data_bkgd = mtx_temp;
 
 }

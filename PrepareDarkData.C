@@ -318,10 +318,30 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 350.808;
                 Source_Dec = 58.807;
     }
-    if (source_name=="M82")
+    if (source_name=="M82V5")
     {
             Source_RA = 148.970;
                 Source_Dec = 69.679;
+    }
+    if (source_name=="M82V4")
+    {
+            Source_RA = 148.970;
+                Source_Dec = 69.679;
+    }
+    if (source_name=="BoomerangV4")
+    {
+            Source_RA = 337.183333333;
+                Source_Dec = 61.1666666667;
+    }
+    if (source_name=="BoomerangV5")
+    {
+            Source_RA = 337.183333333;
+                Source_Dec = 61.1666666667;
+    }
+    if (source_name=="BoomerangV6")
+    {
+            Source_RA = 337.183333333;
+                Source_Dec = 61.1666666667;
     }
     if (source_name=="G079")
     {
