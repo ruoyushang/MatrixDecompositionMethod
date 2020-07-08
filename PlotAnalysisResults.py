@@ -21,9 +21,12 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 method_tag = '16bins_constrained'
 #method_tag = '16bins_unconstrained'
 
-#elev_bins = [45,55,65,75,85]
-#elev_bins = [45,65,85]
+energy_bin_cut_low = 0
+energy_bin_cut_up = 5
+
 elev_bins = [45,85]
+#theta2_bins = [0,1,4]
+theta2_bins = [0,1,4,9]
 
 ONOFF_tag = 'ON'
 sample_list = []
@@ -105,7 +108,7 @@ sky_coord = []
 #sample_list += ['2HWC_J1930V6']
 #sky_coord += ['19 30 32 +18 52 12']
 
-##ONOFF_tag = 'ON'
+#ONOFF_tag = 'ON'
 #sample_list += ['2HWC_J1953V6']
 #sky_coord += ['19 53 02.4 +29 28 48']
 
@@ -127,12 +130,20 @@ sky_coord = []
 #sky_coord += ['06 18 2.700 +22 39 36.00']
 
 #ONOFF_tag = 'ON'
-#sample_list += ['MGRO_J1908_V6']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V5']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V4']
-#sky_coord += ['19 07 54 +06 16 07']
+#sample_list += ['BoomerangV6']
+#sky_coord += ['22 28 44 +61 10 00']
+#sample_list += ['BoomerangV5']
+#sky_coord += ['22 28 44 +61 10 00']
+#sample_list += ['BoomerangV4']
+#sky_coord += ['22 28 44 +61 10 00']
+
+ONOFF_tag = 'ON'
+sample_list += ['MGRO_J1908_V6']
+sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V5']
+sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V4']
+sky_coord += ['19 07 54 +06 16 07']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['MGRO_J2031_V6']
@@ -148,47 +159,57 @@ sky_coord = []
 #sample_list += ['CygnusV5']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
 
-ONOFF_tag = 'ON'
-sample_list += ['GemingaV6']
-sky_coord += ['06 32 28 +17 22 00']
-sample_list += ['GemingaV5']
-sky_coord += ['06 32 28 +17 22 00']
-
 #ONOFF_tag = 'ON'
+#sample_list += ['GemingaV6']
+#sky_coord += ['06 32 28 +17 22 00']
+#sample_list += ['GemingaV5']
+#sky_coord += ['06 32 28 +17 22 00']
+
+#ONOFF_tag = 'OFF'
 #sample_list += ['ComaV4']
 #sky_coord += ['12 59 48.7 +27 58 50']
 #sample_list += ['ComaV6']
 #sky_coord += ['12 59 48.7 +27 58 50']
 
 root_file_tags = []
+# all time
+mjd_tag = []
+mjd_tag += ['']
+
 for elev in range(0,len(elev_bins)-1):
-    # all time
-    root_file_tags += [method_tag+'_TelElev%sto%s_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
-    # 1ES 1215 flare
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56372to56464_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
-    # WComae and 1ES 1218 flare
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD54400to54700_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
-    # Geminga
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56000to56500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD58000to58700_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD58700to59000_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
-    # MGRO J2031
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD55000to57997_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD57997to59000_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
-    # 3 slices of 1ES 0229
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD55000to56500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56501to57500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
-    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD57501to59500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+    elev_tag = '_TelElev%sto%s'%(elev_bins[elev],elev_bins[elev+1])
+    for u in range(0,len(theta2_bins)-1):
+        theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
+        for d in range(0,len(mjd_tag)):
+            root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]
+
+print 'Get %s'%(root_file_tags[0])
+
+#for elev in range(0,len(elev_bins)-1):
+#    # all time
+#    root_file_tags += [method_tag+'_TelElev%sto%s_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+#    # 1ES 1215 flare
+#    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56372to56464_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+#    # WComae and 1ES 1218 flare
+#    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD54400to54700_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+#    # Geminga
+#    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56000to56500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+#    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD58000to58700_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+#    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD58700to59000_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+#    # MGRO J2031
+#    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD55000to57997_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+#    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD57997to59000_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+#    # 3 slices of 1ES 0229
+#    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD55000to56500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+#    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD56501to57500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
+#    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD57501to59500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
 
 selection_tag = root_file_tags[0]
+selection_tag += '_E%s'%(energy_bin_cut_low)
 
 folder_path = 'output_test'
 #folder_path = 'output_root'
 PercentCrab = ''
-
-energy_bin_cut_low = 0
-energy_bin_cut_up = 5
-selection_tag += '_E%s'%(energy_bin_cut_low)
 
 N_bins_for_deconv = 8
 gamma_hadron_dim_ratio = 1.
@@ -433,7 +454,8 @@ def GetSourceInfo(file_list):
         NewInfoTree.GetEntry(0)
         MJD_Start = min(NewInfoTree.MJD_Start,MJD_Start)
         MJD_End = max(NewInfoTree.MJD_End,MJD_End)
-        exposure_hours += NewInfoTree.exposure_hours
+        if 'Theta20' in file_list[path]:
+            exposure_hours += NewInfoTree.exposure_hours
 
         HistName = "Hist_EffArea"
         Hist_EffArea.Reset()
@@ -508,18 +530,18 @@ def GetShowerHistogramsFromFile(FilePath):
 
     HistName = "Hist_Rank0_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank0.Add(InputFile.Get(HistName))
-    Hist2D_Rank1.Add(InputFile.Get(HistName))
-    Hist2D_Rank2.Add(InputFile.Get(HistName))
-    Hist2D_Rank3.Add(InputFile.Get(HistName))
+    #Hist2D_Rank1.Add(InputFile.Get(HistName))
+    #Hist2D_Rank2.Add(InputFile.Get(HistName))
+    #Hist2D_Rank3.Add(InputFile.Get(HistName))
 
     HistName = "Hist_Rank1_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank1.Add(InputFile.Get(HistName))
-    Hist2D_Rank2.Add(InputFile.Get(HistName))
-    Hist2D_Rank3.Add(InputFile.Get(HistName))
+    #Hist2D_Rank2.Add(InputFile.Get(HistName))
+    #Hist2D_Rank3.Add(InputFile.Get(HistName))
 
     HistName = "Hist_Rank2_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank2.Add(InputFile.Get(HistName))
-    Hist2D_Rank3.Add(InputFile.Get(HistName))
+    #Hist2D_Rank3.Add(InputFile.Get(HistName))
 
     HistName = "Hist_Rank3_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank3.Add(InputFile.Get(HistName))
@@ -2151,7 +2173,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     faint_star_markers = []
     if xtitle=="RA":
         for star in range(0,len(other_stars)):
-            if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>2.5*2.5: continue
+            if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>3.0*3.0: continue
             other_star_markers += [ROOT.TMarker(-other_star_coord[star][0],other_star_coord[star][1],2)]
             other_star_labels += [ROOT.TLatex(-other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
@@ -2178,7 +2200,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     else:
         for star in range(0,len(other_stars)):
             gal_l, gal_b = ConvertRaDecToGalactic(other_star_coord[star][0],other_star_coord[star][1])
-            if pow(source_l-gal_l,2)+pow(source_b-gal_b,2)>2.5*2.5: continue
+            if pow(source_l-gal_l,2)+pow(source_b-gal_b,2)>3.0*3.0: continue
             other_star_markers += [ROOT.TMarker(-gal_l,gal_b,2)]
             other_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
@@ -2456,7 +2478,7 @@ def FindLocalMaximum(Hist_sig, init_x, init_y):
             bin_x = Hist_sig.GetXaxis().GetBinCenter(bx+1)
             bin_y = Hist_sig.GetYaxis().GetBinCenter(by+1)
             distance = pow(pow(bin_x-init_x,2)+pow(bin_y-init_y,2),0.5)
-            if distance < 0.2:
+            if distance < 0.1:
                 if max_sig < Hist_sig.GetBinContent(bx+1,by+1):
                     max_sig = Hist_sig.GetBinContent(bx+1,by+1)
     return max_sig
@@ -2661,7 +2683,7 @@ def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
     pad3.Draw()
 
     pad3.cd()
-    lumilab2 = ROOT.TLatex(0.15,0.50,'#epsilon = 1/#sum_{#gamma region} M_{data} (#sum_{#gamma region} M_{data} - #sum_{i=1}^{i=n} #lambda_{i} q_{i} p_{i}^{T})' )
+    lumilab2 = ROOT.TLatex(0.15,0.50,'#epsilon = (#sum_{#gamma region} M_{data} - #sum_{i=1}^{i=n} #lambda_{i} q_{i} p_{i}^{T})  / #sum_{#gamma region} M_{data}' )
     lumilab2.SetNDC()
     lumilab2.SetTextSize(0.2)
     lumilab2.Draw()
@@ -2699,8 +2721,11 @@ def MakeRankResidualPlots(name):
 
     Hist_Residual_Rank = ROOT.TH1D("Hist_Residual_Rank","",4,0,4)
     for binx in range(0,len(bkgd_rank_integral)):
-        Hist_Residual_Rank.SetBinContent(binx+1,abs(1.-bkgd_rank_integral[binx]/data_integral))
-        ratio_err = bkgd_rank_integral[binx]/data_integral*1./pow(data_integral,0.5)
+        bkgd_integral = 0.
+        for rank in range (0,binx+1):
+            bkgd_integral += bkgd_rank_integral[rank]
+        Hist_Residual_Rank.SetBinContent(binx+1,abs(1.-bkgd_integral/data_integral))
+        ratio_err = bkgd_integral/data_integral*1./pow(data_integral,0.5)
         Hist_Residual_Rank.SetBinError(binx+1,ratio_err)
 
     MakeOneHistPlot(Hist_Residual_Rank,'n ranks','Residual in gamma region','Residual_Rank_%s'%(name),True)

@@ -340,7 +340,8 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, Vec
 MatrixXd SmoothingRealVectors(MatrixXd mtx_input)
 {
     MatrixXd mtx_output = mtx_input;
-    for (int col=0;col<mtx_input.cols()-2;col++)
+    //for (int col=0;col<mtx_input.cols()-2;col++)
+    for (int col=0;col<mtx_input.cols();col++)
     {
         for (int row=1;row<mtx_input.rows()-1;row++)
         {
@@ -353,7 +354,8 @@ MatrixXd SmoothingRealVectors(MatrixXd mtx_input)
 MatrixXcd SmoothingComplexVectors(MatrixXcd mtx_input)
 {
     MatrixXcd mtx_output = mtx_input;
-    for (int col=0;col<mtx_input.cols()-2;col++)
+    //for (int col=0;col<mtx_input.cols()-2;col++)
+    for (int col=0;col<mtx_input.cols();col++)
     {
         for (int row=1;row<mtx_input.rows()-1;row++)
         {
@@ -372,8 +374,8 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     MatrixXcd mtx_S = mtx_eigenvalue_init;
     MatrixXcd mtx_p_init = mtx_eigenvector_inv_init.transpose();
 
-    mtx_q_init = SmoothingComplexVectors(mtx_q_init);
-    mtx_p_init = SmoothingComplexVectors(mtx_p_init);
+    //mtx_q_init = SmoothingComplexVectors(mtx_q_init);
+    //mtx_p_init = SmoothingComplexVectors(mtx_p_init);
 
     MatrixXcd mtx_input = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
     MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
@@ -625,7 +627,7 @@ void NormalizaDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
         hist_dark->Scale(0.);
     }
 }
-void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, bool isON)
+void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON)
 {
 
     TH1::SetDefaultSumw2();
@@ -646,6 +648,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     {
         sprintf(mjd_cut_tag, "_MJD%dto%d", MJD_start_cut, MJD_end_cut);
     }
+    camera_theta2_cut_lower = input_theta2_cut_lower;
+    camera_theta2_cut_upper = input_theta2_cut_upper;
+    sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
 
     //int rank_variation = 1;
     int rank_variation = NumberOfEigenvectors;
@@ -703,7 +708,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<double>* Data_runlist_elev_ptr = new std::vector<double>(10);
     vector<double>* Data_runlist_exposure_ptr = new std::vector<double>(10);
     vector<string>* roi_name_ptr = new std::vector<string>(10);
-    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+"_"+ONOFF_tag+".root");
+    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+"_"+ONOFF_tag+".root");
     TTree* InfoTree_ptr = nullptr;
     InfoTree_ptr = (TTree*) InputDataFile.Get("InfoTree");
     InfoTree_ptr->SetBranchAddress("Data_runlist_name",&Data_runlist_name_ptr);
@@ -1347,7 +1352,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)/(3600.*exposure_hours));
     }
 
-    TFile InputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+"_"+ONOFF_tag+".root");
+    TFile InputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+"_"+ONOFF_tag+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputFile.Get("InfoTree");
     TTree* StarTree = nullptr;
@@ -1355,7 +1360,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     TTree* FaintStarTree = nullptr;
     FaintStarTree = (TTree*) InputFile.Get("FaintStarTree");
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
     TTree *newtree = InfoTree->CloneTree();
     newtree->Write();

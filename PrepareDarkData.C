@@ -41,6 +41,7 @@ using namespace Eigen;
 double TelElev_lower = 70.;
 double TelElev_upper = 80.;
 char target[50] = "";
+char theta2_cut_tag[50] = "";
 char mjd_cut_tag[50] = "";
 double SizeSecondMax_Cut = 0.;
 
@@ -510,13 +511,15 @@ TObject* getEffAreaHistogram( TFile* fAnasumDataFile, int runnumber)
   return 0;
 }
 bool DarkFoV() {
-    if (R2off>camera_theta2_cut) return false;
+    if (R2off<camera_theta2_cut_lower) return false;
+    if (R2off>camera_theta2_cut_upper) return false;
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
 bool FoV(bool remove_bright_stars) {
-    if (R2off>camera_theta2_cut) return false;
+    if (R2off<camera_theta2_cut_lower) return false;
+    if (R2off>camera_theta2_cut_upper) return false;
     double x = ra_sky-mean_tele_point_ra;
     double y = dec_sky-mean_tele_point_dec;
     if (source_theta2_cut>(x*x+y*y)) return false;
@@ -531,10 +534,9 @@ bool RoIFoV(int which_roi) {
     if (radius>roi_radius.at(which_roi)) return false;
     return true;
 }
-bool SelectNImages(int Nmin, int Nmax)
+bool SelectNImages()
 {
-    if (NImages<Nmin) return false;
-    if (NImages>Nmax) return false;
+    if (NImages<3) return false;
     return true;
 }
 double GetRunPedestalVar(int run_number)
@@ -1066,7 +1068,7 @@ void SetEventDisplayTreeBranch(TTree* Data_tree)
     Data_tree->SetBranchAddress("MJD",&MJD);
 }
 
-void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, bool isON)
+void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON)
 {
 
     TH1::SetDefaultSumw2();
@@ -1086,6 +1088,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     {
         sprintf(mjd_cut_tag, "_MJD%dto%d", MJD_start_cut, MJD_end_cut);
     }
+    camera_theta2_cut_lower = input_theta2_cut_lower;
+    camera_theta2_cut_upper = input_theta2_cut_upper;
+    sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
     sprintf(target, "%s", target_data.c_str());
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
@@ -1524,7 +1529,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (energy>=N_energy_bins) continue;
             if (elevation<0) continue;
             if (elevation>=N_elev_bins) continue;
-            if (!SelectNImages(3,4)) continue;
+            if (!SelectNImages()) continue;
             if (SizeSecondMax<SizeSecondMax_Cut) continue;
             if (EmissionHeight<6.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
@@ -1584,7 +1589,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     if (energy>=N_energy_bins) continue;
                     if (elevation<0) continue;
                     if (elevation>=N_elev_bins) continue;
-                    if (!SelectNImages(3,4)) continue;
+                    if (!SelectNImages()) continue;
                     if (SizeSecondMax<SizeSecondMax_Cut) continue;
                     if (EmissionHeight<6.) continue;
                     if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
@@ -1701,7 +1706,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (energy>=N_energy_bins) continue;
             if (elevation<0) continue;
             if (elevation>=N_elev_bins) continue;
-            if (!SelectNImages(3,4)) continue;
+            if (!SelectNImages()) continue;
             if (SizeSecondMax<SizeSecondMax_Cut) continue;
             if (EmissionHeight<6.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
@@ -1806,7 +1811,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Data_runlist_MJD.push_back(GetRunMJD(filename,int(Data_runlist[run].second)));
     }
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("N_bins_for_deconv",&N_bins_for_deconv,"N_bins_for_deconv/I");
