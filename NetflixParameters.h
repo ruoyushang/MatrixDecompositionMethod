@@ -4,10 +4,10 @@
 char output_file_tag[50] = "16bins";
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
-//char output_file2_tag[50] = "constrained";
-//bool solution_w_constraints = true;
-char output_file2_tag[50] = "unconstrained";
-bool solution_w_constraints = false;
+char output_file2_tag[50] = "constrained";
+bool solution_w_constraints = true;
+//char output_file2_tag[50] = "unconstrained";
+//bool solution_w_constraints = false;
 
 //int NumberOfEigenvectors = 1;
 int NumberOfEigenvectors = 3;
@@ -21,7 +21,7 @@ double camera_theta2_cut_lower = 0.;
 double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.2;
 
-int n_iterations = 10;
+int n_iterations = 20;
 int n_dark_samples = 5;
 const int N_energy_bins = 5;
 double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.3),pow(10,2.6),pow(10,3.0),pow(10,3.4),pow(10,4.0)};

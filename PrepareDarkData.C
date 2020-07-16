@@ -384,6 +384,21 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 286.975;
                 Source_Dec = 6.269;
     }
+    if (source_name=="MAGIC_J1857_V6")
+    {
+            Source_RA = 284.398;
+                Source_Dec = 2.967;
+    }
+    if (source_name=="MAGIC_J1857_V5")
+    {
+            Source_RA = 284.398;
+                Source_Dec = 2.967;
+    }
+    if (source_name=="MAGIC_J1857_V4")
+    {
+            Source_RA = 284.398;
+                Source_Dec = 2.967;
+    }
     if (source_name=="MGRO_J2031_V6")
     {
             Source_RA = 307.180;
@@ -1068,7 +1083,7 @@ void SetEventDisplayTreeBranch(TTree* Data_tree)
     Data_tree->SetBranchAddress("MJD",&MJD);
 }
 
-void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON)
+void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doRaster)
 {
 
     TH1::SetDefaultSumw2();
@@ -1171,6 +1186,40 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius.push_back(1.0);
+
+        roi_name.push_back("SS 433 e1");
+        roi_ra.push_back(288.404);
+        roi_dec.push_back(4.930);
+        roi_radius.push_back(0.3);
+
+        roi_name.push_back("SS 433 w1");
+        roi_ra.push_back(287.654);
+        roi_dec.push_back(5.037);
+        roi_radius.push_back(0.3);
+
+        roi_name.push_back("MAGIC J1857.6+0297");
+        roi_ra.push_back(284.398);
+        roi_dec.push_back(2.967);
+        roi_radius.push_back(0.3);
+
+        roi_name.push_back("Unknown");
+        roi_ra.push_back(284.063);
+        roi_dec.push_back(4.037);
+        roi_radius.push_back(0.3);
+
+    }
+    else if (TString(target).Contains("MAGIC_J1857")) 
+    {
+        roi_name.push_back("MAGIC J1857.6+0297");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius.push_back(0.3);
+
+        roi_name.push_back("Unknown");
+        roi_ra.push_back(284.063);
+        roi_dec.push_back(4.037);
+        roi_radius.push_back(0.3);
+
     }
     else if (TString(target).Contains("MGRO_J2031")) 
     {
@@ -1255,13 +1304,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_radius.push_back(0.3);
     }
 
-    for (int star=0;star<FaintStars_Data.size();star++)
-    {
-        roi_name.push_back("b-mag "+ std::to_string(FaintStars_Data.at(star).at(3)));
-        roi_ra.push_back(FaintStars_Data.at(star).at(0));
-        roi_dec.push_back(FaintStars_Data.at(star).at(1));
-        roi_radius.push_back(bright_star_radius_cut);
-    }
+    //for (int star=0;star<FaintStars_Data.size();star++)
+    //{
+    //    roi_name.push_back("b-mag "+ std::to_string(FaintStars_Data.at(star).at(3)));
+    //    roi_ra.push_back(FaintStars_Data.at(star).at(0));
+    //    roi_dec.push_back(FaintStars_Data.at(star).at(1));
+    //    roi_radius.push_back(bright_star_radius_cut);
+    //}
 
 
     TH1D Hist_Elev = TH1D("Hist_Elev","",N_elev_bins,elev_bins);
@@ -1696,6 +1745,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
+            if (doRaster)
+            {
+                double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
+                double delta_r = 1.;
+                ra_sky += delta_r*cos(delta_phi);
+                dec_sky += delta_r*sin(delta_phi);
+            }
             // redefine theta2
             theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
             pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);

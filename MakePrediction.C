@@ -331,7 +331,9 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, Vec
     vtr_bigger_delta.segment(0,BTB.rows()) = BTD;
 
     VectorXd vtr_vari_bigger = VectorXd::Zero(BTB.cols()+mtx_constraints.rows());
-    vtr_vari_bigger = mtx_Bigger.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_bigger_delta);
+    //vtr_vari_bigger = mtx_Bigger.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_bigger_delta);
+    JacobiSVD<MatrixXd> svd(mtx_Bigger, ComputeThinU | ComputeThinV);
+    vtr_vari_bigger = svd.solve(vtr_bigger_delta);
 
     return vtr_vari_bigger.segment(0,BTB.cols());
 
@@ -351,16 +353,13 @@ MatrixXd SmoothingRealVectors(MatrixXd mtx_input)
     return mtx_output;
 }
 
-MatrixXcd SmoothingComplexVectors(MatrixXcd mtx_input)
+MatrixXcd SmoothingComplexVectors(MatrixXcd mtx_input, int entry_start)
 {
     MatrixXcd mtx_output = mtx_input;
-    //for (int col=0;col<mtx_input.cols()-2;col++)
-    for (int col=0;col<mtx_input.cols();col++)
+    int col = mtx_input.cols()-entry_start;
+    for (int row=1;row<mtx_input.rows()-1;row++)
     {
-        for (int row=1;row<mtx_input.rows()-1;row++)
-        {
-            mtx_output(row,col) = (mtx_input(row+1,col)+mtx_input(row,col)+mtx_input(row-1,col))/3.;
-        }
+        mtx_output(row,col) = (mtx_input(row+1,col)+mtx_input(row,col)+mtx_input(row-1,col))/3.;
     }
     return mtx_output;
 }
@@ -373,9 +372,6 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     MatrixXcd mtx_q_init = mtx_eigenvector_init;
     MatrixXcd mtx_S = mtx_eigenvalue_init;
     MatrixXcd mtx_p_init = mtx_eigenvector_inv_init.transpose();
-
-    //mtx_q_init = SmoothingComplexVectors(mtx_q_init);
-    //mtx_p_init = SmoothingComplexVectors(mtx_p_init);
 
     MatrixXcd mtx_input = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
     MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
@@ -471,6 +467,10 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
 
     mtx_eigenvector_init += mtx_q_vari;
     mtx_eigenvector_inv_init += mtx_p_vari.transpose();
+
+    //mtx_eigenvector_init = SmoothingComplexVectors(mtx_eigenvector_init,entry_start);
+    //mtx_eigenvector_inv_init.transpose() = SmoothingComplexVectors(mtx_eigenvector_inv_init.transpose(),entry_start);
+
     mtx_output = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
 
     MatrixXcd mtx_H_final = mtx_eigenvector_inv_init*mtx_eigenvector_init;
@@ -552,32 +552,32 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
         {
             mtx_temp = SpectralDecompositionMethod_v3(1, 1);
             if (!CheckIfEigenvalueMakeSense(mtx_temp, 1)) break;
-            //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
-            mtx_data_bkgd = mtx_temp;
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
+            mtx_data_bkgd = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
             std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
         if (NumberOfEigenvectors>=2)
         {
             mtx_temp = SpectralDecompositionMethod_v3(2, 1);
             if (!CheckIfEigenvalueMakeSense(mtx_temp, 2)) break;
-            //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
-            mtx_data_bkgd = mtx_temp;
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
+            mtx_data_bkgd = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
             std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
         if (NumberOfEigenvectors>=3)
         {
             mtx_temp = SpectralDecompositionMethod_v3(3, 1);
             if (!CheckIfEigenvalueMakeSense(mtx_temp, 3)) break;
-            //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
-            mtx_data_bkgd = mtx_temp;
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
+            mtx_data_bkgd = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
             std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
         if (NumberOfEigenvectors>=4)
         {
             mtx_temp = SpectralDecompositionMethod_v3(4, 1);
             if (!CheckIfEigenvalueMakeSense(mtx_temp, 4)) break;
-            //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
-            mtx_data_bkgd = mtx_temp;
+            SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
+            mtx_data_bkgd = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
             std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
     }
