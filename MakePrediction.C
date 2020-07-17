@@ -342,7 +342,7 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, Vec
 MatrixXd SmoothingRealVectors(MatrixXd mtx_input)
 {
     MatrixXd mtx_output = mtx_input;
-    //for (int col=0;col<mtx_input.cols()-2;col++)
+    //for (int col=0;col<mtx_input.cols()-1;col++)
     for (int col=0;col<mtx_input.cols();col++)
     {
         for (int row=1;row<mtx_input.rows()-1;row++)
@@ -551,33 +551,37 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
         if (NumberOfEigenvectors>=1)
         {
             mtx_temp = SpectralDecompositionMethod_v3(1, 1);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, 1)) break;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
-            mtx_data_bkgd = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
+            mtx_temp = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, 1)) break;
+            mtx_data_bkgd = mtx_temp;
             std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
         if (NumberOfEigenvectors>=2)
         {
             mtx_temp = SpectralDecompositionMethod_v3(2, 1);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, 2)) break;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
-            mtx_data_bkgd = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
+            mtx_temp = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, 2)) break;
+            mtx_data_bkgd = mtx_temp;
             std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
         if (NumberOfEigenvectors>=3)
         {
             mtx_temp = SpectralDecompositionMethod_v3(3, 1);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, 3)) break;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
-            mtx_data_bkgd = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
+            mtx_temp = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, 3)) break;
+            mtx_data_bkgd = mtx_temp;
             std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
         if (NumberOfEigenvectors>=4)
         {
             mtx_temp = SpectralDecompositionMethod_v3(4, 1);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, 4)) break;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_temp);
-            mtx_data_bkgd = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
+            mtx_temp = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, 4)) break;
+            mtx_data_bkgd = mtx_temp;
             std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
     }
@@ -1187,8 +1191,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,1./double(n_dark_samples));
                     Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),1./double(n_dark_samples));
-                    //Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd);
-                    //Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
+                    //if (nth_sample==0)
+                    //{
+                    //    Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd);
+                    //    Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
+                    //}
                     Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
                 }
                 if (!isnan(Hist_OneGroup_Bkgd_MSCLW.at(e).Integral()) && !isnan(Hist_OneGroup_Data_MSCLW.at(e).Integral()))

@@ -18,8 +18,8 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 #method_tag = '8bins_constrained'
 #method_tag = '8bins_unconstrained'
-method_tag = '16bins_constrained'
-#method_tag = '16bins_unconstrained'
+#method_tag = '16bins_constrained'
+method_tag = '16bins_unconstrained'
 
 energy_bin_cut_low = 0
 energy_bin_cut_up = 5
@@ -89,9 +89,9 @@ sky_coord = []
 #sky_coord += ['10 07 04 +16 04 55']
 # only V5 data published
 
-#ONOFF_tag = 'OFF'
-#sample_list += ['NGC1275V6']
-#sky_coord += ['03 19 48.1 +41 30 42']
+ONOFF_tag = 'ON'
+sample_list += ['NGC1275V6']
+sky_coord += ['03 19 48.1 +41 30 42']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['M82V4']
@@ -117,13 +117,13 @@ sky_coord = []
 #sample_list += ['2HWC_J1953V6']
 #sky_coord += ['19 53 02.4 +29 28 48']
 
-ONOFF_tag = 'ON'
+#ONOFF_tag = 'ON'
 #sample_list += ['WComaeV6']
 #sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['WComaeV5']
 #sky_coord += ['12 21 31.7 +28 13 59']
-sample_list += ['WComaeV4']
-sky_coord += ['12 21 31.7 +28 13 59']
+#sample_list += ['WComaeV4']
+#sky_coord += ['12 21 31.7 +28 13 59']
 # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
 
 #ONOFF_tag = 'ON'
@@ -245,7 +245,7 @@ source_ra = 0.
 source_dec = 0.
 source_l = 0.
 source_b = 0.
-n_control_samples = 5
+n_control_samples = 3
 MJD_Start = 2147483647
 MJD_End = 0
 roi_name = ROOT.std.vector("string")(10)

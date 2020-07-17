@@ -793,6 +793,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     vector<double> ON_time;
     vector<vector<double>> Dark_time;
     vector<double> ON_NSB;
+    vector<double> ON_MJD;
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
         char ON_runnumber[50];
@@ -818,6 +819,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         double time_1 = Time;
         double exposure_thisrun = (time_1-time_0)/3600.;
         ON_time.push_back(exposure_thisrun);
+        ON_MJD.push_back(double(MJD));
         if (MJD<MJD_Start) MJD_Start = MJD;
         if (MJD>MJD_End) MJD_End = MJD;
         Hist_OnData_ElevNSB.Fill(ON_NSB[ON_NSB.size()-1],ON_pointing[ON_pointing.size()-1].first,exposure_thisrun);
@@ -828,6 +830,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     vector<pair<double,double>> OFF_pointing;
     vector<pair<double,double>> OFF_pointing_radec;
     vector<double> OFF_time;
+    vector<double> OFF_MJD;
     vector<double> OFF_NSB;
     for (int off_run=0;off_run<OFF_runlist.size();off_run++)
     {
@@ -847,12 +850,14 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         TString root_file = "run_"+TString(OFF_runnumber)+"/stereo/data_on";
         TTree* Dark_tree = (TTree*) input_file->Get(root_file);
         Dark_tree->SetBranchAddress("Time",&Time);
+        Dark_tree->SetBranchAddress("MJD",&MJD);
         Dark_tree->GetEntry(0);
         double time_0 = Time;
         Dark_tree->GetEntry(Dark_tree->GetEntries()-1);
         double time_1 = Time;
         double exposure_thisrun = (time_1-time_0)/3600.;
         OFF_time.push_back(exposure_thisrun);
+        OFF_MJD.push_back(double(MJD));
         Hist_OffData_ElevNSB.Fill(OFF_NSB[OFF_NSB.size()-1],OFF_pointing[OFF_pointing.size()-1].first,exposure_thisrun);
         input_file->Close();
     }
@@ -862,18 +867,20 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
         vector<vector<pair<string,int>>> the_samples;
+        vector<double> Dark_time_thisrun;
         for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
             vector<pair<string,int>> the_runs;
             the_samples.push_back(the_runs);
+            Dark_time_thisrun.push_back(0.);
         }
         new_list.push_back(the_samples);
+        Dark_time.push_back(Dark_time_thisrun);
     }
     vector<pair<double,double>> ON_pointing_radec_new;
-    for (int on_run=0;on_run<ON_runlist.size();on_run++)
+    for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {
-        vector<double> Dark_time_thisrun;
-        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+        for (int on_run=0;on_run<ON_runlist.size();on_run++)
         {
             double accumulated_time = 0.;
             while (accumulated_time<1.0*ON_time[on_run])
@@ -908,13 +915,21 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     if (already_used_run) continue;
 
                     double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.5*0.5 && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<5.*5.)
+                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.5*0.5)
                     {
                         found_match = true;
                     }
-                    if (ON_NSB[on_run]==0. && pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<5.*5.)
+                    if (ON_NSB[on_run]==0.)
                     {
                         found_match = true;
+                    }
+                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>5.*5.)
+                    {
+                        found_match = false;
+                    }
+                    if (pow(ON_MJD[on_run]-OFF_MJD[off_run],2)>(4.*365.)*(4.*365.))
+                    {
+                        found_match = false;
                     }
                     if (found_match && best_chi2>chi2)
                     {
@@ -937,9 +952,8 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     break;  // searched whole OFF list and found no match.
                 }
             }
-            Dark_time_thisrun.push_back(accumulated_time);
+            Dark_time.at(on_run).at(nth_sample) = accumulated_time;
         }
-        Dark_time.push_back(Dark_time_thisrun);
     }
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
