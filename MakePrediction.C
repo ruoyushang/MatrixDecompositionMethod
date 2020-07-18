@@ -405,7 +405,7 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
                 {
                     int nth_entry2 = idx_l + 1;
                     if (nth_entry2>=nth_entry) continue;
-                    //if (nth_entry2==nth_entry) continue;
+                    //if (nth_entry2==nth_entry && nth_entry==1) continue;
                     int idx_u = idx_l + idx_m*NumberOfEigenvectors;
                     mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
                     mtx_Constraint(idx_u,idx_w) = mtx_p_init(idx_j,mtx_input.rows()-nth_entry2).real();
@@ -508,7 +508,7 @@ bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, double init_chi2)
     //    }
     //}
 
-    //double init_chi2 = GetChi2Function(mtx_data_bkgd,0);
+    //init_chi2 = GetChi2Function(mtx_data_bkgd,0);
     double current_chi2 = GetChi2Function(mtx_input,0);
     if (current_chi2>2.*init_chi2) 
     {
@@ -829,7 +829,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
                 }
 
-                if (group_size.at(e)>=group_size_limit[e] || on_run==Data_runlist_number_ptr->size()-1)
+                if (group_size.at(e)>=group_size_limit[e]*1000 || on_run==Data_runlist_number_ptr->size()-1)
                 {
                     mtx_data = fillMatrix(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e));
                     eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);

@@ -915,6 +915,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     if (already_used_run) continue;
 
                     double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
                     if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.5*0.5)
                     {
                         found_match = true;
@@ -927,10 +928,10 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     {
                         found_match = false;
                     }
-                    if (pow(ON_MJD[on_run]-OFF_MJD[off_run],2)>(4.*365.)*(4.*365.))
-                    {
-                        found_match = false;
-                    }
+                    //if (pow(ON_MJD[on_run]-OFF_MJD[off_run],2)>(4.*365.)*(4.*365.))
+                    //{
+                    //    found_match = false;
+                    //}
                     if (found_match && best_chi2>chi2)
                     {
                         best_chi2 = chi2;
