@@ -386,7 +386,7 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
         {
             int idx_m = idx_j + idx_i*mtx_input.cols();
             double weight = 1.;
-            //weight = 1./max(1.,pow(mtx_data(idx_i,idx_j).real(),0.5));
+            weight = 1./max(1.,pow(mtx_data(idx_i,idx_j).real(),0.5));
             if (idx_i<binx_blind_global && idx_j<biny_blind_global)
             {
                 weight = 0.; // blind gamma-ray region
@@ -451,6 +451,22 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
                 int nth_entry = idx_k + entry_start;
                 mtx_p_vari(idx_j,mtx_p_vari.cols()-nth_entry) = vtr_vari_big(idx_n);
                 mtx_q_vari(idx_i,mtx_q_vari.cols()-nth_entry) = vtr_vari_big(idx_w);
+            }
+        }
+    }
+
+    for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
+    {
+        for (int idx_j=0; idx_j<mtx_input.cols(); idx_j++)
+        {
+            for (int idx_k=0; idx_k<entry_size; idx_k++)
+            {
+                int idx_m = idx_j + mtx_input.cols()*idx_i;
+                int idx_n = idx_j + mtx_input.cols()*idx_k;
+                int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
+                int nth_entry = idx_k + entry_start;
+                if (isnan(mtx_p_vari(idx_j,mtx_p_vari.cols()-nth_entry))) return mtx_input;
+                if (isnan(mtx_q_vari(idx_i,mtx_q_vari.cols()-nth_entry))) return mtx_input;
             }
         }
     }
@@ -586,8 +602,11 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
             std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
     }
-    //mtx_temp = SpectralDecompositionMethod_v3(1, NumberOfEigenvectors);
-    //mtx_data_bkgd = mtx_temp;
+    mtx_temp = SpectralDecompositionMethod_v3(1, 3);
+    if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2))
+    {
+        mtx_data_bkgd = mtx_temp;
+    }
 
 }
 void GetReducedEigenvalueMatrix(int rank_cutoff)
@@ -617,13 +636,15 @@ void NormalizaDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
     int biny_upper = hist_data->GetYaxis()->FindBin(1.)-1;
     double Data_SR_Integral = hist_data->Integral(binx_lower,binx_blind,biny_lower,biny_blind);
     double Data_Integral = hist_data->Integral();
-    double Data_CR_Integral = Data_Integral-Data_SR_Integral;
+    double Data_CR_Integral_1 = hist_data->Integral(binx_blind,binx_upper,biny_blind,biny_upper);
+    double Data_CR_Integral_2 = Data_Integral-Data_SR_Integral-Data_CR_Integral_1;
     double Dark_SR_Integral = hist_dark->Integral(binx_lower,binx_blind,biny_lower,biny_blind);
     double Dark_Integral = hist_dark->Integral();
-    double Dark_CR_Integral = Dark_Integral-Dark_SR_Integral;
-    if (Dark_CR_Integral!=0)
+    double Dark_CR_Integral_1 = hist_dark->Integral(binx_blind,binx_upper,biny_blind,biny_upper);
+    double Dark_CR_Integral_2 = Dark_Integral-Dark_SR_Integral-Dark_CR_Integral_1;
+    if (Dark_CR_Integral_2!=0)
     {
-        double dark_scale = Data_CR_Integral/Dark_CR_Integral;
+        double dark_scale = Data_CR_Integral_2/Dark_CR_Integral_2;
         hist_dark->Scale(dark_scale);
     }
     else
@@ -836,7 +857,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     NormalizaDarkMatrix(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e), &Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
                     mtx_dark = fillMatrix(&Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-                    LeastSquareSolutionMethod(rank_variation, n_iterations);
+                    //LeastSquareSolutionMethod(rank_variation, n_iterations);
+                    mtx_data_bkgd = mtx_dark;
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     Hist_OffData_MSCLW.at(nth_sample).at(e).Add(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e));

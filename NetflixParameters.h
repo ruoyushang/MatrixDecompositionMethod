@@ -21,7 +21,7 @@ double camera_theta2_cut_lower = 0.;
 double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.2;
 
-int n_iterations = 5;
+int n_iterations = 1;
 int n_dark_samples = 3;
 const int N_energy_bins = 5;
 double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.3),pow(10,2.6),pow(10,3.0),pow(10,3.4),pow(10,4.0)};
@@ -33,9 +33,9 @@ double raw_gamma_count[N_energy_fine_bins] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0
 const int N_elev_bins = 12;
 double elev_bins[N_elev_bins+1] = {25,30,35,40,45,50,55,60,65,70,75,80,85};
 
-//int group_size_limit[N_energy_bins] = {100,100,100,1000,1000};
-//int group_size_limit[N_energy_bins] = {50000,50000,50000,50000,50000};
-int group_size_limit[N_energy_bins] = {5000000,5000000,5000000,5000000,5000000};
+//int group_size_limit[N_energy_bins] = {200000,200000,200000,200000,200000};
+//int group_size_limit[N_energy_bins] = {500000,500000,500000,500000,500000};
+int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000};
 
 double gamma_hadron_dim_ratio = 1.;
 double MSCW_cut_lower = -1.0;
