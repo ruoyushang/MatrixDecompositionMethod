@@ -332,8 +332,22 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, Vec
 
     VectorXd vtr_vari_bigger = VectorXd::Zero(BTB.cols()+mtx_constraints.rows());
     //vtr_vari_bigger = mtx_Bigger.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_bigger_delta);
-    JacobiSVD<MatrixXd> svd(mtx_Bigger, ComputeThinU | ComputeThinV);
+    //JacobiSVD<MatrixXd> svd(mtx_Bigger, ComputeThinU | ComputeThinV);
+    BDCSVD<MatrixXd> svd(mtx_Bigger, ComputeThinU | ComputeThinV);
+    //std::cout << "svd.singularValues()" << std::endl;
+    //std::cout << svd.singularValues() << std::endl;
     vtr_vari_bigger = svd.solve(vtr_bigger_delta);
+
+    //bool bad_result = false;
+    //for (int i=0;i<vtr_vari_bigger.size();i++)
+    //{
+    //    if (isnan(vtr_vari_bigger(i))) bad_result = true;
+    //}
+    //if (bad_result)
+    //{
+    //    svd.setThreshold(1e-5);
+    //    vtr_vari_bigger = svd.solve(vtr_bigger_delta);
+    //}
 
     return vtr_vari_bigger.segment(0,BTB.cols());
 
@@ -386,7 +400,7 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
         {
             int idx_m = idx_j + idx_i*mtx_input.cols();
             double weight = 1.;
-            weight = 1./max(1.,pow(mtx_data(idx_i,idx_j).real(),0.5));
+            //weight = 1./max(1.,pow(mtx_data(idx_i,idx_j).real(),0.5));
             if (idx_i<binx_blind_global && idx_j<biny_blind_global)
             {
                 weight = 0.; // blind gamma-ray region
@@ -417,19 +431,20 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
     if (solution_w_constraints && entry_start>0) 
     {
         vtr_vari_big = SolutionWithConstraints(mtx_Big, mtx_Constraint, vtr_Delta);
-        VectorXd vtr_should_be_zero = mtx_Constraint*vtr_vari_big;
-        for (int i=0;i<vtr_should_be_zero.size();i++)
-        {
-            if (isnan(vtr_should_be_zero(i))) return mtx_input;
-            if (abs(vtr_should_be_zero(i))>0.1) return mtx_input;
-        }
+        //VectorXd vtr_should_be_zero = mtx_Constraint*vtr_vari_big;
+        //for (int i=0;i<vtr_should_be_zero.size();i++)
+        //{
+        //    if (isnan(vtr_should_be_zero(i))) return mtx_input;
+        //    if (abs(vtr_should_be_zero(i))>0.1) return mtx_input;
+        //}
     }
     else
     {
         //vtr_vari_big = (mtx_Big.transpose()*mtx_Big).ldlt().solve(mtx_Big.transpose()*vtr_Delta);
         //vtr_vari_big = mtx_Big.colPivHouseholderQr().solve(vtr_Delta);
         //vtr_vari_big = mtx_Big.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_Delta);
-        JacobiSVD<MatrixXd> svd(mtx_Big, ComputeThinU | ComputeThinV);
+        BDCSVD<MatrixXd> svd(mtx_Big, ComputeThinU | ComputeThinV);
+        //svd.setThreshold(1e-5);
         vtr_vari_big = svd.solve(vtr_Delta);
     }
     //vtr_vari_big = (mtx_Big.transpose()*mtx_Big).inverse()*mtx_Big.transpose()*vtr_Delta;
@@ -455,21 +470,21 @@ MatrixXcd SpectralDecompositionMethod_v3(int entry_start, int entry_size)
         }
     }
 
-    for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
-    {
-        for (int idx_j=0; idx_j<mtx_input.cols(); idx_j++)
-        {
-            for (int idx_k=0; idx_k<entry_size; idx_k++)
-            {
-                int idx_m = idx_j + mtx_input.cols()*idx_i;
-                int idx_n = idx_j + mtx_input.cols()*idx_k;
-                int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
-                int nth_entry = idx_k + entry_start;
-                if (isnan(mtx_p_vari(idx_j,mtx_p_vari.cols()-nth_entry))) return mtx_input;
-                if (isnan(mtx_q_vari(idx_i,mtx_q_vari.cols()-nth_entry))) return mtx_input;
-            }
-        }
-    }
+    //for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
+    //{
+    //    for (int idx_j=0; idx_j<mtx_input.cols(); idx_j++)
+    //    {
+    //        for (int idx_k=0; idx_k<entry_size; idx_k++)
+    //        {
+    //            int idx_m = idx_j + mtx_input.cols()*idx_i;
+    //            int idx_n = idx_j + mtx_input.cols()*idx_k;
+    //            int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
+    //            int nth_entry = idx_k + entry_start;
+    //            if (isnan(mtx_p_vari(idx_j,mtx_p_vari.cols()-nth_entry))) return mtx_input;
+    //            if (isnan(mtx_q_vari(idx_i,mtx_q_vari.cols()-nth_entry))) return mtx_input;
+    //        }
+    //    }
+    //}
 
     //mtx_p_vari = SmoothingRealVectors(mtx_p_vari);
     //mtx_q_vari = SmoothingRealVectors(mtx_q_vari);
@@ -524,9 +539,9 @@ bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, double init_chi2)
     //    }
     //}
 
-    //init_chi2 = GetChi2Function(mtx_data_bkgd,0);
+    init_chi2 = GetChi2Function(mtx_data_bkgd,0);
     double current_chi2 = GetChi2Function(mtx_input,0);
-    if (current_chi2>2.*init_chi2) 
+    if (current_chi2>init_chi2) 
     {
         std::cout << "break (chi2 increasing.)" << std::endl;
         return false;
@@ -602,10 +617,14 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
             std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
         }
     }
-    mtx_temp = SpectralDecompositionMethod_v3(1, 3);
-    if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2))
+    if (n_iterations==0)
     {
-        mtx_data_bkgd = mtx_temp;
+        mtx_temp = SpectralDecompositionMethod_v3(1, 3);
+        //mtx_data_bkgd = mtx_temp;
+        if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2))
+        {
+            mtx_data_bkgd = mtx_temp;
+        }
     }
 
 }
