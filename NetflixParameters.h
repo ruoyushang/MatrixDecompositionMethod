@@ -10,6 +10,7 @@ bool solution_w_constraints = true;
 //bool solution_w_constraints = false;
 
 //int NumberOfEigenvectors = 1;
+//int NumberOfEigenvectors = 2;
 int NumberOfEigenvectors = 3;
 //int NumberOfEigenvectors = 4;
 double PercentCrab = 0.;
@@ -33,8 +34,7 @@ double raw_gamma_count[N_energy_fine_bins] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0
 const int N_elev_bins = 12;
 double elev_bins[N_elev_bins+1] = {25,30,35,40,45,50,55,60,65,70,75,80,85};
 
-//int group_size_limit[N_energy_bins] = {200000,200000,200000,200000,200000};
-//int group_size_limit[N_energy_bins] = {500000,500000,500000,500000,500000};
+//int group_size_limit[N_energy_bins] = {50000,50000,50000,50000,50000};
 int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000};
 
 double gamma_hadron_dim_ratio = 1.;

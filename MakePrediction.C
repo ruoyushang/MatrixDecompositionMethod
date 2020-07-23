@@ -26,6 +26,7 @@
 #include "TChain.h"
 #include "TBranch.h"
 #include "TSpline.h"
+#include "TVirtualFFT.h"
 #include "Math/GSLMinimizer.h"
 //#include "Minuit2/Minuit2Minimizer.h"
 #include "Math/Functor.h"
@@ -316,7 +317,7 @@ double GetChi2Function(MatrixXcd mtx_model, int LeftOrRight)
     return chi2;
 
 }
-VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, VectorXd vtr_delta)
+VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, VectorXd vtr_delta, VectorXd vtr_constraints_delta)
 {
 
     MatrixXd BTB = mtx_big.transpose()*mtx_big;
@@ -329,6 +330,7 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, Vec
 
     VectorXd vtr_bigger_delta = VectorXd::Zero(BTB.rows()+mtx_constraints.rows());
     vtr_bigger_delta.segment(0,BTB.rows()) = BTD;
+    vtr_bigger_delta.segment(BTB.rows(),vtr_constraints_delta.size()) = vtr_constraints_delta;
 
     VectorXd vtr_vari_bigger = VectorXd::Zero(BTB.cols()+mtx_constraints.rows());
     //vtr_vari_bigger = mtx_Bigger.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_bigger_delta);
@@ -375,6 +377,47 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, Vec
 
 }
 
+MatrixXd SmoothingRealVectorsFFT(MatrixXd mtx_input)
+{
+    MatrixXd mtx_output = mtx_input;
+    double *in = new double[2*((mtx_input.rows()+1)/2+1)];
+    double *re_full = new double[mtx_input.rows()];
+    double *im_full = new double[mtx_input.rows()];
+    double *out = new double[mtx_input.rows()];
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            in[row] = mtx_input(row,col);
+        }
+        int n_size = mtx_input.rows()+1;
+        TVirtualFFT *fft_own = TVirtualFFT::FFT(1, &n_size, "R2C ES K");
+        fft_own->SetPoints(in);
+        fft_own->Transform();
+        fft_own->GetPointsComplex(re_full,im_full); //Copy all the output points
+        // filtering high frequency
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            if (row>=5)
+            {
+                re_full[row] = 0.;
+                im_full[row] = 0.;
+            }
+        }
+        int n = mtx_input.rows();
+        TVirtualFFT *fft_back = TVirtualFFT::FFT(1, &n, "C2R M K");
+        fft_back->SetPointsComplex(re_full,im_full);
+        fft_back->Transform();
+        fft_back->GetPoints(out);
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            // the y-axes has to be rescaled (factor 1/bins)
+            mtx_output(row,col) = out[row]/double(mtx_input.rows());
+        }
+    }
+    return mtx_output;
+}
+
 MatrixXd SmoothingRealVectors(MatrixXd mtx_input)
 {
     MatrixXd mtx_output = mtx_input;
@@ -414,7 +457,8 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     int row_size_big = mtx_input.rows()*mtx_input.cols();
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    MatrixXd mtx_Constraint = MatrixXd::Zero(NumberOfEigenvectors*entry_size,2*entry_size*mtx_input.cols());
+    MatrixXd mtx_Constraint = MatrixXd::Zero(2*NumberOfEigenvectors*entry_size,2*entry_size*mtx_input.cols());
+    VectorXd vtr_Constraint_Delta = VectorXd::Zero(2*NumberOfEigenvectors*entry_size);
     for (int idx_k=0; idx_k<entry_size; idx_k++)
     {
         int nth_entry = idx_k + entry_start;
@@ -447,17 +491,20 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
             for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
             {
                 int idx_u = idx_l + idx_k*NumberOfEigenvectors;
+                int idx_v = idx_l + idx_k*NumberOfEigenvectors + NumberOfEigenvectors*entry_size;
                 int idx_n = idx_i + mtx_input.cols()*idx_k;
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
-                mtx_Constraint(idx_u,idx_w) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                mtx_Constraint(idx_v,idx_w) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                vtr_Constraint_Delta(idx_u) = 0.;
+                vtr_Constraint_Delta(idx_v) = 0.;
             }
         }
     }
     VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
     if (solution_w_constraints && entry_start>0) 
     {
-        vtr_vari_big = SolutionWithConstraints(mtx_Big, mtx_Constraint, vtr_Delta);
+        vtr_vari_big = SolutionWithConstraints(mtx_Big, mtx_Constraint, vtr_Delta, vtr_Constraint_Delta);
         //VectorXd vtr_should_be_zero = mtx_Constraint*vtr_vari_big;
         //for (int i=0;i<vtr_should_be_zero.size();i++)
         //{
@@ -513,8 +560,12 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     //    }
     //}
 
-    mtx_p_vari = SmoothingRealVectors(mtx_p_vari);
-    mtx_q_vari = SmoothingRealVectors(mtx_q_vari);
+    mtx_p_vari = SmoothingRealVectorsFFT(mtx_p_vari);
+    mtx_q_vari = SmoothingRealVectorsFFT(mtx_q_vari);
+
+    MatrixXcd mtx_H_vari = mtx_q_init.transpose()*mtx_p_vari + mtx_p_init.transpose()*mtx_q_vari;
+    std::cout << "mtx_H_vari:" << std::endl;
+    std::cout << mtx_H_vari.block(mtx_H_vari.rows()-4,mtx_H_vari.cols()-4,4,4) << std::endl;
 
     MatrixXcd mtx_H_init = mtx_eigenvector_inv_init*mtx_eigenvector_init;
     std::cout << "mtx_H_init:" << std::endl;
@@ -595,6 +646,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
     mtx_eigenvector = mtx_eigenvector_init;
     mtx_eigenvalue = mtx_eigenvalue_init;
     mtx_eigenvector_inv = mtx_eigenvector_inv_init;
+    //mtx_data_bkgd = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
 
     std::cout << "initial chi2 in CR = " << GetChi2Function(mtx_dark,0) << std::endl;
     double init_chi2 = GetChi2Function(mtx_dark,0);
@@ -631,6 +683,14 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
             if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
             mtx_data_bkgd = mtx_temp;
             std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+            std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+        }
+        if (NumberOfEigenvectors>=4)
+        {
+            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 4, 1, step_frac);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
+            mtx_data_bkgd = mtx_temp;
+            std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
             std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
         }
     }
