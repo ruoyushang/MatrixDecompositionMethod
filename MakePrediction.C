@@ -654,80 +654,60 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
 
     MatrixXcd mtx_temp = mtx_dark;
     double step_frac= 1.0;
-    for (int iteration=0;iteration<n_iterations;iteration++)
+    if (DoSequential)
     {
-        std::cout << "iteration = " << iteration<< std::endl;
-        step_frac= 1.0;
-        //if (iteration==0) step_frac = 0.1;
-        //if (iteration==1) step_frac = 0.2;
-        //if (iteration==2) step_frac = 0.5;
-        //if (iteration==3) step_frac = 1.0;
-        if (NumberOfEigenvectors>=1)
+        for (int iteration=0;iteration<n_iterations;iteration++)
         {
-            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, step_frac);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
-            mtx_data_bkgd = mtx_temp;
-            std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-            std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
-        }
-        if (NumberOfEigenvectors>=2)
-        {
-            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, step_frac);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
-            mtx_data_bkgd = mtx_temp;
-            std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-            std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
-        }
-        if (NumberOfEigenvectors>=3)
-        {
-            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 3, 1, step_frac);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
-            mtx_data_bkgd = mtx_temp;
-            std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-            std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
-        }
-        if (NumberOfEigenvectors>=4)
-        {
-            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 4, 1, step_frac);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
-            mtx_data_bkgd = mtx_temp;
-            std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-            std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+            std::cout << "iteration = " << iteration<< std::endl;
+            step_frac= 1.0;
+            //if (iteration==0) step_frac = 0.1;
+            //if (iteration==1) step_frac = 0.2;
+            //if (iteration==2) step_frac = 0.5;
+            //if (iteration==3) step_frac = 1.0;
+            if (NumberOfEigenvectors>=1)
+            {
+                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, step_frac);
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
+                mtx_data_bkgd = mtx_temp;
+                std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+                std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+            }
+            if (NumberOfEigenvectors>=2)
+            {
+                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, step_frac);
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
+                mtx_data_bkgd = mtx_temp;
+                std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+                std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+            }
+            if (NumberOfEigenvectors>=3)
+            {
+                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 3, 1, step_frac);
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
+                mtx_data_bkgd = mtx_temp;
+                std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+                std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+            }
+            if (NumberOfEigenvectors>=4)
+            {
+                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 4, 1, step_frac);
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
+                mtx_data_bkgd = mtx_temp;
+                std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+                std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+            }
         }
     }
-    if (n_iterations==0)
+    else
     {
-
-        //std::cout << "step_frac = " << 0.05 << std::endl;
-        //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 3, 0.05);
-        //if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
-        //mtx_data_bkgd = mtx_temp;
-        //std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
-
-        //std::cout << "step_frac = " << 0.1 << std::endl;
-        //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 3, 0.1);
-        //if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
-        //mtx_data_bkgd = mtx_temp;
-        //std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
-
-        //std::cout << "step_frac = " << 0.2 << std::endl;
-        //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 3, 0.2);
-        //if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
-        //mtx_data_bkgd = mtx_temp;
-        //std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
-
-        //std::cout << "step_frac = " << 0.5 << std::endl;
-        //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 3, 0.5);
-        //if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
-        //mtx_data_bkgd = mtx_temp;
-        //std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
-
-        std::cout << "step_frac = " << 1.0 << std::endl;
-        mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 3, 1.0);
-        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
-        mtx_data_bkgd = mtx_temp;
-        std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
-
+        for (int iteration=0;iteration<n_iterations;iteration++)
+        {
+            std::cout << "step_frac = " << 1.0 << std::endl;
+            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 3, 1.0);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
+            mtx_data_bkgd = mtx_temp;
+            std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+        }
     }
 
 }

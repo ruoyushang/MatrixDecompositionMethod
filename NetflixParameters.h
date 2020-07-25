@@ -22,6 +22,7 @@ double camera_theta2_cut_lower = 0.;
 double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.2;
 
+bool DoSequential = true;
 int n_iterations = 10;
 int n_dark_samples = 3;
 const int N_energy_bins = 5;
