@@ -653,6 +653,8 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
     double init_chi2 = GetChi2Function(mtx_dark,0);
 
     MatrixXcd mtx_temp = mtx_dark;
+    double eigenvalue_dark_real = 0.;
+    double eigenvalue_dark_imag = 0.;
     double step_frac= 1.0;
     if (DoSequential)
     {
@@ -666,6 +668,9 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
             //if (iteration==3) step_frac = 1.0;
             if (NumberOfEigenvectors>=1)
             {
+                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
+                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).imag();
+                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, step_frac);
                 if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
                 mtx_data_bkgd = mtx_temp;
@@ -674,6 +679,9 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
             }
             if (NumberOfEigenvectors>=2)
             {
+                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).real();
+                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).imag();
+                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, step_frac);
                 if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
                 mtx_data_bkgd = mtx_temp;
@@ -682,6 +690,9 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
             }
             if (NumberOfEigenvectors>=3)
             {
+                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).real();
+                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).imag();
+                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 3, 1, step_frac);
                 if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
                 mtx_data_bkgd = mtx_temp;
@@ -690,6 +701,9 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
             }
             if (NumberOfEigenvectors>=4)
             {
+                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-4).real();
+                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-4).imag();
+                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 4, 1, step_frac);
                 if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
                 mtx_data_bkgd = mtx_temp;
