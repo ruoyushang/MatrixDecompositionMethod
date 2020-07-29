@@ -180,6 +180,49 @@ MatrixXcd CutoffEigenvalueMatrix(MatrixXcd mtx_input, int cutoff_entry)
     }
     return mtx_output;
 }
+
+MatrixXd SmoothingRealVectorsFFT(MatrixXd mtx_input)
+{
+    MatrixXd mtx_output = mtx_input;
+    double *in = new double[2*((mtx_input.rows()+1)/2+1)];
+    double *re_full = new double[mtx_input.rows()];
+    double *im_full = new double[mtx_input.rows()];
+    double *out = new double[mtx_input.rows()];
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        if (col<mtx_input.cols()-NumberOfEigenvectors) continue;
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            in[row] = mtx_input(row,col);
+        }
+        int n_size = mtx_input.rows()+1;
+        TVirtualFFT *fft_own = TVirtualFFT::FFT(1, &n_size, "R2C ES K");
+        fft_own->SetPoints(in);
+        fft_own->Transform();
+        fft_own->GetPointsComplex(re_full,im_full); //Copy all the output points
+        // filtering high frequency
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            if (row>=6)
+            {
+                re_full[row] = 0.;
+                im_full[row] = 0.;
+            }
+        }
+        int n = mtx_input.rows();
+        TVirtualFFT *fft_back = TVirtualFFT::FFT(1, &n, "C2R M K");
+        fft_back->SetPointsComplex(re_full,im_full);
+        fft_back->Transform();
+        fft_back->GetPoints(out);
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            // the y-axes has to be rescaled (factor 1/bins)
+            mtx_output(row,col) = out[row]/double(mtx_input.rows());
+        }
+    }
+    return mtx_output;
+}
+
 void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_input)
 {
 
@@ -189,6 +232,8 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
     MatrixXcd mtx_U_l_init = eigensolver_init_transpose.eigenvectors();
     mtx_U_r_init = MakeRealEigenvectors(mtx_U_r_init);
     mtx_U_l_init = MakeRealEigenvectors(mtx_U_l_init);
+    mtx_U_r_init = SmoothingRealVectorsFFT(mtx_U_r_init.real());
+    mtx_U_l_init = SmoothingRealVectorsFFT(mtx_U_l_init.real());
 
     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
     eigensolver_dark_transpose = ComplexEigenSolver<MatrixXcd>(mtx_dark.transpose());
@@ -196,6 +241,8 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
     MatrixXcd mtx_U_l_dark = eigensolver_dark_transpose.eigenvectors();
     mtx_U_r_dark = MakeRealEigenvectors(mtx_U_r_dark);
     mtx_U_l_dark = MakeRealEigenvectors(mtx_U_l_dark);
+    mtx_U_r_dark = SmoothingRealVectorsFFT(mtx_U_r_dark.real());
+    mtx_U_l_dark = SmoothingRealVectorsFFT(mtx_U_l_dark.real());
 
     MatrixXcd mtx_lambdanu = GetLambdaNuMatrix_v2(mtx_input,mtx_input);
     mtx_lambdanu = CutoffEigenvalueMatrix(mtx_lambdanu, NumberOfEigenvectors);
@@ -377,47 +424,6 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, Vec
 
 }
 
-MatrixXd SmoothingRealVectorsFFT(MatrixXd mtx_input)
-{
-    MatrixXd mtx_output = mtx_input;
-    double *in = new double[2*((mtx_input.rows()+1)/2+1)];
-    double *re_full = new double[mtx_input.rows()];
-    double *im_full = new double[mtx_input.rows()];
-    double *out = new double[mtx_input.rows()];
-    for (int col=0;col<mtx_input.cols();col++)
-    {
-        for (int row=0;row<mtx_input.rows();row++)
-        {
-            in[row] = mtx_input(row,col);
-        }
-        int n_size = mtx_input.rows()+1;
-        TVirtualFFT *fft_own = TVirtualFFT::FFT(1, &n_size, "R2C ES K");
-        fft_own->SetPoints(in);
-        fft_own->Transform();
-        fft_own->GetPointsComplex(re_full,im_full); //Copy all the output points
-        // filtering high frequency
-        for (int row=0;row<mtx_input.rows();row++)
-        {
-            if (row>=5)
-            {
-                re_full[row] = 0.;
-                im_full[row] = 0.;
-            }
-        }
-        int n = mtx_input.rows();
-        TVirtualFFT *fft_back = TVirtualFFT::FFT(1, &n, "C2R M K");
-        fft_back->SetPointsComplex(re_full,im_full);
-        fft_back->Transform();
-        fft_back->GetPoints(out);
-        for (int row=0;row<mtx_input.rows();row++)
-        {
-            // the y-axes has to be rescaled (factor 1/bins)
-            mtx_output(row,col) = out[row]/double(mtx_input.rows());
-        }
-    }
-    return mtx_output;
-}
-
 MatrixXd SmoothingRealVectors(MatrixXd mtx_input)
 {
     MatrixXd mtx_output = mtx_input;
@@ -451,9 +457,6 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     MatrixXcd mtx_q_init = mtx_eigenvector_init;
     MatrixXcd mtx_S = mtx_eigenvalue_init;
     MatrixXcd mtx_p_init = mtx_eigenvector_inv_init.transpose();
-
-    mtx_q_init = SmoothingRealVectorsFFT(mtx_q_init.real());
-    mtx_p_init = SmoothingRealVectorsFFT(mtx_p_init.real());
 
     MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
 
@@ -714,14 +717,22 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
     }
     else
     {
-        for (int iteration=0;iteration<n_iterations;iteration++)
-        {
-            std::cout << "step_frac = " << 1.0 << std::endl;
-            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 3, 1.0);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
-            mtx_data_bkgd = mtx_temp;
-            std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
-        }
+        int n_vectors = 3;
+        eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).real();
+        eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).imag();
+        if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) n_vectors = 2; 
+        eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).real();
+        eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).imag();
+        if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) n_vectors = 1; 
+        eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
+        eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).imag();
+        if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) n_vectors = 0; 
+        if (n_vectors==0) return;
+        std::cout << "step_frac = " << 1.0 << std::endl;
+        mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, n_vectors, 1.0);
+        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
+        mtx_data_bkgd = mtx_temp;
+        std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
     }
 
 }
