@@ -223,6 +223,20 @@ MatrixXd SmoothingRealVectorsFFT(MatrixXd mtx_input)
     return mtx_output;
 }
 
+MatrixXd SmoothingRealVectors(MatrixXd mtx_input)
+{
+    MatrixXd mtx_output = mtx_input;
+    //for (int col=0;col<mtx_input.cols()-1;col++)
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        for (int row=1;row<mtx_input.rows()-1;row++)
+        {
+            mtx_output(row,col) = (mtx_input(row+1,col)+mtx_input(row,col)+mtx_input(row-1,col))/3.;
+        }
+    }
+    return mtx_output;
+}
+
 void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_input)
 {
 
@@ -232,8 +246,8 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
     MatrixXcd mtx_U_l_init = eigensolver_init_transpose.eigenvectors();
     mtx_U_r_init = MakeRealEigenvectors(mtx_U_r_init);
     mtx_U_l_init = MakeRealEigenvectors(mtx_U_l_init);
-    mtx_U_r_init = SmoothingRealVectorsFFT(mtx_U_r_init.real());
-    mtx_U_l_init = SmoothingRealVectorsFFT(mtx_U_l_init.real());
+    mtx_U_r_init = SmoothingRealVectors(mtx_U_r_init.real());
+    mtx_U_l_init = SmoothingRealVectors(mtx_U_l_init.real());
 
     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
     eigensolver_dark_transpose = ComplexEigenSolver<MatrixXcd>(mtx_dark.transpose());
@@ -241,8 +255,8 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
     MatrixXcd mtx_U_l_dark = eigensolver_dark_transpose.eigenvectors();
     mtx_U_r_dark = MakeRealEigenvectors(mtx_U_r_dark);
     mtx_U_l_dark = MakeRealEigenvectors(mtx_U_l_dark);
-    mtx_U_r_dark = SmoothingRealVectorsFFT(mtx_U_r_dark.real());
-    mtx_U_l_dark = SmoothingRealVectorsFFT(mtx_U_l_dark.real());
+    mtx_U_r_dark = SmoothingRealVectors(mtx_U_r_dark.real());
+    mtx_U_l_dark = SmoothingRealVectors(mtx_U_l_dark.real());
 
     MatrixXcd mtx_lambdanu = GetLambdaNuMatrix_v2(mtx_input,mtx_input);
     mtx_lambdanu = CutoffEigenvalueMatrix(mtx_lambdanu, NumberOfEigenvectors);
@@ -424,20 +438,6 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints, Vec
 
 }
 
-MatrixXd SmoothingRealVectors(MatrixXd mtx_input)
-{
-    MatrixXd mtx_output = mtx_input;
-    //for (int col=0;col<mtx_input.cols()-1;col++)
-    for (int col=0;col<mtx_input.cols();col++)
-    {
-        for (int row=1;row<mtx_input.rows()-1;row++)
-        {
-            mtx_output(row,col) = (mtx_input(row+1,col)+mtx_input(row,col)+mtx_input(row-1,col))/3.;
-        }
-    }
-    return mtx_output;
-}
-
 MatrixXcd SmoothingComplexVectors(MatrixXcd mtx_input, int entry_start)
 {
     MatrixXcd mtx_output = mtx_input;
@@ -491,9 +491,9 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
         {
             int nth_entry2 = idx_l + 1;
             //if (nth_entry2>=nth_entry) continue;
-            //if (nth_entry2==nth_entry) continue;
+            if (nth_entry2==nth_entry) continue;
             //if (nth_entry2!=nth_entry) continue;
-            if (nth_entry==1 && nth_entry2==1) continue;
+            //if (nth_entry==1 && nth_entry2==1) continue;
             for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
             {
                 int idx_u = idx_l + idx_k*NumberOfEigenvectors;
@@ -572,8 +572,8 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     std::cout << "mtx_H_init:" << std::endl;
     std::cout << mtx_H_init.block(mtx_H_init.rows()-4,mtx_H_init.cols()-4,4,4) << std::endl;
 
-    //mtx_p_vari = SmoothingRealVectorsFFT(mtx_p_vari);
-    //mtx_q_vari = SmoothingRealVectorsFFT(mtx_q_vari);
+    mtx_p_vari = SmoothingRealVectors(mtx_p_vari);
+    mtx_q_vari = SmoothingRealVectors(mtx_q_vari);
 
     mtx_output = mtx_input;
     mtx_output += mtx_q_init*mtx_S*(mtx_p_vari.transpose()*step_frac);
