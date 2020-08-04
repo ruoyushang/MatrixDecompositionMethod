@@ -568,9 +568,9 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     std::cout << "mtx_H_vari:" << std::endl;
     std::cout << mtx_H_vari.block(mtx_H_vari.rows()-4,mtx_H_vari.cols()-4,4,4) << std::endl;
 
-    MatrixXcd mtx_H_init = mtx_eigenvector_inv_init*mtx_eigenvector_init;
-    std::cout << "mtx_H_init:" << std::endl;
-    std::cout << mtx_H_init.block(mtx_H_init.rows()-4,mtx_H_init.cols()-4,4,4) << std::endl;
+    //MatrixXcd mtx_H_init = mtx_eigenvector_inv_init*mtx_eigenvector_init;
+    //std::cout << "mtx_H_init:" << std::endl;
+    //std::cout << mtx_H_init.block(mtx_H_init.rows()-4,mtx_H_init.cols()-4,4,4) << std::endl;
 
     mtx_p_vari = SmoothingRealVectors(mtx_p_vari);
     mtx_q_vari = SmoothingRealVectors(mtx_q_vari);
@@ -582,9 +582,9 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     mtx_eigenvector_init += mtx_q_vari*step_frac;
     mtx_eigenvector_inv_init += mtx_p_vari.transpose()*step_frac;
 
-    MatrixXcd mtx_H_final = mtx_eigenvector_inv_init*mtx_eigenvector_init;
-    std::cout << "mtx_H_final:" << std::endl;
-    std::cout << mtx_H_final.block(mtx_H_init.rows()-4,mtx_H_init.cols()-4,4,4) << std::endl;
+    //MatrixXcd mtx_H_final = mtx_eigenvector_inv_init*mtx_eigenvector_init;
+    //std::cout << "mtx_H_final:" << std::endl;
+    //std::cout << mtx_H_final.block(mtx_H_init.rows()-4,mtx_H_init.cols()-4,4,4) << std::endl;
 
     return mtx_output;
 
@@ -728,11 +728,29 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
         eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).imag();
         if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) n_vectors = 0; 
         if (n_vectors==0) return;
-        std::cout << "step_frac = " << 1.0 << std::endl;
-        mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, n_vectors, 1.0);
+        std::cout << "step_frac = " << 0.1 << std::endl;
+        mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, n_vectors, 0.1);
         if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
         mtx_data_bkgd = mtx_temp;
         std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+        std::cout << "step_frac = " << 0.2 << std::endl;
+        mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, n_vectors, 0.2);
+        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
+        mtx_data_bkgd = mtx_temp;
+        std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+        std::cout << "step_frac = " << 0.5 << std::endl;
+        mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, n_vectors, 0.5);
+        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
+        mtx_data_bkgd = mtx_temp;
+        std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+        for (int iteration=0;iteration<5;iteration++)
+        {
+            std::cout << "step_frac = " << 1.0 << std::endl;
+            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, n_vectors, 1.0);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
+            mtx_data_bkgd = mtx_temp;
+            std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+        }
     }
 
 }
@@ -986,7 +1004,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     NormalizaDarkMatrix(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e), &Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
                     mtx_dark = fillMatrix(&Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-                    //LeastSquareSolutionMethod(rank_variation, n_iterations);
+                    LeastSquareSolutionMethod(rank_variation, n_iterations);
                     mtx_data_bkgd = mtx_dark;
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
