@@ -1025,7 +1025,7 @@ void GetBrightStars()
         double star_ra = lineData.at(0);
         double star_dec = lineData.at(1);
         double star_brightness = lineData.at(3)+lineData.at(4);
-        if (pow((mean_tele_point_ra-star_ra)*(mean_tele_point_ra-star_ra)+(mean_tele_point_dec-star_dec)*(mean_tele_point_dec-star_dec),0.5)>3.0) continue;
+        if (pow((mean_tele_point_ra-star_ra)*(mean_tele_point_ra-star_ra)+(mean_tele_point_dec-star_dec)*(mean_tele_point_dec-star_dec),0.5)>Skymap_size) continue;
         if (star_brightness<brightness_cut)
         {
             BrightStars_Data.push_back(lineData);
