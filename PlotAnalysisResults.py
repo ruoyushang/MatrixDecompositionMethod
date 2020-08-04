@@ -18,8 +18,8 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 #method_tag = '8bins_constrained'
 #method_tag = '8bins_unconstrained'
-#method_tag = '16bins_constrained'
-method_tag = '16bins_unconstrained'
+method_tag = '16bins_constrained'
+#method_tag = '16bins_unconstrained'
 
 energy_bin_cut_low = 0
 energy_bin_cut_up = 5
@@ -82,16 +82,16 @@ sky_coord = []
 #sample_list += ['RGBJ0710V5']
 #sky_coord += ['07 10 26.4 +59 09 00']
 
-#ONOFF_tag = 'OFF'
-#sample_list += ['Segue1V6']
-#sky_coord += ['10 07 04 +16 04 55']
-#sample_list += ['Segue1V5']
-#sky_coord += ['10 07 04 +16 04 55']
+ONOFF_tag = 'OFF'
+sample_list += ['Segue1V6']
+sky_coord += ['10 07 04 +16 04 55']
+sample_list += ['Segue1V5']
+sky_coord += ['10 07 04 +16 04 55']
 # only V5 data published
 
-ONOFF_tag = 'ON'
-sample_list += ['NGC1275V6']
-sky_coord += ['03 19 48.1 +41 30 42']
+#ONOFF_tag = 'ON'
+#sample_list += ['NGC1275V6']
+#sky_coord += ['03 19 48.1 +41 30 42']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['M82V4']
@@ -105,7 +105,7 @@ sky_coord += ['03 19 48.1 +41 30 42']
 #sample_list += ['CrabV4']
 #sky_coord += ['05 34 31.97 +22 00 52.1']
 
-#ONOFF_tag = 'ON'
+#ONOFF_tag = 'OFF'
 #sample_list += ['Mrk421V5']
 #sky_coord += ['11 04 19 +38 11 41']
 
@@ -178,7 +178,7 @@ sky_coord += ['03 19 48.1 +41 30 42']
 #sample_list += ['GemingaV5']
 #sky_coord += ['06 32 28 +17 22 00']
 
-#ONOFF_tag = 'OFF'
+#ONOFF_tag = 'ON'
 #sample_list += ['ComaV4']
 #sky_coord += ['12 59 48.7 +27 58 50']
 #sample_list += ['ComaV6']
@@ -256,6 +256,7 @@ roi_radius = ROOT.std.vector("double")(10)
 Syst_MDM = 0.02
 Syst_Init = 0.02
 Syst_Redu = 0.02
+Syst_Corr = 0.02
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
@@ -1759,9 +1760,11 @@ def CalculateSystError():
     global Syst_MDM
     global Syst_Init
     global Syst_Redu
+    global Syst_Corr
     Syst_MDM = 0.
     Syst_Init = 0.
     Syst_Redu = 0.
+    Syst_Corr = 0.
     Hist_SystErr_MSCL.Reset()
     Hist_SystErr_MSCW.Reset()
 
@@ -1773,11 +1776,12 @@ def CalculateSystError():
         biny_low_target = Hist_OffData_MSCW_Sum[nth_sample].FindBin(MSCW_lower_cut)
         biny_up_target = Hist_OffData_MSCW_Sum[nth_sample].FindBin(MSCW_blind_cut)-1
 
-        Total_OffData = Hist2D_OffData_Sum[nth_sample].Integral(binx_low_target,binx_up_target,biny_low_target,biny_up_target)
+        Total_OffData = Hist2D_OffBkgd_Sum[nth_sample].Integral(binx_low_target,binx_up_target,biny_low_target,biny_up_target)
         if Total_OffData == 0.: continue
         Hist2D_Diff = Hist2D_OffData_Sum[nth_sample].Clone()
         Hist2D_Diff.Add(Hist2D_OffBkgd_Sum[nth_sample],-1.)
         syst_this = Hist2D_Diff.Integral(binx_low_target,binx_up_target,biny_low_target,biny_up_target)/Total_OffData
+        Syst_Corr += syst_this
         Syst_Redu += pow(syst_this,2)
 
         Total_OnBkgd = Hist2D_OnBkgd_Sum.Integral(binx_low_target,binx_up_target,biny_low_target,biny_up_target)
@@ -1810,6 +1814,7 @@ def CalculateSystError():
     Syst_MDM = pow(Syst_MDM/n_samples_used,0.5)
     Syst_Init = pow(Syst_Init/n_samples_used,0.5)
     Syst_Redu = pow(Syst_Redu/n_samples_used,0.5)
+    Syst_Corr = Syst_Corr/n_samples_used
 
     for binx in range(0,Hist_SystErr_MSCL.GetNbinsX()):
             old_syst = Hist_SystErr_MSCL.GetBinError(binx+1)
@@ -1925,6 +1930,15 @@ def NormalizeTheta2Histograms(FilePath):
             Hist_OnData_RoI_Theta2[nth_roi].Reset()
             Hist_OnBkgd_RoI_Theta2[nth_roi].Reset()
 
+def CorrectEnergyHistograms():
+
+    Hist_OnBkgd_Energy_Sum.Scale(1.+Syst_Corr)
+    Hist_OnBkgd_Zenith_Sum.Scale(1.+Syst_Corr)
+
+    for nth_roi in range(0,len(roi_ra)):
+        Hist_OnBkgd_RoI_Energy_Sum[nth_roi].Scale(1.+Syst_Corr)
+        Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Scale(1.+Syst_Corr)
+
 def StackEnergyHistograms():
 
     Hist_OnData_Energy_Sum.Add(Hist_OnData_Energy)
@@ -1937,6 +1951,14 @@ def StackEnergyHistograms():
         Hist_OnBkgd_RoI_Energy_Sum[nth_roi].Add(Hist_OnBkgd_RoI_Energy[nth_roi])
         Hist_OnData_RoI_MJD_Sum[nth_roi].Add(Hist_OnData_RoI_MJD[nth_roi])
         Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Add(Hist_OnBkgd_RoI_MJD[nth_roi])
+
+def CorrectTheta2Histograms():
+
+    Hist_OnBkgd_Theta2_Sum.Scale(1.+Syst_Corr)
+
+    for nth_roi in range(0,len(roi_ra)):
+        Hist_OnBkgd_RoI_Theta2_Sum[nth_roi].Scale(1.+Syst_Corr)
+        Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Scale(1.+Syst_Corr)
 
 def StackTheta2Histograms():
 
@@ -2078,6 +2100,11 @@ def NormalizeSkyMapHistograms(FilePath):
         Hist_OnBkgd_Skymap_Syst.Reset()
         Hist_OnBkgd_Skymap_Galactic_Syst.Reset()
 
+def CorrectSkymapHistograms():
+
+    Hist_OnBkgd_Skymap_Sum.Scale(1.+Syst_Corr)
+    Hist_OnBkgd_Skymap_Galactic_Sum.Scale(1.+Syst_Corr)
+
 def StackSkymapHistograms():
 
     Hist_OnData_Skymap_Sum.Add(Hist_OnData_Skymap)
@@ -2096,6 +2123,7 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
             bin_content = 0
             bin_error = 0
+            bin_norm = 0
             locationx1 = Hist_Old.GetXaxis().GetBinCenter(bx1)
             locationy1 = Hist_Old.GetYaxis().GetBinCenter(by1)
             for bx2 in range(bx1-nbin_smooth,bx1+nbin_smooth):
@@ -2106,8 +2134,9 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
                             locationy2 = Hist_Old.GetYaxis().GetBinCenter(by2)
                             distance = pow(pow(locationx1-locationx2,2)+pow(locationy1-locationy2,2),0.5)
                             bin_content += ROOT.TMath.Gaus(distance,0,smooth_size)*Hist_Old.GetBinContent(bx2,by2)
+                            bin_norm += ROOT.TMath.Gaus(distance,0,smooth_size)
                             if not addLinearly:
-                                bin_error += pow(ROOT.TMath.Gaus(distance,0,smooth_size)*Hist_Old.GetBinError(bx2,by2),2)
+                                bin_error += ROOT.TMath.Gaus(distance,0,smooth_size)*pow(Hist_Old.GetBinError(bx2,by2),2)
                             else:
                                 bin_error += ROOT.TMath.Gaus(distance,0,smooth_size)*Hist_Old.GetBinError(bx2,by2)
             Hist_Smooth.SetBinContent(bx1,by1,bin_content)
@@ -2582,6 +2611,15 @@ def MatrixDecompositionDemo(name):
     pad1.Draw()
     pad3.Draw()
 
+    line1 = ROOT.TLine(MSCL_plot_lower,MSCW_blind_cut,MSCL_blind_cut,MSCW_blind_cut)
+    line1.SetLineStyle(1)
+    line1.SetLineColor(2)
+    line1.SetLineWidth(2)
+    line2 = ROOT.TLine(MSCL_blind_cut,MSCW_plot_lower,MSCL_blind_cut,MSCW_blind_cut)
+    line2.SetLineStyle(1)
+    line2.SetLineColor(2)
+    line2.SetLineWidth(2)
+
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.50,'M_{Data}' )
     lumilab1.SetNDC()
@@ -2591,6 +2629,8 @@ def MatrixDecompositionDemo(name):
     Hist2D_OnData_Sum.GetYaxis().SetTitle('MSCW')
     Hist2D_OnData_Sum.GetXaxis().SetTitle('MSCL')
     Hist2D_OnData_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
     canvas.SaveAs('output_plots/OnData_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
@@ -2602,10 +2642,12 @@ def MatrixDecompositionDemo(name):
     Hist2D_OnDark_Sum.GetYaxis().SetTitle('MSCW')
     Hist2D_OnDark_Sum.GetXaxis().SetTitle('MSCL')
     Hist2D_OnDark_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
     canvas.SaveAs('output_plots/OnDark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M = #sum_{i=1}^{i=1} #lambda_{i} q_{i} p_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#lambda_{1} q_{1} p_{1}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -2613,10 +2655,12 @@ def MatrixDecompositionDemo(name):
     Hist2D_Rank0_Sum.GetYaxis().SetTitle('MSCW')
     Hist2D_Rank0_Sum.GetXaxis().SetTitle('MSCL')
     Hist2D_Rank0_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
     canvas.SaveAs('output_plots/Rank0_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M = #sum_{i=1}^{i=2} #lambda_{i} q_{i} p_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#lambda_{2} q_{2} p_{2}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -2624,10 +2668,12 @@ def MatrixDecompositionDemo(name):
     Hist2D_Rank1_Sum.GetYaxis().SetTitle('MSCW')
     Hist2D_Rank1_Sum.GetXaxis().SetTitle('MSCL')
     Hist2D_Rank1_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
     canvas.SaveAs('output_plots/Rank1_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M = #sum_{i=1}^{i=3} #lambda_{i} q_{i} p_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#lambda_{3} q_{3} p_{3}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -2635,10 +2681,12 @@ def MatrixDecompositionDemo(name):
     Hist2D_Rank2_Sum.GetYaxis().SetTitle('MSCW')
     Hist2D_Rank2_Sum.GetXaxis().SetTitle('MSCL')
     Hist2D_Rank2_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
     canvas.SaveAs('output_plots/Rank2_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M = #sum_{i=1}^{i=3} #lambda_{i} q_{i} p_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#lambda_{4} q_{4} p_{4}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -2646,6 +2694,8 @@ def MatrixDecompositionDemo(name):
     Hist2D_Rank3_Sum.GetYaxis().SetTitle('MSCW')
     Hist2D_Rank3_Sum.GetXaxis().SetTitle('MSCL')
     Hist2D_Rank3_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
     canvas.SaveAs('output_plots/Rank3_%s_%s.png'%(name,selection_tag))
 
     Hist2D_ErrDark = ROOT.TH2D("Hist2D_ErrDark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -2660,6 +2710,8 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrDark.GetYaxis().SetTitle('MSCW')
     Hist2D_ErrDark.GetXaxis().SetTitle('MSCL')
     Hist2D_ErrDark.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
     canvas.SaveAs('output_plots/ErrorDark_%s_%s.png'%(name,selection_tag))
 
     Hist2D_ErrBkgd = ROOT.TH2D("Hist2D_ErrBkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -2676,6 +2728,8 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrBkgd.GetYaxis().SetTitle('MSCW')
     Hist2D_ErrBkgd.GetXaxis().SetTitle('MSCL')
     Hist2D_ErrBkgd.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
     canvas.SaveAs('output_plots/ErrorBkgd_%s_%s.png'%(name,selection_tag))
 
 def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
@@ -2962,6 +3016,9 @@ def SingleSourceAnalysis(source_list,doMap):
     GetBrightStarInfo(FilePath_List)
 
     CalculateSystError()
+    #CorrectEnergyHistograms()
+    #CorrectTheta2Histograms()
+    #CorrectSkymapHistograms()
 
     PlotsStackedHistograms('%s%s'%(source_list[0],PercentCrab))
 
@@ -3218,7 +3275,7 @@ if energy_bin[energy_bin_cut_low]>1000.:
 
 GetGammaSourceInfo()
 
-SystematicAnalysis()
+#SystematicAnalysis()
 
 SingleSourceAnalysis(sample_list,True)
 print 'n_good_matches = %s'%(n_good_matches)
