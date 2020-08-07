@@ -692,10 +692,28 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
         {
             std::cout << "iteration = " << iteration<< std::endl;
             step_frac= 1.0;
-            //if (iteration==0) step_frac = 0.1;
-            //if (iteration==1) step_frac = 0.2;
-            //if (iteration==2) step_frac = 0.5;
-            //if (iteration==3) step_frac = 1.0;
+            if (NumberOfEigenvectors>=1)
+            {
+                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
+                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).imag();
+                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
+                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, step_frac);
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1)) break;
+                mtx_data_bkgd = mtx_temp;
+                std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+                std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+            }
+            if (NumberOfEigenvectors>=2)
+            {
+                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).real();
+                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).imag();
+                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
+                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, step_frac);
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) break;
+                mtx_data_bkgd = mtx_temp;
+                std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
+                std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
+            }
             if (NumberOfEigenvectors>=1)
             {
                 eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
@@ -727,17 +745,6 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
                 if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 3)) break;
                 mtx_data_bkgd = mtx_temp;
                 std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
-                std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
-            }
-            if (NumberOfEigenvectors>=4)
-            {
-                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-4).real();
-                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-4).imag();
-                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
-                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 4, 1, step_frac);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 4)) break;
-                mtx_data_bkgd = mtx_temp;
-                std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
                 std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
             }
         }
