@@ -834,6 +834,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     vector<double> OFF_NSB;
     for (int off_run=0;off_run<OFF_runlist.size();off_run++)
     {
+        //std::cout << "Complete " << off_run << "/" << OFF_runlist.size()<< std::endl;
         char OFF_runnumber[50];
         char OFF_observation[50];
         sprintf(OFF_runnumber, "%i", int(OFF_runlist[off_run].second));
@@ -880,9 +881,12 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     vector<pair<double,double>> ON_pointing_radec_new;
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {
+        std::cout << "Complete " << nth_sample << "/" << n_dark_samples << std::endl;
         for (int on_run=0;on_run<ON_runlist.size();on_run++)
         {
             double accumulated_time = 0.;
+            double threshold_dNSB = 0.5;
+            double threshold_dElev = 2.0;
             while (accumulated_time<1.0*ON_time[on_run])
             {
                 pair<string,int> best_match;
@@ -914,17 +918,18 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     }
                     if (already_used_run) continue;
 
-                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                    //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
-                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<0.5*0.5)
+                    //double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
+                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<threshold_dNSB*threshold_dNSB)
                     {
                         found_match = true;
                     }
                     if (ON_NSB[on_run]==0.)
                     {
                         found_match = true;
+                        chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
                     }
-                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>5.*5.)
+                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>threshold_dElev*threshold_dElev)
                     {
                         found_match = false;
                     }
@@ -950,7 +955,13 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                 }
                 else
                 {
-                    break;  // searched whole OFF list and found no match.
+                    // searched whole OFF list and found no match.
+                    threshold_dNSB += 0.1;
+                    threshold_dElev += 1.0;
+                    if (threshold_dElev>=10.)
+                    {
+                        break;
+                    }
                 }
             }
             Dark_time.at(on_run).at(nth_sample) = accumulated_time;

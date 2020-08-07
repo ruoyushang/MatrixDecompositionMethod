@@ -231,7 +231,29 @@ MatrixXd SmoothingRealVectors(MatrixXd mtx_input)
     {
         for (int row=1;row<mtx_input.rows()-1;row++)
         {
-            mtx_output(row,col) = (mtx_input(row+1,col)+mtx_input(row,col)+mtx_input(row-1,col))/3.;
+            mtx_output(row,col) = (0.5*mtx_input(row+1,col)+mtx_input(row,col)+0.5*mtx_input(row-1,col))/2.;
+        }
+    }
+    return mtx_output;
+}
+
+MatrixXd SmoothingRealVectorsSpline(MatrixXd mtx_input)
+{
+    MatrixXd mtx_output = mtx_input;
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        TH1D Hist_temp = TH1D("Hist_temp","",mtx_input.rows(),0,mtx_input.rows());
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            Hist_temp.SetBinContent(row+1,mtx_output(row,col));
+        }
+        int n_rebin = 2;
+        Hist_temp.Rebin(n_rebin);
+        TSpline3 spline_eigenvec_real(&Hist_temp);
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            double xx = Hist_temp.GetBinCenter(row+1);
+            mtx_output(row,col) = spline_eigenvec_real.Eval(xx)/double(n_rebin); 
         }
     }
     return mtx_output;
@@ -246,8 +268,8 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
     MatrixXcd mtx_U_l_init = eigensolver_init_transpose.eigenvectors();
     mtx_U_r_init = MakeRealEigenvectors(mtx_U_r_init);
     mtx_U_l_init = MakeRealEigenvectors(mtx_U_l_init);
-    mtx_U_r_init = SmoothingRealVectors(mtx_U_r_init.real());
-    mtx_U_l_init = SmoothingRealVectors(mtx_U_l_init.real());
+    //mtx_U_r_init = SmoothingRealVectors(mtx_U_r_init.real());
+    //mtx_U_l_init = SmoothingRealVectors(mtx_U_l_init.real());
 
     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
     eigensolver_dark_transpose = ComplexEigenSolver<MatrixXcd>(mtx_dark.transpose());
@@ -255,8 +277,8 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
     MatrixXcd mtx_U_l_dark = eigensolver_dark_transpose.eigenvectors();
     mtx_U_r_dark = MakeRealEigenvectors(mtx_U_r_dark);
     mtx_U_l_dark = MakeRealEigenvectors(mtx_U_l_dark);
-    mtx_U_r_dark = SmoothingRealVectors(mtx_U_r_dark.real());
-    mtx_U_l_dark = SmoothingRealVectors(mtx_U_l_dark.real());
+    //mtx_U_r_dark = SmoothingRealVectors(mtx_U_r_dark.real());
+    //mtx_U_l_dark = SmoothingRealVectors(mtx_U_l_dark.real());
 
     MatrixXcd mtx_lambdanu = GetLambdaNuMatrix_v2(mtx_input,mtx_input);
     mtx_lambdanu = CutoffEigenvalueMatrix(mtx_lambdanu, NumberOfEigenvectors);
@@ -452,11 +474,14 @@ MatrixXcd SmoothingComplexVectors(MatrixXcd mtx_input, int entry_start)
 MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, int entry_size, double step_frac)
 {
 
-    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_input);
+    //SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_input);
 
     MatrixXcd mtx_q_init = mtx_eigenvector_init;
     MatrixXcd mtx_S = mtx_eigenvalue_init;
     MatrixXcd mtx_p_init = mtx_eigenvector_inv_init.transpose();
+
+    MatrixXcd mtx_q_dark = mtx_eigenvector_dark;
+    MatrixXcd mtx_p_dark = mtx_eigenvector_inv_dark.transpose();
 
     MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
 
@@ -501,6 +526,8 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
                 mtx_Constraint(idx_u,idx_w) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                //mtx_Constraint(idx_u,idx_n) = mtx_q_dark(idx_i,mtx_input.rows()-nth_entry2).real();
+                //mtx_Constraint(idx_u,idx_w) = mtx_p_dark(idx_i,mtx_input.rows()-nth_entry2).real();
                 vtr_Constraint_Delta(idx_u) = 0.;
             }
         }
@@ -572,8 +599,8 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     //std::cout << "mtx_H_init:" << std::endl;
     //std::cout << mtx_H_init.block(mtx_H_init.rows()-4,mtx_H_init.cols()-4,4,4) << std::endl;
 
-    mtx_p_vari = SmoothingRealVectors(mtx_p_vari);
-    mtx_q_vari = SmoothingRealVectors(mtx_q_vari);
+    //mtx_p_vari = SmoothingRealVectors(mtx_p_vari);
+    //mtx_q_vari = SmoothingRealVectors(mtx_q_vari);
 
     mtx_output = mtx_input;
     mtx_output += mtx_q_init*mtx_S*(mtx_p_vari.transpose()*step_frac);
@@ -589,20 +616,25 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     return mtx_output;
 
 }
-bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, double init_chi2)
+bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, double init_chi2, int rank)
 {
-    //eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
-    //double lambda_data = eigensolver_data.eigenvalues()(mtx_data.cols()-rank).real();
-    //eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-    //double lambda_dark = eigensolver_dark.eigenvalues()(mtx_dark.cols()-rank).real();
-    //ComplexEigenSolver<MatrixXcd> eigensolver_input = ComplexEigenSolver<MatrixXcd>(mtx_input);
-    //double lambda_input = eigensolver_input.eigenvalues()(mtx_input.cols()-rank).real();
-    //double diff_data = (lambda_data-lambda_dark)/lambda_dark;
-    //double diff_input = (lambda_input-lambda_dark)/lambda_dark;
+    eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
+    double lambda_data = eigensolver_data.eigenvalues()(mtx_data.cols()-rank).real();
+    eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
+    double lambda_dark = eigensolver_dark.eigenvalues()(mtx_dark.cols()-rank).real();
+    ComplexEigenSolver<MatrixXcd> eigensolver_input = ComplexEigenSolver<MatrixXcd>(mtx_input);
+    double lambda_input = eigensolver_input.eigenvalues()(mtx_input.cols()-rank).real();
+    double diff_data = (lambda_data-lambda_dark)/lambda_dark;
+    double diff_input = (lambda_input-lambda_dark)/lambda_dark;
     //std::cout << "rank = " << rank << std::endl;
     //std::cout << "lambda_data = " << lambda_data << std::endl;
     //std::cout << "lambda_dark = " << lambda_dark << std::endl;
     //std::cout << "lambda_input = " << lambda_input << std::endl;
+    if (abs(diff_input)>0.1) 
+    {
+        std::cout << "break at rank " << rank << " (deviate from initial by 10%.)" << std::endl;
+        return false;
+    }
     //if (rank<10)
     //{
     //    //if (diff_data<0. && diff_input>0.) 
@@ -610,11 +642,6 @@ bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, double init_chi2)
     //    //    std::cout << "break at rank " << rank << " (unphysical result.)" << std::endl;
     //    //    return false;
     //    //}
-    //    if (abs(diff_input)>1.0) 
-    //    {
-    //        std::cout << "break at rank " << rank << " (deviate from initial by 100%.)" << std::endl;
-    //        return false;
-    //    }
     //}
 
     //init_chi2 = GetChi2Function(mtx_data_bkgd,0);
@@ -675,7 +702,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
                 eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).imag();
                 if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, step_frac);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1)) break;
                 mtx_data_bkgd = mtx_temp;
                 std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
                 std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
@@ -686,7 +713,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
                 eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).imag();
                 if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, step_frac);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) break;
                 mtx_data_bkgd = mtx_temp;
                 std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
                 std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
@@ -697,7 +724,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
                 eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).imag();
                 if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 3, 1, step_frac);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 3)) break;
                 mtx_data_bkgd = mtx_temp;
                 std::cout << "k=3, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
                 std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
@@ -708,7 +735,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
                 eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-4).imag();
                 if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 4, 1, step_frac);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) break;
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 4)) break;
                 mtx_data_bkgd = mtx_temp;
                 std::cout << "k=4, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
                 std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
@@ -730,24 +757,24 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations)
         if (n_vectors==0) return;
         std::cout << "step_frac = " << 0.1 << std::endl;
         mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, n_vectors, 0.1);
-        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
+        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) return;
         mtx_data_bkgd = mtx_temp;
         std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
         std::cout << "step_frac = " << 0.2 << std::endl;
         mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, n_vectors, 0.2);
-        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
+        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) return;
         mtx_data_bkgd = mtx_temp;
         std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
         std::cout << "step_frac = " << 0.5 << std::endl;
         mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, n_vectors, 0.5);
-        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
+        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) return;
         mtx_data_bkgd = mtx_temp;
         std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
-        for (int iteration=0;iteration<5;iteration++)
+        for (int iteration=0;iteration<1;iteration++)
         {
             std::cout << "step_frac = " << 1.0 << std::endl;
             mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, n_vectors, 1.0);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2)) return;
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) return;
             mtx_data_bkgd = mtx_temp;
             std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
         }
