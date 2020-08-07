@@ -82,22 +82,22 @@ sky_coord = []
 #sample_list += ['RGBJ0710V5']
 #sky_coord += ['07 10 26.4 +59 09 00']
 
-ONOFF_tag = 'OFF'
-sample_list += ['Segue1V6']
-sky_coord += ['10 07 04 +16 04 55']
-sample_list += ['Segue1V5']
-sky_coord += ['10 07 04 +16 04 55']
+#ONOFF_tag = 'OFF'
+#sample_list += ['Segue1V6']
+#sky_coord += ['10 07 04 +16 04 55']
+#sample_list += ['Segue1V5']
+#sky_coord += ['10 07 04 +16 04 55']
 # only V5 data published
 
 #ONOFF_tag = 'ON'
 #sample_list += ['NGC1275V6']
 #sky_coord += ['03 19 48.1 +41 30 42']
 
-#ONOFF_tag = 'OFF'
-#sample_list += ['M82V4']
-#sky_coord += ['09 55 52.7 +69 40 46']
-#sample_list += ['M82V5']
-#sky_coord += ['09 55 52.7 +69 40 46']
+ONOFF_tag = 'OFF'
+sample_list += ['M82V4']
+sky_coord += ['09 55 52.7 +69 40 46']
+sample_list += ['M82V5']
+sky_coord += ['09 55 52.7 +69 40 46']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['CrabV5']
@@ -257,6 +257,7 @@ Syst_MDM = 0.02
 Syst_Init = 0.02
 Syst_Redu = 0.02
 Syst_Corr = 0.02
+Syst_Clos = 0.02
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
@@ -1761,34 +1762,47 @@ def CalculateSystError():
     global Syst_Init
     global Syst_Redu
     global Syst_Corr
+    global Syst_Clos
     Syst_MDM = 0.
     Syst_Init = 0.
     Syst_Redu = 0.
     Syst_Corr = 0.
+    Syst_Clos = 0.
     Hist_SystErr_MSCL.Reset()
     Hist_SystErr_MSCW.Reset()
+
+    binx_low_target = Hist_OnData_MSCL_Sum.FindBin(MSCL_lower_cut)
+    binx_up_target = Hist_OnData_MSCL_Sum.FindBin(MSCL_plot_upper)-1
+    binx_blind_target = Hist_OnData_MSCL_Sum.FindBin(MSCL_blind_cut)-1
+    biny_low_target = Hist_OnData_MSCW_Sum.FindBin(MSCW_lower_cut)
+    biny_up_target = Hist_OnData_MSCW_Sum.FindBin(MSCW_plot_upper)-1
+    biny_blind_target = Hist_OnData_MSCW_Sum.FindBin(MSCW_blind_cut)-1
+
+    Hist2D_Diff = Hist2D_OnBkgd_Sum.Clone()
+    Hist2D_Diff.Add(Hist2D_OnData_Sum,-1.)
+    for binx in range(0,Hist2D_Diff.GetNbinsX()):
+        for biny in range(0,Hist2D_Diff.GetNbinsY()):
+            if binx<=binx_blind_target and biny<=biny_blind_target: continue
+            Syst_Clos += pow(Hist2D_Diff.GetBinContent(binx+1,biny+1),2)
+    Total_OnBkgd = Hist2D_OnBkgd_Sum.Integral(binx_low_target,binx_blind_target,biny_low_target,biny_blind_target)
+    Syst_Clos = pow(Syst_Clos/3.,0.5)/Total_OnBkgd
 
     n_samples_used = 0.
     for nth_sample in range(0,n_control_samples):
 
-        binx_low_target = Hist_OffData_MSCL_Sum[nth_sample].FindBin(MSCL_lower_cut)
-        binx_up_target = Hist_OffData_MSCL_Sum[nth_sample].FindBin(MSCL_blind_cut)-1
-        biny_low_target = Hist_OffData_MSCW_Sum[nth_sample].FindBin(MSCW_lower_cut)
-        biny_up_target = Hist_OffData_MSCW_Sum[nth_sample].FindBin(MSCW_blind_cut)-1
-
-        Total_OffData = Hist2D_OffBkgd_Sum[nth_sample].Integral(binx_low_target,binx_up_target,biny_low_target,biny_up_target)
+        Total_OffData = Hist2D_OffBkgd_Sum[nth_sample].Integral(binx_low_target,binx_blind_target,biny_low_target,biny_blind_target)
         if Total_OffData == 0.: continue
         Hist2D_Diff = Hist2D_OffData_Sum[nth_sample].Clone()
         Hist2D_Diff.Add(Hist2D_OffBkgd_Sum[nth_sample],-1.)
-        syst_this = Hist2D_Diff.Integral(binx_low_target,binx_up_target,biny_low_target,biny_up_target)/Total_OffData
+        syst_this = Hist2D_Diff.Integral(binx_low_target,binx_blind_target,biny_low_target,biny_blind_target)/Total_OffData
         Syst_Corr += syst_this
         Syst_Redu += pow(syst_this,2)
 
-        Total_OnBkgd = Hist2D_OnBkgd_Sum.Integral(binx_low_target,binx_up_target,biny_low_target,biny_up_target)
+        Total_OnBkgd = Hist2D_OnBkgd_Sum.Integral(binx_low_target,binx_blind_target,biny_low_target,biny_blind_target)
         if Total_OffData == 0.: continue
         Hist2D_Diff = Hist2D_OnBkgd_Sum.Clone()
         Hist2D_Diff.Add(Hist2D_OnSyst_Sum[nth_sample],-1.)
-        syst_this = Hist2D_Diff.Integral(binx_low_target,binx_up_target,biny_low_target,biny_up_target)/Total_OnBkgd
+        syst_this = Hist2D_Diff.Integral(binx_low_target,binx_blind_target,biny_low_target,biny_blind_target)/Total_OnBkgd
         Syst_Init += pow(syst_this,2)
 
         print '%s th sample syst = %s'%(nth_sample,syst_this)
@@ -1812,6 +1826,7 @@ def CalculateSystError():
 
     Syst_MDM = Syst_Init + Syst_Redu
     Syst_MDM = pow(Syst_MDM/n_samples_used,0.5)
+    Syst_MDM = pow(Syst_MDM*Syst_MDM + Syst_Clos*Syst_Clos,0.5)
     Syst_Init = pow(Syst_Init/n_samples_used,0.5)
     Syst_Redu = pow(Syst_Redu/n_samples_used,0.5)
     Syst_Corr = Syst_Corr/n_samples_used
@@ -2079,6 +2094,12 @@ def NormalizeSkyMapHistograms(FilePath):
     HistName = "Hist_OnData_SR_Skymap_Galactic_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnData_Skymap_Galactic.Reset()
     Hist_OnData_Skymap_Galactic.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_VR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnData_VR_Skymap.Reset()
+    Hist_OnData_VR_Skymap.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_VR_Skymap_Galactic_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnData_VR_Skymap_Galactic.Reset()
+    Hist_OnData_VR_Skymap_Galactic.Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_CR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Skymap.Reset()
     Hist_OnBkgd_Skymap.Add(InputFile.Get(HistName))
@@ -2095,6 +2116,8 @@ def NormalizeSkyMapHistograms(FilePath):
     if Hist2D_OnData.Integral()<1600.:
         Hist_OnData_Skymap.Reset()
         Hist_OnData_Skymap_Galactic.Reset()
+        Hist_OnData_VR_Skymap.Reset()
+        Hist_OnData_VR_Skymap_Galactic.Reset()
         Hist_OnBkgd_Skymap.Reset()
         Hist_OnBkgd_Skymap_Galactic.Reset()
         Hist_OnBkgd_Skymap_Syst.Reset()
@@ -2109,6 +2132,8 @@ def StackSkymapHistograms():
 
     Hist_OnData_Skymap_Sum.Add(Hist_OnData_Skymap)
     Hist_OnData_Skymap_Galactic_Sum.Add(Hist_OnData_Skymap_Galactic)
+    Hist_OnData_VR_Skymap_Sum.Add(Hist_OnData_VR_Skymap)
+    Hist_OnData_VR_Skymap_Galactic_Sum.Add(Hist_OnData_VR_Skymap_Galactic)
     Hist_OnBkgd_Skymap_Sum.Add(Hist_OnBkgd_Skymap)
     Hist_OnBkgd_Skymap_Galactic_Sum.Add(Hist_OnBkgd_Skymap_Galactic)
     Hist_OnBkgd_Skymap_Syst_Sum.Add(Hist_OnBkgd_Skymap_Syst)
@@ -2146,17 +2171,29 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
                 Hist_Smooth.SetBinError(bx1,by1,bin_error)
     return Hist_Smooth
 
-def GetSignificanceMap(Hist_SR,Hist_Bkg,syst_method):
+def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_VR,Hist_Syst,syst_method):
+
+    Hist_Skymap_Syst = Hist_VR.Clone()
+    Hist_Skymap_Syst.Add(Hist_Syst,-1.)
+    Hist_Skymap_Syst.Divide(Hist_Syst)
 
     Hist_Skymap = Hist_SR.Clone()
     for bx in range(0,Hist_SR.GetNbinsX()):
         for by in range(0,Hist_SR.GetNbinsY()):
             if Hist_Bkg.GetBinContent(bx+1,by+1)==0: continue
+            sky_x = Hist_SR.GetXaxis().GetBinCenter(bx+1)
+            sky_y = Hist_SR.GetYaxis().GetBinCenter(by+1)
             NSR = Hist_SR.GetBinContent(bx+1,by+1)
             NSR_Err = Hist_SR.GetBinError(bx+1,by+1)
             NBkg = Hist_Bkg.GetBinContent(bx+1,by+1)
-            NBkg_Err = pow(pow(Hist_Bkg.GetBinError(bx+1,by+1),2)+pow(syst_method*Hist_Bkg.GetBinContent(bx+1,by+1),2),0.5)
-            if syst_method==0.: NBkg_Err = pow(Hist_Bkg.GetBinContent(bx+1,by+1),0.5)
+            bx2 = Hist_Skymap_Syst.GetXaxis().FindBin(sky_x)
+            by2 = Hist_Skymap_Syst.GetYaxis().FindBin(sky_y)
+            Shape_Err = Hist_Skymap_Syst.GetBinContent(bx2+1,by2+1)*NBkg
+            #Shape_Err = 0.
+            Norm_Err = syst_method*NBkg
+            Stat_Err = Hist_Bkg.GetBinError(bx+1,by+1)
+            NBkg_Err = pow(pow(Stat_Err,2)+pow(Norm_Err,2)+pow(Shape_Err,2),0.5)
+            if syst_method==0.: NBkg_Err = Stat_Err
             Sig = 1.*CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
             Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
     return Hist_Skymap
@@ -2176,31 +2213,15 @@ def reflectXaxis(hist):
             hT.SetBinContent( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinContent( binx, biny ) )
     return hT
 
-def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,name):
+def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_VR,Hist_Syst,xtitle,ytitle,name):
 
-    max_sig = 0.
-    Hist_Skymap = Hist_SR.Clone()
-    for bx in range(0,Hist_SR.GetNbinsX()):
-        for by in range(0,Hist_SR.GetNbinsY()):
-            if Hist_Bkg.GetBinContent(bx+1,by+1)==0: continue
-            NSR = Hist_SR.GetBinContent(bx+1,by+1)
-            NSR_Err = Hist_SR.GetBinError(bx+1,by+1)
-            NBkg = Hist_Bkg.GetBinContent(bx+1,by+1)
-            Shape_Err = Hist_Syst.GetBinContent(bx+1,by+1)
-            Shape_Err = 0.
-            #if Shape_Err!=0.:
-            #    if (NSR-NBkg)/Shape_Err<0.: Shape_Err = 0. 
-            Norm_Err = syst_method*Hist_Bkg.GetBinContent(bx+1,by+1)
-            Stat_Err = Hist_Bkg.GetBinError(bx+1,by+1)
-            NBkg_Err = pow(pow(Stat_Err,2)+pow(Norm_Err,2)+pow(Shape_Err,2),0.5)
-            if syst_method==0.: NBkg_Err = pow(Hist_Bkg.GetBinContent(bx+1,by+1),0.5)
-            Sig = 1.*CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
-            if Sig>max_sig: max_sig = Sig
-            Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
+    Hist_Skymap = GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_VR,Hist_Syst,syst_method)
     Hist_Skymap = reflectXaxis(Hist_Skymap)
+    max_sig = Hist_Skymap.GetMaximum()
 
-    Hist_Skymap_Syst = Hist_Syst.Clone()
-    Hist_Skymap_Syst.Divide(Hist_Bkg)
+    Hist_Skymap_Syst = Hist_VR.Clone()
+    Hist_Skymap_Syst.Add(Hist_Syst,-1.)
+    Hist_Skymap_Syst.Divide(Hist_Syst)
     Hist_Skymap_Syst = reflectXaxis(Hist_Skymap_Syst)
 
     other_star_labels = []
@@ -2970,7 +2991,94 @@ def SystematicAnalysis():
         Hist2D_Converge.Draw("COL4Z")
         canvas.SaveAs('output_plots/Converge_%s.png'%(selection_tag))
 
+def MakeGaussComparisonPlot(Hists,legends,colors,title,name):
+    
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+    pad1.SetBottomMargin(0.15)
+    pad1.SetTopMargin(0.0)
+    pad1.SetBorderMode(0)
+    pad1.Draw()
+    pad3.Draw()
 
+    pad1.cd()
+
+    max_heigh = 0
+    max_hist = 0
+    mean = []
+    rms = []
+    amp = []
+    for h in range(0,len(Hists)):
+        mean += [0]
+        rms += [0]
+        amp += [0]
+        if Hists[h]!=0:
+            Hists[h].GetXaxis().SetTitle(title)
+            #Hists[h].GetXaxis().SetRangeUser(0,8)
+            Hists[h].GetXaxis().SetRangeUser(-5,8)
+            if max_heigh < Hists[h].GetMaximum(): 
+                max_heigh = Hists[h].GetMaximum()
+                max_hist = h
+
+    #Hists[max_hist].SetMinimum(0)
+    #Hists[max_hist].SetMaximum(1)
+    Hists[max_hist].Draw("E")
+
+    for h in range(0,len(Hists)):
+        if Hists[h]!=0:
+            Hists[h].SetLineColor(colors[h])
+            if h==0:
+                Hists[h].Draw("hist same")
+            else:
+                Hists[h].Draw("E same")
+
+    pad3.cd()
+    legend = ROOT.TLegend(0.1,0.1,0.94,0.9)
+    legend.SetTextFont(42)
+    legend.SetBorderSize(0)
+    legend.SetTextSize(0.15)
+    legend.SetFillColor(0)
+    legend.SetFillStyle(0)
+    legend.SetLineColor(0)
+    legend.Clear()
+    for h in range(0,len(Hists)):
+        if Hists[h]!=0:
+            legend.AddEntry(Hists[h],'%s, mean = %.2f, RMS = %.2f'%(legends[h],Hists[h].GetMean(),Hists[h].GetRMS()),"pl")
+            #legend.AddEntry(Hists[h],'%s'%(legends[h]),"pl")
+    legend.Draw("SAME")
+
+    pad1.SetLogy()
+
+    c_both.SaveAs('output_plots/%s.png'%(name))
+
+def MakeSignificanceDistribution(Hist2D_Sig,Hist2D_SR,Hist2D_Bkg,name):
+
+    func = ROOT.TF1("func","gaus", -5, 8)
+    func.SetParameters(10.,0.,1.0)
+    Hist_Sig = ROOT.TH1D("Hist_Sig","",65,-5,8)
+    for bx in range(0,Hist2D_Sig.GetNbinsX()):
+        for by in range(0,Hist2D_Sig.GetNbinsY()):
+            if Hist2D_SR.GetBinContent(bx+1,by+1)==0: continue
+            content = Hist2D_Sig.GetBinContent(bx+1,by+1)
+            Hist_Sig.Fill(content)
+    Hist_Model = ROOT.TH1D("Hist_Model","",65,-5,8)
+    Hist_Model.FillRandom("func",10000*int(Hist_Sig.GetEntries()))
+    Hist_Model.Scale(1./10000.)
+    Hist_Model.SetMinimum(0.5)
+    Hist_list = []
+    legend_list = []
+    color_list = []
+    Hist_list += [Hist_Model]
+    legend_list += ['Ref. Gaussian']
+    color_list += [2]
+    Hist_list += [Hist_Sig]
+    legend_list += ['Data']
+    color_list += [4]
+    MakeGaussComparisonPlot(Hist_list,legend_list,color_list,'significance','SigDist_%s'%(name))
 
 def SingleSourceAnalysis(source_list,doMap):
 
@@ -3030,22 +3138,32 @@ def SingleSourceAnalysis(source_list,doMap):
     Hist_OnData_Skymap_Galactic_Sum.Rebin2D(n_rebin,n_rebin)
     Hist_OnBkgd_Skymap_Sum.Rebin2D(n_rebin,n_rebin)
     Hist_OnBkgd_Skymap_Galactic_Sum.Rebin2D(n_rebin,n_rebin)
+    Hist_OnData_VR_Skymap_Sum.Rebin2D(n_rebin,n_rebin)
+    Hist_OnData_VR_Skymap_Galactic_Sum.Rebin2D(n_rebin,n_rebin)
     Hist_OnBkgd_Skymap_Syst_Sum.Rebin2D(n_rebin,n_rebin)
     Hist_OnBkgd_Skymap_Galactic_Syst_Sum.Rebin2D(n_rebin,n_rebin)
 
-    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_Sum,'RA','Dec','Skymap_RaDec_MDM_%s%s'%(source_name,PercentCrab))
-
     Hist_OnData_Skymap_smooth = Smooth2DMap(Hist_OnData_Skymap_Sum,smooth_size,False)
+    Hist_OnData_VR_Skymap_smooth = Smooth2DMap(Hist_OnData_VR_Skymap_Sum,smooth_size,False)
     Hist_OnBkgd_Skymap_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Sum,smooth_size,False)
     Hist_OnBkgd_Skymap_Syst_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_Sum,smooth_size,False)
     Hist_OnData_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnData_Skymap_Galactic_Sum,smooth_size,False)
+    Hist_OnData_VR_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnData_VR_Skymap_Galactic_Sum,smooth_size,False)
     Hist_OnBkgd_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Sum,smooth_size,False)
     Hist_OnBkgd_Skymap_Galactic_Syst_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_Sum,smooth_size,False)
 
-    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_smooth,'RA','Dec','Skymap_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
-    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_smooth,'gal. l.','gal. b.','Skymap_Smooth_Galactic_MDM_%s%s'%(source_name,PercentCrab))
+    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnData_VR_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_smooth,'RA','Dec','Skymap_RaDec_MDM_%s%s'%(source_name,PercentCrab))
 
-    Hist_Significance_Skymap_smooth = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Syst_MDM)
+    Hist_Significance_Skymap = GetSignificanceMap(Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnData_VR_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_smooth,Syst_MDM)
+    MakeSignificanceDistribution(Hist_Significance_Skymap,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,'SigDist_MDM_%s%s'%(source_name,PercentCrab))
+    Hist_Significance_Skymap_NoSyst = GetSignificanceMap(Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnData_VR_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_smooth,0.)
+    MakeSignificanceDistribution(Hist_Significance_Skymap_NoSyst,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,'SigDist_NoSyst_MDM_%s%s'%(source_name,PercentCrab))
+
+    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,Hist_OnData_VR_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_smooth,'RA','Dec','Skymap_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_smooth,Hist_OnData_VR_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_smooth,'gal. l.','gal. b.','Skymap_Smooth_Galactic_MDM_%s%s'%(source_name,PercentCrab))
+
+    Hist_Significance_Skymap_smooth = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Hist_OnData_VR_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_smooth,Syst_MDM)
+
 
     init_x = source_ra
     init_y = source_dec
@@ -3160,15 +3278,19 @@ Hist_OnData_Zenith = ROOT.TH1D("Hist_OnData_Zenith","",45,0,90)
 Hist_OnBkgd_Zenith = ROOT.TH1D("Hist_OnBkgd_Zenith","",45,0,90)
 
 Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnData_VR_Skymap = ROOT.TH2D("Hist_OnData_VR_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnBkgd_Skymap_Syst = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnData_Skymap_Sum = ROOT.TH2D("Hist_OnData_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnData_VR_Skymap_Sum = ROOT.TH2D("Hist_OnData_VR_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnBkgd_Skymap_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnBkgd_Skymap_Syst_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnData_Skymap_Galactic = ROOT.TH2D("Hist_OnData_Skymap_Galactic","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnData_VR_Skymap_Galactic = ROOT.TH2D("Hist_OnData_VR_Skymap_Galactic","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
 Hist_OnBkgd_Skymap_Galactic = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
 Hist_OnBkgd_Skymap_Galactic_Syst = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
 Hist_OnData_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_Skymap_Galactic_Sum","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnData_VR_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_VR_Skymap_Galactic_Sum","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
 Hist_OnBkgd_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sum","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
 Hist_OnBkgd_Skymap_Galactic_Syst_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst_Sum","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
 
@@ -3283,3 +3405,4 @@ print 'n_good_matches = %s'%(n_good_matches)
 print "Syst_MDM = %s"%(Syst_MDM) 
 print "Syst_Init = %s"%(Syst_Init) 
 print "Syst_Redu = %s"%(Syst_Redu) 
+print "Syst_Clos = %s"%(Syst_Clos) 

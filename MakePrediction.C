@@ -1173,12 +1173,16 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH1D> Hist_OnData_CR_Skymap_Theta2_OneGroup;
     vector<TH2D> Hist_OnData_SR_Skymap;
     vector<TH2D> Hist_OnData_SR_Skymap_OneGroup;
+    vector<TH2D> Hist_OnData_VR_Skymap;
+    vector<TH2D> Hist_OnData_VR_Skymap_OneGroup;
     vector<TH2D> Hist_OnData_CR_Skymap;
     vector<TH2D> Hist_OnData_CR_Skymap_OneGroup;
     vector<TH2D> Hist_OnData_CR_Skymap_Syst;
     vector<TH2D> Hist_OnData_CR_Skymap_Syst_OneGroup;
     vector<TH2D> Hist_OnData_SR_Skymap_Galactic;
     vector<TH2D> Hist_OnData_SR_Skymap_Galactic_OneGroup;
+    vector<TH2D> Hist_OnData_VR_Skymap_Galactic;
+    vector<TH2D> Hist_OnData_VR_Skymap_Galactic_OneGroup;
     vector<TH2D> Hist_OnData_CR_Skymap_Galactic;
     vector<TH2D> Hist_OnData_CR_Skymap_Galactic_OneGroup;
     vector<TH2D> Hist_OnData_CR_Skymap_Galactic_Syst;
@@ -1195,6 +1199,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_CR_Skymap_Theta2_OneGroup.push_back(TH1D("Hist_OnData_CR_Skymap_Theta2_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_SR_Skymap.push_back(TH2D("Hist_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_SR_Skymap_OneGroup.push_back(TH2D("Hist_OnData_SR_Skymap_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnData_VR_Skymap.push_back(TH2D("Hist_OnData_VR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnData_VR_Skymap_OneGroup.push_back(TH2D("Hist_OnData_VR_Skymap_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_CR_Skymap.push_back(TH2D("Hist_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_CR_Skymap_OneGroup.push_back(TH2D("Hist_OnData_CR_Skymap_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_CR_Skymap_Syst.push_back(TH2D("Hist_OnData_Skymap_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
@@ -1202,6 +1208,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
         Hist_OnData_SR_Skymap_Galactic.push_back(TH2D("Hist_OnData_SR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
         Hist_OnData_SR_Skymap_Galactic_OneGroup.push_back(TH2D("Hist_OnData_SR_Skymap_Galactic_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+        Hist_OnData_VR_Skymap_Galactic.push_back(TH2D("Hist_OnData_VR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+        Hist_OnData_VR_Skymap_Galactic_OneGroup.push_back(TH2D("Hist_OnData_VR_Skymap_Galactic_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
         Hist_OnData_CR_Skymap_Galactic.push_back(TH2D("Hist_OnData_CR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
         Hist_OnData_CR_Skymap_Galactic_OneGroup.push_back(TH2D("Hist_OnData_CR_Skymap_Galactic_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
         Hist_OnData_CR_Skymap_Galactic_Syst.push_back(TH2D("Hist_OnData_Skymap_Galactic_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
@@ -1329,12 +1337,16 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 hist_name  = "Hist_OnData_SR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
                 Hist_OnData_SR_Skymap_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_VR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_VR_Skymap_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 hist_name  = "Hist_OnData_CR_Skymap_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
                 Hist_OnData_CR_Skymap_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 hist_name  = "Hist_OnData_CR_Skymap_Syst_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
                 Hist_OnData_CR_Skymap_Syst_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 hist_name  = "Hist_OnData_SR_Skymap_Galactic_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
                 Hist_OnData_SR_Skymap_Galactic_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_VR_Skymap_Galactic_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_VR_Skymap_Galactic_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 hist_name  = "Hist_OnData_CR_Skymap_Galactic_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
                 Hist_OnData_CR_Skymap_Galactic_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 hist_name  = "Hist_OnData_CR_Skymap_Galactic_Syst_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -1403,24 +1415,30 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
                     int binx_lower = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_lower);
                     int binx_blind = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
+                    int binx_validate = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_blind+0.2)-1;
                     int binx_upper = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(1.)-1;
                     int biny_lower = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_lower);
                     int biny_blind = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
+                    int biny_validate = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind+0.2)-1;
                     int biny_upper = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(1.)-1;
                     double Bkgd_SR_Integral = Hist_OneGroup_Bkgd_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+                    double Bkgd_VR_Integral = Hist_OnData_VR_Skymap_OneGroup.at(e).Integral();
                     double Old_Integral = Hist_OnData_CR_Energy_OneGroup.at(e).Integral();
+                    double Old_Integral_VR = Hist_OnData_CR_Skymap_Syst_OneGroup.at(e).Integral();
                     double scale = 0.;
+                    double scale_vr = 0.;
                     if (Old_Integral>0.)
                     {
                         scale = Bkgd_SR_Integral/Old_Integral;
+                        scale_vr = Bkgd_VR_Integral/Old_Integral_VR;
                     }
                     Hist_OnData_CR_Energy_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Zenith_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_Galactic_OneGroup.at(e).Scale(scale);
-                    Hist_OnData_CR_Skymap_Syst_OneGroup.at(e).Scale(scale);
-                    Hist_OnData_CR_Skymap_Galactic_Syst_OneGroup.at(e).Scale(scale);
+                    Hist_OnData_CR_Skymap_Syst_OneGroup.at(e).Scale(scale_vr);
+                    Hist_OnData_CR_Skymap_Galactic_Syst_OneGroup.at(e).Scale(scale_vr);
                     for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
                     {
                         Hist_OnData_CR_RoI_Energy_OneGroup.at(nth_roi).at(e).Scale(scale);
@@ -1434,9 +1452,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     Hist_OnData_SR_Skymap_Theta2.at(e).Add(&Hist_OnData_SR_Skymap_Theta2_OneGroup.at(e));
                     Hist_OnData_CR_Skymap_Theta2.at(e).Add(&Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e));
                     Hist_OnData_SR_Skymap.at(e).Add(&Hist_OnData_SR_Skymap_OneGroup.at(e));
+                    Hist_OnData_VR_Skymap.at(e).Add(&Hist_OnData_VR_Skymap_OneGroup.at(e));
                     Hist_OnData_CR_Skymap.at(e).Add(&Hist_OnData_CR_Skymap_OneGroup.at(e));
                     Hist_OnData_CR_Skymap_Syst.at(e).Add(&Hist_OnData_CR_Skymap_Syst_OneGroup.at(e));
                     Hist_OnData_SR_Skymap_Galactic.at(e).Add(&Hist_OnData_SR_Skymap_Galactic_OneGroup.at(e));
+                    Hist_OnData_VR_Skymap_Galactic.at(e).Add(&Hist_OnData_VR_Skymap_Galactic_OneGroup.at(e));
                     Hist_OnData_CR_Skymap_Galactic.at(e).Add(&Hist_OnData_CR_Skymap_Galactic_OneGroup.at(e));
                     Hist_OnData_CR_Skymap_Galactic_Syst.at(e).Add(&Hist_OnData_CR_Skymap_Galactic_Syst_OneGroup.at(e));
                     for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
@@ -1462,9 +1482,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 Hist_OnData_SR_Skymap_Theta2_OneGroup.at(e).Reset();
                 Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e).Reset();
                 Hist_OnData_SR_Skymap_OneGroup.at(e).Reset();
+                Hist_OnData_VR_Skymap_OneGroup.at(e).Reset();
                 Hist_OnData_CR_Skymap_OneGroup.at(e).Reset();
                 Hist_OnData_CR_Skymap_Syst_OneGroup.at(e).Reset();
                 Hist_OnData_SR_Skymap_Galactic_OneGroup.at(e).Reset();
+                Hist_OnData_VR_Skymap_Galactic_OneGroup.at(e).Reset();
                 Hist_OnData_CR_Skymap_Galactic_OneGroup.at(e).Reset();
                 Hist_OnData_CR_Skymap_Galactic_Syst_OneGroup.at(e).Reset();
                 for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
@@ -1652,9 +1674,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_SR_Skymap_Theta2.at(e).Write();
         Hist_OnData_CR_Skymap_Theta2.at(e).Write();
         Hist_OnData_SR_Skymap.at(e).Write();
+        Hist_OnData_VR_Skymap.at(e).Write();
         Hist_OnData_CR_Skymap.at(e).Write();
         Hist_OnData_CR_Skymap_Syst.at(e).Write();
         Hist_OnData_SR_Skymap_Galactic.at(e).Write();
+        Hist_OnData_VR_Skymap_Galactic.at(e).Write();
         Hist_OnData_CR_Skymap_Galactic.at(e).Write();
         Hist_OnData_CR_Skymap_Galactic_Syst.at(e).Write();
     }
