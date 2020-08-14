@@ -1434,10 +1434,12 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     double Old_Integral_VR = Hist_OnData_CR_Skymap_Syst_OneGroup.at(e).Integral();
                     double scale = 0.;
                     double scale_vr = 0.;
+                    double scale_vrsr = 0.;
                     if (Old_Integral>0.)
                     {
                         scale = Bkgd_SR_Integral/Old_Integral;
                         scale_vr = Bkgd_VR_Integral/Old_Integral_VR;
+                        scale_vrsr = Bkgd_SR_Integral/Bkgd_VR_Integral;
                     }
                     Hist_OnData_CR_Energy_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Zenith_OneGroup.at(e).Scale(scale);
@@ -1445,7 +1447,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     Hist_OnData_CR_Skymap_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_Galactic_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_Syst_OneGroup.at(e).Scale(scale_vr);
+                    Hist_OnData_CR_Skymap_Syst_OneGroup.at(e).Add(&Hist_OnData_VR_Skymap_OneGroup.at(e),-1.);
+                    Hist_OnData_CR_Skymap_Syst_OneGroup.at(e).Scale(scale_vrsr);
                     Hist_OnData_CR_Skymap_Galactic_Syst_OneGroup.at(e).Scale(scale_vr);
+                    Hist_OnData_CR_Skymap_Galactic_Syst_OneGroup.at(e).Add(&Hist_OnData_VR_Skymap_Galactic_OneGroup.at(e),-1.);
+                    Hist_OnData_CR_Skymap_Galactic_Syst_OneGroup.at(e).Scale(scale_vrsr);
                     for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
                     {
                         Hist_OnData_CR_RoI_Energy_OneGroup.at(nth_roi).at(e).Scale(scale);

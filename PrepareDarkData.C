@@ -344,6 +344,31 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 337.183333333;
                 Source_Dec = 61.1666666667;
     }
+    if (source_name=="BLLacV5")
+    {
+            Source_RA = 330.680416667;
+                Source_Dec = 42.2777777778;
+    }
+    if (source_name=="BLLacV6")
+    {
+            Source_RA = 330.680416667;
+                Source_Dec = 42.2777777778;
+    }
+    if (source_name=="GammaCygniV6")
+    {
+            Source_RA = 305.02;
+                Source_Dec = 40.7572222222;
+    }
+    if (source_name=="GammaCygniV5")
+    {
+            Source_RA = 305.02;
+                Source_Dec = 40.7572222222;
+    }
+    if (source_name=="GammaCygniV4")
+    {
+            Source_RA = 305.02;
+                Source_Dec = 40.7572222222;
+    }
     if (source_name=="G079")
     {
             Source_RA = 308.119;
@@ -538,7 +563,7 @@ bool FoV(bool remove_bright_stars) {
     double x = ra_sky-mean_tele_point_ra;
     double y = dec_sky-mean_tele_point_dec;
     if (source_theta2_cut>(x*x+y*y)) return false;
-    if (remove_bright_stars && CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    //if (remove_bright_stars && CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
@@ -1060,8 +1085,8 @@ bool SignalSelectionTheta2()
 bool ValidationSelectionTheta2()
 {
     if (SignalSelectionTheta2()) return false;
-    if (MSCW>MSCW_cut_blind+0.2) return false;
-    if (MSCL>MSCL_cut_blind+0.2) return false;
+    if (MSCW<MSCW_cut_blind+0.2 && MSCL<MSCL_cut_blind+0.2) return false;
+    if (MSCW>MSCW_cut_blind+0.2 && MSCL>MSCL_cut_blind+0.2) return false;
     return true;
 }
 bool ControlSelectionTheta2()
