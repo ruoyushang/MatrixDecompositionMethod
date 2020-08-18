@@ -106,11 +106,11 @@ sky_coord = []
 #sample_list += ['M82V5']
 #sky_coord += ['09 55 52.7 +69 40 46']
 
-ONOFF_tag = 'ON'
-sample_list += ['CrabV5']
-sky_coord += ['05 34 31.97 +22 00 52.1']
-sample_list += ['CrabV4']
-sky_coord += ['05 34 31.97 +22 00 52.1']
+#ONOFF_tag = 'ON'
+#sample_list += ['CrabV5']
+#sky_coord += ['05 34 31.97 +22 00 52.1']
+#sample_list += ['CrabV4']
+#sky_coord += ['05 34 31.97 +22 00 52.1']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['Mrk421V5']
@@ -149,13 +149,13 @@ sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['BoomerangV4']
 #sky_coord += ['22 28 44 +61 10 00']
 
-#ONOFF_tag = 'ON'
-#sample_list += ['MGRO_J1908_V6']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V5']
-#sky_coord += ['19 07 54 +06 16 07']
-#sample_list += ['MGRO_J1908_V4']
-#sky_coord += ['19 07 54 +06 16 07']
+ONOFF_tag = 'ON'
+sample_list += ['MGRO_J1908_V6']
+sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V5']
+sky_coord += ['19 07 54 +06 16 07']
+sample_list += ['MGRO_J1908_V4']
+sky_coord += ['19 07 54 +06 16 07']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['MAGIC_J1857_V6']
@@ -768,6 +768,10 @@ def GetShowerHistogramsFromFile(FilePath):
         print 'Getting histogram %s'%(HistName)
         Hist2D_OnSyst[nth_sample].Reset()
         Hist2D_OnSyst[nth_sample].Add(InputFile.Get(HistName))
+
+        HistName = "Hist_OnSyst_Chi2_V%s_ErecS%sto%s"%(nth_sample,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        print 'Getting histogram %s'%(HistName)
+        Hist1D_OnSyst_Chi2[nth_sample].Add(InputFile.Get(HistName))
 
         if Hist2D_OffData[nth_sample].Integral()<1600.:
             Hist2D_OffData[nth_sample].Reset()
@@ -2295,11 +2299,36 @@ def reflectXaxis(hist):
             hT.SetBinContent( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinContent( binx, biny ) )
     return hT
 
+def GetHawcSkymap(hist_map, isRaDec):
+
+    hist_map.Reset()
+    inputFile = open('hawc_map.txt')
+    for line in inputFile:
+        sig = float(line.split(' ')[0])
+        l = float(line.split(' ')[1])
+        b = float(line.split(' ')[2])
+        binx = hist_map.GetXaxis().FindBin(l)
+        biny = hist_map.GetYaxis().FindBin(b)
+        old_sig = hist_map.GetBinContent(binx+1,biny+1)
+        hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
+    return hist_map
+
 def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,name):
 
     Hist_Skymap = GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,syst_method)
     Hist_Skymap = reflectXaxis(Hist_Skymap)
     max_sig = Hist_Skymap.GetMaximum()
+
+    isRaDec = False
+    if 'RaDec' in name: isRaDec = True
+    Hist_HAWC = Hist_SR.Clone()
+    Hist_HAWC = GetHawcSkymap(Hist_HAWC, isRaDec)
+    Hist_HAWC = reflectXaxis(Hist_HAWC)
+    Hist_HAWC.SetLineColor(2)
+    Hist_HAWC.SetContour(3)
+    Hist_HAWC.SetContourLevel(0,5)
+    Hist_HAWC.SetContourLevel(1,7)
+    Hist_HAWC.SetContourLevel(2,10)
 
     Hist_Skymap_Syst = Hist_Syst.Clone()
     Hist_Skymap_Syst.Divide(Hist_Bkg)
@@ -2415,6 +2444,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     pad1.cd()
     Hist_Skymap.Draw("COL4Z")
     Hist_Contour.Draw("CONT3 same")
+    Hist_HAWC.Draw("CONT3 same")
     Hist_Skymap.GetXaxis().SetLabelOffset(999)
     Hist_Skymap.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap.GetXaxis().GetXmin()
@@ -2834,6 +2864,52 @@ def MatrixDecompositionDemo(name):
     line2.Draw("same")
     canvas.SaveAs('output_plots/ErrorBkgd_%s_%s.png'%(name,selection_tag))
 
+def MakeSystChi2Plot():
+    
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+    pad1.SetBottomMargin(0.2)
+    pad1.SetTopMargin(0.0)
+    pad1.SetLeftMargin(0.2)
+    pad1.SetBorderMode(0)
+    #if logy: pad1.SetGrid()
+    pad1.Draw()
+    pad3.Draw()
+
+    pad3.cd()
+    lumilab2 = ROOT.TLatex(0.15,0.50,'' )
+    lumilab2.SetNDC()
+    lumilab2.SetTextSize(0.2)
+    lumilab2.Draw()
+
+    pad1.cd()
+
+    y_min = 1e10
+    for nth_sample in range(0,n_control_samples):
+        if y_min>Hist1D_OnSyst_Chi2[nth_sample].GetMinimum():
+            y_min = Hist1D_OnSyst_Chi2[nth_sample].GetMinimum()
+    Hist1D_OnSyst_Chi2[0].GetXaxis().SetTitleOffset(0.8)
+    Hist1D_OnSyst_Chi2[0].GetXaxis().SetTitleSize(0.06)
+    Hist1D_OnSyst_Chi2[0].GetXaxis().SetLabelSize(0.06)
+    Hist1D_OnSyst_Chi2[0].GetYaxis().SetLabelSize(0.06)
+    Hist1D_OnSyst_Chi2[0].GetYaxis().SetTitleOffset(1.2)
+    Hist1D_OnSyst_Chi2[0].GetYaxis().SetTitleSize(0.06)
+    Hist1D_OnSyst_Chi2[0].GetXaxis().SetTitle('variation')
+    Hist1D_OnSyst_Chi2[0].GetYaxis().SetTitle('#chi^{2}')
+    Hist1D_OnSyst_Chi2[0].SetMinimum(y_min)
+    Hist1D_OnSyst_Chi2[0].Draw()
+    for nth_sample in range(0,n_control_samples):
+        Hist1D_OnSyst_Chi2[nth_sample].SetLineColor(nth_sample+1)
+        Hist1D_OnSyst_Chi2[nth_sample].Draw('same')
+
+    pad3.cd()
+
+    c_both.SaveAs('output_plots/SystChi2.png')
+
 def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
     
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
@@ -3213,6 +3289,8 @@ def SingleSourceAnalysis(source_list,doMap):
 
     MakeRankResidualPlots('%s%s'%(source_list[0],PercentCrab))
 
+    MakeSystChi2Plot()
+
     if not doMap: return
 
     Hist_OnData_Skymap_Sum.Rebin2D(n_rebin,n_rebin)
@@ -3424,6 +3502,7 @@ Hist2D_OffBkgd = []
 Hist2D_OffBkgd_Sum = []
 Hist2D_OnSyst = []
 Hist2D_OnSyst_Sum = []
+Hist1D_OnSyst_Chi2 = []
 Hist_OffData_MSCL = []
 Hist_OffData_MSCL_Sum = []
 Hist_OffBkgd_MSCL = []
@@ -3447,6 +3526,7 @@ for nth_sample in range(0,n_control_samples):
     Hist2D_OffBkgd_Sum += [ROOT.TH2D("Hist2D_OffBkgd_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist2D_OnSyst += [ROOT.TH2D("Hist2D_OnSyst_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist2D_OnSyst_Sum += [ROOT.TH2D("Hist2D_OnSyst_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+    Hist1D_OnSyst_Chi2 += [ROOT.TH1D("Hist1D_OnSyst_Chi2_%s"%(nth_sample),"",20,-0.2,0.2)]
     Hist_OffData_MSCL += [ROOT.TH1D("Hist_OnData_MSCL_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
     Hist_OffData_MSCL_Sum += [ROOT.TH1D("Hist_OnData_MSCL_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
     Hist_OffData_MSCW += [ROOT.TH1D("Hist_OnData_MSCW_%s"%(nth_sample),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]

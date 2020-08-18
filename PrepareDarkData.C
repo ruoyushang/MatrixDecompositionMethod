@@ -1193,7 +1193,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     std::cout << "prepare photon template" << std::endl;
     vector<pair<string,int>> PhotonMC_runlist = GetRunList("Photon");
     vector<pair<string,int>> PhotonData_runlist = GetRunList("CrabV5");
-    PhotonData_runlist = SelectONRunList(PhotonData_runlist,TelElev_lower,TelElev_upper,0,360,0,0);
+    //PhotonData_runlist = SelectONRunList(PhotonData_runlist,TelElev_lower,TelElev_upper,0,360,0,0);
     
     std::cout << "Get a list of target observation runs" << std::endl;
     vector<pair<string,int>> Data_runlist_init = GetRunList(target);
@@ -1409,6 +1409,22 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         mean_tele_point_b = tele_point_l_b.second;
         Hist_OnData_CR_Skymap_Galactic_Raw.push_back(TH2D("Hist_OnData_CR_Skymap_Galactic_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
         Hist_OnDark_CR_Skymap_Galactic_Raw.push_back(TH2D("Hist_OnDark_CR_Skymap_Galactic_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+    }
+
+    vector<TH2D> Hist_GammaMC_MSCLW;
+    vector<TH2D> Hist_GammaData_MSCLW;
+    vector<TH2D> Hist_GammaDataON_MSCLW;
+    vector<TH2D> Hist_GammaDataOFF_MSCLW;
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        char e_low[50];
+        sprintf(e_low, "%i", int(energy_bins[e]));
+        char e_up[50];
+        sprintf(e_up, "%i", int(energy_bins[e+1]));
+        Hist_GammaMC_MSCLW.push_back(TH2D("Hist_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_GammaData_MSCLW.push_back(TH2D("Hist_GammaData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_GammaDataON_MSCLW.push_back(TH2D("Hist_GammaDataON_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_GammaDataOFF_MSCLW.push_back(TH2D("Hist_GammaDataOFF_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
     }
 
     vector<vector<TH2D>> Hist_OnData_MSCLW;
@@ -1925,6 +1941,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)/(3600.*exposure_hours));
     }
 
+
     vector<int> Data_runlist_number;
     vector<string> Data_runlist_name;
     vector<double> Data_runlist_elev;
@@ -1942,6 +1959,160 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Data_runlist_elev.push_back(GetRunElevAzim(filename,int(Data_runlist[run].second)).first);
         Data_runlist_MJD.push_back(GetRunMJD(filename,int(Data_runlist[run].second)));
     }
+
+    // Get Gamma ray MC template
+    for (int run=0;run<PhotonMC_runlist.size();run++)
+    {
+        char run_number[50];
+        char Data_observation[50];
+        sprintf(run_number, "%i", int(PhotonMC_runlist[run].second));
+        sprintf(Data_observation, "%s", PhotonMC_runlist[run].first.c_str());
+        string filename;
+        filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Data_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
+        TFile*  input_file = TFile::Open(filename.c_str());
+        TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
+        TTree* Data_tree = (TTree*) input_file->Get(root_file);
+        Data_tree->SetBranchAddress("Xoff",&Xoff);
+        Data_tree->SetBranchAddress("Yoff",&Yoff);
+        Data_tree->SetBranchAddress("theta2",&theta2);
+        Data_tree->SetBranchAddress("ra",&ra_sky);
+        Data_tree->SetBranchAddress("dec",&dec_sky);
+        Data_tree->SetBranchAddress("ErecS",&ErecS);
+        Data_tree->SetBranchAddress("EChi2S",&EChi2S);
+        Data_tree->SetBranchAddress("MSCW",&MSCW);
+        Data_tree->SetBranchAddress("MSCL",&MSCL);
+        Data_tree->SetBranchAddress("NImages",&NImages);
+        Data_tree->SetBranchAddress("Xcore",&Xcore);
+        Data_tree->SetBranchAddress("Ycore",&Ycore);
+        Data_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
+        Data_tree->SetBranchAddress("Time",&Time);
+        Data_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
+        Data_tree->SetBranchAddress("Shower_Az",&Shower_Az);
+
+        for (int entry=0;entry<Data_tree->GetEntries();entry++) 
+        {
+            ErecS = 0;
+            EChi2S = 0;
+            NImages = 0;
+            Xcore = 0;
+            Ycore = 0;
+            SizeSecondMax = 0;
+            MSCW = 0;
+            MSCL = 0;
+            R2off = 0;
+            Data_tree->GetEntry(entry);
+            R2off = Xoff*Xoff+Yoff*Yoff;
+            ra_sky = mean_tele_point_ra+ra_sky;
+            dec_sky = mean_tele_point_dec+dec_sky;
+            int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
+            int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
+            if (energy<0) continue;
+            if (energy>=N_energy_bins) continue;
+            if (!SelectNImages()) continue;
+            Hist_GammaMC_MSCLW.at(energy).Fill(MSCL,MSCW);
+        }
+    }
+
+
+    // Get Gamma ray data template
+    std::cout << "PhotonData_runlist.size() = " << PhotonData_runlist.size() << std::endl;
+    for (int run=0;run<PhotonData_runlist.size();run++)
+    {
+        char run_number[50];
+        char Data_observation[50];
+        sprintf(run_number, "%i", int(PhotonData_runlist[run].second));
+        sprintf(Data_observation, "%s", PhotonData_runlist[run].first.c_str());
+        string filename;
+        filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Data_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
+
+        TFile*  input_file = TFile::Open(filename.c_str());
+        TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
+        TTree* Data_tree = (TTree*) input_file->Get(root_file);
+        Data_tree->SetBranchAddress("Xoff",&Xoff);
+        Data_tree->SetBranchAddress("Yoff",&Yoff);
+        Data_tree->SetBranchAddress("theta2",&theta2);
+        Data_tree->SetBranchAddress("ra",&ra_sky);
+        Data_tree->SetBranchAddress("dec",&dec_sky);
+        Data_tree->SetBranchAddress("ErecS",&ErecS);
+        Data_tree->SetBranchAddress("EChi2S",&EChi2S);
+        Data_tree->SetBranchAddress("MSCW",&MSCW);
+        Data_tree->SetBranchAddress("MSCL",&MSCL);
+        Data_tree->SetBranchAddress("NImages",&NImages);
+        Data_tree->SetBranchAddress("Xcore",&Xcore);
+        Data_tree->SetBranchAddress("Ycore",&Ycore);
+        Data_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
+        Data_tree->SetBranchAddress("Time",&Time);
+        Data_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
+        Data_tree->SetBranchAddress("Shower_Az",&Shower_Az);
+
+        for (int entry=0;entry<Data_tree->GetEntries();entry++) 
+        {
+            ErecS = 0;
+            EChi2S = 0;
+            NImages = 0;
+            Xcore = 0;
+            Ycore = 0;
+            SizeSecondMax = 0;
+            MSCW = 0;
+            MSCL = 0;
+            R2off = 0;
+            Data_tree->GetEntry(entry);
+            R2off = Xoff*Xoff+Yoff*Yoff;
+            Phioff = atan2(Yoff,Xoff)+M_PI;
+            int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
+            int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
+            int elevation = Hist_Elev.FindBin(90.-Shower_Ze)-1;
+            if (energy<0) continue;
+            if (energy>=N_energy_bins) continue;
+            if (elevation<0) continue;
+            if (elevation>=N_elev_bins) continue;
+            if (!SelectNImages()) continue;
+            if (SizeSecondMax<SizeSecondMax_Cut) continue;
+            if (EmissionHeight<6.) continue;
+            if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+            if (theta2<0.3)
+            {
+                Hist_GammaDataON_MSCLW.at(energy).Fill(MSCL,MSCW);
+            }
+            else if (theta2>0.3 && theta2<0.5)
+            {
+                Hist_GammaDataOFF_MSCLW.at(energy).Fill(MSCL,MSCW);
+            }
+        }
+        input_file->Close();
+    }
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        int binx_blind = Hist_GammaDataON_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
+        int binx_lower = Hist_GammaDataON_MSCLW.at(e).GetXaxis()->FindBin(MSCL_plot_lower);
+        int biny_blind = Hist_GammaDataON_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
+        int biny_lower = Hist_GammaDataON_MSCLW.at(e).GetYaxis()->FindBin(MSCW_plot_lower);
+        double GammaDataON_SR_Integral = Hist_GammaDataON_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        double GammaDataOFF_SR_Integral = Hist_GammaDataOFF_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        double GammaDataON_all_Integral = Hist_GammaDataON_MSCLW.at(e).Integral();
+        double GammaDataOFF_all_Integral = Hist_GammaDataOFF_MSCLW.at(e).Integral();
+        double GammaDataON_CR_Integral = GammaDataON_all_Integral-GammaDataON_SR_Integral;
+        double GammaDataOFF_CR_Integral = GammaDataOFF_all_Integral-GammaDataOFF_SR_Integral;
+        double scale = GammaDataON_CR_Integral/GammaDataOFF_CR_Integral;
+        Hist_GammaDataOFF_MSCLW.at(e).Scale(scale);
+        Hist_GammaData_MSCLW.at(e).Add(&Hist_GammaDataON_MSCLW.at(e));
+        Hist_GammaData_MSCLW.at(e).Add(&Hist_GammaDataOFF_MSCLW.at(e),-1.);
+        for (int binx=0;binx<Hist_GammaData_MSCLW.at(e).GetNbinsX();binx++)
+        {
+            for (int biny=0;biny<Hist_GammaData_MSCLW.at(e).GetNbinsY();biny++)
+            {
+                double old_content = Hist_GammaData_MSCLW.at(e).GetBinContent(binx+1,biny+1);
+                double old_error = Hist_GammaData_MSCLW.at(e).GetBinError(binx+1,biny+1);
+                if (old_content<0)
+                {
+                    Hist_GammaData_MSCLW.at(e).SetBinContent(binx+1,biny+1,0);
+                    Hist_GammaData_MSCLW.at(e).SetBinError(binx+1,biny+1,0);
+                }
+            }
+        }
+        std::cout << "Hist_GammaData_MSCLW.at(e).Integral() = " << Hist_GammaData_MSCLW.at(e).Integral() << std::endl;
+    }
+
 
     TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
@@ -2003,8 +2174,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     Hist_Dark_ElevNSB.Write();
     Hist_Data_ElevNSB.Write();
+    Hist_EffArea.Write();
     for (int e=0;e<N_energy_bins;e++) 
     {
+        Hist_GammaMC_MSCLW.at(e).Write();
+        Hist_GammaData_MSCLW.at(e).Write();
     }
     for (int on_run=0;on_run<Data_runlist.size();on_run++)
     {
