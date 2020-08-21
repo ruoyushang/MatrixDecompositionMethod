@@ -9,10 +9,8 @@ bool solution_w_constraints = true;
 //char output_file2_tag[50] = "unconstrained";
 //bool solution_w_constraints = false;
 
-//int NumberOfEigenvectors = 1;
-//int NumberOfEigenvectors = 2;
 int NumberOfEigenvectors = 3;
-//int NumberOfEigenvectors = 4;
+int NumberOfEigenvectors_Stable = 3;
 double PercentCrab = 0.;
 double MSCW_cut_moderate = 0.5;
 double MSCL_cut_moderate = 0.6;
@@ -38,7 +36,8 @@ double elev_bins[N_elev_bins+1] = {25,30,35,40,45,50,55,60,65,70,75,80,85};
 //int group_size_limit[N_energy_bins] = {50000,50000,50000,50000,50000};
 int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000};
 
-double gamma_hadron_dim_ratio = 1.;
+double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,3.,7.};
+double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.};
 double MSCW_cut_lower = -1.0;
 double MSCL_cut_lower = -1.0;
 double MSCW_cut_blind = 1.0;
@@ -50,7 +49,6 @@ double MSCL_plot_lower = -1.;
 
 double Skymap_size = 4.;
 
-//double brightness_cut = 0.;
-double brightness_cut = 5.;
+double brightness_cut = 5.0;
 double faint_brightness_cut = 6.0;
 double bright_star_radius_cut = 0.3;

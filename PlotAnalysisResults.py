@@ -156,6 +156,7 @@ sample_list += ['MGRO_J1908_V5']
 sky_coord += ['19 07 54 +06 16 07']
 sample_list += ['MGRO_J1908_V4']
 sky_coord += ['19 07 54 +06 16 07']
+# this is a Tevatron
 
 #ONOFF_tag = 'ON'
 #sample_list += ['MAGIC_J1857_V6']
@@ -164,6 +165,7 @@ sky_coord += ['19 07 54 +06 16 07']
 #sky_coord += ['18 57 35.6 +02 58 02']
 #sample_list += ['MAGIC_J1857_V4']
 #sky_coord += ['18 57 35.6 +02 58 02']
+# this is a Tevatron
 
 #ONOFF_tag = 'ON'
 #sample_list += ['MGRO_J2031_V6']
@@ -172,12 +174,14 @@ sky_coord += ['19 07 54 +06 16 07']
 #sky_coord += ['20 28 43.2 +41 18 36']
 #sample_list += ['MGRO_J2031_V4']
 #sky_coord += ['20 28 43.2 +41 18 36']
+# this is a Tevatron
 
 #ONOFF_tag = 'ON'
 #sample_list += ['CygnusV6']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
 #sample_list += ['CygnusV5']
 #sky_coord += ['20 18 35.03 +36 50 00.0']
+# this is a Tevatron
 
 #ONOFF_tag = 'ON'
 #sample_list += ['GammaCygniV4']
@@ -186,6 +190,7 @@ sky_coord += ['19 07 54 +06 16 07']
 #sky_coord += ['20 20 04.8 +40 45 26']
 #sample_list += ['GammaCygniV6']
 #sky_coord += ['20 20 04.8 +40 45 26']
+# this is a Tevatron
 
 #ONOFF_tag = 'ON'
 #sample_list += ['GemingaV6']
@@ -240,15 +245,16 @@ folder_path = 'output_test'
 PercentCrab = ''
 
 N_bins_for_deconv = 8
-gamma_hadron_dim_ratio = 1.
+gamma_hadron_dim_ratio_w = 1.
+gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.5
 MSCL_blind_cut = 0.5
 MSCW_lower_cut = -1.
 MSCL_lower_cut = -1.
 MSCW_plot_lower = -1.
 MSCL_plot_lower = -1.
-MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
-MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
+MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
+MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 
@@ -493,6 +499,29 @@ def GetSourceInfo(file_list):
 
         InputFile.Close()
 
+def MergeHistogram(hist_sum,hist_input):
+
+    bin_size_x_1 = hist_sum.GetXaxis().GetBinCenter(1)-hist_sum.GetXaxis().GetBinCenter(0)
+    bin_size_y_1 = hist_sum.GetYaxis().GetBinCenter(1)-hist_sum.GetYaxis().GetBinCenter(0)
+    bin_size_x_2 = hist_input.GetXaxis().GetBinCenter(1)-hist_input.GetXaxis().GetBinCenter(0)
+    bin_size_y_2 = hist_input.GetYaxis().GetBinCenter(1)-hist_input.GetYaxis().GetBinCenter(0)
+
+    bin_size_x_ratio = bin_size_x_2/bin_size_x_1
+    bin_size_y_ratio = bin_size_y_2/bin_size_y_1
+
+    hist_output = hist_sum.Clone()
+    for binx in range(0,hist_sum.GetNbinsX()):
+        for biny in range(0,hist_sum.GetNbinsY()):
+            old_content = hist_sum.GetBinContent(binx+1,biny+1)
+            x = hist_sum.GetXaxis().GetBinCenter(binx+1)
+            y = hist_sum.GetYaxis().GetBinCenter(biny+1)
+            new_binx = hist_input.GetXaxis().FindBin(x)-1
+            new_biny = hist_input.GetYaxis().FindBin(y)-1
+            new_content = hist_input.GetBinContent(new_binx+1,new_biny+1)/(bin_size_x_ratio*bin_size_y_ratio) 
+            hist_output.SetBinContent(binx+1,biny+1,old_content+new_content)
+
+    return hist_output
+
 def GetShowerHistogramsFromFile(FilePath):
 
     global MSCW_blind_cut
@@ -514,17 +543,20 @@ def GetShowerHistogramsFromFile(FilePath):
     HistName = "Hist_OnData_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     print 'Getting histogram %s'%(HistName)
     Hist2D_OnData.Reset()
-    Hist2D_OnData.Add(InputFile.Get(HistName))
+    HistTemp = MergeHistogram(Hist2D_OnData,InputFile.Get(HistName))
+    Hist2D_OnData.Add(HistTemp)
 
     HistName = "Hist_OnDark_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     print 'Getting histogram %s'%(HistName)
     Hist2D_OnDark.Reset()
-    Hist2D_OnDark.Add(InputFile.Get(HistName))
+    HistTemp = MergeHistogram(Hist2D_OnDark,InputFile.Get(HistName))
+    Hist2D_OnDark.Add(HistTemp)
 
     HistName = "Hist_OnBkgd_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     print 'Getting histogram %s'%(HistName)
     Hist2D_OnBkgd.Reset()
-    Hist2D_OnBkgd.Add(InputFile.Get(HistName))
+    HistTemp = MergeHistogram(Hist2D_OnBkgd,InputFile.Get(HistName))
+    Hist2D_OnBkgd.Add(HistTemp)
 
     Hist2D_Rank0.Reset()
     Hist2D_Rank1.Reset()
@@ -557,22 +589,20 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist1D_Dark_Rank3_RightVector.Reset()
 
     HistName = "Hist_Rank0_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist2D_Rank0.Add(InputFile.Get(HistName))
-    #Hist2D_Rank1.Add(InputFile.Get(HistName))
-    #Hist2D_Rank2.Add(InputFile.Get(HistName))
-    #Hist2D_Rank3.Add(InputFile.Get(HistName))
+    HistTemp = MergeHistogram(Hist2D_Rank0,InputFile.Get(HistName))
+    Hist2D_Rank0.Add(HistTemp)
 
     HistName = "Hist_Rank1_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist2D_Rank1.Add(InputFile.Get(HistName))
-    #Hist2D_Rank2.Add(InputFile.Get(HistName))
-    #Hist2D_Rank3.Add(InputFile.Get(HistName))
+    HistTemp = MergeHistogram(Hist2D_Rank1,InputFile.Get(HistName))
+    Hist2D_Rank1.Add(HistTemp)
 
     HistName = "Hist_Rank2_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist2D_Rank2.Add(InputFile.Get(HistName))
-    #Hist2D_Rank3.Add(InputFile.Get(HistName))
+    HistTemp = MergeHistogram(Hist2D_Rank2,InputFile.Get(HistName))
+    Hist2D_Rank2.Add(HistTemp)
 
     HistName = "Hist_Rank3_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist2D_Rank3.Add(InputFile.Get(HistName))
+    HistTemp = MergeHistogram(Hist2D_Rank3,InputFile.Get(HistName))
+    Hist2D_Rank3.Add(HistTemp)
 
     HistName = "Hist_Data_Rank0_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist1D_Data_Rank0_LeftVector.Add(InputFile.Get(HistName))
@@ -757,17 +787,20 @@ def GetShowerHistogramsFromFile(FilePath):
         HistName = "Hist_OffData2_MSCLW_V%s_ErecS%sto%s"%(nth_sample,ErecS_lower_cut_int,ErecS_upper_cut_int)
         print 'Getting histogram %s'%(HistName)
         Hist2D_OffData[nth_sample].Reset()
-        Hist2D_OffData[nth_sample].Add(InputFile.Get(HistName))
+        HistTemp = MergeHistogram(Hist2D_OffData[nth_sample],InputFile.Get(HistName))
+        Hist2D_OffData[nth_sample].Add(HistTemp)
 
         HistName = "Hist_OffBkgd_MSCLW_V%s_ErecS%sto%s"%(nth_sample,ErecS_lower_cut_int,ErecS_upper_cut_int)
         print 'Getting histogram %s'%(HistName)
         Hist2D_OffBkgd[nth_sample].Reset()
-        Hist2D_OffBkgd[nth_sample].Add(InputFile.Get(HistName))
+        HistTemp = MergeHistogram(Hist2D_OffBkgd[nth_sample],InputFile.Get(HistName))
+        Hist2D_OffBkgd[nth_sample].Add(HistTemp)
 
         HistName = "Hist_OnSyst_MSCLW_V%s_ErecS%sto%s"%(nth_sample,ErecS_lower_cut_int,ErecS_upper_cut_int)
         print 'Getting histogram %s'%(HistName)
         Hist2D_OnSyst[nth_sample].Reset()
-        Hist2D_OnSyst[nth_sample].Add(InputFile.Get(HistName))
+        HistTemp = MergeHistogram(Hist2D_OnSyst[nth_sample],InputFile.Get(HistName))
+        Hist2D_OnSyst[nth_sample].Add(HistTemp)
 
         HistName = "Hist_OnSyst_Chi2_V%s_ErecS%sto%s"%(nth_sample,ErecS_lower_cut_int,ErecS_upper_cut_int)
         print 'Getting histogram %s'%(HistName)
@@ -2313,6 +2346,14 @@ def GetHawcSkymap(hist_map, isRaDec):
         hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
     return hist_map
 
+def OutputToTxtFile(hist_input,name):
+
+    file1 = open(name,"w")
+    for binx in range(0,hist_input.GetNbinsX()):
+        for biny in range(0,hist_input.GetNbinsY()):
+            file1.write('x: %s y: %s sigma: %s \n'%(hist_input.GetXaxis().GetBinCenter(binx+1),hist_input.GetYaxis().GetBinCenter(biny+1),hist_input.GetBinContent(binx+1,biny+1)))
+    file1.close()
+
 def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,name):
 
     Hist_Skymap = GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,syst_method)
@@ -2479,6 +2520,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     lumilab4.Draw()
     legend.Draw("SAME")
     canvas.SaveAs('output_plots/SkymapSig_%s_%s.png'%(name,selection_tag))
+    OutputToTxtFile(Hist_Skymap,'output_plots/TxtSkymapSig_%s_%s.txt'%(name,selection_tag))
 
     pad1.cd()
     Hist_Skymap_Syst.SetMaximum(1.0)
@@ -3366,8 +3408,8 @@ for source in range(0,len(sample_list)):
         else:
             GetSourceInfo(FilePath_Folder)
 print 'analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut)
-MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
-MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
+MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
+MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
 print 'plot range: MSCL = %s, MSCW = %s'%(MSCL_plot_upper,MSCW_plot_upper)
 
 Hist2D_OnData_Sum = ROOT.TH2D("Hist2D_OnData_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -3526,7 +3568,7 @@ for nth_sample in range(0,n_control_samples):
     Hist2D_OffBkgd_Sum += [ROOT.TH2D("Hist2D_OffBkgd_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist2D_OnSyst += [ROOT.TH2D("Hist2D_OnSyst_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist2D_OnSyst_Sum += [ROOT.TH2D("Hist2D_OnSyst_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
-    Hist1D_OnSyst_Chi2 += [ROOT.TH1D("Hist1D_OnSyst_Chi2_%s"%(nth_sample),"",20,-0.2,0.2)]
+    Hist1D_OnSyst_Chi2 += [ROOT.TH1D("Hist1D_OnSyst_Chi2_%s"%(nth_sample),"",20,-0.5,0.5)]
     Hist_OffData_MSCL += [ROOT.TH1D("Hist_OnData_MSCL_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
     Hist_OffData_MSCL_Sum += [ROOT.TH1D("Hist_OnData_MSCL_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
     Hist_OffData_MSCW += [ROOT.TH1D("Hist_OnData_MSCW_%s"%(nth_sample),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]

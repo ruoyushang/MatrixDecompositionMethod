@@ -493,8 +493,8 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     int row_size_big = mtx_input.rows()*mtx_input.cols();
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    MatrixXd mtx_Constraint = MatrixXd::Zero(NumberOfEigenvectors*entry_size,2*entry_size*mtx_input.cols());
-    VectorXd vtr_Constraint_Delta = VectorXd::Zero(NumberOfEigenvectors*entry_size);
+    MatrixXd mtx_Constraint = MatrixXd::Zero(NumberOfEigenvectors_Stable*entry_size,2*entry_size*mtx_input.cols());
+    VectorXd vtr_Constraint_Delta = VectorXd::Zero(NumberOfEigenvectors_Stable*entry_size);
     for (int idx_k=0; idx_k<entry_size; idx_k++)
     {
         int nth_entry = idx_k + entry_start;
@@ -504,7 +504,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
             {
                 int idx_m = idx_j + mtx_input.cols()*idx_i;
                 double weight = 1.;
-                //weight = 1./max(1.,pow(mtx_data(idx_i,idx_j).real(),0.5));
+                //if (!isBlind) weight = 1./max(1.,pow(mtx_data(idx_i,idx_j).real(),0.5));
                 if (idx_i<binx_blind_global && idx_j<biny_blind_global)
                 {
                     if (isBlind) weight = 0.; // blind gamma-ray region
@@ -524,7 +524,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 mtx_Big(idx_m,idx_w) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_p_init(idx_j,mtx_input.rows()-nth_entry).real();
             }
         }
-        for (int idx_l=0; idx_l<NumberOfEigenvectors; idx_l++)
+        for (int idx_l=0; idx_l<NumberOfEigenvectors_Stable; idx_l++)
         {
             int nth_entry2 = idx_l + 1;
             //if (nth_entry2>=nth_entry) continue;
@@ -533,7 +533,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
             //if (nth_entry==1 && nth_entry2==1) continue;
             for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
             {
-                int idx_u = idx_l + idx_k*NumberOfEigenvectors;
+                int idx_u = idx_l + idx_k*NumberOfEigenvectors_Stable;
                 int idx_n = idx_i + mtx_input.cols()*idx_k;
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
@@ -692,76 +692,66 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
     double eigenvalue_data_real = 0.;
     double eigenvalue_data_imag = 0.;
     double step_frac= 1.0;
+    double imag_real_ratio = 1./1000.;
+    NumberOfEigenvectors_Stable = NumberOfEigenvectors;
+    eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).real();
+    eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).imag();
+    eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-3).real();
+    eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-3).imag();
+    if (abs(eigenvalue_dark_imag/eigenvalue_dark_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 2; 
+    if (abs(eigenvalue_data_imag/eigenvalue_data_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 2; 
+    eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).real();
+    eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).imag();
+    eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-2).real();
+    eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-2).imag();
+    if (abs(eigenvalue_dark_imag/eigenvalue_dark_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 1; 
+    if (abs(eigenvalue_data_imag/eigenvalue_data_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 1; 
+    eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
+    eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).imag();
+    eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-1).real();
+    eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-1).imag();
+    if (abs(eigenvalue_dark_imag/eigenvalue_dark_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 0; 
+    if (abs(eigenvalue_data_imag/eigenvalue_data_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 0; 
     if (DoSequential)
     {
         for (int iteration=0;iteration<n_iterations;iteration++)
         {
             std::cout << "iteration = " << iteration<< std::endl;
             step_frac= 1.0;
-            if (NumberOfEigenvectors>=1)
+            if (NumberOfEigenvectors_Stable>=1)
             {
-                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
-                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).imag();
-                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
-                eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-1).real();
-                eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-1).imag();
-                if (eigenvalue_data_imag/eigenvalue_data_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, step_frac, isBlind);
                 if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1)) break;
                 mtx_data_bkgd = mtx_temp;
                 std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
                 std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
             }
-            if (NumberOfEigenvectors>=2)
+            if (NumberOfEigenvectors_Stable>=2)
             {
-                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).real();
-                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).imag();
-                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
-                eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-2).real();
-                eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-2).imag();
-                if (eigenvalue_data_imag/eigenvalue_data_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, step_frac, isBlind);
                 if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) break;
                 mtx_data_bkgd = mtx_temp;
                 std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
                 std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
             }
-            if (NumberOfEigenvectors>=1)
+            if (NumberOfEigenvectors_Stable>=1)
             {
-                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
-                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).imag();
-                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
-                eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-1).real();
-                eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-1).imag();
-                if (eigenvalue_data_imag/eigenvalue_data_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, step_frac, isBlind);
                 if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1)) break;
                 mtx_data_bkgd = mtx_temp;
                 std::cout << "k=1, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
                 std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
             }
-            if (NumberOfEigenvectors>=2)
+            if (NumberOfEigenvectors_Stable>=2)
             {
-                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).real();
-                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).imag();
-                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
-                eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-2).real();
-                eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-2).imag();
-                if (eigenvalue_data_imag/eigenvalue_data_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, step_frac, isBlind);
                 if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) break;
                 mtx_data_bkgd = mtx_temp;
                 std::cout << "k=2, current chi2 in CR = " << GetChi2Function(mtx_data_bkgd,0) << std::endl;
                 std::cout << "++++++++++++++++++++++++++++++++++++" << std::endl;
             }
-            if (NumberOfEigenvectors>=3)
+            if (NumberOfEigenvectors_Stable>=3)
             {
-                eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).real();
-                eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).imag();
-                if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) continue; 
-                eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-3).real();
-                eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-3).imag();
-                if (eigenvalue_data_imag/eigenvalue_data_real>1./100.) continue; 
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 3, 1, step_frac, isBlind);
                 if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 3)) break;
                 mtx_data_bkgd = mtx_temp;
@@ -775,13 +765,13 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
         int n_vectors = 3;
         eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).real();
         eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).imag();
-        if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) n_vectors = 2; 
+        if (eigenvalue_dark_imag/eigenvalue_dark_real>imag_real_ratio) n_vectors = 2; 
         eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).real();
         eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).imag();
-        if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) n_vectors = 1; 
+        if (eigenvalue_dark_imag/eigenvalue_dark_real>imag_real_ratio) n_vectors = 1; 
         eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
         eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).imag();
-        if (eigenvalue_dark_imag/eigenvalue_dark_real>1./100.) n_vectors = 0; 
+        if (eigenvalue_dark_imag/eigenvalue_dark_real>imag_real_ratio) n_vectors = 0; 
         if (n_vectors==0) return;
         std::cout << "step_frac = " << 0.1 << std::endl;
         mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, n_vectors, 0.1, isBlind);
@@ -953,8 +943,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             MSCL_cut_blind = MSCL_cut_loose;
         }
     }
-    MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
-    MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
     mean_tele_point_ra = 0.;
     mean_tele_point_dec = 0.;
@@ -1024,10 +1012,14 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
             Hist_OffData_OneSample_MSCLW.push_back(TH2D("Hist_OffData2_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OffBkgd_OneSample_MSCLW.push_back(TH2D("Hist_OffBkgd_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnSyst_OneSample_MSCLW.push_back(TH2D("Hist_OnSyst_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
-            Hist_OnSyst_OneSample_Chi2.push_back(TH1D("Hist_OnSyst_Chi2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,-0.2,0.2));
+            Hist_OnSyst_OneSample_Chi2.push_back(TH1D("Hist_OnSyst_Chi2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,-0.5,0.5));
         }
         Hist_OffData_MSCLW.push_back(Hist_OffData_OneSample_MSCLW);
         Hist_OffBkgd_MSCLW.push_back(Hist_OffBkgd_OneSample_MSCLW);
@@ -1049,6 +1041,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
             Hist_OneSample_OffData_MSCLW.push_back(TH2D("Hist_OneSample_OffData_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OneSample_OffDark_MSCLW.push_back(TH2D("Hist_OneSample_OffDark_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         }
@@ -1063,6 +1059,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
         for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
@@ -1145,6 +1144,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
             Hist_OneSample_Dark_MSCLW.push_back(TH2D("Hist_OneSample_Dark_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         }
         Hist_OneGroup_Dark_MSCLW.push_back(Hist_OneSample_Dark_MSCLW);
@@ -1190,6 +1193,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
         Hist_OneGroup_Data_MSCLW.push_back(TH2D("Hist_OneGroup_Data_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OneGroup_Bkgd_MSCLW.push_back(TH2D("Hist_OneGroup_Bkgd_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OneGroup_Gamma_MSCLW.push_back(TH2D("Hist_OneGroup_Gamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -1243,6 +1250,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
         Hist_OnData_SR_Energy.push_back(TH1D("Hist_OnData_SR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_SR_Energy_OneGroup.push_back(TH1D("Hist_OnData_SR_Energy_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_CR_Energy.push_back(TH1D("Hist_OnData_CR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
@@ -1279,6 +1290,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
         Hist_OnData_SR_Skymap_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_SR_Skymap_Theta2_OneGroup.push_back(TH1D("Hist_OnData_SR_Skymap_Theta2_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_CR_Skymap_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
@@ -1337,6 +1352,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
             Hist_OnData_OneRoI_SR_RoI_Energy.push_back(TH1D("Hist_OnData_SR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnData_OneRoI_SR_RoI_Energy_OneGroup.push_back(TH1D("Hist_OnData_SR_RoI_Energy_OneGroup_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnData_OneRoI_CR_RoI_Energy.push_back(TH1D("Hist_OnData_CR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
@@ -1352,6 +1371,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
             Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
             Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2_OneGroup.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_Theta2_OneGroup_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
             Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
@@ -1382,6 +1405,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
         TString hist_name;
 

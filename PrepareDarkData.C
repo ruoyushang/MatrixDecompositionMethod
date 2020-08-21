@@ -1093,8 +1093,8 @@ bool ControlSelectionTheta2()
 {
     if (SignalSelectionTheta2()) return false;
     if (MSCW<MSCW_cut_blind && MSCL<MSCL_cut_blind) return false;
-    if (MSCL>MSCL_plot_upper) return false;
-    if (MSCW>MSCW_plot_upper) return false;
+    //if (MSCL>MSCL_plot_upper) return false;
+    //if (MSCW>MSCW_plot_upper) return false;
     return true;
 }
 
@@ -1183,8 +1183,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             MSCL_cut_blind = MSCL_cut_loose;
         }
     }
-    MSCW_plot_upper = gamma_hadron_dim_ratio*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
-    MSCL_plot_upper = gamma_hadron_dim_ratio*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
 
     SizeSecondMax_Cut = 600.;
     if (TString(target).Contains("V4")) SizeSecondMax_Cut = 400.;
@@ -1388,6 +1386,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
         Hist_OnData_Incl_CR_Zenith.push_back(TH1D("Hist_OnData_Incl_CR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
         Hist_OnDark_Incl_CR_Zenith.push_back(TH1D("Hist_OnDark_Incl_CR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
     }
@@ -1402,6 +1404,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
         Hist_OnData_CR_Skymap_Raw.push_back(TH2D("Hist_OnData_CR_Skymap_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnDark_CR_Skymap_Raw.push_back(TH2D("Hist_OnDark_CR_Skymap_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         pair<double,double> tele_point_l_b = ConvertRaDecToGalactic(mean_tele_point_ra, mean_tele_point_dec);
@@ -1421,6 +1427,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
         Hist_GammaMC_MSCLW.push_back(TH2D("Hist_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_GammaData_MSCLW.push_back(TH2D("Hist_GammaData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_GammaDataON_MSCLW.push_back(TH2D("Hist_GammaDataON_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -1467,6 +1477,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
             Hist_OnData_OneSample_MSCLW.push_back(TH2D("Hist_OnData_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnData_OneSample_SR_Skymap_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
             Hist_OnData_OneSample_CR_Skymap_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
@@ -1520,6 +1534,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 sprintf(e_low, "%i", int(energy_bins[e]));
                 char e_up[50];
                 sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+                MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+                MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
                 Hist_OnDark_OneSample_MSCLW.push_back(TH2D("Hist_OnDark_MSCLW_R"+TString(run_tag)+"_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             }
             Hist_OnDark_OneRun_MSCLW.push_back(Hist_OnDark_OneSample_MSCLW);
@@ -1559,6 +1577,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 sprintf(e_low, "%i", int(energy_bins[e]));
                 char e_up[50];
                 sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+                MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+                MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
                 Hist_OnData_OneRoI_SR_RoI_Energy.push_back(TH1D("Hist_OnData_SR_RoI_Energy_R"+TString(run_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
                 Hist_OnData_OneRoI_CR_RoI_Energy.push_back(TH1D("Hist_OnData_CR_RoI_Energy_R"+TString(run_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
                 Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_Theta2_R"+TString(run_tag)+"_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
@@ -2083,6 +2105,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
     for (int e=0;e<N_energy_bins;e++) 
     {
+
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+
         int binx_blind = Hist_GammaDataON_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
         int binx_lower = Hist_GammaDataON_MSCLW.at(e).GetXaxis()->FindBin(MSCL_plot_lower);
         int biny_blind = Hist_GammaDataON_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
