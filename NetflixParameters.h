@@ -21,6 +21,7 @@ double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.2;
 
 bool DoSequential = true;
+//bool DoSequential = false;
 int n_iterations = 5;
 int n_dark_samples = 3;
 const int N_energy_bins = 5;
@@ -36,8 +37,9 @@ double elev_bins[N_elev_bins+1] = {25,30,35,40,45,50,55,60,65,70,75,80,85};
 //int group_size_limit[N_energy_bins] = {50000,50000,50000,50000,50000};
 int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000};
 
-double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,3.,7.};
+double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.};
+int N_bins_for_deconv_func_E[N_energy_bins] = {16,16,16,8,8};
 double MSCW_cut_lower = -1.0;
 double MSCL_cut_lower = -1.0;
 double MSCW_cut_blind = 1.0;
