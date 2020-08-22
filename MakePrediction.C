@@ -515,8 +515,8 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     int row_size_big = mtx_input.rows()*mtx_input.cols();
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    MatrixXd mtx_Constraint = MatrixXd::Zero(NumberOfEigenvectors_Stable*entry_size,2*entry_size*mtx_input.cols());
-    VectorXd vtr_Constraint_Delta = VectorXd::Zero(NumberOfEigenvectors_Stable*entry_size);
+    MatrixXd mtx_Constraint = MatrixXd::Zero((2+NumberOfEigenvectors_Stable)*entry_size,2*entry_size*mtx_input.cols());
+    VectorXd vtr_Constraint_Delta = VectorXd::Zero((2+NumberOfEigenvectors_Stable)*entry_size);
     for (int idx_k=0; idx_k<entry_size; idx_k++)
     {
         int nth_entry = idx_k + entry_start;
@@ -556,7 +556,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
             //if (nth_entry==1 && nth_entry2==1) continue;
             for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
             {
-                int idx_u = idx_l + idx_k*NumberOfEigenvectors_Stable;
+                int idx_u = idx_l + idx_k*(NumberOfEigenvectors_Stable+2);
                 int idx_n = idx_i + mtx_input.cols()*idx_k;
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
@@ -565,6 +565,18 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 //mtx_Constraint(idx_u,idx_w) = mtx_p_dark(idx_i,mtx_input.rows()-nth_entry2).real();
                 vtr_Constraint_Delta(idx_u) = 0.;
             }
+        }
+        for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
+        {
+            int idx_u = NumberOfEigenvectors_Stable + idx_k*(NumberOfEigenvectors_Stable+2);
+            int idx_n = idx_i + mtx_input.cols()*idx_k;
+            int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
+            mtx_Constraint(idx_u+0,idx_n) = pow(-1,idx_i);
+            mtx_Constraint(idx_u+0,idx_w) = pow(-1,idx_i);
+            vtr_Constraint_Delta(idx_u+0) = 0.;
+            mtx_Constraint(idx_u+1,idx_n) = -1.*pow(-1,idx_i);
+            mtx_Constraint(idx_u+1,idx_w) = -1.*pow(-1,idx_i);
+            vtr_Constraint_Delta(idx_u+1) = 0.;
         }
     }
     VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
@@ -1005,7 +1017,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             Hist_OffData_OneSample_MSCLW.push_back(TH2D("Hist_OffData2_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OffBkgd_OneSample_MSCLW.push_back(TH2D("Hist_OffBkgd_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnSyst_OneSample_MSCLW.push_back(TH2D("Hist_OnSyst_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
-            Hist_OnSyst_OneSample_Chi2.push_back(TH1D("Hist_OnSyst_Chi2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,-0.5,0.5));
+            Hist_OnSyst_OneSample_Chi2.push_back(TH1D("Hist_OnSyst_Chi2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,-0.2,0.2));
         }
         Hist_OffData_MSCLW.push_back(Hist_OffData_OneSample_MSCLW);
         Hist_OffBkgd_MSCLW.push_back(Hist_OffBkgd_OneSample_MSCLW);
