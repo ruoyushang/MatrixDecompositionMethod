@@ -39,7 +39,7 @@ int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000
 
 double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.};
-int N_bins_for_deconv_func_E[N_energy_bins] = {16,16,16,8,8};
+int N_bins_for_deconv_func_E[N_energy_bins] = {16,16,8,8,8};
 double MSCW_cut_lower = -1.0;
 double MSCL_cut_lower = -1.0;
 double MSCW_cut_blind = 1.0;

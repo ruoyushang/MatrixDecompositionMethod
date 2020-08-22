@@ -90,21 +90,21 @@ sky_coord = []
 #sky_coord += ['10 07 04 +16 04 55']
 # only V5 data published
 
-ONOFF_tag = 'OFF'
-sample_list += ['BLLacV6']
-sky_coord += ['22 02 43.3 +42 16 40']
-sample_list += ['BLLacV5']
-sky_coord += ['22 02 43.3 +42 16 40']
+#ONOFF_tag = 'OFF'
+#sample_list += ['BLLacV6']
+#sky_coord += ['22 02 43.3 +42 16 40']
+#sample_list += ['BLLacV5']
+#sky_coord += ['22 02 43.3 +42 16 40']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['NGC1275V6']
 #sky_coord += ['03 19 48.1 +41 30 42']
 
-#ONOFF_tag = 'OFF'
-#sample_list += ['M82V4']
-#sky_coord += ['09 55 52.7 +69 40 46']
-#sample_list += ['M82V5']
-#sky_coord += ['09 55 52.7 +69 40 46']
+ONOFF_tag = 'OFF'
+sample_list += ['M82V4']
+sky_coord += ['09 55 52.7 +69 40 46']
+sample_list += ['M82V5']
+sky_coord += ['09 55 52.7 +69 40 46']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['CrabV5']
@@ -582,6 +582,8 @@ def GetShowerHistogramsFromFile(FilePath):
     HistTemp = MergeHistogram(Hist2D_Rank3,InputFile.Get(HistName))
     Hist2D_Rank3.Add(HistTemp)
 
+    #ErecS_lower_cut_int = int(energy_bin[energy_bin_cut_low])
+    #ErecS_upper_cut_int = int(energy_bin[energy_bin_cut_low+1])
     #Hist1D_Data_Rank0_LeftVector.Reset()
     #Hist1D_Data_Rank1_LeftVector.Reset()
     #Hist1D_Data_Rank2_LeftVector.Reset()
@@ -667,7 +669,7 @@ def GetShowerHistogramsFromFile(FilePath):
     #Hists += [Hist1D_Bkgd_Rank0_LeftVector]
     #legends += ['predict. vector']
     #colors += [3]
-    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{1}}','Rank0_LeftVector_%s'%(ErecS_lower_cut),0,0,False,False)
+    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{1}}','Rank0_LeftVector_%s'%(ErecS_lower_cut_int),0,0,False,False)
     #Hists = []
     #legends = []
     #colors = []
@@ -680,7 +682,7 @@ def GetShowerHistogramsFromFile(FilePath):
     #Hists += [Hist1D_Bkgd_Rank1_LeftVector]
     #legends += ['predict. vector']
     #colors += [3]
-    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{2}}','Rank1_LeftVector_%s'%(ErecS_lower_cut),0,0,False,False)
+    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{2}}','Rank1_LeftVector_%s'%(ErecS_lower_cut_int),0,0,False,False)
     #Hists = []
     #legends = []
     #colors = []
@@ -693,7 +695,7 @@ def GetShowerHistogramsFromFile(FilePath):
     #Hists += [Hist1D_Bkgd_Rank2_LeftVector]
     #legends += ['predict. vector']
     #colors += [3]
-    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{3}}','Rank2_LeftVector_%s'%(ErecS_lower_cut),0,0,False,False)
+    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{3}}','Rank2_LeftVector_%s'%(ErecS_lower_cut_int),0,0,False,False)
     #Hists = []
     #legends = []
     #colors = []
@@ -706,7 +708,7 @@ def GetShowerHistogramsFromFile(FilePath):
     #Hists += [Hist1D_Bkgd_Rank3_LeftVector]
     #legends += ['predict. vector']
     #colors += [3]
-    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{3}}','Rank3_LeftVector_%s'%(ErecS_lower_cut),0,0,False,False)
+    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{p_{3}}','Rank3_LeftVector_%s'%(ErecS_lower_cut_int),0,0,False,False)
     #Hists = []
     #legends = []
     #colors = []
@@ -719,7 +721,7 @@ def GetShowerHistogramsFromFile(FilePath):
     #Hists += [Hist1D_Bkgd_Rank0_RightVector]
     #legends += ['predict. vector']
     #colors += [3]
-    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{1}}','Rank0_RightVector_%s'%(ErecS_lower_cut),0,0,False,False)
+    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{1}}','Rank0_RightVector_%s'%(ErecS_lower_cut_int),0,0,False,False)
     #Hists = []
     #legends = []
     #colors = []
@@ -732,7 +734,7 @@ def GetShowerHistogramsFromFile(FilePath):
     #Hists += [Hist1D_Bkgd_Rank1_RightVector]
     #legends += ['predict. vector']
     #colors += [3]
-    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{2}}','Rank1_RightVector_%s'%(ErecS_lower_cut),0,0,False,False)
+    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{2}}','Rank1_RightVector_%s'%(ErecS_lower_cut_int),0,0,False,False)
     #Hists = []
     #legends = []
     #colors = []
@@ -745,7 +747,7 @@ def GetShowerHistogramsFromFile(FilePath):
     #Hists += [Hist1D_Bkgd_Rank2_RightVector]
     #legends += ['predict. vector']
     #colors += [3]
-    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{3}}','Rank2_RightVector_%s'%(ErecS_lower_cut),0,0,False,False)
+    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{3}}','Rank2_RightVector_%s'%(ErecS_lower_cut_int),0,0,False,False)
     #Hists = []
     #legends = []
     #colors = []
@@ -758,7 +760,7 @@ def GetShowerHistogramsFromFile(FilePath):
     #Hists += [Hist1D_Bkgd_Rank3_RightVector]
     #legends += ['predict. vector']
     #colors += [3]
-    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{3}}','Rank3_RightVector_%s'%(ErecS_lower_cut),0,0,False,False)
+    #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{3}}','Rank3_RightVector_%s'%(ErecS_lower_cut_int),0,0,False,False)
 
     if Hist2D_OnData.Integral()<1600. or Hist2D_OnDark.Integral()<1600.:
         Hist2D_OnData.Reset()
@@ -2932,10 +2934,19 @@ def MakeSystChi2Plot():
 
     pad1.cd()
 
-    y_min = 1e10
+    bin_lower_x = Hist2D_OnData_Sum.GetXaxis().FindBin(MSCL_lower_cut)
+    bin_upper_x = Hist2D_OnData_Sum.GetXaxis().FindBin(MSCL_blind_cut)-1
+    bin_lower_y = Hist2D_OnData_Sum.GetYaxis().FindBin(MSCW_lower_cut)
+    bin_upper_y = Hist2D_OnData_Sum.GetYaxis().FindBin(MSCW_blind_cut)-1
+    norm = 0.
+    for binx in range(0,Hist2D_OnData_Sum.GetNbinsX()):
+        for biny in range(0,Hist2D_OnData_Sum.GetNbinsY()):
+            if binx<=bin_upper_x and binx<=bin_upper_x: continue
+            norm += Hist2D_OnData_Sum.GetBinContent(binx+1,biny+1)
     for nth_sample in range(0,n_control_samples):
-        if y_min>Hist1D_OnSyst_Chi2[nth_sample].GetMinimum():
-            y_min = Hist1D_OnSyst_Chi2[nth_sample].GetMinimum()
+        for binx in range(0,Hist1D_OnSyst_Chi2[nth_sample].GetNbinsX()):
+            old_content = Hist1D_OnSyst_Chi2[nth_sample].GetBinContent(binx+1)
+            Hist1D_OnSyst_Chi2[nth_sample].SetBinContent(binx+1,pow(old_content/norm,0.5))
     Hist1D_OnSyst_Chi2[0].GetXaxis().SetTitleOffset(0.8)
     Hist1D_OnSyst_Chi2[0].GetXaxis().SetTitleSize(0.06)
     Hist1D_OnSyst_Chi2[0].GetXaxis().SetLabelSize(0.06)
@@ -2944,15 +2955,20 @@ def MakeSystChi2Plot():
     Hist1D_OnSyst_Chi2[0].GetYaxis().SetTitleSize(0.06)
     Hist1D_OnSyst_Chi2[0].GetXaxis().SetTitle('variation')
     Hist1D_OnSyst_Chi2[0].GetYaxis().SetTitle('#chi^{2}')
-    Hist1D_OnSyst_Chi2[0].SetMinimum(y_min)
+    y_min = 1e10
+    for nth_sample in range(0,n_control_samples):
+        if y_min>Hist1D_OnSyst_Chi2[nth_sample].GetMinimum():
+            y_min = Hist1D_OnSyst_Chi2[nth_sample].GetMinimum()
+    #Hist1D_OnSyst_Chi2[0].SetMinimum(y_min)
     Hist1D_OnSyst_Chi2[0].Draw()
     for nth_sample in range(0,n_control_samples):
         Hist1D_OnSyst_Chi2[nth_sample].SetLineColor(nth_sample+1)
         Hist1D_OnSyst_Chi2[nth_sample].Draw('same')
 
+    #pad1.SetLogy()
     pad3.cd()
 
-    c_both.SaveAs('output_plots/SystChi2.png')
+    c_both.SaveAs('output_plots/SystChi2_%s.png'%(selection_tag))
 
 def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
     
@@ -3570,7 +3586,7 @@ for nth_sample in range(0,n_control_samples):
     Hist2D_OffBkgd_Sum += [ROOT.TH2D("Hist2D_OffBkgd_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist2D_OnSyst += [ROOT.TH2D("Hist2D_OnSyst_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist2D_OnSyst_Sum += [ROOT.TH2D("Hist2D_OnSyst_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
-    Hist1D_OnSyst_Chi2 += [ROOT.TH1D("Hist1D_OnSyst_Chi2_%s"%(nth_sample),"",20,-0.5,0.5)]
+    Hist1D_OnSyst_Chi2 += [ROOT.TH1D("Hist1D_OnSyst_Chi2_%s"%(nth_sample),"",20,-0.2,0.2)]
     Hist_OffData_MSCL += [ROOT.TH1D("Hist_OnData_MSCL_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
     Hist_OffData_MSCL_Sum += [ROOT.TH1D("Hist_OnData_MSCL_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
     Hist_OffData_MSCW += [ROOT.TH1D("Hist_OnData_MSCW_%s"%(nth_sample),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
@@ -3588,18 +3604,12 @@ for nth_sample in range(0,n_control_samples):
     Hist_OffBkgd_CameraFoV_Theta2 += [ROOT.TH1D("Hist_OffBkgd_CameraFoV_Theta2_%s"%(nth_sample),"",50,0,10)]
     Hist_OffBkgd_CameraFoV_Theta2_Sum += [ROOT.TH1D("Hist_OffBkgd_CameraFoV_Theta2_Sum_%s"%(nth_sample),"",50,0,10)]
 
-#n_rebin = 1
-#smooth_size = 0.05
 n_rebin = 1
 smooth_size = 0.1
-#n_rebin = 1
-#smooth_size = 0.15
 if energy_bin[energy_bin_cut_low]>500.:
-    #n_rebin = 2
-    smooth_size = 0.15
-if energy_bin[energy_bin_cut_low]>1000.:
-    #n_rebin = 4
     smooth_size = 0.2
+#if energy_bin[energy_bin_cut_low]>1000.:
+#    smooth_size = 0.2
 
 GetGammaSourceInfo()
 

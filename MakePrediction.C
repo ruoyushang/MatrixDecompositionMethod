@@ -814,7 +814,18 @@ void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2)
     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
     TH2D Hist_Temp_Excess = TH2D("Hist_Temp_Excess","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
     double Data_SR_Integral = Hist_Temp_Data.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+    double Data_Integral = Hist_Temp_Data.Integral();
     double Gamma_SR_Integral = Hist_Temp_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+
+    Hist_Temp_Excess.Reset();
+    Hist_Temp_Bkgd.Reset();
+    LeastSquareSolutionMethod(rank_variation, n_iterations, true);
+    fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
+    Hist_Temp_Excess.Add(&Hist_Temp_Data);
+    Hist_Temp_Excess.Add(&Hist_Temp_Bkgd,-1.);
+    double Bkgd_SR_Integral = Hist_Temp_Bkgd.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+    double Excess_SR_Integral = Hist_Temp_Excess.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+
     for (int bin=0;bin<Hist_Chi2->GetNbinsX();bin++)
     {
         Hist_Temp_Excess.Reset();
@@ -822,8 +833,8 @@ void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2)
         Hist_Temp_Gamma.Reset();
         fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
         double scale = Hist_Chi2->GetBinCenter(bin+1);
-        double delta = Data_SR_Integral*scale;
-        Hist_Temp_Gamma.Scale(delta/Gamma_SR_Integral);
+        double delta = Bkgd_SR_Integral*scale;
+        Hist_Temp_Gamma.Scale((Excess_SR_Integral+delta)/Gamma_SR_Integral);
         std::cout << "Scaled Hist_Temp_Gamma.Integral() = " << Hist_Temp_Gamma.Integral() << std::endl;
         mtx_gamma = fillMatrix(&Hist_Temp_Gamma);
         LeastSquareSolutionMethod(rank_variation, n_iterations, false);
@@ -836,8 +847,7 @@ void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2)
         {
             for (int biny=0;biny<Hist_Temp_Excess.GetNbinsY();biny++)
             {
-                if (binx<=binx_blind) continue;
-                if (biny<=biny_blind) continue;
+                if (binx<=binx_blind && biny<=biny_blind) continue;
                 chi2 += pow(Hist_Temp_Excess.GetBinContent(binx+1,biny+1),2);
             }
         }
@@ -1114,8 +1124,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     NormalizaDarkMatrix(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e), &Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
                     mtx_dark = fillMatrix(&Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-                    //LeastSquareSolutionMethod(rank_variation, n_iterations, true);
                     mtx_data_bkgd = mtx_dark;
+                    LeastSquareSolutionMethod(rank_variation, n_iterations, true);
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     Hist_OffData_MSCLW.at(nth_sample).at(e).Add(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e));
