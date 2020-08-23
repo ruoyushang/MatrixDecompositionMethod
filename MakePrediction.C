@@ -515,8 +515,8 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     int row_size_big = mtx_input.rows()*mtx_input.cols();
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    MatrixXd mtx_Constraint = MatrixXd::Zero((2+NumberOfEigenvectors_Stable)*entry_size,2*entry_size*mtx_input.cols());
-    VectorXd vtr_Constraint_Delta = VectorXd::Zero((2+NumberOfEigenvectors_Stable)*entry_size);
+    MatrixXd mtx_Constraint = MatrixXd::Zero((1+NumberOfEigenvectors_Stable)*entry_size,2*entry_size*mtx_input.cols());
+    VectorXd vtr_Constraint_Delta = VectorXd::Zero((1+NumberOfEigenvectors_Stable)*entry_size);
     for (int idx_k=0; idx_k<entry_size; idx_k++)
     {
         int nth_entry = idx_k + entry_start;
@@ -556,7 +556,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
             //if (nth_entry==1 && nth_entry2==1) continue;
             for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
             {
-                int idx_u = idx_l + idx_k*(NumberOfEigenvectors_Stable+2);
+                int idx_u = idx_l + idx_k*(NumberOfEigenvectors_Stable+1);
                 int idx_n = idx_i + mtx_input.cols()*idx_k;
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
@@ -568,15 +568,12 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
         }
         for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
         {
-            int idx_u = NumberOfEigenvectors_Stable + idx_k*(NumberOfEigenvectors_Stable+2);
+            int idx_u = NumberOfEigenvectors_Stable + idx_k*(NumberOfEigenvectors_Stable+1);
             int idx_n = idx_i + mtx_input.cols()*idx_k;
             int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
             mtx_Constraint(idx_u+0,idx_n) = pow(-1,idx_i);
             mtx_Constraint(idx_u+0,idx_w) = pow(-1,idx_i);
             vtr_Constraint_Delta(idx_u+0) = 0.;
-            mtx_Constraint(idx_u+1,idx_n) = -1.*pow(-1,idx_i);
-            mtx_Constraint(idx_u+1,idx_w) = -1.*pow(-1,idx_i);
-            vtr_Constraint_Delta(idx_u+1) = 0.;
         }
     }
     VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
@@ -847,7 +844,7 @@ void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2)
         {
             for (int biny=0;biny<Hist_Temp_Excess.GetNbinsY();biny++)
             {
-                if (binx<=binx_blind && biny<=biny_blind) continue;
+                //if (binx<=binx_blind && biny<=biny_blind) continue;
                 chi2 += pow(Hist_Temp_Excess.GetBinContent(binx+1,biny+1),2);
             }
         }
@@ -1469,8 +1466,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 Hist_OneGroup_Data_MSCLW.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 group_size.at(e) += ((TH2D*)InputDataFile.Get(hist_name))->Integral();
 
-                hist_name  = "Hist_GammaData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-                //hist_name  = "Hist_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                //hist_name  = "Hist_GammaData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                hist_name  = "Hist_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
                 Hist_OneGroup_Gamma_MSCLW.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 mtx_gamma_raw = fillMatrix(&Hist_OneGroup_Gamma_MSCLW.at(e));
                 hist_name  = "Hist_OnData_SR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -1720,11 +1717,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     InputDataFile.Close();
 
 
-    for (int e=0;e<N_energy_fine_bins;e++) 
-    {
-        Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)/(3600.*exposure_hours));
-    }
-
     TFile InputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+"_"+ONOFF_tag+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputFile.Get("InfoTree");
@@ -1732,6 +1724,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     StarTree = (TTree*) InputFile.Get("StarTree");
     TTree* FaintStarTree = nullptr;
     FaintStarTree = (TTree*) InputFile.Get("FaintStarTree");
+    TString hist_name;
+    hist_name  = "Hist_EffArea";
+    Hist_EffArea.Add( (TH2D*)InputFile.Get(hist_name) );
 
     TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
