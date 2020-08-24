@@ -1188,11 +1188,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     if (TString(target).Contains("V4")) SizeSecondMax_Cut = 400.;
     if (TString(target).Contains("V5")) SizeSecondMax_Cut = 400.;
 
-    std::cout << "prepare photon template" << std::endl;
-    vector<pair<string,int>> PhotonMC_runlist = GetRunList("Photon");
-    vector<pair<string,int>> PhotonData_runlist = GetRunList("CrabV5");
-    //PhotonData_runlist = SelectONRunList(PhotonData_runlist,TelElev_lower,TelElev_upper,0,360,0,0);
-    
     std::cout << "Get a list of target observation runs" << std::endl;
     vector<pair<string,int>> Data_runlist_init = GetRunList(target);
     vector<pair<string,int>> Data_runlist;
@@ -1239,7 +1234,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_name.push_back("MGRO J1908+06");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(1.0);
+        roi_radius.push_back(0.5);
 
         roi_name.push_back("SS 433 e1");
         roi_ra.push_back(288.404);
@@ -1251,15 +1246,15 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_dec.push_back(5.037);
         roi_radius.push_back(0.3);
 
-        roi_name.push_back("MAGIC J1857.6+0297");
-        roi_ra.push_back(284.398);
-        roi_dec.push_back(2.967);
-        roi_radius.push_back(0.3);
+        //roi_name.push_back("MAGIC J1857.6+0297");
+        //roi_ra.push_back(284.398);
+        //roi_dec.push_back(2.967);
+        //roi_radius.push_back(0.3);
 
-        roi_name.push_back("Unknown");
-        roi_ra.push_back(284.063);
-        roi_dec.push_back(4.037);
-        roi_radius.push_back(0.3);
+        //roi_name.push_back("Unknown");
+        //roi_ra.push_back(284.063);
+        //roi_dec.push_back(4.037);
+        //roi_radius.push_back(0.3);
 
     }
     else if (TString(target).Contains("MAGIC_J1857")) 
@@ -1419,30 +1414,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnDark_CR_Skymap_Galactic_Raw.push_back(TH2D("Hist_OnDark_CR_Skymap_Galactic_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
     }
 
-    vector<TH2D> Hist_GammaMC_MSCLW;
-    vector<TH2D> Hist_GammaData_MSCLW;
-    vector<TH2D> Hist_GammaDataON_MSCLW;
-    vector<TH2D> Hist_GammaDataOFF_MSCLW;
-    for (int e=0;e<N_energy_bins;e++) 
-    {
-        char e_low[50];
-        sprintf(e_low, "%i", int(energy_bins[e]));
-        char e_up[50];
-        sprintf(e_up, "%i", int(energy_bins[e+1]));
-
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
-        N_bins_for_deconv = N_bins_for_deconv_func_E[e];
-
-        Hist_GammaMC_MSCLW.push_back(TH2D("Hist_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
-        Hist_GammaData_MSCLW.push_back(TH2D("Hist_GammaData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
-        Hist_GammaDataON_MSCLW.push_back(TH2D("Hist_GammaDataON_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
-        Hist_GammaDataOFF_MSCLW.push_back(TH2D("Hist_GammaDataOFF_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
-    }
-
     vector<vector<TH2D>> Hist_OnData_MSCLW;
     vector<vector<TH1D>> Hist_OnData_SR_Energy;
     vector<vector<TH1D>> Hist_OnData_CR_Energy;
+    vector<vector<TH1D>> Hist_OnData_CR_Energy_Raw;
     vector<vector<TH1D>> Hist_OnData_SR_Skymap_Theta2;
     vector<vector<TH1D>> Hist_OnData_CR_Skymap_Theta2;
     vector<vector<TH2D>> Hist_OnData_SR_Skymap;
@@ -1472,6 +1447,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         vector<TH2D> Hist_OnData_OneSample_CR_Skymap_Galactic_Syst;
         vector<TH1D> Hist_OnData_OneSample_SR_Energy;
         vector<TH1D> Hist_OnData_OneSample_CR_Energy;
+        vector<TH1D> Hist_OnData_OneSample_CR_Energy_Raw;
         vector<TH1D> Hist_OnData_OneSample_SR_Zenith;
         vector<TH1D> Hist_OnData_OneSample_CR_Zenith;
         for (int e=0;e<N_energy_bins;e++) 
@@ -1494,6 +1470,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_OnData_OneSample_CR_Skymap_Syst.push_back(TH2D("Hist_OnData_CR_Skymap_Syst_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
             Hist_OnData_OneSample_SR_Energy.push_back(TH1D("Hist_OnData_SR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnData_OneSample_CR_Energy.push_back(TH1D("Hist_OnData_CR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+            Hist_OnData_OneSample_CR_Energy_Raw.push_back(TH1D("Hist_OnData_CR_Energy_Raw_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnData_OneSample_SR_Zenith.push_back(TH1D("Hist_OnData_SR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
             Hist_OnData_OneSample_CR_Zenith.push_back(TH1D("Hist_OnData_CR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
             pair<double,double> tele_point_l_b = ConvertRaDecToGalactic(mean_tele_point_ra, mean_tele_point_dec);
@@ -1517,6 +1494,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_CR_Skymap_Galactic_Syst.push_back(Hist_OnData_OneSample_CR_Skymap_Galactic_Syst);
         Hist_OnData_SR_Energy.push_back(Hist_OnData_OneSample_SR_Energy);
         Hist_OnData_CR_Energy.push_back(Hist_OnData_OneSample_CR_Energy);
+        Hist_OnData_CR_Energy_Raw.push_back(Hist_OnData_OneSample_CR_Energy_Raw);
         Hist_OnData_SR_Zenith.push_back(Hist_OnData_OneSample_SR_Zenith);
         Hist_OnData_CR_Zenith.push_back(Hist_OnData_OneSample_CR_Zenith);
     }
@@ -1828,7 +1806,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
         // Get effective area and livetime and determine the cosmic electron counts for this run.
         //std::cout << "Get effective area and livetime..." << std::endl;
-	TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(input_file,Data_runlist[run].second);
+        TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(input_file,Data_runlist[run].second);
         Data_tree->GetEntry(0);
         double time_0 = Time;
         Data_tree->GetEntry(Data_tree->GetEntries()-1);
@@ -1948,13 +1926,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_CR_Skymap_Syst.at(run).at(energy).Fill(ra_sky,dec_sky,weight_avg_vr);
                     Hist_OnData_CR_Skymap_Galactic_Syst.at(run).at(energy).Fill(evt_l_b.first,evt_l_b.second,weight_avg_vr);
                     Hist_OnData_CR_Energy.at(run).at(energy).Fill(ErecS*1000.,weight_avg);
+                    Hist_OnData_CR_Energy_Raw.at(run).at(energy).Fill(ErecS*1000.,1.);
                     Hist_OnData_CR_Zenith.at(run).at(energy).Fill(Shower_Ze,weight_avg);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
                         if (RoIFoV(nth_roi)) 
                         {
                             Hist_OnData_CR_RoI_Energy.at(run).at(nth_roi).at(energy).Fill(ErecS*1000.,weight_avg);
-                            Hist_OnData_CR_RoI_MJD.at(run).at(nth_roi).at(energy).Fill(MJD,weight_avg);
+                            Hist_OnData_CR_RoI_MJD.at(run).at(nth_roi).at(energy).Fill(MJD,1.);
                         }
                         theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
                         Hist_OnData_CR_Skymap_RoI_Theta2.at(run).at(nth_roi).at(energy).Fill(theta2_roi,weight_avg);
@@ -1986,6 +1965,32 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Data_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
         Data_runlist_elev.push_back(GetRunElevAzim(filename,int(Data_runlist[run].second)).first);
         Data_runlist_MJD.push_back(GetRunMJD(filename,int(Data_runlist[run].second)));
+    }
+
+    std::cout << "prepare photon template" << std::endl;
+    vector<pair<string,int>> PhotonMC_runlist = GetRunList("Photon");
+    vector<pair<string,int>> PhotonData_runlist = GetRunList("CrabV5");
+    //PhotonData_runlist = SelectONRunList(PhotonData_runlist,TelElev_lower,TelElev_upper,0,360,0,0);
+    
+    vector<TH2D> Hist_GammaMC_MSCLW;
+    vector<TH2D> Hist_GammaData_MSCLW;
+    vector<TH2D> Hist_GammaDataON_MSCLW;
+    vector<TH2D> Hist_GammaDataOFF_MSCLW;
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        char e_low[50];
+        sprintf(e_low, "%i", int(energy_bins[e]));
+        char e_up[50];
+        sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+        N_bins_for_deconv = N_bins_for_deconv_func_E[e];
+
+        Hist_GammaMC_MSCLW.push_back(TH2D("Hist_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_GammaData_MSCLW.push_back(TH2D("Hist_GammaData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_GammaDataON_MSCLW.push_back(TH2D("Hist_GammaDataON_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_GammaDataOFF_MSCLW.push_back(TH2D("Hist_GammaDataOFF_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
     }
 
     // Get Gamma ray MC template
@@ -2056,22 +2061,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
-        Data_tree->SetBranchAddress("Xoff",&Xoff);
-        Data_tree->SetBranchAddress("Yoff",&Yoff);
-        Data_tree->SetBranchAddress("theta2",&theta2);
-        Data_tree->SetBranchAddress("ra",&ra_sky);
-        Data_tree->SetBranchAddress("dec",&dec_sky);
-        Data_tree->SetBranchAddress("ErecS",&ErecS);
-        Data_tree->SetBranchAddress("EChi2S",&EChi2S);
-        Data_tree->SetBranchAddress("MSCW",&MSCW);
-        Data_tree->SetBranchAddress("MSCL",&MSCL);
-        Data_tree->SetBranchAddress("NImages",&NImages);
-        Data_tree->SetBranchAddress("Xcore",&Xcore);
-        Data_tree->SetBranchAddress("Ycore",&Ycore);
-        Data_tree->SetBranchAddress("SizeSecondMax",&SizeSecondMax);
-        Data_tree->SetBranchAddress("Time",&Time);
-        Data_tree->SetBranchAddress("Shower_Ze",&Shower_Ze);
-        Data_tree->SetBranchAddress("Shower_Az",&Shower_Az);
+        SetEventDisplayTreeBranch(Data_tree);
 
         for (int entry=0;entry<Data_tree->GetEntries();entry++) 
         {
@@ -2095,7 +2085,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (elevation<0) continue;
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
-            if (SizeSecondMax<SizeSecondMax_Cut) continue;
+            if (SizeSecondMax<400.) continue;
             if (EmissionHeight<6.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
             if (theta2<0.3)
@@ -2120,10 +2110,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         int binx_lower = Hist_GammaDataON_MSCLW.at(e).GetXaxis()->FindBin(MSCL_plot_lower);
         int biny_blind = Hist_GammaDataON_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
         int biny_lower = Hist_GammaDataON_MSCLW.at(e).GetYaxis()->FindBin(MSCW_plot_lower);
-        double GammaDataON_SR_Integral = Hist_GammaDataON_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-        double GammaDataOFF_SR_Integral = Hist_GammaDataOFF_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-        double GammaDataON_all_Integral = Hist_GammaDataON_MSCLW.at(e).Integral();
-        double GammaDataOFF_all_Integral = Hist_GammaDataOFF_MSCLW.at(e).Integral();
+        double GammaDataON_SR_Integral = (double) Hist_GammaDataON_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        double GammaDataOFF_SR_Integral = (double) Hist_GammaDataOFF_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        double GammaDataON_all_Integral = (double) Hist_GammaDataON_MSCLW.at(e).Integral();
+        double GammaDataOFF_all_Integral = (double) Hist_GammaDataOFF_MSCLW.at(e).Integral();
         double GammaDataON_CR_Integral = GammaDataON_all_Integral-GammaDataON_SR_Integral;
         double GammaDataOFF_CR_Integral = GammaDataOFF_all_Integral-GammaDataOFF_SR_Integral;
         double scale = GammaDataON_CR_Integral/GammaDataOFF_CR_Integral;
@@ -2228,6 +2218,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_OnData_CR_Skymap_Galactic.at(on_run).at(e).Write();
             Hist_OnData_SR_Energy.at(on_run).at(e).Write();
             Hist_OnData_CR_Energy.at(on_run).at(e).Write();
+            Hist_OnData_CR_Energy_Raw.at(on_run).at(e).Write();
             Hist_OnData_SR_Zenith.at(on_run).at(e).Write();
             Hist_OnData_CR_Zenith.at(on_run).at(e).Write();
             Hist_OnData_CR_Skymap_Syst.at(on_run).at(e).Write();

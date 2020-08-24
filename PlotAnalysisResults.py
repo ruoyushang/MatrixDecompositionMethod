@@ -100,11 +100,11 @@ sky_coord = []
 #sample_list += ['NGC1275V6']
 #sky_coord += ['03 19 48.1 +41 30 42']
 
-ONOFF_tag = 'OFF'
-sample_list += ['M82V4']
-sky_coord += ['09 55 52.7 +69 40 46']
-sample_list += ['M82V5']
-sky_coord += ['09 55 52.7 +69 40 46']
+#ONOFF_tag = 'OFF'
+#sample_list += ['M82V4']
+#sky_coord += ['09 55 52.7 +69 40 46']
+#sample_list += ['M82V5']
+#sky_coord += ['09 55 52.7 +69 40 46']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['CrabV5']
@@ -167,14 +167,14 @@ sky_coord += ['09 55 52.7 +69 40 46']
 #sky_coord += ['18 57 35.6 +02 58 02']
 # this is a Tevatron
 
-#ONOFF_tag = 'ON'
-#sample_list += ['MGRO_J2031_V6']
-#sky_coord += ['20 28 43.2 +41 18 36']
-#sample_list += ['MGRO_J2031_V5']
-#sky_coord += ['20 28 43.2 +41 18 36']
-#sample_list += ['MGRO_J2031_V4']
-#sky_coord += ['20 28 43.2 +41 18 36']
-# this is a Tevatron
+ONOFF_tag = 'ON'
+sample_list += ['MGRO_J2031_V6']
+sky_coord += ['20 28 43.2 +41 18 36']
+sample_list += ['MGRO_J2031_V5']
+sky_coord += ['20 28 43.2 +41 18 36']
+sample_list += ['MGRO_J2031_V4']
+sky_coord += ['20 28 43.2 +41 18 36']
+# this is a Tevatron with time-variable morphology
 
 #ONOFF_tag = 'ON'
 #sample_list += ['CygnusV6']
@@ -808,7 +808,9 @@ def GetShowerHistogramsFromFile(FilePath):
 
         HistName = "Hist_OnSyst_Chi2_V%s_ErecS%sto%s"%(nth_sample,ErecS_lower_cut_int,ErecS_upper_cut_int)
         print 'Getting histogram %s'%(HistName)
+        Hist1D_OnSyst_Chi2[nth_sample].Reset()
         Hist1D_OnSyst_Chi2[nth_sample].Add(InputFile.Get(HistName))
+        Hist1D_OnSyst_Chi2_Sum[nth_sample].Add(InputFile.Get(HistName))
 
         if Hist2D_OffData[nth_sample].Integral()<1600.:
             Hist2D_OffData[nth_sample].Reset()
@@ -1151,7 +1153,7 @@ def MakeSpectrumInNonCrabUnit(Hists,title,name,syst,nth_roi):
     Hist_EffArea_tmp = Hist_EffArea_Sum.Clone()
 
     # Crab https://arxiv.org/pdf/1508.06442.pdf
-    func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 200, 4000)
+    func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 100, 10000)
     func_crab.SetParameters(37.5,-2.467,-0.16)
 
     Hist_MDM = Hists[0].Clone()
@@ -1164,15 +1166,23 @@ def MakeSpectrumInNonCrabUnit(Hists,title,name,syst,nth_roi):
         Hist_MDM.SetBinContent(binx+1,Hist_MDM.GetBinContent(binx+1)*scale)
         Hist_MDM.SetBinError(binx+1,Hist_MDM.GetBinError(binx+1)*scale)
 
+    Hist_Invisible = Hist_MDM.Clone()
+    ymax = max(Hist_MDM.GetMaximum(),func_crab.Eval(Hist_MDM.GetBinCenter(1)))
+    ymin = min(Hist_MDM.GetMinimum(),func_crab.Eval(Hist_MDM.GetBinCenter(Hist_MDM.GetNbinsX())))
+    Hist_Invisible.SetBinContent(1,ymax)
+    Hist_Invisible.SetBinContent(1,ymin)
+    Hist_Invisible.SetLineColor(0)
+    Hist_Invisible.Draw()
+
     Hist_MDM.GetYaxis().SetTitle("flux [counts/GeV/s/cm2]")
     Hist_MDM.GetXaxis().SetTitle(title)
     Hist_MDM.GetXaxis().SetTitleOffset(1.3)
     Hist_MDM.GetXaxis().SetTitleSize(0.05)
-    Hist_MDM.Draw("E")
+    Hist_MDM.Draw("E same")
 
-    if 'Crab' in name:
-        func_crab.SetLineColor(4)
-        func_crab.Draw("same")
+    func_crab.SetLineColor(2)
+    func_crab.Draw("same")
+
     # MGRO J1908
     if 'MGRO_J1908' in name:
         func_1908 = ROOT.TF1("func_1908","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
@@ -1222,6 +1232,77 @@ def MakeSpectrumInNonCrabUnit(Hists,title,name,syst,nth_roi):
     pad1.SetLogx()
 
     c_both.SaveAs('output_plots/%s.png'%(name))
+
+def MakeSignalToBkgdRatioPlot(Hist_data,Hist_bkgd,legends,colors,title,name):
+
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    n_roi = len(Hist_data)
+
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,1)
+    pad1.SetBottomMargin(0.3)
+    pad1.SetTopMargin(0.1)
+    pad1.SetBorderMode(1)
+    pad1.SetGrid()
+    pad1.Draw()
+
+    pad1.cd()
+
+    time = Time(MJD_Start, format='mjd')
+    time.format = 'decimalyear'
+    year_start = time.value
+    time = Time(MJD_End, format='mjd')
+    time.format = 'decimalyear'
+    year_end = time.value
+
+    # Crab https://arxiv.org/pdf/1508.06442.pdf
+    Func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 100, 10000)
+    Func_crab.SetParameters(37.5,-2.467,-0.16)
+
+    Hist_data_mjd = []
+    Hist_bkgd_mjd = []
+    Hist_ratio_mjd = []
+    IncValues = ROOT.TF1( "IncValues", "x", year_start , year_end )
+    raLowerAxis = []
+    days_per_bin = 160.
+    for roi in range(0,n_roi):
+
+        Hist_data_mjd += [ROOT.TH1D("Hist_data_mjd_%s"%(roi),"",int((MJD_End+1-MJD_Start)/days_per_bin),MJD_Start,MJD_End+1)]
+        for binx in range(0,Hist_data[roi].GetNbinsX()):
+            mjd = Hist_data[roi].GetBinCenter(binx+1)
+            Hist_data_mjd[roi].Fill(mjd,Hist_data[roi].GetBinContent(binx+1))
+        for binx in range(0,Hist_data_mjd[roi].GetNbinsX()):
+            Hist_data_mjd[roi].SetBinError(binx+1,pow(Hist_data_mjd[roi].GetBinContent(binx+1),0.5))
+
+        Hist_bkgd_mjd += [ROOT.TH1D("Hist_bkgd_mjd_%s"%(roi),"",int((MJD_End+1-MJD_Start)/days_per_bin),MJD_Start,MJD_End+1)]
+        for binx in range(0,Hist_data[roi].GetNbinsX()):
+            mjd = Hist_data[roi].GetBinCenter(binx+1)
+            Hist_bkgd_mjd[roi].Fill(mjd,Hist_bkgd[roi].GetBinContent(binx+1))
+        for binx in range(0,Hist_bkgd_mjd[roi].GetNbinsX()):
+            Hist_bkgd_mjd[roi].SetBinError(binx+1,Hist_bkgd_mjd[roi].GetBinContent(binx+1)*Syst_MDM)
+
+
+        Hist_ratio_mjd += [ROOT.TH1D("Hist_ratio_mjd_%s"%(roi),"",int((MJD_End+1-MJD_Start)/days_per_bin),MJD_Start,MJD_End+1)]
+        Hist_ratio_mjd[roi].Add(Hist_data_mjd[roi])
+        Hist_ratio_mjd[roi].Add(Hist_bkgd_mjd[roi],-1.)
+        Hist_ratio_mjd[roi].Divide(Hist_bkgd_mjd[roi])
+
+    Hist_ratio_mjd[0].Draw("E same")
+    for roi in range(0,n_roi):
+
+        Hist_ratio_mjd[roi].SetLineColor(roi+1)
+        Hist_ratio_mjd[roi].SetLineWidth(3)
+        Hist_ratio_mjd[roi].Draw("E same")
+        c_both.Update()
+        x1 = ROOT.gPad.GetUxmin()
+        x2 = ROOT.gPad.GetUxmax()
+        y1 = ROOT.gPad.GetUymin()
+        y2 = ROOT.gPad.GetUymax()
+        raLowerAxis += [ROOT.TGaxis( x1, y2, x2, y2,"IncValues", 510, "-")]
+        raLowerAxis[roi].SetLabelSize(Hist_ratio_mjd[roi].GetXaxis().GetLabelSize())
+        raLowerAxis[roi].SetTitle("Year")
+        raLowerAxis[roi].Draw()
+
+    c_both.SaveAs('output_plots/%s_RoI%s_%s.png'%(name,roi,selection_tag))
 
 
 def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
@@ -1623,6 +1704,10 @@ def PlotsStackedHistograms(tag):
     legends += ['predict. bkg.']
     colors += [4]
     stack_it += [True]
+    Hists += [Hist_SystErr_Theta2]
+    legends += ['syst. error']
+    colors += [0]
+    stack_it += [False]
     plotname = 'Stack_Theta2_MDM_%s'%(tag)
     title = 'squared angle from source location #theta^{2}'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
@@ -1685,19 +1770,21 @@ def PlotsStackedHistograms(tag):
     plotname = 'LightCurve_RoI_Year_MDM_%s'%(tag)
     title = 'Year'
     MakeLightCurvePlot(Hist_data_mjd,Hist_bkgd_mjd,legends,colors,title,plotname)
+    plotname = 'LightCurve_Ratio_Year_MDM_%s'%(tag)
+    MakeSignalToBkgdRatioPlot(Hist_data_mjd,Hist_bkgd_mjd,legends,colors,title,plotname)
 
-    Hist_data_energy = []
-    Hist_bkgd_energy = []
-    legends = []
-    colors = []
-    for nth_roi in range(0,len(roi_ra)):
-        legends += ['%s'%(roi_name[nth_roi])]
-        colors += [nth_roi+1]
-        Hist_data_energy += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
-        Hist_bkgd_energy += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
-    plotname = 'Spectrum_RoI%s_CrabUnit_MDM_%s'%(nth_roi,tag)
-    title = 'GeV'
-    MakeCrabUnitSpectrumPlot(Hist_data_energy,Hist_bkgd_energy,legends,colors,title,plotname)
+    #Hist_data_energy = []
+    #Hist_bkgd_energy = []
+    #legends = []
+    #colors = []
+    #for nth_roi in range(0,len(roi_ra)):
+    #    legends += ['%s'%(roi_name[nth_roi])]
+    #    colors += [nth_roi+1]
+    #    Hist_data_energy += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
+    #    Hist_bkgd_energy += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
+    #plotname = 'Spectrum_RoI%s_CrabUnit_MDM_%s'%(nth_roi,tag)
+    #title = 'GeV'
+    #MakeCrabUnitSpectrumPlot(Hist_data_energy,Hist_bkgd_energy,legends,colors,title,plotname)
 
     #Hist_data_theta2 = []
     #Hist_bkgd_theta2 = []
@@ -1723,6 +1810,10 @@ def PlotsStackedHistograms(tag):
     legends += ['predict. bkg.']
     colors += [4]
     stack_it += [True]
+    Hists += [Hist_SystErr_Energy]
+    legends += ['syst. error']
+    colors += [0]
+    stack_it += [False]
     plotname = 'Stack_Energy_MDM_%s'%(tag)
     title = 'energy [GeV]'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
@@ -1744,73 +1835,84 @@ def PlotsStackedHistograms(tag):
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
 
+    #for nth_sample in range(0,n_control_samples):
+
+    #    Hists = []
+    #    legends = []
+    #    colors = []
+    #    stack_it = []
+    #    Hists += [Hist_OffData_MSCW_Sum[nth_sample]]
+    #    legends += ['obs. data']
+    #    colors += [1]
+    #    stack_it += [False]
+    #    Hists += [Hist_OffBkgd_MSCW_Sum[nth_sample]]
+    #    legends += ['predict. bkg.']
+    #    colors += [4]
+    #    stack_it += [False]
+    #    plotname = 'Stack_MSCW_MDM_%s_Control%s'%(tag,nth_sample)
+    #    title = 'MSCW'
+    #    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,MSCW_lower_cut,MSCW_blind_cut,-1)
+
+    #    Hists = []
+    #    legends = []
+    #    colors = []
+    #    stack_it = []
+    #    Hists += [Hist_OffData_MSCL_Sum[nth_sample]]
+    #    legends += ['obs. data']
+    #    colors += [1]
+    #    stack_it += [False]
+    #    Hists += [Hist_OffBkgd_MSCL_Sum[nth_sample]]
+    #    legends += ['predict. bkg.']
+    #    colors += [4]
+    #    stack_it += [False]
+    #    plotname = 'Stack_MSCL_MDM_%s_Control%s'%(tag,nth_sample)
+    #    title = 'MSCL'
+    #    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,MSCL_lower_cut,MSCL_blind_cut,-1)
+
+    #    Hists = []
+    #    legends = []
+    #    colors = []
+    #    stack_it = []
+    #    Hists += [Hist_OffData_Energy_Sum[nth_sample]]
+    #    legends += ['obs. data']
+    #    colors += [1]
+    #    stack_it += [False]
+    #    Hists += [Hist_OffBkgd_Energy_Sum[nth_sample]]
+    #    legends += ['predict. bkg.']
+    #    colors += [4]
+    #    stack_it += [False]
+    #    plotname = 'Stack_Energy_MDM_%s_Control%s'%(tag,nth_sample)
+    #    title = 'energy [GeV]'
+    #    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,0.,pow(10,4.0),-1)
+
+    #    Hists = []
+    #    legends = []
+    #    colors = []
+    #    stack_it = []
+    #    #Hist_OffData_CameraFoV_Theta2_Sum[nth_sample].GetXaxis().SetRangeUser(0,9)
+    #    #Hist_OffBkgd_CameraFoV_Theta2_Sum[nth_sample].GetXaxis().SetRangeUser(0,9)
+    #    Hists += [Hist_OffData_CameraFoV_Theta2_Sum[nth_sample]]
+    #    legends += ['obs. data']
+    #    colors += [1]
+    #    stack_it += [False]
+    #    Hists += [Hist_OffBkgd_CameraFoV_Theta2_Sum[nth_sample]]
+    #    legends += ['predict. bkg.']
+    #    colors += [4]
+    #    stack_it += [False]
+    #    plotname = 'Stack_CameraFoV_Theta2_MDM_%s_Control%s'%(tag,nth_sample)
+    #    title = 'squared angle from camera center #theta^{2}'
+    #    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,0.,1.,-1)
+
+def CalculateSystErrorIndividual_v2():
+
+    Syst_MDM_single = 0.
+    n_used_samples = 0.
     for nth_sample in range(0,n_control_samples):
-
-        Hists = []
-        legends = []
-        colors = []
-        stack_it = []
-        Hists += [Hist_OffData_MSCW_Sum[nth_sample]]
-        legends += ['obs. data']
-        colors += [1]
-        stack_it += [False]
-        Hists += [Hist_OffBkgd_MSCW_Sum[nth_sample]]
-        legends += ['predict. bkg.']
-        colors += [4]
-        stack_it += [False]
-        plotname = 'Stack_MSCW_MDM_%s_Control%s'%(tag,nth_sample)
-        title = 'MSCW'
-        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,MSCW_lower_cut,MSCW_blind_cut,-1)
-
-        Hists = []
-        legends = []
-        colors = []
-        stack_it = []
-        Hists += [Hist_OffData_MSCL_Sum[nth_sample]]
-        legends += ['obs. data']
-        colors += [1]
-        stack_it += [False]
-        Hists += [Hist_OffBkgd_MSCL_Sum[nth_sample]]
-        legends += ['predict. bkg.']
-        colors += [4]
-        stack_it += [False]
-        plotname = 'Stack_MSCL_MDM_%s_Control%s'%(tag,nth_sample)
-        title = 'MSCL'
-        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,MSCL_lower_cut,MSCL_blind_cut,-1)
-
-        Hists = []
-        legends = []
-        colors = []
-        stack_it = []
-        Hists += [Hist_OffData_Energy_Sum[nth_sample]]
-        legends += ['obs. data']
-        colors += [1]
-        stack_it += [False]
-        Hists += [Hist_OffBkgd_Energy_Sum[nth_sample]]
-        legends += ['predict. bkg.']
-        colors += [4]
-        stack_it += [False]
-        plotname = 'Stack_Energy_MDM_%s_Control%s'%(tag,nth_sample)
-        title = 'energy [GeV]'
-        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,0.,pow(10,4.0),-1)
-
-        Hists = []
-        legends = []
-        colors = []
-        stack_it = []
-        #Hist_OffData_CameraFoV_Theta2_Sum[nth_sample].GetXaxis().SetRangeUser(0,9)
-        #Hist_OffBkgd_CameraFoV_Theta2_Sum[nth_sample].GetXaxis().SetRangeUser(0,9)
-        Hists += [Hist_OffData_CameraFoV_Theta2_Sum[nth_sample]]
-        legends += ['obs. data']
-        colors += [1]
-        stack_it += [False]
-        Hists += [Hist_OffBkgd_CameraFoV_Theta2_Sum[nth_sample]]
-        legends += ['predict. bkg.']
-        colors += [4]
-        stack_it += [False]
-        plotname = 'Stack_CameraFoV_Theta2_MDM_%s_Control%s'%(tag,nth_sample)
-        title = 'squared angle from camera center #theta^{2}'
-        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,0.,1.,-1)
+        n_used_samples += 1.
+        min_bin = Hist1D_OnSyst_Chi2[nth_sample].GetMinimumBin()
+        Syst_MDM_single += pow(Hist1D_OnSyst_Chi2[nth_sample].GetBinCenter(min_bin),2)
+    Syst_MDM_single = pow(Syst_MDM_single/float(n_used_samples),0.5)
+    return Syst_MDM_single
 
 def CalculateSystErrorIndividual():
 
@@ -1861,6 +1963,18 @@ def CalculateSystErrorIndividual():
 
     return Syst_MDM_single
 
+def CalculateSystError_v2():
+
+    global Syst_MDM
+    Syst_MDM = 0.
+
+    n_used_samples = 0.
+    for nth_sample in range(0,n_control_samples):
+        n_used_samples += 1.
+        min_bin = Hist1D_OnSyst_Chi2_Sum[nth_sample].GetMinimumBin()
+        Syst_MDM += pow(Hist1D_OnSyst_Chi2_Sum[nth_sample].GetBinCenter(min_bin),2)
+    Syst_MDM = pow(Syst_MDM/float(n_used_samples),0.5)
+
 def CalculateSystError():
 
     global Syst_MDM
@@ -1873,8 +1987,6 @@ def CalculateSystError():
     Syst_Redu = 0.
     Syst_Corr = 0.
     Syst_Clos = 0.
-    Hist_SystErr_MSCL.Reset()
-    Hist_SystErr_MSCW.Reset()
 
     binx_low_target = Hist_OnData_MSCL_Sum.FindBin(MSCL_lower_cut)
     binx_up_target = Hist_OnData_MSCL_Sum.FindBin(MSCL_plot_upper)-1
@@ -1913,38 +2025,12 @@ def CalculateSystError():
         print '%s th sample syst = %s'%(nth_sample,syst_this)
         n_samples_used += 1.
 
-        Hist_Diff_MSCL = Hist_OffData_MSCL_Sum[nth_sample].Clone()
-        Hist_Diff_MSCL.Add(Hist_OffBkgd_MSCL_Sum[nth_sample],-1.)
-        for binx in range(0,Hist_SystErr_MSCL.GetNbinsX()):
-            syst_err = max(0.,pow(Hist_Diff_MSCL.GetBinContent(binx+1),2)-pow(Hist_Diff_MSCL.GetBinError(binx+1),2))
-            old_syst = Hist_SystErr_MSCL.GetBinError(binx+1)
-            new_syst = old_syst+syst_err
-            Hist_SystErr_MSCL.SetBinError(binx+1,new_syst)
-
-        Hist_Diff_MSCW = Hist_OffData_MSCW_Sum[nth_sample].Clone()
-        Hist_Diff_MSCW.Add(Hist_OffBkgd_MSCW_Sum[nth_sample],-1.)
-        for binx in range(0,Hist_SystErr_MSCW.GetNbinsX()):
-            syst_err = max(0.,pow(Hist_Diff_MSCW.GetBinContent(binx+1),2)-pow(Hist_Diff_MSCW.GetBinError(binx+1),2))
-            old_syst = Hist_SystErr_MSCW.GetBinError(binx+1)
-            new_syst = old_syst+syst_err
-            Hist_SystErr_MSCW.SetBinError(binx+1,new_syst)
-
     Syst_MDM = Syst_Init + Syst_Redu
     Syst_MDM = pow(Syst_MDM/n_samples_used,0.5)
     Syst_MDM = pow(Syst_MDM*Syst_MDM + Syst_Clos*Syst_Clos,0.5)
     Syst_Init = pow(Syst_Init/n_samples_used,0.5)
     Syst_Redu = pow(Syst_Redu/n_samples_used,0.5)
     Syst_Corr = Syst_Corr/n_samples_used
-
-    for binx in range(0,Hist_SystErr_MSCL.GetNbinsX()):
-            old_syst = Hist_SystErr_MSCL.GetBinError(binx+1)
-            new_syst = pow(old_syst/(n_control_samples),0.5)
-            Hist_SystErr_MSCL.SetBinError(binx+1,new_syst)
-
-    for binx in range(0,Hist_SystErr_MSCW.GetNbinsX()):
-            old_syst = Hist_SystErr_MSCW.GetBinError(binx+1)
-            new_syst = pow(old_syst/(n_control_samples),0.5)
-            Hist_SystErr_MSCW.SetBinError(binx+1,new_syst)
 
 def Theta2HistScale(Hist,scale,scale_err):
 
@@ -2242,30 +2328,40 @@ def StackSkymapHistograms():
     Hist_OnBkgd_Skymap_Sum.Add(Hist_OnBkgd_Skymap)
     Hist_OnBkgd_Skymap_Galactic_Sum.Add(Hist_OnBkgd_Skymap_Galactic)
 
-    Syst_MDM_single = CalculateSystErrorIndividual()
+    Syst_MDM_single = CalculateSystErrorIndividual_v2()
     print 'Syst_MDM_single = %s'%(Syst_MDM_single)
+
     for binx in range(0,Hist_OnBkgd_Skymap_Syst_Sum.GetNbinsX()):
         for biny in range(0,Hist_OnBkgd_Skymap_Syst_Sum.GetNbinsY()):
             content_a = Hist_OnBkgd_Skymap_Syst_Sum.GetBinContent(binx+1,biny+1)
             content_b = Hist_OnBkgd_Skymap.GetBinContent(binx+1,biny+1)*Syst_MDM_single
-            #content_b = 0.
             content_d = Hist_OnBkgd_Skymap_Syst.GetBinContent(binx+1,biny+1)
-            #content_d = 0.
             content_c = content_a+content_b*content_b+content_d*content_d
             Hist_OnBkgd_Skymap_Syst_Sum.SetBinContent(binx+1,biny+1,content_c)
-            #content_c = content_a*content_a+content_b*content_b+content_d*content_d
-            #Hist_OnBkgd_Skymap_Syst_Sum.SetBinContent(binx+1,biny+1,pow(content_c,0.5))
     for binx in range(0,Hist_OnBkgd_Skymap_Galactic_Syst_Sum.GetNbinsX()):
         for biny in range(0,Hist_OnBkgd_Skymap_Galactic_Syst_Sum.GetNbinsY()):
             content_a = Hist_OnBkgd_Skymap_Galactic_Syst_Sum.GetBinContent(binx+1,biny+1)
             content_b = Hist_OnBkgd_Skymap_Galactic.GetBinContent(binx+1,biny+1)*Syst_MDM_single
-            #content_b = 0.
             content_d = Hist_OnBkgd_Skymap_Galactic_Syst.GetBinContent(binx+1,biny+1)
-            #content_d = 0.
             content_c = content_a+content_b*content_b+content_d*content_d
             Hist_OnBkgd_Skymap_Galactic_Syst_Sum.SetBinContent(binx+1,biny+1,content_c)
-            #content_c = content_a*content_a+content_b*content_b+content_d*content_d
-            #Hist_OnBkgd_Skymap_Galactic_Syst_Sum.SetBinContent(binx+1,biny+1,pow(content_c,0.5))
+
+    for binx in range(0,Hist_SystErr_MSCL.GetNbinsX()):
+        old_err = Hist_SystErr_MSCL.GetBinError(binx+1)
+        new_err = pow(old_err,2)+pow(Hist_OnBkgd_MSCL.GetBinContent(binx+1)*Syst_MDM_single,2)
+        Hist_SystErr_MSCL.SetBinError(binx+1,pow(new_err,0.5))
+    for binx in range(0,Hist_SystErr_MSCW.GetNbinsX()):
+        old_err = Hist_SystErr_MSCW.GetBinError(binx+1)
+        new_err = pow(old_err,2)+pow(Hist_OnBkgd_MSCW.GetBinContent(binx+1)*Syst_MDM_single,2)
+        Hist_SystErr_MSCW.SetBinError(binx+1,pow(new_err,0.5))
+    for binx in range(0,Hist_SystErr_Energy.GetNbinsX()):
+        old_err = Hist_SystErr_Energy.GetBinError(binx+1)
+        new_err = pow(old_err,2)+pow(Hist_OnBkgd_Energy.GetBinContent(binx+1)*Syst_MDM_single,2)
+        Hist_SystErr_Energy.SetBinError(binx+1,pow(new_err,0.5))
+    for binx in range(0,Hist_SystErr_Theta2.GetNbinsX()):
+        old_err = Hist_SystErr_Theta2.GetBinError(binx+1)
+        new_err = pow(old_err,2)+pow(Hist_OnBkgd_Theta2.GetBinContent(binx+1)*Syst_MDM_single,2)
+        Hist_SystErr_Theta2.SetBinError(binx+1,pow(new_err,0.5))
 
 def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
 
@@ -2657,11 +2753,14 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
             by2 = Hist_Skymap_zoomin.GetYaxis().FindBin(by_center)
             #Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Skymap_Excess.GetBinContent(bx+1,by+1))
             Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Skymap_Ratio.GetBinContent(bx+1,by+1))
+            #Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Skymap.GetBinContent(bx+1,by+1))
             Hist_Contour_zoomin.SetBinContent(bx2,by2,Hist_Contour.GetBinContent(bx+1,by+1))
     Hist_Contour_zoomin.SetContour(3)
     Hist_Contour_zoomin.SetContourLevel(0,3)
     Hist_Contour_zoomin.SetContourLevel(1,4)
     Hist_Contour_zoomin.SetContourLevel(2,5)
+    #Hist_Skymap_zoomin.SetMaximum(5)
+    #Hist_Skymap_zoomin.SetMinimum(-5)
 
     pad1.cd()
     Hist_Skymap_zoomin.GetYaxis().SetTitle(ytitle)
@@ -2879,6 +2978,11 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrDark = ROOT.TH2D("Hist2D_ErrDark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
     Hist2D_ErrDark.Add(Hist2D_OnData_Sum)
     Hist2D_ErrDark.Add(Hist2D_OnDark_Sum,-1)
+    for binx in range (0,Hist2D_ErrDark.GetNbinsX()):
+        for biny in range (0,Hist2D_ErrDark.GetNbinsY()):
+            old_content = Hist2D_ErrDark.GetBinContent(binx+1,biny+1)
+            error = max(1.,pow(Hist2D_OnData_Sum.GetBinContent(binx+1,biny+1),0.5))
+            Hist2D_ErrDark.SetBinContent(binx+1,biny+1,old_content/error)
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.50,'Error map of initial matrix' )
     lumilab1.SetNDC()
@@ -2895,6 +2999,11 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrBkgd = ROOT.TH2D("Hist2D_ErrBkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
     Hist2D_ErrBkgd.Add(Hist2D_OnData_Sum)
     Hist2D_ErrBkgd.Add(Hist2D_OnBkgd_Sum,-1)
+    for binx in range (0,Hist2D_ErrBkgd.GetNbinsX()):
+        for biny in range (0,Hist2D_ErrBkgd.GetNbinsY()):
+            old_content = Hist2D_ErrBkgd.GetBinContent(binx+1,biny+1)
+            error = max(1.,pow(Hist2D_OnData_Sum.GetBinContent(binx+1,biny+1),0.5))
+            Hist2D_ErrBkgd.SetBinContent(binx+1,biny+1,old_content/error)
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.50,'Error map of MDM prediction' )
     lumilab1.SetNDC()
@@ -2938,32 +3047,35 @@ def MakeSystChi2Plot():
     bin_upper_x = Hist2D_OnData_Sum.GetXaxis().FindBin(MSCL_blind_cut)-1
     bin_lower_y = Hist2D_OnData_Sum.GetYaxis().FindBin(MSCW_lower_cut)
     bin_upper_y = Hist2D_OnData_Sum.GetYaxis().FindBin(MSCW_blind_cut)-1
-    norm = 0.
-    for binx in range(0,Hist2D_OnData_Sum.GetNbinsX()):
-        for biny in range(0,Hist2D_OnData_Sum.GetNbinsY()):
-            if binx<=bin_upper_x and binx<=bin_upper_x: continue
-            norm += Hist2D_OnData_Sum.GetBinContent(binx+1,biny+1)
+    #norm = 0.
+    #for binx in range(0,Hist2D_OnData_Sum.GetNbinsX()):
+    #    for biny in range(0,Hist2D_OnData_Sum.GetNbinsY()):
+    #        if binx<=bin_upper_x and biny<=bin_upper_y: continue
+    #        norm += Hist2D_OnData_Sum.GetBinContent(binx+1,biny+1)
+    #for nth_sample in range(0,n_control_samples):
+    #    for binx in range(0,Hist1D_OnSyst_Chi2_Sum[nth_sample].GetNbinsX()):
+    #        old_content = Hist1D_OnSyst_Chi2_Sum[nth_sample].GetBinContent(binx+1)
+    #        Hist1D_OnSyst_Chi2_Sum[nth_sample].SetBinContent(binx+1,pow(old_content/norm,0.5))
+    Hist_Invisible = Hist1D_OnSyst_Chi2_Sum[0].Clone()
     for nth_sample in range(0,n_control_samples):
-        for binx in range(0,Hist1D_OnSyst_Chi2[nth_sample].GetNbinsX()):
-            old_content = Hist1D_OnSyst_Chi2[nth_sample].GetBinContent(binx+1)
-            Hist1D_OnSyst_Chi2[nth_sample].SetBinContent(binx+1,pow(old_content/norm,0.5))
-    Hist1D_OnSyst_Chi2[0].GetXaxis().SetTitleOffset(0.8)
-    Hist1D_OnSyst_Chi2[0].GetXaxis().SetTitleSize(0.06)
-    Hist1D_OnSyst_Chi2[0].GetXaxis().SetLabelSize(0.06)
-    Hist1D_OnSyst_Chi2[0].GetYaxis().SetLabelSize(0.06)
-    Hist1D_OnSyst_Chi2[0].GetYaxis().SetTitleOffset(1.2)
-    Hist1D_OnSyst_Chi2[0].GetYaxis().SetTitleSize(0.06)
-    Hist1D_OnSyst_Chi2[0].GetXaxis().SetTitle('variation')
-    Hist1D_OnSyst_Chi2[0].GetYaxis().SetTitle('#chi^{2}')
-    y_min = 1e10
+        chi2_max = max(Hist1D_OnSyst_Chi2_Sum[nth_sample].GetMaximum(),Hist_Invisible.GetBinContent(1))
+        Hist_Invisible.SetBinContent(1,chi2_max)
+        chi2_min = min(Hist1D_OnSyst_Chi2_Sum[nth_sample].GetMinimum(),Hist_Invisible.GetBinContent(2))
+        Hist_Invisible.SetBinContent(2,chi2_min)
+    Hist_Invisible.GetXaxis().SetTitleOffset(0.8)
+    Hist_Invisible.GetXaxis().SetTitleSize(0.06)
+    Hist_Invisible.GetXaxis().SetLabelSize(0.04)
+    Hist_Invisible.GetYaxis().SetLabelSize(0.04)
+    Hist_Invisible.GetYaxis().SetTitleOffset(1.2)
+    Hist_Invisible.GetYaxis().SetTitleSize(0.06)
+    Hist_Invisible.GetXaxis().SetTitle('relative #gamma variation')
+    Hist_Invisible.GetYaxis().SetTitle('#chi^{2}')
+    Hist_Invisible.SetLineColor(0)
+    Hist_Invisible.Draw()
+    Hist1D_OnSyst_Chi2_Sum[0].Draw('same')
     for nth_sample in range(0,n_control_samples):
-        if y_min>Hist1D_OnSyst_Chi2[nth_sample].GetMinimum():
-            y_min = Hist1D_OnSyst_Chi2[nth_sample].GetMinimum()
-    #Hist1D_OnSyst_Chi2[0].SetMinimum(y_min)
-    Hist1D_OnSyst_Chi2[0].Draw()
-    for nth_sample in range(0,n_control_samples):
-        Hist1D_OnSyst_Chi2[nth_sample].SetLineColor(nth_sample+1)
-        Hist1D_OnSyst_Chi2[nth_sample].Draw('same')
+        Hist1D_OnSyst_Chi2_Sum[nth_sample].SetLineColor(nth_sample+1)
+        Hist1D_OnSyst_Chi2_Sum[nth_sample].Draw('same')
 
     #pad1.SetLogy()
     pad3.cd()
@@ -3341,6 +3453,7 @@ def SingleSourceAnalysis(source_list,doMap):
     GetBrightStarInfo(FilePath_List)
 
     CalculateSystError()
+    CalculateSystError_v2()
     #CorrectEnergyHistograms()
     #CorrectTheta2Histograms()
     #CorrectSkymapHistograms()
@@ -3516,6 +3629,8 @@ Hist_OnBkgd_Skymap_Galactic_Syst_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sy
 
 Hist_SystErr_MSCL = ROOT.TH1D("Hist_SystErr_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_SystErr_MSCW = ROOT.TH1D("Hist_SystErr_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist_SystErr_Energy = ROOT.TH1D("Hist_SystErr_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_SystErr_Theta2 = ROOT.TH1D("Hist_SystErr_Theta2","",50,0,10)
 
 print 'MJD_Start = %s'%(MJD_Start)
 print 'MJD_End = %s'%(MJD_End)
@@ -3563,6 +3678,7 @@ Hist2D_OffBkgd_Sum = []
 Hist2D_OnSyst = []
 Hist2D_OnSyst_Sum = []
 Hist1D_OnSyst_Chi2 = []
+Hist1D_OnSyst_Chi2_Sum = []
 Hist_OffData_MSCL = []
 Hist_OffData_MSCL_Sum = []
 Hist_OffBkgd_MSCL = []
@@ -3586,7 +3702,8 @@ for nth_sample in range(0,n_control_samples):
     Hist2D_OffBkgd_Sum += [ROOT.TH2D("Hist2D_OffBkgd_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist2D_OnSyst += [ROOT.TH2D("Hist2D_OnSyst_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist2D_OnSyst_Sum += [ROOT.TH2D("Hist2D_OnSyst_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
-    Hist1D_OnSyst_Chi2 += [ROOT.TH1D("Hist1D_OnSyst_Chi2_%s"%(nth_sample),"",20,-0.2,0.2)]
+    Hist1D_OnSyst_Chi2 += [ROOT.TH1D("Hist1D_OnSyst_Chi2_%s"%(nth_sample),"",20,-0.1,0.1)]
+    Hist1D_OnSyst_Chi2_Sum += [ROOT.TH1D("Hist1D_OnSyst_Chi2_Sum_%s"%(nth_sample),"",20,-0.1,0.1)]
     Hist_OffData_MSCL += [ROOT.TH1D("Hist_OnData_MSCL_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
     Hist_OffData_MSCL_Sum += [ROOT.TH1D("Hist_OnData_MSCL_Sum_%s"%(nth_sample),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
     Hist_OffData_MSCW += [ROOT.TH1D("Hist_OnData_MSCW_%s"%(nth_sample),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]

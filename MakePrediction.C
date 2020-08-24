@@ -1024,7 +1024,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             Hist_OffData_OneSample_MSCLW.push_back(TH2D("Hist_OffData2_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OffBkgd_OneSample_MSCLW.push_back(TH2D("Hist_OffBkgd_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnSyst_OneSample_MSCLW.push_back(TH2D("Hist_OnSyst_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
-            Hist_OnSyst_OneSample_Chi2.push_back(TH1D("Hist_OnSyst_Chi2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,-0.2,0.2));
+            Hist_OnSyst_OneSample_Chi2.push_back(TH1D("Hist_OnSyst_Chi2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,-0.1,0.1));
         }
         Hist_OffData_MSCLW.push_back(Hist_OffData_OneSample_MSCLW);
         Hist_OffBkgd_MSCLW.push_back(Hist_OffBkgd_OneSample_MSCLW);
@@ -1122,7 +1122,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     mtx_dark = fillMatrix(&Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
                     mtx_data_bkgd = mtx_dark;
-                    LeastSquareSolutionMethod(rank_variation, n_iterations, true);
+                    //LeastSquareSolutionMethod(rank_variation, n_iterations, true);
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     Hist_OffData_MSCLW.at(nth_sample).at(e).Add(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e));
@@ -1253,6 +1253,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH1D> Hist_OnData_SR_Energy_OneGroup;
     vector<TH1D> Hist_OnData_CR_Energy;
     vector<TH1D> Hist_OnData_CR_Energy_OneGroup;
+    vector<TH1D> Hist_OnData_CR_Energy_Raw_OneGroup;
     vector<TH1D> Hist_OnData_SR_Zenith;
     vector<TH1D> Hist_OnData_SR_Zenith_OneGroup;
     vector<TH1D> Hist_OnData_CR_Zenith;
@@ -1273,6 +1274,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_SR_Energy_OneGroup.push_back(TH1D("Hist_OnData_SR_Energy_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_CR_Energy.push_back(TH1D("Hist_OnData_CR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_CR_Energy_OneGroup.push_back(TH1D("Hist_OnData_CR_Energy_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+        Hist_OnData_CR_Energy_Raw_OneGroup.push_back(TH1D("Hist_OnData_CR_Energy_Raw_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_SR_Zenith.push_back(TH1D("Hist_OnData_SR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
         Hist_OnData_SR_Zenith_OneGroup.push_back(TH1D("Hist_OnData_SR_Zenith_OneGroup_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
         Hist_OnData_CR_Zenith.push_back(TH1D("Hist_OnData_CR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
@@ -1494,6 +1496,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 Hist_OnData_SR_Energy_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 hist_name  = "Hist_OnData_CR_Energy_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
                 Hist_OnData_CR_Energy_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+                hist_name  = "Hist_OnData_CR_Energy_Raw_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                Hist_OnData_CR_Energy_Raw_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 hist_name  = "Hist_OnData_SR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
                 Hist_OnData_SR_Zenith_OneGroup.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 hist_name  = "Hist_OnData_CR_Zenith_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -1560,13 +1564,16 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     double Bkgd_SR_Integral = Hist_OneGroup_Bkgd_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
                     double Bkgd_VR_Integral = Hist_OnData_VR_Skymap_OneGroup.at(e).Integral();
                     double Old_Integral = Hist_OnData_CR_Energy_OneGroup.at(e).Integral();
+                    double Old_Integral_Raw = Hist_OnData_CR_Energy_Raw_OneGroup.at(e).Integral();
                     double Old_Integral_VR = Hist_OnData_CR_Skymap_Syst_OneGroup.at(e).Integral();
                     double scale = 0.;
+                    double scale_raw = 0.;
                     double scale_vr = 0.;
                     double scale_vrsr = 0.;
                     if (Old_Integral>0.)
                     {
                         scale = Bkgd_SR_Integral/Old_Integral;
+                        scale_raw = Bkgd_SR_Integral/Old_Integral_Raw;
                         scale_vr = Bkgd_VR_Integral/Old_Integral_VR;
                         scale_vrsr = Bkgd_SR_Integral/Bkgd_VR_Integral;
                     }
@@ -1585,7 +1592,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     {
                         Hist_OnData_CR_RoI_Energy_OneGroup.at(nth_roi).at(e).Scale(scale);
                         Hist_OnData_CR_Skymap_RoI_Theta2_OneGroup.at(nth_roi).at(e).Scale(scale);
-                        Hist_OnData_CR_RoI_MJD_OneGroup.at(nth_roi).at(e).Scale(scale);
+                        Hist_OnData_CR_RoI_MJD_OneGroup.at(nth_roi).at(e).Scale(scale_raw);
                     }
                     Hist_OnData_SR_Energy.at(e).Add(&Hist_OnData_SR_Energy_OneGroup.at(e));
                     Hist_OnData_CR_Energy.at(e).Add(&Hist_OnData_CR_Energy_OneGroup.at(e));
@@ -1620,6 +1627,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 Hist_OneGroup_Gamma_MSCLW.at(e).Reset();
                 Hist_OnData_SR_Energy_OneGroup.at(e).Reset();
                 Hist_OnData_CR_Energy_OneGroup.at(e).Reset();
+                Hist_OnData_CR_Energy_Raw_OneGroup.at(e).Reset();
                 Hist_OnData_SR_Zenith_OneGroup.at(e).Reset();
                 Hist_OnData_CR_Zenith_OneGroup.at(e).Reset();
                 Hist_OnData_SR_Skymap_Theta2_OneGroup.at(e).Reset();
