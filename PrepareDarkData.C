@@ -409,6 +409,21 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 286.975;
                 Source_Dec = 6.269;
     }
+    if (source_name=="SS433_V6")
+    {
+            Source_RA = 287.9565;
+                Source_Dec = 4.98272222222;
+    }
+    if (source_name=="SS433_V5")
+    {
+            Source_RA = 287.9565;
+                Source_Dec = 4.98272222222;
+    }
+    if (source_name=="SS433_V4")
+    {
+            Source_RA = 287.9565;
+                Source_Dec = 4.98272222222;
+    }
     if (source_name=="MAGIC_J1857_V6")
     {
             Source_RA = 284.398;
@@ -670,6 +685,19 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         input_file->Close();
         return false;
     }
+    if (TString(target).Contains("SS433"))
+    {
+        double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
+        double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
+        double delta_RA = TelRAJ2000_tmp - 287.9565;
+        double delta_Dec = TelDecJ2000_tmp - 4.9827;
+        double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
+        if (distance>1.0)
+        {
+            input_file->Close();
+            return false;
+        }
+    }
     input_file->Close();
     return true;
 }
@@ -800,7 +828,8 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
         new_list.push_back(std::make_pair(Data_runlist[run].first,Data_runlist[run].second));
         new_list_pointing.push_back(GetRunElevAzim(filename,int(Data_runlist[run].second)).first);
     }
-    SortingList(&new_list, &new_list_pointing);
+    std::cout << "selected runs = " << new_list.size() << std::endl;
+    if (new_list.size()>1) SortingList(&new_list, &new_list_pointing);
     return new_list;
 }
 
@@ -1256,6 +1285,18 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         //roi_dec.push_back(4.037);
         //roi_radius.push_back(0.3);
 
+    }
+    else if (TString(target).Contains("SS433")) 
+    {
+        roi_name.push_back("SS 433 e1");
+        roi_ra.push_back(288.404);
+        roi_dec.push_back(4.930);
+        roi_radius.push_back(0.3);
+
+        roi_name.push_back("SS 433 w1");
+        roi_ra.push_back(287.654);
+        roi_dec.push_back(5.037);
+        roi_radius.push_back(0.3);
     }
     else if (TString(target).Contains("MAGIC_J1857")) 
     {

@@ -133,13 +133,13 @@ sky_coord = []
 #sky_coord += ['12 21 31.7 +28 13 59']
 # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
 
-#ONOFF_tag = 'ON'
-#sample_list += ['IC443HotSpotV6']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
-#sample_list += ['IC443HotSpotV5']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
-#sample_list += ['IC443HotSpotV4']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
+ONOFF_tag = 'ON'
+sample_list += ['IC443HotSpotV6']
+sky_coord += ['06 18 2.700 +22 39 36.00']
+sample_list += ['IC443HotSpotV5']
+sky_coord += ['06 18 2.700 +22 39 36.00']
+sample_list += ['IC443HotSpotV4']
+sky_coord += ['06 18 2.700 +22 39 36.00']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['BoomerangV6']
@@ -159,6 +159,14 @@ sky_coord = []
 # this is a Tevatron
 
 #ONOFF_tag = 'ON'
+#sample_list += ['SS433_V6']
+#sky_coord += ['19 11 49.56 +04 58 57.8']
+#sample_list += ['SS433_V5']
+#sky_coord += ['19 11 49.56 +04 58 57.8']
+#sample_list += ['SS433_V4']
+#sky_coord += ['19 11 49.56 +04 58 57.8']
+
+#ONOFF_tag = 'ON'
 #sample_list += ['MAGIC_J1857_V6']
 #sky_coord += ['18 57 35.6 +02 58 02']
 #sample_list += ['MAGIC_J1857_V5']
@@ -167,13 +175,13 @@ sky_coord = []
 #sky_coord += ['18 57 35.6 +02 58 02']
 # this is a Tevatron
 
-ONOFF_tag = 'ON'
-sample_list += ['MGRO_J2031_V6']
-sky_coord += ['20 28 43.2 +41 18 36']
-sample_list += ['MGRO_J2031_V5']
-sky_coord += ['20 28 43.2 +41 18 36']
-sample_list += ['MGRO_J2031_V4']
-sky_coord += ['20 28 43.2 +41 18 36']
+#ONOFF_tag = 'ON'
+#sample_list += ['MGRO_J2031_V6']
+#sky_coord += ['20 28 43.2 +41 18 36']
+#sample_list += ['MGRO_J2031_V5']
+#sky_coord += ['20 28 43.2 +41 18 36']
+#sample_list += ['MGRO_J2031_V4']
+#sky_coord += ['20 28 43.2 +41 18 36']
 # this is a Tevatron with time-variable morphology
 
 #ONOFF_tag = 'ON'
@@ -1131,7 +1139,7 @@ def MakeCrabUnitSpectrumPlot(Hist_data,Hist_bkgd,legends,colors,title,name):
 
         c_both.SaveAs('output_plots/%s_RoI%s_%s.png'%(name,roi,selection_tag))
 
-def MakeSpectrumInNonCrabUnit(Hists,title,name,syst,nth_roi):
+def MakeSpectrumInNonCrabUnit(hist_data,hist_bkgd,legends,title,name,syst):
     
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
     pad3 = ROOT.TPad("pad3","pad3",0,0.7,1,1)
@@ -1141,7 +1149,7 @@ def MakeSpectrumInNonCrabUnit(Hists,title,name,syst,nth_roi):
     pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.7)
     pad1.SetBottomMargin(0.2)
     pad1.SetTopMargin(0.0)
-    pad1.SetLeftMargin(0.1)
+    pad1.SetLeftMargin(0.2)
     pad1.SetRightMargin(0.1)
     pad1.SetBorderMode(0)
     pad1.SetGrid()
@@ -1156,29 +1164,40 @@ def MakeSpectrumInNonCrabUnit(Hists,title,name,syst,nth_roi):
     func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 100, 10000)
     func_crab.SetParameters(37.5,-2.467,-0.16)
 
-    Hist_MDM = Hists[0].Clone()
-    Hist_MDM.Add(Hists[1],-1.)
+    Hist_Flux = []
+    for nth_roi in range(0,len(hist_data)):
+        Hist_Flux += [ROOT.TH1D("Hist_Flux_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+        Hist_Flux[nth_roi].Add(hist_data[nth_roi])
+        Hist_Flux[nth_roi].Add(hist_bkgd[nth_roi],-1.)
+        for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
+            if Hist_EffArea_Sum.GetBinContent(binx+1)==0.: continue
+            deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
+            scale = 1./(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
+            Hist_Flux[nth_roi].SetBinContent(binx+1,Hist_Flux[nth_roi].GetBinContent(binx+1)*scale)
+            Hist_Flux[nth_roi].SetBinError(binx+1,Hist_Flux[nth_roi].GetBinError(binx+1)*scale)
 
-    for binx in range(0,Hist_MDM.GetNbinsX()):
-        if Hist_EffArea_Sum.GetBinContent(binx+1)==0.: continue
-        deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
-        scale = 1./(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
-        Hist_MDM.SetBinContent(binx+1,Hist_MDM.GetBinContent(binx+1)*scale)
-        Hist_MDM.SetBinError(binx+1,Hist_MDM.GetBinError(binx+1)*scale)
-
-    Hist_Invisible = Hist_MDM.Clone()
-    ymax = max(Hist_MDM.GetMaximum(),func_crab.Eval(Hist_MDM.GetBinCenter(1)))
-    ymin = min(Hist_MDM.GetMinimum(),func_crab.Eval(Hist_MDM.GetBinCenter(Hist_MDM.GetNbinsX())))
-    Hist_Invisible.SetBinContent(1,ymax)
-    Hist_Invisible.SetBinContent(1,ymin)
+    Hist_Invisible = Hist_Flux[0].Clone()
+    ymax = 0.
+    ymin = 0.
+    for nth_roi in range(0,len(hist_data)):
+        ymax = max(Hist_Flux[nth_roi].GetMaximum(),Hist_Invisible.GetBinContent(1))
+        ymin = min(Hist_Flux[nth_roi].GetMinimum(),Hist_Invisible.GetBinContent(2))
+        Hist_Invisible.SetBinContent(1,ymax)
+        Hist_Invisible.SetBinContent(2,ymin)
     Hist_Invisible.SetLineColor(0)
+    Hist_Invisible.GetXaxis().SetTitleOffset(0.8)
+    Hist_Invisible.GetXaxis().SetTitleSize(0.06)
+    Hist_Invisible.GetXaxis().SetLabelSize(0.04)
+    Hist_Invisible.GetYaxis().SetLabelSize(0.04)
+    Hist_Invisible.GetYaxis().SetTitleOffset(1.2)
+    Hist_Invisible.GetYaxis().SetTitleSize(0.06)
+    Hist_Invisible.GetXaxis().SetTitle('energy [GeV]')
+    Hist_Invisible.GetYaxis().SetTitle('flux [counts/GeV/s/cm2]')
     Hist_Invisible.Draw()
 
-    Hist_MDM.GetYaxis().SetTitle("flux [counts/GeV/s/cm2]")
-    Hist_MDM.GetXaxis().SetTitle(title)
-    Hist_MDM.GetXaxis().SetTitleOffset(1.3)
-    Hist_MDM.GetXaxis().SetTitleSize(0.05)
-    Hist_MDM.Draw("E same")
+    for nth_roi in range(0,len(hist_data)):
+        Hist_Flux[nth_roi].SetLineColor(nth_roi+1)
+        Hist_Flux[nth_roi].Draw("E same")
 
     func_crab.SetLineColor(2)
     func_crab.Draw("same")
@@ -1214,9 +1233,8 @@ def MakeSpectrumInNonCrabUnit(Hists,title,name,syst,nth_roi):
     legend.SetFillStyle(0)
     legend.SetLineColor(0)
     legend.Clear()
-    legend.AddEntry(Hist_MDM,"MDM flux","pl")
-    if len(Hists)==3:
-        legend.AddEntry(Hist_Ring,"Ring flux","pl")
+    for nth_roi in range(0,len(hist_data)):
+        legend.AddEntry(Hist_Flux[nth_roi],"%s"%(legends[nth_roi]),"pl")
     if 'IC443' in name:
         legend.AddEntry(func_ic443,"flux from arXiv:0905.3291","pl")
     if 'MGRO_J1908' in name:
@@ -1263,7 +1281,7 @@ def MakeSignalToBkgdRatioPlot(Hist_data,Hist_bkgd,legends,colors,title,name):
     Hist_ratio_mjd = []
     IncValues = ROOT.TF1( "IncValues", "x", year_start , year_end )
     raLowerAxis = []
-    days_per_bin = 160.
+    days_per_bin = 80.
     for roi in range(0,n_roi):
 
         Hist_data_mjd += [ROOT.TH1D("Hist_data_mjd_%s"%(roi),"",int((MJD_End+1-MJD_Start)/days_per_bin),MJD_Start,MJD_End+1)]
@@ -1280,7 +1298,18 @@ def MakeSignalToBkgdRatioPlot(Hist_data,Hist_bkgd,legends,colors,title,name):
         for binx in range(0,Hist_bkgd_mjd[roi].GetNbinsX()):
             Hist_bkgd_mjd[roi].SetBinError(binx+1,Hist_bkgd_mjd[roi].GetBinContent(binx+1)*Syst_MDM)
 
+    #for roi in range(0,n_roi):
+    #    for binx in range(0,Hist_data_mjd[roi].GetNbinsX()):
+    #        content = Hist_data_mjd[2].GetBinContent(binx+1)
+    #        error = Hist_data_mjd[2].GetBinError(binx+1)
+    #        if content<30.:
+    #            Hist_data_mjd[roi].SetBinContent(binx+1,0.)
+    #            Hist_data_mjd[roi].SetBinError(binx+1,0.)
+    #            Hist_bkgd_mjd[roi].SetBinContent(binx+1,0.)
+    #            Hist_bkgd_mjd[roi].SetBinError(binx+1,0.)
 
+
+    for roi in range(0,n_roi):
         Hist_ratio_mjd += [ROOT.TH1D("Hist_ratio_mjd_%s"%(roi),"",int((MJD_End+1-MJD_Start)/days_per_bin),MJD_Start,MJD_End+1)]
         Hist_ratio_mjd[roi].Add(Hist_data_mjd[roi])
         Hist_ratio_mjd[roi].Add(Hist_bkgd_mjd[roi],-1.)
@@ -1745,18 +1774,16 @@ def PlotsStackedHistograms(tag):
         title = 'energy [GeV]'
         MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
-        Hists = []
-        legends = []
-        colors = []
-        Hists += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
-        legends += ['obs. data (%s)'%(roi_name[nth_roi])]
-        colors += [1]
-        Hists += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
-        legends += ['MDM bkg.']
-        colors += [4]
-        title = 'energy [GeV]'
-        plotname = 'CrabUnit_RoI%s_Energy_MDM_%s'%(nth_roi,tag)
-        MakeSpectrumInNonCrabUnit(Hists,title,plotname,-1,nth_roi)
+    Hist_data = []
+    Hist_bkgd = []
+    legends = []
+    for nth_roi in range(0,len(roi_ra)):
+        Hist_data += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
+        Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
+        legends += ['%s'%(roi_name[nth_roi])]
+    title = 'energy [GeV]'
+    plotname = 'Flux_MDM_%s'%(tag)
+    MakeSpectrumInNonCrabUnit(Hist_data,Hist_bkgd,legends,title,plotname,-1)
 
     Hist_data_mjd = []
     Hist_bkgd_mjd = []
