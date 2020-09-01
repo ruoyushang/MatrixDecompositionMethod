@@ -100,11 +100,11 @@ sky_coord = []
 #sample_list += ['NGC1275V6']
 #sky_coord += ['03 19 48.1 +41 30 42']
 
-#ONOFF_tag = 'OFF'
-#sample_list += ['M82V4']
-#sky_coord += ['09 55 52.7 +69 40 46']
-#sample_list += ['M82V5']
-#sky_coord += ['09 55 52.7 +69 40 46']
+ONOFF_tag = 'OFF'
+sample_list += ['M82V4']
+sky_coord += ['09 55 52.7 +69 40 46']
+sample_list += ['M82V5']
+sky_coord += ['09 55 52.7 +69 40 46']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['CrabV5']
@@ -133,13 +133,13 @@ sky_coord = []
 #sky_coord += ['12 21 31.7 +28 13 59']
 # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
 
-ONOFF_tag = 'ON'
-sample_list += ['IC443HotSpotV6']
-sky_coord += ['06 18 2.700 +22 39 36.00']
-sample_list += ['IC443HotSpotV5']
-sky_coord += ['06 18 2.700 +22 39 36.00']
-sample_list += ['IC443HotSpotV4']
-sky_coord += ['06 18 2.700 +22 39 36.00']
+#ONOFF_tag = 'ON'
+#sample_list += ['IC443HotSpotV6']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV5']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV4']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['BoomerangV6']
@@ -159,11 +159,11 @@ sky_coord += ['06 18 2.700 +22 39 36.00']
 # this is a Tevatron
 
 #ONOFF_tag = 'ON'
-#sample_list += ['SS433_V6']
+#sample_list += ['SS433R2_V6']
 #sky_coord += ['19 11 49.56 +04 58 57.8']
-#sample_list += ['SS433_V5']
+#sample_list += ['SS433R2_V5']
 #sky_coord += ['19 11 49.56 +04 58 57.8']
-#sample_list += ['SS433_V4']
+#sample_list += ['SS433R2_V4']
 #sky_coord += ['19 11 49.56 +04 58 57.8']
 
 #ONOFF_tag = 'ON'
@@ -425,12 +425,21 @@ def ResetStackedShowerHistograms():
 
     Hist2D_OnData_Sum.Reset()
     Hist2D_OnBkgd_Sum.Reset()
+    Hist2D_OnBkgd_Unblind_wGamma_Sum.Reset()
+    Hist2D_OnBkgd_Unblind_woGamma_Sum.Reset()
+    Hist2D_OnGamma_Sum.Reset()
     Hist2D_OnDark_Sum.Reset()
     Hist_OnData_MSCL_Sum.Reset()
     Hist_OnBkgd_MSCL_Sum.Reset()
     Hist_OnDark_MSCL_Sum.Reset()
     Hist_OnData_MSCW_Sum.Reset()
     Hist_OnBkgd_MSCW_Sum.Reset()
+    Hist_OnBkgd_Unblind_wGamma_MSCW_Sum.Reset()
+    Hist_OnBkgd_Unblind_woGamma_MSCW_Sum.Reset()
+    Hist_OnGamma_MSCW_Sum.Reset()
+    Hist_OnBkgd_Unblind_wGamma_MSCL_Sum.Reset()
+    Hist_OnBkgd_Unblind_woGamma_MSCL_Sum.Reset()
+    Hist_OnGamma_MSCL_Sum.Reset()
     Hist_OnDark_MSCW_Sum.Reset()
 
     Hist2D_AllRanks_Sum.Reset()
@@ -568,6 +577,24 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_OnBkgd.Reset()
     HistTemp = MergeHistogram(Hist2D_OnBkgd,InputFile.Get(HistName))
     Hist2D_OnBkgd.Add(HistTemp)
+
+    HistName = "Hist_OnBkgd_Unblind_wGamma_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    print 'Getting histogram %s'%(HistName)
+    Hist2D_OnBkgd_Unblind_wGamma.Reset()
+    HistTemp = MergeHistogram(Hist2D_OnBkgd_Unblind_wGamma,InputFile.Get(HistName))
+    Hist2D_OnBkgd_Unblind_wGamma.Add(HistTemp)
+
+    HistName = "Hist_OnBkgd_Unblind_woGamma_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    print 'Getting histogram %s'%(HistName)
+    Hist2D_OnBkgd_Unblind_woGamma.Reset()
+    HistTemp = MergeHistogram(Hist2D_OnBkgd_Unblind_woGamma,InputFile.Get(HistName))
+    Hist2D_OnBkgd_Unblind_woGamma.Add(HistTemp)
+
+    HistName = "Hist_Gamma_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    print 'Getting histogram %s'%(HistName)
+    Hist2D_OnGamma.Reset()
+    HistTemp = MergeHistogram(Hist2D_OnGamma,InputFile.Get(HistName))
+    Hist2D_OnGamma.Add(HistTemp)
 
     Hist2D_Rank0.Reset()
     Hist2D_Rank1.Reset()
@@ -774,6 +801,9 @@ def GetShowerHistogramsFromFile(FilePath):
         Hist2D_OnData.Reset()
         Hist2D_OnDark.Reset()
         Hist2D_OnBkgd.Reset()
+        Hist2D_OnBkgd_Unblind_wGamma.Reset()
+        Hist2D_OnBkgd_Unblind_woGamma.Reset()
+        Hist2D_OnGamma.Reset()
         Hist2D_Rank0.Reset()
         Hist2D_Rank1.Reset()
         Hist2D_Rank2.Reset()
@@ -793,6 +823,18 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist_OnBkgd_MSCL.Add(Hist2D_OnBkgd.ProjectionX("Hist1D_OnBkgd_MSCL",bin_lower_y,bin_upper_y))
     Hist_OnBkgd_MSCW.Reset()
     Hist_OnBkgd_MSCW.Add(Hist2D_OnBkgd.ProjectionY("Hist1D_OnBkgd_MSCW",bin_lower_x,bin_upper_x))
+    Hist_OnBkgd_Unblind_wGamma_MSCW.Reset()
+    Hist_OnBkgd_Unblind_wGamma_MSCW.Add(Hist2D_OnBkgd_Unblind_wGamma.ProjectionY("Hist1D_OnBkgd_Unblind_wGamma_MSCW",bin_lower_x,bin_upper_x))
+    Hist_OnBkgd_Unblind_woGamma_MSCW.Reset()
+    Hist_OnBkgd_Unblind_woGamma_MSCW.Add(Hist2D_OnBkgd_Unblind_woGamma.ProjectionY("Hist1D_OnBkgd_Unblind_woGamma_MSCW",bin_lower_x,bin_upper_x))
+    Hist_OnGamma_MSCW.Reset()
+    Hist_OnGamma_MSCW.Add(Hist2D_OnGamma.ProjectionY("Hist1D_OnGamma_MSCW",bin_lower_x,bin_upper_x))
+    Hist_OnBkgd_Unblind_wGamma_MSCL.Reset()
+    Hist_OnBkgd_Unblind_wGamma_MSCL.Add(Hist2D_OnBkgd_Unblind_wGamma.ProjectionX("Hist1D_OnBkgd_Unblind_wGamma_MSCL",bin_lower_y,bin_upper_y))
+    Hist_OnBkgd_Unblind_woGamma_MSCL.Reset()
+    Hist_OnBkgd_Unblind_woGamma_MSCL.Add(Hist2D_OnBkgd_Unblind_woGamma.ProjectionX("Hist1D_OnBkgd_Unblind_woGamma_MSCL",bin_lower_y,bin_upper_y))
+    Hist_OnGamma_MSCL.Reset()
+    Hist_OnGamma_MSCL.Add(Hist2D_OnGamma.ProjectionX("Hist1D_OnGamma_MSCL",bin_lower_y,bin_upper_y))
 
     for nth_sample in range(0,n_control_samples):
 
@@ -846,6 +888,9 @@ def StackShowerHistograms():
     Hist2D_OnData_Sum.Add(Hist2D_OnData)
     Hist2D_OnDark_Sum.Add(Hist2D_OnDark)
     Hist2D_OnBkgd_Sum.Add(Hist2D_OnBkgd)
+    Hist2D_OnBkgd_Unblind_wGamma_Sum.Add(Hist2D_OnBkgd_Unblind_wGamma)
+    Hist2D_OnBkgd_Unblind_woGamma_Sum.Add(Hist2D_OnBkgd_Unblind_woGamma)
+    Hist2D_OnGamma_Sum.Add(Hist2D_OnGamma)
 
     Hist2D_Rank0_Sum.Add(Hist2D_Rank0)
     Hist2D_Rank1_Sum.Add(Hist2D_Rank1)
@@ -862,6 +907,12 @@ def StackShowerHistograms():
     Hist_OnDark_MSCW_Sum.Add(Hist_OnDark_MSCW)
     Hist_OnBkgd_MSCL_Sum.Add(Hist_OnBkgd_MSCL)
     Hist_OnBkgd_MSCW_Sum.Add(Hist_OnBkgd_MSCW)
+    Hist_OnBkgd_Unblind_wGamma_MSCW_Sum.Add(Hist_OnBkgd_Unblind_wGamma_MSCW)
+    Hist_OnBkgd_Unblind_woGamma_MSCW_Sum.Add(Hist_OnBkgd_Unblind_woGamma_MSCW)
+    Hist_OnGamma_MSCW_Sum.Add(Hist_OnGamma_MSCW)
+    Hist_OnBkgd_Unblind_wGamma_MSCL_Sum.Add(Hist_OnBkgd_Unblind_wGamma_MSCL)
+    Hist_OnBkgd_Unblind_woGamma_MSCL_Sum.Add(Hist_OnBkgd_Unblind_woGamma_MSCL)
+    Hist_OnGamma_MSCL_Sum.Add(Hist_OnGamma_MSCL)
 
     for nth_sample in range(0,n_control_samples):
 
@@ -1525,14 +1576,15 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
     for h in range(0,len(Hists)):
         if stack_it[h] or 'syst' in legends[h]:
             Hist_Syst.Add(Hists[h])
+        if 'syst' in legends[h]:
             found_syst_hist = True
         if colors[h]!=0 and colors[h]!=1:
             Hist_Bkgd.Add(Hists[h].Clone())
-    if not found_syst_hist:
-        for binx in range(0,Hist_Syst.GetNbinsX()):
-            syst_err = Syst_MDM*Hist_Bkgd.GetBinContent(binx+1)
-            stat_err = Hist_Bkgd.GetBinError(binx+1)
-            Hist_Syst.SetBinError(binx+1,pow(syst_err*syst_err+stat_err*stat_err,0.5))
+    #if not found_syst_hist:
+    #    for binx in range(0,Hist_Syst.GetNbinsX()):
+    #        syst_err = Syst_MDM*Hist_Bkgd.GetBinContent(binx+1)
+    #        stat_err = Hist_Bkgd.GetBinError(binx+1)
+    #        Hist_Syst.SetBinError(binx+1,pow(syst_err*syst_err+stat_err*stat_err,0.5))
 
     fill_color = [0,0,46,0,38,30]
     if doSum:
@@ -1542,15 +1594,17 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
                 set_histStyle( Hists[h] , fill_color[colors[h]])
                 stack.Add( Hists[h] )
         stack.Draw("hist same")
+    if found_syst_hist:
         Hist_Syst.SetFillColor(1)
         Hist_Syst.SetFillStyle(3004)
         Hist_Syst.SetMarkerSize(0)
         Hist_Syst.Draw("e2 same")
 
-    for h in range(0,len(Hists)):
-        if colors[h]==0: continue
-        Hists[h].SetLineWidth(3)
-        Hists[h].Draw("E same")
+    #for h in range(0,len(Hists)):
+    #    if colors[h]==0: continue
+    #    Hists[h].SetLineWidth(3)
+    #    Hists[h].Draw("E same")
+    Hists[0].SetLineWidth(3)
     Hists[0].Draw("E same")
 
     pad3.cd()
@@ -1606,9 +1660,14 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
     lumilab4.Draw()
 
     pad2.cd()
-    Hist_Band = Hist_Syst.Clone()
+    Hist_Band = Hist_Bkgd.Clone()
+    if found_syst_hist:
+        Hist_Band.Reset()
+        Hist_Band.Add(Hist_Syst)
     Hist_Band.Divide(Hist_Bkgd)
     Hist_Band.SetFillColor(1)
+    if not found_syst_hist:
+        Hist_Band.SetFillColor(0)
     Hist_Band.SetFillStyle(3004)
     Hist_Band.SetMarkerSize(0)
     Hist_Band.GetXaxis().SetTitle(title)
@@ -1631,14 +1690,11 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
     line2.SetLineColor(1)
     line2.SetLineWidth(2)
     line2.Draw("same")
-    Hist_Ratio = []
-    for h in range(1,len(Hists)):
-        Hist_Bkg = Hists[h].Clone()
-        Hist_Ratio += [Hists[0].Clone()]
-        Hist_Ratio[h-1].Divide(Hist_Bkg)
-        Hist_Ratio[h-1].SetLineWidth(2)
-        Hist_Ratio[h-1].SetLineColor(colors[h])
-        Hist_Ratio[h-1].Draw("B same")
+    Hist_Ratio = Hists[0].Clone()
+    Hist_Ratio.Divide(Hist_Bkgd)
+    Hist_Ratio.SetLineWidth(2)
+    Hist_Ratio.SetLineColor(1)
+    Hist_Ratio.Draw("B same")
 
     if 'Energy' in name:
         pad1.SetLogy()
@@ -1668,6 +1724,78 @@ def PlotsStackedHistograms(tag):
     plotname = 'Stack_MSCW_MDM_%s'%(tag)
     title = 'MSCW'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_lower_cut,MSCW_blind_cut,-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_MSCW_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_Unblind_wGamma_MSCW_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    Hists += [Hist_OnGamma_MSCW_Sum]
+    legends += ['#gamma fixed at 10% of bkg.']
+    colors += [2]
+    stack_it += [True]
+    plotname = 'Stack_Unblind_wGamma_MSCW_MDM_%s'%(tag)
+    title = 'MSCW'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_lower_cut,MSCW_blind_cut,-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_MSCL_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_Unblind_wGamma_MSCL_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    Hists += [Hist_OnGamma_MSCL_Sum]
+    legends += ['#gamma fixed at 10% of bkg.']
+    colors += [2]
+    stack_it += [True]
+    plotname = 'Stack_Unblind_wGamma_MSCL_MDM_%s'%(tag)
+    title = 'MSCL'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_lower_cut,MSCL_blind_cut,-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_MSCW_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_Unblind_woGamma_MSCW_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    plotname = 'Stack_Unblind_woGamma_MSCW_MDM_%s'%(tag)
+    title = 'MSCW'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_lower_cut,MSCW_blind_cut,-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_MSCL_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_Unblind_woGamma_MSCL_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    plotname = 'Stack_Unblind_woGamma_MSCL_MDM_%s'%(tag)
+    title = 'MSCL'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_lower_cut,MSCL_blind_cut,-1)
 
     Hists = []
     legends = []
@@ -1721,6 +1849,10 @@ def PlotsStackedHistograms(tag):
     title = 'MSCL'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_lower_cut,MSCL_blind_cut,-1)
 
+    if energy_bin[energy_bin_cut_low]>=2000.:
+        Hist_OnData_Theta2_Sum.Rebin(2)
+        Hist_OnBkgd_Theta2_Sum.Rebin(2)
+        Hist_SystErr_Theta2.Rebin(2)
     Hists = []
     legends = []
     colors = []
@@ -1741,6 +1873,10 @@ def PlotsStackedHistograms(tag):
     title = 'squared angle from source location #theta^{2}'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
 
+    if energy_bin[energy_bin_cut_low]>=1000.:
+        for nth_roi in range(0,len(roi_ra)):
+            Hist_OnData_RoI_Theta2_Sum[nth_roi].Rebin(2)
+            Hist_OnBkgd_RoI_Theta2_Sum[nth_roi].Rebin(2)
     for nth_roi in range(0,len(roi_ra)):
         Hists = []
         legends = []
@@ -2803,6 +2939,13 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     for star in range(0,len(faint_star_markers)):
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(0)
+        if nth_roi==0: continue
+        mycircles[nth_roi].Draw("same")
     Hist_Skymap_zoomin.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_zoomin.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap_zoomin.GetXaxis().GetXmin()
@@ -3572,9 +3715,15 @@ print 'plot range: MSCL = %s, MSCW = %s'%(MSCL_plot_upper,MSCW_plot_upper)
 
 Hist2D_OnData_Sum = ROOT.TH2D("Hist2D_OnData_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnBkgd_Sum = ROOT.TH2D("Hist2D_OnBkgd_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_OnBkgd_Unblind_wGamma_Sum = ROOT.TH2D("Hist2D_OnBkgd_Unblind_wGamma_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_OnBkgd_Unblind_woGamma_Sum = ROOT.TH2D("Hist2D_OnBkgd_Unblind_woGamma_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_OnGamma_Sum = ROOT.TH2D("Hist2D_OnGamma_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnDark_Sum = ROOT.TH2D("Hist2D_OnDark_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnData = ROOT.TH2D("Hist2D_OnData","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnBkgd = ROOT.TH2D("Hist2D_OnBkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_OnBkgd_Unblind_wGamma = ROOT.TH2D("Hist2D_OnBkgd_Unblind_wGamma","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_OnBkgd_Unblind_woGamma = ROOT.TH2D("Hist2D_OnBkgd_Unblind_woGamma","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_OnGamma = ROOT.TH2D("Hist2D_OnGamma","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnDark = ROOT.TH2D("Hist2D_OnDark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist_OnData_MSCL_Sum = ROOT.TH1D("Hist_OnData_MSCL_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_OnBkgd_MSCL_Sum = ROOT.TH1D("Hist_OnBkgd_MSCL_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
@@ -3584,9 +3733,21 @@ Hist_OnBkgd_MSCL = ROOT.TH1D("Hist_OnBkgd_MSCL","",N_bins_for_deconv,MSCL_plot_l
 Hist_OnDark_MSCL = ROOT.TH1D("Hist_OnDark_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_OnData_MSCW_Sum = ROOT.TH1D("Hist_OnData_MSCW_Sum","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist_OnBkgd_MSCW_Sum = ROOT.TH1D("Hist_OnBkgd_MSCW_Sum","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist_OnBkgd_Unblind_wGamma_MSCW_Sum = ROOT.TH1D("Hist_OnBkgd_Unblind_wGamma_MSCW_Sum","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist_OnBkgd_Unblind_woGamma_MSCW_Sum = ROOT.TH1D("Hist_OnBkgd_Unblind_woGamma_MSCW_Sum","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist_OnGamma_MSCW_Sum = ROOT.TH1D("Hist_OnGamma_MSCW_Sum","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist_OnBkgd_Unblind_wGamma_MSCL_Sum = ROOT.TH1D("Hist_OnBkgd_Unblind_wGamma_MSCL_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
+Hist_OnBkgd_Unblind_woGamma_MSCL_Sum = ROOT.TH1D("Hist_OnBkgd_Unblind_woGamma_MSCL_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
+Hist_OnGamma_MSCL_Sum = ROOT.TH1D("Hist_OnGamma_MSCL_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_OnDark_MSCW_Sum = ROOT.TH1D("Hist_OnDark_MSCW_Sum","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist_OnData_MSCW = ROOT.TH1D("Hist_OnData_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist_OnBkgd_MSCW = ROOT.TH1D("Hist_OnBkgd_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist_OnBkgd_Unblind_wGamma_MSCW = ROOT.TH1D("Hist_OnBkgd_Unblind_wGamma_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist_OnBkgd_Unblind_woGamma_MSCW = ROOT.TH1D("Hist_OnBkgd_Unblind_woGamma_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist_OnGamma_MSCW = ROOT.TH1D("Hist_OnGamma_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist_OnBkgd_Unblind_wGamma_MSCL = ROOT.TH1D("Hist_OnBkgd_Unblind_wGamma_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
+Hist_OnBkgd_Unblind_woGamma_MSCL = ROOT.TH1D("Hist_OnBkgd_Unblind_woGamma_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
+Hist_OnGamma_MSCL = ROOT.TH1D("Hist_OnGamma_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_OnDark_MSCW = ROOT.TH1D("Hist_OnDark_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 
 Hist2D_Rank0 = ROOT.TH2D("Hist2D_Rank0","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -3750,10 +3911,12 @@ for nth_sample in range(0,n_control_samples):
 
 n_rebin = 1
 smooth_size = 0.1
-if energy_bin[energy_bin_cut_low]>500.:
+if energy_bin[energy_bin_cut_low]>=400.:
+    n_rebin = 2
     smooth_size = 0.2
-#if energy_bin[energy_bin_cut_low]>1000.:
-#    smooth_size = 0.2
+if energy_bin[energy_bin_cut_low]>=1000.:
+    n_rebin = 2
+    smooth_size = 0.2
 
 GetGammaSourceInfo()
 

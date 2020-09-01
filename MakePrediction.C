@@ -1165,10 +1165,14 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     }
     vector<TH2D> Hist_OneGroup_Data_MSCLW;
     vector<TH2D> Hist_OneGroup_Bkgd_MSCLW;
+    vector<TH2D> Hist_OneGroup_Bkgd_Unblind_wGamma_MSCLW;
+    vector<TH2D> Hist_OneGroup_Bkgd_Unblind_woGamma_MSCLW;
     vector<TH2D> Hist_OneGroup_Gamma_MSCLW;
     vector<TH2D> Hist_Gamma_MSCLW;
     vector<TH2D> Hist_OnData_MSCLW;
     vector<TH2D> Hist_OnBkgd_MSCLW;
+    vector<TH2D> Hist_OnBkgd_Unblind_wGamma_MSCLW;
+    vector<TH2D> Hist_OnBkgd_Unblind_woGamma_MSCLW;
     vector<TH2D> Hist_OnDark_MSCLW;
     vector<TH2D> Hist_Rank0_MSCLW;
     vector<TH2D> Hist_Rank1_MSCLW;
@@ -1212,10 +1216,14 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
         Hist_OneGroup_Data_MSCLW.push_back(TH2D("Hist_OneGroup_Data_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OneGroup_Bkgd_MSCLW.push_back(TH2D("Hist_OneGroup_Bkgd_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_OneGroup_Bkgd_Unblind_wGamma_MSCLW.push_back(TH2D("Hist_OneGroup_Bkgd_Unblind_wGamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_OneGroup_Bkgd_Unblind_woGamma_MSCLW.push_back(TH2D("Hist_OneGroup_Bkgd_Unblind_woGamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OneGroup_Gamma_MSCLW.push_back(TH2D("Hist_OneGroup_Gamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Gamma_MSCLW.push_back(TH2D("Hist_Gamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnData_MSCLW.push_back(TH2D("Hist_OnData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnBkgd_MSCLW.push_back(TH2D("Hist_OnBkgd_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_OnBkgd_Unblind_wGamma_MSCLW.push_back(TH2D("Hist_OnBkgd_Unblind_wGamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_OnBkgd_Unblind_woGamma_MSCLW.push_back(TH2D("Hist_OnBkgd_Unblind_woGamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnDark_MSCLW.push_back(TH2D("Hist_OnDark_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
 
         Hist_Rank0_MSCLW.push_back(TH2D("Hist_Rank0_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -1546,11 +1554,37 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,1./double(n_dark_samples));
                     Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),1./double(n_dark_samples));
                     Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
+                    
+                    int binx_lower = Hist_Temp_Bkgd.GetXaxis()->FindBin(MSCL_cut_lower);
+                    int binx_blind = Hist_Temp_Bkgd.GetXaxis()->FindBin(MSCL_cut_blind)-1;
+                    int binx_upper = Hist_Temp_Bkgd.GetXaxis()->FindBin(1.)-1;
+                    int biny_lower = Hist_Temp_Bkgd.GetYaxis()->FindBin(MSCW_cut_lower);
+                    int biny_blind = Hist_Temp_Bkgd.GetYaxis()->FindBin(MSCW_cut_blind)-1;
+                    int biny_upper = Hist_Temp_Bkgd.GetYaxis()->FindBin(1.)-1;
+                    double Bkgd_SR_Integral = Hist_Temp_Bkgd.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+                    TH2D Hist_Temp_Gamma = TH2D("Hist_Temp_Gamma","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+                    fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
+                    double Gamma_SR_Integral = Hist_Temp_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+                    Hist_Temp_Gamma.Scale((Bkgd_SR_Integral*0.0)/Gamma_SR_Integral);
+                    mtx_gamma = fillMatrix(&Hist_Temp_Gamma);
+                    LeastSquareSolutionMethod(rank_variation, n_iterations, false);
+                    fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
+                    Hist_OneGroup_Bkgd_Unblind_woGamma_MSCLW.at(e).Add(&Hist_Temp_Bkgd,1./double(n_dark_samples));
+                    fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
+                    Hist_Temp_Gamma.Scale((Bkgd_SR_Integral*0.1)/Gamma_SR_Integral);
+                    mtx_gamma = fillMatrix(&Hist_Temp_Gamma);
+                    LeastSquareSolutionMethod(rank_variation, n_iterations, false);
+                    fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
+                    Hist_OneGroup_Bkgd_Unblind_wGamma_MSCLW.at(e).Add(&Hist_Temp_Bkgd,1./double(n_dark_samples));
+                    Hist_OneGroup_Gamma_MSCLW.at(e).Reset();
+                    Hist_OneGroup_Gamma_MSCLW.at(e).Add(&Hist_Temp_Gamma);
                 }
                 if (!isnan(Hist_OneGroup_Bkgd_MSCLW.at(e).Integral()) && !isnan(Hist_OneGroup_Data_MSCLW.at(e).Integral()))
                 {
                     Hist_OnData_MSCLW.at(e).Add(&Hist_OneGroup_Data_MSCLW.at(e));
                     Hist_OnBkgd_MSCLW.at(e).Add(&Hist_OneGroup_Bkgd_MSCLW.at(e));
+                    Hist_OnBkgd_Unblind_wGamma_MSCLW.at(e).Add(&Hist_OneGroup_Bkgd_Unblind_wGamma_MSCLW.at(e));
+                    Hist_OnBkgd_Unblind_woGamma_MSCLW.at(e).Add(&Hist_OneGroup_Bkgd_Unblind_woGamma_MSCLW.at(e));
                     Hist_Gamma_MSCLW.at(e).Add(&Hist_OneGroup_Gamma_MSCLW.at(e));
 
                     int binx_lower = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_lower);
@@ -1757,6 +1791,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     {
         Hist_OnData_MSCLW.at(e).Write();
         Hist_OnBkgd_MSCLW.at(e).Write();
+        Hist_OnBkgd_Unblind_wGamma_MSCLW.at(e).Write();
+        Hist_OnBkgd_Unblind_woGamma_MSCLW.at(e).Write();
         Hist_Gamma_MSCLW.at(e).Write();
         Hist_OnDark_MSCLW.at(e).Write();
         Hist_Rank0_MSCLW.at(e).Write();

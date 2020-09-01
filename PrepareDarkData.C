@@ -409,17 +409,7 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 286.975;
                 Source_Dec = 6.269;
     }
-    if (source_name=="SS433_V6")
-    {
-            Source_RA = 287.9565;
-                Source_Dec = 4.98272222222;
-    }
-    if (source_name=="SS433_V5")
-    {
-            Source_RA = 287.9565;
-                Source_Dec = 4.98272222222;
-    }
-    if (source_name=="SS433_V4")
+    if (source_name.Contains("SS433"))
     {
             Source_RA = 287.9565;
                 Source_Dec = 4.98272222222;
@@ -685,7 +675,20 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         input_file->Close();
         return false;
     }
-    if (TString(target).Contains("SS433"))
+    if (TString(target).Contains("SS433R1"))
+    {
+        double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
+        double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
+        double delta_RA = TelRAJ2000_tmp - 287.9565;
+        double delta_Dec = TelDecJ2000_tmp - 4.9827;
+        double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
+        if (distance>0.7)
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    if (TString(target).Contains("SS433R2"))
     {
         double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
         double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
@@ -693,6 +696,19 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         double delta_Dec = TelDecJ2000_tmp - 4.9827;
         double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
         if (distance>1.0)
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    if (TString(target).Contains("SS433R3"))
+    {
+        double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
+        double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
+        double delta_RA = TelRAJ2000_tmp - 287.9565;
+        double delta_Dec = TelDecJ2000_tmp - 4.9827;
+        double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
+        if (distance>1.5)
         {
             input_file->Close();
             return false;
@@ -1288,15 +1304,20 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
     else if (TString(target).Contains("SS433")) 
     {
+        roi_name.push_back("SS 433");
+        roi_ra.push_back(287.9565);
+        roi_dec.push_back(4.9827);
+        roi_radius.push_back(0.45);
+
         roi_name.push_back("SS 433 e1");
         roi_ra.push_back(288.404);
         roi_dec.push_back(4.930);
-        roi_radius.push_back(0.3);
+        roi_radius.push_back(0.45);
 
         roi_name.push_back("SS 433 w1");
         roi_ra.push_back(287.654);
         roi_dec.push_back(5.037);
-        roi_radius.push_back(0.3);
+        roi_radius.push_back(0.45);
     }
     else if (TString(target).Contains("MAGIC_J1857")) 
     {
