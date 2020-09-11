@@ -19,6 +19,7 @@ double MSCL_cut_loose = 1.0;
 double camera_theta2_cut_lower = 0.;
 double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.2;
+int UpDown = 0;
 
 bool DoSequential = true;
 //bool DoSequential = false;
@@ -39,7 +40,8 @@ int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000
 
 double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.};
-int N_bins_for_deconv_func_E[N_energy_bins] = {16,16,8,8,8};
+int N_bins_for_deconv_func_E[N_energy_bins] = {16,16,16,16,16};
+int N_ranks_func_E[N_energy_bins] = {2,2,1,1,1};
 double MSCW_cut_lower = -1.0;
 double MSCL_cut_lower = -1.0;
 double MSCW_cut_blind = 1.0;

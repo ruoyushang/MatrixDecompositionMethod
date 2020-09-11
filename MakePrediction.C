@@ -670,10 +670,6 @@ bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, double init_chi2, int rank)
     double lambda_input = eigensolver_input.eigenvalues()(mtx_input.cols()-rank).real();
     double diff_data = (lambda_data-lambda_dark)/lambda_dark;
     double diff_input = (lambda_input-lambda_dark)/lambda_dark;
-    //std::cout << "rank = " << rank << std::endl;
-    //std::cout << "lambda_data = " << lambda_data << std::endl;
-    //std::cout << "lambda_dark = " << lambda_dark << std::endl;
-    //std::cout << "lambda_input = " << lambda_input << std::endl;
     //if (abs(diff_input)>0.1) 
     //{
     //    std::cout << "break at rank " << rank << " (deviate from initial by 10%.)" << std::endl;
@@ -725,26 +721,25 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
     double eigenvalue_data_imag = 0.;
     double step_frac= 1.0;
     double imag_real_ratio = 1./100.;
-    NumberOfEigenvectors_Stable = NumberOfEigenvectors;
-    eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).real();
-    eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).imag();
-    eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-3).real();
-    eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-3).imag();
-    if (abs(eigenvalue_dark_imag/eigenvalue_dark_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 2; 
-    if (abs(eigenvalue_data_imag/eigenvalue_data_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 2; 
-    eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).real();
-    eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).imag();
-    eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-2).real();
-    eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-2).imag();
-    if (abs(eigenvalue_dark_imag/eigenvalue_dark_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 1; 
-    if (abs(eigenvalue_data_imag/eigenvalue_data_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 1; 
-    eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
-    eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).imag();
-    eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-1).real();
-    eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-1).imag();
-    if (abs(eigenvalue_dark_imag/eigenvalue_dark_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 0; 
-    if (abs(eigenvalue_data_imag/eigenvalue_data_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 0; 
-    if (N_bins_for_deconv<=8) NumberOfEigenvectors_Stable = 1;
+    NumberOfEigenvectors_Stable = rank_variation;
+    //eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).real();
+    //eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-3).imag();
+    //eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-3).real();
+    //eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-3).imag();
+    //if (abs(eigenvalue_dark_imag/eigenvalue_dark_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 2; 
+    //if (abs(eigenvalue_data_imag/eigenvalue_data_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 2; 
+    //eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).real();
+    //eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-2).imag();
+    //eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-2).real();
+    //eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-2).imag();
+    //if (abs(eigenvalue_dark_imag/eigenvalue_dark_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 1; 
+    //if (abs(eigenvalue_data_imag/eigenvalue_data_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 1; 
+    //eigenvalue_dark_real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
+    //eigenvalue_dark_imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).imag();
+    //eigenvalue_data_real = eigensolver_data.eigenvalues()(mtx_data.cols()-1).real();
+    //eigenvalue_data_imag = eigensolver_data.eigenvalues()(mtx_data.cols()-1).imag();
+    //if (abs(eigenvalue_dark_imag/eigenvalue_dark_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 0; 
+    //if (abs(eigenvalue_data_imag/eigenvalue_data_real)>imag_real_ratio) NumberOfEigenvectors_Stable = 0; 
     std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
     if (DoSequential)
     {
@@ -898,7 +893,7 @@ void NormalizaDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
         hist_dark->Scale(0.);
     }
 }
-void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON)
+void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isUp, bool isON)
 {
 
     TH1::SetDefaultSumw2();
@@ -922,9 +917,16 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     camera_theta2_cut_lower = input_theta2_cut_lower;
     camera_theta2_cut_upper = input_theta2_cut_upper;
     sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
-
-    //int rank_variation = 1;
-    int rank_variation = NumberOfEigenvectors;
+    if (isUp) 
+    {
+        UpDown = 0;
+        sprintf(updown_tag, "_Up");
+    }
+    else 
+    {
+        UpDown = 1;
+        sprintf(updown_tag, "_Dw");
+    }
 
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
@@ -977,7 +979,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<double>* Data_runlist_elev_ptr = new std::vector<double>(10);
     vector<double>* Data_runlist_exposure_ptr = new std::vector<double>(10);
     vector<string>* roi_name_ptr = new std::vector<string>(10);
-    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+"_"+ONOFF_tag+".root");
+    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(updown_tag)+"_"+ONOFF_tag+".root");
     TTree* InfoTree_ptr = nullptr;
     InfoTree_ptr = (TTree*) InputDataFile.Get("InfoTree");
     InfoTree_ptr->SetBranchAddress("Data_runlist_name",&Data_runlist_name_ptr);
@@ -1016,6 +1018,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
 
+            NumberOfEigenvectors = N_ranks_func_E[e];
+
             MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
             MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
             N_bins_for_deconv = N_bins_for_deconv_func_E[e];
@@ -1047,6 +1051,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
 
+            NumberOfEigenvectors = N_ranks_func_E[e];
+
             MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
             MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
             N_bins_for_deconv = N_bins_for_deconv_func_E[e];
@@ -1066,6 +1072,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        NumberOfEigenvectors = N_ranks_func_E[e];
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
         MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
@@ -1122,7 +1130,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     mtx_dark = fillMatrix(&Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e));
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
                     mtx_data_bkgd = mtx_dark;
-                    //LeastSquareSolutionMethod(rank_variation, n_iterations, true);
+                    //LeastSquareSolutionMethod(NumberOfEigenvectors, n_iterations, true);
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     Hist_OffData_MSCLW.at(nth_sample).at(e).Add(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e));
@@ -1153,6 +1161,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+            NumberOfEigenvectors = N_ranks_func_E[e];
 
             MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
             MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
@@ -1208,6 +1218,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        NumberOfEigenvectors = N_ranks_func_E[e];
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
         MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
@@ -1273,6 +1285,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
 
+        NumberOfEigenvectors = N_ranks_func_E[e];
+
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
         MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
@@ -1315,6 +1329,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        NumberOfEigenvectors = N_ranks_func_E[e];
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
         MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
@@ -1380,6 +1396,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
 
+            NumberOfEigenvectors = N_ranks_func_E[e];
+
             MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
             MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
             N_bins_for_deconv = N_bins_for_deconv_func_E[e];
@@ -1400,6 +1418,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+            NumberOfEigenvectors = N_ranks_func_E[e];
 
             MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
             MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
@@ -1436,6 +1456,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+        NumberOfEigenvectors = N_ranks_func_E[e];
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
         MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
@@ -1542,17 +1564,32 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 mtx_data = fillMatrix(&Hist_OneGroup_Data_MSCLW.at(e));
                 eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
                 for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
-                //for (int nth_sample=0;nth_sample<1;nth_sample++)
                 {
                     NormalizaDarkMatrix(&Hist_OneGroup_Data_MSCLW.at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
                     mtx_dark = fillMatrix(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-                    MinChi2Method(rank_variation, n_iterations, &Hist_OnSyst_Chi2.at(nth_sample).at(e));
-                    LeastSquareSolutionMethod(rank_variation, n_iterations, true);
+                    MinChi2Method(NumberOfEigenvectors, n_iterations, &Hist_OnSyst_Chi2.at(nth_sample).at(e));
+                }
+                double chi2_norm = 0.;
+                for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+                {
+                    int error_bin = Hist_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
+                    chi2_norm += 1./pow(Hist_OnSyst_Chi2.at(nth_sample).at(e).GetBinCenter(error_bin),2);
+                }
+                for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+                {
+                    NormalizaDarkMatrix(&Hist_OneGroup_Data_MSCLW.at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
+                    mtx_dark = fillMatrix(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
+                    eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
+                    LeastSquareSolutionMethod(NumberOfEigenvectors, n_iterations, true);
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
-                    Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,1./double(n_dark_samples));
-                    Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),1./double(n_dark_samples));
+                    double dark_weight = 1./double(n_dark_samples);
+                    int error_bin = Hist_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
+                    double bkgd_weight = 1./pow(Hist_OnSyst_Chi2.at(nth_sample).at(e).GetBinCenter(error_bin),2);
+                    bkgd_weight = bkgd_weight/chi2_norm;
+                    Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,bkgd_weight);
+                    Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),dark_weight);
                     Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
                     
                     int binx_lower = Hist_Temp_Bkgd.GetXaxis()->FindBin(MSCL_cut_lower);
@@ -1567,15 +1604,15 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     double Gamma_SR_Integral = Hist_Temp_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
                     Hist_Temp_Gamma.Scale((Bkgd_SR_Integral*0.0)/Gamma_SR_Integral);
                     mtx_gamma = fillMatrix(&Hist_Temp_Gamma);
-                    LeastSquareSolutionMethod(rank_variation, n_iterations, false);
+                    LeastSquareSolutionMethod(NumberOfEigenvectors, n_iterations, false);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
-                    Hist_OneGroup_Bkgd_Unblind_woGamma_MSCLW.at(e).Add(&Hist_Temp_Bkgd,1./double(n_dark_samples));
+                    Hist_OneGroup_Bkgd_Unblind_woGamma_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
                     fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
                     Hist_Temp_Gamma.Scale((Bkgd_SR_Integral*0.1)/Gamma_SR_Integral);
                     mtx_gamma = fillMatrix(&Hist_Temp_Gamma);
-                    LeastSquareSolutionMethod(rank_variation, n_iterations, false);
+                    LeastSquareSolutionMethod(NumberOfEigenvectors, n_iterations, false);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
-                    Hist_OneGroup_Bkgd_Unblind_wGamma_MSCLW.at(e).Add(&Hist_Temp_Bkgd,1./double(n_dark_samples));
+                    Hist_OneGroup_Bkgd_Unblind_wGamma_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
                     Hist_OneGroup_Gamma_MSCLW.at(e).Reset();
                     Hist_OneGroup_Gamma_MSCLW.at(e).Add(&Hist_Temp_Gamma);
                 }
@@ -1759,7 +1796,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     InputDataFile.Close();
 
 
-    TFile InputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+"_"+ONOFF_tag+".root");
+    TFile InputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(updown_tag)+"_"+ONOFF_tag+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputFile.Get("InfoTree");
     TTree* StarTree = nullptr;
@@ -1770,7 +1807,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     hist_name  = "Hist_EffArea";
     Hist_EffArea.Add( (TH2D*)InputFile.Get(hist_name) );
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(updown_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
     TTree *newtree = InfoTree->CloneTree();
     newtree->Write();

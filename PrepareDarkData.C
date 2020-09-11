@@ -42,6 +42,7 @@ double TelElev_lower = 70.;
 double TelElev_upper = 80.;
 char target[50] = "";
 char theta2_cut_tag[50] = "";
+char updown_tag[50] = "";
 char mjd_cut_tag[50] = "";
 double SizeSecondMax_Cut = 0.;
 
@@ -558,6 +559,14 @@ TObject* getEffAreaHistogram( TFile* fAnasumDataFile, int runnumber)
 bool DarkFoV() {
     if (R2off<camera_theta2_cut_lower) return false;
     if (R2off>camera_theta2_cut_upper) return false;
+    if (UpDown==0)
+    {
+        if (Yoff<0.) return false;
+    }
+    else
+    {
+        if (Yoff>=0.) return false;
+    }
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
@@ -565,6 +574,14 @@ bool DarkFoV() {
 bool FoV(bool remove_bright_stars) {
     if (R2off<camera_theta2_cut_lower) return false;
     if (R2off>camera_theta2_cut_upper) return false;
+    if (UpDown==0)
+    {
+        if (Yoff<0.) return false;
+    }
+    else
+    {
+        if (Yoff>=0.) return false;
+    }
     double x = ra_sky-mean_tele_point_ra;
     double y = dec_sky-mean_tele_point_dec;
     if (source_theta2_cut>(x*x+y*y)) return false;
@@ -675,20 +692,7 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         input_file->Close();
         return false;
     }
-    if (TString(target).Contains("SS433R1"))
-    {
-        double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
-        double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
-        double delta_RA = TelRAJ2000_tmp - 287.9565;
-        double delta_Dec = TelDecJ2000_tmp - 4.9827;
-        double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
-        if (distance>0.7)
-        {
-            input_file->Close();
-            return false;
-        }
-    }
-    if (TString(target).Contains("SS433R2"))
+    if (TString(target).Contains("SS433"))
     {
         double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
         double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
@@ -696,19 +700,6 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         double delta_Dec = TelDecJ2000_tmp - 4.9827;
         double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
         if (distance>1.0)
-        {
-            input_file->Close();
-            return false;
-        }
-    }
-    if (TString(target).Contains("SS433R3"))
-    {
-        double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
-        double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
-        double delta_RA = TelRAJ2000_tmp - 287.9565;
-        double delta_Dec = TelDecJ2000_tmp - 4.9827;
-        double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
-        if (distance>1.5)
         {
             input_file->Close();
             return false;
@@ -1184,7 +1175,7 @@ void SetEventDisplayTreeBranch(TTree* Data_tree)
     Data_tree->SetBranchAddress("MJD",&MJD);
 }
 
-void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doRaster)
+void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isUp, bool isON, bool doRaster)
 {
 
     TH1::SetDefaultSumw2();
@@ -1207,6 +1198,16 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     camera_theta2_cut_lower = input_theta2_cut_lower;
     camera_theta2_cut_upper = input_theta2_cut_upper;
     sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    if (isUp) 
+    {
+        UpDown = 0;
+        sprintf(updown_tag, "_Up");
+    }
+    else 
+    {
+        UpDown = 1;
+        sprintf(updown_tag, "_Dw");
+    }
     sprintf(target, "%s", target_data.c_str());
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
@@ -1284,12 +1285,17 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_name.push_back("SS 433 e1");
         roi_ra.push_back(288.404);
         roi_dec.push_back(4.930);
-        roi_radius.push_back(0.3);
+        roi_radius.push_back(0.13);
+
+        roi_name.push_back("SS 433 e2");
+        roi_ra.push_back(288.58);
+        roi_dec.push_back(4.91);
+        roi_radius.push_back(0.32);
 
         roi_name.push_back("SS 433 w1");
-        roi_ra.push_back(287.654);
-        roi_dec.push_back(5.037);
-        roi_radius.push_back(0.3);
+        roi_ra.push_back(287.42);
+        roi_dec.push_back(5.04);
+        roi_radius.push_back(0.14);
 
         //roi_name.push_back("MAGIC J1857.6+0297");
         //roi_ra.push_back(284.398);
@@ -1304,20 +1310,27 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
     else if (TString(target).Contains("SS433")) 
     {
+        // Use RoI definition from here: https://veritas.sao.arizona.edu/wiki/index.php/SS433_Observations#EventDisplay_v4.80a_analysis_on_SS433_.28Payel.29
+        
         roi_name.push_back("SS 433");
         roi_ra.push_back(287.9565);
         roi_dec.push_back(4.9827);
-        roi_radius.push_back(0.45);
+        roi_radius.push_back(0.15);
 
         roi_name.push_back("SS 433 e1");
         roi_ra.push_back(288.404);
         roi_dec.push_back(4.930);
-        roi_radius.push_back(0.45);
+        roi_radius.push_back(0.13);
+
+        roi_name.push_back("SS 433 e2");
+        roi_ra.push_back(288.58);
+        roi_dec.push_back(4.91);
+        roi_radius.push_back(0.32);
 
         roi_name.push_back("SS 433 w1");
-        roi_ra.push_back(287.654);
-        roi_dec.push_back(5.037);
-        roi_radius.push_back(0.45);
+        roi_ra.push_back(287.42);
+        roi_dec.push_back(5.04);
+        roi_radius.push_back(0.14);
     }
     else if (TString(target).Contains("MAGIC_J1857")) 
     {
@@ -2199,7 +2212,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
 
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(updown_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("N_bins_for_deconv",&N_bins_for_deconv,"N_bins_for_deconv/I");
