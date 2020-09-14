@@ -21,14 +21,16 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 method_tag = '16bins_constrained'
 #method_tag = '16bins_unconstrained'
 
-energy_bin_cut_low = 3
+energy_bin_cut_low = 0
 energy_bin_cut_up = 5
 
 elev_bins = [45,85]
 #theta2_bins = [0,1]
 #theta2_bins = [0,1,4]
-theta2_bins = [0,1,4,9]
+#theta2_bins = [0,1,4,9]
 #theta2_bins = [4,9]
+theta2_bins = [-2,-1,0,1,2]
+#theta2_bins = [-3,-2,-1,0,1,2,3]
 
 ONOFF_tag = 'ON'
 sample_list = []
@@ -133,21 +135,21 @@ sky_coord = []
 #sky_coord += ['12 21 31.7 +28 13 59']
 # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
 
-#ONOFF_tag = 'ON'
-#sample_list += ['IC443HotSpotV6']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
-#sample_list += ['IC443HotSpotV5']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
-#sample_list += ['IC443HotSpotV4']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
-
 ONOFF_tag = 'ON'
-sample_list += ['BoomerangV6']
-sky_coord += ['22 28 44 +61 10 00']
-sample_list += ['BoomerangV5']
-sky_coord += ['22 28 44 +61 10 00']
-sample_list += ['BoomerangV4']
-sky_coord += ['22 28 44 +61 10 00']
+sample_list += ['IC443HotSpotV6']
+sky_coord += ['06 18 2.700 +22 39 36.00']
+sample_list += ['IC443HotSpotV5']
+sky_coord += ['06 18 2.700 +22 39 36.00']
+sample_list += ['IC443HotSpotV4']
+sky_coord += ['06 18 2.700 +22 39 36.00']
+
+#ONOFF_tag = 'ON'
+#sample_list += ['BoomerangV6']
+#sky_coord += ['22 28 44 +61 10 00']
+#sample_list += ['BoomerangV5']
+#sky_coord += ['22 28 44 +61 10 00']
+#sample_list += ['BoomerangV4']
+#sky_coord += ['22 28 44 +61 10 00']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['MGRO_J1908_V6']
@@ -220,11 +222,14 @@ mjd_tag += ['']
 for elev in range(0,len(elev_bins)-1):
     elev_tag = '_TelElev%sto%s'%(elev_bins[elev],elev_bins[elev+1])
     for u in range(0,len(theta2_bins)-1):
-        theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
+        #theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
+        theta2_tag = '_Y%sto%s'%(theta2_bins[u],theta2_bins[u+1])
         for d in range(0,len(mjd_tag)):
-            updown_tag = '_Up'
-            root_file_tags += [method_tag+elev_tag+theta2_tag+updown_tag+mjd_tag[d]+'_'+ONOFF_tag]
-            updown_tag = '_Dw'
+            #updown_tag = '_Up'
+            #root_file_tags += [method_tag+elev_tag+theta2_tag+updown_tag+mjd_tag[d]+'_'+ONOFF_tag]
+            #updown_tag = '_Dw'
+            #root_file_tags += [method_tag+elev_tag+theta2_tag+updown_tag+mjd_tag[d]+'_'+ONOFF_tag]
+            updown_tag = ''
             root_file_tags += [method_tag+elev_tag+theta2_tag+updown_tag+mjd_tag[d]+'_'+ONOFF_tag]
 
 print 'Get %s'%(root_file_tags[0])
@@ -508,7 +513,8 @@ def GetSourceInfo(file_list):
         NewInfoTree.GetEntry(0)
         MJD_Start = min(NewInfoTree.MJD_Start,MJD_Start)
         MJD_End = max(NewInfoTree.MJD_End,MJD_End)
-        if 'Theta20' in file_list[path] and 'Up' in file_list[path]:
+        #if 'Theta20' in file_list[path] and 'Up' in file_list[path]:
+        if 'Y0' in file_list[path]:
             exposure_hours += NewInfoTree.exposure_hours
 
         HistName = "Hist_EffArea"
@@ -2988,6 +2994,8 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     Hist_Contour_zoomin.SetContourLevel(0,3)
     Hist_Contour_zoomin.SetContourLevel(1,4)
     Hist_Contour_zoomin.SetContourLevel(2,5)
+    #Hist_Skymap_zoomin.SetMaximum(0.1)
+    #Hist_Skymap_zoomin.SetMinimum(-0.1)
     #Hist_Skymap_zoomin.SetMaximum(5)
     #Hist_Skymap_zoomin.SetMinimum(-5)
 
@@ -3992,9 +4000,9 @@ for nth_sample in range(0,n_control_samples):
 
 n_rebin = 1
 smooth_size = 0.1
-if energy_bin[energy_bin_cut_low]>=300.:
-    n_rebin = 2
-    smooth_size = 0.2
+#if energy_bin[energy_bin_cut_low]>=300.:
+#    n_rebin = 2
+#    smooth_size = 0.2
 #if energy_bin[energy_bin_cut_low]>=1000.:
 #    n_rebin = 2
 #    smooth_size = 0.2

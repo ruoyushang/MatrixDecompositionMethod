@@ -893,7 +893,7 @@ void NormalizaDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
         hist_dark->Scale(0.);
     }
 }
-void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isUp, bool isON)
+void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, int isUp, bool isON)
 {
 
     TH1::SetDefaultSumw2();
@@ -916,16 +916,22 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     }
     camera_theta2_cut_lower = input_theta2_cut_lower;
     camera_theta2_cut_upper = input_theta2_cut_upper;
-    sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
-    if (isUp) 
+    //sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    sprintf(theta2_cut_tag, "_Y%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    if (isUp==0) 
     {
         UpDown = 0;
         sprintf(updown_tag, "_Up");
     }
-    else 
+    else if (isUp==1)
     {
         UpDown = 1;
         sprintf(updown_tag, "_Dw");
+    }
+    else if (isUp==2)
+    {
+        UpDown = 2;
+        sprintf(updown_tag, "");
     }
 
     TelElev_lower = tel_elev_lower_input;
