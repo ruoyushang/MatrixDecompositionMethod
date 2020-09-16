@@ -557,11 +557,11 @@ TObject* getEffAreaHistogram( TFile* fAnasumDataFile, int runnumber)
   return 0;
 }
 bool DarkFoV() {
-    //if (R2off<camera_theta2_cut_lower) return false;
-    //if (R2off>camera_theta2_cut_upper) return false;
     if (R2off>9.) return false;
-    if (Yoff<camera_theta2_cut_lower) return false;
-    if (Yoff>camera_theta2_cut_upper) return false;
+    if (R2off<camera_theta2_cut_lower) return false;
+    if (R2off>camera_theta2_cut_upper) return false;
+    //if (Yoff<camera_theta2_cut_lower) return false;
+    //if (Yoff>camera_theta2_cut_upper) return false;
     if (UpDown==0)
     {
         if (Yoff<0.) return false;
@@ -575,11 +575,11 @@ bool DarkFoV() {
     return true;
 }
 bool FoV(bool remove_bright_stars) {
-    //if (R2off<camera_theta2_cut_lower) return false;
-    //if (R2off>camera_theta2_cut_upper) return false;
     if (R2off>9.) return false;
-    if (Yoff<camera_theta2_cut_lower) return false;
-    if (Yoff>camera_theta2_cut_upper) return false;
+    if (R2off<camera_theta2_cut_lower) return false;
+    if (R2off>camera_theta2_cut_upper) return false;
+    //if (Yoff<camera_theta2_cut_lower) return false;
+    //if (Yoff>camera_theta2_cut_upper) return false;
     if (UpDown==0)
     {
         if (Yoff<0.) return false;
@@ -1203,8 +1203,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
     camera_theta2_cut_lower = input_theta2_cut_lower;
     camera_theta2_cut_upper = input_theta2_cut_upper;
-    //sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
-    sprintf(theta2_cut_tag, "_Y%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    //sprintf(theta2_cut_tag, "_Y%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
     if (isUp==0) 
     {
         UpDown = 0;

@@ -27,9 +27,8 @@ energy_bin_cut_up = 5
 elev_bins = [45,85]
 #theta2_bins = [0,1]
 #theta2_bins = [0,1,4]
-#theta2_bins = [0,1,4,9]
-#theta2_bins = [4,9]
-theta2_bins = [-2,-1,0,1,2]
+theta2_bins = [0,1,4,9]
+#theta2_bins = [-2,-1,0,1,2]
 #theta2_bins = [-3,-2,-1,0,1,2,3]
 
 ONOFF_tag = 'ON'
@@ -85,11 +84,11 @@ sky_coord = []
 #sample_list += ['RGBJ0710V5']
 #sky_coord += ['07 10 26.4 +59 09 00']
 
-#ONOFF_tag = 'OFF'
-#sample_list += ['Segue1V6']
-#sky_coord += ['10 07 04 +16 04 55']
-#sample_list += ['Segue1V5']
-#sky_coord += ['10 07 04 +16 04 55']
+ONOFF_tag = 'OFF'
+sample_list += ['Segue1V6']
+sky_coord += ['10 07 04 +16 04 55']
+sample_list += ['Segue1V5']
+sky_coord += ['10 07 04 +16 04 55']
 # only V5 data published
 
 #ONOFF_tag = 'OFF'
@@ -135,13 +134,13 @@ sky_coord = []
 #sky_coord += ['12 21 31.7 +28 13 59']
 # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
 
-ONOFF_tag = 'ON'
-sample_list += ['IC443HotSpotV6']
-sky_coord += ['06 18 2.700 +22 39 36.00']
-sample_list += ['IC443HotSpotV5']
-sky_coord += ['06 18 2.700 +22 39 36.00']
-sample_list += ['IC443HotSpotV4']
-sky_coord += ['06 18 2.700 +22 39 36.00']
+#ONOFF_tag = 'ON'
+#sample_list += ['IC443HotSpotV6']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV5']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
+#sample_list += ['IC443HotSpotV4']
+#sky_coord += ['06 18 2.700 +22 39 36.00']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['BoomerangV6']
@@ -222,8 +221,8 @@ mjd_tag += ['']
 for elev in range(0,len(elev_bins)-1):
     elev_tag = '_TelElev%sto%s'%(elev_bins[elev],elev_bins[elev+1])
     for u in range(0,len(theta2_bins)-1):
-        #theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
-        theta2_tag = '_Y%sto%s'%(theta2_bins[u],theta2_bins[u+1])
+        theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
+        #theta2_tag = '_Y%sto%s'%(theta2_bins[u],theta2_bins[u+1])
         for d in range(0,len(mjd_tag)):
             #updown_tag = '_Up'
             #root_file_tags += [method_tag+elev_tag+theta2_tag+updown_tag+mjd_tag[d]+'_'+ONOFF_tag]
@@ -514,7 +513,8 @@ def GetSourceInfo(file_list):
         MJD_Start = min(NewInfoTree.MJD_Start,MJD_Start)
         MJD_End = max(NewInfoTree.MJD_End,MJD_End)
         #if 'Theta20' in file_list[path] and 'Up' in file_list[path]:
-        if 'Y0' in file_list[path]:
+        #if 'Y0' in file_list[path]:
+        if 'Theta20' in file_list[path]:
             exposure_hours += NewInfoTree.exposure_hours
 
         HistName = "Hist_EffArea"
@@ -1901,6 +1901,7 @@ def PlotsStackedHistograms(tag):
     if energy_bin[energy_bin_cut_low]>=2000.:
         Hist_OnData_Theta2_Sum.Rebin(2)
         Hist_OnBkgd_Theta2_Sum.Rebin(2)
+        Hist_OnDark_Theta2_Sum.Rebin(2)
         Hist_SystErr_Theta2.Rebin(2)
     Hists = []
     legends = []
@@ -1919,6 +1920,25 @@ def PlotsStackedHistograms(tag):
     colors += [0]
     stack_it += [False]
     plotname = 'Stack_Theta2_MDM_%s'%(tag)
+    title = 'squared angle from source location #theta^{2}'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_Theta2_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnDark_Theta2_Sum]
+    legends += ['predict. bkg.']
+    colors += [2]
+    stack_it += [True]
+    Hists += [Hist_SystErr_Theta2]
+    legends += ['syst. error']
+    colors += [0]
+    stack_it += [False]
+    plotname = 'Stack_Theta2_Dark_%s'%(tag)
     title = 'squared angle from source location #theta^{2}'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
 
@@ -2331,6 +2351,9 @@ def NormalizeTheta2Histograms(FilePath):
     HistName = "Hist_OnData_CR_Skymap_Theta2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Theta2.Reset()
     Hist_OnBkgd_Theta2.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnDark_CR_Skymap_Theta2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnDark_Theta2.Reset()
+    Hist_OnDark_Theta2.Add(InputFile.Get(HistName))
 
     for nth_roi in range(0,len(roi_ra)):
         HistName = "Hist_OnData_SR_Skymap_RoI_Theta2_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -2344,6 +2367,7 @@ def NormalizeTheta2Histograms(FilePath):
     if Hist2D_OnData.Integral()<1600.:
         Hist_OnData_Theta2.Reset()
         Hist_OnBkgd_Theta2.Reset()
+        Hist_OnDark_Theta2.Reset()
         for nth_roi in range(0,len(roi_ra)):
             Hist_OnData_RoI_Theta2[nth_roi].Reset()
             Hist_OnBkgd_RoI_Theta2[nth_roi].Reset()
@@ -2382,6 +2406,7 @@ def StackTheta2Histograms():
 
     Hist_OnData_Theta2_Sum.Add(Hist_OnData_Theta2)
     Hist_OnBkgd_Theta2_Sum.Add(Hist_OnBkgd_Theta2)
+    Hist_OnDark_Theta2_Sum.Add(Hist_OnDark_Theta2)
 
     for nth_roi in range(0,len(roi_ra)):
         Hist_OnData_RoI_Theta2_Sum[nth_roi].Add(Hist_OnData_RoI_Theta2[nth_roi])
@@ -2506,6 +2531,9 @@ def NormalizeSkyMapHistograms(FilePath):
     HistName = "Hist_OnData_CR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Skymap.Reset()
     Hist_OnBkgd_Skymap.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnDark_CR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnDark_Skymap.Reset()
+    Hist_OnDark_Skymap.Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_CR_Skymap_Galactic_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Skymap_Galactic.Reset()
     Hist_OnBkgd_Skymap_Galactic.Add(InputFile.Get(HistName))
@@ -2522,14 +2550,10 @@ def NormalizeSkyMapHistograms(FilePath):
         Hist_OnData_VR_Skymap.Reset()
         Hist_OnData_VR_Skymap_Galactic.Reset()
         Hist_OnBkgd_Skymap.Reset()
+        Hist_OnDark_Skymap.Reset()
         Hist_OnBkgd_Skymap_Galactic.Reset()
         Hist_OnBkgd_Skymap_Syst.Reset()
         Hist_OnBkgd_Skymap_Galactic_Syst.Reset()
-
-def CorrectSkymapHistograms():
-
-    Hist_OnBkgd_Skymap_Sum.Scale(1.+Syst_Corr)
-    Hist_OnBkgd_Skymap_Galactic_Sum.Scale(1.+Syst_Corr)
 
 def StackSkymapHistograms():
 
@@ -2538,6 +2562,7 @@ def StackSkymapHistograms():
     Hist_OnData_VR_Skymap_Sum.Add(Hist_OnData_VR_Skymap)
     Hist_OnData_VR_Skymap_Galactic_Sum.Add(Hist_OnData_VR_Skymap_Galactic)
     Hist_OnBkgd_Skymap_Sum.Add(Hist_OnBkgd_Skymap)
+    Hist_OnDark_Skymap_Sum.Add(Hist_OnDark_Skymap)
     Hist_OnBkgd_Skymap_Galactic_Sum.Add(Hist_OnBkgd_Skymap_Galactic)
 
     Hist_OnData_Skymap_ProjX_Sum.Add(Hist_OnData_Skymap.ProjectionX())
@@ -3706,7 +3731,6 @@ def SingleSourceAnalysis(source_list,doMap):
     CalculateSystError_v2()
     #CorrectEnergyHistograms()
     #CorrectTheta2Histograms()
-    #CorrectSkymapHistograms()
 
     PlotsStackedHistograms('%s%s'%(source_list[0],PercentCrab))
 
@@ -3719,6 +3743,7 @@ def SingleSourceAnalysis(source_list,doMap):
     Hist_OnData_Skymap_Sum.Rebin2D(n_rebin,n_rebin)
     Hist_OnData_Skymap_Galactic_Sum.Rebin2D(n_rebin,n_rebin)
     Hist_OnBkgd_Skymap_Sum.Rebin2D(n_rebin,n_rebin)
+    Hist_OnDark_Skymap_Sum.Rebin2D(n_rebin,n_rebin)
     Hist_OnBkgd_Skymap_Galactic_Sum.Rebin2D(n_rebin,n_rebin)
     Hist_OnData_VR_Skymap_Sum.Rebin2D(n_rebin,n_rebin)
     Hist_OnData_VR_Skymap_Galactic_Sum.Rebin2D(n_rebin,n_rebin)
@@ -3728,6 +3753,7 @@ def SingleSourceAnalysis(source_list,doMap):
     Hist_OnData_Skymap_smooth = Smooth2DMap(Hist_OnData_Skymap_Sum,smooth_size,False)
     Hist_OnData_VR_Skymap_smooth = Smooth2DMap(Hist_OnData_VR_Skymap_Sum,smooth_size,False)
     Hist_OnBkgd_Skymap_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Sum,smooth_size,False)
+    Hist_OnDark_Skymap_smooth = Smooth2DMap(Hist_OnDark_Skymap_Sum,smooth_size,False)
     Hist_OnBkgd_Skymap_Syst_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_Sum,smooth_size,False)
     Hist_OnData_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnData_Skymap_Galactic_Sum,smooth_size,False)
     Hist_OnData_VR_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnData_VR_Skymap_Galactic_Sum,smooth_size,False)
@@ -3743,6 +3769,7 @@ def SingleSourceAnalysis(source_list,doMap):
 
     Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_smooth,'RA','Dec','Skymap_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
     Make2DSignificancePlot(0.,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_smooth,'RA','Dec','Skymap_NoSyst_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+    Make2DSignificancePlot(0.,Hist_OnData_Skymap_smooth,Hist_OnDark_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_smooth,'RA','Dec','Skymap_Dark_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
     Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_smooth,'gal. l.','gal. b.','Skymap_Smooth_Galactic_MDM_%s%s'%(source_name,PercentCrab))
 
     Hist_Significance_Skymap_smooth = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_smooth,Syst_MDM)
@@ -3867,8 +3894,10 @@ Hist1D_Dark_Rank3_RightVector = ROOT.TH1D("Hist1D_Dark_Rank3_RightVector","",N_b
 
 Hist_OnData_Theta2_Sum = ROOT.TH1D("Hist_OnData_Theta2_Sum","",50,0,10)
 Hist_OnBkgd_Theta2_Sum = ROOT.TH1D("Hist_OnBkgd_Theta2_Sum","",50,0,10)
+Hist_OnDark_Theta2_Sum = ROOT.TH1D("Hist_OnDark_Theta2_Sum","",50,0,10)
 Hist_OnData_Theta2 = ROOT.TH1D("Hist_OnData_Theta2","",50,0,10)
 Hist_OnBkgd_Theta2 = ROOT.TH1D("Hist_OnBkgd_Theta2","",50,0,10)
+Hist_OnDark_Theta2 = ROOT.TH1D("Hist_OnDark_Theta2","",50,0,10)
 Hist_OnData_Energy_Sum = ROOT.TH1D("Hist_OnData_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnBkgd_Energy_Sum = ROOT.TH1D("Hist_OnBkgd_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnData_Energy = ROOT.TH1D("Hist_OnData_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
@@ -3881,10 +3910,12 @@ Hist_OnBkgd_Zenith = ROOT.TH1D("Hist_OnBkgd_Zenith","",45,0,90)
 Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnData_VR_Skymap = ROOT.TH2D("Hist_OnData_VR_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnDark_Skymap = ROOT.TH2D("Hist_OnDark_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnBkgd_Skymap_Syst = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnData_Skymap_Sum = ROOT.TH2D("Hist_OnData_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnData_VR_Skymap_Sum = ROOT.TH2D("Hist_OnData_VR_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnBkgd_Skymap_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnDark_Skymap_Sum = ROOT.TH2D("Hist_OnDark_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnBkgd_Skymap_Syst_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnData_Skymap_Galactic = ROOT.TH2D("Hist_OnData_Skymap_Galactic","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
 Hist_OnData_VR_Skymap_Galactic = ROOT.TH2D("Hist_OnData_VR_Skymap_Galactic","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
