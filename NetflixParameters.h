@@ -35,8 +35,8 @@ double raw_gamma_count[N_energy_fine_bins] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0
 const int N_elev_bins = 12;
 double elev_bins[N_elev_bins+1] = {25,30,35,40,45,50,55,60,65,70,75,80,85};
 
-//int group_size_limit[N_energy_bins] = {50000,50000,50000,50000,50000};
-int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000};
+int group_size_limit[N_energy_bins] = {100000,100000,100000,100000,100000};
+//int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000};
 
 double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.};

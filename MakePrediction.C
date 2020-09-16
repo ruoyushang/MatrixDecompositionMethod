@@ -515,8 +515,8 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     int row_size_big = mtx_input.rows()*mtx_input.cols();
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    MatrixXd mtx_Constraint = MatrixXd::Zero((1+NumberOfEigenvectors_Stable)*entry_size,2*entry_size*mtx_input.cols());
-    VectorXd vtr_Constraint_Delta = VectorXd::Zero((1+NumberOfEigenvectors_Stable)*entry_size);
+    MatrixXd mtx_Constraint = MatrixXd::Zero((1+N_bins_for_deconv)*entry_size,2*entry_size*mtx_input.cols());
+    VectorXd vtr_Constraint_Delta = VectorXd::Zero((1+N_bins_for_deconv)*entry_size);
     for (int idx_k=0; idx_k<entry_size; idx_k++)
     {
         int nth_entry = idx_k + entry_start;
@@ -547,7 +547,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 mtx_Big(idx_m,idx_w) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_p_init(idx_j,mtx_input.rows()-nth_entry).real();
             }
         }
-        for (int idx_l=0; idx_l<NumberOfEigenvectors_Stable; idx_l++)
+        for (int idx_l=0; idx_l<N_bins_for_deconv; idx_l++)
         {
             int nth_entry2 = idx_l + 1;
             //if (nth_entry2>=nth_entry) continue;
@@ -556,7 +556,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
             //if (nth_entry==1 && nth_entry2==1) continue;
             for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
             {
-                int idx_u = idx_l + idx_k*(NumberOfEigenvectors_Stable+1);
+                int idx_u = idx_l + idx_k*(N_bins_for_deconv+1);
                 int idx_n = idx_i + mtx_input.cols()*idx_k;
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
@@ -568,7 +568,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
         }
         for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
         {
-            int idx_u = NumberOfEigenvectors_Stable + idx_k*(NumberOfEigenvectors_Stable+1);
+            int idx_u = N_bins_for_deconv + idx_k*(N_bins_for_deconv+1);
             int idx_n = idx_i + mtx_input.cols()*idx_k;
             int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
             mtx_Constraint(idx_u+0,idx_n) = pow(-1,idx_i);
@@ -1005,6 +1005,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<vector<TH2D>> Hist_OffBkgd_MSCLW;
     vector<vector<TH2D>> Hist_OnSyst_MSCLW;
     vector<vector<TH1D>> Hist_OnSyst_Chi2;
+    vector<vector<TH1D>> Hist_OneGroup_OnSyst_Chi2;
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {
         std::cout << "++++++++++++++++++++++++++++++++++++++" << std::endl;
@@ -1015,6 +1016,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         vector<TH2D> Hist_OffBkgd_OneSample_MSCLW;
         vector<TH2D> Hist_OnSyst_OneSample_MSCLW;
         vector<TH1D> Hist_OnSyst_OneSample_Chi2;
+        vector<TH1D> Hist_OneGroup_OnSyst_OneSample_Chi2;
         for (int e=0;e<N_energy_bins;e++) 
         {
             std::cout << "++++++++++++++++++++++++++++++++++++++" << std::endl;
@@ -1035,11 +1037,13 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             Hist_OffBkgd_OneSample_MSCLW.push_back(TH2D("Hist_OffBkgd_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnSyst_OneSample_MSCLW.push_back(TH2D("Hist_OnSyst_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnSyst_OneSample_Chi2.push_back(TH1D("Hist_OnSyst_Chi2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,-0.1,0.1));
+            Hist_OneGroup_OnSyst_OneSample_Chi2.push_back(TH1D("Hist_OneGroup_OnSyst_Chi2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,-0.1,0.1));
         }
         Hist_OffData_MSCLW.push_back(Hist_OffData_OneSample_MSCLW);
         Hist_OffBkgd_MSCLW.push_back(Hist_OffBkgd_OneSample_MSCLW);
         Hist_OnSyst_MSCLW.push_back(Hist_OnSyst_OneSample_MSCLW);
         Hist_OnSyst_Chi2.push_back(Hist_OnSyst_OneSample_Chi2);
+        Hist_OneGroup_OnSyst_Chi2.push_back(Hist_OneGroup_OnSyst_OneSample_Chi2);
     }
 
     vector<vector<TH2D>> Hist_OneGroup_OffData_MSCLW;
@@ -1584,13 +1588,13 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     NormalizaDarkMatrix(&Hist_OneGroup_Data_MSCLW.at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
                     mtx_dark = fillMatrix(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-                    MinChi2Method(NumberOfEigenvectors, n_iterations, &Hist_OnSyst_Chi2.at(nth_sample).at(e));
+                    MinChi2Method(NumberOfEigenvectors, n_iterations, &Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e));
                 }
                 double chi2_norm = 0.;
                 for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
                 {
-                    int error_bin = Hist_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
-                    chi2_norm += 1./pow(Hist_OnSyst_Chi2.at(nth_sample).at(e).GetBinCenter(error_bin),2);
+                    int error_bin = Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
+                    chi2_norm += 1./pow(Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetBinCenter(error_bin),2);
                 }
                 for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
                 {
@@ -1601,12 +1605,14 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     double dark_weight = 1./double(n_dark_samples);
-                    int error_bin = Hist_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
-                    double bkgd_weight = 1./pow(Hist_OnSyst_Chi2.at(nth_sample).at(e).GetBinCenter(error_bin),2);
+                    int error_bin = Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
+                    double bkgd_weight = 1./pow(Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetBinCenter(error_bin),2);
                     bkgd_weight = bkgd_weight/chi2_norm;
                     Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,bkgd_weight);
                     Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
                     Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),dark_weight);
+                    Hist_OnSyst_Chi2.at(nth_sample).at(e).Add(&Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e));
+                    Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).Reset();
                     
                     int binx_lower = Hist_Temp_Bkgd.GetXaxis()->FindBin(MSCL_cut_lower);
                     int binx_blind = Hist_Temp_Bkgd.GetXaxis()->FindBin(MSCL_cut_blind)-1;
@@ -1723,6 +1729,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 }
                 Hist_OneGroup_Data_MSCLW.at(e).Reset();
                 Hist_OneGroup_Bkgd_MSCLW.at(e).Reset();
+                Hist_OneGroup_Bkgd_Unblind_wGamma_MSCLW.at(e).Reset();
+                Hist_OneGroup_Bkgd_Unblind_woGamma_MSCLW.at(e).Reset();
                 Hist_OneGroup_Gamma_MSCLW.at(e).Reset();
                 Hist_OnData_SR_Energy_OneGroup.at(e).Reset();
                 Hist_OnData_CR_Energy_OneGroup.at(e).Reset();

@@ -28,6 +28,7 @@ elev_bins = [45,85]
 #theta2_bins = [0,1]
 #theta2_bins = [0,1,4]
 theta2_bins = [0,1,4,9]
+#theta2_bins = [0,9]
 #theta2_bins = [-2,-1,0,1,2]
 #theta2_bins = [-3,-2,-1,0,1,2,3]
 
@@ -62,9 +63,9 @@ sky_coord = []
 #sky_coord += ['11 45 5.009 +19 36 22.74']
 # The VERITAS observations of 3C 264 were taken from February through May 2017, from February through April 2018, and from January through May 2019.
 
-#ONOFF_tag = 'ON'
-#sample_list += ['PG1553V5']
-#sky_coord += ['15 55 44.7 +11 11 41']
+ONOFF_tag = 'ON'
+sample_list += ['PG1553V5']
+sky_coord += ['15 55 44.7 +11 11 41']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['1ES1011V6']
@@ -84,11 +85,11 @@ sky_coord = []
 #sample_list += ['RGBJ0710V5']
 #sky_coord += ['07 10 26.4 +59 09 00']
 
-ONOFF_tag = 'OFF'
-sample_list += ['Segue1V6']
-sky_coord += ['10 07 04 +16 04 55']
-sample_list += ['Segue1V5']
-sky_coord += ['10 07 04 +16 04 55']
+#ONOFF_tag = 'OFF'
+#sample_list += ['Segue1V6']
+#sky_coord += ['10 07 04 +16 04 55']
+#sample_list += ['Segue1V5']
+#sky_coord += ['10 07 04 +16 04 55']
 # only V5 data published
 
 #ONOFF_tag = 'OFF'

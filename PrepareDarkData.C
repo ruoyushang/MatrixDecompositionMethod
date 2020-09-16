@@ -1699,9 +1699,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 sprintf(e_low, "%i", int(energy_fine_bins[e]));
                 char e_up[50];
                 sprintf(e_up, "%i", int(energy_fine_bins[e+1]));
-                Hist_OnDark_SR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_SR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,0,2*M_PI));
-                Hist_OnDark_VR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,0,2*M_PI));
-                Hist_OnDark_CR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_CR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,0,2*M_PI));
+                Hist_OnDark_SR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_SR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,-3.,3.));
+                Hist_OnDark_VR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,-3.,3.));
+                Hist_OnDark_CR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_CR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,-3.,3.));
             }
             Hist_OnDark_SR_CameraFoV_ThisSample.push_back(Hist_OnDark_SR_CameraFoV_ThisElev);
             Hist_OnDark_VR_CameraFoV_ThisSample.push_back(Hist_OnDark_VR_CameraFoV_ThisElev);
@@ -1835,15 +1835,15 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                         Hist_OnDark_MSCLW.at(on_run).at(nth_sample).at(energy).Fill(MSCL,MSCW,weight);
                         if (SignalSelectionTheta2())
                         {
-                            Hist_OnDark_SR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).Fill(R2off,Phioff,weight);
+                            Hist_OnDark_SR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).Fill(R2off,Yoff,weight);
                         }
                         if (ValidationSelectionTheta2())
                         {
-                            Hist_OnDark_VR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).Fill(R2off,Phioff,weight);
+                            Hist_OnDark_VR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).Fill(R2off,Yoff,weight);
                         }
                         if (ControlSelectionTheta2())
                         {
-                            Hist_OnDark_CR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).Fill(R2off,Phioff,weight);
+                            Hist_OnDark_CR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).Fill(R2off,Yoff,weight);
                         }
                     }
                     if (ControlSelectionTheta2())
@@ -1992,7 +1992,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 if (FoV(true))
                 {
                     int binx = Hist_OnDark_SR_CameraFoV.at(0).at(elevation).at(energy_fine).GetXaxis()->FindBin(R2off);
-                    int biny = Hist_OnDark_SR_CameraFoV.at(0).at(elevation).at(energy_fine).GetYaxis()->FindBin(Phioff);
+                    int biny = Hist_OnDark_SR_CameraFoV.at(0).at(elevation).at(energy_fine).GetYaxis()->FindBin(Yoff);
                     double weight_avg = 0.;
                     double weight_avg_vr = 0.;
                     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
