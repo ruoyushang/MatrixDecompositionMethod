@@ -21,7 +21,7 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 method_tag = '16bins_constrained'
 #method_tag = '16bins_unconstrained'
 
-energy_bin_cut_low = 0
+energy_bin_cut_low = 3
 energy_bin_cut_up = 5
 
 elev_bins = [45,85]
@@ -34,185 +34,133 @@ theta2_bins = [0,1,4,9]
 
 ONOFF_tag = 'ON'
 sample_list = []
-sky_coord = []
 
 ##ONOFF_tag = 'OFF'
 #sample_list += ['SgrAV6']
-#sky_coord += ['17 45 39.6 -29 00 22']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['OJ287V6']
-#sky_coord += ['08 54 49.1 +20 05 58.89']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['1ES0229V6']
-#sky_coord += ['02 32 53.2 +20 16 21']
 #sample_list += ['1ES0229V5']
-#sky_coord += ['02 32 53.2 +20 16 21']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['H1426V6']
-#sky_coord += ['14 28 32.609 +42 40 21.05']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['PKS1424V6']
-#sky_coord += ['14 27 00 +23 47 00']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['3C264V6']
-#sky_coord += ['11 45 5.009 +19 36 22.74']
 # The VERITAS observations of 3C 264 were taken from February through May 2017, from February through April 2018, and from January through May 2019.
 
-ONOFF_tag = 'ON'
-sample_list += ['PG1553V5']
-sky_coord += ['15 55 44.7 +11 11 41']
+#ONOFF_tag = 'ON'
+#sample_list += ['PG1553V5']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['1ES1011V6']
-#sky_coord += ['10 15 4.139 +49 26 0.71']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['RBS0413V6']
-#sky_coord += ['03 19 47 +18 45 42']
 #sample_list += ['RBS0413V5']
-#sky_coord += ['03 19 47 +18 45 42']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['1ES0647V6']
-#sky_coord += ['06 50 46.490 +25 02 59.62']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['RGBJ0710V5']
-#sky_coord += ['07 10 26.4 +59 09 00']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['Segue1V6']
-#sky_coord += ['10 07 04 +16 04 55']
 #sample_list += ['Segue1V5']
-#sky_coord += ['10 07 04 +16 04 55']
 # only V5 data published
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['BLLacV6']
-#sky_coord += ['22 02 43.3 +42 16 40']
 #sample_list += ['BLLacV5']
-#sky_coord += ['22 02 43.3 +42 16 40']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['NGC1275V6']
-#sky_coord += ['03 19 48.1 +41 30 42']
+
+ONOFF_tag = 'ON'
+sample_list += ['SNRG150p3_V6']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['M82V4']
-#sky_coord += ['09 55 52.7 +69 40 46']
 #sample_list += ['M82V5']
-#sky_coord += ['09 55 52.7 +69 40 46']
 
 #ONOFF_tag = 'ON'
+#sample_list += ['CrabV6']
 #sample_list += ['CrabV5']
-#sky_coord += ['05 34 31.97 +22 00 52.1']
 #sample_list += ['CrabV4']
-#sky_coord += ['05 34 31.97 +22 00 52.1']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['Mrk421V5']
-#sky_coord += ['11 04 19 +38 11 41']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['2HWC_J1930V6']
-#sky_coord += ['19 30 32 +18 52 12']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['2HWC_J1953V6']
-#sky_coord += ['19 53 02.4 +29 28 48']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['WComaeV6']
-#sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['WComaeV5']
-#sky_coord += ['12 21 31.7 +28 13 59']
 #sample_list += ['WComaeV4']
-#sky_coord += ['12 21 31.7 +28 13 59']
 # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
 
 #ONOFF_tag = 'ON'
 #sample_list += ['IC443HotSpotV6']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['IC443HotSpotV5']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
 #sample_list += ['IC443HotSpotV4']
-#sky_coord += ['06 18 2.700 +22 39 36.00']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['BoomerangV6']
-#sky_coord += ['22 28 44 +61 10 00']
 #sample_list += ['BoomerangV5']
-#sky_coord += ['22 28 44 +61 10 00']
 #sample_list += ['BoomerangV4']
-#sky_coord += ['22 28 44 +61 10 00']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['MGRO_J1908_V6']
-#sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['MGRO_J1908_V5']
-#sky_coord += ['19 07 54 +06 16 07']
 #sample_list += ['MGRO_J1908_V4']
-#sky_coord += ['19 07 54 +06 16 07']
 # this is a Tevatron
 
 #ONOFF_tag = 'ON'
 #sample_list += ['SS433_V6']
-#sky_coord += ['19 11 49.56 +04 58 57.8']
 #sample_list += ['SS433_V5']
-#sky_coord += ['19 11 49.56 +04 58 57.8']
 #sample_list += ['SS433_V4']
-#sky_coord += ['19 11 49.56 +04 58 57.8']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['MAGIC_J1857_V6']
-#sky_coord += ['18 57 35.6 +02 58 02']
 #sample_list += ['MAGIC_J1857_V5']
-#sky_coord += ['18 57 35.6 +02 58 02']
 #sample_list += ['MAGIC_J1857_V4']
-#sky_coord += ['18 57 35.6 +02 58 02']
 # this is a Tevatron, largely extended at 400 GeV
 
 #ONOFF_tag = 'ON'
 #sample_list += ['MGRO_J2031_V6']
-#sky_coord += ['20 28 43.2 +41 18 36']
 #sample_list += ['MGRO_J2031_V5']
-#sky_coord += ['20 28 43.2 +41 18 36']
 #sample_list += ['MGRO_J2031_V4']
-#sky_coord += ['20 28 43.2 +41 18 36']
 # this is a Tevatron with time-variable morphology
 
 #ONOFF_tag = 'ON'
 #sample_list += ['CygnusV6']
-#sky_coord += ['20 18 35.03 +36 50 00.0']
 #sample_list += ['CygnusV5']
-#sky_coord += ['20 18 35.03 +36 50 00.0']
 # this is a Tevatron
 
 #ONOFF_tag = 'ON'
 #sample_list += ['GammaCygniV4']
-#sky_coord += ['20 20 04.8 +40 45 26']
 #sample_list += ['GammaCygniV5']
-#sky_coord += ['20 20 04.8 +40 45 26']
 #sample_list += ['GammaCygniV6']
-#sky_coord += ['20 20 04.8 +40 45 26']
 # this is a Tevatron
 
 #ONOFF_tag = 'ON'
 #sample_list += ['GemingaV6']
-#sky_coord += ['06 32 28 +17 22 00']
 #sample_list += ['GemingaV5']
-#sky_coord += ['06 32 28 +17 22 00']
 
 #ONOFF_tag = 'ON'
 #sample_list += ['ComaV4']
-#sky_coord += ['12 59 48.7 +27 58 50']
 #sample_list += ['ComaV6']
-#sky_coord += ['12 59 48.7 +27 58 50']
 
 root_file_tags = []
 # all time
@@ -326,31 +274,6 @@ energy_fine_bin += [pow(10,3.7)]
 energy_fine_bin += [pow(10,3.8)]
 energy_fine_bin += [pow(10,3.9)]
 energy_fine_bin += [pow(10,4.0)]
-
-#sample_list += ['Crab']
-#sky_coord += ['05 34 31.97 +22 00 52.1']
-#sample_list += ['S3_1227_V6']
-#sky_coord += ['12 30 14.1 +25 18 07']
-#sample_list += ['MS1221V6']
-#sky_coord += ['12 24 24.2 +24 36 24']
-#sample_list += ['PKS1441V6']
-#sky_coord += ['14 43 56.9 +25 01 44']
-#sample_list += ['ComaV6']
-#sky_coord += ['12 59 48.7 +27 58 50']
-#sample_list += ['1ES1440V6']
-#sky_coord += ['14 42 48.277 +12 00 40.37']
-#sample_list += ['1ES1741V6']
-#sky_coord += ['17 44 01.2 +19 32 47']
-#sample_list += ['CasA']
-#sky_coord += ['23 23 13.8 +58 48 26']
-#sample_list += ['G079']
-#sky_coord += ['20 32 28.56 +40 19 41.52']
-#sample_list += ['1ES1218V6']
-#sky_coord += ['12 21 26.3 +30 11 29']
-#sample_list += ['TychoV6']
-#sky_coord += ['00 25 21.6 +64 07 48']
-#sample_list += ['CTA1V5']
-#sky_coord += ['00 06 26 +72 59 01.0']
 
 other_stars = []
 other_star_coord = []
@@ -2747,7 +2670,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
             other_star_markers += [ROOT.TMarker(-other_star_coord[star][0],other_star_coord[star][1],2)]
             other_star_labels += [ROOT.TLatex(-other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
-            other_star_labels[len(other_star_labels)-1].SetTextSize(0.02)
+            other_star_labels[len(other_star_labels)-1].SetTextSize(0.03)
             other_star_names += [other_stars[star]]
             #binx = Hist_Skymap.GetXaxis().FindBin(-other_star_coord[star][0])
             #biny = Hist_Skymap.GetYaxis().FindBin(other_star_coord[star][1])
@@ -2774,7 +2697,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
             other_star_markers += [ROOT.TMarker(-gal_l,gal_b,2)]
             other_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
-            other_star_labels[len(other_star_labels)-1].SetTextSize(0.02)
+            other_star_labels[len(other_star_labels)-1].SetTextSize(0.03)
             other_star_names += [other_stars[star]]
             #binx = Hist_Skymap.GetXaxis().FindBin(-gal_l)
             #biny = Hist_Skymap.GetYaxis().FindBin(gal_b)
@@ -2836,6 +2759,8 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
 
     Hist_Skymap.GetYaxis().SetTitle(ytitle)
     Hist_Skymap.GetXaxis().SetTitle(xtitle)
+    Hist_Skymap.GetZaxis().SetTitle('Significance')
+    Hist_Skymap.GetZaxis().SetTitleOffset(1.1)
     Hist_Skymap.SetMaximum(5)
     Hist_Skymap.SetMinimum(-5)
 
@@ -2956,6 +2881,32 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     raLowerAxis.Draw()
     canvas.SaveAs('output_plots/SkymapExcess_%s_%s.png'%(name,selection_tag))
 
+    Hist_SR_reflected = reflectXaxis(Hist_SR)
+    pad1.cd()
+    Hist_SR_reflected.GetYaxis().SetTitle(ytitle)
+    Hist_SR_reflected.GetXaxis().SetTitle(xtitle)
+    Hist_SR_reflected.Draw("COL4Z")
+    for star in range(0,len(other_star_markers)):
+        other_star_markers[star].Draw("same")
+        other_star_labels[star].Draw("same")
+    for star in range(0,len(bright_star_markers)):
+        bright_star_markers[star].Draw("same")
+        bright_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
+    Hist_SR_reflected.GetXaxis().SetLabelOffset(999)
+    Hist_SR_reflected.GetXaxis().SetTickLength(0)
+    x1 = Hist_SR_reflected.GetXaxis().GetXmin()
+    x2 = Hist_SR_reflected.GetXaxis().GetXmax()
+    y1 = Hist_SR_reflected.GetYaxis().GetXmin()
+    y2 = Hist_SR_reflected.GetYaxis().GetXmax()
+    IncValues = ROOT.TF1( "IncValues", "-x", -x2, -x1 )
+    raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
+    raLowerAxis.SetLabelSize(Hist_SR_reflected.GetXaxis().GetLabelSize())
+    raLowerAxis.Draw()
+    canvas.SaveAs('output_plots/SkymapCounts_%s_%s.png'%(name,selection_tag))
+
     Hist_Skymap_Ratio = Hist_SR.Clone()
     Hist_Skymap_Ratio.Add(Hist_Bkg,-1.)
     Hist_Skymap_Ratio.Divide(Hist_Bkg)
@@ -2969,6 +2920,8 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     pad1.cd()
     Hist_Skymap_Ratio.GetYaxis().SetTitle(ytitle)
     Hist_Skymap_Ratio.GetXaxis().SetTitle(xtitle)
+    Hist_Skymap_Ratio.GetZaxis().SetTitle('S/B ratio')
+    Hist_Skymap_Ratio.GetZaxis().SetTitleOffset(1.1)
     Hist_Skymap_Ratio.Draw("COL4Z")
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
@@ -3028,6 +2981,8 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,xtitle,ytitle,
     pad1.cd()
     Hist_Skymap_zoomin.GetYaxis().SetTitle(ytitle)
     Hist_Skymap_zoomin.GetXaxis().SetTitle(xtitle)
+    Hist_Skymap_zoomin.GetZaxis().SetTitle('S/B ratio')
+    Hist_Skymap_zoomin.GetZaxis().SetTitleOffset(1.1)
     Hist_Skymap_zoomin.Draw("COL4Z")
     Hist_Contour_zoomin.Draw("CONT3 same")
     Hist_HAWC_zoomin.SetLineColor(2)

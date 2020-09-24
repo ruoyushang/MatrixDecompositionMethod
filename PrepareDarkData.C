@@ -193,7 +193,12 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 187.559;
                 Source_Dec = 25.302;
     }
-    if (source_name=="Crab")
+    if (source_name=="SNRG150p3_V6")
+    {
+            Source_RA = 66.6;
+                Source_Dec = 54.6;
+    }
+    if (source_name=="CrabV6")
     {
             Source_RA = 83.633;
                 Source_Dec = 22.014;

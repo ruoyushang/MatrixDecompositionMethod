@@ -80,8 +80,11 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source=="H1426V6") {
             list = GetRunListFromFile("H1426V6");
         }
-        if (source=="Crab") {
-            list = GetRunListFromFile("Crab");
+        if (source=="CrabV6") {
+            list = GetRunListFromFile("CrabV6");
+        }
+        if (source=="SNRG150p3_V6") {
+            list = GetRunListFromFile("SNRG150p3_V6");
         }
         if (source=="S3_1227_V6")
         {
@@ -159,6 +162,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("MGRO_J1908_V6");
         }
+        if (source=="SS433_V6")
+        {
+            list = GetRunListFromFile("MGRO_J1908_V6");
+        }
         if (source=="MAGIC_J1857_V6")
         {
             list = GetRunListFromFile("MGRO_J1908_V6");
@@ -206,8 +213,18 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("BoomerangV6");
         }
+        if (source=="BLLacV6")
+        {
+            list = GetRunListFromFile("BLLacV6");
+        }
+        if (source=="GammaCygniV6")
+        {
+            list = GetRunListFromFile("GammaCygniV6");
+        }
         if (source=="Everything")
         {
+            list_temp = GetRunListFromFile("BLLacV6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("NGC1275V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("Segue1V6");
@@ -253,6 +270,9 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list = GetRunListFromFile("CTA1V5");
         }
         if (source=="MGRO_J1908_V5") {
+            list = GetRunListFromFile("MGRO_J1908_V5");
+        }
+        if (source=="SS433_V5") {
             list = GetRunListFromFile("MGRO_J1908_V5");
         }
         if (source=="MAGIC_J1857_V5") {
@@ -310,8 +330,18 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("BoomerangV5");
         }
+        if (source=="BLLacV5")
+        {
+            list = GetRunListFromFile("BLLacV5");
+        }
+        if (source=="GammaCygniV5")
+        {
+            list = GetRunListFromFile("GammaCygniV5");
+        }
         if (source=="EverythingV5")
         {
+            list_temp = GetRunListFromFile("BLLacV5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("RGBJ0710V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("1ES0229V5");
@@ -346,6 +376,9 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source=="MGRO_J1908_V4") {
             list = GetRunListFromFile("MGRO_J1908_V4");
         }
+        if (source=="SS433_V4") {
+            list = GetRunListFromFile("MGRO_J1908_V4");
+        }
         if (source=="MAGIC_J1857_V4") {
             list = GetRunListFromFile("MGRO_J1908_V4");
         }
@@ -366,6 +399,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source=="BoomerangV4")
         {
             list = GetRunListFromFile("BoomerangV4");
+        }
+        if (source=="GammaCygniV4")
+        {
+            list = GetRunListFromFile("GammaCygniV4");
         }
         if (source=="EverythingV4")
         {

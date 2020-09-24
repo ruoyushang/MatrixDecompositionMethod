@@ -780,7 +780,6 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
     }
     else
     {
-        int n_vectors = 3;
         mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, NumberOfEigenvectors_Stable, 1.0, isBlind);
         if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) return;
         mtx_data_bkgd = mtx_temp;
