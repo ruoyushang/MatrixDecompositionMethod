@@ -551,6 +551,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
         {
             int nth_entry2 = idx_l + 1;
             //if (nth_entry2>=nth_entry) continue;
+            //if (nth_entry2==1 && nth_entry==1) continue;
             if (nth_entry2==nth_entry) continue;
             //if (nth_entry2!=nth_entry) continue;
             //if (nth_entry==1 && nth_entry2==1) continue;
@@ -1608,6 +1609,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     double bkgd_weight = 1./pow(Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetBinCenter(error_bin),2);
                     bkgd_weight = bkgd_weight/chi2_norm;
                     Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,bkgd_weight);
+                    //Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
                     Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
                     Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),dark_weight);
                     Hist_OnSyst_Chi2.at(nth_sample).at(e).Add(&Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e));
@@ -1674,9 +1676,19 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                         scale = Bkgd_SR_Integral/Old_Integral;
                         scale_dark = Dark_SR_Integral/Old_Integral;
                         scale_raw = Bkgd_SR_Integral/Old_Integral_Raw;
-                        scale_vr = Bkgd_VR_Integral/Old_Integral_VR;
+                    }
+                    if (Bkgd_VR_Integral>0.)
+                    {
                         scale_vrsr = Bkgd_SR_Integral/Bkgd_VR_Integral;
                     }
+                    if (Old_Integral_VR>0.)
+                    {
+                        scale_vr = Bkgd_VR_Integral/Old_Integral_VR;
+                    }
+                    std::cout << "Old_Integral_VR = " << Old_Integral_VR << std::endl;
+                    std::cout << "Bkgd_VR_Integral = " << Bkgd_VR_Integral << std::endl;
+                    std::cout << "scale_vr = " << scale_vr << std::endl;
+                    std::cout << "scale_vrsr = " << scale_vrsr << std::endl;
                     Hist_OnData_CR_Energy_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Zenith_OneGroup.at(e).Scale(scale);
                     Hist_OnData_CR_Skymap_Theta2_OneGroup.at(e).Scale(scale);

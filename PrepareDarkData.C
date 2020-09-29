@@ -668,6 +668,21 @@ double GetRunPedestalVar(int run_number)
     return NSB;
 }
 
+int GetRunMJD(string file_name,int run)
+{
+    int run_mjd = 0;
+    char run_number[50];
+    sprintf(run_number, "%i", int(run));
+    TFile*  input_file = TFile::Open(file_name.c_str());
+    TTree* pointing_tree = nullptr;
+    pointing_tree = (TTree*) input_file->Get("run_"+TString(run_number)+"/stereo/pointingDataReduced");
+    pointing_tree->SetBranchAddress("MJD",&MJD_UInt_t);
+    double total_entries = (double)pointing_tree->GetEntries();
+    pointing_tree->GetEntry(0);
+    run_mjd = MJD_UInt_t;
+    input_file->Close();
+    return run_mjd;
+}
 bool PointingSelection(string file_name,int run, double Elev_cut_lower, double Elev_cut_upper, double Azim_cut_lower, double Azim_cut_upper)
 {
     if (run>100000) return true;
@@ -703,19 +718,73 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         input_file->Close();
         return false;
     }
-    //if (TString(target).Contains("SS433"))
-    //{
-    //    double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
-    //    double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
-    //    double delta_RA = TelRAJ2000_tmp - 287.9565;
-    //    double delta_Dec = TelDecJ2000_tmp - 4.9827;
-    //    double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
-    //    if (distance>1.0)
-    //    {
-    //        input_file->Close();
-    //        return false;
-    //    }
-    //}
+    if (TString(target).Contains("SS433"))
+    {
+        double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
+        double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
+        double delta_RA = TelRAJ2000_tmp - 287.9565;
+        double delta_Dec = TelDecJ2000_tmp - 4.9827;
+        double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
+        if (distance>1.0)
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    int MJD = GetRunMJD(file_name,run);
+    int MJD_start = 59246; // 2021-02-01
+    int MJD_end = 59327; // 2021-04-23
+    double X = ( double(MJD_start) - double(MJD) )/162.5;
+    double Phase=X-floor(X);
+    if (TString(target).Contains("SS433Half1"))
+    {
+        if (Phase>0.5)
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    if (TString(target).Contains("SS433Half2"))
+    {
+        if (Phase<=0.5)
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    if (TString(target).Contains("SS433Quad1"))
+    {
+        if (!(Phase<0.25))
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    if (TString(target).Contains("SS433Quad2"))
+    {
+        if (!(Phase>=0.25 && Phase<0.5))
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    if (TString(target).Contains("SS433Quad3"))
+    {
+        if (!(Phase>=0.5 && Phase<0.75))
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    if (TString(target).Contains("SS433Quad4"))
+    {
+        if (!(Phase>=0.75))
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+
     input_file->Close();
     return true;
 }
@@ -770,21 +839,6 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     TelAzimuth_avg = TelAzimuth;
     input_file->Close();
     return std::make_pair(TelElevation_avg,TelAzimuth_avg);
-}
-int GetRunMJD(string file_name,int run)
-{
-    int run_mjd = 0;
-    char run_number[50];
-    sprintf(run_number, "%i", int(run));
-    TFile*  input_file = TFile::Open(file_name.c_str());
-    TTree* pointing_tree = nullptr;
-    pointing_tree = (TTree*) input_file->Get("run_"+TString(run_number)+"/stereo/pointingDataReduced");
-    pointing_tree->SetBranchAddress("MJD",&MJD_UInt_t);
-    double total_entries = (double)pointing_tree->GetEntries();
-    pointing_tree->GetEntry(0);
-    run_mjd = MJD_UInt_t;
-    input_file->Close();
-    return run_mjd;
 }
 bool MJDSelection(string file_name,int run, int MJD_start_cut, int MJD_end_cut)
 {
@@ -1132,14 +1186,23 @@ bool SignalSelectionTheta2()
 bool ValidationSelectionTheta2()
 {
     if (SignalSelectionTheta2()) return false;
-    if (MSCW<MSCW_cut_blind+0.2 && MSCL<MSCL_cut_blind+0.2) return false;
-    if (MSCW>MSCW_cut_blind+0.2 && MSCL>MSCL_cut_blind+0.2) return false;
+    if (MSCW>MSCW_cut_blind && MSCL>MSCL_cut_blind) return false;
+    if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
+    if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     return true;
 }
 bool ControlSelectionTheta2()
 {
     if (SignalSelectionTheta2()) return false;
     if (MSCW<MSCW_cut_blind && MSCL<MSCL_cut_blind) return false;
+    if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
+    if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
+    return true;
+}
+bool VRControlSelectionTheta2()
+{
+    if (SignalSelectionTheta2()) return false;
+    if (ValidationSelectionTheta2()) return false;
     if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     return true;
@@ -1337,6 +1400,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_name.push_back("SS 433 e1");
         roi_ra.push_back(288.404);
         roi_dec.push_back(4.930);
+        roi_radius.push_back(0.13);
+
+        roi_name.push_back("SS 433 e1 max");
+        roi_ra.push_back(288.207);
+        roi_dec.push_back(4.951);
         roi_radius.push_back(0.13);
 
         roi_name.push_back("SS 433 e2");
@@ -1682,6 +1750,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<vector<vector<TH2D>>> Hist_OnDark_SR_CameraFoV;
     vector<vector<vector<TH2D>>> Hist_OnDark_VR_CameraFoV;
     vector<vector<vector<TH2D>>> Hist_OnDark_CR_CameraFoV;
+    vector<vector<vector<TH2D>>> Hist_OnDark_VCR_CameraFoV;
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {
         char sample_tag[50];
@@ -1689,6 +1758,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         vector<vector<TH2D>> Hist_OnDark_SR_CameraFoV_ThisSample;
         vector<vector<TH2D>> Hist_OnDark_VR_CameraFoV_ThisSample;
         vector<vector<TH2D>> Hist_OnDark_CR_CameraFoV_ThisSample;
+        vector<vector<TH2D>> Hist_OnDark_VCR_CameraFoV_ThisSample;
         for (int elev=0;elev<N_elev_bins;elev++) 
         {
             char elev_low[50];
@@ -1698,6 +1768,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             vector<TH2D> Hist_OnDark_SR_CameraFoV_ThisElev;
             vector<TH2D> Hist_OnDark_VR_CameraFoV_ThisElev;
             vector<TH2D> Hist_OnDark_CR_CameraFoV_ThisElev;
+            vector<TH2D> Hist_OnDark_VCR_CameraFoV_ThisElev;
             for (int e=0;e<N_energy_fine_bins;e++) 
             {
                 char e_low[50];
@@ -1707,14 +1778,17 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 Hist_OnDark_SR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_SR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,-3.,3.));
                 Hist_OnDark_VR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,-3.,3.));
                 Hist_OnDark_CR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_CR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,-3.,3.));
+                Hist_OnDark_VCR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VCR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,-3.,3.));
             }
             Hist_OnDark_SR_CameraFoV_ThisSample.push_back(Hist_OnDark_SR_CameraFoV_ThisElev);
             Hist_OnDark_VR_CameraFoV_ThisSample.push_back(Hist_OnDark_VR_CameraFoV_ThisElev);
             Hist_OnDark_CR_CameraFoV_ThisSample.push_back(Hist_OnDark_CR_CameraFoV_ThisElev);
+            Hist_OnDark_VCR_CameraFoV_ThisSample.push_back(Hist_OnDark_VCR_CameraFoV_ThisElev);
         }
         Hist_OnDark_SR_CameraFoV.push_back(Hist_OnDark_SR_CameraFoV_ThisSample);
         Hist_OnDark_VR_CameraFoV.push_back(Hist_OnDark_VR_CameraFoV_ThisSample);
         Hist_OnDark_CR_CameraFoV.push_back(Hist_OnDark_CR_CameraFoV_ThisSample);
+        Hist_OnDark_VCR_CameraFoV.push_back(Hist_OnDark_VCR_CameraFoV_ThisSample);
     }
 
 
@@ -1849,6 +1923,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                         if (ControlSelectionTheta2())
                         {
                             Hist_OnDark_CR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).Fill(R2off,Yoff,weight);
+                        }
+                        if (VRControlSelectionTheta2())
+                        {
+                            Hist_OnDark_VCR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).Fill(R2off,Yoff,weight);
                         }
                     }
                     if (ControlSelectionTheta2())
@@ -1992,31 +2070,30 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_VR_Skymap_Galactic.at(run).at(energy).Fill(evt_l_b.first,evt_l_b.second);
                 }
             }
-            if (ControlSelectionTheta2())
+            if (FoV(true))
             {
-                if (FoV(true))
+                int binx = Hist_OnDark_SR_CameraFoV.at(0).at(elevation).at(energy_fine).GetXaxis()->FindBin(R2off);
+                int biny = Hist_OnDark_SR_CameraFoV.at(0).at(elevation).at(energy_fine).GetYaxis()->FindBin(Yoff);
+                double weight_avg = 0.;
+                double weight_avg_vr = 0.;
+                for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
                 {
-                    int binx = Hist_OnDark_SR_CameraFoV.at(0).at(elevation).at(energy_fine).GetXaxis()->FindBin(R2off);
-                    int biny = Hist_OnDark_SR_CameraFoV.at(0).at(elevation).at(energy_fine).GetYaxis()->FindBin(Yoff);
-                    double weight_avg = 0.;
-                    double weight_avg_vr = 0.;
-                    for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
-                    {
-                        double dark_cr_content = Hist_OnDark_CR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).GetBinContent(binx,biny);
-                        double dark_sr_content = Hist_OnDark_SR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).GetBinContent(binx,biny);
-                        double dark_vr_content = Hist_OnDark_VR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).GetBinContent(binx,biny);
-                        double weight = 0.;
-                        if (dark_cr_content>0.) weight = dark_sr_content/dark_cr_content;
-                        weight_avg += weight/((double)n_dark_samples);
-                        double weight_vr = 0.;
-                        if (dark_cr_content>0.) weight_vr = dark_vr_content/dark_cr_content;
-                        weight_avg_vr += weight_vr/((double)n_dark_samples);
-                    }
+                    double dark_cr_content = Hist_OnDark_CR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).GetBinContent(binx,biny);
+                    double dark_vcr_content = Hist_OnDark_VCR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).GetBinContent(binx,biny);
+                    double dark_sr_content = Hist_OnDark_SR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).GetBinContent(binx,biny);
+                    double dark_vr_content = Hist_OnDark_VR_CameraFoV.at(nth_sample).at(elevation).at(energy_fine).GetBinContent(binx,biny);
+                    double weight = 0.;
+                    if (dark_cr_content>0.) weight = dark_sr_content/dark_cr_content;
+                    weight_avg += weight/((double)n_dark_samples);
+                    double weight_vr = 0.;
+                    if (dark_vcr_content>0.) weight_vr = dark_vr_content/dark_vcr_content;
+                    weight_avg_vr += weight_vr/((double)n_dark_samples);
+                }
+                if (ControlSelectionTheta2())
+                {
                     Hist_OnData_CR_Skymap_Theta2.at(run).at(energy).Fill(theta2,weight_avg);
                     Hist_OnData_CR_Skymap.at(run).at(energy).Fill(ra_sky,dec_sky,weight_avg);
                     Hist_OnData_CR_Skymap_Galactic.at(run).at(energy).Fill(evt_l_b.first,evt_l_b.second,weight_avg);
-                    Hist_OnData_CR_Skymap_Syst.at(run).at(energy).Fill(ra_sky,dec_sky,weight_avg_vr);
-                    Hist_OnData_CR_Skymap_Galactic_Syst.at(run).at(energy).Fill(evt_l_b.first,evt_l_b.second,weight_avg_vr);
                     Hist_OnData_CR_Energy.at(run).at(energy).Fill(ErecS*1000.,weight_avg);
                     Hist_OnData_CR_Energy_Raw.at(run).at(energy).Fill(ErecS*1000.,1.);
                     Hist_OnData_CR_Zenith.at(run).at(energy).Fill(Shower_Ze,weight_avg);
@@ -2030,6 +2107,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                         theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
                         Hist_OnData_CR_Skymap_RoI_Theta2.at(run).at(nth_roi).at(energy).Fill(theta2_roi,weight_avg);
                     }
+                }
+                if (VRControlSelectionTheta2())
+                {
+                    Hist_OnData_CR_Skymap_Syst.at(run).at(energy).Fill(ra_sky,dec_sky,weight_avg_vr);
+                    Hist_OnData_CR_Skymap_Galactic_Syst.at(run).at(energy).Fill(evt_l_b.first,evt_l_b.second,weight_avg_vr);
                 }
             }
         }
