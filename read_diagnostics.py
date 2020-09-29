@@ -44,8 +44,8 @@ def ConvertRaDecToGalactic(ra, dec):
 ## MGRO J1908
 #target_ra = 286.975
 #target_dec = 6.269
-#range_ra = 1.0
-#range_dec = 1.0
+#range_ra = 3.0
+#range_dec = 3.0
 
 # IC 443
 #target_ra = 94.511
@@ -84,16 +84,197 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 1.0
 
 # Crab
-target_ra = 83.6332083333
-target_dec = 22.0144722222
-range_ra = 1.0
-range_dec = 1.0
+#target_ra = 83.6332083333
+#target_dec = 22.0144722222
+#range_ra = 1.0
+#range_dec = 1.0
+
+# Geminga
+#target_ra = 98.1166666667
+#target_dec = 17.3666666667
+#range_ra = 2.0
+#range_dec = 2.0
+
+# MGRO J2031+41
+target_ra = 307.18
+target_dec = 41.31
+range_ra = 4.0
+range_dec = 4.0
+
+# 1ES 0229
+#target_ra = 38.2216666667
+#target_dec = 20.2725
+#range_ra = 1.0
+#range_dec = 1.0
+
+# H 1426+428
+#target_ra = 217.135870833
+#target_dec = 42.6725138889
+#range_ra = 1.0
+#range_dec = 1.0
+
+# PKS 1424
+#target_ra = 216.75
+#target_dec = 23.7833333333
+#range_ra = 1.0
+#range_dec = 1.0
+
+# 3C 264
+#target_ra = 176.270870833
+#target_dec = 19.60631666673
+#range_ra = 1.0
+#range_dec = 1.0
+
+# PG 1553
+#target_ra = 238.93625
+#target_dec = 11.1947222222
+#range_ra = 1.0
+#range_dec = 1.0
+
+# 1ES 1011
+#target_ra = 153.767245833
+#target_dec = 49.4335305556
+#range_ra = 1.0
+#range_dec = 1.0
+
+# RBS 0413
+#target_ra = 49.9458333333
+#target_dec = 18.7616666667
+#range_ra = 1.0
+#range_dec = 1.0
+
+# 1ES 0647
+#target_ra = 102.693708333
+#target_dec = 25.0498944444
+#range_ra = 1.0
+#range_dec = 1.0
+
+# 1ES 0806+524
+#target_ra = 122.495833333
+#target_dec = 52.3166666667
+#range_ra = 1.0
+#range_dec = 1.0
+
+# S5 0716+714
+#target_ra = 110.4725
+#target_dec = 71.3433333333
+#range_ra = 1.0
+#range_dec = 1.0
+
+# Markarian 180
+#target_ra = 174.11
+#target_dec = 70.1575
+#range_ra = 1.0
+#range_dec = 1.0
+
+# 1ES 1727+502
+#target_ra = 262.0775
+#target_dec = 50.2194444444
+#range_ra = 1.0
+#range_dec = 1.0
+
+# Mrk 421
+#target_ra = 166.079166667
+#target_dec = 38.1947222222
+#range_ra = 1.0
+#range_dec = 1.0
+
+# 3C 66A
+#target_ra = 35.6733333333
+#target_dec = 43.0431944444
+#range_ra = 1.0
+#range_dec = 1.0
+
+# RGB J0710  # deep in V5
+#target_ra = 107.61
+#target_dec = 59.15
+#range_ra = 1.0
+#range_dec = 1.0
+
+
+# VER J0521+211
+#target_ra = 80.4375
+#target_dec = 21.2142777778
+#range_ra = 1.0
+#range_dec = 1.0
+
+# 1ES 0502+675
+#target_ra = 76.9841666667
+#target_dec = 67.6233333333
+#range_ra = 1.0
+#range_dec = 1.0
+
+# RX J0648.7+1516
+#target_ra = 102.19
+#target_dec = 15.27
+#range_ra = 1.0
+#range_dec = 1.0
+
+# 1ES 1727+502
+#target_ra = 262.0775
+#target_dec = 50.2194444444
+#range_ra = 1.0
+#range_dec = 1.0
+
+# Coma
+#target_ra = 194.952916667
+#target_dec = 27.9805555556
+#range_ra = 4.0
+#range_dec = 4.0
+
+# M 82
+#target_ra = 148.969583333
+#target_dec = 69.6794444444
+#range_ra = 1.0
+#range_dec = 1.0
+
+# Boomerang
+#target_ra = 337.183333333
+#target_dec = 61.1666666667
+#range_ra = 2.0
+#range_dec = 2.0
+
+# NGC 1275
+#target_ra = 49.9504166667
+#target_dec = 41.5116666667
+#range_ra = 2.0
+#range_dec = 2.0
+
+# CTA1
+#target_ra = 1.60833333333
+#target_dec = 72.9836111111
+#range_ra = 2.0
+#range_dec = 2.0
+
+# BL Lac
+#target_ra = 330.680416667
+#target_dec = 42.2777777778
+#range_ra = 2.0
+#range_dec = 2.0
+
+# VER J2019+407
+#target_ra = 305.02
+#target_dec = 40.7572222222
+#range_ra = 4.0
+#range_dec = 4.0
+
+# Perseus cluster
+#target_ra = 49.9466666667
+#target_dec = 41.5130555556
+#range_ra = 2.0
+#range_dec = 2.0
+
+# SNR G150.3+4.5
+#target_ra = 66.5
+#target_dec = 55.0
+#range_ra = 4.0
+#range_dec = 4.0
 
 search_for_on_data = True
 
-V4 = False
+V4 = True
 V5 = False
-V6 = True
+V6 = False
 
 
 RunNumber = 0
@@ -137,18 +318,7 @@ Source_PedVar_DC = []
 Source_Elev = []
 Source_Azim = []
 Source_Livetime = []
-#sourceFile = open('../data/output_list/WComaeV4_runlist.txt')
-#sourceFile = open('../data/output_list/WComaeV5_runlist.txt')
-#sourceFile = open('../data/output_list/WComaeV6_runlist.txt')
-#sourceFile = open('../data/output_list/MGRO_J1908_V5_runlist.txt')
-#sourceFile = open('../data/output_list/MGRO_J1908_V6_runlist.txt')
-#sourceFile = open('../data/output_list/IC443HotSpotV4_runlist.txt')
-#sourceFile = open('../data/output_list/IC443HotSpotV5_runlist.txt')
-#sourceFile = open('../data/output_list/IC443HotSpotV6_runlist.txt')
-#sourceFile = open('../data/output_list/Segue1V5_runlist.txt')
-#sourceFile = open('../data/output_list/SgrAV6_runlist.txt')
-#sourceFile = open('../data/output_list/CygnusV6_runlist.txt')
-#sourceFile = open('../data/output_list/CygnusV5_runlist.txt')
+#sourceFile = open('../data/output_list/MGRO_J2031_V5_runlist.txt')
 #for line in sourceFile:
 #    Source_RunNumber += [int(line)]
 #    Source_PedVar_DC += [0.]
@@ -261,14 +431,17 @@ if search_for_on_data:
         if L3_rate<150.: continue
         #if L3_rate>450.: continue
         if Livetime<5.: continue
+        #if Livetime<20.: continue
     
         if abs(float(T1_RA)-target_ra)>range_ra: continue
         if abs(float(T1_Dec)-target_dec)>range_dec: continue
 
+        DoNotUse = False
         for entry2 in range(0,len(Source_RunNumber)):
-            if int(Source_RunNumber[entry2])==int(RunNumber): continue
+            if int(Source_RunNumber[entry2])==int(RunNumber): DoNotUse = True
+        if DoNotUse: continue
     
-        print 'RunNumber %s, L3_rate %s, Livetime %s, Elev %s'%(RunNumber,L3_rate,Livetime,Elev)
+        print 'RunNumber %s, L3_rate %s, Livetime %s, Elev %s, RA %s, Dec %s'%(RunNumber,L3_rate,Livetime,Elev,T1_RA,T1_Dec)
     
         List_Used += [RunNumber]
 
