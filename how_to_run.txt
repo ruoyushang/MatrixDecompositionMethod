@@ -1,0 +1,49 @@
+
+1. Prepare ON and OFF run data.
+read_diagnostics.py is a simple script to generate a list of ON and OFF run data.
+The script reads diagnostics.txt, which contain metadata of all VERITAS runs.
+If we are analyzing PKS 1424, we need to provides these variables:
+    # PKS 1424
+    target_ra = 216.75
+    target_dec = 23.7833333333
+    range_ra = 1.0
+    range_dec = 1.0
+and the script will list the runs with pointings within 1 degree radius around the source location.
+To search for V6 ON runs, set the variables to:
+search_for_on_data = True
+   V4 = False
+   V5 = False
+   V6 = True
+Type python read_diagnostics.py, then you should see a list of PKS 1424 data.
+To get the OFF runs for the source, simply change search_for_on_data = False, and create a text file which contains
+the run numbers of PKS 1424. Then point the script to the text file, 
+    sourceFile = open('../data/output_list/MGRO_J2031_V5_runlist.txt' 
+
+2. Process the ON and OFF runs with EventDisplay.
+3. Create a text file which contains the ON run numbers, and a text file contains the OFF run numbers. An example of such files is RunList_PKS1424V6.txt.
+4. Edit GetRunList.h to include RunList_PKS1424V6.txt and the OFF run file (which are already included).
+
+5. PrepareDarkData.C prepares the required histograms for the background method. The OFF run data by
+    vector<pair<string,int>> Dark_runlist_init = GetRunList("Everything");
+and the ON run data is defined by
+    vector<pair<string,int>> Data_runlist_init = GetRunList(target);
+, where target is the name of the source (e.g. PKS 1424).
+To run PrepareDarkData.C, do
+    root -b -l -q 'PrepareDarkData.C+("PKS1424V6",45,85,0,0,0,1,2,false,false)'
+    root -b -l -q 'PrepareDarkData.C+("PKS1424V6",45,85,0,0,1,4,2,false,false)'
+    root -b -l -q 'PrepareDarkData.C+("PKS1424V6",45,85,0,0,4,9,2,false,false)'
+These commands will produce ROOT files with histograms that contain events in theta2 range: 0-1, 1-4, 4-9.
+
+6. After running the commands above, we will need to run
+    root -b -l -q 'MakePrediction.C+("PKS1424V6",45,85,0,0,0,1,2,false)'
+    root -b -l -q 'MakePrediction.C+("PKS1424V6",45,85,0,0,1,4,2,false)'
+    root -b -l -q 'MakePrediction.C+("PKS1424V6",45,85,0,0,4,9,2,false)'
+These commands call MakePrediction.C, which solves the eigenvectors for the background prediction and makes skymap and energy spectrum predictions.
+The function that solves the eigenvecotrs is SpectralDecompositionMethod_v3.
+
+7. PlotAnalysisResults.py is a code that makes skymaps and other plots from the output of MakePrediction.C.
+To get the PKS 1424 results, you need to define these variables:
+    ONOFF_tag = 'OFF'
+    sample_list += ['PKS1424V6']
+Then you should see the resulting plots by typing 'python PlotAnalysisResults.py'.
+
