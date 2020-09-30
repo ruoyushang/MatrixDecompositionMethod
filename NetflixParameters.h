@@ -4,7 +4,9 @@
 char output_file_tag[50] = "16bins";
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
-char output_file2_tag[50] = "constrained";
+//char output_file2_tag[50] = "constrained";
+//bool solution_w_constraints = true;
+char output_file2_tag[50] = "parallel";
 bool solution_w_constraints = true;
 //char output_file2_tag[50] = "unconstrained";
 //bool solution_w_constraints = false;
@@ -21,8 +23,8 @@ double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.2;
 int UpDown = 0;
 
-bool DoSequential = true;
-//bool DoSequential = false;
+//bool DoSequential = true;
+bool DoSequential = false;
 int n_iterations = 5;
 int n_dark_samples = 3;
 const int N_energy_bins = 5;
@@ -35,8 +37,9 @@ double raw_gamma_count[N_energy_fine_bins] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0
 const int N_elev_bins = 12;
 double elev_bins[N_elev_bins+1] = {25,30,35,40,45,50,55,60,65,70,75,80,85};
 
-int group_size_limit[N_energy_bins] = {100000,100000,100000,100000,100000};
-//int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000};
+//int group_size_limit[N_energy_bins] = {50000,50000,50000,50000,50000};
+//int group_size_limit[N_energy_bins] = {100000,100000,100000,100000,100000};
+int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000};
 
 double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.};

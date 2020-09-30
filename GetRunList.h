@@ -166,6 +166,30 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("MGRO_J1908_V6");
         }
+        if (source=="SS433Half1_V6")
+        {
+            list = GetRunListFromFile("MGRO_J1908_V6");
+        }
+        if (source=="SS433Half2_V6")
+        {
+            list = GetRunListFromFile("MGRO_J1908_V6");
+        }
+        if (source=="SS433Quad1_V6")
+        {
+            list = GetRunListFromFile("MGRO_J1908_V6");
+        }
+        if (source=="SS433Quad2_V6")
+        {
+            list = GetRunListFromFile("MGRO_J1908_V6");
+        }
+        if (source=="SS433Quad3_V6")
+        {
+            list = GetRunListFromFile("MGRO_J1908_V6");
+        }
+        if (source=="SS433Quad4_V6")
+        {
+            list = GetRunListFromFile("MGRO_J1908_V6");
+        }
         if (source=="MAGIC_J1857_V6")
         {
             list = GetRunListFromFile("MGRO_J1908_V6");
@@ -275,6 +299,24 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source=="SS433_V5") {
             list = GetRunListFromFile("MGRO_J1908_V5");
         }
+        if (source=="SS433Half1_V5") {
+            list = GetRunListFromFile("MGRO_J1908_V5");
+        }
+        if (source=="SS433Half2_V5") {
+            list = GetRunListFromFile("MGRO_J1908_V5");
+        }
+        if (source=="SS433Quad1_V5") {
+            list = GetRunListFromFile("MGRO_J1908_V5");
+        }
+        if (source=="SS433Quad2_V5") {
+            list = GetRunListFromFile("MGRO_J1908_V5");
+        }
+        if (source=="SS433Quad3_V5") {
+            list = GetRunListFromFile("MGRO_J1908_V5");
+        }
+        if (source=="SS433Quad4_V5") {
+            list = GetRunListFromFile("MGRO_J1908_V5");
+        }
         if (source=="MAGIC_J1857_V5") {
             list = GetRunListFromFile("MGRO_J1908_V5");
         }
@@ -377,6 +419,24 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list = GetRunListFromFile("MGRO_J1908_V4");
         }
         if (source=="SS433_V4") {
+            list = GetRunListFromFile("MGRO_J1908_V4");
+        }
+        if (source=="SS433Half1_V4") {
+            list = GetRunListFromFile("MGRO_J1908_V4");
+        }
+        if (source=="SS433Half2_V4") {
+            list = GetRunListFromFile("MGRO_J1908_V4");
+        }
+        if (source=="SS433Quad1_V4") {
+            list = GetRunListFromFile("MGRO_J1908_V4");
+        }
+        if (source=="SS433Quad2_V4") {
+            list = GetRunListFromFile("MGRO_J1908_V4");
+        }
+        if (source=="SS433Quad3_V4") {
+            list = GetRunListFromFile("MGRO_J1908_V4");
+        }
+        if (source=="SS433Quad4_V4") {
             list = GetRunListFromFile("MGRO_J1908_V4");
         }
         if (source=="MAGIC_J1857_V4") {
