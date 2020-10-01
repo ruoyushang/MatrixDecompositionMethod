@@ -16,13 +16,10 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-#method_tag = '8bins_constrained'
-#method_tag = '8bins_unconstrained'
-#method_tag = '16bins_constrained'
+#method_tag = '16bins_sequential'
 method_tag = '16bins_parallel'
-#method_tag = '16bins_unconstrained'
 
-energy_bin_cut_low = 1
+energy_bin_cut_low = 0
 energy_bin_cut_up = 5
 
 elev_bins = [45,85]
@@ -49,8 +46,8 @@ sample_list = []
 #ONOFF_tag = 'OFF'
 #sample_list += ['H1426V6']
 
-#ONOFF_tag = 'OFF'
-#sample_list += ['PKS1424V6']
+ONOFF_tag = 'OFF'
+sample_list += ['PKS1424V6']
 
 #ONOFF_tag = 'OFF'
 #sample_list += ['3C264V6']
@@ -239,7 +236,7 @@ folder_path = 'output_test'
 #folder_path = 'output_root'
 PercentCrab = ''
 
-N_bins_for_deconv = 16
+N_bins_for_deconv = 32
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.5
