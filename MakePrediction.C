@@ -759,18 +759,6 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
                 if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) break;
                 mtx_data_bkgd = mtx_temp;
             }
-            if (NumberOfEigenvectors_Stable>=1)
-            {
-                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, step_frac, isBlind);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1)) break;
-                mtx_data_bkgd = mtx_temp;
-            }
-            if (NumberOfEigenvectors_Stable>=2)
-            {
-                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, step_frac, isBlind);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) break;
-                mtx_data_bkgd = mtx_temp;
-            }
             if (NumberOfEigenvectors_Stable>=3)
             {
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 3, 1, step_frac, isBlind);
@@ -868,10 +856,10 @@ void NormalizaDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
 {
     int binx_lower = hist_data->GetXaxis()->FindBin(MSCL_cut_lower);
     int binx_blind = hist_data->GetXaxis()->FindBin(MSCL_cut_blind)-1;
-    int binx_upper = hist_data->GetXaxis()->FindBin(1.)-1;
+    int binx_upper = hist_data->GetNbinsX();
     int biny_lower = hist_data->GetYaxis()->FindBin(MSCW_cut_lower);
     int biny_blind = hist_data->GetYaxis()->FindBin(MSCW_cut_blind)-1;
-    int biny_upper = hist_data->GetYaxis()->FindBin(1.)-1;
+    int biny_upper = hist_data->GetNbinsY();
     double Data_SR_Integral = hist_data->Integral(binx_lower,binx_blind,biny_lower,biny_blind);
     double Data_Integral = hist_data->Integral();
     double Data_CR_Integral_1 = hist_data->Integral(binx_blind,binx_upper,biny_blind,biny_upper);
@@ -882,9 +870,9 @@ void NormalizaDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
     double Dark_CR_Integral_1 = hist_dark->Integral(binx_blind,binx_upper,biny_blind,biny_upper);
     //double Dark_CR_Integral_2 = Dark_Integral-Dark_SR_Integral-Dark_CR_Integral_1;
     double Dark_CR_Integral_2 = Dark_Integral-Dark_SR_Integral;
-    if (Dark_CR_Integral_2!=0)
+    if (Dark_CR_Integral_1!=0)
     {
-        double dark_scale = Data_CR_Integral_2/Dark_CR_Integral_2;
+        double dark_scale = Data_CR_Integral_1/Dark_CR_Integral_1;
         hist_dark->Scale(dark_scale);
     }
     else
