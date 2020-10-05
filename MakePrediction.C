@@ -449,7 +449,7 @@ double BlindedChi2(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_model, TH2D* his
     
     return chi2;
 }
-double GetChi2Function(MatrixXcd mtx_model, int LeftOrRight)
+double GetChi2Function(MatrixXcd mtx_model, bool isBlind)
 {
 
     MatrixXcd mtx_error = GetErrorMap();
@@ -465,7 +465,31 @@ double GetChi2Function(MatrixXcd mtx_model, int LeftOrRight)
     fill2DHistogram(&hist_error,mtx_error);
 
     double chi2 = 0.;
-    chi2 += BlindedChi2(&hist_data,&hist_dark,&hist_model,&hist_error,LeftOrRight);
+    int binx_blind_upper = hist_data.GetXaxis()->FindBin(MSCL_cut_blind);
+    int biny_blind_upper = hist_data.GetYaxis()->FindBin(MSCW_cut_blind);
+    int binx_blind_lower = hist_data.GetXaxis()->FindBin(-MSCL_cut_blind);
+    int biny_blind_lower = hist_data.GetYaxis()->FindBin(-MSCW_cut_blind);
+    int binx_upper = hist_data.GetNbinsX();
+    int biny_upper = hist_data.GetNbinsY();
+    for (int bx=1;bx<=hist_data.GetNbinsX();bx++)
+    {
+        for (int by=1;by<=hist_data.GetNbinsY();by++)
+        {
+            if (bx>binx_upper || by>biny_upper) continue;
+            double data = hist_data.GetBinContent(bx,by);
+            double model = hist_model.GetBinContent(bx,by);
+            double weight = 1.;
+            double chi2_this = weight*pow(data-model,2);
+            if (isBlind && bx<binx_blind_upper && by<biny_blind_upper)
+            {
+                continue;
+            }
+            else
+            {
+                chi2 += chi2_this;
+            }
+        }
+    }
 
     return chi2;
 
@@ -679,13 +703,13 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     //    }
     //}
 
-    //MatrixXcd mtx_H_vari = mtx_q_init.transpose()*mtx_p_vari + mtx_p_init.transpose()*mtx_q_vari;
+    //MatrixXcd mtx_H_vari = mtx_p_vari.transpose()*mtx_q_init + mtx_p_init.transpose()*mtx_q_vari;
     //std::cout << "mtx_H_vari:" << std::endl;
-    //std::cout << mtx_H_vari.block(mtx_H_vari.rows()-4,mtx_H_vari.cols()-4,4,4) << std::endl;
+    //std::cout << mtx_H_vari.block(mtx_H_vari.rows()-3,mtx_H_vari.cols()-3,3,3) << std::endl;
 
     //MatrixXcd mtx_H_init = mtx_eigenvector_inv_init*mtx_eigenvector_init;
     //std::cout << "mtx_H_init:" << std::endl;
-    //std::cout << mtx_H_init.block(mtx_H_init.rows()-4,mtx_H_init.cols()-4,4,4) << std::endl;
+    //std::cout << mtx_H_init.block(mtx_H_init.rows()-3,mtx_H_init.cols()-3,3,3) << std::endl;
 
     //mtx_p_vari = SmoothingRealVectors(mtx_p_vari);
     //mtx_q_vari = SmoothingRealVectors(mtx_q_vari);
@@ -704,7 +728,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     return mtx_output;
 
 }
-bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, double init_chi2, int rank)
+bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, double init_chi2, int rank, bool isBlind)
 {
     eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
     double lambda_data = eigensolver_data.eigenvalues()(mtx_data.cols()-rank).real();
@@ -720,11 +744,16 @@ bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, double init_chi2, int rank)
     //    return false;
     //}
 
-    //init_chi2 = GetChi2Function(mtx_data_bkgd,0);
-    double current_chi2 = GetChi2Function(mtx_input,0);
+    //init_chi2 = GetChi2Function(mtx_data_bkgd,isBlind);
+    double current_chi2 = GetChi2Function(mtx_input,isBlind);
     if (current_chi2>1.*init_chi2) 
     {
         std::cout << "break (chi2 increasing.)" << std::endl;
+        return false;
+    }
+    if (isnan(current_chi2))
+    {
+        std::cout << "break (chi2 is nan.)" << std::endl;
         return false;
     }
 
@@ -755,8 +784,8 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
     mtx_eigenvector_inv = mtx_eigenvector_inv_init;
     //mtx_data_bkgd = mtx_eigenvector_init*mtx_eigenvalue_init*mtx_eigenvector_inv_init;
 
-    std::cout << "initial chi2 in CR = " << GetChi2Function(mtx_dark,0) << std::endl;
-    double init_chi2 = GetChi2Function(mtx_dark,0);
+    std::cout << "initial chi2 in CR = " << GetChi2Function(mtx_dark,isBlind) << std::endl;
+    double init_chi2 = GetChi2Function(mtx_dark,isBlind);
 
     MatrixXcd mtx_temp = mtx_dark;
     double eigenvalue_dark_real = 0.;
@@ -793,19 +822,19 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
             if (NumberOfEigenvectors_Stable>=1)
             {
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, step_frac, isBlind);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1)) break;
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1, isBlind)) break;
                 mtx_data_bkgd = mtx_temp;
             }
             if (NumberOfEigenvectors_Stable>=2)
             {
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, step_frac, isBlind);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) break;
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2, isBlind)) break;
                 mtx_data_bkgd = mtx_temp;
             }
             if (NumberOfEigenvectors_Stable>=3)
             {
                 mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 3, 1, step_frac, isBlind);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 3)) break;
+                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 3, isBlind)) break;
                 mtx_data_bkgd = mtx_temp;
             }
         }
@@ -813,21 +842,21 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
     else
     {
         mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, 1.0, isBlind);
-        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1)) return;
+        if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1, isBlind)) return;
         mtx_data_bkgd = mtx_temp;
         if (NumberOfEigenvectors_Stable>=2)
         {
             mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, 1.0, isBlind);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) return;
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2, isBlind)) return;
             mtx_data_bkgd = mtx_temp;
-            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, NumberOfEigenvectors_Stable, 1.0, isBlind);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2)) return;
+            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 2, 1.0, isBlind);
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2, isBlind)) return;
             mtx_data_bkgd = mtx_temp;
         }
         if (NumberOfEigenvectors_Stable>=3)
         {
             mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 3, 1, 1.0, isBlind);
-            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 3)) return;
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 3, isBlind)) return;
             mtx_data_bkgd = mtx_temp;
         }
     }
@@ -841,6 +870,8 @@ void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2)
     std::cout << "Hist_Temp_Gamma.Integral() = " << Hist_Temp_Gamma.Integral() << std::endl;
     TH2D Hist_Temp_Data = TH2D("Hist_Temp_Data","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
     fill2DHistogram(&Hist_Temp_Data,mtx_data);
+    TH2D Hist_Temp_Dark = TH2D("Hist_Temp_Dark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+    fill2DHistogram(&Hist_Temp_Dark,mtx_dark);
 
     int binx_lower = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_cut_lower);
     int binx_blind = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_cut_blind)-1;
@@ -853,7 +884,12 @@ void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2)
     TH2D Hist_Temp_Excess = TH2D("Hist_Temp_Excess","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
     double Data_SR_Integral = Hist_Temp_Data.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
     double Data_Integral = Hist_Temp_Data.Integral();
+    double Dark_Integral = Hist_Temp_Dark.Integral();
     double Gamma_SR_Integral = Hist_Temp_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+
+    if (Data_Integral==0.) return;
+    if (Dark_Integral==0.) return;
+    if (Gamma_SR_Integral==0.) return;
 
     Hist_Temp_Excess.Reset();
     Hist_Temp_Bkgd.Reset();
@@ -880,15 +916,17 @@ void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2)
         Hist_Temp_Excess.Add(&Hist_Temp_Data);
         Hist_Temp_Excess.Add(&Hist_Temp_Bkgd,-1.);
         Hist_Temp_Excess.Add(&Hist_Temp_Gamma,-1.);
-        double chi2 = 0.;
-        for (int binx=0;binx<Hist_Temp_Excess.GetNbinsX();binx++)
-        {
-            for (int biny=0;biny<Hist_Temp_Excess.GetNbinsY();biny++)
-            {
-                //if (binx<=binx_blind && biny<=biny_blind) continue;
-                chi2 += pow(Hist_Temp_Excess.GetBinContent(binx+1,biny+1),2);
-            }
-        }
+        //double chi2 = 0.;
+        //for (int binx=0;binx<Hist_Temp_Excess.GetNbinsX();binx++)
+        //{
+        //    for (int biny=0;biny<Hist_Temp_Excess.GetNbinsY();biny++)
+        //    {
+        //        //if (binx<=binx_blind && biny<=biny_blind) continue;
+        //        chi2 += pow(Hist_Temp_Excess.GetBinContent(binx+1,biny+1),2);
+        //    }
+        //}
+        double chi2 = GetChi2Function(mtx_gamma+mtx_data_bkgd,false);
+        std::cout << "chi2 = " << chi2 << std::endl;
         Hist_Chi2->SetBinContent(bin+1,chi2);
     }
 
