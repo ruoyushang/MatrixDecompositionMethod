@@ -628,6 +628,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 int idx_n = idx_i + mtx_input.cols()*idx_k;
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 double weight = mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real();
+                //weight = 1.;
                 mtx_Constraint(idx_u,idx_n) = weight*mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
                 mtx_Constraint(idx_u,idx_w) = weight*mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
                 //mtx_Constraint(idx_u,idx_n) = mtx_q_dark(idx_i,mtx_input.rows()-nth_entry2).real();
@@ -641,11 +642,23 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
             int idx_n = idx_i + mtx_input.cols()*idx_k;
             int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
             double weight = mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real();
-            mtx_Constraint(idx_u+0,idx_n) = pow(-1,idx_i)*weight;
-            mtx_Constraint(idx_u+0,idx_w) = pow(-1,idx_i)*weight;
-            mtx_Constraint(idx_u+1,idx_n) = 1.*weight;
-            mtx_Constraint(idx_u+1,idx_w) = 1.*weight;
-            if (idx_i>=mtx_input.cols()/2)
+            //weight = 1.;
+            if (idx_i<mtx_input.cols()/2 && idx_i>=mtx_input.cols()/2-1)
+            {
+                mtx_Constraint(idx_u+0,idx_n) = 1.*weight;
+                mtx_Constraint(idx_u+0,idx_w) = 1.*weight;
+            }
+            if (idx_i>=mtx_input.cols()/2 && idx_i<mtx_input.cols()/2+1)
+            {
+                mtx_Constraint(idx_u+0,idx_n) = -1.*weight;
+                mtx_Constraint(idx_u+0,idx_w) = -1.*weight;
+            }
+            if (idx_i<mtx_input.cols()/2 && idx_i>=mtx_input.cols()/2-2)
+            {
+                mtx_Constraint(idx_u+1,idx_n) = 1.*weight;
+                mtx_Constraint(idx_u+1,idx_w) = 1.*weight;
+            }
+            if (idx_i>=mtx_input.cols()/2 && idx_i<mtx_input.cols()/2+2)
             {
                 mtx_Constraint(idx_u+1,idx_n) = -1.*weight;
                 mtx_Constraint(idx_u+1,idx_w) = -1.*weight;
@@ -1710,8 +1723,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     int error_bin = Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
                     double bkgd_weight = 1./pow(Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetBinCenter(error_bin),2);
                     bkgd_weight = bkgd_weight/chi2_norm;
-                    Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,bkgd_weight);
-                    //Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
+                    //Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,bkgd_weight);
+                    Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
                     Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
                     Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),dark_weight);
                     Hist_OnSyst_Chi2.at(nth_sample).at(e).Add(&Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e));
