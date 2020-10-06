@@ -579,11 +579,18 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
 
     MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
 
-    int row_size_big = mtx_input.rows()*mtx_input.cols();
+    bool DoRegularization = true;
+    if (!isBlind) DoRegularization = false;
+    int n_regularization = 1;
+    if (!DoRegularization) n_regularization = 0;
+    int row_size_big = mtx_input.rows()*mtx_input.cols() + 2*n_regularization*entry_size;
+    //int row_size_big = mtx_input.rows()*mtx_input.cols();
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    MatrixXd mtx_Constraint = MatrixXd::Zero((2*3+N_bins_for_deconv)*entry_size,2*entry_size*mtx_input.cols());
-    VectorXd vtr_Constraint_Delta = VectorXd::Zero((2*3+N_bins_for_deconv)*entry_size);
+    MatrixXd mtx_Constraint = MatrixXd::Zero((N_bins_for_deconv)*entry_size,2*entry_size*mtx_input.cols());
+    VectorXd vtr_Constraint_Delta = VectorXd::Zero((N_bins_for_deconv)*entry_size);
+    //MatrixXd mtx_Constraint = MatrixXd::Zero((2*n_regularization+N_bins_for_deconv)*entry_size,2*entry_size*mtx_input.cols());
+    //VectorXd vtr_Constraint_Delta = VectorXd::Zero((2*n_regularization+N_bins_for_deconv)*entry_size);
     for (int idx_k=0; idx_k<entry_size; idx_k++)
     {
         int nth_entry = idx_k + entry_start;
@@ -591,7 +598,8 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
         {
             for (int idx_j=0; idx_j<mtx_input.cols(); idx_j++)
             {
-                int idx_m = idx_j + mtx_input.cols()*idx_i;
+                int idx_m = idx_j + mtx_input.cols()*idx_i + 2*n_regularization*idx_k;
+                //int idx_m = idx_j + mtx_input.cols()*idx_i;
                 double weight = 1.;
                 //weight = 1./max(1.,pow(mtx_data(idx_i,idx_j).real(),0.5)); // you need to freeze eigenvalues
                 //if (!isBlind) weight = 1./max(1.,pow(mtx_data(idx_i,idx_j).real(),0.5));
@@ -614,6 +622,35 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 mtx_Big(idx_m,idx_w) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real()*mtx_p_init(idx_j,mtx_input.rows()-nth_entry).real();
             }
         }
+        if (DoRegularization)
+        {
+            for (int idx_j=0; idx_j<mtx_input.cols(); idx_j++)
+            {
+                int idx_m = mtx_input.cols()*mtx_input.rows() + 2*n_regularization*idx_k;
+                int idx_n = idx_j + mtx_input.cols()*idx_k;
+                int idx_w = idx_j + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
+                double weight = 0.1*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real();
+                for (int idx_r=0; idx_r<n_regularization; idx_r++)
+                {
+                    vtr_Delta(idx_m+2*idx_r+0) = 0.;
+                    vtr_Delta(idx_m+2*idx_r+1) = 0.;
+                    mtx_Big(idx_m+2*idx_r+0,idx_n) = 0.;
+                    mtx_Big(idx_m+2*idx_r+1,idx_w) = 0.;
+                    if (idx_j==mtx_input.cols()/2-idx_r)
+                    {
+                        mtx_Big(idx_m+2*idx_r+0,idx_n) = 1.*weight;
+                        mtx_Big(idx_m+2*idx_r+1,idx_w) = 1.*weight;
+                    }
+                    if (idx_j==mtx_input.cols()/2-idx_r-1)
+                    {
+                        mtx_Big(idx_m+2*idx_r+0,idx_n) = -1.*weight;
+                        mtx_Big(idx_m+2*idx_r+1,idx_w) = -1.*weight;
+                    }
+                    //mtx_Big(idx_m+2*idx_r+0,idx_n) = weight*pow(-1.,idx_j);
+                    //mtx_Big(idx_m+2*idx_r+1,idx_w) = weight*pow(-1.,idx_j);
+                }
+            }
+        }
         for (int idx_l=0; idx_l<N_bins_for_deconv; idx_l++)
         {
             int nth_entry2 = idx_l + 1;
@@ -624,7 +661,8 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
             //if (nth_entry==1 && nth_entry2==1) continue;
             for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
             {
-                int idx_u = idx_l + idx_k*(N_bins_for_deconv+2*3);
+                //int idx_u = idx_l + idx_k*(N_bins_for_deconv+2*n_regularization);
+                int idx_u = idx_l + idx_k*(N_bins_for_deconv);
                 int idx_n = idx_i + mtx_input.cols()*idx_k;
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 double weight = mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real();
@@ -636,56 +674,51 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 vtr_Constraint_Delta(idx_u) = 0.;
             }
         }
-        for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
-        {
-            int idx_u = N_bins_for_deconv + idx_k*(N_bins_for_deconv+2*3);
-            int idx_n = idx_i + mtx_input.cols()*idx_k;
-            int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
-            double weight = mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real();
-            weight = 1.;
-            vtr_Constraint_Delta(idx_u+0) = 0.;
-            vtr_Constraint_Delta(idx_u+1) = 0.;
-            mtx_Constraint(idx_u+0,idx_n) = 0.;
-            mtx_Constraint(idx_u+1,idx_w) = 0.;
-            if (idx_i==mtx_input.cols()/2-1)
-            {
-                mtx_Constraint(idx_u+0,idx_n) = -1.*weight;
-                mtx_Constraint(idx_u+1,idx_w) = -1.*weight;
-            }
-            if (idx_i==mtx_input.cols()/2)
-            {
-                mtx_Constraint(idx_u+0,idx_n) = 1.*weight;
-                mtx_Constraint(idx_u+1,idx_w) = 1.*weight;
-            }
-            vtr_Constraint_Delta(idx_u+2) = 0.;
-            vtr_Constraint_Delta(idx_u+3) = 0.;
-            mtx_Constraint(idx_u+2,idx_n) = 0.;
-            mtx_Constraint(idx_u+3,idx_w) = 0.;
-            if (idx_i==mtx_input.cols()/2-2)
-            {
-                mtx_Constraint(idx_u+2,idx_n) = -1.*weight;
-                mtx_Constraint(idx_u+3,idx_w) = -1.*weight;
-            }
-            if (idx_i==mtx_input.cols()/2-1)
-            {
-                mtx_Constraint(idx_u+2,idx_n) = 1.*weight;
-                mtx_Constraint(idx_u+3,idx_w) = 1.*weight;
-            }
-            vtr_Constraint_Delta(idx_u+4) = 0.;
-            vtr_Constraint_Delta(idx_u+5) = 0.;
-            mtx_Constraint(idx_u+4,idx_n) = 0.;
-            mtx_Constraint(idx_u+5,idx_w) = 0.;
-            if (idx_i==mtx_input.cols()/2-3)
-            {
-                mtx_Constraint(idx_u+4,idx_n) = -1.*weight;
-                mtx_Constraint(idx_u+5,idx_w) = -1.*weight;
-            }
-            if (idx_i==mtx_input.cols()/2-2)
-            {
-                mtx_Constraint(idx_u+4,idx_n) = 1.*weight;
-                mtx_Constraint(idx_u+5,idx_w) = 1.*weight;
-            }
-        }
+        //if (DoRegularization)
+        //{
+        //    for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
+        //    {
+        //        int idx_u = N_bins_for_deconv + idx_k*(N_bins_for_deconv+2*n_regularization);
+        //        int idx_n = idx_i + mtx_input.cols()*idx_k;
+        //        int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
+        //        double weight = mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real();
+        //        //weight = 1.;
+        //        vtr_Constraint_Delta(idx_u+0) = 0.;
+        //        vtr_Constraint_Delta(idx_u+1) = 0.;
+        //        mtx_Constraint(idx_u+0,idx_n) = 0.;
+        //        mtx_Constraint(idx_u+1,idx_w) = 0.;
+        //        mtx_Constraint(idx_u+0,idx_n) = weight*pow(-1.,idx_i);
+        //        mtx_Constraint(idx_u+1,idx_w) = weight*pow(-1.,idx_i);
+        //        vtr_Constraint_Delta(idx_u+2) = 0.;
+        //        vtr_Constraint_Delta(idx_u+3) = 0.;
+        //        mtx_Constraint(idx_u+2,idx_n) = 0.;
+        //        mtx_Constraint(idx_u+3,idx_w) = 0.;
+        //        if (idx_i==mtx_input.rows()/2-1)
+        //        {
+        //            mtx_Constraint(idx_u+2,idx_n) = -1.*weight;
+        //            mtx_Constraint(idx_u+3,idx_w) = -1.*weight;
+        //        }
+        //        if (idx_i==mtx_input.rows()/2-0)
+        //        {
+        //            mtx_Constraint(idx_u+2,idx_n) = 1.*weight;
+        //            mtx_Constraint(idx_u+3,idx_w) = 1.*weight;
+        //        }
+        //        vtr_Constraint_Delta(idx_u+4) = 0.;
+        //        vtr_Constraint_Delta(idx_u+5) = 0.;
+        //        mtx_Constraint(idx_u+4,idx_n) = 0.;
+        //        mtx_Constraint(idx_u+5,idx_w) = 0.;
+        //        if (idx_i>=mtx_input.rows()/2-2 && idx_i<=mtx_input.rows()/2-1)
+        //        {
+        //            mtx_Constraint(idx_u+4,idx_n) = -1.*weight;
+        //            mtx_Constraint(idx_u+5,idx_w) = -1.*weight;
+        //        }
+        //        if (idx_i>=mtx_input.rows()/2+0 && idx_i<=mtx_input.rows()/2+1)
+        //        {
+        //            mtx_Constraint(idx_u+4,idx_n) = 1.*weight;
+        //            mtx_Constraint(idx_u+5,idx_w) = 1.*weight;
+        //        }
+        //    }
+        //}
     }
     VectorXd vtr_vari_big = VectorXd::Zero(2*entry_size*mtx_input.cols());
     if (solution_w_constraints && entry_start>0) 
@@ -902,6 +935,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
             if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 3, isBlind)) return;
             mtx_data_bkgd = mtx_temp;
         }
+        //
         //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, min(2,NumberOfEigenvectors_Stable), 1.0, isBlind);
         //if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2, isBlind)) return;
         //mtx_data_bkgd = mtx_temp;
@@ -1020,7 +1054,7 @@ void NormalizaDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
     double Dark_CR_Integral_2 = Dark_Integral-Dark_SR_Integral;
     if (Dark_CR_Integral_1!=0)
     {
-        double dark_scale = Data_CR_Integral_1/Dark_CR_Integral_1;
+        double dark_scale = Data_CR_Integral_2/Dark_CR_Integral_2;
         hist_dark->Scale(dark_scale);
     }
     else
