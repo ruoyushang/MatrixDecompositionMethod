@@ -579,7 +579,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
 
     MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
 
-    bool DoRegularization = true;
+    bool DoRegularization = solution_w_regularizations;
     if (!isBlind) DoRegularization = false;
     int n_regularization = 1;
     if (!DoRegularization) n_regularization = 0;
