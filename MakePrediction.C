@@ -581,7 +581,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
 
     bool DoRegularization = solution_w_regularizations;
     if (!isBlind) DoRegularization = false;
-    int n_regularization = 1;
+    int n_regularization = 2;
     if (!DoRegularization) n_regularization = 0;
     int row_size_big = mtx_input.rows()*mtx_input.cols() + 2*n_regularization*entry_size;
     //int row_size_big = mtx_input.rows()*mtx_input.cols();
@@ -629,19 +629,19 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 int idx_m = mtx_input.cols()*mtx_input.rows() + 2*n_regularization*idx_k;
                 int idx_n = idx_j + mtx_input.cols()*idx_k;
                 int idx_w = idx_j + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
-                double weight = 0.1*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real();
+                double weight = 0.2*mtx_S(mtx_input.rows()-1,mtx_input.rows()-1).real();
                 for (int idx_r=0; idx_r<n_regularization; idx_r++)
                 {
                     vtr_Delta(idx_m+2*idx_r+0) = 0.;
                     vtr_Delta(idx_m+2*idx_r+1) = 0.;
                     mtx_Big(idx_m+2*idx_r+0,idx_n) = 0.;
                     mtx_Big(idx_m+2*idx_r+1,idx_w) = 0.;
-                    if (idx_j==mtx_input.cols()/2-idx_r)
+                    if (idx_j==mtx_input.cols()/2-2*idx_r)
                     {
                         mtx_Big(idx_m+2*idx_r+0,idx_n) = 1.*weight;
                         mtx_Big(idx_m+2*idx_r+1,idx_w) = 1.*weight;
                     }
-                    if (idx_j==mtx_input.cols()/2-idx_r-1)
+                    if (idx_j==mtx_input.cols()/2-2*idx_r-1)
                     {
                         mtx_Big(idx_m+2*idx_r+0,idx_n) = -1.*weight;
                         mtx_Big(idx_m+2*idx_r+1,idx_w) = -1.*weight;
