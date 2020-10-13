@@ -1,10 +1,14 @@
 
-//char output_file_tag[50] = "8bins";
-//int N_bins_for_deconv = 8; // 8 should be the lowest bin number
-char output_file_tag[50] = "16bins";
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
+double svd_threshold = 5e-4; // size of singular value to be considered as nonzero.
+
+char output_file2_tag[50] = "reg";
+bool solution_w_regularizations = true;
+//char output_file2_tag[50] = "noreg";
+//bool solution_w_regularizations = false;
 
 bool solution_w_constraints = true;
+//bool solution_w_constraints = false;
 
 int NumberOfEigenvectors = 3;
 int NumberOfEigenvectors_Stable = 3;
@@ -18,14 +22,12 @@ double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.2;
 int UpDown = 0;
 
-//char output_file2_tag[50] = "sequential";
 //bool DoSequential = true;
-char output_file2_tag[50] = "parallel";
 bool DoSequential = false;
 int n_iterations = 3;
 int n_dark_samples = 3;
-const int N_energy_bins = 5;
-double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.3),pow(10,2.6),pow(10,3.0),pow(10,3.4),pow(10,4.0)};
+const int N_energy_bins = 6;
+double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.33),pow(10,2.66),pow(10,3.0),pow(10,3.33),pow(10,3.66),pow(10,4.0)};
 const int N_energy_fine_bins = 20;
 double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.1),pow(10,2.2),pow(10,2.3),pow(10,2.4),pow(10,2.5),pow(10,2.6),pow(10,2.7),pow(10,2.8),pow(10,2.9),pow(10,3.0),pow(10,3.1),pow(10,3.2),pow(10,3.3),pow(10,3.4),pow(10,3.5),pow(10,3.6),pow(10,3.7),pow(10,3.8),pow(10,3.9),pow(10,4.0)};
 double gamma_flux[N_energy_fine_bins] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
@@ -36,13 +38,17 @@ double elev_bins[N_elev_bins+1] = {25,30,35,40,45,50,55,60,65,70,75,80,85};
 
 //int group_size_limit[N_energy_bins] = {50000,50000,50000,50000,50000};
 //int group_size_limit[N_energy_bins] = {100000,100000,100000,100000,100000};
-int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000};
+int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000,50000000};
 
-double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.};
-double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.};
-//int N_bins_for_deconv_func_E[N_energy_bins] = {16,16,16,16,16};
-int N_bins_for_deconv_func_E[N_energy_bins] = {32,32,32,32,32};
-int N_ranks_func_E[N_energy_bins] = {2,2,2,1,1};
+double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
+double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
+char output_file_tag[50] = "16bins";
+int N_bins_for_deconv_func_E[N_energy_bins] = {16,16,16,16,16,16};
+//char output_file_tag[50] = "24bins";
+//int N_bins_for_deconv_func_E[N_energy_bins] = {24,24,24,24,24,24};
+//char output_file_tag[50] = "32bins";
+//int N_bins_for_deconv_func_E[N_energy_bins] = {32,32,32,32,32,32};
+int N_ranks_func_E[N_energy_bins] = {3,3,3,1,1,1};
 double MSCW_cut_lower = -1.0;
 double MSCL_cut_lower = -1.0;
 double MSCW_cut_blind = 1.0;
@@ -54,6 +60,6 @@ double MSCL_plot_lower = -1.;
 
 double Skymap_size = 4.;
 
-double brightness_cut = 5.0;
+double brightness_cut = 1.0;
 double faint_brightness_cut = 6.0;
 double bright_star_radius_cut = 0.3;
