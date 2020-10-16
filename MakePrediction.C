@@ -937,8 +937,8 @@ int DetermineStableNumberOfEigenvalues(TH2D* hist_input)
         double Truncated_SR_Integral = hist_temp.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
         if (Full_SR_Integral==0.) break;
         stable_number = cutoff;
-        if (abs(Full_SR_Integral-Truncated_SR_Integral)/Full_SR_Integral<0.005) break;
-        if (abs(Full_SR_Integral-Truncated_SR_Integral)/pow(Full_SR_Integral,0.5)<1.0) break; 
+        if (abs(Full_SR_Integral-Truncated_SR_Integral)/Full_SR_Integral<0.01) break;
+        if (abs(Full_SR_Integral-Truncated_SR_Integral)/pow(Full_SR_Integral,0.5)<3.0) break; 
     }
     return stable_number;
 }
@@ -979,7 +979,7 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
     double imag_real_ratio = 1./100.;
 
     TH2D hist_test = TH2D("hist_test","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-    fill2DHistogram(&hist_test,mtx_dark);
+    fill2DHistogram(&hist_test,mtx_data);
     NumberOfEigenvectors_Stable = DetermineStableNumberOfEigenvalues(&hist_test);
     std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
     if (DoSequential)
@@ -1169,7 +1169,7 @@ void GetNoiseReplacedMatrix(TH2D* hist_data, TH2D* hist_dark)
     TH2D hist_dark_temp = TH2D("hist_dark_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
 
     int cutoff = DetermineStableNumberOfEigenvalues(hist_data);
-    std::cout << "noise vector rank: " << cutoff << std::endl;
+    //std::cout << "noise vector rank: " << cutoff << std::endl;
     GetTruncatedMatrix(hist_data,&hist_data_temp,cutoff);
     GetTruncatedMatrix(hist_dark,&hist_dark_temp,cutoff);
     hist_data_noise.Add(hist_data);
