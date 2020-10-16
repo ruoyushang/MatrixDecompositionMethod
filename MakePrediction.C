@@ -898,27 +898,48 @@ bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, double init_chi2, int rank,
 
     return true;
 }
-int DetermineStableNumberOfEigenvalues()
+void GetTruncatedMatrix(TH2D* hist_input, TH2D* hist_output, int rank_cutoff)
 {
-    double noise_level = 0.;
-    double noise_norm = 0.;
-    int noise_entry = 5;
-    for (int entry=1;entry<=mtx_dark.cols();entry++)
+    MatrixXcd mtx_temp = fillMatrix(hist_input);
+    ComplexEigenSolver<MatrixXcd> eigensolver_temp = ComplexEigenSolver<MatrixXcd>(mtx_temp);
+    MatrixXcd mtx_eigenvector_temp = eigensolver_temp.eigenvectors();
+    MatrixXcd mtx_eigenvector_inv_temp = eigensolver_temp.eigenvectors().inverse();
+    MatrixXcd mtx_eigenvalue_temp = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
+    for (int row=0;row<mtx_temp.rows();row++)
     {
-        if (entry<noise_entry) continue;
-        double real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-entry).real();
-        double imag = eigensolver_dark.eigenvalues()(mtx_dark.cols()-entry).imag();
-        noise_level += real*real+imag*imag;
-        noise_norm += 1.;
-    }
-    noise_level = pow(noise_level/noise_norm,0.5);
-    int stable_number = 0;
-    for (int entry=1;entry<=3;entry++)
-    {
-        double real = eigensolver_dark.eigenvalues()(mtx_dark.cols()-entry).real();
-        if (real>10.*noise_level) 
+        for (int col=0;col<mtx_temp.cols();col++)
         {
-            stable_number = entry;
+            mtx_eigenvalue_temp(row,col) = 0.;
+            if (row==col)
+            {
+                mtx_eigenvalue_temp(row,col) = eigensolver_temp.eigenvalues()(col);
+            }
+        }
+    }
+    mtx_eigenvalue_temp = CutoffEigenvalueMatrix(mtx_eigenvalue_temp, rank_cutoff);
+    mtx_temp = mtx_eigenvector_temp*mtx_eigenvalue_temp*mtx_eigenvector_inv_temp;
+    fill2DHistogram(hist_output,mtx_temp);
+}
+int DetermineStableNumberOfEigenvalues(TH2D* hist_input)
+{
+    int binx_lower = hist_input->GetXaxis()->FindBin(MSCL_cut_lower);
+    int binx_blind = hist_input->GetXaxis()->FindBin(MSCL_cut_blind)-1;
+    int biny_lower = hist_input->GetYaxis()->FindBin(MSCW_cut_lower);
+    int biny_blind = hist_input->GetYaxis()->FindBin(MSCW_cut_blind)-1;
+
+    int stable_number = 0;
+    TH2D hist_temp = TH2D("hist_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+    for (int cutoff=1;cutoff<=3;cutoff++)
+    {
+        hist_temp.Reset();
+        GetTruncatedMatrix(hist_input,&hist_temp,cutoff);
+        double Full_SR_Integral = hist_input->Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        double Truncated_SR_Integral = hist_temp.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        if (Full_SR_Integral==0.) continue;
+        if (abs(Full_SR_Integral-Truncated_SR_Integral)/pow(Full_SR_Integral,0.5)<1.0) continue; 
+        if (abs(Full_SR_Integral-Truncated_SR_Integral)/Full_SR_Integral>0.005)
+        {
+            stable_number = cutoff;
         }
     }
     return stable_number;
@@ -958,8 +979,10 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
     double eigenvalue_data_imag = 0.;
     double step_frac= 1.0;
     double imag_real_ratio = 1./100.;
-    //NumberOfEigenvectors_Stable = rank_variation;
-    NumberOfEigenvectors_Stable = DetermineStableNumberOfEigenvalues();
+
+    TH2D hist_test = TH2D("hist_test","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+    fill2DHistogram(&hist_test,mtx_dark);
+    NumberOfEigenvectors_Stable = DetermineStableNumberOfEigenvalues(&hist_test);
     std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
     if (DoSequential)
     {
@@ -992,6 +1015,18 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
         {
             return;
         }
+        //if (NumberOfEigenvectors_Stable>=1)
+        //{
+        //    mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, 1.0, isBlind);
+        //    if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1, isBlind)) return;
+        //    mtx_data_bkgd = mtx_temp;
+        //}
+        //if (NumberOfEigenvectors_Stable>=2)
+        //{
+        //    mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, 1.0, isBlind);
+        //    if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1, isBlind)) return;
+        //    mtx_data_bkgd = mtx_temp;
+        //}
         mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, NumberOfEigenvectors_Stable, 1.0, isBlind);
         if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1, isBlind))
         {
@@ -1105,6 +1140,45 @@ void GetReducedEigenvalueMatrix(int rank_cutoff)
         }
     }
 }
+void GetCRReplacedMatrix(TH2D* hist_data, TH2D* hist_dark)
+{
+    int binx_blind = hist_data->GetXaxis()->FindBin(MSCL_cut_blind);
+    int biny_blind = hist_data->GetYaxis()->FindBin(MSCW_cut_blind);
+    TH2D hist_temp = TH2D("hist_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+    for (int bx=1;bx<=hist_data->GetNbinsX();bx++)
+    {
+        for (int by=1;by<=hist_data->GetNbinsY();by++)
+        {
+            if (bx<binx_blind && by<biny_blind)
+            {
+                double dark = hist_dark->GetBinContent(bx,by);
+                hist_temp.SetBinContent(bx,by,dark);
+            }
+            else
+            {
+                double data = hist_data->GetBinContent(bx,by);
+                hist_temp.SetBinContent(bx,by,data);
+            }
+        }
+    }
+    int cutoff = DetermineStableNumberOfEigenvalues(hist_dark);
+    GetTruncatedMatrix(&hist_temp,hist_dark,cutoff);
+}
+void GetNoiseReplacedMatrix(TH2D* hist_data, TH2D* hist_dark)
+{
+    TH2D hist_data_temp = TH2D("hist_data_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+    TH2D hist_data_noise = TH2D("hist_data_noise","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+    TH2D hist_dark_temp = TH2D("hist_dark_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+
+    int cutoff = DetermineStableNumberOfEigenvalues(hist_data);
+    GetTruncatedMatrix(hist_data,&hist_data_temp,cutoff);
+    GetTruncatedMatrix(hist_dark,&hist_dark_temp,cutoff);
+    hist_data_noise.Add(hist_data);
+    hist_data_noise.Add(&hist_data_temp,-1.);
+    hist_dark->Reset();
+    hist_dark->Add(&hist_dark_temp);
+    hist_dark->Add(&hist_data_noise);
+}
 void NormalizaDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
 {
     int binx_lower = hist_data->GetXaxis()->FindBin(MSCL_cut_lower);
@@ -1132,6 +1206,20 @@ void NormalizaDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
     {
         hist_data->Scale(0.);
         hist_dark->Scale(0.);
+    }
+
+    if (UseTruncatedONData)
+    {
+        int cutoff = DetermineStableNumberOfEigenvalues(hist_data);
+        GetTruncatedMatrix(hist_data,hist_dark,3);
+    }
+    if (UseReplacedONData)
+    {
+        GetCRReplacedMatrix(hist_data,hist_dark);
+    }
+    if (UseReplacedNoise)
+    {
+        GetNoiseReplacedMatrix(hist_data,hist_dark);
     }
 }
 void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, int isUp, bool isON)

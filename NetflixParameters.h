@@ -1,14 +1,27 @@
 
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
-double svd_threshold = 5e-4; // size of singular value to be considered as nonzero.
 
-char output_file2_tag[50] = "reg";
-bool solution_w_regularizations = true;
-//char output_file2_tag[50] = "noreg";
-//bool solution_w_regularizations = false;
+//double svd_threshold = 1e-2; // size of singular value to be considered as nonzero.
+double svd_threshold = 1e-3; // size of singular value to be considered as nonzero.
+//double svd_threshold = 1e-4; // size of singular value to be considered as nonzero.
+
+//bool solution_w_regularizations = true;
+bool solution_w_regularizations = false;
 
 bool solution_w_constraints = true;
 //bool solution_w_constraints = false;
+
+//char output_file2_tag[50] = "mdm_nominal";
+
+//char output_file2_tag[50] = "mdm_truncate";
+//bool UseTruncatedONData = true;
+bool UseTruncatedONData = false;
+//char output_file2_tag[50] = "mdm_replace";
+//bool UseReplacedONData = true;
+bool UseReplacedONData = false;
+char output_file2_tag[50] = "mdm_noise";
+bool UseReplacedNoise = true;
+//bool UseReplacedNoise = false;
 
 int NumberOfEigenvectors = 3;
 int NumberOfEigenvectors_Stable = 3;
@@ -48,7 +61,7 @@ int N_bins_for_deconv_func_E[N_energy_bins] = {16,16,16,16,16,16};
 //int N_bins_for_deconv_func_E[N_energy_bins] = {24,24,24,24,24,24};
 //char output_file_tag[50] = "32bins";
 //int N_bins_for_deconv_func_E[N_energy_bins] = {32,32,32,32,32,32};
-int N_ranks_func_E[N_energy_bins] = {3,3,3,1,1,1};
+int N_ranks_func_E[N_energy_bins] = {3,3,3,3,3,3};
 double MSCW_cut_lower = -1.0;
 double MSCL_cut_lower = -1.0;
 double MSCW_cut_blind = 1.0;
