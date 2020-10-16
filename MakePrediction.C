@@ -935,12 +935,10 @@ int DetermineStableNumberOfEigenvalues(TH2D* hist_input)
         GetTruncatedMatrix(hist_input,&hist_temp,cutoff);
         double Full_SR_Integral = hist_input->Integral(binx_lower,binx_blind,biny_lower,biny_blind);
         double Truncated_SR_Integral = hist_temp.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-        if (Full_SR_Integral==0.) continue;
-        if (abs(Full_SR_Integral-Truncated_SR_Integral)/pow(Full_SR_Integral,0.5)<1.0) continue; 
-        if (abs(Full_SR_Integral-Truncated_SR_Integral)/Full_SR_Integral>0.005)
-        {
-            stable_number = cutoff;
-        }
+        if (Full_SR_Integral==0.) break;
+        stable_number = cutoff;
+        if (abs(Full_SR_Integral-Truncated_SR_Integral)/Full_SR_Integral<0.005) break;
+        if (abs(Full_SR_Integral-Truncated_SR_Integral)/pow(Full_SR_Integral,0.5)<1.0) break; 
     }
     return stable_number;
 }
@@ -1171,6 +1169,7 @@ void GetNoiseReplacedMatrix(TH2D* hist_data, TH2D* hist_dark)
     TH2D hist_dark_temp = TH2D("hist_dark_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
 
     int cutoff = DetermineStableNumberOfEigenvalues(hist_data);
+    std::cout << "noise vector rank: " << cutoff << std::endl;
     GetTruncatedMatrix(hist_data,&hist_data_temp,cutoff);
     GetTruncatedMatrix(hist_dark,&hist_dark_temp,cutoff);
     hist_data_noise.Add(hist_data);
