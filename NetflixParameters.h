@@ -8,7 +8,9 @@ double svd_threshold = 1e-3; // size of singular value to be considered as nonze
 //bool solution_w_regularizations = true;
 bool solution_w_regularizations = false;
 
+char output_file2_tag[50] = "mdm_constrained";
 bool solution_w_constraints = true;
+//char output_file2_tag[50] = "mdm_unconstrained";
 //bool solution_w_constraints = false;
 
 //char output_file2_tag[50] = "mdm_nominal";
@@ -17,11 +19,11 @@ bool solution_w_constraints = true;
 //bool UseTruncatedONData = true;
 bool UseTruncatedONData = false;
 //char output_file2_tag[50] = "mdm_replace";
-//bool UseReplacedONData = true;
-bool UseReplacedONData = false;
-char output_file2_tag[50] = "mdm_noise";
-bool UseReplacedNoise = true;
-//bool UseReplacedNoise = false;
+bool UseReplacedONData = true;
+//bool UseReplacedONData = false;
+//char output_file2_tag[50] = "mdm_noise";
+//bool UseReplacedNoise = true;
+bool UseReplacedNoise = false;
 
 int NumberOfEigenvectors = 3;
 int NumberOfEigenvectors_Stable = 3;

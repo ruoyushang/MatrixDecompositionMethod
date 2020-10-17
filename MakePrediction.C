@@ -145,8 +145,8 @@ void fill1DHistogram(TH1D* hist,MatrixXcd mtx, int rank, double weight)
         double new_content = mtx(binx,mtx.cols()-1-rank).real()*weight;
         hist->SetBinContent(binx+1,old_content+new_content);
     }
-    //double integral = hist->Integral();
-    //hist->Scale(abs(integral)/integral);
+    double integral = hist->Integral();
+    hist->Scale(abs(integral)/integral);
 }
 MatrixXcd MakeRealEigenvectors(MatrixXcd mtx_input)
 {
@@ -937,8 +937,13 @@ int DetermineStableNumberOfEigenvalues(TH2D* hist_input)
         double Truncated_SR_Integral = hist_temp.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
         if (Full_SR_Integral==0.) break;
         stable_number = cutoff;
-        if (abs(Full_SR_Integral-Truncated_SR_Integral)/Full_SR_Integral<0.01) break;
-        if (abs(Full_SR_Integral-Truncated_SR_Integral)/pow(Full_SR_Integral,0.5)<3.0) break; 
+        double noise_ratio = abs(Full_SR_Integral-Truncated_SR_Integral)/Full_SR_Integral;
+        double noise_significance = abs(Full_SR_Integral-Truncated_SR_Integral)/pow(Full_SR_Integral,0.5);
+        if (noise_ratio<0.01) break;
+        if (noise_significance<10.0) break; 
+        std::cout << "cutoff = " << cutoff << std::endl;
+        std::cout << "noise_ratio = " << noise_ratio << std::endl;
+        std::cout << "noise_significance = " << noise_significance << std::endl;
     }
     return stable_number;
 }
@@ -1159,8 +1164,8 @@ void GetCRReplacedMatrix(TH2D* hist_data, TH2D* hist_dark)
             }
         }
     }
-    int cutoff = DetermineStableNumberOfEigenvalues(hist_dark);
-    GetTruncatedMatrix(&hist_temp,hist_dark,cutoff);
+    hist_dark->Reset();
+    hist_dark->Add(&hist_temp);
 }
 void GetNoiseReplacedMatrix(TH2D* hist_data, TH2D* hist_dark)
 {
@@ -1212,12 +1217,13 @@ void NormalizaDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
         int cutoff = DetermineStableNumberOfEigenvalues(hist_data);
         GetTruncatedMatrix(hist_data,hist_dark,3);
     }
+    if (UseReplacedNoise)
+    {
+        GetNoiseReplacedMatrix(hist_data,hist_dark);
+    }
     if (UseReplacedONData)
     {
         GetCRReplacedMatrix(hist_data,hist_dark);
-    }
-    if (UseReplacedNoise)
-    {
         GetNoiseReplacedMatrix(hist_data,hist_dark);
     }
 }
