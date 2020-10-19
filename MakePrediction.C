@@ -699,13 +699,13 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 {
                     //continue;
                     //mtx_Constraint(idx_u,idx_w) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
-                    mtx_Constraint(idx_u,idx_n) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
-                    //mtx_Constraint(idx_u,idx_w) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
-                    //mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    //mtx_Constraint(idx_u,idx_n) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    mtx_Constraint(idx_u,idx_w) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
                 }
                 else
                 {
-                    //continue;
+                    continue;
                     mtx_Constraint(idx_u,idx_w) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
                     mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
                 }
@@ -1090,7 +1090,7 @@ void GetCRReplacedMatrix(TH2D* hist_data, TH2D* hist_dark)
     {
         for (int by=1;by<=hist_data->GetNbinsY();by++)
         {
-            if (bx<binx_blind+1 && by<biny_blind+1)
+            if (bx<binx_blind && by<biny_blind)
             {
                 double dark = hist_dark->GetBinContent(bx,by);
                 hist_temp.SetBinContent(bx,by,dark);
@@ -1958,7 +1958,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     AlterDarkMatrix(&Hist_OneGroup_Data_MSCLW.at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e), &hist_dark_alter);
                     mtx_dark = fillMatrix(&hist_dark_alter);
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-                    //MinChi2Method(NumberOfEigenvectors, n_iterations, &Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
+                    MinChi2Method(NumberOfEigenvectors, n_iterations, &Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
                 }
                 double chi2_norm = 0.;
                 for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
@@ -1984,7 +1984,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     //Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,bkgd_weight);
                     Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
                     Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
-                    Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),dark_weight);
+                    //Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),dark_weight);
+                    Hist_OnDark_MSCLW.at(e).Add(&hist_dark_alter,dark_weight);
                     Hist_OnSyst_Chi2.at(nth_sample).at(e).Add(&Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e));
                     Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).Reset();
                     
