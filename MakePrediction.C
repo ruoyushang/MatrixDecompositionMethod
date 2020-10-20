@@ -932,7 +932,7 @@ int DetermineStableNumberOfEigenvalues(TH2D* hist_input)
 
     int stable_number = 0;
     TH2D hist_temp = TH2D("hist_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-    for (int cutoff=1;cutoff<=N_bins_for_deconv;cutoff++)
+    for (int cutoff=1;cutoff<=3;cutoff++)
     {
         hist_temp.Reset();
         GetTruncatedMatrix(hist_input,&hist_temp,cutoff);
@@ -941,15 +941,15 @@ int DetermineStableNumberOfEigenvalues(TH2D* hist_input)
         if (Full_SR_Integral==0.) break;
         double real_lambda = eigensolver_temp.eigenvalues()(N_bins_for_deconv-cutoff).real();
         double imag_lambda = eigensolver_temp.eigenvalues()(N_bins_for_deconv-cutoff).imag();
-        if (imag_lambda/real_lambda>0.001) break;
+        if (imag_lambda/real_lambda>0.01) break;
         stable_number = cutoff;
         double noise_ratio = abs(Full_SR_Integral-Truncated_SR_Integral)/Full_SR_Integral;
         double noise_significance = abs(Full_SR_Integral-Truncated_SR_Integral)/pow(Full_SR_Integral,0.5);
         std::cout << "cutoff = " << cutoff << std::endl;
         std::cout << "noise_ratio = " << noise_ratio << std::endl;
         std::cout << "noise_significance = " << noise_significance << std::endl;
-        if (noise_ratio<0.005) break;
-        if (noise_significance<5.0) break; 
+        //if (noise_ratio<0.005) break;
+        if (noise_significance<3.0) break; 
     }
     return stable_number;
 }
@@ -990,9 +990,9 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
     double imag_real_ratio = 1./100.;
 
     TH2D hist_test = TH2D("hist_test","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-    fill2DHistogram(&hist_test,mtx_dark);
-    //NumberOfEigenvectors_Stable = DetermineStableNumberOfEigenvalues(&hist_test);
-    NumberOfEigenvectors_Stable = NumberOfEigenvectors;
+    fill2DHistogram(&hist_test,mtx_data);
+    NumberOfEigenvectors_Stable = DetermineStableNumberOfEigenvalues(&hist_test);
+    //NumberOfEigenvectors_Stable = NumberOfEigenvectors;
     std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
     if (DoSequential)
     {
@@ -1111,8 +1111,8 @@ void GetNoiseReplacedMatrix(TH2D* hist_data, TH2D* hist_dark)
     TH2D hist_data_noise = TH2D("hist_data_noise","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
     TH2D hist_dark_temp = TH2D("hist_dark_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
 
-    //int cutoff = DetermineStableNumberOfEigenvalues(hist_dark);
-    int cutoff = NumberOfEigenvectors;
+    int cutoff = DetermineStableNumberOfEigenvalues(hist_data);
+    //int cutoff = NumberOfEigenvectors;
     //std::cout << "noise vector rank: " << cutoff << std::endl;
     GetTruncatedMatrix(hist_data,&hist_data_temp,cutoff);
     GetTruncatedMatrix(hist_dark,&hist_dark_temp,cutoff);
@@ -1158,7 +1158,6 @@ void AlterDarkMatrix(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_dark_alter)
     hist_dark_alter->Add(hist_dark);
     if (UseTruncatedONData)
     {
-        int cutoff = DetermineStableNumberOfEigenvalues(hist_dark);
         GetTruncatedMatrix(hist_data,hist_dark_alter,3);
     }
     if (UseReplacedNoise)
