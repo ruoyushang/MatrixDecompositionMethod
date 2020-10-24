@@ -914,8 +914,10 @@ int DetermineStableNumberOfEigenvalues(TH2D* hist_input, bool IsTight)
     {
         hist_temp.Reset();
         GetTruncatedMatrix(hist_input,&hist_temp,cutoff);
-        double Full_SR_Integral = hist_input->Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-        double Truncated_SR_Integral = hist_temp.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        //double Full_SR_Integral = hist_input->Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        //double Truncated_SR_Integral = hist_temp.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        double Full_SR_Integral = hist_input->Integral();
+        double Truncated_SR_Integral = hist_temp.Integral();
         if (Full_SR_Integral==0.) break;
         double real_lambda = eigensolver_temp.eigenvalues()(N_bins_for_deconv-cutoff).real();
         double imag_lambda = eigensolver_temp.eigenvalues()(N_bins_for_deconv-cutoff).imag();
@@ -935,7 +937,7 @@ int DetermineStableNumberOfEigenvalues(TH2D* hist_input, bool IsTight)
             std::cout << "noise_ratio = " << noise_ratio << std::endl;
             std::cout << "noise_significance = " << noise_significance << std::endl;
             //if (noise_ratio<0.01) break;
-            //if (noise_significance<5.0) break; 
+            //if (noise_significance<4.0) break; 
         }
     }
     return stable_number;
@@ -1020,10 +1022,17 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
         //}
         //if (NumberOfEigenvectors_Stable>=2)
         //{
-        //    mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, 1.0, isBlind);
-        //    if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1, isBlind)) return;
+        //    mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 2, 1.0, isBlind);
+        //    if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2, isBlind)) return;
         //    mtx_data_bkgd = mtx_temp;
         //}
+        //if (NumberOfEigenvectors_Stable>=3)
+        //{
+        //    mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 3, 1.0, isBlind);
+        //    if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 3, isBlind)) return;
+        //    mtx_data_bkgd = mtx_temp;
+        //}
+        //
         mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, NumberOfEigenvectors_Stable, 1.0, isBlind);
         if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, NumberOfEigenvectors_Stable, isBlind))
         {
