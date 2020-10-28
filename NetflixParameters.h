@@ -1,33 +1,34 @@
 
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
+//double svd_threshold = 1e-1; // size of singular value to be considered as nonzero.
 //double svd_threshold = 1e-3; // size of singular value to be considered as nonzero.
-//double svd_threshold = 1e-4; // size of singular value to be considered as nonzero.
-//double svd_threshold = 1e-7; // size of singular value to be considered as nonzero.
+double svd_threshold = 1e-4; // size of singular value to be considered as nonzero.
+//double svd_threshold = 1e-5; // size of singular value to be considered as nonzero.
 //double svd_threshold = 1e-9; // size of singular value to be considered as nonzero.
-double svd_threshold = 1e-20; // size of singular value to be considered as nonzero.
+//double svd_threshold = 1e-20; // size of singular value to be considered as nonzero.
 
-char output_file2_tag[50] = "mdm_nominal";
-//char output_file2_tag[50] = "mdm_test";
+//char output_file2_tag[50] = "mdm_nominal";
+char output_file2_tag[50] = "mdm_test";
 
 //bool solution_w_regularizations = true;
 bool solution_w_regularizations = false;
 
-//bool solution_w_constraints = true;
-bool solution_w_constraints = false;
+bool solution_w_constraints = true;
+//bool solution_w_constraints = false;
 
 //bool UseTruncatedONData = true;
 bool UseTruncatedONData = false;
 
-bool UseReplacedONData = true;
-//bool UseReplacedONData = false;
+//bool UseReplacedONData = true;
+bool UseReplacedONData = false;
 
 //bool UseReplacedNoise = true;
 bool UseReplacedNoise = false;
 
-int NumberOfEigenvectors = 3;
-int NumberOfRealEigenvectors = 3;
-int NumberOfEigenvectors_Stable = 3;
+int NumberOfEigenvectors = 4;
+int NumberOfRealEigenvectors = 4;
+int NumberOfEigenvectors_Stable = 4;
 double PercentCrab = 0.;
 double MSCW_cut_moderate = 0.5;
 double MSCL_cut_moderate = 0.6;
@@ -36,10 +37,7 @@ double MSCL_cut_loose = 1.0;
 double camera_theta2_cut_lower = 0.;
 double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.2;
-int UpDown = 0;
 
-//bool DoSequential = true;
-bool DoSequential = false;
 int n_iterations = 3;
 int n_dark_samples = 3;
 const int N_energy_bins = 6;

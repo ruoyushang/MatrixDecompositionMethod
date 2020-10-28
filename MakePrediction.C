@@ -562,6 +562,18 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints_inpu
         return vtr_vari_big;
     }
 
+    //MatrixXd mtx_Bigger = MatrixXd::Zero(mtx_big.rows()+mtx_constraints.rows(),mtx_big.cols());
+    //mtx_Bigger.block(0,0,mtx_big.rows(),mtx_big.cols()) = mtx_big;
+    //mtx_Bigger.block(mtx_big.rows(),0,mtx_constraints.rows(),mtx_big.cols()) = mtx_constraints;
+    //VectorXd vtr_bigger_delta = VectorXd::Zero(mtx_big.rows()+mtx_constraints.rows());
+    //vtr_bigger_delta.segment(0,mtx_big.cols()) = vtr_delta;
+    //vtr_bigger_delta.segment(vtr_delta.cols(),vtr_constraints_delta.size()) = vtr_constraints_delta;
+    //BDCSVD<MatrixXd> svd(mtx_Bigger, ComputeThinU | ComputeThinV);
+    //svd.setThreshold(svd_threshold);  // size of singular value to be considered as nonzero.
+    //VectorXd vtr_vari_big = VectorXd::Zero(mtx_big.cols());
+    //vtr_vari_big = svd.solve(vtr_bigger_delta);
+    //return vtr_vari_big;
+
     MatrixXd BTB = mtx_big.transpose()*mtx_big;
     VectorXd BTD = mtx_big.transpose()*vtr_delta;
 
@@ -573,6 +585,10 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints_inpu
     VectorXd vtr_bigger_delta = VectorXd::Zero(BTB.rows()+mtx_constraints.rows());
     vtr_bigger_delta.segment(0,BTB.cols()) = 2.*BTD;
     vtr_bigger_delta.segment(BTB.cols(),vtr_constraints_delta.size()) = vtr_constraints_delta;
+
+    ComplexEigenSolver<MatrixXcd> eigensolver_bigger = ComplexEigenSolver<MatrixXcd>(mtx_Bigger);
+    std::cout << "eigensolver_bigger.eigenvalues()(mtx_Bigger.cols()-1)  = " << eigensolver_bigger.eigenvalues()(mtx_Bigger.cols()-1) << std::endl;
+    //svd_threshold = eigensolver_bigger.eigenvalues()(mtx_Bigger.cols()-1).real()/10000.;
 
     VectorXd vtr_vari_bigger = VectorXd::Zero(BTB.cols()+mtx_constraints.rows());
     //vtr_vari_bigger = mtx_Bigger.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_bigger_delta);
@@ -593,28 +609,6 @@ VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints_inpu
         svd.setThreshold(1e-3);
         vtr_vari_bigger = svd.solve(vtr_bigger_delta);
     }
-
-    //bad_result = false;
-    //for (int i=0;i<vtr_vari_bigger.size();i++)
-    //{
-    //    if (isnan(vtr_vari_bigger(i))) bad_result = true;
-    //}
-    //if (bad_result)
-    //{
-    //    svd.setThreshold(1e-6);
-    //    vtr_vari_bigger = svd.solve(vtr_bigger_delta);
-    //}
-
-    //bad_result = false;
-    //for (int i=0;i<vtr_vari_bigger.size();i++)
-    //{
-    //    if (isnan(vtr_vari_bigger(i))) bad_result = true;
-    //}
-    //if (bad_result)
-    //{
-    //    svd.setThreshold(1e-5);
-    //    vtr_vari_bigger = svd.solve(vtr_bigger_delta);
-    //}
 
     return vtr_vari_bigger.segment(0,BTB.cols());
 
@@ -648,13 +642,12 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     bool DoRegularization = solution_w_regularizations;
     if (!isBlind) DoRegularization = false;
     int n_regularization = 1;
-    //int n_regularization = mtx_input.rows()-1;
     if (!DoRegularization) n_regularization = 0;
-    int row_size_big = mtx_input.rows()*mtx_input.cols() + 2*n_regularization*entry_size;
+    int row_size_big = mtx_input.rows()*mtx_input.cols() + n_regularization*entry_size;
     VectorXd vtr_Delta = VectorXd::Zero(row_size_big);
     MatrixXd mtx_Big = MatrixXd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    MatrixXd mtx_Constraint = MatrixXd::Zero((NumberOfEigenvectors_Stable)*entry_size,2*entry_size*mtx_input.cols());
-    VectorXd vtr_Constraint_Delta = VectorXd::Zero((NumberOfEigenvectors_Stable)*entry_size);
+    MatrixXd mtx_Constraint = MatrixXd::Zero((3*NumberOfEigenvectors_Stable)*entry_size,2*entry_size*mtx_input.cols());
+    VectorXd vtr_Constraint_Delta = VectorXd::Zero((3*NumberOfEigenvectors_Stable)*entry_size);
     for (int idx_k=0; idx_k<entry_size; idx_k++)
     {
         int nth_entry = idx_k + entry_start;
@@ -670,14 +663,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 {
                     if (isBlind) weight = 0.; // blind gamma-ray region
                 }
-                if (isBlind)
-                {
-                    vtr_Delta(idx_m) = weight*(mtx_data-mtx_input)(idx_i,idx_j).real();
-                }
-                else
-                {
-                    vtr_Delta(idx_m) = weight*(mtx_data-mtx_input-mtx_gamma)(idx_i,idx_j).real();
-                }
+                vtr_Delta(idx_m) = weight*(mtx_data-mtx_input-mtx_gamma)(idx_i,idx_j).real();
                 int idx_n = idx_j + mtx_input.cols()*idx_k;
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
 
@@ -687,7 +673,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
         }
         if (DoRegularization)
         {
-            double weight_s = 0.5*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real();
+            double weight_s = 0.1*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real();
             double weight_p = 0.;
             double weight_q = 0.;
             double weight_norm = 0.;
@@ -701,47 +687,39 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
             weight_q = 1.0*weight_s*pow(weight_q/weight_norm,0.5);
             for (int idx_j=0; idx_j<mtx_input.cols(); idx_j++)
             {
-                int idx_m = mtx_input.cols()*mtx_input.rows() + 2*n_regularization*idx_k;
+                int idx_m = mtx_input.cols()*mtx_input.rows() + n_regularization*idx_k;
                 int idx_n = idx_j + mtx_input.cols()*idx_k;
                 int idx_w = idx_j + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 for (int idx_r=0; idx_r<n_regularization; idx_r++)
                 {
                     vtr_Delta(idx_m+idx_r) = 0.;
-                    mtx_Big(idx_m+2*idx_r+0,idx_w) = weight_s*mtx_q_init(idx_j,mtx_input.rows()-nth_entry).real();
-                    mtx_Big(idx_m+2*idx_r+1,idx_n) = weight_s*mtx_p_init(idx_j,mtx_input.rows()-nth_entry).real();
-                    //mtx_Big(idx_m+idx_r,idx_w) = weight_s*mtx_p_init(idx_j,mtx_input.rows()-nth_entry).real();
-                    //mtx_Big(idx_m+idx_r,idx_n) = weight_s*mtx_q_init(idx_j,mtx_input.rows()-nth_entry).real();
+                    mtx_Big(idx_m+idx_r,idx_w) = weight_s*mtx_p_init(idx_j,mtx_input.rows()-nth_entry).real();
+                    mtx_Big(idx_m+idx_r,idx_n) = weight_s*mtx_q_init(idx_j,mtx_input.rows()-nth_entry).real();
                 }
             }
         }
         for (int idx_l=0; idx_l<NumberOfEigenvectors_Stable; idx_l++)
         {
             int nth_entry2 = idx_l + 1;
-            double weight_s = mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real();
-            //if (nth_entry!=2) continue;
-            //continue;
+            double weight_s1 = mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry).real();
+            double weight_s2 = mtx_S(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2).real();
+            double weight_s = pow(weight_s1*weight_s1,0.5);
+            //if (nth_entry==NumberOfEigenvectors_Stable) continue;
             for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
             {
-                int idx_u = idx_l + idx_k*(NumberOfEigenvectors_Stable);
+                int idx_u = idx_l + idx_k*(3*NumberOfEigenvectors_Stable);
                 int idx_n = idx_i + mtx_input.cols()*idx_k;
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
                 vtr_Constraint_Delta(idx_u) = 0.;
-                //mtx_Constraint(idx_u,idx_w) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
-                //mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
-                if (nth_entry2==nth_entry)
+                if (nth_entry2!=nth_entry+1)
                 {
-                    continue;
-                    //mtx_Constraint(idx_u,idx_w) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
-                    //mtx_Constraint(idx_u,idx_n) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
-                    //
-                    //mtx_Constraint(idx_u,idx_w) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
-                    //mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    mtx_Constraint(idx_u+0,idx_w) = weight_s*mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    mtx_Constraint(idx_u+1,idx_n) = weight_s*mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
                 }
-                else
+                if (nth_entry2!=nth_entry)
                 {
-                    //continue;
-                    mtx_Constraint(idx_u,idx_w) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
-                    mtx_Constraint(idx_u,idx_n) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    mtx_Constraint(idx_u+2,idx_w) = weight_s*mtx_p_init(idx_i,mtx_input.rows()-nth_entry2).real();
+                    mtx_Constraint(idx_u+2,idx_n) = weight_s*mtx_q_init(idx_i,mtx_input.rows()-nth_entry2).real();
                 }
             }
         }
@@ -899,7 +877,7 @@ void GetTruncatedMatrix(TH2D* hist_input, TH2D* hist_output, int rank_cutoff)
 }
 int DetermineStableNumberOfEigenvalues(TH2D* hist_input, bool IsTight)
 {
-    //return 3;
+    //return 1;
     int binx_lower = hist_input->GetXaxis()->FindBin(MSCL_cut_lower);
     int binx_blind = hist_input->GetXaxis()->FindBin(MSCL_cut_blind)-1;
     int biny_lower = hist_input->GetYaxis()->FindBin(MSCW_cut_lower);
@@ -908,41 +886,43 @@ int DetermineStableNumberOfEigenvalues(TH2D* hist_input, bool IsTight)
     MatrixXcd mtx_temp = fillMatrix(hist_input);
     ComplexEigenSolver<MatrixXcd> eigensolver_temp = ComplexEigenSolver<MatrixXcd>(mtx_temp);
 
+    int stable_number_max = 3;
     int stable_number = 0;
     TH2D hist_temp = TH2D("hist_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-    for (int cutoff=1;cutoff<=3;cutoff++)
+    for (int cutoff=1;cutoff<=stable_number_max;cutoff++)
     {
         hist_temp.Reset();
         GetTruncatedMatrix(hist_input,&hist_temp,cutoff);
-        //double Full_SR_Integral = hist_input->Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-        //double Truncated_SR_Integral = hist_temp.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-        double Full_SR_Integral = hist_input->Integral();
-        double Truncated_SR_Integral = hist_temp.Integral();
+        double Full_SR_Integral = hist_input->Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        double Truncated_SR_Integral = hist_temp.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+        //double Full_SR_Integral = hist_input->Integral();
+        //double Truncated_SR_Integral = hist_temp.Integral();
         if (Full_SR_Integral==0.) break;
         double real_lambda = eigensolver_temp.eigenvalues()(N_bins_for_deconv-cutoff).real();
         double imag_lambda = eigensolver_temp.eigenvalues()(N_bins_for_deconv-cutoff).imag();
-        if (IsTight)
-        {
-            std::cout << "rank = " << cutoff << std::endl;
-            std::cout << "real_lambda = " << real_lambda << std::endl;
-            std::cout << "imag_lambda = " << imag_lambda << std::endl;
-        }
+        //if (IsTight)
+        //{
+        //    std::cout << "rank = " << cutoff << std::endl;
+        //    std::cout << "real_lambda = " << real_lambda << std::endl;
+        //    std::cout << "imag_lambda = " << imag_lambda << std::endl;
+        //}
         if (abs(imag_lambda)/abs(real_lambda)>0.01) break;
+        if (real_lambda<0.) break;
         stable_number = cutoff;
         double noise_ratio = abs(Full_SR_Integral-Truncated_SR_Integral)/Full_SR_Integral;
         double noise_significance = abs(Full_SR_Integral-Truncated_SR_Integral)/pow(Full_SR_Integral,0.5);
-        if (IsTight)
-        {
-            std::cout << "cutoff = " << cutoff << std::endl;
-            std::cout << "noise_ratio = " << noise_ratio << std::endl;
-            std::cout << "noise_significance = " << noise_significance << std::endl;
-            //if (noise_ratio<0.01) break;
-            //if (noise_significance<4.0) break; 
-        }
+        //if (IsTight)
+        //{
+        //    std::cout << "cutoff = " << cutoff << std::endl;
+        //    std::cout << "noise_ratio = " << noise_ratio << std::endl;
+        //    std::cout << "noise_significance = " << noise_significance << std::endl;
+        //    //if (noise_ratio<0.005) break;
+        //    //if (noise_significance<20.0) break; 
+        //}
     }
     return stable_number;
 }
-void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlind)
+void LeastSquareSolutionMethod(bool DoSequential, bool isBlind)
 {
 
     for (int col=0;col<N_bins_for_deconv;col++)
@@ -979,31 +959,19 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
     double imag_real_ratio = 1./100.;
 
     TH2D hist_test = TH2D("hist_test","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+    fill2DHistogram(&hist_test,mtx_data);
+    int cutoff_data = DetermineStableNumberOfEigenvalues(&hist_test,true);
     fill2DHistogram(&hist_test,mtx_dark);
-    NumberOfEigenvectors_Stable = DetermineStableNumberOfEigenvalues(&hist_test,true);
-    //NumberOfEigenvectors_Stable = NumberOfEigenvectors;
+    int cutoff_dark = DetermineStableNumberOfEigenvalues(&hist_test,true);
+    NumberOfEigenvectors_Stable = min(cutoff_data,cutoff_dark);
     std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
     if (DoSequential)
     {
-        for (int iteration=0;iteration<n_iterations;iteration++)
+        for (int rank=1; rank<=NumberOfEigenvectors_Stable; rank++)
         {
-            step_frac= 1.0;
-            if (NumberOfEigenvectors_Stable>=1)
+            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, rank, 1, 1.0, isBlind);
+            if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, rank, isBlind))
             {
-                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, step_frac, isBlind);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1, isBlind)) break;
-                mtx_data_bkgd = mtx_temp;
-            }
-            if (NumberOfEigenvectors_Stable>=2)
-            {
-                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 2, 1, step_frac, isBlind);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2, isBlind)) break;
-                mtx_data_bkgd = mtx_temp;
-            }
-            if (NumberOfEigenvectors_Stable>=3)
-            {
-                mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 3, 1, step_frac, isBlind);
-                if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 3, isBlind)) break;
                 mtx_data_bkgd = mtx_temp;
             }
         }
@@ -1014,25 +982,6 @@ void LeastSquareSolutionMethod(int rank_variation, int n_iterations, bool isBlin
         {
             return;
         }
-        //if (NumberOfEigenvectors_Stable>=1)
-        //{
-        //    mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 1, 1.0, isBlind);
-        //    if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 1, isBlind)) return;
-        //    mtx_data_bkgd = mtx_temp;
-        //}
-        //if (NumberOfEigenvectors_Stable>=2)
-        //{
-        //    mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 2, 1.0, isBlind);
-        //    if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 2, isBlind)) return;
-        //    mtx_data_bkgd = mtx_temp;
-        //}
-        //if (NumberOfEigenvectors_Stable>=3)
-        //{
-        //    mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, 3, 1.0, isBlind);
-        //    if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, 3, isBlind)) return;
-        //    mtx_data_bkgd = mtx_temp;
-        //}
-        //
         mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, NumberOfEigenvectors_Stable, 1.0, isBlind);
         if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, NumberOfEigenvectors_Stable, isBlind))
         {
@@ -1101,13 +1050,41 @@ void GetCRReplacedMatrix(TH2D* hist_data, TH2D* hist_dark)
     hist_dark->Reset();
     hist_dark->Add(&hist_temp);
 }
-void GetNoiseReplacedMatrix(TH2D* hist_data, TH2D* hist_dark)
+void GetEigenvaluesReplacedMatrix(TH2D* hist_input, TH2D* hist_output)
+{
+    MatrixXcd mtx_input = fillMatrix(hist_input);
+    ComplexEigenSolver<MatrixXcd> eigensolver_input = ComplexEigenSolver<MatrixXcd>(mtx_input);
+    MatrixXcd mtx_output = fillMatrix(hist_output);
+    ComplexEigenSolver<MatrixXcd> eigensolver_output = ComplexEigenSolver<MatrixXcd>(mtx_output);
+    MatrixXcd mtx_eigenvector_output = eigensolver_output.eigenvectors();
+    MatrixXcd mtx_eigenvector_inv_output = eigensolver_output.eigenvectors().inverse();
+    MatrixXcd mtx_eigenvalue_output = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
+    for (int row=0;row<mtx_output.rows();row++)
+    {
+        for (int col=0;col<mtx_output.cols();col++)
+        {
+            mtx_eigenvalue_output(row,col) = 0.;
+            if (row==col)
+            {
+                double ratio = eigensolver_input.eigenvalues()(col).real()/eigensolver_input.eigenvalues()(mtx_output.rows()-1).real();
+                double new_eigenvalue = eigensolver_output.eigenvalues()(mtx_output.rows()-1).real()*ratio;
+                mtx_eigenvalue_output(row,col) = new_eigenvalue;
+            }
+        }
+    }
+    mtx_output = mtx_eigenvector_output*mtx_eigenvalue_output*mtx_eigenvector_inv_output;
+    fill2DHistogram(hist_output,mtx_output);
+}
+void GetNoiseReplacedMatrix(TH2D* hist_data, TH2D* hist_dark, bool isTight)
 {
     TH2D hist_data_temp = TH2D("hist_data_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
     TH2D hist_data_noise = TH2D("hist_data_noise","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
     TH2D hist_dark_temp = TH2D("hist_dark_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
 
-    int cutoff = DetermineStableNumberOfEigenvalues(hist_data,false);
+    int cutoff_data = DetermineStableNumberOfEigenvalues(hist_data,false);
+    int cutoff_dark = DetermineStableNumberOfEigenvalues(hist_dark,false);
+    int cutoff = min(cutoff_data,cutoff_dark);
+    //if (isTight) cutoff = max(0,cutoff-2);
     //int cutoff = NumberOfEigenvectors;
     //std::cout << "noise vector rank: " << cutoff << std::endl;
     GetTruncatedMatrix(hist_data,&hist_data_temp,cutoff);
@@ -1158,21 +1135,21 @@ void AlterDarkMatrix(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_dark_alter)
     }
     if (UseReplacedNoise)
     {
-        GetNoiseReplacedMatrix(hist_data,hist_dark_alter);
+        GetNoiseReplacedMatrix(hist_data,hist_dark_alter,false);
     }
     if (UseReplacedONData)
     {
         GetCRReplacedMatrix(hist_data,hist_dark_alter);
-        GetNoiseReplacedMatrix(hist_data,hist_dark_alter);
+        GetNoiseReplacedMatrix(hist_data,hist_dark_alter,false);
     }
 
 }
 void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2, TH2D* Hist_Dark)
 {
 
-    TH2D Hist_Temp_Gamma = TH2D("Hist_Temp_Gamma","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-    fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
-    std::cout << "Hist_Temp_Gamma.Integral() = " << Hist_Temp_Gamma.Integral() << std::endl;
+    TH2D Hist_Temp2_Gamma = TH2D("Hist_Temp2_Gamma","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+    fill2DHistogram(&Hist_Temp2_Gamma,mtx_gamma_raw);
+    std::cout << "Hist_Temp2_Gamma.Integral() = " << Hist_Temp2_Gamma.Integral() << std::endl;
     TH2D Hist_Temp_Data = TH2D("Hist_Temp_Data","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
     fill2DHistogram(&Hist_Temp_Data,mtx_data);
     TH2D Hist_Temp_Dark = TH2D("Hist_Temp_Dark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
@@ -1190,7 +1167,7 @@ void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2, TH2D* 
     double Data_SR_Integral = Hist_Temp_Data.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
     double Data_Integral = Hist_Temp_Data.Integral();
     double Dark_Integral = Hist_Temp_Dark.Integral();
-    double Gamma_SR_Integral = Hist_Temp_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+    double Gamma_SR_Integral = Hist_Temp2_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
 
     if (Data_Integral==0.) return;
     if (Dark_Integral==0.) return;
@@ -1198,7 +1175,7 @@ void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2, TH2D* 
 
     Hist_Temp_Excess.Reset();
     Hist_Temp_Bkgd.Reset();
-    LeastSquareSolutionMethod(rank_variation, n_iterations, true);
+    LeastSquareSolutionMethod(false, true);
     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
     Hist_Temp_Excess.Add(&Hist_Temp_Data);
     Hist_Temp_Excess.Add(&Hist_Temp_Bkgd,-1.);
@@ -1209,19 +1186,19 @@ void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2, TH2D* 
     {
         Hist_Temp_Excess.Reset();
         Hist_Temp_Bkgd.Reset();
-        Hist_Temp_Gamma.Reset();
-        fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
+        Hist_Temp2_Gamma.Reset();
+        fill2DHistogram(&Hist_Temp2_Gamma,mtx_gamma_raw);
         double scale = Hist_Chi2->GetBinCenter(bin+1);
         double delta = Bkgd_SR_Integral*scale;
-        Hist_Temp_Gamma.Scale((Excess_SR_Integral+delta)/Gamma_SR_Integral);
-        std::cout << "Scaled Hist_Temp_Gamma.Integral() = " << Hist_Temp_Gamma.Integral() << std::endl;
-        mtx_gamma = fillMatrix(&Hist_Temp_Gamma);
-        LeastSquareSolutionMethod(rank_variation, n_iterations, false);
+        Hist_Temp2_Gamma.Scale((Excess_SR_Integral+delta)/Gamma_SR_Integral);
+        std::cout << "Scaled Hist_Temp2_Gamma.Integral() = " << Hist_Temp2_Gamma.Integral() << std::endl;
+        mtx_gamma = fillMatrix(&Hist_Temp2_Gamma);
+        LeastSquareSolutionMethod(false, false);
         fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
-        //GetNoiseReplacedMatrix(Hist_Dark,&Hist_Temp_Bkgd);
+        //GetNoiseReplacedMatrix(Hist_Dark,&Hist_Temp_Bkgd,true);
         Hist_Temp_Excess.Add(&Hist_Temp_Data);
         Hist_Temp_Excess.Add(&Hist_Temp_Bkgd,-1.);
-        Hist_Temp_Excess.Add(&Hist_Temp_Gamma,-1.);
+        Hist_Temp_Excess.Add(&Hist_Temp2_Gamma,-1.);
         //double chi2 = 0.;
         //for (int binx=0;binx<Hist_Temp_Excess.GetNbinsX();binx++)
         //{
@@ -1237,7 +1214,7 @@ void MinChi2Method(int rank_variation, int n_iterations, TH1D* Hist_Chi2, TH2D* 
     }
 
 }
-void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, int isUp, bool isON)
+void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, double SignalNorm, bool isON)
 {
 
     TH1::SetDefaultSumw2();
@@ -1261,25 +1238,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     camera_theta2_cut_lower = input_theta2_cut_lower;
     camera_theta2_cut_upper = input_theta2_cut_upper;
     sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
-    //sprintf(theta2_cut_tag, "_Y%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
-    if (isUp==0) 
-    {
-        UpDown = 0;
-        sprintf(updown_tag, "_Up");
-    }
-    else if (isUp==1)
-    {
-        UpDown = 1;
-        sprintf(updown_tag, "_Dw");
-    }
-    else if (isUp==2)
-    {
-        UpDown = 2;
-        sprintf(updown_tag, "");
-    }
-
+    sprintf(signal_tag, "_S%d", int(SignalNorm*100.));
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
+    sprintf(elev_cut_tag, "_TelElev%dto%d", int(TelElev_lower), int(TelElev_upper));
     MSCW_cut_blind = MSCW_cut_moderate;
     MSCL_cut_blind = MSCL_cut_moderate;
     if (TString(target).Contains("Crab"))
@@ -1291,14 +1253,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         }
     }
     if (TString(target).Contains("Mrk421"))
-    {
-        if (source_theta2_cut==0.)
-        {
-            MSCW_cut_blind = MSCW_cut_loose;
-            MSCL_cut_blind = MSCL_cut_loose;
-        }
-    }
-    if (TString(target).Contains("MGRO_J1908"))
     {
         if (source_theta2_cut==0.)
         {
@@ -1337,7 +1291,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<double>* Data_runlist_elev_ptr = new std::vector<double>(10);
     vector<double>* Data_runlist_exposure_ptr = new std::vector<double>(10);
     vector<string>* roi_name_ptr = new std::vector<string>(10);
-    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(updown_tag)+"_"+ONOFF_tag+".root");
+    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+"_"+ONOFF_tag+".root");
     TTree* InfoTree_ptr = nullptr;
     InfoTree_ptr = (TTree*) InputDataFile.Get("InfoTree");
     InfoTree_ptr->SetBranchAddress("Data_runlist_name",&Data_runlist_name_ptr);
@@ -1494,10 +1448,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     mtx_dark = fillMatrix(&hist_dark_alter);
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
                     mtx_data_bkgd = mtx_dark;
-                    //LeastSquareSolutionMethod(NumberOfEigenvectors, n_iterations, true);
+                    //LeastSquareSolutionMethod(false, true);
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
-                    //GetNoiseReplacedMatrix(&Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e),&Hist_Temp_Bkgd);
+                    //GetNoiseReplacedMatrix(&Hist_OneGroup_OffDark_MSCLW.at(nth_sample).at(e),&Hist_Temp_Bkgd,true);
                     Hist_OffData_MSCLW.at(nth_sample).at(e).Add(&Hist_OneGroup_OffData_MSCLW.at(nth_sample).at(e));
                     Hist_OffBkgd_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
 
@@ -1944,6 +1898,20 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
             if (group_size.at(e)>=group_size_limit[e] || on_run==Data_runlist_number_ptr->size()-1)
             {
+
+                TH2D Hist_Temp_Gamma = TH2D("Hist_Temp_Gamma","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+                int binx_lower = Hist_Temp_Gamma.GetXaxis()->FindBin(MSCL_cut_lower);
+                int binx_blind = Hist_Temp_Gamma.GetXaxis()->FindBin(MSCL_cut_blind)-1;
+                int binx_upper = Hist_Temp_Gamma.GetXaxis()->FindBin(1.)-1;
+                int biny_lower = Hist_Temp_Gamma.GetYaxis()->FindBin(MSCW_cut_lower);
+                int biny_blind = Hist_Temp_Gamma.GetYaxis()->FindBin(MSCW_cut_blind)-1;
+                int biny_upper = Hist_Temp_Gamma.GetYaxis()->FindBin(1.)-1;
+                fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
+                double Gamma_SR_Integral = Hist_Temp_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+                double Data_SR_Integral = Hist_OneGroup_Data_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+                Hist_Temp_Gamma.Scale((Data_SR_Integral*SignalNorm)/Gamma_SR_Integral);
+                Hist_OneGroup_Data_MSCLW.at(e).Add(&Hist_Temp_Gamma);
+
                 mtx_data = fillMatrix(&Hist_OneGroup_Data_MSCLW.at(e));
                 eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
                 for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
@@ -1961,17 +1929,36 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     int error_bin = Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
                     chi2_norm += 1./pow(Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetBinCenter(error_bin),2);
                 }
+
                 for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
                 {
+
                     NormalizaDarkMatrix(&Hist_OneGroup_Data_MSCLW.at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
                     TH2D hist_dark_alter = TH2D("hist_dark_alter","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     AlterDarkMatrix(&Hist_OneGroup_Data_MSCLW.at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e), &hist_dark_alter);
+
+                    fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
+                    Gamma_SR_Integral = Hist_Temp_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+                    Hist_Temp_Gamma.Scale((0.0)/Gamma_SR_Integral);
+                    mtx_gamma = fillMatrix(&Hist_Temp_Gamma);
+
                     mtx_dark = fillMatrix(&hist_dark_alter);
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-                    LeastSquareSolutionMethod(NumberOfEigenvectors, n_iterations, true);
+                    LeastSquareSolutionMethod(false, true);
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
-                    //GetNoiseReplacedMatrix(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),&Hist_Temp_Bkgd);
+                    //GetNoiseReplacedMatrix(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),&Hist_Temp_Bkgd,true);
+                    
+                    double Bkgd_SR_Integral = Hist_Temp_Bkgd.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+
+                    //fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
+                    //Gamma_SR_Integral = Hist_Temp_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+                    //Hist_Temp_Gamma.Scale(max(0.,Data_SR_Integral-Bkgd_SR_Integral)/Gamma_SR_Integral);
+                    //GetNoiseReplacedMatrix(&Hist_OneGroup_Data_MSCLW.at(e),&Hist_Temp_Gamma,true);
+                    //mtx_gamma = fillMatrix(&Hist_Temp_Gamma);
+                    //LeastSquareSolutionMethod(false, true);
+                    //fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
+                    
                     double dark_weight = 1./double(n_dark_samples);
                     int error_bin = Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
                     double bkgd_weight = 1./pow(Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetBinCenter(error_bin),2);
@@ -1984,25 +1971,18 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     Hist_OnSyst_Chi2.at(nth_sample).at(e).Add(&Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e));
                     Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).Reset();
                     
-                    int binx_lower = Hist_Temp_Bkgd.GetXaxis()->FindBin(MSCL_cut_lower);
-                    int binx_blind = Hist_Temp_Bkgd.GetXaxis()->FindBin(MSCL_cut_blind)-1;
-                    int binx_upper = Hist_Temp_Bkgd.GetXaxis()->FindBin(1.)-1;
-                    int biny_lower = Hist_Temp_Bkgd.GetYaxis()->FindBin(MSCW_cut_lower);
-                    int biny_blind = Hist_Temp_Bkgd.GetYaxis()->FindBin(MSCW_cut_blind)-1;
-                    int biny_upper = Hist_Temp_Bkgd.GetYaxis()->FindBin(1.)-1;
-                    double Bkgd_SR_Integral = Hist_Temp_Bkgd.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-                    TH2D Hist_Temp_Gamma = TH2D("Hist_Temp_Gamma","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
-                    double Gamma_SR_Integral = Hist_Temp_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+                    Gamma_SR_Integral = Hist_Temp_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
                     Hist_Temp_Gamma.Scale((Bkgd_SR_Integral*0.0)/Gamma_SR_Integral);
                     mtx_gamma = fillMatrix(&Hist_Temp_Gamma);
-                    LeastSquareSolutionMethod(NumberOfEigenvectors, n_iterations, false);
+                    LeastSquareSolutionMethod(false, false);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     Hist_OneGroup_Bkgd_Unblind_woGamma_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
                     fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
+                    Gamma_SR_Integral = Hist_Temp_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
                     Hist_Temp_Gamma.Scale((Bkgd_SR_Integral*0.1)/Gamma_SR_Integral);
                     mtx_gamma = fillMatrix(&Hist_Temp_Gamma);
-                    LeastSquareSolutionMethod(NumberOfEigenvectors, n_iterations, false);
+                    LeastSquareSolutionMethod(false, false);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     Hist_OneGroup_Bkgd_Unblind_wGamma_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
                     Hist_OneGroup_Gamma_MSCLW.at(e).Reset();
@@ -2155,6 +2135,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 std::cout << eigensolver_data.eigenvalues()(mtx_data.cols()-2) << std::endl;
                 std::cout << "eigensolver_data.eigenvalues()(mtx_data.cols()-3):" << std::endl;
                 std::cout << eigensolver_data.eigenvalues()(mtx_data.cols()-3) << std::endl;
+                std::cout << "eigensolver_data.eigenvalues()(mtx_data.cols()-4):" << std::endl;
+                std::cout << eigensolver_data.eigenvalues()(mtx_data.cols()-4) << std::endl;
                 std::cout << "=====================================================================" << std::endl;
                 std::cout << "eigensolver_dark.eigenvalues()(mtx_dark.cols()-1):" << std::endl;
                 std::cout << eigensolver_dark.eigenvalues()(mtx_dark.cols()-1) << std::endl;
@@ -2162,6 +2144,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 std::cout << eigensolver_dark.eigenvalues()(mtx_dark.cols()-2) << std::endl;
                 std::cout << "eigensolver_dark.eigenvalues()(mtx_dark.cols()-3):" << std::endl;
                 std::cout << eigensolver_dark.eigenvalues()(mtx_dark.cols()-3) << std::endl;
+                std::cout << "eigensolver_dark.eigenvalues()(mtx_dark.cols()-4):" << std::endl;
+                std::cout << eigensolver_dark.eigenvalues()(mtx_dark.cols()-4) << std::endl;
                 std::cout << "=====================================================================" << std::endl;
                 std::cout << "eigensolver_bkgd.eigenvalues()(mtx_data.cols()-1):" << std::endl;
                 std::cout << eigensolver_bkgd.eigenvalues()(mtx_data.cols()-1) << std::endl;
@@ -2169,6 +2153,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 std::cout << eigensolver_bkgd.eigenvalues()(mtx_data.cols()-2) << std::endl;
                 std::cout << "eigensolver_bkgd.eigenvalues()(mtx_data.cols()-3):" << std::endl;
                 std::cout << eigensolver_bkgd.eigenvalues()(mtx_data.cols()-3) << std::endl;
+                std::cout << "eigensolver_bkgd.eigenvalues()(mtx_data.cols()-4):" << std::endl;
+                std::cout << eigensolver_bkgd.eigenvalues()(mtx_data.cols()-4) << std::endl;
                 std::cout << "=====================================================================" << std::endl;
 
                 GetReducedEigenvalueMatrix(0);
@@ -2244,7 +2230,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     }
 
 
-    TFile InputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(updown_tag)+"_"+ONOFF_tag+".root");
+    TFile InputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+"_"+ONOFF_tag+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputFile.Get("InfoTree");
     TTree* StarTree = nullptr;
@@ -2255,7 +2241,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     hist_name  = "Hist_EffArea";
     Hist_EffArea.Add( (TH2D*)InputFile.Get(hist_name) );
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(updown_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(signal_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
     TTree *newtree = InfoTree->CloneTree();
     newtree->Write();
