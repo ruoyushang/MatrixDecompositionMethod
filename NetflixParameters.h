@@ -9,7 +9,7 @@ double svd_threshold = 1e-4; // size of singular value to be considered as nonze
 //double svd_threshold = 1e-20; // size of singular value to be considered as nonzero.
 
 //char output_file2_tag[50] = "mdm_nominal";
-char output_file2_tag[50] = "mdm_test";
+char output_file2_tag[50] = "mdm_truncate";
 
 //bool solution_w_regularizations = true;
 bool solution_w_regularizations = false;
@@ -23,8 +23,8 @@ bool UseTruncatedONData = false;
 //bool UseReplacedONData = true;
 bool UseReplacedONData = false;
 
-//bool UseReplacedNoise = true;
-bool UseReplacedNoise = false;
+bool UseReplacedNoise = true;
+//bool UseReplacedNoise = false;
 
 int NumberOfEigenvectors = 4;
 int NumberOfRealEigenvectors = 4;

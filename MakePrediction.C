@@ -900,6 +900,7 @@ int DetermineStableNumberOfEigenvalues(TH2D* hist_input, bool IsTight)
         if (Full_SR_Integral==0.) break;
         double real_lambda = eigensolver_temp.eigenvalues()(N_bins_for_deconv-cutoff).real();
         double imag_lambda = eigensolver_temp.eigenvalues()(N_bins_for_deconv-cutoff).imag();
+        double next_lambda = eigensolver_temp.eigenvalues()(N_bins_for_deconv-cutoff-1).real();
         //if (IsTight)
         //{
         //    std::cout << "rank = " << cutoff << std::endl;
@@ -908,6 +909,7 @@ int DetermineStableNumberOfEigenvalues(TH2D* hist_input, bool IsTight)
         //}
         if (abs(imag_lambda)/abs(real_lambda)>0.01) break;
         if (real_lambda<0.) break;
+        if (next_lambda/real_lambda>0.4) break;
         stable_number = cutoff;
         double noise_ratio = abs(Full_SR_Integral-Truncated_SR_Integral)/Full_SR_Integral;
         double noise_significance = abs(Full_SR_Integral-Truncated_SR_Integral)/pow(Full_SR_Integral,0.5);
@@ -964,6 +966,7 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind)
     fill2DHistogram(&hist_test,mtx_dark);
     int cutoff_dark = DetermineStableNumberOfEigenvalues(&hist_test,true);
     NumberOfEigenvectors_Stable = min(cutoff_data,cutoff_dark);
+    //NumberOfEigenvectors_Stable = cutoff_data;
     std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
     if (DoSequential)
     {
@@ -1084,9 +1087,7 @@ void GetNoiseReplacedMatrix(TH2D* hist_data, TH2D* hist_dark, bool isTight)
     int cutoff_data = DetermineStableNumberOfEigenvalues(hist_data,false);
     int cutoff_dark = DetermineStableNumberOfEigenvalues(hist_dark,false);
     int cutoff = min(cutoff_data,cutoff_dark);
-    //if (isTight) cutoff = max(0,cutoff-2);
-    //int cutoff = NumberOfEigenvectors;
-    //std::cout << "noise vector rank: " << cutoff << std::endl;
+    //int cutoff = cutoff_data;
     GetTruncatedMatrix(hist_data,&hist_data_temp,cutoff);
     GetTruncatedMatrix(hist_dark,&hist_dark_temp,cutoff);
     hist_data_noise.Add(hist_data);
