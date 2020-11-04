@@ -53,12 +53,15 @@ MatrixXcd mtx_dark;
 MatrixXcd mtx_data_bkgd;
 MatrixXcd mtx_gamma_raw;
 MatrixXcd mtx_gamma;
+MatrixXcd mtx_eigenvalue_data;
 MatrixXcd mtx_eigenvalue_dark;
 MatrixXcd mtx_eigenvalue_init;
 MatrixXcd mtx_eigenvalue_vari;
+MatrixXcd mtx_eigenvector_data;
 MatrixXcd mtx_eigenvector_dark;
 MatrixXcd mtx_eigenvector_init;
 MatrixXcd mtx_eigenvector_vari;
+MatrixXcd mtx_eigenvector_inv_data;
 MatrixXcd mtx_eigenvector_inv_dark;
 MatrixXcd mtx_eigenvector_inv_init;
 MatrixXcd mtx_eigenvector_inv_vari;
@@ -69,10 +72,10 @@ MatrixXcd mtx_eigenval_data_redu;
 MatrixXcd mtx_data_redu;
 ComplexEigenSolver<MatrixXcd> eigensolver_bkgd;
 ComplexEigenSolver<MatrixXcd> eigensolver_bkgd_transpose;
-ComplexEigenSolver<MatrixXcd> eigensolver_data;
-ComplexEigenSolver<MatrixXcd> eigensolver_data_transpose;
 ComplexEigenSolver<MatrixXcd> eigensolver_dark;
 ComplexEigenSolver<MatrixXcd> eigensolver_dark_transpose;
+ComplexEigenSolver<MatrixXcd> eigensolver_data;
+ComplexEigenSolver<MatrixXcd> eigensolver_data_transpose;
 ComplexEigenSolver<MatrixXcd> eigensolver_init;
 ComplexEigenSolver<MatrixXcd> eigensolver_init_transpose;
 int binx_blind_global;
@@ -90,12 +93,15 @@ void ResetMatrixDimension()
     mtx_data_bkgd = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_gamma_raw = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_gamma = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
+    mtx_eigenvalue_data = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_eigenvalue_dark = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_eigenvalue_init = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_eigenvalue_vari = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
+    mtx_eigenvector_data = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_eigenvector_dark = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_eigenvector_init = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_eigenvector_vari = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
+    mtx_eigenvector_inv_data = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_eigenvector_inv_dark = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_eigenvector_inv_init = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_eigenvector_inv_vari = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
@@ -305,11 +311,21 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
     mtx_U_r_dark = MakeRealEigenvectors(mtx_U_r_dark);
     mtx_U_l_dark = MakeRealEigenvectors(mtx_U_l_dark);
 
+    eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
+    eigensolver_data_transpose = ComplexEigenSolver<MatrixXcd>(mtx_data.transpose());
+    MatrixXcd mtx_U_r_data = eigensolver_data.eigenvectors();
+    MatrixXcd mtx_U_l_data = eigensolver_data_transpose.eigenvectors();
+    mtx_U_r_data = MakeRealEigenvectors(mtx_U_r_data);
+    mtx_U_l_data = MakeRealEigenvectors(mtx_U_l_data);
+
     MatrixXcd mtx_lambdanu = GetLambdaNuMatrix_v2(mtx_input,mtx_input);
     mtx_lambdanu = CutoffEigenvalueMatrix(mtx_lambdanu, NumberOfRealEigenvectors);
 
     MatrixXcd mtx_lambdanu_dark = GetLambdaNuMatrix_v2(mtx_dark,mtx_dark);
     mtx_lambdanu_dark = CutoffEigenvalueMatrix(mtx_lambdanu_dark, NumberOfRealEigenvectors);
+
+    MatrixXcd mtx_lambdanu_data = GetLambdaNuMatrix_v2(mtx_data,mtx_data);
+    mtx_lambdanu_data = CutoffEigenvalueMatrix(mtx_lambdanu_data, NumberOfRealEigenvectors);
 
     const std::complex<double> If(0.0, 1.0);
     int col_fix = 0;
@@ -329,32 +345,11 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
             mtx_eigenvector_dark(row,col) = mtx_U_r_dark(row,col);
             mtx_eigenvector_inv_dark(row,col) = mtx_U_l_dark.transpose()(row,col);
             mtx_eigenvalue_dark(row,col) = mtx_lambdanu_dark(row,col);
+            mtx_eigenvector_data(row,col) = mtx_U_r_data(row,col);
+            mtx_eigenvector_inv_data(row,col) = mtx_U_l_data.transpose()(row,col);
+            mtx_eigenvalue_data(row,col) = mtx_lambdanu_data(row,col);
         }
     }
-
-    //for (int col=0;col<N_bins_for_deconv;col++)
-    //{
-    //    double lambda = mtx_eigenvalue_init(col,col).real();
-    //    if (lambda==0.) continue;
-    //    double sign = 1.;
-    //    if (lambda<0.) sign = -1.;
-    //    double sqrt_lambda = pow(abs(lambda),0.5);
-    //    for (int row=0;row<N_bins_for_deconv;row++)
-    //    {
-    //        //mtx_eigenvector_init(row,col) = mtx_U_r_init(row,col)*sign*sqrt_lambda;
-    //        //mtx_eigenvector_inv_init(col,row) = mtx_U_l_init.transpose()(col,row)*sqrt_lambda;
-    //        mtx_eigenvector_init(row,col) = mtx_U_r_init(row,col)*lambda;
-    //        mtx_eigenvector_inv_init(col,row) = mtx_U_l_init.transpose()(col,row);
-    //        mtx_eigenvalue_init(row,col) = 0.;
-    //        if (col==row) mtx_eigenvalue_init(row,col) = 1.;
-    //        //mtx_eigenvector_dark(row,col) = mtx_U_r_dark(row,col)*sign*sqrt_lambda;
-    //        //mtx_eigenvector_inv_dark(col,row) = mtx_U_l_dark.transpose()(col,row)*sqrt_lambda;
-    //        mtx_eigenvector_dark(row,col) = mtx_U_r_dark(row,col)*lambda;
-    //        mtx_eigenvector_inv_dark(col,row) = mtx_U_l_dark.transpose()(col,row);
-    //        mtx_eigenvalue_dark(row,col) = 0.;
-    //        if (col==row) mtx_eigenvalue_dark(row,col) = 1.;
-    //    }
-    //}
 
 }
 MatrixXcd GetErrorMap()
@@ -660,13 +655,19 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     MatrixXcd mtx_q_dark = mtx_eigenvector_dark;
     MatrixXcd mtx_p_dark = mtx_eigenvector_inv_dark.transpose();
 
+    MatrixXcd mtx_S_data = mtx_eigenvalue_data;
+    MatrixXcd mtx_H_data = mtx_eigenvector_inv_data*mtx_eigenvector_data;
+
     int truncate_cutoff = 3;
-    double sign_3 = mtx_S(mtx_S.rows()-3,mtx_S.rows()-3).real()*mtx_H_init(mtx_S.rows()-3,mtx_S.rows()-3).real();
-    double sign_2 = mtx_S(mtx_S.rows()-2,mtx_S.rows()-2).real()*mtx_H_init(mtx_S.rows()-2,mtx_S.rows()-2).real();
-    double sign_1 = mtx_S(mtx_S.rows()-1,mtx_S.rows()-1).real()*mtx_H_init(mtx_S.rows()-1,mtx_S.rows()-1).real();
-    if (sign_3<0.) truncate_cutoff = 2;
-    if (sign_2<0.) truncate_cutoff = 1;
-    if (sign_1<0.) truncate_cutoff = 0;
+    double sign_3_init = mtx_S(mtx_S.rows()-3,mtx_S.rows()-3).real()*mtx_H_init(mtx_S.rows()-3,mtx_S.rows()-3).real();
+    double sign_2_init = mtx_S(mtx_S.rows()-2,mtx_S.rows()-2).real()*mtx_H_init(mtx_S.rows()-2,mtx_S.rows()-2).real();
+    double sign_1_init = mtx_S(mtx_S.rows()-1,mtx_S.rows()-1).real()*mtx_H_init(mtx_S.rows()-1,mtx_S.rows()-1).real();
+    double sign_3_data = mtx_S_data(mtx_S.rows()-3,mtx_S.rows()-3).real()*mtx_H_data(mtx_S.rows()-3,mtx_S.rows()-3).real();
+    double sign_2_data = mtx_S_data(mtx_S.rows()-2,mtx_S.rows()-2).real()*mtx_H_data(mtx_S.rows()-2,mtx_S.rows()-2).real();
+    double sign_1_data = mtx_S_data(mtx_S.rows()-1,mtx_S.rows()-1).real()*mtx_H_data(mtx_S.rows()-1,mtx_S.rows()-1).real();
+    if (sign_3_init<0. || sign_3_data<0.) truncate_cutoff = 2;
+    if (sign_2_init<0. || sign_2_data<0.) truncate_cutoff = 1;
+    if (sign_1_init<0. || sign_1_data<0.) truncate_cutoff = 0;
     MatrixXcd mtx_data_truncated = mtx_data;
     MatrixXcd mtx_input_truncated = mtx_input;
     if (TruncateNoise)
@@ -1092,6 +1093,15 @@ void GetNoiseReplacedMatrix(TH2D* hist_data, TH2D* hist_dark, bool isTight)
     TH2D hist_dark_temp = TH2D("hist_dark_temp","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
 
     int cutoff = 3;
+    MatrixXcd mtx_S = mtx_eigenvalue_dark;
+    MatrixXcd mtx_H_init = mtx_eigenvector_inv_dark*mtx_eigenvector_dark;
+    double sign_3 = mtx_S(mtx_S.rows()-3,mtx_S.rows()-3).real()*mtx_H_init(mtx_S.rows()-3,mtx_S.rows()-3).real();
+    double sign_2 = mtx_S(mtx_S.rows()-2,mtx_S.rows()-2).real()*mtx_H_init(mtx_S.rows()-2,mtx_S.rows()-2).real();
+    double sign_1 = mtx_S(mtx_S.rows()-1,mtx_S.rows()-1).real()*mtx_H_init(mtx_S.rows()-1,mtx_S.rows()-1).real();
+    if (sign_3<0.) cutoff = 2;
+    if (sign_2<0.) cutoff = 1;
+    if (sign_1<0.) cutoff = 0;
+
     GetTruncatedHistogram(hist_data,&hist_data_temp,cutoff);
     GetTruncatedHistogram(hist_dark,&hist_dark_temp,cutoff);
     hist_data_noise.Add(hist_data);
@@ -1138,14 +1148,9 @@ void AlterDarkMatrix(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_dark_alter)
     {
         GetTruncatedHistogram(hist_data,hist_dark_alter,3);
     }
-    //if (TruncateNoise)
-    //{
-    //    GetNoiseReplacedMatrix(hist_data,hist_dark_alter,false);
-    //}
     if (UseReplacedONData)
     {
         GetCRReplacedMatrix(hist_data,hist_dark_alter);
-        //GetNoiseReplacedMatrix(hist_data,hist_dark_alter,false);
     }
 
 }
@@ -1950,6 +1955,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     LeastSquareSolutionMethod(false, true);
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
+                    //GetNoiseReplacedMatrix(&Hist_OneGroup_Data_MSCLW.at(e),&Hist_Temp_Bkgd,false);
                     
                     double Bkgd_SR_Integral = Hist_Temp_Bkgd.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
 
