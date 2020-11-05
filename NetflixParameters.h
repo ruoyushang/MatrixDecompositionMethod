@@ -1,30 +1,26 @@
 
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
-//double svd_threshold = 1e-1; // size of singular value to be considered as nonzero.
-//double svd_threshold = 1e-3; // size of singular value to be considered as nonzero.
-double svd_threshold = 1e-4; // size of singular value to be considered as nonzero.
-//double svd_threshold = 1e-5; // size of singular value to be considered as nonzero.
-//double svd_threshold = 1e-9; // size of singular value to be considered as nonzero.
+//double svd_threshold = 1e-4; // size of singular value to be considered as nonzero.
+
+//char output_file2_tag[50] = "mdm_null";
 //double svd_threshold = 1e-20; // size of singular value to be considered as nonzero.
-
-//char output_file2_tag[50] = "mdm_nominal";
-char output_file2_tag[50] = "mdm_truncate";
-
-//bool solution_w_regularizations = true;
-bool solution_w_regularizations = false;
-
-bool solution_w_constraints = true;
-//bool solution_w_constraints = false;
-
-//bool UseTruncatedONData = true;
-bool UseTruncatedONData = false;
-
+//bool solution_w_regularizations = false;
+//bool solution_w_constraints = true;
 //bool UseReplacedONData = true;
-bool UseReplacedONData = false;
+//bool TruncateNoise = true;
+//bool UseMinChi2 = false;
 
-bool UseReplacedNoise = true;
-//bool UseReplacedNoise = false;
+char output_file2_tag[50] = "mdm_minchi2";
+double svd_threshold = 1e-20; // size of singular value to be considered as nonzero.
+bool solution_w_regularizations = false;
+bool solution_w_constraints = true;
+bool UseReplacedONData = false;
+bool TruncateNoise = true;
+bool UseMinChi2 = true;
+
+
+bool UseTruncatedONData = false;
 
 int NumberOfEigenvectors = 4;
 int NumberOfRealEigenvectors = 4;
@@ -39,7 +35,7 @@ double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.2;
 
 int n_iterations = 3;
-int n_dark_samples = 3;
+int n_dark_samples = 1;
 const int N_energy_bins = 6;
 double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.33),pow(10,2.66),pow(10,3.0),pow(10,3.33),pow(10,3.66),pow(10,4.0)};
 const int N_energy_fine_bins = 20;
