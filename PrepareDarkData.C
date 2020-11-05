@@ -41,8 +41,9 @@ using namespace Eigen;
 double TelElev_lower = 70.;
 double TelElev_upper = 80.;
 char target[50] = "";
+char elev_cut_tag[50] = "";
 char theta2_cut_tag[50] = "";
-char updown_tag[50] = "";
+char signal_tag[50] = "";
 char mjd_cut_tag[50] = "";
 double SizeSecondMax_Cut = 0.;
 
@@ -567,14 +568,6 @@ bool DarkFoV() {
     if (R2off>camera_theta2_cut_upper) return false;
     //if (Yoff<camera_theta2_cut_lower) return false;
     //if (Yoff>camera_theta2_cut_upper) return false;
-    if (UpDown==0)
-    {
-        if (Yoff<0.) return false;
-    }
-    else if (UpDown==1)
-    {
-        if (Yoff>=0.) return false;
-    }
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
@@ -585,14 +578,6 @@ bool FoV(bool remove_bright_stars) {
     if (R2off>camera_theta2_cut_upper) return false;
     //if (Yoff<camera_theta2_cut_lower) return false;
     //if (Yoff>camera_theta2_cut_upper) return false;
-    if (UpDown==0)
-    {
-        if (Yoff<0.) return false;
-    }
-    else if (UpDown==1)
-    {
-        if (Yoff>=0.) return false;
-    }
     double x = ra_sky-mean_tele_point_ra;
     double y = dec_sky-mean_tele_point_dec;
     if (source_theta2_cut>(x*x+y*y)) return false;
@@ -1249,7 +1234,7 @@ void SetEventDisplayTreeBranch(TTree* Data_tree)
     Data_tree->SetBranchAddress("MJD",&MJD);
 }
 
-void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, int isUp, bool isON, bool doRaster)
+void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doRaster)
 {
 
     TH1::SetDefaultSumw2();
@@ -1272,25 +1257,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     camera_theta2_cut_lower = input_theta2_cut_lower;
     camera_theta2_cut_upper = input_theta2_cut_upper;
     sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
-    //sprintf(theta2_cut_tag, "_Y%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
-    if (isUp==0) 
-    {
-        UpDown = 0;
-        sprintf(updown_tag, "_Up");
-    }
-    else if (isUp==1)
-    {
-        UpDown = 1;
-        sprintf(updown_tag, "_Dw");
-    }
-    else if (isUp==2)
-    {
-        UpDown = 2;
-        sprintf(updown_tag, "");
-    }
     sprintf(target, "%s", target_data.c_str());
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
+    sprintf(elev_cut_tag, "_TelElev%dto%d", int(TelElev_lower), int(TelElev_upper));
     MSCW_cut_blind = MSCW_cut_moderate;
     MSCL_cut_blind = MSCL_cut_moderate;
     if (TString(target).Contains("Crab"))
@@ -2037,6 +2007,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 if (R2off>9.) continue;
                 if (R2off<camera_theta2_cut_lower) continue;
                 if (R2off>camera_theta2_cut_upper) continue;
+                if (!FoV(true)) continue;
                 Hist_OnData_VR_Skymap.at(run).at(energy).Fill(ra_sky,dec_sky);
                 Hist_OnData_VR_Skymap_Galactic.at(run).at(energy).Fill(evt_l_b.first,evt_l_b.second);
             }
@@ -2281,7 +2252,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
 
 
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_TelElev"+std::to_string(int(TelElev_lower))+"to"+std::to_string(int(TelElev_upper))+TString(theta2_cut_tag)+TString(updown_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
+    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("N_bins_for_deconv",&N_bins_for_deconv,"N_bins_for_deconv/I");
