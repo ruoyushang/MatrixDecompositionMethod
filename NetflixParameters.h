@@ -1,33 +1,35 @@
 
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
-//double svd_threshold = 1e-4; // size of singular value to be considered as nonzero.
-
-//char output_file2_tag[50] = "mdm_null";
-//double svd_threshold = 1e-20; // size of singular value to be considered as nonzero.
-//bool solution_w_regularizations = false;
-//bool solution_w_constraints = true;
-//bool UseReplacedONData = true;
-//bool TruncateNoise = true;
-//bool UseMinChi2 = false;
-
-char output_file2_tag[50] = "mdm_minchi2";
-double svd_threshold = 1e-20; // size of singular value to be considered as nonzero.
+bool UseTruncatedONData = false;
 bool solution_w_regularizations = false;
 bool solution_w_constraints = true;
 bool UseReplacedONData = false;
-bool TruncateNoise = true;
-bool UseMinChi2 = true;
+bool UseMinChi2 = false;
+
+//char output_file2_tag[50] = "mdm_nominal";
+//bool TruncateNoise = true;
+//int NumberOfRealEigenvectors = 3;
+
+//char output_file2_tag[50] = "mdm_1vec";
+//bool TruncateNoise = true;
+//int NumberOfRealEigenvectors = 1;
+
+//char output_file2_tag[50] = "mdm_2vec";
+//bool TruncateNoise = true;
+//int NumberOfRealEigenvectors = 2;
+
+char output_file2_tag[50] = "mdm_full";
+bool TruncateNoise = false;
+int NumberOfRealEigenvectors = 3;
 
 
-bool UseTruncatedONData = false;
-
-int NumberOfEigenvectors = 4;
-int NumberOfRealEigenvectors = 4;
-int NumberOfEigenvectors_Stable = 4;
+int NumberOfEigenvectors_Stable = 3;
 double PercentCrab = 0.;
-double MSCW_cut_moderate = 0.5;
-double MSCL_cut_moderate = 0.6;
+//double MSCW_cut_moderate = 0.5;
+//double MSCL_cut_moderate = 0.6;
+double MSCW_cut_moderate = 0.9;
+double MSCL_cut_moderate = 1.0;
 double MSCW_cut_loose = 0.9;
 double MSCL_cut_loose = 1.0;
 double camera_theta2_cut_lower = 0.;

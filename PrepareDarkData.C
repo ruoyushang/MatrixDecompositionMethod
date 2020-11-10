@@ -1263,22 +1263,22 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     sprintf(elev_cut_tag, "_TelElev%dto%d", int(TelElev_lower), int(TelElev_upper));
     MSCW_cut_blind = MSCW_cut_moderate;
     MSCL_cut_blind = MSCL_cut_moderate;
-    if (TString(target).Contains("Crab"))
-    {
-        if (source_theta2_cut==0.)
-        {
-            MSCW_cut_blind = MSCW_cut_loose;
-            MSCL_cut_blind = MSCL_cut_loose;
-        }
-    }
-    if (TString(target).Contains("Mrk421"))
-    {
-        if (source_theta2_cut==0.)
-        {
-            MSCW_cut_blind = MSCW_cut_loose;
-            MSCL_cut_blind = MSCL_cut_loose;
-        }
-    }
+    //if (TString(target).Contains("Crab"))
+    //{
+    //    if (source_theta2_cut==0.)
+    //    {
+    //        MSCW_cut_blind = MSCW_cut_loose;
+    //        MSCL_cut_blind = MSCL_cut_loose;
+    //    }
+    //}
+    //if (TString(target).Contains("Mrk421"))
+    //{
+    //    if (source_theta2_cut==0.)
+    //    {
+    //        MSCW_cut_blind = MSCW_cut_loose;
+    //        MSCL_cut_blind = MSCL_cut_loose;
+    //    }
+    //}
 
     SizeSecondMax_Cut = 600.;
     if (TString(target).Contains("V4")) SizeSecondMax_Cut = 400.;
@@ -1324,6 +1324,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     GetBrightStars();
     GetGammaSources();
+
+    roi_name.push_back("Validation");
+    roi_ra.push_back(mean_tele_point_ra);
+    roi_dec.push_back(mean_tele_point_dec);
+    roi_radius.push_back(10.);
 
     if (TString(target).Contains("MGRO_J1908")) 
     {
@@ -1992,13 +1997,31 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_SR_Zenith.at(run).at(energy).Fill(Shower_Ze);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
-                        if (RoIFoV(nth_roi)) 
+                        if (nth_roi>0)
                         {
-                            Hist_OnData_SR_RoI_Energy.at(run).at(nth_roi).at(energy).Fill(ErecS*1000.);
-                            Hist_OnData_SR_RoI_MJD.at(run).at(nth_roi).at(energy).Fill(MJD);
+                            if (RoIFoV(nth_roi)) 
+                            {
+                                Hist_OnData_SR_RoI_Energy.at(run).at(nth_roi).at(energy).Fill(ErecS*1000.);
+                                Hist_OnData_SR_RoI_MJD.at(run).at(nth_roi).at(energy).Fill(MJD);
+                            }
+                            theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
+                            Hist_OnData_SR_Skymap_RoI_Theta2.at(run).at(nth_roi).at(energy).Fill(theta2_roi);
                         }
-                        theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                        Hist_OnData_SR_Skymap_RoI_Theta2.at(run).at(nth_roi).at(energy).Fill(theta2_roi);
+                        else
+                        {
+                            bool isRoI = false;
+                            for (int nth_roi2=1;nth_roi2<roi_ra.size();nth_roi2++)
+                            {
+                                if (RoIFoV(nth_roi2)) isRoI = true; 
+                            }
+                            if (!isRoI)
+                            {
+                                Hist_OnData_SR_RoI_Energy.at(run).at(nth_roi).at(energy).Fill(ErecS*1000.);
+                                Hist_OnData_SR_RoI_MJD.at(run).at(nth_roi).at(energy).Fill(MJD);
+                            }
+                            theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
+                            Hist_OnData_SR_Skymap_RoI_Theta2.at(run).at(nth_roi).at(energy).Fill(theta2_roi);
+                        }
                     }
                 }
             }
@@ -2007,7 +2030,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 if (R2off>9.) continue;
                 if (R2off<camera_theta2_cut_lower) continue;
                 if (R2off>camera_theta2_cut_upper) continue;
-                if (!FoV(true)) continue;
+                //if (!FoV(true)) continue;
                 Hist_OnData_VR_Skymap.at(run).at(energy).Fill(ra_sky,dec_sky);
                 Hist_OnData_VR_Skymap_Galactic.at(run).at(energy).Fill(evt_l_b.first,evt_l_b.second);
             }
@@ -2040,13 +2063,31 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_CR_Zenith.at(run).at(energy).Fill(Shower_Ze,weight_avg);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
-                        if (RoIFoV(nth_roi)) 
+                        if (nth_roi>0)
                         {
-                            Hist_OnData_CR_RoI_Energy.at(run).at(nth_roi).at(energy).Fill(ErecS*1000.,weight_avg);
-                            Hist_OnData_CR_RoI_MJD.at(run).at(nth_roi).at(energy).Fill(MJD,1.);
+                            if (RoIFoV(nth_roi)) 
+                            {
+                                Hist_OnData_CR_RoI_Energy.at(run).at(nth_roi).at(energy).Fill(ErecS*1000.,weight_avg);
+                                Hist_OnData_CR_RoI_MJD.at(run).at(nth_roi).at(energy).Fill(MJD,1.);
+                            }
+                            theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
+                            Hist_OnData_CR_Skymap_RoI_Theta2.at(run).at(nth_roi).at(energy).Fill(theta2_roi,weight_avg);
                         }
-                        theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                        Hist_OnData_CR_Skymap_RoI_Theta2.at(run).at(nth_roi).at(energy).Fill(theta2_roi,weight_avg);
+                        else
+                        {
+                            bool isRoI = false;
+                            for (int nth_roi2=1;nth_roi2<roi_ra.size();nth_roi2++)
+                            {
+                                if (RoIFoV(nth_roi2)) isRoI = true; 
+                            }
+                            if (!isRoI)
+                            {
+                                Hist_OnData_CR_RoI_Energy.at(run).at(nth_roi).at(energy).Fill(ErecS*1000.,weight_avg);
+                                Hist_OnData_CR_RoI_MJD.at(run).at(nth_roi).at(energy).Fill(MJD,1.);
+                            }
+                            theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
+                            Hist_OnData_CR_Skymap_RoI_Theta2.at(run).at(nth_roi).at(energy).Fill(theta2_roi,weight_avg);
+                        }
                     }
                 }
                 if (VRControlSelectionTheta2())
