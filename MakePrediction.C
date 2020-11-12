@@ -91,7 +91,7 @@ int VaryNthVector;
 double GammaScale = 0.;
 double MinChi2Unblind = 1e10;
 
-double svd_threshold = 1e-20; // size of singular value to be considered as nonzero.
+double svd_threshold = 1e-3; // size of singular value to be considered as nonzero.
 double svd_threshold_scale = 1.0;
 
 void ResetMatrixDimension()
@@ -140,7 +140,7 @@ void fill2DHistogramAbs(TH2D* hist,MatrixXcd mtx)
     {
         for (int biny=0;biny<hist->GetNbinsY();biny++)
         {
-            hist->SetBinContent(binx+1,biny+1,max(0.,mtx(binx,biny).real()));
+            hist->SetBinContent(binx+1,biny+1,abs(mtx(binx,biny)));
         }
     }
 }
@@ -301,8 +301,6 @@ MatrixXd SmoothingRealVectorsSpline(MatrixXd mtx_input)
 void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_input)
 {
 
-    std::cout << "SetInitialSpectralvectors..." << std::endl;
-
     eigensolver_init = ComplexEigenSolver<MatrixXcd>(mtx_input);
     eigensolver_init_transpose = ComplexEigenSolver<MatrixXcd>(mtx_input.transpose());
     MatrixXcd mtx_U_r_init = eigensolver_init.eigenvectors();
@@ -332,16 +330,16 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
     //mtx_U_l_gamma = MakeRealEigenvectors(mtx_U_l_gamma);
 
     MatrixXcd mtx_lambdanu = GetLambdaNuMatrix_v2(mtx_input,mtx_input);
-    mtx_lambdanu = CutoffEigenvalueMatrix(mtx_lambdanu, NumberOfRealEigenvectors);
+    //mtx_lambdanu = CutoffEigenvalueMatrix(mtx_lambdanu, NumberOfRealEigenvectors);
 
     MatrixXcd mtx_lambdanu_dark = GetLambdaNuMatrix_v2(mtx_dark,mtx_dark);
-    mtx_lambdanu_dark = CutoffEigenvalueMatrix(mtx_lambdanu_dark, NumberOfRealEigenvectors);
+    //mtx_lambdanu_dark = CutoffEigenvalueMatrix(mtx_lambdanu_dark, NumberOfRealEigenvectors);
 
     MatrixXcd mtx_lambdanu_data = GetLambdaNuMatrix_v2(mtx_data,mtx_data);
-    mtx_lambdanu_data = CutoffEigenvalueMatrix(mtx_lambdanu_data, NumberOfRealEigenvectors);
+    //mtx_lambdanu_data = CutoffEigenvalueMatrix(mtx_lambdanu_data, NumberOfRealEigenvectors);
 
     MatrixXcd mtx_lambdanu_gamma = GetLambdaNuMatrix_v2(mtx_gamma_raw,mtx_gamma_raw);
-    mtx_lambdanu_gamma = CutoffEigenvalueMatrix(mtx_lambdanu_gamma, NumberOfRealEigenvectors);
+    //mtx_lambdanu_gamma = CutoffEigenvalueMatrix(mtx_lambdanu_gamma, NumberOfRealEigenvectors);
 
     const std::complex<double> If(0.0, 1.0);
     int col_fix = 0;
@@ -354,10 +352,10 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
         {
             mtx_eigenvector_init(row,col) = mtx_U_r_init(row,col);
             mtx_eigenvector_inv_init(row,col) = mtx_U_l_init.transpose()(row,col);
-            mtx_eigenvector_vari(row,col) = 0.;
-            mtx_eigenvector_inv_vari(row,col) = 0.;
+            //mtx_eigenvector_vari(row,col) = 0.;
+            //mtx_eigenvector_inv_vari(row,col) = 0.;
             mtx_eigenvalue_init(row,col) = mtx_lambdanu(row,col);
-            mtx_eigenvalue_vari(row,col) = 0.;
+            //mtx_eigenvalue_vari(row,col) = 0.;
             mtx_eigenvector_dark(row,col) = mtx_U_r_dark(row,col);
             mtx_eigenvector_inv_dark(row,col) = mtx_U_l_dark.transpose()(row,col);
             mtx_eigenvalue_dark(row,col) = mtx_lambdanu_dark(row,col);
@@ -369,8 +367,6 @@ void SetInitialSpectralvectors(int binx_blind, int biny_blind, MatrixXcd mtx_inp
             mtx_eigenvalue_gamma(row,col) = mtx_lambdanu_gamma(row,col);
         }
     }
-
-    std::cout << "SetInitialSpectralvectors...Done" << std::endl;
 
 }
 MatrixXcd GetErrorMap()
@@ -527,7 +523,7 @@ double GetChi2Function(MatrixXcd mtx_model, bool isBlind)
     return chi2;
 
 }
-pair<MatrixXd,VectorXd> RemoveEmptyRows(MatrixXd mtx_input,VectorXd vtr_input)
+pair<MatrixXcd,VectorXcd> RemoveEmptyRows(MatrixXcd mtx_input,VectorXcd vtr_input)
 {
     int n_empty_rows = 0;
     vector<bool> empty_rows;
@@ -548,8 +544,8 @@ pair<MatrixXd,VectorXd> RemoveEmptyRows(MatrixXd mtx_input,VectorXd vtr_input)
         }
     }
     std::cout << "n_empty_rows = " << n_empty_rows << std::endl;
-    MatrixXd mtx_output = MatrixXd::Zero(mtx_input.rows()-n_empty_rows,mtx_input.cols());
-    VectorXd vtr_output = VectorXd::Zero(mtx_input.rows()-n_empty_rows);
+    MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows()-n_empty_rows,mtx_input.cols());
+    VectorXcd vtr_output = VectorXcd::Zero(mtx_input.rows()-n_empty_rows);
     int new_row = -1;
     for (int row=0;row<mtx_input.rows();row++)
     {
@@ -563,68 +559,46 @@ pair<MatrixXd,VectorXd> RemoveEmptyRows(MatrixXd mtx_input,VectorXd vtr_input)
     }
     return std::make_pair(mtx_output,vtr_output);
 }
-VectorXd SolutionWithConstraints(MatrixXd mtx_big, MatrixXd mtx_constraints_input, VectorXd vtr_delta, VectorXd vtr_constraints_delta_input)
+VectorXcd SolutionWithConstraints(MatrixXcd mtx_big, MatrixXcd mtx_constraints_input, VectorXcd vtr_delta, VectorXcd vtr_constraints_delta_input)
 {
 
-    MatrixXd mtx_constraints = RemoveEmptyRows(mtx_constraints_input,vtr_constraints_delta_input).first;
-    VectorXd vtr_constraints_delta = RemoveEmptyRows(mtx_constraints_input,vtr_constraints_delta_input).second;
+    MatrixXcd mtx_constraints = RemoveEmptyRows(mtx_constraints_input,vtr_constraints_delta_input).first;
+    VectorXcd vtr_constraints_delta = RemoveEmptyRows(mtx_constraints_input,vtr_constraints_delta_input).second;
     std::cout << "mtx_constraints.rows() = " << mtx_constraints.rows() << std::endl;
     if (mtx_constraints.rows()==0)
     {
-        BDCSVD<MatrixXd> svd(mtx_big, ComputeThinU | ComputeThinV);
+        BDCSVD<MatrixXcd> svd(mtx_big, ComputeThinU | ComputeThinV);
         svd.setThreshold(svd_threshold);  // size of singular value to be considered as nonzero.
-        VectorXd vtr_vari_big = VectorXd::Zero(mtx_big.cols());
+        VectorXcd vtr_vari_big = VectorXcd::Zero(mtx_big.cols());
         vtr_vari_big = svd.solve(vtr_delta);
         return vtr_vari_big;
     }
 
-    //MatrixXd mtx_Bigger = MatrixXd::Zero(mtx_big.rows()+mtx_constraints.rows(),mtx_big.cols());
-    //mtx_Bigger.block(0,0,mtx_big.rows(),mtx_big.cols()) = mtx_big;
-    //mtx_Bigger.block(mtx_big.rows(),0,mtx_constraints.rows(),mtx_big.cols()) = mtx_constraints;
-    //VectorXd vtr_bigger_delta = VectorXd::Zero(mtx_big.rows()+mtx_constraints.rows());
-    //vtr_bigger_delta.segment(0,mtx_big.cols()) = vtr_delta;
-    //vtr_bigger_delta.segment(vtr_delta.cols(),vtr_constraints_delta.size()) = vtr_constraints_delta;
-    //BDCSVD<MatrixXd> svd(mtx_Bigger, ComputeThinU | ComputeThinV);
-    //svd.setThreshold(svd_threshold);  // size of singular value to be considered as nonzero.
-    //VectorXd vtr_vari_big = VectorXd::Zero(mtx_big.cols());
-    //vtr_vari_big = svd.solve(vtr_bigger_delta);
-    //return vtr_vari_big;
+    MatrixXcd BTB = mtx_big.transpose()*mtx_big;
+    VectorXcd BTD = mtx_big.transpose()*vtr_delta;
 
-    MatrixXd BTB = mtx_big.transpose()*mtx_big;
-    VectorXd BTD = mtx_big.transpose()*vtr_delta;
-
-    MatrixXd mtx_Bigger = MatrixXd::Zero(BTB.rows()+mtx_constraints.rows(),BTB.cols()+mtx_constraints.rows());
+    MatrixXcd mtx_Bigger = MatrixXcd::Zero(BTB.rows()+mtx_constraints.rows(),BTB.cols()+mtx_constraints.rows());
     mtx_Bigger.block(0,0,BTB.rows(),BTB.cols()) = 2.*BTB;
     mtx_Bigger.block(BTB.rows(),0,mtx_constraints.rows(),mtx_constraints.cols()) = mtx_constraints;
     mtx_Bigger.block(0,BTB.cols(),mtx_constraints.cols(),mtx_constraints.rows()) = mtx_constraints.transpose();
 
-    VectorXd vtr_bigger_delta = VectorXd::Zero(BTB.rows()+mtx_constraints.rows());
+    VectorXcd vtr_bigger_delta = VectorXcd::Zero(BTB.rows()+mtx_constraints.rows());
     vtr_bigger_delta.segment(0,BTB.cols()) = 2.*BTD;
     vtr_bigger_delta.segment(BTB.cols(),vtr_constraints_delta.size()) = vtr_constraints_delta;
 
     ComplexEigenSolver<MatrixXcd> eigensolver_bigger = ComplexEigenSolver<MatrixXcd>(mtx_Bigger);
+    std::cout << "eigensolver_bigger.eigenvalues()(0)  = " << eigensolver_bigger.eigenvalues()(0) << std::endl;
     std::cout << "eigensolver_bigger.eigenvalues()(mtx_Bigger.cols()-1)  = " << eigensolver_bigger.eigenvalues()(mtx_Bigger.cols()-1) << std::endl;
     //svd_threshold = eigensolver_bigger.eigenvalues()(mtx_Bigger.cols()-1).real()/10000.;
 
-    VectorXd vtr_vari_bigger = VectorXd::Zero(BTB.cols()+mtx_constraints.rows());
+    VectorXcd vtr_vari_bigger = VectorXcd::Zero(BTB.cols()+mtx_constraints.rows());
     //vtr_vari_bigger = mtx_Bigger.bdcSvd(ComputeThinU | ComputeThinV).solve(vtr_bigger_delta);
-    //JacobiSVD<MatrixXd> svd(mtx_Bigger, ComputeThinU | ComputeThinV);
-    BDCSVD<MatrixXd> svd(mtx_Bigger, ComputeThinU | ComputeThinV);
+    //JacobiSVD<MatrixXcd> svd(mtx_Bigger, ComputeThinU | ComputeThinV);
+    BDCSVD<MatrixXcd> svd(mtx_Bigger, ComputeThinU | ComputeThinV);
     //std::cout << "svd.singularValues()" << std::endl;
     //std::cout << svd.singularValues() << std::endl;
     svd.setThreshold(svd_threshold);  // size of singular value to be considered as nonzero.
     vtr_vari_bigger = svd.solve(vtr_bigger_delta);
-
-    //bool bad_result = false;
-    //for (int i=0;i<vtr_vari_bigger.size();i++)
-    //{
-    //    if (isnan(vtr_vari_bigger(i))) bad_result = true;
-    //}
-    //if (bad_result)
-    //{
-    //    svd.setThreshold(1e-3);
-    //    vtr_vari_bigger = svd.solve(vtr_bigger_delta);
-    //}
 
     return vtr_vari_bigger.segment(0,BTB.cols());
 
@@ -665,9 +639,10 @@ MatrixXcd GetTruncatedMatrix(MatrixXcd mtx_input, int rank_cutoff)
 }
 int DetermineStableNumberOfEigenvalues(MatrixXcd mtx_input, MatrixXcd mtx_eigenvalue_input, MatrixXcd mtx_eigenvector_input, MatrixXcd mtx_eigenvector_inv_input)
 {
-    //return 1;
+    //return 5;
     ComplexEigenSolver<MatrixXcd> eigensolver_input = ComplexEigenSolver<MatrixXcd>(mtx_input);
     int stable_number_max = NumberOfRealEigenvectors;
+    //int stable_number_max = mtx_input.cols();
     int stable_number = 0;
     MatrixXcd mtx_H_input = mtx_eigenvector_inv_input*mtx_eigenvector_input;
     for (int cutoff=1;cutoff<=stable_number_max;cutoff++)
@@ -677,9 +652,11 @@ int DetermineStableNumberOfEigenvalues(MatrixXcd mtx_input, MatrixXcd mtx_eigenv
         double real_S = mtx_eigenvalue_input(mtx_eigenvalue_input.rows()-cutoff,mtx_eigenvalue_input.cols()-cutoff).real();
         double imag_S = mtx_eigenvalue_input(mtx_eigenvalue_input.rows()-cutoff,mtx_eigenvalue_input.cols()-cutoff).imag();
         double real_eta = mtx_H_input(mtx_eigenvalue_input.rows()-cutoff,mtx_eigenvalue_input.cols()-cutoff).real();
+        double imag_eta = mtx_H_input(mtx_eigenvalue_input.rows()-cutoff,mtx_eigenvalue_input.cols()-cutoff).imag();
         if (abs(imag_lambda)/abs(real_lambda)>0.01) break;
-        if (real_lambda<0.) break;
-        if (real_S*real_eta<0.) break;
+        //if (abs(imag_eta)/abs(real_eta)>0.01) break;
+        //if (real_lambda<0.) break;
+        //if (real_S*real_eta<0.) break;
         stable_number = cutoff;
     }
     return stable_number;
@@ -734,13 +711,19 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
 
     int row_size_big = mtx_input.rows()*mtx_input.cols();
-    VectorXcd vtr_Coeff = VectorXcd::Zero(entry_size*(NumberOfEigenvectors_Stable));
-    MatrixXcd mtx_Basis = MatrixXcd::Zero(2*entry_size*mtx_input.cols(),entry_size*(NumberOfEigenvectors_Stable));
+    //int coeff_size = 2*NumberOfEigenvectors_Stable;
+    int coeff_size = mtx_input.cols();
+    VectorXcd vtr_Coeff = VectorXcd::Zero(2*entry_size*coeff_size-entry_size*entry_size);
+    MatrixXcd mtx_Basis = MatrixXcd::Zero(2*entry_size*mtx_input.cols(),2*entry_size*coeff_size-entry_size*entry_size);
+    //int coeff_size = mtx_input.cols();
+    //VectorXcd vtr_Coeff = VectorXcd::Zero(entry_size*(2*coeff_size));
+    //MatrixXcd mtx_Basis = MatrixXcd::Zero(2*entry_size*mtx_input.cols(),entry_size*(2*coeff_size));
     VectorXcd vtr_vari_big = VectorXcd::Zero(2*entry_size*mtx_input.cols());
     VectorXcd vtr_Delta = VectorXcd::Zero(row_size_big);
     MatrixXcd mtx_Big = MatrixXcd::Zero(row_size_big,2*entry_size*mtx_input.cols());
-    MatrixXcd mtx_Constraint = MatrixXcd::Zero(2*NumberOfEigenvectors_Stable*entry_size,2*entry_size*mtx_input.cols());
-    VectorXcd vtr_Constraint_Delta = VectorXcd::Zero(2*NumberOfEigenvectors_Stable*entry_size);
+    int constraint_size = entry_size*coeff_size;
+    MatrixXcd mtx_Constraint = MatrixXcd::Zero(constraint_size,entry_size*(2*coeff_size));
+    VectorXcd vtr_Constraint_Delta = VectorXcd::Zero(constraint_size);
     for (int idx_k=0; idx_k<entry_size; idx_k++)
     {
         int nth_entry = idx_k + entry_start;
@@ -756,7 +739,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 {
                     if (isBlind) weight = 0.; // blind gamma-ray region
                 }
-                vtr_Delta(idx_m) = weight*(mtx_data_truncated-mtx_input_truncated)(idx_i,idx_j).real();
+                vtr_Delta(idx_m) = weight*(mtx_data_truncated-mtx_input_truncated)(idx_i,idx_j);
                 int idx_n = idx_j + mtx_input.cols()*idx_k;
                 int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
 
@@ -764,37 +747,109 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 mtx_Big(idx_m,idx_w) = weight*mtx_S(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry)*mtx_p_init(idx_j,mtx_input.rows()-nth_entry);
             }
         }
+    }
+
+    for (int idx_k=0; idx_k<entry_size; idx_k++)
+    {
+        int nth_entry = idx_k + 1;
         for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
         {
-            for (int idx_l=0; idx_l<(NumberOfEigenvectors_Stable); idx_l++)
+            int idx_n = idx_i + mtx_input.cols()*idx_k;
+            int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
+            for (int idx_l=0; idx_l<entry_size; idx_l++)
             {
                 int nth_entry2 = idx_l + 1;
-                int idx_n = idx_i + mtx_input.cols()*idx_k;
-                int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
-                int idx_u = idx_l + (NumberOfEigenvectors_Stable)*idx_k;
+                int idx_u = idx_l + entry_size*idx_k;
                 int idx_v = idx_l*entry_size + idx_k;
                 std::complex<double> weight_p1 = 1.;
                 std::complex<double> weight_p2 = 1.;
                 std::complex<double> weight_q = 1.;
                 if (nth_entry==nth_entry2) weight_p1 = 0.;
                 if (nth_entry!=nth_entry2) weight_p2 = mtx_P_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry2);
-                if (nth_entry!=nth_entry2) weight_q = -1.*mtx_H_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry)/mtx_H_init(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2);
-                //if (nth_entry!=nth_entry2) weight_q = -1.;
+                std::complex<double> eta_1 = mtx_H_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry);
+                std::complex<double> eta_2 = mtx_H_init(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2);
+                if (nth_entry!=nth_entry2) weight_q = -1.*eta_1/eta_2;
                 mtx_Basis(idx_n,idx_u) = weight_p1*(mtx_p_init(idx_i,mtx_input.rows()-nth_entry2)-weight_p2*mtx_p_init(idx_i,mtx_input.rows()-nth_entry));
                 mtx_Basis(idx_w,idx_v) = weight_q*mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
+            }
+            for (int idx_l=0; idx_l<coeff_size-entry_size; idx_l++)
+            {
+                int nth_entry2 = idx_l + entry_size + 1;
+                int idx_u = idx_l + (coeff_size-entry_size)*idx_k + entry_size*entry_size;
+                int idx_v = idx_l + (coeff_size-entry_size)*idx_k + (coeff_size-entry_size)*entry_size + entry_size*entry_size;
+                std::complex<double> weight_p2 = mtx_P_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry2);
+                mtx_Basis(idx_n,idx_u) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2)-weight_p2*mtx_p_init(idx_i,mtx_input.rows()-nth_entry);
+                mtx_Basis(idx_w,idx_v) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
             }
         }
     }
 
-    int entry_threshold = 1;
-    double lambda_noise = mtx_S(mtx_input.rows()-entry_threshold,mtx_input.rows()-entry_threshold).real();
-    svd_threshold = 1./abs(svd_threshold_scale*lambda_noise);
+    //for (int idx_k=0; idx_k<entry_size; idx_k++)
+    //{
+    //    int nth_entry = idx_k + entry_start;
+    //    for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
+    //    {
+    //        for (int idx_l=0; idx_l<(coeff_size); idx_l++)
+    //        {
+    //            int nth_entry2 = idx_l + 1;
+    //            int idx_n = idx_i + mtx_input.cols()*idx_k;
+    //            int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
+    //            int idx_u = idx_l + (coeff_size)*idx_k;
+    //            int idx_v = idx_l + (coeff_size)*idx_k + (coeff_size)*entry_size;
+    //            mtx_Basis(idx_n,idx_u) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2);
+    //            mtx_Basis(idx_w,idx_v) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
+    //        }
+    //    }
+    //}
+    //for (int idx_k=0; idx_k<entry_size; idx_k++)
+    //{
+    //    int nth_entry = idx_k + entry_start;
+    //    for (int idx_l=0; idx_l<(coeff_size); idx_l++)
+    //    {
+    //        int nth_entry2 = idx_l + 1;
+    //        int idx_u = idx_l + (coeff_size)*idx_k;
+    //        double weight_s = 100.*eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
+    //        std::complex<double> weight_p = 1.;
+    //        std::complex<double> weight_q = 1.;
+    //        if (nth_entry==nth_entry2)
+    //        {
+    //            for (int idx_m=0; idx_m<(coeff_size); idx_m++)
+    //            {
+    //                int nth_entry3 = idx_m + 1;
+    //                int idx_v = idx_m + (coeff_size)*idx_k;
+    //                weight_p = mtx_P_init(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry3);
+    //                mtx_Constraint(idx_u,idx_v) = weight_p*weight_s;
+    //            }
+    //        }
+    //        else
+    //        {
+    //            int idx_v = idx_l + (coeff_size)*idx_k;
+    //            int idx_w = idx_k + (coeff_size)*idx_l + coeff_size*entry_size; // transpose
+    //            if (idx_w>=entry_size*(2*coeff_size)) continue;
+    //            std::complex<double> eta_1 = mtx_H_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry);
+    //            std::complex<double> eta_2 = mtx_H_init(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2);
+    //            weight_q = eta_2/eta_1;
+    //            if (abs(eta_1)<0.01) continue;
+    //            if (abs(eta_2)<0.01) continue;
+    //            mtx_Constraint(idx_u,idx_v) = weight_q*weight_s;
+    //            mtx_Constraint(idx_u,idx_w) = 1.*weight_s;
+    //        }
+    //    }
+    //}
+
+    //int entry_threshold = NumberOfEigenvectors_Stable+1;
+    //double lambda_noise = eigensolver_dark.eigenvalues()(mtx_dark.cols()-entry_threshold).real();
+    ////svd_threshold = 1./abs(svd_threshold_scale*lambda_noise);
+    //svd_threshold = abs(svd_threshold_scale*lambda_noise);
     std::cout << "svd_threshold = " << svd_threshold << std::endl;
 
     BDCSVD<MatrixXcd> svd(mtx_Big*mtx_Basis, ComputeThinU | ComputeThinV);
     svd.setThreshold(svd_threshold);  // size of singular value to be considered as nonzero.
     vtr_Coeff = svd.solve(vtr_Delta);
     vtr_vari_big = mtx_Basis*vtr_Coeff;
+
+    //vtr_Coeff = SolutionWithConstraints(mtx_Big*mtx_Basis, mtx_Constraint, vtr_Delta, vtr_Constraint_Delta);
+    //vtr_vari_big = mtx_Basis*vtr_Coeff;
 
 
     MatrixXcd mtx_p_final = mtx_p_init;
@@ -820,32 +875,40 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     if (isBlind)
     {
         std::cout << "mtx_S:" << std::endl;
-        std::cout << mtx_S.block(mtx_S.rows()-3,mtx_S.cols()-3,3,3) << std::endl;
+        std::cout << mtx_S.block(mtx_S.rows()-4,mtx_S.cols()-4,4,4) << std::endl;
 
         std::cout << "mtx_P_init:" << std::endl;
-        std::cout << mtx_P_init.block(mtx_P_init.rows()-3,mtx_P_init.cols()-3,3,3) << std::endl;
+        std::cout << mtx_P_init.block(mtx_P_init.rows()-5,mtx_P_init.cols()-5,5,5).cwiseAbs() << std::endl;
 
         MatrixXcd mtx_P_vari = mtx_p_vari.transpose().conjugate()*mtx_p_init;
         std::cout << "mtx_P_vari:" << std::endl;
-        std::cout << mtx_P_vari.block(mtx_P_vari.rows()-3,mtx_P_vari.cols()-3,3,3) << std::endl;
+        std::cout << mtx_P_vari.block(mtx_P_vari.rows()-5,mtx_P_vari.cols()-5,5,5).cwiseAbs() << std::endl;
+
+        MatrixXcd mtx_P_vari_true = (mtx_p_data-mtx_p_init).transpose().conjugate()*mtx_p_init;
+        std::cout << "mtx_P_vari_true:" << std::endl;
+        std::cout << mtx_P_vari_true.block(mtx_P_vari_true.rows()-5,mtx_P_vari_true.cols()-5,5,5).cwiseAbs() << std::endl;
 
         std::cout << "mtx_Q_init:" << std::endl;
-        std::cout << mtx_Q_init.block(mtx_Q_init.rows()-3,mtx_Q_init.cols()-3,3,3) << std::endl;
+        std::cout << mtx_Q_init.block(mtx_Q_init.rows()-5,mtx_Q_init.cols()-5,5,5).cwiseAbs() << std::endl;
 
         MatrixXcd mtx_Q_vari = mtx_q_vari.transpose().conjugate()*mtx_q_init;
         std::cout << "mtx_Q_vari:" << std::endl;
-        std::cout << mtx_Q_vari.block(mtx_Q_vari.rows()-3,mtx_Q_vari.cols()-3,3,3) << std::endl;
+        std::cout << mtx_Q_vari.block(mtx_Q_vari.rows()-5,mtx_Q_vari.cols()-5,5,5).cwiseAbs() << std::endl;
+
+        MatrixXcd mtx_Q_vari_true = (mtx_q_data-mtx_q_init).transpose().conjugate()*mtx_q_init;
+        std::cout << "mtx_Q_vari_true:" << std::endl;
+        std::cout << mtx_Q_vari_true.block(mtx_Q_vari_true.rows()-5,mtx_Q_vari_true.cols()-5,5,5).cwiseAbs() << std::endl;
 
         std::cout << "mtx_H_init:" << std::endl;
-        std::cout << mtx_H_init.block(mtx_H_init.rows()-3,mtx_H_init.cols()-3,3,3) << std::endl;
+        std::cout << mtx_H_init.block(mtx_H_init.rows()-5,mtx_H_init.cols()-5,5,5).cwiseAbs() << std::endl;
 
         MatrixXcd mtx_H_vari = mtx_p_vari.transpose()*mtx_q_init + mtx_p_init.transpose()*mtx_q_vari;
         std::cout << "mtx_H_vari:" << std::endl;
-        std::cout << mtx_H_vari.block(mtx_H_vari.rows()-3,mtx_H_vari.cols()-3,3,3) << std::endl;
+        std::cout << mtx_H_vari.block(mtx_H_vari.rows()-5,mtx_H_vari.cols()-5,5,5).cwiseAbs() << std::endl;
 
         MatrixXcd mtx_H_vari_true = (mtx_p_data-mtx_p_init).transpose()*mtx_q_init + mtx_p_init.transpose()*(mtx_q_data-mtx_q_init);
         std::cout << "mtx_H_vari_true:" << std::endl;
-        std::cout << mtx_H_vari_true.block(mtx_H_vari_true.rows()-3,mtx_H_vari_true.cols()-3,3,3) << std::endl;
+        std::cout << mtx_H_vari_true.block(mtx_H_vari_true.rows()-5,mtx_H_vari_true.cols()-5,5,5).cwiseAbs() << std::endl;
 
     }
 
@@ -855,13 +918,8 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
 
     mtx_eigenvector_init += mtx_q_vari*step_frac;
     mtx_eigenvector_inv_init += mtx_p_vari.transpose()*step_frac;
-
-    if (isBlind)
-    {
-        MatrixXcd mtx_H_final = mtx_eigenvector_inv_init*mtx_eigenvector_init;
-        std::cout << "mtx_H_final:" << std::endl;
-        std::cout << mtx_H_final.block(mtx_H_init.rows()-3,mtx_H_init.cols()-3,3,3) << std::endl;
-    }
+    mtx_eigenvector_vari = mtx_q_vari*step_frac;
+    mtx_eigenvector_inv_vari = mtx_p_vari.transpose()*step_frac;
 
     return mtx_output;
 
@@ -1498,6 +1556,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH2D> Hist_OnBkgd_Unblind_wGamma_MSCLW;
     vector<TH2D> Hist_OnBkgd_Unblind_woGamma_MSCLW;
     vector<TH2D> Hist_OnDark_MSCLW;
+    vector<TH2D> Hist_H_Vari;
+    vector<TH2D> Hist_H_Vari_Bkgd;
     vector<TH2D> Hist_Rank0_MSCLW;
     vector<TH2D> Hist_Rank1_MSCLW;
     vector<TH2D> Hist_Rank2_MSCLW;
@@ -1550,6 +1610,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnBkgd_Unblind_wGamma_MSCLW.push_back(TH2D("Hist_OnBkgd_Unblind_wGamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnBkgd_Unblind_woGamma_MSCLW.push_back(TH2D("Hist_OnBkgd_Unblind_woGamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnDark_MSCLW.push_back(TH2D("Hist_OnDark_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+
+        Hist_H_Vari.push_back(TH2D("Hist_H_Vari_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_H_Vari_Bkgd.push_back(TH2D("Hist_H_Vari_Bkgd_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
 
         Hist_Rank0_MSCLW.push_back(TH2D("Hist_Rank0_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Rank1_MSCLW.push_back(TH2D("Hist_Rank1_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -1923,6 +1986,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     int dark_cutoff = DetermineStableNumberOfEigenvalues(mtx_dark,mtx_eigenvalue_init, mtx_eigenvector_init, mtx_eigenvector_inv_init);
                     int data_cutoff = DetermineStableNumberOfEigenvalues(mtx_data,mtx_eigenvalue_data, mtx_eigenvector_data, mtx_eigenvector_inv_data);
                     NumberOfEigenvectors_Stable = min(dark_cutoff,data_cutoff);
+                    //NumberOfEigenvectors_Stable = data_cutoff;
                     std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
 
 
@@ -1947,7 +2011,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     
                     double dark_weight = 1./double(n_dark_samples);
                     int error_bin = Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
-                    //GetNoiseReplacedMatrix(&hist_dark_alter,&Hist_Temp_Bkgd,false);
                     GetNoiseReplacedMatrix(&Hist_OneGroup_Data_MSCLW.at(e),&Hist_Temp_Bkgd,false);
                     Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
                     Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
@@ -2142,6 +2205,25 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 std::cout << eigensolver_bkgd.eigenvalues()(mtx_data.cols()-4) << std::endl;
                 std::cout << "=====================================================================" << std::endl;
 
+                MatrixXcd mtx_q_data = mtx_eigenvector_data;
+                MatrixXcd mtx_p_data = mtx_eigenvector_inv_data.transpose();
+                MatrixXcd mtx_H_data = mtx_eigenvector_inv_data*mtx_eigenvector_data;
+                MatrixXcd mtx_q_dark = mtx_eigenvector_dark;
+                MatrixXcd mtx_p_dark = mtx_eigenvector_inv_dark.transpose();
+                MatrixXcd mtx_H_dark = mtx_eigenvector_inv_dark*mtx_eigenvector_dark;
+                MatrixXcd mtx_q_bkgd = mtx_eigenvector_init;
+                MatrixXcd mtx_p_bkgd = mtx_eigenvector_inv_init.transpose();
+                MatrixXcd mtx_p_delta = (mtx_p_data-mtx_p_dark);
+                MatrixXcd mtx_q_delta = (mtx_q_data-mtx_q_dark);
+                MatrixXcd mtx_p_delta_bkgd = mtx_eigenvector_inv_vari.transpose();
+                MatrixXcd mtx_q_delta_bkgd = mtx_eigenvector_vari;
+                MatrixXcd mtx_p_coeff = mtx_p_delta.transpose().conjugate()*mtx_q_dark;
+                MatrixXcd mtx_q_coeff = mtx_q_delta.transpose().conjugate()*mtx_p_dark;
+                MatrixXcd mtx_H_vari_true = mtx_p_delta.transpose()*mtx_q_dark + mtx_p_dark.transpose()*mtx_q_delta;
+                MatrixXcd mtx_H_vari_bkgd = mtx_p_delta_bkgd.transpose()*mtx_q_dark + mtx_p_dark.transpose()*mtx_q_delta_bkgd;
+                fill2DHistogramAbs(&Hist_H_Vari.at(e),mtx_H_vari_true);
+                fill2DHistogramAbs(&Hist_H_Vari_Bkgd.at(e),mtx_H_vari_bkgd);
+
                 GetReducedEigenvalueMatrix(0);
                 mtx_data_redu = eigensolver_data.eigenvectors()*mtx_eigenval_data_redu*eigensolver_data.eigenvectors().inverse();
                 fill2DHistogram(&Hist_Rank0_MSCLW.at(e),mtx_data_redu);
@@ -2251,6 +2333,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnBkgd_Unblind_woGamma_MSCLW.at(e).Write();
         Hist_Gamma_MSCLW.at(e).Write();
         Hist_OnDark_MSCLW.at(e).Write();
+        Hist_H_Vari.at(e).Write();
+        Hist_H_Vari_Bkgd.at(e).Write();
         Hist_Rank0_MSCLW.at(e).Write();
         Hist_Rank1_MSCLW.at(e).Write();
         Hist_Rank2_MSCLW.at(e).Write();

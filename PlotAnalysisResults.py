@@ -21,13 +21,13 @@ method_tag = '16bins_mdm_nominal'
 #method_tag = '16bins_mdm_2vec'
 #method_tag = '16bins_mdm_full'
 
-signal_tag = '_S0'
+#signal_tag = '_S0'
 #signal_tag = '_S5'
-#signal_tag = '_S10'
+signal_tag = '_S10'
 #signal_tag = '_S20'
 
-energy_bin_cut_low = 4
-energy_bin_cut_up = 5
+energy_bin_cut_low = 0
+energy_bin_cut_up = 1
 
 #elev_bins = [25,45]
 elev_bins = [45,85]
@@ -134,8 +134,8 @@ if sys.argv[1]=='Crab':
     ONOFF_tag = 'ON'
     sample_list = []
     sample_list += ['CrabV6']
-    #sample_list += ['CrabV5']
-    #sample_list += ['CrabV4']
+    sample_list += ['CrabV5']
+    sample_list += ['CrabV4']
     
 if sys.argv[1]=='Mrk421':
     ONOFF_tag = 'ON'
@@ -177,9 +177,9 @@ if sys.argv[1]=='Boomerang':
 if sys.argv[1]=='MGRO_J1908':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['MGRO_J1908_V6']
+    #sample_list += ['MGRO_J1908_V6']
     sample_list += ['MGRO_J1908_V5']
-    sample_list += ['MGRO_J1908_V4']
+    #sample_list += ['MGRO_J1908_V4']
     # this is a Tevatron
     
 if sys.argv[1]=='SS433':
@@ -490,6 +490,9 @@ def ResetStackedShowerHistograms():
     Hist2D_Rank2_Sum.Reset()
     Hist2D_Rank3_Sum.Reset()
 
+    Hist2D_H_Vari_Sum.Reset()
+    Hist2D_H_Vari_Bkgd_Sum.Reset()
+
     for nth_sample in range(0,n_control_samples):
 
         Hist2D_OffData_Sum[nth_sample].Reset()
@@ -651,6 +654,9 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_Rank2.Reset()
     Hist2D_Rank3.Reset()
 
+    Hist2D_H_Vari.Reset()
+    Hist2D_H_Vari_Bkgd.Reset()
+
     HistName = "Hist_Rank0_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank0.Add(InputFile.Get(HistName))
     #HistTemp = MergeHistogram(Hist2D_Rank0,InputFile.Get(HistName))
@@ -670,6 +676,12 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_Rank3.Add(InputFile.Get(HistName))
     #HistTemp = MergeHistogram(Hist2D_Rank3,InputFile.Get(HistName))
     #Hist2D_Rank3.Add(HistTemp)
+
+    HistName = "Hist_H_Vari_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist2D_H_Vari.Add(InputFile.Get(HistName))
+
+    HistName = "Hist_H_Vari_Bkgd_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist2D_H_Vari_Bkgd.Add(InputFile.Get(HistName))
 
     if Hist1D_Data_Rank0_LeftVector.Integral()==0:
         Hist1D_Data_Rank0_LeftVector.Reset()
@@ -835,6 +847,8 @@ def GetShowerHistogramsFromFile(FilePath):
         Hist2D_Rank1.Reset()
         Hist2D_Rank2.Reset()
         Hist2D_Rank3.Reset()
+        Hist2D_H_Vari.Reset()
+        Hist2D_H_Vari_Bkgd.Reset()
 
     Hist_OnData_MSCL.Reset()
     Hist_OnData_MSCL.Add(Hist2D_OnData.ProjectionX("Hist1D_OnData_MSCL",bin_lower_y,bin_upper_y))
@@ -921,6 +935,9 @@ def StackShowerHistograms():
     Hist2D_OnBkgd_Unblind_wGamma_Sum.Add(Hist2D_OnBkgd_Unblind_wGamma)
     Hist2D_OnBkgd_Unblind_woGamma_Sum.Add(Hist2D_OnBkgd_Unblind_woGamma)
     Hist2D_OnGamma_Sum.Add(Hist2D_OnGamma)
+
+    Hist2D_H_Vari_Sum.Add(Hist2D_H_Vari)
+    Hist2D_H_Vari_Bkgd_Sum.Add(Hist2D_H_Vari_Bkgd)
 
     Hist2D_Rank0_Sum.Add(Hist2D_Rank0)
     Hist2D_Rank0_Sum.Add(Hist2D_OnData,-1.)
@@ -3334,6 +3351,36 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/OnDark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.50,'p vector coefficents' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    pad1.SetLogz()
+    Hist2D_H_Vari_Sum.GetYaxis().SetTitle('y')
+    Hist2D_H_Vari_Sum.GetXaxis().SetTitle('x')
+    Hist2D_H_Vari_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
+    canvas.SaveAs('output_plots/Coeff_Htrue_%s_%s.png'%(name,selection_tag))
+    pad1.SetLogz(0)
+
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.50,'q vector coefficents' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    pad1.SetLogz()
+    Hist2D_H_Vari_Bkgd_Sum.GetYaxis().SetTitle('y')
+    Hist2D_H_Vari_Bkgd_Sum.GetXaxis().SetTitle('x')
+    Hist2D_H_Vari_Bkgd_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
+    canvas.SaveAs('output_plots/Coeff_H_%s_%s.png'%(name,selection_tag))
+    pad1.SetLogz(0)
+
+    pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{i=1}^{1} #lambda_{i} q_{i} p_{i}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
@@ -4081,6 +4128,11 @@ Hist_OnBkgd_Unblind_wGamma_MSCL = ROOT.TH1D("Hist_OnBkgd_Unblind_wGamma_MSCL",""
 Hist_OnBkgd_Unblind_woGamma_MSCL = ROOT.TH1D("Hist_OnBkgd_Unblind_woGamma_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_OnGamma_MSCL = ROOT.TH1D("Hist_OnGamma_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_OnDark_MSCW = ROOT.TH1D("Hist_OnDark_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+
+Hist2D_H_Vari = ROOT.TH2D("Hist2D_H_Vari","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_H_Vari_Bkgd = ROOT.TH2D("Hist2D_H_Vari_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_H_Vari_Sum = ROOT.TH2D("Hist2D_H_Vari_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_H_Vari_Bkgd_Sum = ROOT.TH2D("Hist2D_H_Vari_Bkgd_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 
 Hist2D_Rank0 = ROOT.TH2D("Hist2D_Rank0","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank1 = ROOT.TH2D("Hist2D_Rank1","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
