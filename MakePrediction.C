@@ -687,8 +687,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     MatrixXcd mtx_S_data = mtx_eigenvalue_data;
     MatrixXcd mtx_H_data = mtx_eigenvector_inv_data*mtx_eigenvector_data;
 
-    int truncate_cutoff = 3;
-    truncate_cutoff = entry_size;
+    int truncate_cutoff = entry_size;
     MatrixXcd mtx_data_truncated = mtx_data;
     MatrixXcd mtx_input_truncated = mtx_input;
     if (TruncateNoise)
@@ -1000,23 +999,6 @@ void GetTruncatedHistogram(TH2D* hist_input, TH2D* hist_output, int rank_cutoff)
     mtx_eigenvalue_temp = CutoffEigenvalueMatrix(mtx_eigenvalue_temp, rank_cutoff);
     mtx_temp = mtx_eigenvector_temp*mtx_eigenvalue_temp*mtx_eigenvector_inv_temp;
     fill2DHistogram(hist_output,mtx_temp);
-}
-void PerturbationMethod(MatrixXcd mtx_input)
-{
-
-    SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_input);
-
-    MatrixXcd mtx_r_init = mtx_eigenvector_init;
-    MatrixXcd mtx_lambda_init = mtx_eigenvalue_init;
-    MatrixXcd mtx_l_init = mtx_eigenvector_inv_init.transpose();
-    MatrixXcd mtx_bkgd = mtx_r_init*mtx_lambda_init*mtx_l_init.transpose();
-    mtx_bkgd = GetTruncatedMatrix(mtx_bkgd, 3);
-
-    MatrixXcd mtx_delta = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_bkgd-mtx_input).block(0,0,binx_blind_global,biny_blind_global);
-
-    MatrixXcd mtx_coeff = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-
 }
 void LeastSquareSolutionMethod(bool DoSequential, bool isBlind)
 {
@@ -2025,10 +2007,25 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     int data_cutoff = DetermineStableNumberOfEigenvalues(mtx_data,mtx_eigenvalue_data, mtx_eigenvector_data, mtx_eigenvector_inv_data);
                     NumberOfEigenvectors_Stable = min(dark_cutoff,data_cutoff);
                     //NumberOfEigenvectors_Stable = data_cutoff;
+
+
+                    double chi2_best = 1e20;
+                    int cutoff_best = 0;
+                    for (int cutoff=1;cutoff<=6;cutoff++)
+                    {
+                        NumberOfEigenvectors_Stable = cutoff;
+                        LeastSquareSolutionMethod(false, true);
+                        double chi2 = GetChi2Function(mtx_data_bkgd,true);
+                        if (chi2<chi2_best)
+                        {
+                            chi2_best = chi2;
+                            cutoff_best = cutoff;
+                        }
+                    }
+                    NumberOfEigenvectors_Stable = cutoff_best;
                     std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
-
-
                     LeastSquareSolutionMethod(false, true);
+
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
                     
@@ -2049,10 +2046,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     
                     double dark_weight = 1./double(n_dark_samples);
                     int error_bin = Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
-                    GetNoiseReplacedMatrix(&Hist_OneGroup_Data_MSCLW.at(e),&Hist_Temp_Bkgd,false);
+                    //GetNoiseReplacedMatrix(&Hist_OneGroup_Data_MSCLW.at(e),&Hist_Temp_Bkgd,false);
                     Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
                     Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
-                    GetNoiseReplacedMatrix(&Hist_OneGroup_Data_MSCLW.at(e),&hist_dark_alter,false);
+                    //GetNoiseReplacedMatrix(&Hist_OneGroup_Data_MSCLW.at(e),&hist_dark_alter,false);
                     Hist_OnDark_MSCLW.at(e).Add(&hist_dark_alter,dark_weight);
                     Hist_OnSyst_Chi2.at(nth_sample).at(e).Add(&Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e));
                     Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).Reset();
