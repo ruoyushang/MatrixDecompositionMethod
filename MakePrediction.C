@@ -640,26 +640,17 @@ MatrixXcd GetTruncatedMatrix(MatrixXcd mtx_input, int rank_cutoff)
     mtx_temp = mtx_eigenvector_temp*mtx_eigenvalue_temp*mtx_eigenvector_inv_temp;
     return mtx_temp;
 }
-int DetermineStableNumberOfEigenvalues(MatrixXcd mtx_input, MatrixXcd mtx_eigenvalue_input, MatrixXcd mtx_eigenvector_input, MatrixXcd mtx_eigenvector_inv_input)
+int DetermineStableNumberOfEigenvalues(MatrixXcd mtx_input)
 {
-    return 4;
     ComplexEigenSolver<MatrixXcd> eigensolver_input = ComplexEigenSolver<MatrixXcd>(mtx_input);
     int stable_number_max = NumberOfRealEigenvectors;
-    //int stable_number_max = mtx_input.cols();
     int stable_number = 0;
-    MatrixXcd mtx_H_input = mtx_eigenvector_inv_input*mtx_eigenvector_input;
     for (int cutoff=1;cutoff<=stable_number_max;cutoff++)
     {
-        double real_lambda = eigensolver_input.eigenvalues()(mtx_eigenvalue_input.rows()-cutoff).real();
-        double imag_lambda = eigensolver_input.eigenvalues()(mtx_eigenvalue_input.rows()-cutoff).imag();
-        double real_S = mtx_eigenvalue_input(mtx_eigenvalue_input.rows()-cutoff,mtx_eigenvalue_input.cols()-cutoff).real();
-        double imag_S = mtx_eigenvalue_input(mtx_eigenvalue_input.rows()-cutoff,mtx_eigenvalue_input.cols()-cutoff).imag();
-        double real_eta = mtx_H_input(mtx_eigenvalue_input.rows()-cutoff,mtx_eigenvalue_input.cols()-cutoff).real();
-        double imag_eta = mtx_H_input(mtx_eigenvalue_input.rows()-cutoff,mtx_eigenvalue_input.cols()-cutoff).imag();
+        double real_lambda = eigensolver_input.eigenvalues()(mtx_input.rows()-cutoff).real();
+        double imag_lambda = eigensolver_input.eigenvalues()(mtx_input.rows()-cutoff).imag();
         if (abs(imag_lambda)/abs(real_lambda)>0.01) break;
-        //if (abs(imag_eta)/abs(real_eta)>0.01) break;
         if (real_lambda<0.) break;
-        //if (real_S*real_eta<0.) break;
         stable_number = cutoff;
     }
     return stable_number;
@@ -999,6 +990,107 @@ void GetTruncatedHistogram(TH2D* hist_input, TH2D* hist_output, int rank_cutoff)
     mtx_eigenvalue_temp = CutoffEigenvalueMatrix(mtx_eigenvalue_temp, rank_cutoff);
     mtx_temp = mtx_eigenvector_temp*mtx_eigenvalue_temp*mtx_eigenvector_inv_temp;
     fill2DHistogram(hist_output,mtx_temp);
+}
+void FindPerturbationSolution(MatrixXcd mtx_input, MatrixXcd mtx_H_init, MatrixXcd& mtx_r_init, MatrixXcd& mtx_lambda_init, MatrixXcd& mtx_l_init, int entry_size, bool doPrint)
+{
+
+    MatrixXcd mtx_S_init = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        if (col<mtx_input.cols()-entry_size) continue;
+        mtx_S_init(col,col) = mtx_lambda_init(col,col)/mtx_H_init(col,col);
+    }
+    MatrixXcd mtx_bkgd = mtx_r_init*mtx_S_init*mtx_l_init.transpose();
+
+    MatrixXcd mtx_delta = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_bkgd-mtx_input).block(0,0,binx_blind_global,biny_blind_global);
+
+    MatrixXcd mtx_coeff = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    MatrixXcd mtx_proj = mtx_l_init.transpose()*mtx_delta*mtx_r_init;
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            if (row<mtx_input.cols()-entry_size && col<mtx_input.cols()-entry_size) continue;
+            if (row==col) continue;
+            mtx_coeff(row,col) = -1.*mtx_proj(row,col)/(mtx_lambda_init(row,row)-mtx_lambda_init(col,col));
+        }
+    }
+
+    MatrixXcd mtx_r_next = mtx_r_init;
+    MatrixXcd mtx_l_next = mtx_l_init;
+    MatrixXcd mtx_lambda_next = mtx_lambda_init;
+    for (int idx_j=0;idx_j<mtx_input.cols();idx_j++)
+    {
+        //if (idx_j<mtx_input.cols()-entry_size) continue;
+        mtx_lambda_next(idx_j,idx_j) += mtx_proj(idx_j,idx_j)/mtx_H_init(idx_j,idx_j);
+        for (int idx_i=0;idx_i<mtx_input.rows();idx_i++)
+        {
+            for (int idx_k=0;idx_k<mtx_input.rows();idx_k++)
+            {
+                if (idx_k<mtx_input.cols()-entry_size) continue;
+                mtx_r_next(idx_i,idx_j) += -1.*mtx_coeff(idx_k,idx_j)*mtx_r_init(idx_i,idx_k)/mtx_H_init(idx_k,idx_k);
+                mtx_l_next(idx_i,idx_j) += mtx_coeff(idx_j,idx_k)*mtx_l_init(idx_i,idx_k)/mtx_H_init(idx_k,idx_k);
+                //mtx_r_next(idx_i,idx_j) += -1.*mtx_coeff(idx_j,idx_k)*mtx_r_init(idx_i,idx_k)/mtx_H_init(idx_k,idx_k);
+                //mtx_l_next(idx_i,idx_j) += mtx_coeff(idx_k,idx_j)*mtx_l_init(idx_i,idx_k)/mtx_H_init(idx_k,idx_k);
+            }
+        }
+    }
+
+    if (doPrint)
+    {
+        std::cout << "mtx_lambda_init:" << std::endl;
+        std::cout << mtx_lambda_init.block(mtx_input.rows()-3,mtx_input.cols()-3,3,3) << std::endl;
+        std::cout << "mtx_lambda_next:" << std::endl;
+        std::cout << mtx_lambda_next.block(mtx_input.rows()-3,mtx_input.cols()-3,3,3) << std::endl;
+    }
+
+    mtx_r_init = mtx_r_next;
+    mtx_l_init = mtx_l_next;
+    mtx_lambda_init = mtx_lambda_next;
+
+}
+void PerturbationMethod(MatrixXcd mtx_input)
+{
+
+    int entry_size = DetermineStableNumberOfEigenvalues(mtx_input);
+    entry_size = min(entry_size,3);
+
+    eigensolver_init = ComplexEigenSolver<MatrixXcd>(mtx_input);
+    eigensolver_init_transpose = ComplexEigenSolver<MatrixXcd>(mtx_input.transpose());
+    MatrixXcd mtx_r_init = eigensolver_init.eigenvectors();
+    MatrixXcd mtx_l_init = eigensolver_init_transpose.eigenvectors();
+    MatrixXcd mtx_H_init = mtx_r_init.transpose()*mtx_l_init;
+    MatrixXcd mtx_lambda_init(mtx_input.rows(),mtx_input.cols());
+    for (int row=0;row<mtx_input.rows();row++)
+    {
+        for (int col=0;col<mtx_input.cols();col++)
+        {
+            mtx_lambda_init(row,col) = 0.;
+            if (row==col)
+            {
+                mtx_lambda_init(row,col) = eigensolver_init.eigenvalues()(col);
+            }
+        }
+    }
+
+    std::cout << "=========== " << 1 << "-st iteration ===========" << std::endl;
+    FindPerturbationSolution(mtx_input, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, true);
+    for (int iter=0;iter<10;iter++)
+    {
+        FindPerturbationSolution(mtx_input, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, false);
+    }
+    std::cout << "=========== final iteration ===========" << std::endl;
+    FindPerturbationSolution(mtx_input, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, true);
+
+    MatrixXcd mtx_S_init = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        if (col<mtx_input.cols()-entry_size) continue;
+        mtx_S_init(col,col) = mtx_lambda_init(col,col)/mtx_H_init(col,col);
+    }
+    mtx_data_bkgd = mtx_r_init*mtx_S_init*mtx_l_init.transpose();
+
 }
 void LeastSquareSolutionMethod(bool DoSequential, bool isBlind)
 {
@@ -2003,28 +2095,29 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
 
                     SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_dark);
-                    int dark_cutoff = DetermineStableNumberOfEigenvalues(mtx_dark,mtx_eigenvalue_init, mtx_eigenvector_init, mtx_eigenvector_inv_init);
-                    int data_cutoff = DetermineStableNumberOfEigenvalues(mtx_data,mtx_eigenvalue_data, mtx_eigenvector_data, mtx_eigenvector_inv_data);
+                    int dark_cutoff = DetermineStableNumberOfEigenvalues(mtx_dark);
+                    int data_cutoff = DetermineStableNumberOfEigenvalues(mtx_data);
                     NumberOfEigenvectors_Stable = min(dark_cutoff,data_cutoff);
                     //NumberOfEigenvectors_Stable = data_cutoff;
 
+                    PerturbationMethod(mtx_dark);
 
-                    double chi2_best = 1e20;
-                    int cutoff_best = 0;
-                    for (int cutoff=1;cutoff<=6;cutoff++)
-                    {
-                        NumberOfEigenvectors_Stable = cutoff;
-                        LeastSquareSolutionMethod(false, true);
-                        double chi2 = GetChi2Function(mtx_data_bkgd,true);
-                        if (chi2<chi2_best)
-                        {
-                            chi2_best = chi2;
-                            cutoff_best = cutoff;
-                        }
-                    }
-                    NumberOfEigenvectors_Stable = cutoff_best;
-                    std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
-                    LeastSquareSolutionMethod(false, true);
+                    //double chi2_best = 1e20;
+                    //int cutoff_best = 0;
+                    //for (int cutoff=1;cutoff<=6;cutoff++)
+                    //{
+                    //    NumberOfEigenvectors_Stable = cutoff;
+                    //    LeastSquareSolutionMethod(false, true);
+                    //    double chi2 = GetChi2Function(mtx_data_bkgd,true);
+                    //    if (chi2<chi2_best)
+                    //    {
+                    //        chi2_best = chi2;
+                    //        cutoff_best = cutoff;
+                    //    }
+                    //}
+                    //NumberOfEigenvectors_Stable = cutoff_best;
+                    //std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
+                    //LeastSquareSolutionMethod(false, true);
 
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
