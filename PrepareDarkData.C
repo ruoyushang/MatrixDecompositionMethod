@@ -998,7 +998,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
             double accumulated_time = 0.;
             double threshold_dNSB = 0.5;
             double threshold_dElev = 2.0;
-            while (accumulated_time<1.0*ON_time[on_run])
+            while (accumulated_time<2.0*ON_time[on_run])
             {
                 pair<string,int> best_match;
                 pair<double,double> best_pointing;

@@ -16,18 +16,17 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-method_tag = '16bins_mdm_nominal'
-#method_tag = '16bins_mdm_1vec'
-#method_tag = '16bins_mdm_2vec'
-#method_tag = '16bins_mdm_full'
+#method_tag = '8bins_mdm_nominal'
+method_tag = '16bins_mdm_chi2'
+#method_tag = '24bins_mdm_nominal'
 
-#signal_tag = '_S0'
+signal_tag = '_S0'
 #signal_tag = '_S5'
-signal_tag = '_S10'
+#signal_tag = '_S10'
 #signal_tag = '_S20'
 
-energy_bin_cut_low = 0
-energy_bin_cut_up = 1
+energy_bin_cut_low = 3
+energy_bin_cut_up = 6
 
 #elev_bins = [25,45]
 elev_bins = [45,85]
@@ -177,9 +176,9 @@ if sys.argv[1]=='Boomerang':
 if sys.argv[1]=='MGRO_J1908':
     ONOFF_tag = 'ON'
     sample_list = []
-    #sample_list += ['MGRO_J1908_V6']
+    sample_list += ['MGRO_J1908_V6']
     sample_list += ['MGRO_J1908_V5']
-    #sample_list += ['MGRO_J1908_V4']
+    sample_list += ['MGRO_J1908_V4']
     # this is a Tevatron
     
 if sys.argv[1]=='SS433':
@@ -315,8 +314,9 @@ folder_path = 'output_test'
 #folder_path = 'output_root'
 PercentCrab = ''
 
+#N_bins_for_deconv = 8
 N_bins_for_deconv = 16
-#N_bins_for_deconv = 32
+#N_bins_for_deconv = 24
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.5
@@ -936,8 +936,9 @@ def StackShowerHistograms():
     Hist2D_OnBkgd_Unblind_woGamma_Sum.Add(Hist2D_OnBkgd_Unblind_woGamma)
     Hist2D_OnGamma_Sum.Add(Hist2D_OnGamma)
 
-    Hist2D_H_Vari_Sum.Add(Hist2D_H_Vari)
-    Hist2D_H_Vari_Bkgd_Sum.Add(Hist2D_H_Vari_Bkgd)
+    if Hist2D_H_Vari_Sum.Integral()==0.:
+        Hist2D_H_Vari_Sum.Add(Hist2D_H_Vari)
+        Hist2D_H_Vari_Bkgd_Sum.Add(Hist2D_H_Vari_Bkgd)
 
     Hist2D_Rank0_Sum.Add(Hist2D_Rank0)
     Hist2D_Rank0_Sum.Add(Hist2D_OnData,-1.)
@@ -3357,6 +3358,8 @@ def MatrixDecompositionDemo(name):
     lumilab1.Draw()
     pad1.cd()
     pad1.SetLogz()
+    Hist2D_H_Vari_Sum.SetMaximum(1e-1);
+    Hist2D_H_Vari_Sum.SetMinimum(1e-4);
     Hist2D_H_Vari_Sum.GetYaxis().SetTitle('y')
     Hist2D_H_Vari_Sum.GetXaxis().SetTitle('x')
     Hist2D_H_Vari_Sum.Draw("COL4Z")
@@ -3372,6 +3375,8 @@ def MatrixDecompositionDemo(name):
     lumilab1.Draw()
     pad1.cd()
     pad1.SetLogz()
+    Hist2D_H_Vari_Bkgd_Sum.SetMaximum(1e-1);
+    Hist2D_H_Vari_Bkgd_Sum.SetMinimum(1e-4);
     Hist2D_H_Vari_Bkgd_Sum.GetYaxis().SetTitle('y')
     Hist2D_H_Vari_Bkgd_Sum.GetXaxis().SetTitle('x')
     Hist2D_H_Vari_Bkgd_Sum.Draw("COL4Z")
