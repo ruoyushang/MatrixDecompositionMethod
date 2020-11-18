@@ -508,11 +508,11 @@ double GetChi2Function(MatrixXcd mtx_model, MatrixXcd mtx_ref, bool isBlind)
 
     MatrixXcd mtx_data_truncated = mtx_ref;
     MatrixXcd mtx_model_truncated = mtx_model;
-    if (TruncateNoise)
-    {
-        mtx_data_truncated = GetTruncatedMatrix(mtx_data, NumberOfEigenvectors_Stable);
-        mtx_model_truncated = GetTruncatedMatrix(mtx_model, NumberOfEigenvectors_Stable);
-    }
+    //if (TruncateNoise)
+    //{
+    //    mtx_data_truncated = GetTruncatedMatrix(mtx_data, NumberOfEigenvectors_Stable);
+    //    mtx_model_truncated = GetTruncatedMatrix(mtx_model, NumberOfEigenvectors_Stable);
+    //}
     double chi2 = 0.;
     for (int row=0;row<mtx_ref.rows();row++)
     {
@@ -694,8 +694,11 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
 
     int row_size_big = mtx_input.rows()*mtx_input.cols();
     int regularization_size = 0;
-    //regularization_size += entry_size*mtx_input.cols();
-    regularization_size += mtx_input.rows()*mtx_input.cols();
+    if (UseRegularization)
+    {
+        //regularization_size += entry_size*mtx_input.cols();
+        regularization_size += mtx_input.rows()*mtx_input.cols();
+    }
     VectorXcd vtr_vari_big = VectorXcd::Zero(2*entry_size*mtx_input.cols());
     VectorXcd vtr_Delta = VectorXcd::Zero(row_size_big+regularization_size);
     MatrixXcd mtx_Big = MatrixXcd::Zero(row_size_big+regularization_size,2*entry_size*mtx_input.cols());
@@ -750,130 +753,136 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     //    }
     //}
 
-    for (int idx_l=0; idx_l<mtx_input.rows(); idx_l++)
+    if (UseRegularization)
     {
-        int nth_entry2 = idx_l + 1;
-        for (int idx_m=0; idx_m<mtx_input.rows(); idx_m++)
+        for (int idx_l=0; idx_l<mtx_input.rows(); idx_l++)
         {
-            int nth_entry3 = idx_m + 1;
-            double weight_s1 = 1.*eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
-            double weight_s2 = 1.*eigensolver_dark.eigenvalues()(mtx_dark.cols()-nth_entry2).real();
-            double weight_s3 = 1.*eigensolver_dark.eigenvalues()(mtx_dark.cols()-nth_entry3).real();
-            for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
+            int nth_entry2 = idx_l + 1;
+            for (int idx_m=0; idx_m<mtx_input.rows(); idx_m++)
             {
-                int idx_u = idx_l + mtx_input.rows()*idx_m + row_size_big;
-                vtr_Delta(idx_u) = 0.;
-                if (nth_entry2!=nth_entry3 || nth_entry2==entry_size || nth_entry3==entry_size)
+                int nth_entry3 = idx_m + 1;
+                double weight_s1 = 1.*eigensolver_dark.eigenvalues()(mtx_dark.cols()-1).real();
+                double weight_s2 = 1.*eigensolver_dark.eigenvalues()(mtx_dark.cols()-nth_entry2).real();
+                double weight_s3 = 1.*eigensolver_dark.eigenvalues()(mtx_dark.cols()-nth_entry3).real();
+                for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
                 {
-                    if (nth_entry2<=entry_size && nth_entry3<=entry_size)
+                    int idx_u = idx_l + mtx_input.rows()*idx_m + row_size_big;
+                    vtr_Delta(idx_u) = 0.;
+                    if (nth_entry2!=nth_entry3 || nth_entry2==entry_size || nth_entry3==entry_size)
                     {
-                        int idx_n = idx_i + mtx_input.rows()*idx_l;
-                        int idx_w = idx_i + mtx_input.rows()*idx_m + mtx_input.cols()*entry_size;
-                        mtx_Big(idx_u,idx_n) = (weight_s1)*mtx_q_init(idx_i,mtx_input.rows()-nth_entry3);
-                        mtx_Big(idx_u,idx_w) = (weight_s1)*mtx_p_init(idx_i,mtx_input.rows()-nth_entry2);
-                    }
-                    else if (nth_entry2<=entry_size)
-                    {
-                        int idx_n = idx_i + mtx_input.rows()*idx_l;
-                        mtx_Big(idx_u,idx_n) = weight_s1*mtx_q_init(idx_i,mtx_input.rows()-nth_entry3);
-                    }
-                    else if (nth_entry3<=entry_size)
-                    {
-                        int idx_w = idx_i + mtx_input.rows()*idx_m + mtx_input.cols()*entry_size;
-                        mtx_Big(idx_u,idx_w) = weight_s1*mtx_p_init(idx_i,mtx_input.rows()-nth_entry2);
+                        if (nth_entry2<=entry_size && nth_entry3<=entry_size)
+                        {
+                            int idx_n = idx_i + mtx_input.rows()*idx_l;
+                            int idx_w = idx_i + mtx_input.rows()*idx_m + mtx_input.cols()*entry_size;
+                            mtx_Big(idx_u,idx_n) = (weight_s1)*mtx_q_init(idx_i,mtx_input.rows()-nth_entry3);
+                            mtx_Big(idx_u,idx_w) = (weight_s1)*mtx_p_init(idx_i,mtx_input.rows()-nth_entry2);
+                        }
+                        else if (nth_entry2<=entry_size)
+                        {
+                            int idx_n = idx_i + mtx_input.rows()*idx_l;
+                            mtx_Big(idx_u,idx_n) = weight_s1*mtx_q_init(idx_i,mtx_input.rows()-nth_entry3);
+                        }
+                        else if (nth_entry3<=entry_size)
+                        {
+                            int idx_w = idx_i + mtx_input.rows()*idx_m + mtx_input.cols()*entry_size;
+                            mtx_Big(idx_u,idx_w) = weight_s1*mtx_p_init(idx_i,mtx_input.rows()-nth_entry2);
+                        }
                     }
                 }
             }
         }
     }
 
-
-    //// unconstrained
-    ////int coeff_size = entry_size;
-    //int coeff_size = mtx_input.rows();
-    //VectorXcd vtr_Coeff = VectorXcd::Zero(entry_size*(2*coeff_size));
-    //MatrixXcd mtx_Basis = MatrixXcd::Zero(2*entry_size*mtx_input.cols(),entry_size*(2*coeff_size));
-    //MatrixXcd mtx_Basis_full = MatrixXcd::Zero(2*entry_size*mtx_input.cols(),entry_size*(2*coeff_size));
-    //for (int idx_k=0; idx_k<entry_size; idx_k++)
-    //{
-    //    int nth_entry = idx_k + 1;
-    //    for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
-    //    {
-    //        int idx_n = idx_i + mtx_input.cols()*idx_k;
-    //        int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
-    //        for (int idx_l=0; idx_l<coeff_size; idx_l++)
-    //        {
-    //            int nth_entry2 = idx_l + 1;
-    //            int idx_u = idx_l + coeff_size*idx_k;
-    //            int idx_v = idx_l + coeff_size*idx_k + coeff_size*entry_size;
-    //            //mtx_Basis_full(idx_n,idx_u) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2);
-    //            //mtx_Basis_full(idx_w,idx_v) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
-    //            std::complex<double> weight_p1 = 1.;
-    //            std::complex<double> weight_p2 = 1.;
-    //            if (nth_entry2==1) weight_p1 = 0.;
-    //            if (nth_entry2!=1) weight_p2 = mtx_P_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry2);
-    //            mtx_Basis_full(idx_n,idx_u) = weight_p1*(mtx_p_init(idx_i,mtx_input.rows()-nth_entry2)-weight_p2*mtx_p_init(idx_i,mtx_input.rows()-nth_entry));
-    //            std::complex<double> weight_q1 = 1.;
-    //            std::complex<double> weight_q2 = 1.;
-    //            if (nth_entry2==1) weight_q1 = 0.;
-    //            if (nth_entry2!=1) weight_q2 = mtx_Q_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry2);
-    //            mtx_Basis_full(idx_w,idx_v) = weight_q1*(mtx_q_init(idx_i,mtx_input.rows()-nth_entry2)-weight_q2*mtx_q_init(idx_i,mtx_input.rows()-nth_entry));
-    //            //mtx_Basis_full(idx_w,idx_v) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
-    //        }
-    //    }
-    //}
-
-    // orthogonal and normalization
-    //int coeff_size = entry_size;
     int coeff_size = mtx_input.rows();
-    VectorXcd vtr_Coeff = VectorXcd::Zero(2*entry_size*coeff_size-entry_size*entry_size);
-    MatrixXcd mtx_Basis = MatrixXcd::Zero(2*entry_size*mtx_input.cols(),2*entry_size*coeff_size-entry_size*entry_size);
-    MatrixXcd mtx_Basis_full = MatrixXcd::Zero(2*entry_size*mtx_input.cols(),2*entry_size*coeff_size-entry_size*entry_size);
-    for (int idx_k=0; idx_k<entry_size; idx_k++)
+    //int coeff_size = entry_size;
+    VectorXcd vtr_Coeff;
+    MatrixXcd mtx_Basis;
+
+    if (UseRegularization)
     {
-        int nth_entry = idx_k + 1;
-        for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
+        // orthogonal and normalization
+        vtr_Coeff = VectorXcd::Zero(2*entry_size*coeff_size-entry_size*entry_size);
+        mtx_Basis = MatrixXcd::Zero(2*entry_size*mtx_input.cols(),2*entry_size*coeff_size-entry_size*entry_size);
+        for (int idx_k=0; idx_k<entry_size; idx_k++)
         {
-            int idx_n = idx_i + mtx_input.cols()*idx_k;
-            int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
-            for (int idx_l=0; idx_l<entry_size; idx_l++)
+            int nth_entry = idx_k + 1;
+            for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
             {
-                int nth_entry2 = idx_l + 1;
-                int idx_u = idx_l + entry_size*idx_k;
-                int idx_v = idx_l*entry_size + idx_k;
-                std::complex<double> weight_p1 = 1.;
-                std::complex<double> weight_p2 = 1.;
-                std::complex<double> weight_q = 1.;
-                if (nth_entry==nth_entry2) weight_p1 = 0.;
-                if (nth_entry!=nth_entry2) weight_p2 = mtx_P_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry2);
-                std::complex<double> eta_1 = mtx_H_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry);
-                std::complex<double> eta_2 = mtx_H_init(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2);
-                if (nth_entry!=nth_entry2) weight_q = -1.*eta_1/eta_2;
-                mtx_Basis_full(idx_n,idx_u) = weight_p1*(mtx_p_init(idx_i,mtx_input.rows()-nth_entry2)-weight_p2*mtx_p_init(idx_i,mtx_input.rows()-nth_entry));
-                mtx_Basis_full(idx_w,idx_v) = weight_q*mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
-                mtx_Basis(idx_n,idx_u) = weight_p1*(mtx_p_init(idx_i,mtx_input.rows()-nth_entry2)-weight_p2*mtx_p_init(idx_i,mtx_input.rows()-nth_entry));
-                mtx_Basis(idx_w,idx_v) = weight_q*mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
+                int idx_n = idx_i + mtx_input.cols()*idx_k;
+                int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
+                for (int idx_l=0; idx_l<entry_size; idx_l++)
+                {
+                    int nth_entry2 = idx_l + 1;
+                    int idx_u = idx_l + entry_size*idx_k;
+                    int idx_v = idx_l*entry_size + idx_k;
+                    std::complex<double> weight_p1 = 1.;
+                    std::complex<double> weight_p2 = 1.;
+                    std::complex<double> weight_q = 1.;
+                    if (nth_entry==nth_entry2) weight_p1 = 0.;
+                    if (nth_entry!=nth_entry2) weight_p2 = mtx_P_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry2);
+                    std::complex<double> eta_1 = mtx_H_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry);
+                    std::complex<double> eta_2 = mtx_H_init(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2);
+                    if (nth_entry!=nth_entry2) weight_q = -1.*eta_1/eta_2;
+                    mtx_Basis(idx_n,idx_u) = weight_p1*(mtx_p_init(idx_i,mtx_input.rows()-nth_entry2)-weight_p2*mtx_p_init(idx_i,mtx_input.rows()-nth_entry));
+                    mtx_Basis(idx_w,idx_v) = weight_q*mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
+                }
+            }
+        }
+        for (int idx_k=0; idx_k<entry_size; idx_k++)
+        {
+            int nth_entry = idx_k + 1;
+            for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
+            {
+                int idx_n = idx_i + mtx_input.cols()*idx_k;
+                int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
+                for (int idx_l=0; idx_l<coeff_size-entry_size; idx_l++)
+                {
+                    int nth_entry2 = idx_l + entry_size + 1;
+                    int idx_u = idx_l + (coeff_size-entry_size)*idx_k + entry_size*entry_size;
+                    int idx_v = idx_l + (coeff_size-entry_size)*idx_k + (coeff_size-entry_size)*entry_size + entry_size*entry_size;
+                    std::complex<double> weight_p2 = mtx_P_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry2);
+                    mtx_Basis(idx_n,idx_u) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2)-weight_p2*mtx_p_init(idx_i,mtx_input.rows()-nth_entry);
+                    mtx_Basis(idx_w,idx_v) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
+                }
             }
         }
     }
-    for (int idx_k=0; idx_k<entry_size; idx_k++)
+    else
     {
-        int nth_entry = idx_k + 1;
-        for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
+        // unconstrained
+        vtr_Coeff = VectorXcd::Zero(entry_size*(2*coeff_size));
+        mtx_Basis = MatrixXcd::Zero(2*entry_size*mtx_input.cols(),entry_size*(2*coeff_size));
+        for (int idx_k=0; idx_k<entry_size; idx_k++)
         {
-            int idx_n = idx_i + mtx_input.cols()*idx_k;
-            int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
-            for (int idx_l=0; idx_l<coeff_size-entry_size; idx_l++)
+            int nth_entry = idx_k + 1;
+            for (int idx_i=0; idx_i<mtx_input.rows(); idx_i++)
             {
-                int nth_entry2 = idx_l + entry_size + 1;
-                int idx_u = idx_l + (coeff_size-entry_size)*idx_k + entry_size*entry_size;
-                int idx_v = idx_l + (coeff_size-entry_size)*idx_k + (coeff_size-entry_size)*entry_size + entry_size*entry_size;
-                std::complex<double> weight_p2 = mtx_P_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry2);
-                mtx_Basis_full(idx_n,idx_u) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2)-weight_p2*mtx_p_init(idx_i,mtx_input.rows()-nth_entry);
-                mtx_Basis_full(idx_w,idx_v) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
+                int idx_n = idx_i + mtx_input.cols()*idx_k;
+                int idx_w = idx_i + mtx_input.cols()*idx_k + mtx_input.cols()*entry_size;
+                for (int idx_l=0; idx_l<coeff_size; idx_l++)
+                {
+                    int nth_entry2 = idx_l + 1;
+                    int idx_u = idx_l + coeff_size*idx_k;
+                    int idx_v = idx_l + coeff_size*idx_k + coeff_size*entry_size;
+                    //mtx_Basis(idx_n,idx_u) = mtx_p_init(idx_i,mtx_input.rows()-nth_entry2);
+                    //mtx_Basis(idx_w,idx_v) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
+                    std::complex<double> weight_p1 = 1.;
+                    std::complex<double> weight_p2 = 1.;
+                    if (nth_entry2==1) weight_p1 = 0.;
+                    if (nth_entry2!=1) weight_p2 = mtx_P_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry2);
+                    mtx_Basis(idx_n,idx_u) = weight_p1*(mtx_p_init(idx_i,mtx_input.rows()-nth_entry2)-weight_p2*mtx_p_init(idx_i,mtx_input.rows()-nth_entry));
+                    std::complex<double> weight_q1 = 1.;
+                    std::complex<double> weight_q2 = 1.;
+                    if (nth_entry2==1) weight_q1 = 0.;
+                    if (nth_entry2!=1) weight_q2 = mtx_Q_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry2);
+                    mtx_Basis(idx_w,idx_v) = weight_q1*(mtx_q_init(idx_i,mtx_input.rows()-nth_entry2)-weight_q2*mtx_q_init(idx_i,mtx_input.rows()-nth_entry));
+                    //mtx_Basis(idx_w,idx_v) = mtx_q_init(idx_i,mtx_input.rows()-nth_entry2);
+                }
             }
         }
     }
+
+
 
     //for (int idx_k=0; idx_k<entry_size; idx_k++)
     //{
@@ -905,10 +914,10 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     //svd_threshold = 1./abs(svd_threshold_scale*lambda_noise);
     std::cout << "svd_threshold = " << svd_threshold << std::endl;
 
-    BDCSVD<MatrixXcd> svd(mtx_Big*mtx_Basis_full, ComputeThinU | ComputeThinV);
+    BDCSVD<MatrixXcd> svd(mtx_Big*mtx_Basis, ComputeThinU | ComputeThinV);
     svd.setThreshold(svd_threshold);  // size of singular value to be considered as nonzero.
     vtr_Coeff = svd.solve(vtr_Delta);
-    vtr_vari_big = mtx_Basis_full*vtr_Coeff;
+    vtr_vari_big = mtx_Basis*vtr_Coeff;
 
     //vtr_Coeff = SolutionWithConstraints(mtx_Big*mtx_Basis, mtx_Constraint*mtx_Basis, vtr_Delta, vtr_Constraint_Delta);
     //vtr_vari_big = mtx_Basis*vtr_Coeff;
@@ -1043,31 +1052,39 @@ void GetTruncatedHistogram(TH2D* hist_input, TH2D* hist_output, int rank_cutoff)
     mtx_temp = mtx_eigenvector_temp*mtx_eigenvalue_temp*mtx_eigenvector_inv_temp;
     fill2DHistogram(hist_output,mtx_temp);
 }
-void FindPerturbationSolution(MatrixXcd mtx_input, MatrixXcd mtx_H_init, MatrixXcd& mtx_r_init, MatrixXcd& mtx_lambda_init, MatrixXcd& mtx_l_init, int entry_size, bool doPrint)
+void FindPerturbationSolution(MatrixXcd mtx_ref, MatrixXcd mtx_input_fix, MatrixXcd& mtx_input, MatrixXcd mtx_H_init, MatrixXcd& mtx_r_init, MatrixXcd& mtx_lambda_init, MatrixXcd& mtx_l_init, int entry_size, bool doPrint)
 {
+
+    double cutoff = 0.001;
 
     MatrixXcd mtx_S_init = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
     for (int col=0;col<mtx_input.cols();col++)
     {
         if (col<mtx_input.cols()-entry_size) continue;
-        if (abs(mtx_H_init(col,col))<0.01) continue;
+        if (abs(mtx_H_init(col,col))<cutoff) continue;
         mtx_S_init(col,col) = mtx_lambda_init(col,col)/mtx_H_init(col,col);
     }
     MatrixXcd mtx_bkgd = mtx_r_init*mtx_S_init*mtx_l_init.transpose();
 
     MatrixXcd mtx_delta = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    //mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_bkgd-mtx_input).block(0,0,binx_blind_global,biny_blind_global);
-    mtx_delta = mtx_data-mtx_bkgd;
-    for (int col=0;col<mtx_input.cols();col++)
-    {
-        for (int row=0;row<mtx_input.rows();row++)
-        {
-            if (col<binx_blind_global && row<biny_blind_global)
-            {
-                mtx_delta(row,col) = 0.;
-            }
-        }
-    }
+
+    //mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_ref-mtx_bkgd).block(0,0,binx_blind_global,biny_blind_global);
+    //mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_ref-mtx_input).block(0,0,binx_blind_global,biny_blind_global);
+    //mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_bkgd-mtx_input_fix).block(0,0,binx_blind_global,biny_blind_global);
+    mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_input_fix-mtx_bkgd).block(0,0,binx_blind_global,biny_blind_global);
+    
+    //mtx_delta = mtx_ref-mtx_input;
+    //mtx_delta = mtx_ref-mtx_bkgd;
+    //for (int col=0;col<mtx_input.cols();col++)
+    //{
+    //    for (int row=0;row<mtx_input.rows();row++)
+    //    {
+    //        if (col<binx_blind_global && row<biny_blind_global)
+    //        {
+    //            mtx_delta(row,col) = (mtx_input-mtx_bkgd)(row,col);
+    //        }
+    //    }
+    //}
 
     MatrixXcd mtx_coeff = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
     MatrixXcd mtx_proj = mtx_l_init.transpose()*mtx_delta*mtx_r_init;
@@ -1075,9 +1092,9 @@ void FindPerturbationSolution(MatrixXcd mtx_input, MatrixXcd mtx_H_init, MatrixX
     {
         for (int row=0;row<mtx_input.rows();row++)
         {
-            if (row<mtx_input.cols()-entry_size && col<mtx_input.cols()-entry_size) continue;
+            //if (row<mtx_input.cols()-entry_size && col<mtx_input.cols()-entry_size) continue;
             if (row==col) continue;
-            //if (abs(mtx_lambda_init(row,row)-mtx_lambda_init(col,col))<0.01) continue;
+            if (abs(mtx_lambda_init(row,row)-mtx_lambda_init(col,col))<cutoff) continue;
             mtx_coeff(row,col) = 1.*mtx_proj(row,col)/(mtx_lambda_init(row,row)-mtx_lambda_init(col,col));
         }
     }
@@ -1096,37 +1113,67 @@ void FindPerturbationSolution(MatrixXcd mtx_input, MatrixXcd mtx_H_init, MatrixX
                 if (idx_k<mtx_input.cols()-entry_size) continue;
                 mtx_r_next(idx_i,idx_j) += -1.*mtx_coeff(idx_k,idx_j)*mtx_r_init(idx_i,idx_k)/mtx_H_init(idx_k,idx_k);
                 mtx_l_next(idx_i,idx_j) += mtx_coeff(idx_j,idx_k)*mtx_l_init(idx_i,idx_k)/mtx_H_init(idx_k,idx_k);
-                //mtx_r_next(idx_i,idx_j) += -1.*mtx_coeff(idx_j,idx_k)*mtx_r_init(idx_i,idx_k)/mtx_H_init(idx_k,idx_k);
-                //mtx_l_next(idx_i,idx_j) += mtx_coeff(idx_k,idx_j)*mtx_l_init(idx_i,idx_k)/mtx_H_init(idx_k,idx_k);
             }
         }
     }
 
+    MatrixXcd mtx_H_next = mtx_r_next.transpose()*mtx_l_next;
     if (doPrint)
     {
+        std::cout << "mtx_coeff:" << std::endl;
+        std::cout << mtx_coeff.block(mtx_input.rows()-6,mtx_input.cols()-6,6,6).cwiseAbs() << std::endl;
         std::cout << "mtx_lambda_init:" << std::endl;
-        std::cout << mtx_lambda_init.block(mtx_input.rows()-3,mtx_input.cols()-3,3,3) << std::endl;
+        std::cout << mtx_lambda_init.block(mtx_input.rows()-6,mtx_input.cols()-6,6,6) << std::endl;
         std::cout << "mtx_lambda_next:" << std::endl;
-        std::cout << mtx_lambda_next.block(mtx_input.rows()-3,mtx_input.cols()-3,3,3) << std::endl;
+        std::cout << mtx_lambda_next.block(mtx_input.rows()-6,mtx_input.cols()-6,6,6).cwiseAbs() << std::endl;
+        std::cout << "mtx_H_init:" << std::endl;
+        std::cout << mtx_H_init.block(mtx_input.rows()-6,mtx_input.cols()-6,6,6).cwiseAbs() << std::endl;
+        std::cout << "mtx_H_next:" << std::endl;
+        std::cout << mtx_H_next.block(mtx_input.rows()-6,mtx_input.cols()-6,6,6).cwiseAbs() << std::endl;
     }
 
     mtx_r_init = mtx_r_next;
     mtx_l_init = mtx_l_next;
     mtx_lambda_init = mtx_lambda_next;
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        if (abs(mtx_H_init(col,col))<cutoff) continue;
+        mtx_S_init(col,col) = mtx_lambda_init(col,col)/mtx_H_init(col,col);
+    }
+
+    mtx_input = mtx_r_init*mtx_S_init*mtx_l_init.transpose();
 
 }
-void PerturbationMethod(MatrixXcd mtx_input)
+void PerturbationMethod(MatrixXcd mtx_ref, MatrixXcd mtx_input)
 {
 
     int entry_size = DetermineStableNumberOfEigenvalues(mtx_input);
     entry_size = min(entry_size,3);
+    //entry_size = min(entry_size,2);
 
-    eigensolver_init = ComplexEigenSolver<MatrixXcd>(mtx_input);
-    eigensolver_init_transpose = ComplexEigenSolver<MatrixXcd>(mtx_input.transpose());
+    MatrixXcd mtx_input_swap = mtx_input;
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            if (col<binx_blind_global && row<biny_blind_global)
+            {
+                mtx_input_swap(row,col) = mtx_input(row,col);
+            }
+            else
+            {
+                mtx_input_swap(row,col) = mtx_ref(row,col);
+            }
+        }
+    }
+
+    MatrixXcd mtx_bkgd = mtx_input_swap;
+    eigensolver_init = ComplexEigenSolver<MatrixXcd>(mtx_bkgd);
+    eigensolver_init_transpose = ComplexEigenSolver<MatrixXcd>(mtx_bkgd.transpose());
     MatrixXcd mtx_r_init = eigensolver_init.eigenvectors();
     MatrixXcd mtx_l_init = eigensolver_init_transpose.eigenvectors();
     MatrixXcd mtx_H_init = mtx_r_init.transpose()*mtx_l_init;
-    MatrixXcd mtx_lambda_init(mtx_input.rows(),mtx_input.cols());
+    MatrixXcd mtx_lambda_init(mtx_bkgd.rows(),mtx_bkgd.cols());
     for (int row=0;row<mtx_input.rows();row++)
     {
         for (int col=0;col<mtx_input.cols();col++)
@@ -1139,14 +1186,17 @@ void PerturbationMethod(MatrixXcd mtx_input)
         }
     }
 
-    std::cout << "=========== " << 1 << "-st iteration ===========" << std::endl;
-    FindPerturbationSolution(mtx_input, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, true);
+    std::cout << "=========== " << 1 << "-th iteration ===========" << std::endl;
+    FindPerturbationSolution(mtx_ref, mtx_input_swap, mtx_bkgd, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, true);
     for (int iter=0;iter<20;iter++)
     {
-        FindPerturbationSolution(mtx_input, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, false);
+        bool doPrint = true;
+        if (iter>=3) doPrint = false;
+        std::cout << "=========== " << iter+2 << "-th iteration ===========" << std::endl;
+        FindPerturbationSolution(mtx_ref, mtx_input_swap, mtx_bkgd, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, doPrint);
     }
     std::cout << "=========== final iteration ===========" << std::endl;
-    FindPerturbationSolution(mtx_input, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, true);
+    FindPerturbationSolution(mtx_ref, mtx_input_swap, mtx_bkgd, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, true);
 
     MatrixXcd mtx_S_init = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
     for (int col=0;col<mtx_input.cols();col++)
@@ -2065,8 +2115,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 Hist_OneGroup_Data_MSCLW.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 group_size.at(e) += ((TH2D*)InputDataFile.Get(hist_name))->Integral();
 
-                //hist_name  = "Hist_GammaData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-                hist_name  = "Hist_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                hist_name  = "Hist_GammaData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+                //hist_name  = "Hist_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up);
                 Hist_OneGroup_Gamma_MSCLW.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
                 mtx_gamma_raw = fillMatrix(&Hist_OneGroup_Gamma_MSCLW.at(e));
                 hist_name  = "Hist_OnData_SR_Skymap_Theta2_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -2168,31 +2218,37 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     NumberOfEigenvectors_Stable = min(dark_cutoff,data_cutoff);
                     //NumberOfEigenvectors_Stable = data_cutoff;
 
-                    //PerturbationMethod(mtx_dark);
 
-                    //double chi2_best = 1e20;
-                    //int cutoff_max = NumberOfEigenvectors_Stable;
-                    //int cutoff_best = 0;
-                    //for (int cutoff=2;cutoff<=cutoff_max;cutoff++)
-                    //{
-                    //    NumberOfEigenvectors_Stable = cutoff;
-                    //    LeastSquareSolutionMethod(false, true);
-                    //    double chi2 = GetChi2Function(mtx_data_bkgd,mtx_data,true);
-                    //    if (chi2<chi2_best)
-                    //    {
-                    //        chi2_best = chi2;
-                    //        cutoff_best = cutoff;
-                    //    }
-                    //}
-                    //NumberOfEigenvectors_Stable = cutoff_best;
+                    if (UsePerturbation)
+                    {
+                        PerturbationMethod(mtx_data,mtx_dark);
+                    }
+                    else
+                    {
+                        //double chi2_best = 1e20;
+                        //int cutoff_max = NumberOfEigenvectors_Stable;
+                        //int cutoff_best = 0;
+                        //for (int cutoff=1;cutoff<=cutoff_max;cutoff++)
+                        //{
+                        //    NumberOfEigenvectors_Stable = cutoff;
+                        //    LeastSquareSolutionMethod(false, true);
+                        //    double chi2 = GetChi2Function(mtx_data_bkgd,mtx_data,true);
+                        //    if (chi2<chi2_best)
+                        //    {
+                        //        chi2_best = chi2;
+                        //        cutoff_best = cutoff;
+                        //    }
+                        //}
+                        //NumberOfEigenvectors_Stable = cutoff_best;
+                        
+                        NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,3);
+                        std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
+                        LeastSquareSolutionMethod(false, true);
+                    }
                     
-                    NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,3);
-                    std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
-                    LeastSquareSolutionMethod(false, true);
-
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
-                    
+
                     if (UseMinChi2)
                     {
                         mtx_data_bkgd = MinChi2Method(&Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e), &Hist_OneGroup_Data_MSCLW.at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
@@ -2210,10 +2266,16 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     
                     double dark_weight = 1./double(n_dark_samples);
                     int error_bin = Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
-                    //GetNoiseReplacedMatrix(&Hist_OneGroup_Data_MSCLW.at(e),&Hist_Temp_Bkgd,false);
+                    if (TruncateNoise) 
+                    {
+                        GetNoiseReplacedMatrix(&Hist_OneGroup_Data_MSCLW.at(e),&Hist_Temp_Bkgd,false);
+                    }
                     Hist_OneGroup_Bkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
                     Hist_OnSyst_MSCLW.at(nth_sample).at(e).Add(&Hist_Temp_Bkgd);
-                    //GetNoiseReplacedMatrix(&Hist_OneGroup_Data_MSCLW.at(e),&hist_dark_alter,false);
+                    if (TruncateNoise) 
+                    {
+                        GetNoiseReplacedMatrix(&Hist_OneGroup_Data_MSCLW.at(e),&hist_dark_alter,false);
+                    }
                     Hist_OnDark_MSCLW.at(e).Add(&hist_dark_alter,dark_weight);
                     Hist_OnSyst_Chi2.at(nth_sample).at(e).Add(&Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e));
                     Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).Reset();
