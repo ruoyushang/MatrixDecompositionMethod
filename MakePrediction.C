@@ -1052,39 +1052,47 @@ void GetTruncatedHistogram(TH2D* hist_input, TH2D* hist_output, int rank_cutoff)
     mtx_temp = mtx_eigenvector_temp*mtx_eigenvalue_temp*mtx_eigenvector_inv_temp;
     fill2DHistogram(hist_output,mtx_temp);
 }
-void FindPerturbationSolution(MatrixXcd mtx_ref, MatrixXcd mtx_input_fix, MatrixXcd& mtx_input, MatrixXcd mtx_H_init, MatrixXcd& mtx_r_init, MatrixXcd& mtx_lambda_init, MatrixXcd& mtx_l_init, int entry_size, bool doPrint)
+double CountGammaRegion(MatrixXcd mtx_input)
+{
+    double count = 0.;
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            if (row>=binx_blind_global) continue;
+            if (col>=biny_blind_global) continue;
+            count += mtx_input(row,col).real();
+        }
+    }
+    return count;
+}
+double SwapCRRegion(MatrixXcd mtx_input, MatrixXcd& mtx_output)
+{
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            if (col>=binx_blind_global || row>=biny_blind_global)
+            {
+                mtx_output(row,col) = mtx_input(row,col);
+            }
+        }
+    }
+}
+void FindPerturbationSolution(MatrixXcd mtx_ref, MatrixXcd mtx_input_fix, MatrixXcd& mtx_input, MatrixXcd mtx_H_init, MatrixXcd mtx_r_init, MatrixXcd mtx_lambda_init, MatrixXcd mtx_l_init, int entry_size, bool doPrint)
 {
 
     double cutoff = 0.001;
 
-    MatrixXcd mtx_S_init = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    for (int col=0;col<mtx_input.cols();col++)
-    {
-        if (col<mtx_input.cols()-entry_size) continue;
-        if (abs(mtx_H_init(col,col))<cutoff) continue;
-        mtx_S_init(col,col) = mtx_lambda_init(col,col)/mtx_H_init(col,col);
-    }
-    MatrixXcd mtx_bkgd = mtx_r_init*mtx_S_init*mtx_l_init.transpose();
+    MatrixXcd mtx_bkgd = mtx_input;
+    SwapCRRegion(mtx_ref, mtx_bkgd);
 
     MatrixXcd mtx_delta = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
 
-    //mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_ref-mtx_bkgd).block(0,0,binx_blind_global,biny_blind_global);
-    //mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_ref-mtx_input).block(0,0,binx_blind_global,biny_blind_global);
-    //mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_bkgd-mtx_input_fix).block(0,0,binx_blind_global,biny_blind_global);
-    mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_input_fix-mtx_bkgd).block(0,0,binx_blind_global,biny_blind_global);
-    
-    //mtx_delta = mtx_ref-mtx_input;
     //mtx_delta = mtx_ref-mtx_bkgd;
-    //for (int col=0;col<mtx_input.cols();col++)
-    //{
-    //    for (int row=0;row<mtx_input.rows();row++)
-    //    {
-    //        if (col<binx_blind_global && row<biny_blind_global)
-    //        {
-    //            mtx_delta(row,col) = (mtx_input-mtx_bkgd)(row,col);
-    //        }
-    //    }
-    //}
+    mtx_delta = mtx_bkgd-mtx_input_fix;
+    //mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_ref-mtx_bkgd).block(0,0,binx_blind_global,biny_blind_global);
+    //mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_bkgd-mtx_input_fix).block(0,0,binx_blind_global,biny_blind_global);
 
     MatrixXcd mtx_coeff = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
     MatrixXcd mtx_proj = mtx_l_init.transpose()*mtx_delta*mtx_r_init;
@@ -1092,9 +1100,9 @@ void FindPerturbationSolution(MatrixXcd mtx_ref, MatrixXcd mtx_input_fix, Matrix
     {
         for (int row=0;row<mtx_input.rows();row++)
         {
-            //if (row<mtx_input.cols()-entry_size && col<mtx_input.cols()-entry_size) continue;
+            if (row<mtx_input.cols()-entry_size && col<mtx_input.cols()-entry_size) continue;
             if (row==col) continue;
-            if (abs(mtx_lambda_init(row,row)-mtx_lambda_init(col,col))<cutoff) continue;
+            //if (abs(mtx_lambda_init(row,row)-mtx_lambda_init(col,col))<cutoff) continue;
             mtx_coeff(row,col) = 1.*mtx_proj(row,col)/(mtx_lambda_init(row,row)-mtx_lambda_init(col,col));
         }
     }
@@ -1132,16 +1140,18 @@ void FindPerturbationSolution(MatrixXcd mtx_ref, MatrixXcd mtx_input_fix, Matrix
         std::cout << mtx_H_next.block(mtx_input.rows()-6,mtx_input.cols()-6,6,6).cwiseAbs() << std::endl;
     }
 
-    mtx_r_init = mtx_r_next;
-    mtx_l_init = mtx_l_next;
-    mtx_lambda_init = mtx_lambda_next;
+    MatrixXcd mtx_S_next = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
     for (int col=0;col<mtx_input.cols();col++)
     {
-        if (abs(mtx_H_init(col,col))<cutoff) continue;
-        mtx_S_init(col,col) = mtx_lambda_init(col,col)/mtx_H_init(col,col);
+        if (col<mtx_input.cols()-entry_size) continue;
+        //if (abs(mtx_H_init(col,col))<cutoff) continue;
+        mtx_S_next(col,col) = mtx_lambda_next(col,col)/mtx_H_init(col,col);
     }
 
-    mtx_input = mtx_r_init*mtx_S_init*mtx_l_init.transpose();
+    mtx_input = mtx_r_next*mtx_S_next*mtx_l_next.transpose();
+    double ref_count = CountGammaRegion(mtx_ref);
+    double bkg_count = CountGammaRegion(mtx_input);
+    std::cout << "ref_count = " << ref_count << ", bkg_count = " << bkg_count << ", epsilon = " << bkg_count/ref_count << std::endl;
 
 }
 void PerturbationMethod(MatrixXcd mtx_ref, MatrixXcd mtx_input)
@@ -1152,22 +1162,9 @@ void PerturbationMethod(MatrixXcd mtx_ref, MatrixXcd mtx_input)
     //entry_size = min(entry_size,2);
 
     MatrixXcd mtx_input_swap = mtx_input;
-    for (int col=0;col<mtx_input.cols();col++)
-    {
-        for (int row=0;row<mtx_input.rows();row++)
-        {
-            if (col<binx_blind_global && row<biny_blind_global)
-            {
-                mtx_input_swap(row,col) = mtx_input(row,col);
-            }
-            else
-            {
-                mtx_input_swap(row,col) = mtx_ref(row,col);
-            }
-        }
-    }
+    //SwapCRRegion(mtx_ref, mtx_input_swap);
 
-    MatrixXcd mtx_bkgd = mtx_input_swap;
+    MatrixXcd mtx_bkgd = mtx_input;
     eigensolver_init = ComplexEigenSolver<MatrixXcd>(mtx_bkgd);
     eigensolver_init_transpose = ComplexEigenSolver<MatrixXcd>(mtx_bkgd.transpose());
     MatrixXcd mtx_r_init = eigensolver_init.eigenvectors();
@@ -1185,27 +1182,27 @@ void PerturbationMethod(MatrixXcd mtx_ref, MatrixXcd mtx_input)
             }
         }
     }
+    MatrixXcd mtx_S_init = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        if (col<mtx_input.cols()-entry_size) continue;
+        mtx_S_init(col,col) = mtx_lambda_init(col,col)/mtx_H_init(col,col);
+    }
+    mtx_bkgd = mtx_r_init*mtx_S_init*mtx_l_init.transpose();
 
     std::cout << "=========== " << 1 << "-th iteration ===========" << std::endl;
     FindPerturbationSolution(mtx_ref, mtx_input_swap, mtx_bkgd, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, true);
     for (int iter=0;iter<20;iter++)
     {
-        bool doPrint = true;
-        if (iter>=3) doPrint = false;
-        std::cout << "=========== " << iter+2 << "-th iteration ===========" << std::endl;
+        bool doPrint = false;
+        //if (iter<=3) doPrint = true;
+        //std::cout << "=========== " << iter+2 << "-th iteration ===========" << std::endl;
         FindPerturbationSolution(mtx_ref, mtx_input_swap, mtx_bkgd, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, doPrint);
     }
     std::cout << "=========== final iteration ===========" << std::endl;
     FindPerturbationSolution(mtx_ref, mtx_input_swap, mtx_bkgd, mtx_H_init, mtx_r_init, mtx_lambda_init, mtx_l_init, entry_size, true);
 
-    MatrixXcd mtx_S_init = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    for (int col=0;col<mtx_input.cols();col++)
-    {
-        if (col<mtx_input.cols()-entry_size) continue;
-        if (abs(mtx_H_init(col,col))<0.01) continue;
-        mtx_S_init(col,col) = mtx_lambda_init(col,col)/mtx_H_init(col,col);
-    }
-    mtx_data_bkgd = mtx_r_init*mtx_S_init*mtx_l_init.transpose();
+    mtx_data_bkgd = mtx_bkgd;
 
 }
 void LeastSquareSolutionMethod(bool DoSequential, bool isBlind)
