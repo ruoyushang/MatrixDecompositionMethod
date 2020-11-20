@@ -789,7 +789,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     //int coeff_size = mtx_input.rows();
     //int coeff_size = mtx_input.rows()/2;
     //int coeff_size = entry_size+3;
-    int coeff_size = 4;
+    int coeff_size = 5;
     VectorXcd vtr_Coeff;
     MatrixXcd mtx_Basis;
 
@@ -1148,14 +1148,13 @@ void FindPerturbationSolution(MatrixXcd mtx_ref, MatrixXcd mtx_input_fix, Matrix
     double cutoff = 0.001;
 
     MatrixXcd mtx_bkgd = mtx_input;
-    SwapCRRegion(mtx_ref, mtx_bkgd);
 
     MatrixXcd mtx_delta = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
 
     //mtx_delta = mtx_ref-mtx_bkgd;
-    mtx_delta = mtx_bkgd-mtx_input_fix;
+    //mtx_delta = mtx_bkgd-mtx_input_fix;
     //mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_ref-mtx_bkgd).block(0,0,binx_blind_global,biny_blind_global);
-    //mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_bkgd-mtx_input_fix).block(0,0,binx_blind_global,biny_blind_global);
+    mtx_delta.block(0,0,binx_blind_global,biny_blind_global) = (mtx_bkgd-mtx_input_fix).block(0,0,binx_blind_global,biny_blind_global);
 
     MatrixXcd mtx_coeff = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
     MatrixXcd mtx_proj = mtx_l_init.transpose()*mtx_delta*mtx_r_init;
@@ -1175,7 +1174,7 @@ void FindPerturbationSolution(MatrixXcd mtx_ref, MatrixXcd mtx_input_fix, Matrix
     MatrixXcd mtx_lambda_next = mtx_lambda_init;
     for (int idx_j=0;idx_j<mtx_input.cols();idx_j++)
     {
-        //if (idx_j<mtx_input.cols()-entry_size) continue;
+        if (idx_j<mtx_input.cols()-entry_size) continue;
         mtx_lambda_next(idx_j,idx_j) += mtx_proj(idx_j,idx_j)/mtx_H_init(idx_j,idx_j);
         for (int idx_i=0;idx_i<mtx_input.rows();idx_i++)
         {
@@ -1192,9 +1191,10 @@ void FindPerturbationSolution(MatrixXcd mtx_ref, MatrixXcd mtx_input_fix, Matrix
     if (doPrint)
     {
         std::cout << "mtx_coeff:" << std::endl;
-        std::cout << mtx_coeff.block(mtx_input.rows()-6,mtx_input.cols()-6,6,6).cwiseAbs() << std::endl;
+        //std::cout << mtx_coeff.block(mtx_input.rows()-6,mtx_input.cols()-6,6,6).cwiseAbs() << std::endl;
+        std::cout << mtx_coeff.cwiseAbs() << std::endl;
         std::cout << "mtx_lambda_init:" << std::endl;
-        std::cout << mtx_lambda_init.block(mtx_input.rows()-6,mtx_input.cols()-6,6,6) << std::endl;
+        std::cout << mtx_lambda_init.block(mtx_input.rows()-6,mtx_input.cols()-6,6,6).cwiseAbs() << std::endl;
         std::cout << "mtx_lambda_next:" << std::endl;
         std::cout << mtx_lambda_next.block(mtx_input.rows()-6,mtx_input.cols()-6,6,6).cwiseAbs() << std::endl;
         std::cout << "mtx_H_init:" << std::endl;
@@ -1225,9 +1225,9 @@ void PerturbationMethod(MatrixXcd mtx_ref, MatrixXcd mtx_input)
     //entry_size = min(entry_size,2);
 
     MatrixXcd mtx_input_swap = mtx_input;
-    //SwapCRRegion(mtx_ref, mtx_input_swap);
+    SwapCRRegion(mtx_ref, mtx_input_swap);
 
-    MatrixXcd mtx_bkgd = mtx_input;
+    MatrixXcd mtx_bkgd = mtx_input_swap;
     eigensolver_init = ComplexEigenSolver<MatrixXcd>(mtx_bkgd);
     eigensolver_init_transpose = ComplexEigenSolver<MatrixXcd>(mtx_bkgd.transpose());
     MatrixXcd mtx_r_init = eigensolver_init.eigenvectors();
@@ -1861,6 +1861,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH2D> Hist_OnDark_MSCLW;
     vector<TH2D> Hist_H_Vari;
     vector<TH2D> Hist_H_Vari_Bkgd;
+    vector<TH2D> Hist_Coeff_Data;
+    vector<TH2D> Hist_Coeff_Bkgd;
     vector<TH2D> Hist_Rank0_MSCLW;
     vector<TH2D> Hist_Rank1_MSCLW;
     vector<TH2D> Hist_Rank2_MSCLW;
@@ -1916,6 +1918,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
         Hist_H_Vari.push_back(TH2D("Hist_H_Vari_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_H_Vari_Bkgd.push_back(TH2D("Hist_H_Vari_Bkgd_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_Coeff_Data.push_back(TH2D("Hist_Coeff_Data_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_Coeff_Bkgd.push_back(TH2D("Hist_Coeff_Bkgd_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
 
         Hist_Rank0_MSCLW.push_back(TH2D("Hist_Rank0_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Rank1_MSCLW.push_back(TH2D("Hist_Rank1_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -2539,24 +2543,58 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 std::cout << eigensolver_bkgd.eigenvalues()(mtx_data.cols()-4) << std::endl;
                 std::cout << "=====================================================================" << std::endl;
 
-                MatrixXcd mtx_q_data = mtx_eigenvector_data;
-                MatrixXcd mtx_p_data = mtx_eigenvector_inv_data.transpose();
-                MatrixXcd mtx_H_data = mtx_eigenvector_inv_data*mtx_eigenvector_data;
-                MatrixXcd mtx_q_dark = mtx_eigenvector_dark;
-                MatrixXcd mtx_p_dark = mtx_eigenvector_inv_dark.transpose();
-                MatrixXcd mtx_H_dark = mtx_eigenvector_inv_dark*mtx_eigenvector_dark;
-                MatrixXcd mtx_q_bkgd = mtx_eigenvector_init;
-                MatrixXcd mtx_p_bkgd = mtx_eigenvector_inv_init.transpose();
-                MatrixXcd mtx_p_delta = (mtx_p_data-mtx_p_dark);
-                MatrixXcd mtx_q_delta = (mtx_q_data-mtx_q_dark);
-                MatrixXcd mtx_p_delta_bkgd = mtx_eigenvector_inv_vari.transpose();
-                MatrixXcd mtx_q_delta_bkgd = mtx_eigenvector_vari;
-                MatrixXcd mtx_p_coeff = mtx_p_delta.transpose().conjugate()*mtx_q_dark;
-                MatrixXcd mtx_q_coeff = mtx_q_delta.transpose().conjugate()*mtx_p_dark;
-                MatrixXcd mtx_H_vari_true = mtx_p_delta.transpose()*mtx_q_dark + mtx_p_dark.transpose()*mtx_q_delta;
-                MatrixXcd mtx_H_vari_bkgd = mtx_p_delta_bkgd.transpose()*mtx_q_dark + mtx_p_dark.transpose()*mtx_q_delta_bkgd;
+                eigensolver_bkgd = ComplexEigenSolver<MatrixXcd>(mtx_data_bkgd);
+                eigensolver_bkgd_transpose = ComplexEigenSolver<MatrixXcd>(mtx_data_bkgd.transpose());
+                MatrixXcd mtx_r_bkgd = eigensolver_bkgd.eigenvectors();
+                MatrixXcd mtx_l_bkgd = eigensolver_bkgd_transpose.eigenvectors();
+                MatrixXcd mtx_H_bkgd = mtx_r_bkgd.transpose()*mtx_l_bkgd;
+                eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
+                eigensolver_dark_transpose = ComplexEigenSolver<MatrixXcd>(mtx_dark.transpose());
+                MatrixXcd mtx_r_dark = eigensolver_dark.eigenvectors();
+                MatrixXcd mtx_l_dark = eigensolver_dark_transpose.eigenvectors();
+                MatrixXcd mtx_H_dark = mtx_r_dark.transpose()*mtx_l_dark;
+                eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
+                eigensolver_data_transpose = ComplexEigenSolver<MatrixXcd>(mtx_data.transpose());
+                MatrixXcd mtx_r_data = eigensolver_data.eigenvectors();
+                MatrixXcd mtx_l_data = eigensolver_data_transpose.eigenvectors();
+                MatrixXcd mtx_H_data = mtx_r_data.transpose()*mtx_l_data;
+                MatrixXcd mtx_H_vari_true = (mtx_r_data-mtx_r_dark).transpose()*mtx_l_dark+mtx_r_dark.transpose()*(mtx_l_data-mtx_l_dark);
+                MatrixXcd mtx_H_vari_bkgd = (mtx_r_bkgd-mtx_r_dark).transpose()*mtx_l_dark+mtx_r_dark.transpose()*(mtx_l_bkgd-mtx_l_dark);
                 fill2DHistogramAbs(&Hist_H_Vari.at(e),mtx_H_vari_true);
                 fill2DHistogramAbs(&Hist_H_Vari_Bkgd.at(e),mtx_H_vari_bkgd);
+
+                MatrixXcd mtx_lambda_dark(mtx_dark.rows(),mtx_dark.cols());
+                for (int row=0;row<mtx_dark.rows();row++)
+                {
+                    for (int col=0;col<mtx_dark.cols();col++)
+                    {
+                        mtx_lambda_dark(row,col) = 0.;
+                        if (row==col)
+                        {
+                            mtx_lambda_dark(row,col) = eigensolver_dark.eigenvalues()(col);
+                        }
+                    }
+                }
+                MatrixXcd mtx_coeff_data = MatrixXcd::Zero(mtx_dark.rows(),mtx_dark.cols());
+                MatrixXcd mtx_proj_data = mtx_l_dark.transpose()*(mtx_data-mtx_dark)*mtx_r_dark;
+                MatrixXcd mtx_coeff_bkgd = MatrixXcd::Zero(mtx_dark.rows(),mtx_dark.cols());
+                MatrixXcd mtx_proj_bkgd = mtx_l_dark.transpose()*(mtx_data_bkgd-mtx_dark)*mtx_r_dark;
+                for (int col=0;col<mtx_data.cols();col++)
+                {
+                    for (int row=0;row<mtx_data.rows();row++)
+                    {
+                        if (row<mtx_data.cols()-NumberOfEigenvectors_Stable && col<mtx_data.cols()-NumberOfEigenvectors_Stable) continue;
+                        if (row==col) continue;
+                        mtx_coeff_data(row,col) = mtx_proj_data(row,col)/(mtx_lambda_dark(row,row)-mtx_lambda_dark(col,col));
+                        mtx_coeff_bkgd(row,col) = mtx_proj_bkgd(row,col)/(mtx_lambda_dark(row,row)-mtx_lambda_dark(col,col));
+                    }
+                }
+                fill2DHistogramAbs(&Hist_Coeff_Data.at(e),mtx_coeff_data);
+                fill2DHistogramAbs(&Hist_Coeff_Bkgd.at(e),mtx_coeff_bkgd);
+                std::cout << "mtx_coeff_data:" << std::endl;
+                std::cout << mtx_coeff_data.block(mtx_data.rows()-5,mtx_data.cols()-5,5,5).cwiseAbs() << std::endl;
+                std::cout << "mtx_coeff_bkgd:" << std::endl;
+                std::cout << mtx_coeff_bkgd.block(mtx_data.rows()-5,mtx_data.cols()-5,5,5).cwiseAbs() << std::endl;
 
                 GetReducedEigenvalueMatrix(0);
                 mtx_data_redu = eigensolver_data.eigenvectors()*mtx_eigenval_data_redu*eigensolver_data.eigenvectors().inverse();
@@ -2669,6 +2707,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnDark_MSCLW.at(e).Write();
         Hist_H_Vari.at(e).Write();
         Hist_H_Vari_Bkgd.at(e).Write();
+        Hist_Coeff_Data.at(e).Write();
+        Hist_Coeff_Bkgd.at(e).Write();
         Hist_Rank0_MSCLW.at(e).Write();
         Hist_Rank1_MSCLW.at(e).Write();
         Hist_Rank2_MSCLW.at(e).Write();
