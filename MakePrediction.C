@@ -880,10 +880,12 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 //if (abs(eta_2)<0.01) continue;
                 //mtx_Basis(idx_w,idx_v) = mtx_r_dark(idx_i,mtx_input.rows()-nth_entry2);
                 //mtx_Basis(idx_n,idx_u) = mtx_l_dark(idx_i,mtx_input.rows()-nth_entry2);
+                mtx_Basis(idx_w,idx_v) = mtx_r_init(idx_i,mtx_input.rows()-nth_entry2);
+                mtx_Basis(idx_n,idx_u) = mtx_l_init(idx_i,mtx_input.rows()-nth_entry2);
                 //mtx_Basis(idx_w,idx_v) = 1./eta_2*mtx_r_dark(idx_i,mtx_input.rows()-nth_entry2);
                 //mtx_Basis(idx_n,idx_u) = 1./eta_2*mtx_l_dark(idx_i,mtx_input.rows()-nth_entry2);
-                mtx_Basis(idx_w,idx_v) = 1./eta_2*mtx_r_init(idx_i,mtx_input.rows()-nth_entry2);
-                mtx_Basis(idx_n,idx_u) = 1./eta_2*mtx_l_init(idx_i,mtx_input.rows()-nth_entry2);
+                //mtx_Basis(idx_w,idx_v) = 1./eta_2*mtx_r_init(idx_i,mtx_input.rows()-nth_entry2);
+                //mtx_Basis(idx_n,idx_u) = 1./eta_2*mtx_l_init(idx_i,mtx_input.rows()-nth_entry2);
             }
         }
     }
