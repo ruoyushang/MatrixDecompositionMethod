@@ -652,10 +652,95 @@ int DetermineStableNumberOfEigenvalues(MatrixXcd mtx_input)
     }
     return stable_number;
 }
-MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, int entry_size, double step_frac, bool isBlind)
+int CountEffectiveEquations(MatrixXcd mtx_input, int region)
+{
+    double threshold = 30000.;
+    double evt_count = 0.;
+    int eqn_count = 0;
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            if (region==0) // gamma
+            {
+                if (row>=binx_blind_global) continue;
+                if (col>=biny_blind_global) continue;
+                if (mtx_input(row,col).real()>threshold)
+                {
+                    eqn_count += 1;
+                }
+                else
+                {
+                    evt_count += mtx_input(row,col).real();
+                }
+            }
+            if (region==1)
+            {
+                if (row<binx_blind_global) continue;
+                if (col>=biny_blind_global) continue;
+                if (mtx_input(row,col).real()>threshold)
+                {
+                    eqn_count += 1;
+                }
+                else
+                {
+                    evt_count += mtx_input(row,col).real();
+                }
+            }
+            if (region==2)
+            {
+                if (row>=binx_blind_global) continue;
+                if (col<biny_blind_global) continue;
+                if (mtx_input(row,col).real()>threshold)
+                {
+                    eqn_count += 1;
+                }
+                else
+                {
+                    evt_count += mtx_input(row,col).real();
+                }
+            }
+            if (region==3)
+            {
+                if (row<binx_blind_global) continue;
+                if (col<biny_blind_global) continue;
+                if (mtx_input(row,col).real()>threshold)
+                {
+                    eqn_count += 1;
+                }
+                else
+                {
+                    evt_count += mtx_input(row,col).real();
+                }
+            }
+            if (region==4)
+            {
+                if (row>=binx_blind_global && col>=biny_blind_global) continue;
+                if (mtx_input(row,col).real()>threshold)
+                {
+                    eqn_count += 1;
+                }
+                else
+                {
+                    evt_count += mtx_input(row,col).real();
+                }
+            }
+        }
+    } 
+    eqn_count += int(evt_count/threshold);
+    return eqn_count;
+}
+MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, int entry_size, double step_frac, bool isBlind, bool isLeft)
 {
 
     //std::cout << "entry_size = " << entry_size << std::endl;
+
+    //int effective_eqns = CountEffectiveEquations(mtx_input, 4);
+    //std::cout << "effective_eqns = " << effective_eqns << std::endl;
+    //int effective_eqns_r = CountEffectiveEquations(mtx_input, 1);
+    //int effective_eqns_l = CountEffectiveEquations(mtx_input, 2);
+    //std::cout << "effective_eqns_r = " << effective_eqns_r << std::endl;
+    //std::cout << "effective_eqns_l = " << effective_eqns_l << std::endl;
 
     eigensolver_init = ComplexEigenSolver<MatrixXcd>(mtx_input);
     eigensolver_init_transpose = ComplexEigenSolver<MatrixXcd>(mtx_input.transpose());
@@ -815,9 +900,9 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     //    }
     //}
 
-    int coeff_size = mtx_input.rows();
+    //int coeff_size = mtx_input.rows();
     //int coeff_size = entry_size;
-    //int coeff_size = 5;
+    int coeff_size = 5;
     if (UseRegularization)
     {
         coeff_size = mtx_input.rows();
@@ -843,13 +928,15 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 int idx_v = idx_l*entry_size + idx_k;
                 std::complex<double> eta_1 = mtx_H_dark(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry);
                 std::complex<double> eta_2 = mtx_H_dark(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2);
+                //std::complex<double> eta_1 = mtx_H_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry);
+                //std::complex<double> eta_2 = mtx_H_init(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2);
                 if (nth_entry!=nth_entry2)
                 {
                     //if (nth_entry==entry_size) continue;
-                    //mtx_Basis(idx_n,idx_u) = 1./eta_2*mtx_l_dark(idx_i,mtx_input.rows()-nth_entry2);
-                    //mtx_Basis(idx_w,idx_v) = -1./eta_2*mtx_r_dark(idx_i,mtx_input.rows()-nth_entry2);
-                    mtx_Basis(idx_n,idx_u) = 1./eta_2*mtx_l_init(idx_i,mtx_input.rows()-nth_entry2);
-                    mtx_Basis(idx_w,idx_v) = -1./eta_2*mtx_r_init(idx_i,mtx_input.rows()-nth_entry2);
+                    mtx_Basis(idx_n,idx_u) = 1./eta_2*mtx_l_dark(idx_i,mtx_input.rows()-nth_entry2);
+                    mtx_Basis(idx_w,idx_v) = -1./eta_2*mtx_r_dark(idx_i,mtx_input.rows()-nth_entry2);
+                    //mtx_Basis(idx_n,idx_u) = 1./eta_2*mtx_l_init(idx_i,mtx_input.rows()-nth_entry2);
+                    //mtx_Basis(idx_w,idx_v) = -1./eta_2*mtx_r_init(idx_i,mtx_input.rows()-nth_entry2);
                 }
                 else
                 {
@@ -876,16 +963,19 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 int idx_v = idx_l + (coeff_size-entry_size)*idx_k + (coeff_size-entry_size)*entry_size + entry_size*entry_size;
                 std::complex<double> eta_1 = mtx_H_dark(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry);
                 std::complex<double> eta_2 = mtx_H_dark(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2);
-                if (abs(nth_entry-nth_entry2)>3) continue;
-                //if (abs(eta_2)<0.01) continue;
-                //mtx_Basis(idx_w,idx_v) = mtx_r_dark(idx_i,mtx_input.rows()-nth_entry2);
-                //mtx_Basis(idx_n,idx_u) = mtx_l_dark(idx_i,mtx_input.rows()-nth_entry2);
-                mtx_Basis(idx_w,idx_v) = mtx_r_init(idx_i,mtx_input.rows()-nth_entry2);
-                mtx_Basis(idx_n,idx_u) = mtx_l_init(idx_i,mtx_input.rows()-nth_entry2);
-                //mtx_Basis(idx_w,idx_v) = 1./eta_2*mtx_r_dark(idx_i,mtx_input.rows()-nth_entry2);
-                //mtx_Basis(idx_n,idx_u) = 1./eta_2*mtx_l_dark(idx_i,mtx_input.rows()-nth_entry2);
-                //mtx_Basis(idx_w,idx_v) = 1./eta_2*mtx_r_init(idx_i,mtx_input.rows()-nth_entry2);
-                //mtx_Basis(idx_n,idx_u) = 1./eta_2*mtx_l_init(idx_i,mtx_input.rows()-nth_entry2);
+                //std::complex<double> eta_1 = mtx_H_init(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry);
+                //std::complex<double> eta_2 = mtx_H_init(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2);
+                std::complex<double> lambda_1 = mtx_lambda_dark(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry);
+                std::complex<double> lambda_2 = mtx_lambda_dark(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2);
+                double lambda_threshold = 1.0*mtx_lambda_dark(mtx_input.rows()-entry_size,mtx_input.rows()-entry_size).real();
+                if (isLeft)
+                {
+                    mtx_Basis(idx_n,idx_u) = mtx_l_dark(idx_i,mtx_input.rows()-nth_entry2); // change mscw
+                }
+                else
+                {
+                    mtx_Basis(idx_w,idx_v) = mtx_r_dark(idx_i,mtx_input.rows()-nth_entry2); // change mscl
+                }
             }
         }
     }
@@ -1042,9 +1132,12 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     }
 
     mtx_output = mtx_input;
-    mtx_output += step_scale*mtx_r_init*mtx_S_init*mtx_l_vari.transpose();
-    mtx_output += step_scale*mtx_r_vari*mtx_S_init*mtx_l_init.transpose();
-    mtx_output += step_scale*mtx_r_init*mtx_S_vari*mtx_l_init.transpose();
+    MatrixXcd mtx_delta = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    mtx_delta += step_scale*mtx_r_init*mtx_S_init*mtx_l_vari.transpose();
+    mtx_delta += step_scale*mtx_r_vari*mtx_S_init*mtx_l_init.transpose();
+    mtx_delta += step_scale*mtx_r_init*mtx_S_vari*mtx_l_init.transpose();
+    //mtx_delta = GetTruncatedMatrix(mtx_delta, truncate_cutoff);
+    mtx_output += mtx_delta;
 
     mtx_eigenvector_init += mtx_r_vari;
     mtx_eigenvector_inv_init += mtx_l_vari.transpose();
@@ -1304,7 +1397,7 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind)
     {
         for (int rank=1; rank<=NumberOfEigenvectors_Stable; rank++)
         {
-            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, rank, 1, 1.0, isBlind);
+            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, rank, 1, 1.0, isBlind, true);
             if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, rank, isBlind))
             {
                 mtx_data_bkgd = mtx_temp;
@@ -1317,10 +1410,23 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind)
         {
             return;
         }
+        //int n_terations = 1;
+        //double step_frac = 1.0;
+        int n_terations = 20;
+        double step_frac = 0.1;
         int entry_size = NumberOfEigenvectors_Stable;
-        for (int i=0;i<20;i++)
+        for (int i=0;i<n_terations;i++)
         {
-            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, 0.2, isBlind);
+            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, step_frac, isBlind, true);
+            if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
+            {
+                mtx_data_bkgd = mtx_temp;
+            }
+            else
+            {
+                break;
+            }
+            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, step_frac, isBlind, false);
             if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
             {
                 mtx_data_bkgd = mtx_temp;
@@ -2350,6 +2456,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                         NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,3);
                         std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
                         LeastSquareSolutionMethod(false, true);
+                        //LeastSquareSolutionMethod(false, false);
                     }
                     
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
@@ -2545,33 +2652,36 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 eigensolver_bkgd = ComplexEigenSolver<MatrixXcd>(mtx_data_bkgd);
 
                 std::cout << "Total data counts: " << Hist_OnData_MSCLW.at(e).Integral() << std::endl;
+                double lambda_data_1 =  eigensolver_data.eigenvalues()(mtx_data.cols()-1).real();
+                double lambda_data_2 =  eigensolver_data.eigenvalues()(mtx_data.cols()-2).real();
+                double lambda_data_3 =  eigensolver_data.eigenvalues()(mtx_data.cols()-3).real();
+                double lambda_dark_1 =  eigensolver_dark.eigenvalues()(mtx_data.cols()-1).real();
+                double lambda_dark_2 =  eigensolver_dark.eigenvalues()(mtx_data.cols()-2).real();
+                double lambda_dark_3 =  eigensolver_dark.eigenvalues()(mtx_data.cols()-3).real();
+                double lambda_bkgd_1 =  eigensolver_bkgd.eigenvalues()(mtx_data.cols()-1).real();
+                double lambda_bkgd_2 =  eigensolver_bkgd.eigenvalues()(mtx_data.cols()-2).real();
+                double lambda_bkgd_3 =  eigensolver_bkgd.eigenvalues()(mtx_data.cols()-3).real();
                 std::cout << "=====================================================================" << std::endl;
-                std::cout << "eigensolver_data.eigenvalues()(mtx_data.cols()-1):" << std::endl;
-                std::cout << eigensolver_data.eigenvalues()(mtx_data.cols()-1) << std::endl;
-                std::cout << "eigensolver_data.eigenvalues()(mtx_data.cols()-2):" << std::endl;
-                std::cout << eigensolver_data.eigenvalues()(mtx_data.cols()-2) << std::endl;
-                std::cout << "eigensolver_data.eigenvalues()(mtx_data.cols()-3):" << std::endl;
-                std::cout << eigensolver_data.eigenvalues()(mtx_data.cols()-3) << std::endl;
-                std::cout << "eigensolver_data.eigenvalues()(mtx_data.cols()-4):" << std::endl;
-                std::cout << eigensolver_data.eigenvalues()(mtx_data.cols()-4) << std::endl;
+                std::cout << "lambda_data_1:" << std::endl;
+                std::cout << lambda_data_1 << std::endl;
+                std::cout << "lambda_data_2:" << std::endl;
+                std::cout << lambda_data_2 << std::endl;
+                std::cout << "lambda_data_3:" << std::endl;
+                std::cout << lambda_data_3 << std::endl;
                 std::cout << "=====================================================================" << std::endl;
-                std::cout << "eigensolver_dark.eigenvalues()(mtx_dark.cols()-1):" << std::endl;
-                std::cout << eigensolver_dark.eigenvalues()(mtx_dark.cols()-1) << std::endl;
-                std::cout << "eigensolver_dark.eigenvalues()(mtx_dark.cols()-2):" << std::endl;
-                std::cout << eigensolver_dark.eigenvalues()(mtx_dark.cols()-2) << std::endl;
-                std::cout << "eigensolver_dark.eigenvalues()(mtx_dark.cols()-3):" << std::endl;
-                std::cout << eigensolver_dark.eigenvalues()(mtx_dark.cols()-3) << std::endl;
-                std::cout << "eigensolver_dark.eigenvalues()(mtx_dark.cols()-4):" << std::endl;
-                std::cout << eigensolver_dark.eigenvalues()(mtx_dark.cols()-4) << std::endl;
+                std::cout << "lambda_dark_1:" << std::endl;
+                std::cout << lambda_dark_1 << " (" << (lambda_dark_1-lambda_data_1)/lambda_data_1 << ")" << std::endl;
+                std::cout << "lambda_dark_2:" << std::endl;
+                std::cout << lambda_dark_2 << " (" << (lambda_dark_2-lambda_data_2)/lambda_data_2 << ")" << std::endl;
+                std::cout << "lambda_dark_3:" << std::endl;
+                std::cout << lambda_dark_3 << " (" << (lambda_dark_3-lambda_data_3)/lambda_data_3 << ")" << std::endl;
                 std::cout << "=====================================================================" << std::endl;
-                std::cout << "eigensolver_bkgd.eigenvalues()(mtx_data.cols()-1):" << std::endl;
-                std::cout << eigensolver_bkgd.eigenvalues()(mtx_data.cols()-1) << std::endl;
-                std::cout << "eigensolver_bkgd.eigenvalues()(mtx_data.cols()-2):" << std::endl;
-                std::cout << eigensolver_bkgd.eigenvalues()(mtx_data.cols()-2) << std::endl;
-                std::cout << "eigensolver_bkgd.eigenvalues()(mtx_data.cols()-3):" << std::endl;
-                std::cout << eigensolver_bkgd.eigenvalues()(mtx_data.cols()-3) << std::endl;
-                std::cout << "eigensolver_bkgd.eigenvalues()(mtx_data.cols()-4):" << std::endl;
-                std::cout << eigensolver_bkgd.eigenvalues()(mtx_data.cols()-4) << std::endl;
+                std::cout << "lambda_bkgd_1:" << std::endl;
+                std::cout << lambda_bkgd_1 << " (" << (lambda_bkgd_1-lambda_data_1)/lambda_data_1 << ")" << std::endl;
+                std::cout << "lambda_bkgd_2:" << std::endl;
+                std::cout << lambda_bkgd_2 << " (" << (lambda_bkgd_2-lambda_data_2)/lambda_data_2 << ")" << std::endl;
+                std::cout << "lambda_bkgd_3:" << std::endl;
+                std::cout << lambda_bkgd_3 << " (" << (lambda_bkgd_3-lambda_data_3)/lambda_data_3 << ")" << std::endl;
                 std::cout << "=====================================================================" << std::endl;
 
                 MatrixXcd mtx_data_truncate = GetTruncatedMatrix(mtx_data, NumberOfEigenvectors_Stable);
@@ -2648,16 +2758,17 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 }
                 fill2DHistogramAbs(&Hist_Coeff_Data.at(e),mtx_coeff_data);
                 fill2DHistogramAbs(&Hist_Coeff_Bkgd.at(e),mtx_coeff_bkgd);
+                int print_size = mtx_data.rows();
                 std::cout << "mtx_H_data:" << std::endl;
-                std::cout << mtx_H_data.block(mtx_data.rows()-6,mtx_data.cols()-6,6,6).cwiseAbs() << std::endl;
+                std::cout << mtx_H_data.block(mtx_data.rows()-print_size,mtx_data.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
                 std::cout << "mtx_H_dark:" << std::endl;
-                std::cout << mtx_H_dark.block(mtx_data.rows()-6,mtx_data.cols()-6,6,6).cwiseAbs() << std::endl;
+                std::cout << mtx_H_dark.block(mtx_data.rows()-print_size,mtx_data.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
                 std::cout << "mtx_H_vari_true:" << std::endl;
-                std::cout << mtx_H_vari_true.block(mtx_data.rows()-6,mtx_data.cols()-6,6,6).cwiseAbs() << std::endl;
+                std::cout << mtx_H_vari_true.block(mtx_data.rows()-print_size,mtx_data.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
                 std::cout << "mtx_coeff_data:" << std::endl;
-                std::cout << mtx_coeff_data.block(mtx_data.rows()-6,mtx_data.cols()-6,6,6).cwiseAbs() << std::endl;
+                std::cout << mtx_coeff_data.block(mtx_data.rows()-print_size,mtx_data.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
                 std::cout << "mtx_coeff_bkgd:" << std::endl;
-                std::cout << mtx_coeff_bkgd.block(mtx_data.rows()-6,mtx_data.cols()-6,6,6).cwiseAbs() << std::endl;
+                std::cout << mtx_coeff_bkgd.block(mtx_data.rows()-print_size,mtx_data.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
 
                 eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
                 eigensolver_dark_transpose = ComplexEigenSolver<MatrixXcd>(mtx_dark.transpose());
