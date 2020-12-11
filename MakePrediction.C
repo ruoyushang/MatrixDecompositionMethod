@@ -93,6 +93,7 @@ int binx_blind_global;
 int biny_blind_global;
 int VaryLeftOrRightVector;
 int VaryNthVector;
+int n_iterations = 100;
 
 double GammaScale = 0.;
 double MinChi2Unblind = 1e10;
@@ -730,7 +731,16 @@ int CountEffectiveEquations(MatrixXcd mtx_input, int region)
     eqn_count += int(evt_count/threshold);
     return eqn_count;
 }
-MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, int entry_size, double step_frac, bool isBlind, bool isLeft)
+void PrintEigenvalues(MatrixXcd mtx_input)
+{
+    ComplexEigenSolver<MatrixXcd> eigensolver_input;
+    eigensolver_input = ComplexEigenSolver<MatrixXcd>(mtx_input);
+    for (int entry=1;entry<=mtx_input.rows();entry++)
+    {
+        std::cout << "eigenvalue " << entry << " = " << abs(eigensolver_input.eigenvalues()(mtx_input.cols()-entry)) << std::endl;
+    }
+}
+MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, int entry_size, double step_frac, bool isBlind, int isLeft)
 {
 
     //std::cout << "entry_size = " << entry_size << std::endl;
@@ -759,12 +769,6 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
             }
         }
     }
-    MatrixXcd mtx_S_init = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    for (int col=0;col<mtx_input.cols();col++)
-    {
-        if (col<mtx_input.cols()-entry_size) continue;
-        mtx_S_init(col,col) = mtx_lambda_init(col,col)/mtx_H_init(col,col);
-    }
 
     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
     eigensolver_dark_transpose = ComplexEigenSolver<MatrixXcd>(mtx_dark.transpose());
@@ -788,6 +792,12 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     {
         if (col<mtx_input.cols()-entry_size) continue;
         mtx_S_dark(col,col) = mtx_lambda_dark(col,col)/mtx_H_dark(col,col);
+    }
+    MatrixXcd mtx_S_init = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        if (col<mtx_input.cols()-entry_size) continue;
+        mtx_S_init(col,col) = mtx_lambda_init(col,col)/mtx_H_dark(col,col);
     }
 
     MatrixXcd mtx_r_gamma = mtx_eigenvector_gamma;
@@ -940,11 +950,11 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 }
                 else
                 {
-                    //mtx_Basis(idx_t,idx_u) = 1.;
-                    if (nth_entry<3)
-                    {
-                        mtx_Basis(idx_t,idx_u) = 1.;
-                    }
+                    mtx_Basis(idx_t,idx_u) = 1.;
+                    //if (nth_entry<3)
+                    //{
+                    //    mtx_Basis(idx_t,idx_u) = 1.;
+                    //}
                 }
             }
         }
@@ -968,11 +978,16 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
                 std::complex<double> lambda_1 = mtx_lambda_dark(mtx_input.rows()-nth_entry,mtx_input.rows()-nth_entry);
                 std::complex<double> lambda_2 = mtx_lambda_dark(mtx_input.rows()-nth_entry2,mtx_input.rows()-nth_entry2);
                 double lambda_threshold = 1.0*mtx_lambda_dark(mtx_input.rows()-entry_size,mtx_input.rows()-entry_size).real();
-                if (isLeft)
+                if (isLeft==0)
+                {
+                    mtx_Basis(idx_n,idx_u) = mtx_l_dark(idx_i,mtx_input.rows()-nth_entry2); // change mscw
+                    mtx_Basis(idx_w,idx_v) = mtx_r_dark(idx_i,mtx_input.rows()-nth_entry2); // change mscl
+                }
+                else if (isLeft==1)
                 {
                     mtx_Basis(idx_n,idx_u) = mtx_l_dark(idx_i,mtx_input.rows()-nth_entry2); // change mscw
                 }
-                else
+                else if (isLeft==2)
                 {
                     mtx_Basis(idx_w,idx_v) = mtx_r_dark(idx_i,mtx_input.rows()-nth_entry2); // change mscl
                 }
@@ -1033,6 +1048,7 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     while (!isGood)
     {
         isGood = true;
+        PrintEigenvalues((mtx_Big*mtx_Basis).transpose()*(mtx_Big*mtx_Basis));
         BDCSVD<MatrixXcd> svd_2nd(mtx_Big*mtx_Basis, ComputeThinU | ComputeThinV);
         svd_2nd.setThreshold(svd_threshold);  // size of singular value to be considered as nonzero.
         vtr_Coeff = svd_2nd.solve(vtr_Delta);
@@ -1356,7 +1372,7 @@ MatrixXcd PerturbationMethod(MatrixXcd mtx_ref, MatrixXcd mtx_input, bool doSwap
     return mtx_bkgd;
 
 }
-void LeastSquareSolutionMethod(bool DoSequential, bool isBlind)
+void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Converge)
 {
 
     for (int col=0;col<N_bins_for_deconv;col++)
@@ -1397,7 +1413,7 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind)
     {
         for (int rank=1; rank<=NumberOfEigenvectors_Stable; rank++)
         {
-            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, rank, 1, 1.0, isBlind, true);
+            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, rank, 1, 1.0, isBlind, 0);
             if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, rank, isBlind))
             {
                 mtx_data_bkgd = mtx_temp;
@@ -1410,37 +1426,48 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind)
         {
             return;
         }
-        //int n_terations = 1;
-        //double step_frac = 1.0;
-        int n_terations = 20;
         double step_frac = 0.1;
         int entry_size = NumberOfEigenvectors_Stable;
-        for (int i=0;i<n_terations;i++)
+        double data_count = CountGammaRegion(mtx_data);
+        double bkgd_count = CountGammaRegion(mtx_data_bkgd);
+        Hist_Converge->SetBinContent(1,1.-bkgd_count/data_count);
+        for (int i=0;i<n_iterations/2;i++)
         {
-            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, step_frac, isBlind, true);
+            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, step_frac, isBlind, 1);
             if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
             {
                 mtx_data_bkgd = mtx_temp;
+                bkgd_count = CountGammaRegion(mtx_data_bkgd);
+                Hist_Converge->SetBinContent(2*(i+1),1.-bkgd_count/data_count);
             }
             else
             {
                 break;
             }
-            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, step_frac, isBlind, false);
+            mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, step_frac, isBlind, 2);
             if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
             {
                 mtx_data_bkgd = mtx_temp;
+                bkgd_count = CountGammaRegion(mtx_data_bkgd);
+                Hist_Converge->SetBinContent(2*(i+1)+1,1.-bkgd_count/data_count);
             }
             else
             {
                 break;
             }
+            //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, step_frac, isBlind, 0);
+            //if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
+            //{
+            //    mtx_data_bkgd = mtx_temp;
+            //    bkgd_count = CountGammaRegion(mtx_data_bkgd);
+            //    Hist_Converge->SetBinContent(i+2,1.-bkgd_count/data_count);
+            //}
+            //else
+            //{
+            //    break;
+            //}
         }
-        //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, 1.0, isBlind);
-        //if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
-        //{
-        //    mtx_data_bkgd = mtx_temp;
-        //}
+
         return;
     }
 
@@ -1597,101 +1624,101 @@ void AlterDarkMatrix(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_dark_alter)
     }
 
 }
-MatrixXcd MinChi2Method(TH1D* Hist_Chi2, TH2D* Hist_Data, TH2D* Hist_Dark)
-{
-
-    mtx_dark = fillMatrix(Hist_Dark);
-    eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-    mtx_data_bkgd = fillMatrix(Hist_Dark);
-    MatrixXcd mtx_best_bkgd = mtx_dark;
-
-    TH2D Hist_Temp_Dark = TH2D("Hist_Temp_Dark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-    TH2D Hist_Temp_Dark_Alt = TH2D("Hist_Temp_Dark_Alt","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-
-    TH2D Hist_Temp2_Gamma = TH2D("Hist_Temp2_Gamma","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-    fill2DHistogram(&Hist_Temp2_Gamma,mtx_gamma_raw);
-    std::cout << "Hist_Temp2_Gamma.Integral() = " << Hist_Temp2_Gamma.Integral() << std::endl;
-    TH2D Hist_Temp_Data = TH2D("Hist_Temp_Data","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-    Hist_Temp_Data.Add(Hist_Data);
-    Hist_Temp_Dark.Add(Hist_Dark);
-
-    int binx_lower = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_cut_lower);
-    int binx_blind = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_cut_blind)-1;
-    int binx_upper = Hist_Temp_Data.GetXaxis()->FindBin(1.)-1;
-    int biny_lower = Hist_Temp_Data.GetYaxis()->FindBin(MSCW_cut_lower);
-    int biny_blind = Hist_Temp_Data.GetYaxis()->FindBin(MSCW_cut_blind)-1;
-    int biny_upper = Hist_Temp_Data.GetYaxis()->FindBin(1.)-1;
-
-    TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-    double Data_SR_Integral = Hist_Temp_Data.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-    double Data_Integral = Hist_Temp_Data.Integral();
-    double Dark_Integral = Hist_Temp_Dark.Integral();
-    double Gamma_SR_Integral = Hist_Temp2_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-
-    if (Data_Integral==0.) return mtx_best_bkgd;
-    if (Dark_Integral==0.) return mtx_best_bkgd;
-    if (Gamma_SR_Integral==0.) return mtx_best_bkgd;
-
-    Hist_Temp_Bkgd.Reset();
-    double Dark_SR_Integral = Hist_Temp_Dark.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
-
-    double chi2_best = 1e20;
-    for (int bin=0;bin<Hist_Chi2->GetNbinsX();bin++)
-    {
-        Hist_Temp_Dark_Alt.Reset();
-        Hist_Temp_Data.Reset();
-        Hist_Temp_Data.Add(Hist_Data);
-        Hist_Temp_Dark.Reset();
-        Hist_Temp_Dark.Add(Hist_Dark);
-        Hist_Temp_Bkgd.Reset();
-        Hist_Temp2_Gamma.Reset();
-        fill2DHistogram(&Hist_Temp2_Gamma,mtx_gamma_raw);
-        double scale = Hist_Chi2->GetBinCenter(bin+1);
-        double delta = Dark_SR_Integral*scale;
-        Hist_Temp2_Gamma.Scale((delta)/Gamma_SR_Integral);
-        Hist_Temp_Data.Add(&Hist_Temp2_Gamma,-1.);
-        mtx_gamma = fillMatrix(&Hist_Temp2_Gamma);
-        mtx_data = fillMatrix(&Hist_Temp_Data);
-        NormalizeDarkMatrix(&Hist_Temp_Data,&Hist_Temp_Dark);
-        AlterDarkMatrix(Hist_Data, &Hist_Temp_Dark, &Hist_Temp_Dark_Alt);
-        mtx_dark = fillMatrix(&Hist_Temp_Dark_Alt);
-        eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-        LeastSquareSolutionMethod(false, true);
-        //fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
-        //GetNoiseReplacedMatrix(&Hist_Temp_Data,&Hist_Temp_Bkgd,false);
-        //mtx_data_bkgd = fillMatrix(&Hist_Temp_Bkgd);
-        double chi2 = GetChi2Function(mtx_data_bkgd,mtx_data,true);
-        if (chi2<chi2_best)
-        {
-            mtx_best_bkgd = mtx_data_bkgd;
-        }
-        Hist_Chi2->SetBinContent(bin+1,chi2);
-    }
-    int min_error_bin = Hist_Chi2->GetMinimumBin();
-    Hist_Temp_Dark_Alt.Reset();
-    Hist_Temp_Data.Reset();
-    Hist_Temp_Data.Add(Hist_Data);
-    Hist_Temp_Dark.Reset();
-    Hist_Temp_Dark.Add(Hist_Dark);
-    Hist_Temp_Bkgd.Reset();
-    Hist_Temp2_Gamma.Reset();
-    fill2DHistogram(&Hist_Temp2_Gamma,mtx_gamma_raw);
-    double scale = Hist_Chi2->GetBinCenter(min_error_bin);
-    double delta = Dark_SR_Integral*scale;
-    Hist_Temp2_Gamma.Scale((delta)/Gamma_SR_Integral);
-    Hist_Temp_Data.Add(&Hist_Temp2_Gamma,-1.);
-    mtx_gamma = fillMatrix(&Hist_Temp2_Gamma);
-    mtx_data = fillMatrix(&Hist_Temp_Data);
-    NormalizeDarkMatrix(&Hist_Temp_Data,&Hist_Temp_Dark);
-    AlterDarkMatrix(Hist_Data, &Hist_Temp_Dark, &Hist_Temp_Dark_Alt);
-    mtx_dark = fillMatrix(&Hist_Temp_Dark_Alt);
-    eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-    LeastSquareSolutionMethod(false, true);
-    fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
-
-    return mtx_data_bkgd;
-
-}
+//MatrixXcd MinChi2Method(TH1D* Hist_Chi2, TH2D* Hist_Data, TH2D* Hist_Dark)
+//{
+//
+//    mtx_dark = fillMatrix(Hist_Dark);
+//    eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
+//    mtx_data_bkgd = fillMatrix(Hist_Dark);
+//    MatrixXcd mtx_best_bkgd = mtx_dark;
+//
+//    TH2D Hist_Temp_Dark = TH2D("Hist_Temp_Dark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+//    TH2D Hist_Temp_Dark_Alt = TH2D("Hist_Temp_Dark_Alt","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+//
+//    TH2D Hist_Temp2_Gamma = TH2D("Hist_Temp2_Gamma","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+//    fill2DHistogram(&Hist_Temp2_Gamma,mtx_gamma_raw);
+//    std::cout << "Hist_Temp2_Gamma.Integral() = " << Hist_Temp2_Gamma.Integral() << std::endl;
+//    TH2D Hist_Temp_Data = TH2D("Hist_Temp_Data","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+//    Hist_Temp_Data.Add(Hist_Data);
+//    Hist_Temp_Dark.Add(Hist_Dark);
+//
+//    int binx_lower = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_cut_lower);
+//    int binx_blind = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_cut_blind)-1;
+//    int binx_upper = Hist_Temp_Data.GetXaxis()->FindBin(1.)-1;
+//    int biny_lower = Hist_Temp_Data.GetYaxis()->FindBin(MSCW_cut_lower);
+//    int biny_blind = Hist_Temp_Data.GetYaxis()->FindBin(MSCW_cut_blind)-1;
+//    int biny_upper = Hist_Temp_Data.GetYaxis()->FindBin(1.)-1;
+//
+//    TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+//    double Data_SR_Integral = Hist_Temp_Data.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+//    double Data_Integral = Hist_Temp_Data.Integral();
+//    double Dark_Integral = Hist_Temp_Dark.Integral();
+//    double Gamma_SR_Integral = Hist_Temp2_Gamma.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+//
+//    if (Data_Integral==0.) return mtx_best_bkgd;
+//    if (Dark_Integral==0.) return mtx_best_bkgd;
+//    if (Gamma_SR_Integral==0.) return mtx_best_bkgd;
+//
+//    Hist_Temp_Bkgd.Reset();
+//    double Dark_SR_Integral = Hist_Temp_Dark.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
+//
+//    double chi2_best = 1e20;
+//    for (int bin=0;bin<Hist_Chi2->GetNbinsX();bin++)
+//    {
+//        Hist_Temp_Dark_Alt.Reset();
+//        Hist_Temp_Data.Reset();
+//        Hist_Temp_Data.Add(Hist_Data);
+//        Hist_Temp_Dark.Reset();
+//        Hist_Temp_Dark.Add(Hist_Dark);
+//        Hist_Temp_Bkgd.Reset();
+//        Hist_Temp2_Gamma.Reset();
+//        fill2DHistogram(&Hist_Temp2_Gamma,mtx_gamma_raw);
+//        double scale = Hist_Chi2->GetBinCenter(bin+1);
+//        double delta = Dark_SR_Integral*scale;
+//        Hist_Temp2_Gamma.Scale((delta)/Gamma_SR_Integral);
+//        Hist_Temp_Data.Add(&Hist_Temp2_Gamma,-1.);
+//        mtx_gamma = fillMatrix(&Hist_Temp2_Gamma);
+//        mtx_data = fillMatrix(&Hist_Temp_Data);
+//        NormalizeDarkMatrix(&Hist_Temp_Data,&Hist_Temp_Dark);
+//        AlterDarkMatrix(Hist_Data, &Hist_Temp_Dark, &Hist_Temp_Dark_Alt);
+//        mtx_dark = fillMatrix(&Hist_Temp_Dark_Alt);
+//        eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
+//        LeastSquareSolutionMethod(false, true);
+//        //fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
+//        //GetNoiseReplacedMatrix(&Hist_Temp_Data,&Hist_Temp_Bkgd,false);
+//        //mtx_data_bkgd = fillMatrix(&Hist_Temp_Bkgd);
+//        double chi2 = GetChi2Function(mtx_data_bkgd,mtx_data,true);
+//        if (chi2<chi2_best)
+//        {
+//            mtx_best_bkgd = mtx_data_bkgd;
+//        }
+//        Hist_Chi2->SetBinContent(bin+1,chi2);
+//    }
+//    int min_error_bin = Hist_Chi2->GetMinimumBin();
+//    Hist_Temp_Dark_Alt.Reset();
+//    Hist_Temp_Data.Reset();
+//    Hist_Temp_Data.Add(Hist_Data);
+//    Hist_Temp_Dark.Reset();
+//    Hist_Temp_Dark.Add(Hist_Dark);
+//    Hist_Temp_Bkgd.Reset();
+//    Hist_Temp2_Gamma.Reset();
+//    fill2DHistogram(&Hist_Temp2_Gamma,mtx_gamma_raw);
+//    double scale = Hist_Chi2->GetBinCenter(min_error_bin);
+//    double delta = Dark_SR_Integral*scale;
+//    Hist_Temp2_Gamma.Scale((delta)/Gamma_SR_Integral);
+//    Hist_Temp_Data.Add(&Hist_Temp2_Gamma,-1.);
+//    mtx_gamma = fillMatrix(&Hist_Temp2_Gamma);
+//    mtx_data = fillMatrix(&Hist_Temp_Data);
+//    NormalizeDarkMatrix(&Hist_Temp_Data,&Hist_Temp_Dark);
+//    AlterDarkMatrix(Hist_Data, &Hist_Temp_Dark, &Hist_Temp_Dark_Alt);
+//    mtx_dark = fillMatrix(&Hist_Temp_Dark_Alt);
+//    eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
+//    LeastSquareSolutionMethod(false, true);
+//    fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
+//
+//    return mtx_data_bkgd;
+//
+//}
 void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, double SignalNorm, bool isON)
 {
 
@@ -1993,6 +2020,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH2D> Hist_Rank2_MSCLW_Diff;
     vector<TH2D> Hist_Rank3_MSCLW_Diff;
     vector<TH2D> Hist_Trunc_MSCLW_Diff;
+    vector<TH1D> Hist_Bkgd_Converge_Blind;
+    vector<TH1D> Hist_Bkgd_Converge_Unblind;
     vector<TH1D> Hist_Data_Rank0_LeftVector;
     vector<TH1D> Hist_Data_Rank1_LeftVector;
     vector<TH1D> Hist_Data_Rank2_LeftVector;
@@ -2060,6 +2089,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Rank2_MSCLW_Diff.push_back(TH2D("Hist_Rank2_MSCLW_Diff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Rank3_MSCLW_Diff.push_back(TH2D("Hist_Rank3_MSCLW_Diff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Trunc_MSCLW_Diff.push_back(TH2D("Hist_Trunc_MSCLW_Diff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+
+        Hist_Bkgd_Converge_Blind.push_back(TH1D("Hist_Bkgd_Converge_Blind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
+        Hist_Bkgd_Converge_Unblind.push_back(TH1D("Hist_Bkgd_Converge_Unblind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
 
         Hist_Data_Rank0_LeftVector.push_back(TH1D("Hist_Data_Rank0_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Data_Rank1_LeftVector.push_back(TH1D("Hist_Data_Rank1_LeftVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
@@ -2459,23 +2491,24 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                         //NumberOfEigenvectors_Stable = cutoff_best;
                         
                         NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,3);
+                        //NumberOfEigenvectors_Stable = mtx_data.rows()/2;
                         std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
-                        LeastSquareSolutionMethod(false, true);
-                        //LeastSquareSolutionMethod(false, false);
+                        LeastSquareSolutionMethod(false, true, &Hist_Bkgd_Converge_Blind.at(e));
+                        //LeastSquareSolutionMethod(false, false, &Hist_Bkgd_Converge_Blind.at(e));
                     }
                     
                     TH2D Hist_Temp_Bkgd = TH2D("Hist_Temp_Bkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
                     fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
 
-                    if (UseMinChi2)
-                    {
-                        mtx_data_bkgd = MinChi2Method(&Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e), &Hist_OneGroup_Data_MSCLW.at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
-                        fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
-                    }
+                    //if (UseMinChi2)
+                    //{
+                    //    mtx_data_bkgd = MinChi2Method(&Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e), &Hist_OneGroup_Data_MSCLW.at(e), &Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
+                    //    fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
+                    //}
 
                     double Bkgd_SR_Integral = Hist_Temp_Bkgd.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
 
-                    LeastSquareSolutionMethod(false, false);
+                    LeastSquareSolutionMethod(false, false, &Hist_Bkgd_Converge_Unblind.at(e));
                     MatrixXcd mtx_dark_truncate = mtx_dark;
                     if (TruncateNoise)
                     {
@@ -2766,7 +2799,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 }
                 fill2DHistogramAbs(&Hist_Coeff_Data.at(e),mtx_coeff_data);
                 fill2DHistogramAbs(&Hist_Coeff_Bkgd.at(e),mtx_coeff_bkgd);
-                int print_size = mtx_data.rows();
+                //int print_size = mtx_data.rows();
+                int print_size = 6;
                 std::cout << "mtx_H_data:" << std::endl;
                 std::cout << mtx_H_data.block(mtx_data.rows()-print_size,mtx_data.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
                 std::cout << "mtx_H_dark:" << std::endl;
@@ -2926,6 +2960,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Rank2_MSCLW_Diff.at(e).Write();
         Hist_Rank3_MSCLW_Diff.at(e).Write();
         Hist_Trunc_MSCLW_Diff.at(e).Write();
+        Hist_Bkgd_Converge_Blind.at(e).Write();
+        Hist_Bkgd_Converge_Unblind.at(e).Write();
         Hist_Data_Rank0_LeftVector.at(e).Write();
         Hist_Data_Rank1_LeftVector.at(e).Write();
         Hist_Data_Rank2_LeftVector.at(e).Write();
