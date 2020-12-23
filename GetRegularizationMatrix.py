@@ -19,6 +19,7 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 N_bins_for_deconv = 16
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
+total_exposure_hours = 0.
 
 folder_path = 'output_test'
 method_tag = '16bins_mdm_untruncated'
@@ -61,6 +62,7 @@ for elev in range(0,len(elev_bins)-1):
             root_file_tags += [method_tag+elev_tag+theta2_tag+signal_tag+mjd_tag[d]+'_'+ONOFF_tag]
 
 def GetHistogramsFromFile(FilePath):
+    global total_exposure_hours
     InputFile = ROOT.TFile(FilePath)
     InfoTree = InputFile.Get("InfoTree")
     InfoTree.GetEntry(0)
@@ -68,6 +70,8 @@ def GetHistogramsFromFile(FilePath):
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
     energy_index = energy_bin.index(ErecS_lower_cut)
+    if energy_index==0: 
+        total_exposure_hours += exposure_hours
     Hist2D_Coeff_Data.Reset()
     HistName = "Hist_Coeff_Data_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Coeff_Data.Add(InputFile.Get(HistName))
@@ -102,7 +106,9 @@ for source in range(0,len(sample_list)):
 
 OutputFilePath = "%s/Regualrization.root"%(folder_path)
 OutputFile = ROOT.TFile(OutputFilePath,"recreate")
+print "total_exposure_hours = %s"%(total_exposure_hours)
 for e in range(0,len(energy_bin)-1):
+    #Hist2D_Regularization[e].Scale(1./(total_exposure_hours*total_exposure_hours))
     Hist2D_Regularization[e].Write()
 OutputFile.Close()
 
