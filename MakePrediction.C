@@ -994,7 +994,7 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_input, int entry_start, int entr
 
     return mtx_output;
 }
-MatrixXcd VladimirMethod(MatrixXcd mtx_input, int entry_start, int entry_size, double step_frac, bool isBlind, int isLeft)
+MatrixXcd VladimirMethod(MatrixXcd mtx_input, int entry_start, int entry_size, double step_frac, bool isBlind, int isLeft, double alpha)
 {
 
     double eta_threshold = 0.0001;
@@ -1241,7 +1241,7 @@ MatrixXcd VladimirMethod(MatrixXcd mtx_input, int entry_start, int entry_size, d
             int idx_u = idx_v + mtx_input.rows()*mtx_input.cols();
             double regularization_weight = abs(mtx_regularization(mtx_input.cols()-kth_entry,mtx_input.cols()-nth_entry));
             if (regularization_weight==0.) continue;
-            mtx_F_Ruo(idx_u,idx_v) = 2.*1./pow(regularization_weight,0.5)*178./exposure_hours;
+            mtx_F_Ruo(idx_u,idx_v) = alpha*1./regularization_weight*178./exposure_hours;
             //if (kth_entry>5 || nth_entry>5)
             //{
             //    mtx_F_Ruo(idx_u,idx_v) = 1./(0.01);
@@ -1250,6 +1250,7 @@ MatrixXcd VladimirMethod(MatrixXcd mtx_input, int entry_start, int entry_size, d
             //{
             //    mtx_F_Ruo(idx_u,idx_v) = 1./(1000.);
             //}
+            //mtx_F_Ruo(idx_u,idx_v) = 0.1;
         }
     }
     VectorXcd vtr_t_Ruo = VectorXcd::Zero(length_tkn);
@@ -2038,7 +2039,7 @@ MatrixXcd PerturbationMethod(MatrixXcd mtx_ref, MatrixXcd mtx_input, bool doSwap
     return mtx_bkgd;
 
 }
-void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Converge)
+void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Converge, TH1D* Hist_Optimization)
 {
 
     for (int col=0;col<N_bins_for_deconv;col++)
@@ -2130,8 +2131,15 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Conve
         //    //    bkgd_count = CountGammaRegion(mtx_data_bkgd);
         //    //}
         //}
+        for (int binx=1; binx<=Hist_Optimization->GetNbinsX(); binx++)
+        {
+            double alpha = pow(10.,Hist_Optimization->GetBinCenter(binx));
+            mtx_temp = VladimirMethod(mtx_data_bkgd, 1, entry_size, 1.0, true, 0, alpha);
+            bkgd_count = CountGammaRegion(mtx_temp);
+            Hist_Optimization->SetBinContent(binx,abs(1.-bkgd_count/data_count));
+        }
         //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, 1.0, true, 0);
-        mtx_temp = VladimirMethod(mtx_data_bkgd, 1, entry_size, 1.0, true, 0);
+        mtx_temp = VladimirMethod(mtx_data_bkgd, 1, entry_size, 1.0, true, 0, pow(10.,1.3));
         //mtx_temp = NuclearNormMinimization(mtx_data_bkgd, 1, entry_size, 1.0, true, 0);
         if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
         {
@@ -2696,6 +2704,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH2D> Hist_Rank3_MSCLW_Diff;
     vector<TH2D> Hist_Rank4_MSCLW_Diff;
     vector<TH2D> Hist_Trunc_MSCLW_Diff;
+    vector<TH1D> Hist_Bkgd_Optimization;
     vector<TH1D> Hist_Bkgd_Converge_Blind;
     vector<TH1D> Hist_Bkgd_Converge_Unblind;
     vector<TH1D> Hist_Data_Rank0_LeftVector;
@@ -2770,6 +2779,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Rank4_MSCLW_Diff.push_back(TH2D("Hist_Rank4_MSCLW_Diff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Trunc_MSCLW_Diff.push_back(TH2D("Hist_Trunc_MSCLW_Diff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
 
+        Hist_Bkgd_Optimization.push_back(TH1D("Hist_Bkgd_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,-1.,3.));
         Hist_Bkgd_Converge_Blind.push_back(TH1D("Hist_Bkgd_Converge_Blind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
         Hist_Bkgd_Converge_Unblind.push_back(TH1D("Hist_Bkgd_Converge_Unblind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
 
@@ -3184,7 +3194,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                         //NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,2);
                         NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,3);
                         std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
-                        LeastSquareSolutionMethod(false, true, &Hist_Bkgd_Converge_Blind.at(e));
+                        LeastSquareSolutionMethod(false, true, &Hist_Bkgd_Converge_Blind.at(e), &Hist_Bkgd_Optimization.at(e));
                         //LeastSquareSolutionMethod(false, false, &Hist_Bkgd_Converge_Blind.at(e));
                         for (int entry=0;entry<vtr_eigenval_vvv.size();entry++)
                         {
@@ -3203,16 +3213,16 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
                     double Bkgd_SR_Integral = Hist_Temp_Bkgd.Integral(binx_lower,binx_blind,biny_lower,biny_blind);
 
-                    LeastSquareSolutionMethod(false, false, &Hist_Bkgd_Converge_Unblind.at(e));
-                    MatrixXcd mtx_dark_truncate = mtx_dark;
-                    if (TruncateNoise)
-                    {
-                        mtx_dark_truncate = GetTruncatedMatrix(mtx_dark, NumberOfEigenvectors_Stable);
-                    }
-                    MatrixXcd mtx_diff = mtx_data_bkgd - mtx_dark_truncate;
-                    TH2D hist_diff = TH2D("hist_diff","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
-                    fill2DHistogram(&hist_diff,mtx_diff);
-                    Hist_Trunc_MSCLW_Diff.at(e).Add(&hist_diff);
+                    //LeastSquareSolutionMethod(false, false, &Hist_Bkgd_Converge_Unblind.at(e));
+                    //MatrixXcd mtx_dark_truncate = mtx_dark;
+                    //if (TruncateNoise)
+                    //{
+                    //    mtx_dark_truncate = GetTruncatedMatrix(mtx_dark, NumberOfEigenvectors_Stable);
+                    //}
+                    //MatrixXcd mtx_diff = mtx_data_bkgd - mtx_dark_truncate;
+                    //TH2D hist_diff = TH2D("hist_diff","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
+                    //fill2DHistogram(&hist_diff,mtx_diff);
+                    //Hist_Trunc_MSCLW_Diff.at(e).Add(&hist_diff);
 
                     double dark_weight = 1./double(n_dark_samples);
                     int error_bin = Hist_OneGroup_OnSyst_Chi2.at(nth_sample).at(e).GetMinimumBin();
@@ -3677,6 +3687,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Rank3_MSCLW_Diff.at(e).Write();
         Hist_Rank4_MSCLW_Diff.at(e).Write();
         Hist_Trunc_MSCLW_Diff.at(e).Write();
+        Hist_Bkgd_Optimization.at(e).Write();
         Hist_Bkgd_Converge_Blind.at(e).Write();
         Hist_Bkgd_Converge_Unblind.at(e).Write();
         Hist_Data_Rank0_LeftVector.at(e).Write();
