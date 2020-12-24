@@ -2039,7 +2039,7 @@ MatrixXcd PerturbationMethod(MatrixXcd mtx_ref, MatrixXcd mtx_input, bool doSwap
     return mtx_bkgd;
 
 }
-void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Converge, TH1D* Hist_Optimization)
+void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Converge, TH1D* Hist_Optimization, double alpha)
 {
 
     for (int col=0;col<N_bins_for_deconv;col++)
@@ -2133,13 +2133,13 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Conve
         //}
         for (int binx=1; binx<=Hist_Optimization->GetNbinsX(); binx++)
         {
-            double alpha = pow(10.,Hist_Optimization->GetBinCenter(binx));
-            mtx_temp = VladimirMethod(mtx_data_bkgd, 1, entry_size, 1.0, true, 0, alpha);
+            double alpha_temp = pow(10.,Hist_Optimization->GetBinCenter(binx));
+            mtx_temp = VladimirMethod(mtx_data_bkgd, 1, entry_size, 1.0, true, 0, alpha_temp);
             bkgd_count = CountGammaRegion(mtx_temp);
             Hist_Optimization->SetBinContent(binx,abs(1.-bkgd_count/data_count));
         }
         //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, 1.0, true, 0);
-        mtx_temp = VladimirMethod(mtx_data_bkgd, 1, entry_size, 1.0, true, 0, pow(10.,1.3));
+        mtx_temp = VladimirMethod(mtx_data_bkgd, 1, entry_size, 1.0, true, 0, alpha);
         //mtx_temp = NuclearNormMinimization(mtx_data_bkgd, 1, entry_size, 1.0, true, 0);
         if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
         {
@@ -3190,11 +3190,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                         //}
                         //NumberOfEigenvectors_Stable = cutoff_best;
                         
-                        //NumberOfEigenvectors_Stable = NumberOfEigenvectors_Stable-1;
-                        //NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,2);
                         NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,3);
                         std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
-                        LeastSquareSolutionMethod(false, true, &Hist_Bkgd_Converge_Blind.at(e), &Hist_Bkgd_Optimization.at(e));
+                        LeastSquareSolutionMethod(false, true, &Hist_Bkgd_Converge_Blind.at(e), &Hist_Bkgd_Optimization.at(e), pow(10.,Log10_alpha[e]));
                         //LeastSquareSolutionMethod(false, false, &Hist_Bkgd_Converge_Blind.at(e));
                         for (int entry=0;entry<vtr_eigenval_vvv.size();entry++)
                         {

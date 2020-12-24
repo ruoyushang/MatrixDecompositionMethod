@@ -11,10 +11,23 @@ char output_file_tag[50] = "16bins";
 bool UseTruncatedONData = false;
 bool UseMinChi2 = false;
 
-char output_file2_tag[50] = "mdm_chi2";
+char output_file2_tag[50] = "mdm_untruncated";
+bool UsePerturbation = false;
+bool TruncateNoise = false;
 bool UseReplacedONData = false;
-bool TruncateNoise = true;
+bool UseRegularization = false;
 
+//char output_file2_tag[50] = "mdm_truncated";
+//bool UsePerturbation = false;
+//bool TruncateNoise = true;
+//bool UseReplacedONData = false;
+//bool UseRegularization = false;
+
+//char output_file2_tag[50] = "mdm_vvv";
+//bool UsePerturbation = true;
+//bool TruncateNoise = false;
+//bool UseReplacedONData = true;
+//bool UseRegularization = false;
 
 int NumberOfRealEigenvectors = 4;
 int NumberOfEigenvectors_Stable = 3;
@@ -30,7 +43,6 @@ double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.2;
 
 int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
-int n_iterations = 3;
 int n_dark_samples = 1;
 double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.33),pow(10,2.66),pow(10,3.0),pow(10,3.33),pow(10,3.66),pow(10,4.0)};
 const int N_energy_fine_bins = 20;
@@ -41,10 +53,10 @@ double raw_gamma_count[N_energy_fine_bins] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0
 const int N_elev_bins = 12;
 double elev_bins[N_elev_bins+1] = {25,30,35,40,45,50,55,60,65,70,75,80,85};
 
-//int group_size_limit[N_energy_bins] = {50000,50000,50000,50000,50000};
-//int group_size_limit[N_energy_bins] = {100000,100000,100000,100000,100000};
+//int group_size_limit[N_energy_bins] = {500000,500000,500000,500000,500000,500000}; // about 20 hrs
 int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000,50000000};
 
+double Log10_alpha[N_energy_bins] = {1.5,1.,0.3,0.,0.,0.};
 double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
 int N_max_ranks_func_E[N_energy_bins] = {3,3,3,3,3,3};

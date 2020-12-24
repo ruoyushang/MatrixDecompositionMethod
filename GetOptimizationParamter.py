@@ -165,26 +165,24 @@ Hist_Bkgd_Optimization = []
 for e in range(0,len(sample_list)):
     Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",20,-1.,3.)]
 
-FilePath_List = []
-for source in range(0,len(sample_list)):
-    source_name = sample_list[source]
-    for elev in range(0,len(root_file_tags)):
-        FilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+".root"
-        FilePath_List += [FilePath]
-        if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
-        print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
-        for e in range(0,len(energy_bin)-1):
+for e in range(0,len(energy_bin)-1):
+    FilePath_List = []
+    for source in range(0,len(sample_list)):
+        source_name = sample_list[source]
+        for elev in range(0,len(root_file_tags)):
+            FilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+".root"
+            FilePath_List += [FilePath]
+            if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
+            print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
-            if ErecS_upper_cut<=energy_bin[energy_bin_cut_low]: continue
-            if ErecS_lower_cut>=energy_bin[energy_bin_cut_up]: continue
             GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source)
 
-Hists = []
-legends = []
-colors = []
-for entry in range(0,len(Hist_Bkgd_Optimization)):
-    Hists += [Hist_Bkgd_Optimization[entry]]
-    legends += ['source %s'%(entry)]
-    colors += [entry+1]
-MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','closure','OptimizationParameter',0,0,False,False)
+    Hists = []
+    legends = []
+    colors = []
+    for entry in range(0,len(Hist_Bkgd_Optimization)):
+        Hists += [Hist_Bkgd_Optimization[entry]]
+        legends += ['source %s'%(entry)]
+        colors += [entry+1]
+    MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','closure','OptimizationParameter_E%s'%(e),0,0,False,False)
