@@ -16,9 +16,12 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-method_tag = '16bins_mdm_untruncated'
-#method_tag = '16bins_mdm_truncated'
-#method_tag = '16bins_mdm_vvv'
+#method_tag = 'loose_mdm_default'
+#method_tag = 'loose_mdm_rank3'
+#method_tag = 'loose_mdm_rank5'
+#method_tag = 'loose_mdm_cutoff'
+#method_tag = 'loose_mdm_tikhonov'
+method_tag = 'tight_mdm_default'
 
 signal_ratio = '0'
 if len(sys.argv)==3:
@@ -29,7 +32,7 @@ if len(sys.argv)==3:
 #signal_tag = '_S20'
 signal_tag = '_S%s'%(signal_ratio)
 
-energy_bin_cut_low = 0
+energy_bin_cut_low = 3
 energy_bin_cut_up = 6
 
 #elev_bins = [25,45]
@@ -493,14 +496,17 @@ def ResetStackedShowerHistograms():
     Hist2D_Rank1_Data_Sum.Reset()
     Hist2D_Rank2_Data_Sum.Reset()
     Hist2D_Rank3_Data_Sum.Reset()
+    Hist2D_Rank4_Data_Sum.Reset()
     Hist2D_Rank0_Dark_Sum.Reset()
     Hist2D_Rank1_Dark_Sum.Reset()
     Hist2D_Rank2_Dark_Sum.Reset()
     Hist2D_Rank3_Dark_Sum.Reset()
+    Hist2D_Rank4_Dark_Sum.Reset()
     Hist2D_Rank0_Diff_Sum.Reset()
     Hist2D_Rank1_Diff_Sum.Reset()
     Hist2D_Rank2_Diff_Sum.Reset()
     Hist2D_Rank3_Diff_Sum.Reset()
+    Hist2D_Rank4_Diff_Sum.Reset()
 
     Hist2D_H_Vari_Sum.Reset()
     Hist2D_H_Vari_Bkgd_Sum.Reset()
@@ -667,14 +673,17 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_Rank1_Data.Reset()
     Hist2D_Rank2_Data.Reset()
     Hist2D_Rank3_Data.Reset()
+    Hist2D_Rank4_Data.Reset()
     Hist2D_Rank0_Dark.Reset()
     Hist2D_Rank1_Dark.Reset()
     Hist2D_Rank2_Dark.Reset()
     Hist2D_Rank3_Dark.Reset()
+    Hist2D_Rank4_Dark.Reset()
     Hist2D_Rank0_Diff.Reset()
     Hist2D_Rank1_Diff.Reset()
     Hist2D_Rank2_Diff.Reset()
     Hist2D_Rank3_Diff.Reset()
+    Hist2D_Rank4_Diff.Reset()
     Hist2D_Trunc_Diff.Reset()
 
     Hist2D_H_Vari.Reset()
@@ -690,6 +699,8 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_Rank2_Data.Add(InputFile.Get(HistName))
     HistName = "Hist_Rank3_MSCLW_Data_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank3_Data.Add(InputFile.Get(HistName))
+    HistName = "Hist_Rank4_MSCLW_Data_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist2D_Rank4_Data.Add(InputFile.Get(HistName))
 
     HistName = "Hist_Rank0_MSCLW_Dark_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank0_Dark.Add(InputFile.Get(HistName))
@@ -699,6 +710,8 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_Rank2_Dark.Add(InputFile.Get(HistName))
     HistName = "Hist_Rank3_MSCLW_Dark_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank3_Dark.Add(InputFile.Get(HistName))
+    HistName = "Hist_Rank4_MSCLW_Dark_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist2D_Rank4_Dark.Add(InputFile.Get(HistName))
 
     HistName = "Hist_Rank0_MSCLW_Diff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank0_Diff.Add(InputFile.Get(HistName))
@@ -708,6 +721,8 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_Rank2_Diff.Add(InputFile.Get(HistName))
     HistName = "Hist_Rank3_MSCLW_Diff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Rank3_Diff.Add(InputFile.Get(HistName))
+    HistName = "Hist_Rank4_MSCLW_Diff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist2D_Rank4_Diff.Add(InputFile.Get(HistName))
 
     HistName = "Hist_Trunc_MSCLW_Diff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist2D_Trunc_Diff.Add(InputFile.Get(HistName))
@@ -725,6 +740,10 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_Coeff_Bkgd.Add(InputFile.Get(HistName))
 
     if Hist1D_Data_Rank0_LeftVector.Integral()==0:
+        Hist_VVV_Eigenvalues.Reset()
+        Hist_Bkgd_Optimization.Reset()
+        Hist_Bkgd_Converge_Blind.Reset()
+        Hist_Bkgd_Converge_Unblind.Reset()
         Hist1D_Data_Rank0_LeftVector.Reset()
         Hist1D_Data_Rank1_LeftVector.Reset()
         Hist1D_Data_Rank2_LeftVector.Reset()
@@ -749,6 +768,14 @@ def GetShowerHistogramsFromFile(FilePath):
         Hist1D_Dark_Rank1_RightVector.Reset()
         Hist1D_Dark_Rank2_RightVector.Reset()
         Hist1D_Dark_Rank3_RightVector.Reset()
+        HistName = "Hist_VVV_Eigenvalues_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_VVV_Eigenvalues.Add(InputFile.Get(HistName))
+        HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_Bkgd_Optimization.Add(InputFile.Get(HistName))
+        HistName = "Hist_Bkgd_Converge_Blind_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_Bkgd_Converge_Blind.Add(InputFile.Get(HistName))
+        HistName = "Hist_Bkgd_Converge_Unblind_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_Bkgd_Converge_Unblind.Add(InputFile.Get(HistName))
         HistName = "Hist_Data_Rank0_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist1D_Data_Rank0_LeftVector.Add(InputFile.Get(HistName))
         HistName = "Hist_Data_Rank1_LeftVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -797,6 +824,11 @@ def GetShowerHistogramsFromFile(FilePath):
         Hist1D_Dark_Rank2_RightVector.Add(InputFile.Get(HistName))
         HistName = "Hist_Dark_Rank3_RightVector_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist1D_Dark_Rank3_RightVector.Add(InputFile.Get(HistName))
+
+        Hist_VVV_Eigenvalues.SetMinimum(1e-2)
+        MakeOneHistPlot(Hist_VVV_Eigenvalues,'entry','eigenvalue','VVV_Eigenvalue_%s_%s'%(sample_list[0],ErecS_lower_cut_int),True)
+        MakeOneHistPlot(Hist_Bkgd_Optimization,'log10 #alpha','closure','Bkgd_Optimization_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
+        MakeOneHistPlot(Hist_Bkgd_Converge_Blind,'iterations','closure','Bkgd_Converge_Blind_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
 
         Hists = []
         legends = []
@@ -888,14 +920,17 @@ def GetShowerHistogramsFromFile(FilePath):
         Hist2D_Rank1_Data.Reset()
         Hist2D_Rank2_Data.Reset()
         Hist2D_Rank3_Data.Reset()
+        Hist2D_Rank4_Data.Reset()
         Hist2D_Rank0_Dark.Reset()
         Hist2D_Rank1_Dark.Reset()
         Hist2D_Rank2_Dark.Reset()
         Hist2D_Rank3_Dark.Reset()
+        Hist2D_Rank4_Dark.Reset()
         Hist2D_Rank0_Diff.Reset()
         Hist2D_Rank1_Diff.Reset()
         Hist2D_Rank2_Diff.Reset()
         Hist2D_Rank3_Diff.Reset()
+        Hist2D_Rank4_Diff.Reset()
         Hist2D_Trunc_Diff.Reset()
         Hist2D_H_Vari.Reset()
         Hist2D_H_Vari_Bkgd.Reset()
@@ -998,62 +1033,96 @@ def StackShowerHistograms():
     #Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank1_Data)
     #Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank2_Data)
     #Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank3_Data)
-    Hist2D_Rank0_Data_Sum.Add(Hist2D_Rank0_Data)
-    Hist2D_Rank0_Data_Sum.Add(Hist2D_OnData,-1.)
-    Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank0_Data)
-    Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank1_Data)
-    Hist2D_Rank1_Data_Sum.Add(Hist2D_OnData,-1.)
-    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank0_Data)
-    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank1_Data)
-    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank2_Data)
-    Hist2D_Rank2_Data_Sum.Add(Hist2D_OnData,-1.)
-    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank0_Data)
-    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank1_Data)
-    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank2_Data)
-    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank3_Data)
-    Hist2D_Rank3_Data_Sum.Add(Hist2D_OnData,-1.)
+    Hist2D_Rank0_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
+    Hist2D_Rank0_Data_Sum.Add(Hist2D_OnData)
+    Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
+    Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
+    Hist2D_Rank1_Data_Sum.Add(Hist2D_OnData)
+    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
+    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
+    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank2_Data,-1.)
+    Hist2D_Rank2_Data_Sum.Add(Hist2D_OnData)
+    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
+    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
+    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank2_Data,-1.)
+    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank3_Data,-1.)
+    Hist2D_Rank3_Data_Sum.Add(Hist2D_OnData)
+    Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
+    Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
+    Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank2_Data,-1.)
+    Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank3_Data,-1.)
+    Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank4_Data,-1.)
+    Hist2D_Rank4_Data_Sum.Add(Hist2D_OnData)
 
     #Hist2D_Rank0_Dark_Sum.Add(Hist2D_Rank0_Dark)
     #Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank1_Dark)
     #Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank2_Dark)
     #Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank3_Dark)
-    Hist2D_Rank0_Dark_Sum.Add(Hist2D_Rank0_Dark)
-    Hist2D_Rank0_Dark_Sum.Add(Hist2D_OnDark,-1.)
-    Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank0_Dark)
-    Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank1_Dark)
-    Hist2D_Rank1_Dark_Sum.Add(Hist2D_OnDark,-1.)
-    Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank0_Dark)
-    Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank1_Dark)
-    Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank2_Dark)
-    Hist2D_Rank2_Dark_Sum.Add(Hist2D_OnDark,-1.)
-    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank0_Dark)
-    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank1_Dark)
-    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank2_Dark)
-    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank3_Dark)
-    Hist2D_Rank3_Dark_Sum.Add(Hist2D_OnDark,-1.)
+    Hist2D_Rank0_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
+    Hist2D_Rank0_Dark_Sum.Add(Hist2D_OnDark)
+    Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
+    Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
+    Hist2D_Rank1_Dark_Sum.Add(Hist2D_OnDark)
+    Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
+    Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
+    Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank2_Dark,-1.)
+    Hist2D_Rank2_Dark_Sum.Add(Hist2D_OnDark)
+    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
+    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
+    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank2_Dark,-1.)
+    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank3_Dark,-1.)
+    Hist2D_Rank3_Dark_Sum.Add(Hist2D_OnDark)
+    Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
+    Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
+    Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank2_Dark,-1.)
+    Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank3_Dark,-1.)
+    Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank4_Dark,-1.)
+    Hist2D_Rank4_Dark_Sum.Add(Hist2D_OnDark)
 
     #Hist2D_Rank0_Diff_Sum.Add(Hist2D_Rank0_Diff)
     #Hist2D_Rank1_Diff_Sum.Add(Hist2D_Rank1_Diff)
     #Hist2D_Rank2_Diff_Sum.Add(Hist2D_Rank2_Diff)
     #Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank3_Diff)
-    Hist2D_Rank0_Diff_Sum.Add(Hist2D_Rank0_Diff)
-    Hist2D_Rank0_Diff_Sum.Add(Hist2D_OnData,-1.)
-    Hist2D_Rank0_Diff_Sum.Add(Hist2D_OnDark)
-    Hist2D_Rank1_Diff_Sum.Add(Hist2D_Rank0_Diff)
-    Hist2D_Rank1_Diff_Sum.Add(Hist2D_Rank1_Diff)
-    Hist2D_Rank1_Diff_Sum.Add(Hist2D_OnData,-1.)
-    Hist2D_Rank1_Diff_Sum.Add(Hist2D_OnDark)
-    Hist2D_Rank2_Diff_Sum.Add(Hist2D_Rank0_Diff)
-    Hist2D_Rank2_Diff_Sum.Add(Hist2D_Rank1_Diff)
-    Hist2D_Rank2_Diff_Sum.Add(Hist2D_Rank2_Diff)
-    Hist2D_Rank2_Diff_Sum.Add(Hist2D_OnData,-1.)
-    Hist2D_Rank2_Diff_Sum.Add(Hist2D_OnDark)
-    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank0_Diff)
-    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank1_Diff)
-    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank2_Diff)
-    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank3_Diff)
-    Hist2D_Rank3_Diff_Sum.Add(Hist2D_OnData,-1.)
-    Hist2D_Rank3_Diff_Sum.Add(Hist2D_OnDark)
+    Hist2D_Rank0_Diff_Sum.Add(Hist2D_OnData)
+    Hist2D_Rank0_Diff_Sum.Add(Hist2D_Rank0_Data,-1.)
+    Hist2D_Rank0_Diff_Sum.Add(Hist2D_OnDark,-1.)
+    Hist2D_Rank0_Diff_Sum.Add(Hist2D_Rank0_Dark)
+    Hist2D_Rank1_Diff_Sum.Add(Hist2D_OnData)
+    Hist2D_Rank1_Diff_Sum.Add(Hist2D_Rank0_Data,-1.)
+    Hist2D_Rank1_Diff_Sum.Add(Hist2D_Rank1_Data,-1.)
+    Hist2D_Rank1_Diff_Sum.Add(Hist2D_OnDark,-1.)
+    Hist2D_Rank1_Diff_Sum.Add(Hist2D_Rank0_Dark)
+    Hist2D_Rank1_Diff_Sum.Add(Hist2D_Rank1_Dark)
+    Hist2D_Rank2_Diff_Sum.Add(Hist2D_OnData)
+    Hist2D_Rank2_Diff_Sum.Add(Hist2D_Rank0_Data,-1.)
+    Hist2D_Rank2_Diff_Sum.Add(Hist2D_Rank1_Data,-1.)
+    Hist2D_Rank2_Diff_Sum.Add(Hist2D_Rank2_Data,-1.)
+    Hist2D_Rank2_Diff_Sum.Add(Hist2D_OnDark,-1.)
+    Hist2D_Rank2_Diff_Sum.Add(Hist2D_Rank0_Dark)
+    Hist2D_Rank2_Diff_Sum.Add(Hist2D_Rank1_Dark)
+    Hist2D_Rank2_Diff_Sum.Add(Hist2D_Rank2_Dark)
+    Hist2D_Rank3_Diff_Sum.Add(Hist2D_OnData)
+    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank0_Data,-1.)
+    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank1_Data,-1.)
+    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank2_Data,-1.)
+    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank3_Data,-1.)
+    Hist2D_Rank3_Diff_Sum.Add(Hist2D_OnDark,-1.)
+    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank0_Dark)
+    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank1_Dark)
+    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank2_Dark)
+    Hist2D_Rank3_Diff_Sum.Add(Hist2D_Rank3_Dark)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_OnData)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_Rank0_Data,-1.)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_Rank1_Data,-1.)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_Rank2_Data,-1.)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_Rank3_Data,-1.)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_Rank4_Data,-1.)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_OnDark,-1.)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_Rank0_Dark)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_Rank1_Dark)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_Rank2_Dark)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_Rank3_Dark)
+    Hist2D_Rank4_Diff_Sum.Add(Hist2D_Rank4_Dark)
 
     Hist2D_Trunc_Diff_Sum.Add(Hist2D_Trunc_Diff)
     Hist2D_Trunc_Diff_Sum.Add(Hist2D_OnData,-1.)
@@ -2285,6 +2354,22 @@ def PlotsStackedHistograms(tag):
     legends = []
     colors = []
     stack_it = []
+    Hists += [Hist_OnData_Energy_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnDark_Energy_Sum]
+    legends += ['predict. bkg.']
+    colors += [2]
+    stack_it += [True]
+    plotname = 'Stack_Energy_Dark_%s'%(tag)
+    title = 'energy [GeV]'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
     Hists += [Hist_OnData_Zenith_Sum]
     legends += ['obs. data']
     colors += [1]
@@ -2584,6 +2669,9 @@ def NormalizeEnergyHistograms(FilePath):
     HistName = "Hist_OnData_CR_Energy_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Energy.Reset()
     Hist_OnBkgd_Energy.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnDark_CR_Energy_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnDark_Energy.Reset()
+    Hist_OnDark_Energy.Add(InputFile.Get(HistName))
 
     HistName = "Hist_OnData_SR_Zenith_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnData_Zenith.Reset()
@@ -2609,6 +2697,7 @@ def NormalizeEnergyHistograms(FilePath):
     if Hist2D_OnData.Integral()<1600.:
         Hist_OnData_Energy.Reset()
         Hist_OnBkgd_Energy.Reset()
+        Hist_OnDark_Energy.Reset()
         Hist_OnData_Zenith.Reset()
         Hist_OnBkgd_Zenith.Reset()
         for nth_roi in range(0,len(roi_ra)):
@@ -2672,6 +2761,7 @@ def StackEnergyHistograms():
 
     Hist_OnData_Energy_Sum.Add(Hist_OnData_Energy)
     Hist_OnBkgd_Energy_Sum.Add(Hist_OnBkgd_Energy)
+    Hist_OnDark_Energy_Sum.Add(Hist_OnDark_Energy)
     Hist_OnData_Zenith_Sum.Add(Hist_OnData_Zenith)
     Hist_OnBkgd_Zenith_Sum.Add(Hist_OnBkgd_Zenith)
 
@@ -3534,17 +3624,17 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/OnDark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#C_{ij} coefficents' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'t_{ij} coefficents' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
     pad1.cd()
     pad1.SetLogz()
+    #Hist2D_Coeff_Data_Sum.SetMaximum(1e-1);
+    Hist2D_Coeff_Data_Sum.SetMinimum(1e-2);
     Hist2D_Coeff_Data_Sum.GetYaxis().SetTitle('y')
     Hist2D_Coeff_Data_Sum.GetXaxis().SetTitle('x')
     Hist2D_Coeff_Data_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
     canvas.SaveAs('output_plots/Coeff_C_data_%s_%s.png'%(name,selection_tag))
     pad1.SetLogz(0)
 
@@ -3562,17 +3652,17 @@ def MatrixDecompositionDemo(name):
         MakeMultiplePlot(Hists,legends,colors,'entry','C_{ij}','Coeff_C_entry%s_%s'%(entry,name),0,0,False,False)
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#C_{ij} coefficents' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'t_{ij} coefficents' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
     pad1.cd()
     pad1.SetLogz()
+    #Hist2D_Coeff_Bkgd_Sum.SetMaximum(1e-1);
+    Hist2D_Coeff_Bkgd_Sum.SetMinimum(1e-2);
     Hist2D_Coeff_Bkgd_Sum.GetYaxis().SetTitle('y')
     Hist2D_Coeff_Bkgd_Sum.GetXaxis().SetTitle('x')
     Hist2D_Coeff_Bkgd_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
     canvas.SaveAs('output_plots/Coeff_C_bkgd_%s_%s.png'%(name,selection_tag))
     pad1.SetLogz(0)
 
@@ -3588,8 +3678,6 @@ def MatrixDecompositionDemo(name):
     Hist2D_H_Vari_Sum.GetYaxis().SetTitle('y')
     Hist2D_H_Vari_Sum.GetXaxis().SetTitle('x')
     Hist2D_H_Vari_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
     canvas.SaveAs('output_plots/Coeff_H_data_%s_%s.png'%(name,selection_tag))
     pad1.SetLogz(0)
 
@@ -3605,8 +3693,6 @@ def MatrixDecompositionDemo(name):
     Hist2D_H_Vari_Bkgd_Sum.GetYaxis().SetTitle('y')
     Hist2D_H_Vari_Bkgd_Sum.GetXaxis().SetTitle('x')
     Hist2D_H_Vari_Bkgd_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
     canvas.SaveAs('output_plots/Coeff_H_bkgd_%s_%s.png'%(name,selection_tag))
     pad1.SetLogz(0)
 
@@ -3637,7 +3723,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank0_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#sum_{i=1}^{16} #Delta_{i} - #sum_{i=1}^{1} #Delta_{i}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#sum_{i=2}^{16} M_{i}^{ON} - #sum_{i=2}^{16} M_{i}^{OFF}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3676,7 +3762,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank1_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#sum_{i=1}^{16} #Delta_{i} - #sum_{i=1}^{2} #Delta_{i}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#sum_{i=3}^{16} M_{i}^{ON} - #sum_{i=3}^{16} M_{i}^{OFF}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3715,7 +3801,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank2_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#sum_{i=1}^{16} #Delta_{i} - #sum_{i=1}^{3} #Delta_{i}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#sum_{i=4}^{16} M_{i}^{ON} - #sum_{i=4}^{16} M_{i}^{OFF}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3754,7 +3840,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank3_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#sum_{i=1}^{16} #Delta_{i} - #sum_{i=1}^{4} #Delta_{i}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#sum_{i=5}^{16} M_{i}^{ON} - #sum_{i=5}^{16} M_{i}^{OFF}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3765,6 +3851,45 @@ def MatrixDecompositionDemo(name):
     line1.Draw("same")
     line2.Draw("same")
     canvas.SaveAs('output_plots/Rank3_Diff_%s_%s.png'%(name,selection_tag))
+
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{i=1}^{5} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    Hist2D_Rank4_Data_Sum.GetYaxis().SetTitle('MSCW')
+    Hist2D_Rank4_Data_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank4_Data_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
+    canvas.SaveAs('output_plots/Rank4_Data_%s_%s.png'%(name,selection_tag))
+
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{OFF} - #sum_{i=1}^{5} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    Hist2D_Rank4_Dark_Sum.GetYaxis().SetTitle('MSCW')
+    Hist2D_Rank4_Dark_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank4_Dark_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
+    canvas.SaveAs('output_plots/Rank4_Dark_%s_%s.png'%(name,selection_tag))
+
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#sum_{i=6}^{16} M_{i}^{ON} - #sum_{i=6}^{16} M_{i}^{OFF}' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    Hist2D_Rank4_Diff_Sum.GetYaxis().SetTitle('MSCW')
+    Hist2D_Rank4_Diff_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank4_Diff_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
+    canvas.SaveAs('output_plots/Rank4_Diff_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.50,'#Delta - #Delta_{t}' )
@@ -3970,10 +4095,10 @@ def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
 
     pad3.cd()
     #lumilab2 = ROOT.TLatex(0.15,0.50,'#epsilon = #sum_{#gamma region} (M_{data} - #sum_{k=1}^{k=n} #lambda_{k} q_{k} p_{k}^{T})  / #sum_{#gamma region} M_{data}' )
-    lumilab2 = ROOT.TLatex(0.15,0.50,'#epsilon = #sum_{#gamma region} (#lambda_{n} q_{n} p_{n}^{T})  / #sum_{#gamma region} M_{data}' )
-    lumilab2.SetNDC()
-    lumilab2.SetTextSize(0.2)
-    lumilab2.Draw()
+    #lumilab2 = ROOT.TLatex(0.15,0.50,'#epsilon = #sum_{#gamma region} (#lambda_{n} q_{n} p_{n}^{T})  / #sum_{#gamma region} M_{data}' )
+    #lumilab2.SetNDC()
+    #lumilab2.SetTextSize(0.2)
+    #lumilab2.Draw()
 
     pad1.cd()
     if logy: pad1.SetLogy()
@@ -4000,25 +4125,46 @@ def MakeRankResidualPlots(name):
     bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
 
     data_integral = Hist2D_OnData_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)
-    bkgd_rank_integral = []
-    bkgd_rank_integral += [Hist2D_Rank0_Data_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
-    bkgd_rank_integral += [Hist2D_Rank1_Data_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
-    bkgd_rank_integral += [Hist2D_Rank2_Data_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
-    bkgd_rank_integral += [Hist2D_Rank3_Data_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
+    data_rank_integral = []
+    data_rank_integral += [Hist2D_Rank0_Data_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
+    data_rank_integral += [Hist2D_Rank1_Data_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
+    data_rank_integral += [Hist2D_Rank2_Data_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
+    data_rank_integral += [Hist2D_Rank3_Data_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
+    data_rank_integral += [Hist2D_Rank4_Data_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)]
 
-    Hist_Residual_Rank = ROOT.TH1D("Hist_Residual_Rank","",4,0,4)
-    for binx in range(0,len(bkgd_rank_integral)):
+    Hist_Residual_Gamma = ROOT.TH1D("Hist_Residual_Gamma","",5,0,5)
+    for binx in range(0,len(data_rank_integral)):
         bkgd_integral = 0.
         #for rank in range (0,binx+1):
-        #    bkgd_integral += bkgd_rank_integral[rank]
-        bkgd_integral += bkgd_rank_integral[binx]
-        #Hist_Residual_Rank.SetBinContent(binx+1,abs(1.-bkgd_integral/data_integral))
-        Hist_Residual_Rank.SetBinContent(binx+1,abs(bkgd_integral/data_integral))
+        #    bkgd_integral += data_rank_integral[rank]
+        bkgd_integral = data_rank_integral[binx]
+        #Hist_Residual_Gamma.SetBinContent(binx+1,abs(1.-bkgd_integral/data_integral))
+        Hist_Residual_Gamma.SetBinContent(binx+1,abs(bkgd_integral/data_integral))
         ratio_err = bkgd_integral/data_integral*1./pow(data_integral,0.5)
-        Hist_Residual_Rank.SetBinError(binx+1,ratio_err)
+        Hist_Residual_Gamma.SetBinError(binx+1,ratio_err)
 
-    #MakeOneHistPlot(Hist_Residual_Rank,'n ranks','Residual in gamma region','Residual_Rank_%s_%s'%(name,selection_tag),True)
-    MakeOneHistPlot(Hist_Residual_Rank,'n ranks','Contribution in gamma region','Residual_Rank_%s_%s'%(name,selection_tag),True)
+    MakeOneHistPlot(Hist_Residual_Gamma,'n ranks','Residual in gamma region','Residual_Gamma_%s_%s'%(name,selection_tag),True)
+
+    data_integral = Hist2D_OnData_Sum.Integral()
+    data_rank_integral = []
+    data_rank_integral += [Hist2D_Rank0_Data_Sum.Integral()]
+    data_rank_integral += [Hist2D_Rank1_Data_Sum.Integral()]
+    data_rank_integral += [Hist2D_Rank2_Data_Sum.Integral()]
+    data_rank_integral += [Hist2D_Rank3_Data_Sum.Integral()]
+    data_rank_integral += [Hist2D_Rank4_Data_Sum.Integral()]
+
+    Hist_Residual_Full = ROOT.TH1D("Hist_Residual_Full","",5,0,5)
+    for binx in range(0,len(data_rank_integral)):
+        bkgd_integral = 0.
+        #for rank in range (0,binx+1):
+        #    bkgd_integral += data_rank_integral[rank]
+        bkgd_integral = data_rank_integral[binx]
+        #Hist_Residual_Full.SetBinContent(binx+1,abs(1.-bkgd_integral/data_integral))
+        Hist_Residual_Full.SetBinContent(binx+1,abs(bkgd_integral/data_integral))
+        ratio_err = bkgd_integral/data_integral*1./pow(data_integral,0.5)
+        Hist_Residual_Full.SetBinError(binx+1,ratio_err)
+
+    MakeOneHistPlot(Hist_Residual_Full,'n ranks','Residual in gamma region','Residual_Full_%s_%s'%(name,selection_tag),True)
 
 def MakeSystematicPlots(hists, colors, fillstyles, legends, exposure, name):
 
@@ -4283,6 +4429,34 @@ def MakeSignificanceDistribution(Hist2D_Sig,Hist2D_SR,Hist2D_Bkg,name):
     color_list += [4]
     MakeGaussComparisonPlot(Hist_list,legend_list,color_list,'significance','SigDist_%s'%(name))
 
+def GetCRcounts(name):
+
+    bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_lower_cut)
+    bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
+    bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_lower_cut)
+    bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
+    for bx in range(1,Hist2D_OnData_Sum.GetNbinsX()+1):
+        for by in range(1,Hist2D_OnData_Sum.GetNbinsY()+1):
+            if bx>bin_upper_x and by<=bin_upper_y:
+                counts = Hist2D_OnData_Sum.GetBinContent(bx,by)
+                counts = max(counts,1.)
+                Hist_CR_Counts_MSCL.Fill(min(5,math.log10(counts)))
+            if bx<=bin_upper_x and by>bin_upper_y:
+                counts = Hist2D_OnData_Sum.GetBinContent(bx,by)
+                counts = max(counts,1.)
+                Hist_CR_Counts_MSCW.Fill(min(5,math.log10(counts)))
+
+    Hists = []
+    legends = []
+    colors = []
+    Hists += [Hist_CR_Counts_MSCW]
+    legends += ['CR MSCW']
+    colors += [1]
+    Hists += [Hist_CR_Counts_MSCL]
+    legends += ['CR MSCL']
+    colors += [2]
+    MakeMultiplePlot(Hists,legends,colors,'log10 counts per bin','N bins','CR_Counts_%s'%(name),0,0,False,False)
+
 def SingleSourceAnalysis(source_list,doMap):
 
     global ErecS_lower_cut
@@ -4322,6 +4496,7 @@ def SingleSourceAnalysis(source_list,doMap):
                 StackSkymapHistograms()
 
     MatrixDecompositionDemo(source_name)
+    GetCRcounts(source_name)
 
     GetSourceInfo(FilePath_List)
     GetBrightStarInfo(FilePath_List)
@@ -4476,26 +4651,38 @@ Hist2D_Rank0_Data = ROOT.TH2D("Hist2D_Rank0_Data","",N_bins_for_deconv,MSCL_plot
 Hist2D_Rank1_Data = ROOT.TH2D("Hist2D_Rank1_Data","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank2_Data = ROOT.TH2D("Hist2D_Rank2_Data","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank3_Data = ROOT.TH2D("Hist2D_Rank3_Data","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_Rank4_Data = ROOT.TH2D("Hist2D_Rank4_Data","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank0_Data_Sum = ROOT.TH2D("Hist2D_Rank0_Data_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank1_Data_Sum = ROOT.TH2D("Hist2D_Rank1_Data_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank2_Data_Sum = ROOT.TH2D("Hist2D_Rank2_Data_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank3_Data_Sum = ROOT.TH2D("Hist2D_Rank3_Data_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_Rank4_Data_Sum = ROOT.TH2D("Hist2D_Rank4_Data_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank0_Dark = ROOT.TH2D("Hist2D_Rank0_Dark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank1_Dark = ROOT.TH2D("Hist2D_Rank1_Dark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank2_Dark = ROOT.TH2D("Hist2D_Rank2_Dark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank3_Dark = ROOT.TH2D("Hist2D_Rank3_Dark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_Rank4_Dark = ROOT.TH2D("Hist2D_Rank4_Dark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank0_Dark_Sum = ROOT.TH2D("Hist2D_Rank0_Dark_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank1_Dark_Sum = ROOT.TH2D("Hist2D_Rank1_Dark_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank2_Dark_Sum = ROOT.TH2D("Hist2D_Rank2_Dark_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank3_Dark_Sum = ROOT.TH2D("Hist2D_Rank3_Dark_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_Rank4_Dark_Sum = ROOT.TH2D("Hist2D_Rank4_Dark_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank0_Diff = ROOT.TH2D("Hist2D_Rank0_Diff","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank1_Diff = ROOT.TH2D("Hist2D_Rank1_Diff","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank2_Diff = ROOT.TH2D("Hist2D_Rank2_Diff","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank3_Diff = ROOT.TH2D("Hist2D_Rank3_Diff","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_Rank4_Diff = ROOT.TH2D("Hist2D_Rank4_Diff","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank0_Diff_Sum = ROOT.TH2D("Hist2D_Rank0_Diff_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank1_Diff_Sum = ROOT.TH2D("Hist2D_Rank1_Diff_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank2_Diff_Sum = ROOT.TH2D("Hist2D_Rank2_Diff_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Rank3_Diff_Sum = ROOT.TH2D("Hist2D_Rank3_Diff_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_Rank4_Diff_Sum = ROOT.TH2D("Hist2D_Rank4_Diff_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+
+n_iterations = 100
+Hist_Bkgd_Optimization = ROOT.TH1D("Hist_Bkgd_Optimization","",N_bins_for_deconv*N_bins_for_deconv,-3.,3.)
+Hist_Bkgd_Converge_Blind = ROOT.TH1D("Hist_Bkgd_Converge_Blind","",n_iterations,0,n_iterations)
+Hist_Bkgd_Converge_Unblind = ROOT.TH1D("Hist_Bkgd_Converge_Unblind","",n_iterations,0,n_iterations)
+Hist_VVV_Eigenvalues = ROOT.TH1D("Hist_VVV_Eigenvalues","",N_bins_for_deconv*N_bins_for_deconv,0,N_bins_for_deconv*N_bins_for_deconv)
 
 Hist1D_Data_Rank0_LeftVector = ROOT.TH1D("Hist1D_Data_Rank0_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
 Hist1D_Data_Rank1_LeftVector = ROOT.TH1D("Hist1D_Data_Rank1_LeftVector","",N_bins_for_deconv,0,N_bins_for_deconv)
@@ -4530,8 +4717,10 @@ Hist_OnBkgd_Theta2 = ROOT.TH1D("Hist_OnBkgd_Theta2","",50,0,10)
 Hist_OnDark_Theta2 = ROOT.TH1D("Hist_OnDark_Theta2","",50,0,10)
 Hist_OnData_Energy_Sum = ROOT.TH1D("Hist_OnData_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnBkgd_Energy_Sum = ROOT.TH1D("Hist_OnBkgd_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_OnDark_Energy_Sum = ROOT.TH1D("Hist_OnDark_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnData_Energy = ROOT.TH1D("Hist_OnData_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnBkgd_Energy = ROOT.TH1D("Hist_OnBkgd_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_OnDark_Energy = ROOT.TH1D("Hist_OnDark_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnData_Zenith_Sum = ROOT.TH1D("Hist_OnData_Zenith_Sum","",45,0,90)
 Hist_OnBkgd_Zenith_Sum = ROOT.TH1D("Hist_OnBkgd_Zenith_Sum","",45,0,90)
 Hist_OnData_Zenith = ROOT.TH1D("Hist_OnData_Zenith","",45,0,90)
@@ -4571,6 +4760,9 @@ Hist_SystErr_MSCL = ROOT.TH1D("Hist_SystErr_MSCL","",N_bins_for_deconv,MSCL_plot
 Hist_SystErr_MSCW = ROOT.TH1D("Hist_SystErr_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist_SystErr_Energy = ROOT.TH1D("Hist_SystErr_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_SystErr_Theta2 = ROOT.TH1D("Hist_SystErr_Theta2","",50,0,10)
+
+Hist_CR_Counts_MSCW = ROOT.TH1D("Hist_CR_Counts_MSCW","",6,0,6)
+Hist_CR_Counts_MSCL = ROOT.TH1D("Hist_CR_Counts_MSCL","",6,0,6)
 
 print 'MJD_Start = %s'%(MJD_Start)
 print 'MJD_End = %s'%(MJD_End)
@@ -4676,8 +4868,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-#SingleSourceAnalysis(sample_list,True)
-SingleSourceAnalysis(sample_list,False)
+SingleSourceAnalysis(sample_list,True)
+#SingleSourceAnalysis(sample_list,False)
 print 'n_good_matches = %s'%(n_good_matches)
 
 print "Syst_MDM = %s"%(Syst_MDM) 

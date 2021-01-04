@@ -22,7 +22,8 @@ ErecS_upper_cut = 0
 total_exposure_hours = 0.
 
 folder_path = 'output_test'
-method_tag = '16bins_mdm_untruncated'
+#method_tag = 'loose_mdm_default'
+method_tag = 'tight_mdm_default'
 
 ONOFF_tag = 'OFF'
 sample_list = []
@@ -78,18 +79,22 @@ def GetHistogramsFromFile(FilePath):
     for binx in range(0,Hist2D_Coeff_Data.GetNbinsX()):
         for biny in range(0,Hist2D_Coeff_Data.GetNbinsY()):
             old_content = Hist2D_Regularization[energy_index].GetBinContent(binx+1,biny+1)
-            new_content = Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1)/exposure_hours
-            print 'new_content = %s'%(new_content)
+            new_content = Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1)
             Hist2D_Regularization[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content*new_content)
+            old_content = Hist2D_Regularization_rev[energy_index].GetBinContent(binx+1,biny+1)
+            new_content = Hist2D_Coeff_Data.GetBinContent(Hist2D_Coeff_Data.GetNbinsX()-binx,Hist2D_Coeff_Data.GetNbinsY()-biny)
+            Hist2D_Regularization_rev[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content*new_content)
 
 Hist2D_Coeff_Data = ROOT.TH2D("Hist2D_Coeff_Data","",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)
 Hist2D_Regularization = []
+Hist2D_Regularization_rev = []
 for e in range(0,len(energy_bin)-1):
     ErecS_lower_cut = energy_bin[e]
     ErecS_upper_cut = energy_bin[e+1]
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
     Hist2D_Regularization += [ROOT.TH2D("Hist2D_Regularization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int),"",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)]
+    Hist2D_Regularization_rev += [ROOT.TH2D("Hist2D_Regularization_rev_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int),"",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)]
 
 FilePath_List = []
 for source in range(0,len(sample_list)):
@@ -112,3 +117,31 @@ for e in range(0,len(energy_bin)-1):
     Hist2D_Regularization[e].Write()
 OutputFile.Close()
 
+
+canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
+pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+pad3.SetBottomMargin(0.0)
+pad3.SetTopMargin(0.03)
+pad3.SetBorderMode(1)
+pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+pad1.SetBottomMargin(0.15)
+pad1.SetRightMargin(0.15)
+pad1.SetLeftMargin(0.15)
+pad1.SetTopMargin(0.0)
+pad1.SetBorderMode(0)
+pad1.Draw()
+pad3.Draw()
+for e in range(0,len(energy_bin)-1):
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#sum_{all fields} t_{kn}^{2} coefficents' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    pad1.SetLogz()
+    #Hist2D_Coeff_Data_Sum.SetMaximum(1e-1);
+    #Hist2D_Coeff_Data_Sum.SetMinimum(1.0);
+    Hist2D_Regularization_rev[e].GetYaxis().SetTitle('n')
+    Hist2D_Regularization_rev[e].GetXaxis().SetTitle('k')
+    Hist2D_Regularization_rev[e].Draw("COL4Z")
+    canvas.SaveAs('output_plots/Coeff_t2_data_%s.png'%(e))

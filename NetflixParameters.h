@@ -1,41 +1,39 @@
 
 const int N_energy_bins = 6;
 
-//int N_bins_for_deconv = 8; // 8 should be the lowest bin number
-//char output_file_tag[50] = "8bins";
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
-char output_file_tag[50] = "16bins";
-//int N_bins_for_deconv = 24; // 8 should be the lowest bin number
-//char output_file_tag[50] = "24bins";
+
+char output_file_tag[50] = "tight";
+double MSCW_cut_moderate = 0.5;
+double MSCL_cut_moderate = 0.6;
+double Log10_alpha[N_energy_bins] = {1.6,0.9,0.3,0.2,0.2,0.2};
+//char output_file_tag[50] = "loose";
+//double MSCW_cut_moderate = 0.9;
+//double MSCL_cut_moderate = 1.0;
+//double Log10_alpha[N_energy_bins] = {2.1,1.3,0.2,-0.3,-0.3,-0.3};
 
 bool UseTruncatedONData = false;
 bool UseMinChi2 = false;
 
-char output_file2_tag[50] = "mdm_untruncated";
 bool UsePerturbation = false;
 bool TruncateNoise = false;
 bool UseReplacedONData = false;
 bool UseRegularization = false;
 
-//char output_file2_tag[50] = "mdm_truncated";
-//bool UsePerturbation = false;
-//bool TruncateNoise = true;
-//bool UseReplacedONData = false;
-//bool UseRegularization = false;
-
-//char output_file2_tag[50] = "mdm_vvv";
-//bool UsePerturbation = true;
-//bool TruncateNoise = false;
-//bool UseReplacedONData = true;
-//bool UseRegularization = false;
+//char output_file2_tag[50] = "mdm_default";
+//int RegularizationType = 0;
+//char output_file2_tag[50] = "mdm_rank3";
+//int RegularizationType = 1;
+char output_file2_tag[50] = "mdm_rank5";
+int RegularizationType = 2;
+//char output_file2_tag[50] = "mdm_cutoff";
+//int RegularizationType = 3;
+//char output_file2_tag[50] = "mdm_tikhonov";
+//int RegularizationType = 4;
 
 int NumberOfRealEigenvectors = 4;
 int NumberOfEigenvectors_Stable = 3;
 double PercentCrab = 0.;
-//double MSCW_cut_moderate = 0.5;
-//double MSCL_cut_moderate = 0.6;
-double MSCW_cut_moderate = 0.9;
-double MSCL_cut_moderate = 1.0;
 double MSCW_cut_loose = 0.9;
 double MSCL_cut_loose = 1.0;
 double camera_theta2_cut_lower = 0.;
@@ -56,7 +54,6 @@ double elev_bins[N_elev_bins+1] = {25,30,35,40,45,50,55,60,65,70,75,80,85};
 //int group_size_limit[N_energy_bins] = {500000,500000,500000,500000,500000,500000}; // about 20 hrs
 int group_size_limit[N_energy_bins] = {50000000,50000000,50000000,50000000,50000000,50000000};
 
-double Log10_alpha[N_energy_bins] = {1.5,1.,0.3,0.,0.,0.};
 double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
 int N_max_ranks_func_E[N_energy_bins] = {3,3,3,3,3,3};
