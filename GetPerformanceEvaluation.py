@@ -26,16 +26,34 @@ total_exposure_hours = 0.
 
 folder_path = 'output_test'
 method_tag = []
+legends = []
 #method_tag += ['loose_mdm_default']
-##method_tag += ['loose_mdm_rank3']
+#legends += ['Gen. Tik.']
+#method_tag += ['loose_mdm_rank3']
+#legends += ['9-Par']
 #method_tag += ['loose_mdm_rank5']
+#legends += ['21-Par']
 #method_tag += ['loose_mdm_cutoff']
+#legends += ['Cutoff signular']
 #method_tag += ['loose_mdm_tikhonov']
-method_tag += ['tight_mdm_default']
-#method_tag += ['tight_mdm_rank3']
-method_tag += ['tight_mdm_rank5']
+#legends += ['Tikhonov']
+#method_tag += ['tight_mdm_default']
+#legends += ['Gen. Tik.']
 method_tag += ['tight_mdm_cutoff']
-method_tag += ['tight_mdm_tikhonov']
+legends += ['Cutoff signular']
+#method_tag += ['tight_mdm_tikhonov']
+#legends += ['Tikhonov']
+#method_tag += ['tight_mdm_cutoff_eigen']
+#legends += ['Cutoff Eigen']
+method_tag += ['tight_mdm_rank3']
+legends += ['9-Par']
+method_tag += ['tight_mdm_rank5']
+legends += ['21-Par']
+
+#lowrank_tag = '_'
+lowrank_tag = '_lowrank'
+for method in range(0,len(method_tag)):
+    method_tag[method] += lowrank_tag
 
 ONOFF_tag = 'OFF'
 sample_list = []
@@ -48,8 +66,8 @@ sample_list += ['3C264V6']
 sample_list += ['1ES1011V6']
 sample_list += ['Segue1V6']
 sample_list += ['Segue1V5']
-sample_list += ['BLLacV6']
-sample_list += ['BLLacV5']
+#sample_list += ['BLLacV6']
+#sample_list += ['BLLacV5']
 
 #ONOFF_tag = 'ON'
 #sample_list = []
@@ -125,17 +143,9 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
             if min_heigh > Hists[h].GetMinimum(): 
                 min_heigh = Hists[h].GetMinimum()
 
+    Hists[0].SetMaximum(1e-1)
+    Hists[0].SetMinimum(5e-3)
     Hists[0].Draw("E")
-    #gap = 0.1*(max_heigh-min_heigh)
-    #if not y_max==0. and not y_min==0.:
-    #    Hists[0].SetMaximum(y_max)
-    #    Hists[0].SetMinimum(y_min)
-    #    Hists[0].Draw("E")
-    #else:
-    #    if not logy:
-    #        Hists[max_hist].SetMaximum(max_heigh+gap)
-    #        Hists[max_hist].SetMinimum(min_heigh-gap)
-    #    Hists[max_hist].Draw("E")
 
     for h in range(0,len(Hists)):
         #if colors[h]==1 or colors[h]==2: Hists[0].SetLineWidth(3)
@@ -146,11 +156,21 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
     Hists[0].SetLineWidth(4)
     Hists[0].Draw("E same")
 
+    if Hists[0].GetXaxis().GetLabelOffset()==999:
+        x1 = Hists[0].GetXaxis().GetXmin()
+        x2 = Hists[0].GetXaxis().GetXmax()
+        y1 = Hists[0].GetYaxis().GetXmin()
+        y2 = Hists[0].GetYaxis().GetXmax()
+        IncValues = ROOT.TF1( "IncValues", "x", 0, 256 )
+        raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
+        raLowerAxis.SetLabelSize(Hists[0].GetXaxis().GetLabelSize())
+        raLowerAxis.Draw()
+
     pad3.cd()
-    legend = ROOT.TLegend(0.5,0.1,0.9,0.9)
+    legend = ROOT.TLegend(0.2,0.1,0.9,0.9)
     legend.SetTextFont(42)
     legend.SetBorderSize(0)
-    legend.SetTextSize(0.1)
+    legend.SetTextSize(0.2)
     legend.SetFillColor(0)
     legend.SetFillStyle(0)
     legend.SetLineColor(0)
@@ -167,10 +187,10 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
             min_y = Hists[0].GetBinContent(binx)
             min_bin = binx
 
-    lumilab1 = ROOT.TLatex(0.15,0.80,'log10 #alpha = %.1f'%(Hists[0].GetBinCenter(min_bin)) )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.15)
-    lumilab1.Draw()
+    #lumilab1 = ROOT.TLatex(0.15,0.80,'log10 #alpha = %.1f'%(Hists[0].GetBinCenter(min_bin)) )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.15)
+    #lumilab1.Draw()
 
     if logx: 
         pad1.SetLogx()
@@ -193,7 +213,7 @@ def GetHistogramsFromFile(FilePath,which_source):
 
 Hist_Bkgd_Optimization = []
 for e in range(0,len(method_tag)):
-    Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,-3.,3.)]
+    Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,-6.,6.)]
 
 for e in range(0,len(energy_bin)-1):
     FilePath_List = []
@@ -211,10 +231,16 @@ for e in range(0,len(energy_bin)-1):
                 GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],entry)
 
     Hists = []
-    legends = []
     colors = []
     for entry in range(0,len(Hist_Bkgd_Optimization)):
         Hists += [Hist_Bkgd_Optimization[entry]]
-        legends += ['method %s'%(entry)]
         colors += [entry+1]
-    MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','PerformanceEvaluation_E%s'%(e),0,0,False,True)
+    MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','PerformanceEvaluation_%s_E%s'%(lowrank_tag,e),0,0,False,True)
+
+    Hists = []
+    colors = []
+    Hist_Bkgd_Optimization[0].GetXaxis().SetLabelOffset(999)
+    for entry in range(0,len(Hist_Bkgd_Optimization)):
+        Hists += [Hist_Bkgd_Optimization[entry]]
+        colors += [entry+1]
+    MakeMultiplePlot(Hists,legends,colors,'number of entries included','abs(N_{#gamma}-N_{model})/N_{#gamma}','PerformanceEvaluation_enntry_%s_E%s'%(lowrank_tag,e),0,0,False,True)

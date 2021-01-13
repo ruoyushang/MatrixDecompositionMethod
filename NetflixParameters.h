@@ -3,6 +3,8 @@ const int N_energy_bins = 6;
 
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
+bool LowRankApproximation = false;
+
 char output_file_tag[50] = "tight";
 double MSCW_cut_moderate = 0.5;
 double MSCL_cut_moderate = 0.6;
@@ -24,12 +26,14 @@ bool UseRegularization = false;
 //int RegularizationType = 0;
 //char output_file2_tag[50] = "mdm_rank3";
 //int RegularizationType = 1;
-char output_file2_tag[50] = "mdm_rank5";
-int RegularizationType = 2;
+//char output_file2_tag[50] = "mdm_rank5";
+//int RegularizationType = 2;
 //char output_file2_tag[50] = "mdm_cutoff";
 //int RegularizationType = 3;
-//char output_file2_tag[50] = "mdm_tikhonov";
-//int RegularizationType = 4;
+char output_file2_tag[50] = "mdm_tikhonov";
+int RegularizationType = 4;
+//char output_file2_tag[50] = "mdm_cutoff_eigen";
+//int RegularizationType = 5;
 
 int NumberOfRealEigenvectors = 4;
 int NumberOfEigenvectors_Stable = 3;

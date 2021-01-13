@@ -26,9 +26,16 @@ total_exposure_hours = 0.
 
 folder_path = 'output_test'
 method_tag = 'tight_mdm_default'
+#method_tag = 'tight_mdm_tikhonov'
+#method_tag = 'tight_mdm_cutoff'
+#method_tag = 'tight_mdm_cutoff_eigen'
 #method_tag = 'loose_mdm_default'
 #method_tag = 'loose_mdm_cutoff'
 #method_tag = 'loose_mdm_tikhonov'
+
+#lowrank_tag = '_'
+lowrank_tag = '_lowrank'
+method_tag += lowrank_tag
 
 ONOFF_tag = 'OFF'
 sample_list = []
@@ -41,8 +48,8 @@ sample_list += ['3C264V6']
 sample_list += ['1ES1011V6']
 sample_list += ['Segue1V6']
 sample_list += ['Segue1V5']
-sample_list += ['BLLacV6']
-sample_list += ['BLLacV5']
+#sample_list += ['BLLacV6']
+#sample_list += ['BLLacV5']
 
 #ONOFF_tag = 'ON'
 #sample_list = []
@@ -118,16 +125,19 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
             if min_heigh > Hists[h].GetMinimum(): 
                 min_heigh = Hists[h].GetMinimum()
 
-    gap = 0.1*(max_heigh-min_heigh)
-    if not y_max==0. and not y_min==0.:
-        Hists[0].SetMaximum(y_max)
-        Hists[0].SetMinimum(y_min)
-        Hists[0].Draw("E")
-    else:
-        if not logy:
-            Hists[max_hist].SetMaximum(max_heigh+gap)
-            Hists[max_hist].SetMinimum(min_heigh-gap)
-        Hists[max_hist].Draw("E")
+    #gap = 0.1*(max_heigh-min_heigh)
+    #if not y_max==0. and not y_min==0.:
+    #    Hists[0].SetMaximum(y_max)
+    #    Hists[0].SetMinimum(y_min)
+    #    Hists[0].Draw("E")
+    #else:
+    #    if not logy:
+    #        Hists[max_hist].SetMaximum(max_heigh+gap)
+    #        Hists[max_hist].SetMinimum(min_heigh-gap)
+    #    Hists[max_hist].Draw("E")
+    #Hists[0].SetMaximum(1e-1)
+    #Hists[0].SetMinimum(5e-3)
+    Hists[0].Draw("E")
 
     for h in range(0,len(Hists)):
         #if colors[h]==1 or colors[h]==2: Hists[0].SetLineWidth(3)
@@ -194,6 +204,10 @@ def GetHistogramsFromFile(FilePath,which_source):
     HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Bkgd_Optimization[0].Add(InputFile.Get(HistName),1./float(len(sample_list)))
     Hist_Bkgd_Optimization[which_source+1].Add(InputFile.Get(HistName))
+    Hist_Bkgd_Chi2[which_source+1].Reset()
+    HistName = "Hist_Bkgd_Chi2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_Bkgd_Chi2[0].Add(InputFile.Get(HistName),1./float(len(sample_list)))
+    Hist_Bkgd_Chi2[which_source+1].Add(InputFile.Get(HistName))
     Hist_VVV_Eigenvalues[which_source+1].Reset()
     HistName = "Hist_VVV_Eigenvalues_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_VVV_Eigenvalues[0].Add(InputFile.Get(HistName),1./float(len(sample_list)))
@@ -201,7 +215,10 @@ def GetHistogramsFromFile(FilePath,which_source):
 
 Hist_Bkgd_Optimization = []
 for e in range(0,len(sample_list)+1):
-    Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,-3.,3.)]
+    Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,-6.,6.)]
+Hist_Bkgd_Chi2 = []
+for e in range(0,len(sample_list)+1):
+    Hist_Bkgd_Chi2 += [ROOT.TH1D("Hist_Bkgd_Chi2_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,-6.,6.)]
 Hist_VVV_Eigenvalues = []
 for e in range(0,len(sample_list)+1):
     Hist_VVV_Eigenvalues += [ROOT.TH1D("Hist_VVV_Eigenvaluesi_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,0,N_bins_for_deconv*N_bins_for_deconv)]
@@ -210,6 +227,8 @@ for e in range(0,len(energy_bin)-1):
     FilePath_List = []
     for entry in range(0,len(Hist_Bkgd_Optimization)):
         Hist_Bkgd_Optimization[entry].Reset()
+    for entry in range(0,len(Hist_Bkgd_Chi2)):
+        Hist_Bkgd_Chi2[entry].Reset()
     for entry in range(0,len(Hist_VVV_Eigenvalues)):
         Hist_VVV_Eigenvalues[entry].Reset()
     for source in range(0,len(sample_list)):
@@ -226,18 +245,26 @@ for e in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
     colors = []
-    #Hist_Bkgd_Optimization[0].GetXaxis().SetLabelOffset(999)
-    #Hist_Bkgd_Optimization[0].GetXaxis().SetTickLength(0)
     Hists += [Hist_Bkgd_Optimization[0]]
     legends += ['average']
     colors += [1]
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        #Hist_Bkgd_Optimization[entry].GetXaxis().SetLabelOffset(999)
-        #Hist_Bkgd_Optimization[entry].GetXaxis().SetTickLength(0)
         Hists += [Hist_Bkgd_Optimization[entry]]
         legends += ['source %s'%(entry)]
         colors += [entry+1]
     MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','OptimizationParameter_E%s'%(e),0,0,False,True)
+
+    Hists = []
+    legends = []
+    colors = []
+    Hists += [Hist_Bkgd_Chi2[0]]
+    legends += ['average']
+    colors += [1]
+    for entry in range(1,len(Hist_Bkgd_Chi2)):
+        Hists += [Hist_Bkgd_Chi2[entry]]
+        legends += ['source %s'%(entry)]
+        colors += [entry+1]
+    MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','#chi^{2} in CR','Chi2_E%s'%(e),0,0,False,True)
 
     Hists = []
     legends = []
@@ -252,3 +279,30 @@ for e in range(0,len(energy_bin)-1):
         legends += ['source %s'%(entry)]
         colors += [entry+1]
     MakeMultiplePlot(Hists,legends,colors,'entry','singular value','SingularValue_E%s'%(e),0,0,False,True)
+
+    Hists = []
+    legends = []
+    colors = []
+    Hist_Bkgd_Optimization[0].GetXaxis().SetLabelOffset(999)
+    Hists += [Hist_Bkgd_Optimization[0]]
+    legends += ['average']
+    colors += [1]
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        Hists += [Hist_Bkgd_Optimization[entry]]
+        legends += ['source %s'%(entry)]
+        colors += [entry+1]
+    MakeMultiplePlot(Hists,legends,colors,'number of entries included','abs(N_{#gamma}-N_{model})/N_{#gamma}','OptimizationParameter_Entry_E%s'%(e),0,0,False,True)
+
+    Hists = []
+    legends = []
+    colors = []
+    Hist_Bkgd_Chi2[0].GetXaxis().SetLabelOffset(999)
+    Hists += [Hist_Bkgd_Chi2[0]]
+    legends += ['average']
+    colors += [1]
+    for entry in range(1,len(Hist_Bkgd_Chi2)):
+        Hists += [Hist_Bkgd_Chi2[entry]]
+        legends += ['source %s'%(entry)]
+        colors += [entry+1]
+    MakeMultiplePlot(Hists,legends,colors,'number of entries included','#chi^{2} in CR','Chi2_Entry_E%s'%(e),0,0,False,True)
+
