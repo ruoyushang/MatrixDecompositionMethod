@@ -946,64 +946,69 @@ MatrixXcd SortEigenvectors(VectorXcd eigenval, MatrixXcd mtx_r, MatrixXcd mtx_l)
     }
     return mtx_l_output;
 }
-MatrixXcd NuclearNormMinimization(MatrixXcd mtx_input, int entry_start, int entry_size, double step_frac, bool isBlind, int isLeft, double alpha)
+
+MatrixXcd NuclearNormMinimization(MatrixXcd mtx_init_input, MatrixXcd mtx_data_input, MatrixXcd mtx_dark_input, int entry_start, int entry_size, double step_frac, bool isBlind, int isLeft, double alpha)
 {
-    JacobiSVD<MatrixXd> svd_data(mtx_data.real(), ComputeFullU | ComputeFullV);
+    JacobiSVD<MatrixXd> svd_data(mtx_data_input.real(), ComputeFullU | ComputeFullV);
     MatrixXd mtx_U_data = svd_data.matrixU();
     MatrixXd mtx_V_data = svd_data.matrixV();
-    MatrixXd mtx_S_data = MatrixXd::Zero(mtx_data.rows(),mtx_data.cols());
+    MatrixXd mtx_S_data = MatrixXd::Zero(mtx_data_input.rows(),mtx_data_input.cols());
     for (int entry=0;entry<svd_data.singularValues().size();entry++)
     {
         mtx_S_data(entry,entry) = svd_data.singularValues()(entry);
     }
 
-    JacobiSVD<MatrixXd> svd_init(mtx_input.real(), ComputeFullU | ComputeFullV);
+    JacobiSVD<MatrixXd> svd_init(mtx_init_input.real(), ComputeFullU | ComputeFullV);
     MatrixXd mtx_U_init = svd_init.matrixU();
     MatrixXd mtx_V_init = svd_init.matrixV();
-    MatrixXd mtx_S_init = MatrixXd::Zero(mtx_input.rows(),mtx_input.cols());
+    MatrixXd mtx_S_init = MatrixXd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     for (int entry=0;entry<svd_init.singularValues().size();entry++)
     {
         mtx_S_init(entry,entry) = svd_init.singularValues()(entry);
     }
 
-    JacobiSVD<MatrixXd> svd_dark(mtx_dark.real(), ComputeFullU | ComputeFullV);
+    JacobiSVD<MatrixXd> svd_dark(mtx_dark_input.real(), ComputeFullU | ComputeFullV);
     MatrixXd mtx_U_dark = svd_dark.matrixU();
     MatrixXd mtx_V_dark = svd_dark.matrixV();
-    MatrixXd mtx_S_dark = MatrixXd::Zero(mtx_dark.rows(),mtx_dark.cols());
+    MatrixXd mtx_S_dark = MatrixXd::Zero(mtx_dark_input.rows(),mtx_dark_input.cols());
     for (int entry=0;entry<svd_dark.singularValues().size();entry++)
     {
         mtx_S_dark(entry,entry) = svd_dark.singularValues()(entry);
     }
-    MatrixXd mtx_UTV_dark = mtx_U_dark.transpose()*mtx_V_dark;
-    std::cout << "mtx_UTV_dark:" << std::endl;
-    std::cout << mtx_UTV_dark << std::endl;
-    MatrixXd mtx_UTU_dark = mtx_U_dark.transpose()*mtx_U_dark;
-    std::cout << "mtx_UTU_dark:" << std::endl;
-    std::cout << mtx_UTU_dark << std::endl;
-    MatrixXd mtx_VTV_dark = mtx_V_dark.transpose()*mtx_V_dark;
-    std::cout << "mtx_VTV_dark:" << std::endl;
-    std::cout << mtx_VTV_dark << std::endl;
+    //MatrixXd mtx_UTV_dark = mtx_U_dark.transpose()*mtx_V_dark;
+    //std::cout << "mtx_UTV_dark:" << std::endl;
+    //std::cout << mtx_UTV_dark << std::endl;
+    //MatrixXd mtx_UTU_dark = mtx_U_dark.transpose()*mtx_U_dark;
+    //std::cout << "mtx_UTU_dark:" << std::endl;
+    //std::cout << mtx_UTU_dark << std::endl;
+    //MatrixXd mtx_VTV_dark = mtx_V_dark.transpose()*mtx_V_dark;
+    //std::cout << "mtx_VTV_dark:" << std::endl;
+    //std::cout << mtx_VTV_dark << std::endl;
 
-    int size_k = mtx_input.cols();
-    int size_n = mtx_input.cols();
+    int size_k = mtx_init_input.cols();
+    int size_n = mtx_init_input.cols();
     int length_tkn = size_k*size_n;
     int regularization_size = length_tkn;
     if (RegularizationType==1 || RegularizationType==2 || RegularizationType==3)
     {
         regularization_size = 0;
     }
-    VectorXcd vtr_Delta = VectorXcd::Zero(mtx_input.rows()*mtx_input.cols()+regularization_size);
-    MatrixXcd mtx_A = MatrixXcd::Zero(mtx_input.rows()*mtx_input.cols()+regularization_size,length_tkn);
-    for (int idx_i=0;idx_i<mtx_input.rows();idx_i++)
+    if (!isBlind)
     {
-        for (int idx_j=0;idx_j<mtx_input.rows();idx_j++)
+        regularization_size = 0;
+    }
+    VectorXcd vtr_Delta = VectorXcd::Zero(mtx_init_input.rows()*mtx_init_input.cols()+regularization_size);
+    MatrixXcd mtx_A = MatrixXcd::Zero(mtx_init_input.rows()*mtx_init_input.cols()+regularization_size,length_tkn);
+    for (int idx_i=0;idx_i<mtx_init_input.rows();idx_i++)
+    {
+        for (int idx_j=0;idx_j<mtx_init_input.rows();idx_j++)
         {
-            int idx_u = idx_j*mtx_input.rows() + idx_i;
+            int idx_u = idx_j*mtx_init_input.rows() + idx_i;
             if (isBlind && idx_i<binx_blind_global && idx_j<biny_blind_global)
             {
                 continue;
             }
-            vtr_Delta(idx_u) = (mtx_data-mtx_input)(idx_i,idx_j);
+            vtr_Delta(idx_u) = (mtx_data_input-mtx_init_input)(idx_i,idx_j);
             for (int idx_k=0;idx_k<size_k;idx_k++)
             {
                 int kth_entry = idx_k+1;
@@ -1038,7 +1043,7 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_input, int entry_start, int entr
             {
                 int nth_entry = idx_n+1;
                 int idx_v = idx_k*size_n + idx_n;
-                int idx_u = idx_v + mtx_input.rows()*mtx_input.cols();
+                int idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
                 if (RegularizationType==0)
                 {
                     double regularization_weight = abs(mtx_regularization(idx_k,idx_n));
@@ -1047,13 +1052,14 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_input, int entry_start, int entr
                 }
                 else if (RegularizationType==4)
                 {
-                    mtx_A(idx_u,idx_v) = alpha;
+                    mtx_A(idx_u,idx_v) = alpha*1e-6;
                 }
             }
         }
     }
     VectorXcd vtr_t = VectorXcd::Zero(length_tkn);
     BDCSVD<MatrixXcd> bdc_svd(mtx_A, ComputeThinU | ComputeThinV);
+    //bdc_svd.setThreshold(1e-10);  // size of singular value to be considered as nonzero.
     //std::cout << "bdc_svd.singularValues():" << std::endl;
     //std::cout << bdc_svd.singularValues() << std::endl;
     if (RegularizationType==3)
@@ -1077,9 +1083,10 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_input, int entry_start, int entr
     }
     vtr_eigenval_vvv = bdc_svd.singularValues();
 
-    MatrixXcd mtx_C = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    MatrixXcd mtx_D = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    MatrixXcd mtx_E = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    MatrixXcd mtx_t = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    MatrixXcd mtx_C = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    MatrixXcd mtx_D = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    MatrixXcd mtx_E = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     for (int idx_k=0;idx_k<size_k;idx_k++)
     {
         int kth_entry = idx_k+1;
@@ -1090,6 +1097,7 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_input, int entry_start, int entr
             std::complex<double> sigma_n = mtx_S_dark(idx_n,idx_n);
             int idx_kn = idx_k*size_n + idx_n;
             int idx_nk = idx_n*size_k + idx_k;
+            mtx_t(idx_k,idx_n) = vtr_t(idx_kn); 
             if (kth_entry!=nth_entry)
             {
                 mtx_C(idx_k,idx_n) = (vtr_t(idx_kn)/sigma_k+vtr_t(idx_nk)/sigma_n)/(sigma_n/sigma_k-sigma_k/sigma_n); 
@@ -1101,11 +1109,15 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_input, int entry_start, int entr
             }
         }
     }
+    if (!isBlind)
+    {
+        return mtx_t;
+    }
 
-    MatrixXcd mtx_U_vari = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    MatrixXcd mtx_V_vari = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    MatrixXcd mtx_S_vari = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    for (int idx_i=0;idx_i<mtx_input.cols();idx_i++)
+    MatrixXcd mtx_U_vari = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    MatrixXcd mtx_V_vari = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    MatrixXcd mtx_S_vari = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    for (int idx_i=0;idx_i<mtx_init_input.cols();idx_i++)
     {
         for (int idx_k=0;idx_k<size_k;idx_k++)
         {
@@ -1123,32 +1135,34 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_input, int entry_start, int entr
     }
 
 
-    MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    MatrixXcd mtx_output = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     mtx_output = mtx_U_init*mtx_S_init*mtx_V_init.transpose();
-    MatrixXcd mtx_vari = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    MatrixXcd mtx_vari = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     mtx_vari += step_frac*mtx_U_init*mtx_S_init*mtx_V_vari.transpose();
     mtx_vari += step_frac*mtx_U_vari*mtx_S_init*mtx_V_init.transpose();
     mtx_vari += step_frac*mtx_U_init*mtx_S_vari*mtx_V_init.transpose();
     mtx_output += mtx_vari;
 
     return mtx_output;
+
 }
-MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int entry_size, double step_frac, bool isBlind, int isLeft, double alpha)
+
+MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_init_input, MatrixXcd mtx_data_input, MatrixXcd mtx_dark_input, int entry_start, int entry_size, double step_frac, bool isBlind, int isLeft, double alpha)
 {
 
     bool doPrint = false;
     double eta_threshold = 0.0001;
 
-    eigensolver_init = ComplexEigenSolver<MatrixXcd>(mtx_input);
-    eigensolver_init_transpose = ComplexEigenSolver<MatrixXcd>(mtx_input.transpose());
+    eigensolver_init = ComplexEigenSolver<MatrixXcd>(mtx_init_input);
+    eigensolver_init_transpose = ComplexEigenSolver<MatrixXcd>(mtx_init_input.transpose());
     MatrixXcd mtx_r_init = eigensolver_init.eigenvectors();
     MatrixXcd mtx_l_init = eigensolver_init_transpose.eigenvectors();
     mtx_l_init = SortEigenvectors(eigensolver_init.eigenvalues(), mtx_r_init, mtx_l_init);
     MatrixXcd mtx_H_init = mtx_r_init.transpose()*mtx_l_init;
-    MatrixXcd mtx_lambda_init(mtx_input.rows(),mtx_input.cols());
-    for (int row=0;row<mtx_input.rows();row++)
+    MatrixXcd mtx_lambda_init(mtx_init_input.rows(),mtx_init_input.cols());
+    for (int row=0;row<mtx_init_input.rows();row++)
     {
-        for (int col=0;col<mtx_input.cols();col++)
+        for (int col=0;col<mtx_init_input.cols();col++)
         {
             mtx_lambda_init(row,col) = 0.;
             if (row==col)
@@ -1158,16 +1172,16 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int en
         }
     }
 
-    eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-    eigensolver_dark_transpose = ComplexEigenSolver<MatrixXcd>(mtx_dark.transpose());
+    eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark_input);
+    eigensolver_dark_transpose = ComplexEigenSolver<MatrixXcd>(mtx_dark_input.transpose());
     MatrixXcd mtx_r_dark = eigensolver_dark.eigenvectors();
     MatrixXcd mtx_l_dark = eigensolver_dark_transpose.eigenvectors();
     mtx_l_dark = SortEigenvectors(eigensolver_dark.eigenvalues(), mtx_r_dark, mtx_l_dark);
     MatrixXcd mtx_H_dark = mtx_r_dark.transpose()*mtx_l_dark;
-    MatrixXcd mtx_lambda_dark(mtx_input.rows(),mtx_input.cols());
-    for (int row=0;row<mtx_input.rows();row++)
+    MatrixXcd mtx_lambda_dark(mtx_init_input.rows(),mtx_init_input.cols());
+    for (int row=0;row<mtx_init_input.rows();row++)
     {
-        for (int col=0;col<mtx_input.cols();col++)
+        for (int col=0;col<mtx_init_input.cols();col++)
         {
             mtx_lambda_dark(row,col) = 0.;
             if (row==col)
@@ -1176,71 +1190,71 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int en
             }
         }
     }
-    MatrixXcd mtx_S_init = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    for (int col=0;col<mtx_input.cols();col++)
+    MatrixXcd mtx_S_init = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    for (int col=0;col<mtx_init_input.cols();col++)
     {
         mtx_S_init(col,col) = mtx_lambda_init(col,col)/mtx_H_dark(col,col);
     }
 
-    MatrixXcd mtx_Delta = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    for (int idx_k=0;idx_k<mtx_input.rows();idx_k++)
+    MatrixXcd mtx_Delta = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    for (int idx_k=0;idx_k<mtx_init_input.rows();idx_k++)
     {
         int kth_entry = idx_k+1;
-        for (int idx_n=0;idx_n<mtx_input.cols();idx_n++)
+        for (int idx_n=0;idx_n<mtx_init_input.cols();idx_n++)
         {
             int nth_entry = idx_n+1;
             //if (kth_entry>entry_size && nth_entry>entry_size) continue;
             //if (kth_entry>5 || nth_entry>5) continue;
-            for (int idx_i=0;idx_i<mtx_input.rows();idx_i++)
+            for (int idx_i=0;idx_i<mtx_init_input.rows();idx_i++)
             {
-                for (int idx_j=0;idx_j<mtx_input.rows();idx_j++)
+                for (int idx_j=0;idx_j<mtx_init_input.rows();idx_j++)
                 {
                     if (isBlind && idx_i<binx_blind_global && idx_j<biny_blind_global)
                     {
                         continue;
                     }
-                    mtx_Delta(mtx_input.cols()-kth_entry,mtx_input.cols()-nth_entry) += mtx_l_dark(idx_i,mtx_input.cols()-kth_entry)*(mtx_data-mtx_input)(idx_i,idx_j)*mtx_r_dark(idx_j,mtx_input.cols()-nth_entry);
+                    mtx_Delta(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-nth_entry) += mtx_l_dark(idx_i,mtx_init_input.cols()-kth_entry)*(mtx_data_input-mtx_init_input)(idx_i,idx_j)*mtx_r_dark(idx_j,mtx_init_input.cols()-nth_entry);
                 }
             }
         }
     }
 
-    MatrixXcd mtx_W = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    for (int idx_i=0;idx_i<mtx_input.rows();idx_i++)
+    MatrixXcd mtx_W = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    for (int idx_i=0;idx_i<mtx_init_input.rows();idx_i++)
     {
         if (idx_i<binx_blind_global)
         {
             mtx_W(idx_i,idx_i) = 1.;
         }
     }
-    MatrixXcd mtx_R_full = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    MatrixXcd mtx_R_full = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     MatrixXcd mtx_Ur2 = mtx_r_dark.conjugate().transpose()*mtx_r_dark;
     MatrixXcd mtx_WUr2 = (mtx_W*mtx_r_dark).conjugate().transpose()*(mtx_W*mtx_r_dark);
     MatrixXcd mtx_UrWUr = mtx_r_dark.conjugate().transpose()*mtx_W*mtx_r_dark;
-    MatrixXcd mtx_R_gamma = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    MatrixXcd mtx_L_full = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    MatrixXcd mtx_R_gamma = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    MatrixXcd mtx_L_full = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     MatrixXcd mtx_Ul2 = mtx_l_dark.conjugate().transpose()*mtx_l_dark;
     MatrixXcd mtx_WUl2 = (mtx_W*mtx_l_dark).conjugate().transpose()*(mtx_W*mtx_l_dark);
     MatrixXcd mtx_UlWUl = mtx_l_dark.conjugate().transpose()*mtx_W*mtx_l_dark;
-    MatrixXcd mtx_L_gamma = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    for (int idx_k=0;idx_k<mtx_input.rows();idx_k++)
+    MatrixXcd mtx_L_gamma = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    for (int idx_k=0;idx_k<mtx_init_input.rows();idx_k++)
     {
         int kth_entry = idx_k+1;
-        for (int idx_n=0;idx_n<mtx_input.cols();idx_n++)
+        for (int idx_n=0;idx_n<mtx_init_input.cols();idx_n++)
         {
             int nth_entry = idx_n+1;
             //if (kth_entry>entry_size && nth_entry>entry_size) continue;
             //if (kth_entry>5 || nth_entry>5) continue;
-            for (int idx_i=0;idx_i<mtx_input.rows();idx_i++)
+            for (int idx_i=0;idx_i<mtx_init_input.rows();idx_i++)
             {
-                mtx_R_full(mtx_input.cols()-kth_entry,mtx_input.cols()-nth_entry) += std::conj(mtx_r_dark(idx_i,mtx_input.cols()-kth_entry))*mtx_r_dark(idx_i,mtx_input.cols()-nth_entry);
-                mtx_L_full(mtx_input.cols()-kth_entry,mtx_input.cols()-nth_entry) += std::conj(mtx_l_dark(idx_i,mtx_input.cols()-kth_entry))*mtx_l_dark(idx_i,mtx_input.cols()-nth_entry);
+                mtx_R_full(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-nth_entry) += std::conj(mtx_r_dark(idx_i,mtx_init_input.cols()-kth_entry))*mtx_r_dark(idx_i,mtx_init_input.cols()-nth_entry);
+                mtx_L_full(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-nth_entry) += std::conj(mtx_l_dark(idx_i,mtx_init_input.cols()-kth_entry))*mtx_l_dark(idx_i,mtx_init_input.cols()-nth_entry);
                 if (isBlind) 
                 {
                     if (idx_i<binx_blind_global)
                     {
-                        mtx_R_gamma(mtx_input.cols()-kth_entry,mtx_input.cols()-nth_entry) += std::conj(mtx_r_dark(idx_i,mtx_input.cols()-kth_entry))*mtx_r_dark(idx_i,mtx_input.cols()-nth_entry);
-                        mtx_L_gamma(mtx_input.cols()-kth_entry,mtx_input.cols()-nth_entry) += std::conj(mtx_l_dark(idx_i,mtx_input.cols()-kth_entry))*mtx_l_dark(idx_i,mtx_input.cols()-nth_entry);
+                        mtx_R_gamma(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-nth_entry) += std::conj(mtx_r_dark(idx_i,mtx_init_input.cols()-kth_entry))*mtx_r_dark(idx_i,mtx_init_input.cols()-nth_entry);
+                        mtx_L_gamma(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-nth_entry) += std::conj(mtx_l_dark(idx_i,mtx_init_input.cols()-kth_entry))*mtx_l_dark(idx_i,mtx_init_input.cols()-nth_entry);
                     }
                 }
             }
@@ -1268,18 +1282,18 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int en
         std::cout << mtx_WUl2.cwiseAbs() << std::endl;
         std::cout << "mtx_UlWUl:" << std::endl;
         std::cout << mtx_UlWUl.cwiseAbs() << std::endl;
-        MatrixXcd mtx_O_full = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-        MatrixXcd mtx_O_gamma_P = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-        MatrixXcd mtx_O_gamma_Q = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-        MatrixXcd mtx_LgR = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-        MatrixXcd mtx_LgRg = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-        MatrixXcd mtx_LRg = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+        MatrixXcd mtx_O_full = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+        MatrixXcd mtx_O_gamma_P = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+        MatrixXcd mtx_O_gamma_Q = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+        MatrixXcd mtx_LgR = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+        MatrixXcd mtx_LgRg = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+        MatrixXcd mtx_LRg = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
         MatrixXcd mtx_UlWUr = mtx_l_dark.conjugate().transpose()*mtx_W*mtx_r_dark;
-        for (int idx_k=0;idx_k<mtx_input.rows();idx_k++)
+        for (int idx_k=0;idx_k<mtx_init_input.rows();idx_k++)
         {
-            for (int idx_n=0;idx_n<mtx_input.cols();idx_n++)
+            for (int idx_n=0;idx_n<mtx_init_input.cols();idx_n++)
             {
-                for (int idx_m=0;idx_m<mtx_input.cols();idx_m++)
+                for (int idx_m=0;idx_m<mtx_init_input.cols();idx_m++)
                 {
                     mtx_O_full(idx_k,idx_n) += mtx_L_full(idx_m,idx_k)*mtx_R_full(idx_m,idx_n)/(mtx_H_dark(idx_k,idx_k)*std::conj(mtx_H_dark(idx_m,idx_m)));
                     mtx_O_gamma_P(idx_k,idx_n) += mtx_L_gamma(idx_m,idx_k)*mtx_R_gamma(idx_m,idx_n)/(mtx_H_dark(idx_k,idx_k)*std::conj(mtx_H_dark(idx_m,idx_m)));
@@ -1306,19 +1320,19 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int en
         std::cout << mtx_UlWUr.cwiseAbs() << std::endl;
     }
 
-    MatrixXcd mtx_P = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    MatrixXcd mtx_Q = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    MatrixXcd mtx_P_swap = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    MatrixXcd mtx_Q_swap = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    for (int idx_k=0;idx_k<mtx_input.rows();idx_k++)
+    MatrixXcd mtx_P = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    MatrixXcd mtx_Q = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    MatrixXcd mtx_P_swap = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    MatrixXcd mtx_Q_swap = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    for (int idx_k=0;idx_k<mtx_init_input.rows();idx_k++)
     {
         std::complex<double> eta_k = mtx_H_dark(idx_k,idx_k);
         if (abs(eta_k)<eta_threshold) continue;
-        for (int idx_n=0;idx_n<mtx_input.rows();idx_n++)
+        for (int idx_n=0;idx_n<mtx_init_input.rows();idx_n++)
         {
             std::complex<double> eta_n = mtx_H_dark(idx_n,idx_n);
             if (abs(eta_n)<eta_threshold) continue;
-            for (int idx_s=0;idx_s<mtx_input.rows();idx_s++)
+            for (int idx_s=0;idx_s<mtx_init_input.rows();idx_s++)
             {
                 std::complex<double> eta_s = mtx_H_dark(idx_s,idx_s);
                 if (abs(eta_s)<eta_threshold) continue;
@@ -1347,31 +1361,31 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int en
         std::cout << mtx_QQ.cwiseAbs() << std::endl;
     }
 
-    int size_k = mtx_input.cols();
-    int size_n = mtx_input.cols();
+    int size_k = mtx_init_input.cols();
+    int size_n = mtx_init_input.cols();
     int length_tkn = size_k*size_n;
-    VectorXcd vtr_Delta = VectorXcd::Zero(mtx_input.rows()*mtx_input.cols());
-    MatrixXcd mtx_F = MatrixXcd::Zero(mtx_input.rows()*mtx_input.cols(),length_tkn);
-    for (int idx_i=0;idx_i<mtx_input.rows();idx_i++)
+    VectorXcd vtr_Delta = VectorXcd::Zero(mtx_init_input.rows()*mtx_init_input.cols());
+    MatrixXcd mtx_F = MatrixXcd::Zero(mtx_init_input.rows()*mtx_init_input.cols(),length_tkn);
+    for (int idx_i=0;idx_i<mtx_init_input.rows();idx_i++)
     {
         int ith_entry = idx_i+1;
-        for (int idx_j=0;idx_j<mtx_input.rows();idx_j++)
+        for (int idx_j=0;idx_j<mtx_init_input.rows();idx_j++)
         {
             int jth_entry = idx_j+1;
-            int idx_u = idx_j*mtx_input.rows() + idx_i;
-            vtr_Delta(idx_u) = mtx_Delta(mtx_input.cols()-jth_entry,mtx_input.cols()-ith_entry);
+            int idx_u = idx_j*mtx_init_input.rows() + idx_i;
+            vtr_Delta(idx_u) = mtx_Delta(mtx_init_input.cols()-jth_entry,mtx_init_input.cols()-ith_entry);
             for (int idx_k=0;idx_k<size_k;idx_k++)
             {
                 int kth_entry = idx_k+1;
-                std::complex<double> eta_k = mtx_H_dark(mtx_input.cols()-kth_entry,mtx_input.cols()-kth_entry);
+                std::complex<double> eta_k = mtx_H_dark(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-kth_entry);
                 for (int idx_n=0;idx_n<size_n;idx_n++)
                 {
                     int nth_entry = idx_n+1;
-                    std::complex<double> eta_n = mtx_H_dark(mtx_input.cols()-nth_entry,mtx_input.cols()-nth_entry);
+                    std::complex<double> eta_n = mtx_H_dark(mtx_init_input.cols()-nth_entry,mtx_init_input.cols()-nth_entry);
                     //if (kth_entry>entry_size && nth_entry>entry_size) continue;
                     //if (kth_entry>5 || nth_entry>5) continue;
                     int idx_v = idx_k*size_n + idx_n;
-                    mtx_F(idx_u,idx_v) += -1.*mtx_Q(mtx_input.cols()-jth_entry,mtx_input.cols()-kth_entry)*mtx_P(mtx_input.cols()-ith_entry,mtx_input.cols()-nth_entry);
+                    mtx_F(idx_u,idx_v) += -1.*mtx_Q(mtx_init_input.cols()-jth_entry,mtx_init_input.cols()-kth_entry)*mtx_P(mtx_init_input.cols()-ith_entry,mtx_init_input.cols()-nth_entry);
                     if (jth_entry==kth_entry && ith_entry==nth_entry)
                     {
                         mtx_F(idx_u,idx_v) += 1.;
@@ -1386,29 +1400,29 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int en
     {
         regularization_size = 0;
     }
-    VectorXcd vtr_Delta_Ruo = VectorXcd::Zero(mtx_input.rows()*mtx_input.cols()+regularization_size);
-    MatrixXcd mtx_F_Ruo = MatrixXcd::Zero(mtx_input.rows()*mtx_input.cols()+regularization_size,length_tkn);
-    for (int idx_i=0;idx_i<mtx_input.rows();idx_i++)
+    VectorXcd vtr_Delta_Ruo = VectorXcd::Zero(mtx_init_input.rows()*mtx_init_input.cols()+regularization_size);
+    MatrixXcd mtx_F_Ruo = MatrixXcd::Zero(mtx_init_input.rows()*mtx_init_input.cols()+regularization_size,length_tkn);
+    for (int idx_i=0;idx_i<mtx_init_input.rows();idx_i++)
     {
         int ith_entry = idx_i+1;
-        for (int idx_j=0;idx_j<mtx_input.rows();idx_j++)
+        for (int idx_j=0;idx_j<mtx_init_input.rows();idx_j++)
         {
             int jth_entry = idx_j+1;
-            int idx_u = idx_j*mtx_input.rows() + idx_i;
+            int idx_u = idx_j*mtx_init_input.rows() + idx_i;
             if (isBlind && idx_i<binx_blind_global && idx_j<biny_blind_global)
             {
                 continue;
             }
-            vtr_Delta_Ruo(idx_u) = (mtx_data-mtx_input)(idx_i,idx_j);
+            vtr_Delta_Ruo(idx_u) = (mtx_data_input-mtx_init_input)(idx_i,idx_j);
             for (int idx_k=0;idx_k<size_k;idx_k++)
             {
                 int kth_entry = idx_k+1;
-                std::complex<double> eta_k = mtx_H_dark(mtx_input.cols()-kth_entry,mtx_input.cols()-kth_entry);
+                std::complex<double> eta_k = mtx_H_dark(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-kth_entry);
                 if (abs(eta_k)<eta_threshold) continue;
                 for (int idx_n=0;idx_n<size_n;idx_n++)
                 {
                     int nth_entry = idx_n+1;
-                    std::complex<double> eta_n = mtx_H_dark(mtx_input.cols()-nth_entry,mtx_input.cols()-nth_entry);
+                    std::complex<double> eta_n = mtx_H_dark(mtx_init_input.cols()-nth_entry,mtx_init_input.cols()-nth_entry);
                     if (abs(eta_n)<eta_threshold) continue;
                     if (LowRankApproximation) 
                     {
@@ -1429,7 +1443,7 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int en
                     //if (isLeft==1 && kth_entry>entry_size) continue;
                     //if (isLeft==2 && nth_entry>entry_size) continue;
                     int idx_v = idx_k*size_n + idx_n;
-                    mtx_F_Ruo(idx_u,idx_v) = mtx_r_dark(idx_i,mtx_input.cols()-kth_entry)*mtx_l_dark(idx_j,mtx_input.cols()-nth_entry)/(eta_k*eta_n);
+                    mtx_F_Ruo(idx_u,idx_v) = mtx_r_dark(idx_i,mtx_init_input.cols()-kth_entry)*mtx_l_dark(idx_j,mtx_init_input.cols()-nth_entry)/(eta_k*eta_n);
                 }
             }
         }
@@ -1442,12 +1456,12 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int en
             for (int idx_n=0;idx_n<size_n;idx_n++)
             {
                 int nth_entry = idx_n+1;
-                std::complex<double> eta_n = mtx_H_dark(mtx_input.cols()-nth_entry,mtx_input.cols()-nth_entry);
+                std::complex<double> eta_n = mtx_H_dark(mtx_init_input.cols()-nth_entry,mtx_init_input.cols()-nth_entry);
                 int idx_v = idx_k*size_n + idx_n;
-                int idx_u = idx_v + mtx_input.rows()*mtx_input.cols();
+                int idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
                 if (RegularizationType==0)
                 {
-                    double regularization_weight = abs(mtx_regularization(mtx_input.cols()-kth_entry,mtx_input.cols()-nth_entry));
+                    double regularization_weight = abs(mtx_regularization(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-nth_entry));
                     //regularization_weight = regularization_weight*pow(exposure_hours/100.,2);
                     if (regularization_weight==0.) continue;
                     mtx_F_Ruo(idx_u,idx_v) = alpha*1./regularization_weight;
@@ -1505,7 +1519,7 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int en
         vtr_t_Ruo = bdc_svd.solve(vtr_Delta_Ruo);
         vtr_eigenval_vvv = bdc_svd.singularValues();
     }
-    //CheckRuoSolution(entry_size, mtx_r_dark,mtx_l_dark, mtx_data-mtx_input, vtr_t_Ruo);
+    //CheckRuoSolution(entry_size, mtx_r_dark,mtx_l_dark, mtx_data_input-mtx_init_input, vtr_t_Ruo);
 
     double sum_F_abs = 0.;
     MatrixXcd mtx_FFmF = mtx_F*mtx_F-mtx_F;
@@ -1525,28 +1539,28 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int en
     VectorXcd vtr_t = VectorXcd::Zero(length_tkn);
     vtr_t = vtr_t_Ruo;
 
-    MatrixXcd mtx_C = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    MatrixXcd mtx_C = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     for (int idx_k=0;idx_k<size_k;idx_k++)
     {
         int kth_entry = idx_k+1;
-        std::complex<double> lambda_k = mtx_lambda_dark(mtx_input.cols()-kth_entry,mtx_input.cols()-kth_entry);
-        std::complex<double> eta_k = mtx_H_dark(mtx_input.cols()-kth_entry,mtx_input.cols()-kth_entry);
+        std::complex<double> lambda_k = mtx_lambda_dark(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-kth_entry);
+        std::complex<double> eta_k = mtx_H_dark(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-kth_entry);
         for (int idx_n=0;idx_n<size_n;idx_n++)
         {
             int nth_entry = idx_n+1;
             //if (kth_entry>entry_size && nth_entry>entry_size) continue;
             //if (kth_entry>5 || nth_entry>5) continue;
-            std::complex<double> lambda_n = mtx_lambda_dark(mtx_input.cols()-nth_entry,mtx_input.cols()-nth_entry);
-            std::complex<double> eta_n = mtx_H_dark(mtx_input.cols()-nth_entry,mtx_input.cols()-nth_entry);
+            std::complex<double> lambda_n = mtx_lambda_dark(mtx_init_input.cols()-nth_entry,mtx_init_input.cols()-nth_entry);
+            std::complex<double> eta_n = mtx_H_dark(mtx_init_input.cols()-nth_entry,mtx_init_input.cols()-nth_entry);
             int idx_v = idx_k*size_n + idx_n;
             if (kth_entry!=nth_entry)
             {
-                mtx_C(mtx_input.cols()-kth_entry,mtx_input.cols()-nth_entry) = vtr_t(idx_v)/(lambda_k-lambda_n); 
+                mtx_C(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-nth_entry) = vtr_t(idx_v)/(lambda_k-lambda_n); 
             }
             else
             {
                 if (abs(eta_k)<eta_threshold) continue;
-                mtx_C(mtx_input.cols()-kth_entry,mtx_input.cols()-nth_entry) = vtr_t(idx_v)/(eta_k); 
+                mtx_C(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-nth_entry) = vtr_t(idx_v)/(eta_k); 
             }
         }
     }
@@ -1554,43 +1568,43 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_input, int entry_start, int en
     {
         int print_size = 6;
         std::cout << "mtx_C:" << std::endl;
-        std::cout << mtx_C.block(mtx_input.rows()-print_size,mtx_input.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
+        std::cout << mtx_C.block(mtx_init_input.rows()-print_size,mtx_init_input.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
         std::cout << "mtx_regularization:" << std::endl;
-        std::cout << mtx_regularization.block(mtx_input.rows()-print_size,mtx_input.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
+        std::cout << mtx_regularization.block(mtx_init_input.rows()-print_size,mtx_init_input.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
     }
 
     MatrixXcd mtx_l_vari = MatrixXcd::Zero(mtx_l_init.rows(),mtx_l_init.cols());
     MatrixXcd mtx_r_vari = MatrixXcd::Zero(mtx_r_init.rows(),mtx_r_init.cols());
     MatrixXcd mtx_S_vari = MatrixXcd::Zero(mtx_r_init.rows(),mtx_r_init.cols());
-    for (int idx_i=0;idx_i<mtx_input.cols();idx_i++)
+    for (int idx_i=0;idx_i<mtx_init_input.cols();idx_i++)
     {
         for (int idx_k=0;idx_k<size_k;idx_k++)
         {
             int kth_entry = idx_k+1;
             //if (kth_entry>entry_size) continue;
-            std::complex<double> eta_k = mtx_H_dark(mtx_input.cols()-kth_entry,mtx_input.cols()-kth_entry);
+            std::complex<double> eta_k = mtx_H_dark(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-kth_entry);
             if (abs(eta_k)<eta_threshold) continue;
-            mtx_S_vari(mtx_input.cols()-kth_entry,mtx_input.cols()-kth_entry) = mtx_C(mtx_input.cols()-kth_entry,mtx_input.cols()-kth_entry)/eta_k;
+            mtx_S_vari(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-kth_entry) = mtx_C(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-kth_entry)/eta_k;
             for (int idx_n=0;idx_n<size_n;idx_n++)
             {
                 int nth_entry = idx_n+1;
                 //if (kth_entry>entry_size && nth_entry>entry_size) continue;
                 //if (kth_entry>5 || nth_entry>5) continue;
                 //if (kth_entry==nth_entry) continue;
-                std::complex<double> eta_n = mtx_H_dark(mtx_input.cols()-nth_entry,mtx_input.cols()-nth_entry);
+                std::complex<double> eta_n = mtx_H_dark(mtx_init_input.cols()-nth_entry,mtx_init_input.cols()-nth_entry);
                 if (abs(eta_n)<eta_threshold) continue;
-                std::complex<double> coeff_l = mtx_C(mtx_input.cols()-kth_entry,mtx_input.cols()-nth_entry)/eta_n;
-                mtx_l_vari(idx_i,mtx_input.cols()-kth_entry) += coeff_l*mtx_l_dark(idx_i,mtx_input.cols()-nth_entry);
-                std::complex<double> coeff_r = -1.*mtx_C(mtx_input.cols()-nth_entry,mtx_input.cols()-kth_entry)/eta_n;
-                mtx_r_vari(idx_i,mtx_input.cols()-kth_entry) += coeff_r*mtx_r_dark(idx_i,mtx_input.cols()-nth_entry);
+                std::complex<double> coeff_l = mtx_C(mtx_init_input.cols()-kth_entry,mtx_init_input.cols()-nth_entry)/eta_n;
+                mtx_l_vari(idx_i,mtx_init_input.cols()-kth_entry) += coeff_l*mtx_l_dark(idx_i,mtx_init_input.cols()-nth_entry);
+                std::complex<double> coeff_r = -1.*mtx_C(mtx_init_input.cols()-nth_entry,mtx_init_input.cols()-kth_entry)/eta_n;
+                mtx_r_vari(idx_i,mtx_init_input.cols()-kth_entry) += coeff_r*mtx_r_dark(idx_i,mtx_init_input.cols()-nth_entry);
             }
         }
     }
 
     double step_scale = step_frac;
-    MatrixXcd mtx_output = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
-    mtx_output = mtx_input;
-    MatrixXcd mtx_vari = MatrixXcd::Zero(mtx_input.rows(),mtx_input.cols());
+    MatrixXcd mtx_output = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    mtx_output = mtx_init_input;
+    MatrixXcd mtx_vari = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     mtx_vari += step_scale*mtx_r_init*mtx_S_init*mtx_l_vari.transpose();
     mtx_vari += step_scale*mtx_r_vari*mtx_S_init*mtx_l_init.transpose();
     mtx_vari += step_scale*mtx_r_init*mtx_S_vari*mtx_l_init.transpose();
@@ -2115,6 +2129,19 @@ double CountGammaRegion(MatrixXcd mtx_input)
     }
     return count;
 }
+double CountCosmicRayRegion(MatrixXcd mtx_input)
+{
+    double count = 0.;
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            if (row<binx_blind_global && col<biny_blind_global) continue;
+            count += mtx_input(row,col).real();
+        }
+    }
+    return count;
+}
 double Chi2CosmicRayRegion(MatrixXcd mtx_input, MatrixXcd mtx_model)
 {
     double count = 0.;
@@ -2332,35 +2359,13 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Conve
         double step_frac = 0.1;
         int entry_size = NumberOfEigenvectors_Stable;
         double data_count = CountGammaRegion(mtx_data);
+        double data_cr_count = CountCosmicRayRegion(mtx_data);
         double bkgd_count = CountGammaRegion(mtx_data_bkgd);
         Hist_Converge->SetBinContent(1,1.-bkgd_count/data_count);
-        //for (int i=0;i<n_iterations/2;i++)
-        //{
-        //    //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, step_frac, isBlind, 1);
-        //    mtx_temp = LowRankOptimizationMethod(mtx_data_bkgd, 1, entry_size, step_frac, isBlind, 1, alpha);
-        //    if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
-        //    {
-        //        mtx_data_bkgd = mtx_temp;
-        //        bkgd_count = CountGammaRegion(mtx_data_bkgd);
-        //        Hist_Converge->SetBinContent(2*(i+1),1.-bkgd_count/data_count);
-        //    }
-        //    else
-        //    {
-        //        break;
-        //    }
-        //    //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, step_frac, isBlind, 2);
-        //    mtx_temp = LowRankOptimizationMethod(mtx_data_bkgd, 1, entry_size, step_frac, isBlind, 2, alpha);
-        //    if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
-        //    {
-        //        mtx_data_bkgd = mtx_temp;
-        //        bkgd_count = CountGammaRegion(mtx_data_bkgd);
-        //        Hist_Converge->SetBinContent(2*(i+1)+1,1.-bkgd_count/data_count);
-        //    }
-        //    else
-        //    {
-        //        break;
-        //    }
-        //}
+        //data_cr_count = 1.;
+        MatrixXcd mtx_data_rescale = mtx_data/data_cr_count;
+        MatrixXcd mtx_dark_rescale = mtx_dark/data_cr_count;
+        MatrixXcd mtx_init_rescale = mtx_data_bkgd/data_cr_count;
         for (int binx=1; binx<=Hist_Optimization->GetNbinsX(); binx++)
         {
             double alpha_temp = pow(10.,Hist_Optimization->GetBinCenter(binx));
@@ -2368,7 +2373,9 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Conve
             {
                 alpha_temp = double(binx);
             }
-            mtx_temp = LowRankOptimizationMethod(mtx_data_bkgd, 1, entry_size, 1.0, true, 0, alpha_temp);
+            //mtx_temp = LowRankOptimizationMethod(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha_temp);
+            mtx_temp = NuclearNormMinimization(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha_temp);
+            mtx_temp = mtx_temp*data_cr_count;
             bkgd_count = CountGammaRegion(mtx_temp);
             Hist_Optimization->SetBinContent(binx,abs(1.-bkgd_count/data_count));
             double model_chi2 = Chi2CosmicRayRegion(mtx_data, mtx_temp);
@@ -2396,8 +2403,9 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Conve
             }
         }
         //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, 1.0, true, 0);
-        mtx_temp = LowRankOptimizationMethod(mtx_data_bkgd, 1, entry_size, 1.0, true, 0, alpha);
-        //mtx_temp = NuclearNormMinimization(mtx_data_bkgd, 1, entry_size, 1.0, true, 0, alpha);
+        //mtx_temp = LowRankOptimizationMethod(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha);
+        mtx_temp = NuclearNormMinimization(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha);
+        mtx_temp = mtx_temp*data_cr_count;
         if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
         {
             mtx_data_bkgd = mtx_temp;
@@ -3037,8 +3045,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Rank4_MSCLW_Diff.push_back(TH2D("Hist_Rank4_MSCLW_Diff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_Trunc_MSCLW_Diff.push_back(TH2D("Hist_Trunc_MSCLW_Diff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
 
-        double optimiz_lower = -6.;
-        double optimiz_upper = 6.;
+        //double optimiz_lower = -6.;
+        //double optimiz_upper = 6.;
+        double optimiz_lower = 0.;
+        double optimiz_upper = 10.;
         Hist_Bkgd_Optimization.push_back(TH1D("Hist_Bkgd_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper));
         Hist_Bkgd_Chi2.push_back(TH1D("Hist_Bkgd_Chi2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper));
         Hist_Bkgd_Converge_Blind.push_back(TH1D("Hist_Bkgd_Converge_Blind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
@@ -3791,6 +3801,12 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                         }
                     }
                 }
+
+                double data_cr_count = CountCosmicRayRegion(mtx_data);
+                MatrixXcd mtx_data_rescale = mtx_data/data_cr_count;
+                MatrixXcd mtx_dark_rescale = mtx_dark/data_cr_count;
+                mtx_coeff_data = NuclearNormMinimization(mtx_dark_rescale, mtx_data_rescale, mtx_dark_rescale, 1, mtx_dark.rows(), 1.0, false, 0, 0.);
+
                 fill2DHistogramAbs(&Hist_Coeff_Data.at(e),mtx_coeff_data);
                 fill2DHistogramAbs(&Hist_Coeff_Bkgd.at(e),mtx_coeff_bkgd);
                 //int print_size = mtx_data.rows();
