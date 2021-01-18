@@ -11,6 +11,12 @@ from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
 from astropy.time import Time
 #from scipy import special
 
+import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+
 ROOT.gStyle.SetOptStat(0)
 ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
@@ -23,26 +29,28 @@ N_bins_for_deconv = 16
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
+Zenith_mean_data = []
+NSB_mean_data = []
+Accuracy_source = []
 
 folder_path = 'output_test'
 method_tag = 'tight_mdm_default'
+#method_tag = 'tight_mdm_rank3'
+#method_tag = 'tight_mdm_rank5'
 #method_tag = 'tight_mdm_tikhonov'
 #method_tag = 'tight_mdm_cutoff'
 #method_tag = 'tight_mdm_cutoff_eigen'
-#method_tag = 'loose_mdm_default'
-#method_tag = 'loose_mdm_cutoff'
-#method_tag = 'loose_mdm_tikhonov'
 
-#lowrank_tag = '_'
-lowrank_tag = '_lowrank'
+lowrank_tag = '_svd'
+#lowrank_tag = '_eigen'
 method_tag += lowrank_tag
 
 ONOFF_tag = 'OFF'
 sample_list = []
+sample_list += ['H1426V6']
 sample_list += ['OJ287V6']
 sample_list += ['1ES0229V6']
 sample_list += ['1ES0229V5']
-sample_list += ['H1426V6']
 sample_list += ['PKS1424V6']
 sample_list += ['3C264V6']
 sample_list += ['1ES1011V6']
@@ -50,6 +58,11 @@ sample_list += ['Segue1V6']
 sample_list += ['Segue1V5']
 #sample_list += ['BLLacV6']
 #sample_list += ['BLLacV5']
+sample_list += ['CrabV4']
+sample_list += ['CrabV5']
+sample_list += ['CrabV6']
+#sample_list += ['M82V4']
+#sample_list += ['M82V5']
 
 #ONOFF_tag = 'ON'
 #sample_list = []
@@ -126,17 +139,18 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
                 min_heigh = Hists[h].GetMinimum()
 
     #gap = 0.1*(max_heigh-min_heigh)
-    #if not y_max==0. and not y_min==0.:
-    #    Hists[0].SetMaximum(y_max)
-    #    Hists[0].SetMinimum(y_min)
     #    Hists[0].Draw("E")
     #else:
     #    if not logy:
     #        Hists[max_hist].SetMaximum(max_heigh+gap)
     #        Hists[max_hist].SetMinimum(min_heigh-gap)
     #    Hists[max_hist].Draw("E")
-    #Hists[0].SetMaximum(1e-1)
-    #Hists[0].SetMinimum(5e-3)
+    if not y_max==0. and not y_min==0.:
+        Hists[0].SetMaximum(y_max)
+        Hists[0].SetMinimum(y_min)
+    #if not logy:
+    #    Hists[0].SetMaximum(1e-1)
+    #    #Hists[0].SetMinimum(5e-3)
     Hists[0].Draw("E")
 
     for h in range(0,len(Hists)):
@@ -191,15 +205,23 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
 
 def GetHistogramsFromFile(FilePath,which_source):
     global total_exposure_hours
+    global Zenith_mean_data
+    global NSB_mean_data
     InputFile = ROOT.TFile(FilePath)
     InfoTree = InputFile.Get("InfoTree")
+    NewInfoTree = InputFile.Get("NewInfoTree")
     InfoTree.GetEntry(0)
+    NewInfoTree.GetEntry(0)
     exposure_hours = InfoTree.exposure_hours
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
     energy_index = energy_bin.index(ErecS_lower_cut)
     if energy_index==0: 
         total_exposure_hours += exposure_hours
+    Zenith_mean = NewInfoTree.Zenith_mean_data
+    Zenith_mean_data += [Zenith_mean]
+    NSB_mean = NewInfoTree.NSB_mean_data
+    NSB_mean_data += [NSB_mean]
     Hist_Bkgd_Optimization[which_source+1].Reset()
     HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Bkgd_Optimization[0].Add(InputFile.Get(HistName),1./float(len(sample_list)))
@@ -213,18 +235,23 @@ def GetHistogramsFromFile(FilePath,which_source):
     Hist_VVV_Eigenvalues[0].Add(InputFile.Get(HistName),1./float(len(sample_list)))
     Hist_VVV_Eigenvalues[which_source+1].Add(InputFile.Get(HistName))
 
+optimiz_lower = -10.
+optimiz_upper = 0.
 Hist_Bkgd_Optimization = []
 for e in range(0,len(sample_list)+1):
-    Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,-6.,6.)]
+    Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper)]
 Hist_Bkgd_Chi2 = []
 for e in range(0,len(sample_list)+1):
-    Hist_Bkgd_Chi2 += [ROOT.TH1D("Hist_Bkgd_Chi2_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,-6.,6.)]
+    Hist_Bkgd_Chi2 += [ROOT.TH1D("Hist_Bkgd_Chi2_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper)]
 Hist_VVV_Eigenvalues = []
 for e in range(0,len(sample_list)+1):
     Hist_VVV_Eigenvalues += [ROOT.TH1D("Hist_VVV_Eigenvaluesi_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,0,N_bins_for_deconv*N_bins_for_deconv)]
 
 for e in range(0,len(energy_bin)-1):
     FilePath_List = []
+    Zenith_mean_data = []
+    NSB_mean_data = []
+    Accuracy_source = []
     for entry in range(0,len(Hist_Bkgd_Optimization)):
         Hist_Bkgd_Optimization[entry].Reset()
     for entry in range(0,len(Hist_Bkgd_Chi2)):
@@ -242,17 +269,44 @@ for e in range(0,len(energy_bin)-1):
             ErecS_upper_cut = energy_bin[e+1]
             GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source)
 
+    min_y = 1.0
+    min_bin = 0
+    for binx in range(1,Hist_Bkgd_Optimization[0].GetNbinsX()+1):
+        if Hist_Bkgd_Optimization[0].GetBinContent(binx)<min_y:
+            min_y = Hist_Bkgd_Optimization[0].GetBinContent(binx)
+            min_bin = binx
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        Accuracy_source += [Hist_Bkgd_Optimization[entry].GetBinContent(min_bin)]
+
+    fig, ax = plt.subplots()
+    colors = np.random.rand(len(Accuracy_source))
+    area = (30 * np.random.rand(len(Accuracy_source)))**2
+    plt.clf()
+    plt.scatter(Zenith_mean_data, Accuracy_source, color='b')
+    ax.axis('on')
+    ax.set_xlabel('Zenith')
+    ax.set_ylabel('abs(N_{#gamma}-N_{model})/N_{#gamma}')
+    plt.savefig("output_plots/Performance_Zenith_E%s%s.png"%(e,lowrank_tag))
+
+    plt.clf()
+    plt.scatter(NSB_mean_data, Accuracy_source, color='r')
+    ax.axis('on')
+    ax.set_xlabel('NSB')
+    ax.set_ylabel('abs(N_{#gamma}-N_{model})/N_{#gamma}')
+    plt.savefig("output_plots/Performance_NSB_E%s%s.png"%(e,lowrank_tag))
+
     Hists = []
     legends = []
     colors = []
     Hists += [Hist_Bkgd_Optimization[0]]
     legends += ['average']
     colors += [1]
+    #Hist_Bkgd_Optimization[0].GetXaxis().SetLabelOffset(999)
     for entry in range(1,len(Hist_Bkgd_Optimization)):
         Hists += [Hist_Bkgd_Optimization[entry]]
         legends += ['source %s'%(entry)]
         colors += [entry+1]
-    MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','OptimizationParameter_E%s'%(e),0,0,False,True)
+    MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','OptimizationParameter_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
 
     Hists = []
     legends = []
@@ -260,11 +314,12 @@ for e in range(0,len(energy_bin)-1):
     Hists += [Hist_Bkgd_Chi2[0]]
     legends += ['average']
     colors += [1]
+    #Hist_Bkgd_Chi2[0].GetXaxis().SetLabelOffset(999)
     for entry in range(1,len(Hist_Bkgd_Chi2)):
         Hists += [Hist_Bkgd_Chi2[entry]]
         legends += ['source %s'%(entry)]
         colors += [entry+1]
-    MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','#chi^{2} in CR','Chi2_E%s'%(e),0,0,False,True)
+    MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','#chi^{2} in CR','Chi2_E%s%s'%(e,lowrank_tag),1e-7,1e-4,False,True)
 
     Hists = []
     legends = []
@@ -278,31 +333,31 @@ for e in range(0,len(energy_bin)-1):
         Hists += [Hist_VVV_Eigenvalues[entry]]
         legends += ['source %s'%(entry)]
         colors += [entry+1]
-    MakeMultiplePlot(Hists,legends,colors,'entry','singular value','SingularValue_E%s'%(e),0,0,False,True)
+    MakeMultiplePlot(Hists,legends,colors,'entry','singular value','SingularValue_E%s%s'%(e,lowrank_tag),0,0,False,True)
 
-    Hists = []
-    legends = []
-    colors = []
-    Hist_Bkgd_Optimization[0].GetXaxis().SetLabelOffset(999)
-    Hists += [Hist_Bkgd_Optimization[0]]
-    legends += ['average']
-    colors += [1]
-    for entry in range(1,len(Hist_Bkgd_Optimization)):
-        Hists += [Hist_Bkgd_Optimization[entry]]
-        legends += ['source %s'%(entry)]
-        colors += [entry+1]
-    MakeMultiplePlot(Hists,legends,colors,'number of entries included','abs(N_{#gamma}-N_{model})/N_{#gamma}','OptimizationParameter_Entry_E%s'%(e),0,0,False,True)
+    #Hists = []
+    #legends = []
+    #colors = []
+    #Hist_Bkgd_Optimization[0].GetXaxis().SetLabelOffset(999)
+    #Hists += [Hist_Bkgd_Optimization[0]]
+    #legends += ['average']
+    #colors += [1]
+    #for entry in range(1,len(Hist_Bkgd_Optimization)):
+    #    Hists += [Hist_Bkgd_Optimization[entry]]
+    #    legends += ['source %s'%(entry)]
+    #    colors += [entry+1]
+    #MakeMultiplePlot(Hists,legends,colors,'number of entries included','abs(N_{#gamma}-N_{model})/N_{#gamma}','OptimizationParameter_Entry_E%s'%(e),0,0,False,False)
 
-    Hists = []
-    legends = []
-    colors = []
-    Hist_Bkgd_Chi2[0].GetXaxis().SetLabelOffset(999)
-    Hists += [Hist_Bkgd_Chi2[0]]
-    legends += ['average']
-    colors += [1]
-    for entry in range(1,len(Hist_Bkgd_Chi2)):
-        Hists += [Hist_Bkgd_Chi2[entry]]
-        legends += ['source %s'%(entry)]
-        colors += [entry+1]
-    MakeMultiplePlot(Hists,legends,colors,'number of entries included','#chi^{2} in CR','Chi2_Entry_E%s'%(e),0,0,False,True)
+    #Hists = []
+    #legends = []
+    #colors = []
+    #Hist_Bkgd_Chi2[0].GetXaxis().SetLabelOffset(999)
+    #Hists += [Hist_Bkgd_Chi2[0]]
+    #legends += ['average']
+    #colors += [1]
+    #for entry in range(1,len(Hist_Bkgd_Chi2)):
+    #    Hists += [Hist_Bkgd_Chi2[entry]]
+    #    legends += ['source %s'%(entry)]
+    #    colors += [entry+1]
+    #MakeMultiplePlot(Hists,legends,colors,'number of entries included','#chi^{2} in CR','Chi2_Entry_E%s'%(e),0,0,False,False)
 

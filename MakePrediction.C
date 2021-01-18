@@ -104,6 +104,10 @@ double MinChi2Unblind = 1e10;
 double svd_threshold = 1e-20; // size of singular value to be considered as nonzero.
 double svd_threshold_scale = 1.0;
 
+vector<double> data_gamma_count;
+vector<double> dark_gamma_count;
+vector<double> bkgd_gamma_count;
+
 void ResetMatrixDimension()
 {
     mtx_regularization = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
@@ -1052,7 +1056,7 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_init_input, MatrixXcd mtx_data_i
                 }
                 else if (RegularizationType==4)
                 {
-                    mtx_A(idx_u,idx_v) = alpha*1e-6;
+                    mtx_A(idx_u,idx_v) = alpha*1e5;
                 }
             }
         }
@@ -1070,7 +1074,7 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_init_input, MatrixXcd mtx_data_i
         MatrixXcd mtx_S_inv = MatrixXcd::Zero(mtx_A.cols(),mtx_A.rows());
         for (int entry=0;entry<bdc_svd.singularValues().size();entry++)
         {
-            if (abs(bdc_svd.singularValues()(entry))<1e-10) continue;
+            if (abs(bdc_svd.singularValues()(entry))==0.) continue;
             if (entry>int(alpha-1.)) continue;
             mtx_S(entry,entry) = bdc_svd.singularValues()(entry);
             mtx_S_inv(entry,entry) = 1./(bdc_svd.singularValues()(entry));
@@ -1424,7 +1428,7 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_init_input, MatrixXcd mtx_data
                     int nth_entry = idx_n+1;
                     std::complex<double> eta_n = mtx_H_dark(mtx_init_input.cols()-nth_entry,mtx_init_input.cols()-nth_entry);
                     if (abs(eta_n)<eta_threshold) continue;
-                    if (LowRankApproximation) 
+                    if (RegularizationType!=5) 
                     {
                         if (kth_entry>entry_size && nth_entry>entry_size) continue;
                     }
@@ -1469,7 +1473,7 @@ MatrixXcd LowRankOptimizationMethod(MatrixXcd mtx_init_input, MatrixXcd mtx_data
                 }
                 else if (RegularizationType==4)
                 {
-                    mtx_F_Ruo(idx_u,idx_v) = alpha;
+                    mtx_F_Ruo(idx_u,idx_v) = alpha*1e5;
                 }
             }
         }
@@ -2362,7 +2366,7 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Conve
         double data_cr_count = CountCosmicRayRegion(mtx_data);
         double bkgd_count = CountGammaRegion(mtx_data_bkgd);
         Hist_Converge->SetBinContent(1,1.-bkgd_count/data_count);
-        //data_cr_count = 1.;
+        data_cr_count = 1.;
         MatrixXcd mtx_data_rescale = mtx_data/data_cr_count;
         MatrixXcd mtx_dark_rescale = mtx_dark/data_cr_count;
         MatrixXcd mtx_init_rescale = mtx_data_bkgd/data_cr_count;
@@ -2373,8 +2377,14 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Conve
             {
                 alpha_temp = double(binx);
             }
-            //mtx_temp = LowRankOptimizationMethod(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha_temp);
-            mtx_temp = NuclearNormMinimization(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha_temp);
+            if (EigenDecomposition)
+            {
+                mtx_temp = LowRankOptimizationMethod(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha_temp);
+            }
+            else
+            {
+                mtx_temp = NuclearNormMinimization(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha_temp);
+            }
             mtx_temp = mtx_temp*data_cr_count;
             bkgd_count = CountGammaRegion(mtx_temp);
             Hist_Optimization->SetBinContent(binx,abs(1.-bkgd_count/data_count));
@@ -2403,8 +2413,14 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Conve
             }
         }
         //mtx_temp = SpectralDecompositionMethod_v3(mtx_data_bkgd, 1, entry_size, 1.0, true, 0);
-        //mtx_temp = LowRankOptimizationMethod(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha);
-        mtx_temp = NuclearNormMinimization(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha);
+        if (EigenDecomposition)
+        {
+            mtx_temp = LowRankOptimizationMethod(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha);
+        }
+        else
+        {
+            mtx_temp = NuclearNormMinimization(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha);
+        }
         mtx_temp = mtx_temp*data_cr_count;
         if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
         {
@@ -2722,6 +2738,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
     TH1D Hist_ErecS_fine = TH1D("Hist_ErecS_fine","",N_energy_fine_bins,energy_fine_bins);
+    TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,0,10,90,0,90);
+    TH2D Hist_Dark_ElevNSB = TH2D("Hist_Dark_ElevNSB","",20,0,10,90,0,90);
     TH1D Hist_EffArea = TH1D("Hist_EffArea","",N_energy_fine_bins,energy_fine_bins);
 
     SizeSecondMax_Cut = 600.;
@@ -2740,7 +2758,13 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<double>* Data_runlist_elev_ptr = new std::vector<double>(10);
     vector<double>* Data_runlist_exposure_ptr = new std::vector<double>(10);
     vector<string>* roi_name_ptr = new std::vector<string>(10);
-    TFile RegularizationFile("../Regualrization.root");
+    TString regularization_name;
+    regularization_name  = "../Regularization_svd.root";
+    if (EigenDecomposition)
+    {
+        regularization_name  = "../Regularization_eigen.root";
+    }
+    TFile RegularizationFile(regularization_name);
     TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+"_"+ONOFF_tag+".root");
     TTree* InfoTree_ptr = nullptr;
     InfoTree_ptr = (TTree*) InputDataFile.Get("InfoTree");
@@ -3047,8 +3071,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
         //double optimiz_lower = -6.;
         //double optimiz_upper = 6.;
-        double optimiz_lower = 0.;
-        double optimiz_upper = 10.;
+        double optimiz_lower = -10.;
+        double optimiz_upper = 0.;
         Hist_Bkgd_Optimization.push_back(TH1D("Hist_Bkgd_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper));
         Hist_Bkgd_Chi2.push_back(TH1D("Hist_Bkgd_Chi2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper));
         Hist_Bkgd_Converge_Blind.push_back(TH1D("Hist_Bkgd_Converge_Blind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
@@ -3715,6 +3739,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 std::cout << "=====================================================================" << std::endl;
 
                 MatrixXcd mtx_data_truncate = GetTruncatedMatrix(mtx_data, NumberOfEigenvectors_Stable);
+                double dark_full_count = CountGammaRegion(mtx_dark);
                 double data_full_count = CountGammaRegion(mtx_data);
                 double data_redu_count = CountGammaRegion(mtx_data_truncate);
                 double epsilon_redu  = data_redu_count/data_full_count -1.;
@@ -3728,6 +3753,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 double bkgd_redu_count = CountGammaRegion(mtx_bkgd_truncate);
                 double epsilon_bkgd_redu  = bkgd_redu_count/data_full_count -1.;
                 std::cout << "N^{ON} = " << data_full_count << ", N^{Chi2}_{3} = " << bkgd_redu_count << ", epsilon^{Chi2}_{3} = " << epsilon_bkgd_redu << std::endl;
+                data_gamma_count.push_back(data_full_count);
+                dark_gamma_count.push_back(dark_full_count);
+                bkgd_gamma_count.push_back(bkgd_redu_count);
                 MatrixXcd mtx_vvv_bkgd = PerturbationMethod(mtx_data,mtx_dark,true);
                 MatrixXcd mtx_vvv_truncate = GetTruncatedMatrix(mtx_vvv_bkgd, NumberOfEigenvectors_Stable);
                 double vvv_redu_count = CountGammaRegion(mtx_vvv_truncate);
@@ -3739,22 +3767,24 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 double epsilon_vvv_noswap_redu  = vvv_noswap_redu_count/data_full_count -1.;
                 std::cout << "N^{ON} = " << data_full_count << ", N^{Pert}_{3} = " << vvv_noswap_redu_count << ", epsilon^{Pert}_{3} = " << epsilon_vvv_noswap_redu << std::endl;
 
-                MatrixXcd mtx_data_bkgd_normalized = 1./exposure_hours*mtx_data_bkgd;
-                eigensolver_bkgd = ComplexEigenSolver<MatrixXcd>(mtx_data_bkgd_normalized);
-                eigensolver_bkgd_transpose = ComplexEigenSolver<MatrixXcd>(mtx_data_bkgd_normalized.transpose());
+                double data_cr_count = CountCosmicRayRegion(mtx_data);
+                MatrixXcd mtx_data_rescale = mtx_data/data_cr_count;
+                MatrixXcd mtx_dark_rescale = mtx_dark/data_cr_count;
+                MatrixXcd mtx_bkgd_rescale = mtx_data_bkgd/data_cr_count;
+
+                eigensolver_bkgd = ComplexEigenSolver<MatrixXcd>(mtx_bkgd_rescale);
+                eigensolver_bkgd_transpose = ComplexEigenSolver<MatrixXcd>(mtx_bkgd_rescale.transpose());
                 MatrixXcd mtx_r_bkgd = eigensolver_bkgd.eigenvectors();
                 MatrixXcd mtx_l_bkgd = eigensolver_bkgd_transpose.eigenvectors();
                 MatrixXcd mtx_H_bkgd = mtx_r_bkgd.transpose()*mtx_l_bkgd;
-                MatrixXcd mtx_dark_normalized = 1./exposure_hours*mtx_dark;
-                eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark_normalized);
-                eigensolver_dark_transpose = ComplexEigenSolver<MatrixXcd>(mtx_dark_normalized.transpose());
+                eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark_rescale);
+                eigensolver_dark_transpose = ComplexEigenSolver<MatrixXcd>(mtx_dark_rescale.transpose());
                 MatrixXcd mtx_r_dark = eigensolver_dark.eigenvectors();
                 MatrixXcd mtx_l_dark = eigensolver_dark_transpose.eigenvectors();
                 mtx_l_dark = SortEigenvectors(eigensolver_dark.eigenvalues(), mtx_r_dark, mtx_l_dark);
                 MatrixXcd mtx_H_dark = mtx_r_dark.transpose()*mtx_l_dark;
-                MatrixXcd mtx_data_normalized = 1./exposure_hours*mtx_data;
-                eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data_normalized);
-                eigensolver_data_transpose = ComplexEigenSolver<MatrixXcd>(mtx_data_normalized.transpose());
+                eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data_rescale);
+                eigensolver_data_transpose = ComplexEigenSolver<MatrixXcd>(mtx_data_rescale.transpose());
                 MatrixXcd mtx_r_data = eigensolver_data.eigenvectors();
                 MatrixXcd mtx_l_data = eigensolver_data_transpose.eigenvectors();
                 mtx_l_data = SortEigenvectors(eigensolver_data.eigenvalues(), mtx_r_data, mtx_l_data);
@@ -3778,9 +3808,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 }
 
                 MatrixXcd mtx_coeff_data = MatrixXcd::Zero(mtx_dark.rows(),mtx_dark.cols());
-                MatrixXcd mtx_proj_data = mtx_l_dark.transpose()*(mtx_data_normalized-mtx_dark_normalized)*mtx_r_dark;
+                MatrixXcd mtx_proj_data = mtx_l_dark.transpose()*(mtx_data_rescale-mtx_dark_rescale)*mtx_r_dark;
                 MatrixXcd mtx_coeff_bkgd = MatrixXcd::Zero(mtx_dark.rows(),mtx_dark.cols());
-                MatrixXcd mtx_proj_bkgd = mtx_l_dark.transpose()*(mtx_data_bkgd_normalized-mtx_dark_normalized)*mtx_r_dark;
+                MatrixXcd mtx_proj_bkgd = mtx_l_dark.transpose()*(mtx_bkgd_rescale-mtx_dark_rescale)*mtx_r_dark;
                 for (int col=0;col<mtx_data.cols();col++)
                 {
                     for (int row=0;row<mtx_data.rows();row++)
@@ -3802,10 +3832,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     }
                 }
 
-                double data_cr_count = CountCosmicRayRegion(mtx_data);
-                MatrixXcd mtx_data_rescale = mtx_data/data_cr_count;
-                MatrixXcd mtx_dark_rescale = mtx_dark/data_cr_count;
-                mtx_coeff_data = NuclearNormMinimization(mtx_dark_rescale, mtx_data_rescale, mtx_dark_rescale, 1, mtx_dark.rows(), 1.0, false, 0, 0.);
+                if (!EigenDecomposition)
+                {
+                    mtx_coeff_data = NuclearNormMinimization(mtx_dark_rescale, mtx_data_rescale, mtx_dark_rescale, 1, mtx_dark.rows(), 1.0, false, 0, 0.);
+                    mtx_coeff_bkgd = NuclearNormMinimization(mtx_dark_rescale, mtx_bkgd_rescale, mtx_dark_rescale, 1, mtx_dark.rows(), 1.0, false, 0, 0.);
+                }
 
                 fill2DHistogramAbs(&Hist_Coeff_Data.at(e),mtx_coeff_data);
                 fill2DHistogramAbs(&Hist_Coeff_Bkgd.at(e),mtx_coeff_bkgd);
@@ -3932,13 +3963,29 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     TTree* FaintStarTree = nullptr;
     FaintStarTree = (TTree*) InputFile.Get("FaintStarTree");
     TString hist_name;
+    hist_name  = "Hist_Data_ElevNSB";
+    Hist_Data_ElevNSB.Add( (TH2D*)InputFile.Get(hist_name) );
+    hist_name  = "Hist_Dark_ElevNSB";
+    Hist_Dark_ElevNSB.Add( (TH2D*)InputFile.Get(hist_name) );
     hist_name  = "Hist_EffArea";
-    Hist_EffArea.Add( (TH2D*)InputFile.Get(hist_name) );
+    Hist_EffArea.Add( (TH1D*)InputFile.Get(hist_name) );
+    double NSB_mean_data = Hist_Data_ElevNSB.GetMean(1);
+    double NSB_RMS_data = Hist_Data_ElevNSB.GetRMS(1);
+    double NSB_mean_dark = Hist_Dark_ElevNSB.GetMean(1);
+    double NSB_RMS_dark = Hist_Dark_ElevNSB.GetRMS(1);
+    double Zenith_mean_data = Hist_Data_ElevNSB.GetMean(2);
+    double Zenith_RMS_data = Hist_Data_ElevNSB.GetRMS(2);
+    double Zenith_mean_dark = Hist_Dark_ElevNSB.GetMean(2);
+    double Zenith_RMS_dark = Hist_Dark_ElevNSB.GetRMS(2);
 
     char lowrank_tag[50] = "";
-    if (LowRankApproximation)
+    if (EigenDecomposition)
     {
-        sprintf(lowrank_tag, "lowrank");
+        sprintf(lowrank_tag, "eigen");
+    }
+    else
+    {
+        sprintf(lowrank_tag, "svd");
     }
     TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_"+TString(lowrank_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(signal_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
@@ -3953,6 +4000,17 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     NewInfoTree.Branch("MJD_Start",&MJD_Start,"MJD_Start/I");
     NewInfoTree.Branch("MJD_End",&MJD_End,"MJD_End/I");
     NewInfoTree.Branch("exposure_hours",&exposure_hours,"exposure_hours/D");
+    NewInfoTree.Branch("NSB_mean_data",&NSB_mean_data,"NSB_mean_data/D");
+    NewInfoTree.Branch("NSB_RMS_data",&NSB_RMS_data,"NSB_RMS_data/D");
+    NewInfoTree.Branch("NSB_mean_dark",&NSB_mean_dark,"NSB_mean_dark/D");
+    NewInfoTree.Branch("NSB_RMS_dark",&NSB_RMS_dark,"NSB_RMS_dark/D");
+    NewInfoTree.Branch("Zenith_mean_data",&Zenith_mean_data,"Zenith_mean_data/D");
+    NewInfoTree.Branch("Zenith_RMS_data",&Zenith_RMS_data,"Zenith_RMS_data/D");
+    NewInfoTree.Branch("Zenith_mean_dark",&Zenith_mean_dark,"Zenith_mean_dark/D");
+    NewInfoTree.Branch("Zenith_RMS_dark",&Zenith_RMS_dark,"Zenith_RMS_dark/D");
+    NewInfoTree.Branch("data_gamma_count","std::vector<double>",&data_gamma_count);
+    NewInfoTree.Branch("dark_gamma_count","std::vector<double>",&dark_gamma_count);
+    NewInfoTree.Branch("bkgd_gamma_count","std::vector<double>",&bkgd_gamma_count);
     NewInfoTree.Fill();
     NewInfoTree.Write();
 

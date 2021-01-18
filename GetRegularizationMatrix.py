@@ -25,6 +25,10 @@ folder_path = 'output_test'
 #method_tag = 'loose_mdm_default'
 method_tag = 'tight_mdm_default'
 
+#lowrank_tag = '_svd'
+lowrank_tag = '_eigen'
+method_tag += lowrank_tag
+
 ONOFF_tag = 'OFF'
 sample_list = []
 sample_list += ['OJ287V6']
@@ -109,7 +113,7 @@ for source in range(0,len(sample_list)):
             ErecS_upper_cut = energy_bin[e+1]
             GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
 
-OutputFilePath = "%s/Regualrization.root"%(folder_path)
+OutputFilePath = "%s/Regularization%s.root"%(folder_path,lowrank_tag)
 OutputFile = ROOT.TFile(OutputFilePath,"recreate")
 print "total_exposure_hours = %s"%(total_exposure_hours)
 for e in range(0,len(energy_bin)-1):
@@ -141,7 +145,10 @@ for e in range(0,len(energy_bin)-1):
     pad1.SetLogz()
     #Hist2D_Coeff_Data_Sum.SetMaximum(1e-1);
     #Hist2D_Coeff_Data_Sum.SetMinimum(1.0);
-    Hist2D_Regularization_rev[e].GetYaxis().SetTitle('n')
-    Hist2D_Regularization_rev[e].GetXaxis().SetTitle('k')
-    Hist2D_Regularization_rev[e].Draw("COL4Z")
-    canvas.SaveAs('output_plots/Coeff_t2_data_%s.png'%(e))
+    Hist2D_Regularization[e].GetYaxis().SetTitle('n')
+    Hist2D_Regularization[e].GetXaxis().SetTitle('k')
+    Hist2D_Regularization[e].Draw("COL4Z")
+    #Hist2D_Regularization_rev[e].GetYaxis().SetTitle('n')
+    #Hist2D_Regularization_rev[e].GetXaxis().SetTitle('k')
+    #Hist2D_Regularization_rev[e].Draw("COL4Z")
+    canvas.SaveAs('output_plots/Coeff_t2_data_%s_%s.png'%(e,method_tag))

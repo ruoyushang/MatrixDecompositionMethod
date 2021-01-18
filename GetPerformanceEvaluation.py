@@ -27,6 +27,7 @@ total_exposure_hours = 0.
 folder_path = 'output_test'
 method_tag = []
 legends = []
+colors = []
 #method_tag += ['loose_mdm_default']
 #legends += ['Gen. Tik.']
 #method_tag += ['loose_mdm_rank3']
@@ -37,21 +38,24 @@ legends = []
 #legends += ['Cutoff signular']
 #method_tag += ['loose_mdm_tikhonov']
 #legends += ['Tikhonov']
-#method_tag += ['tight_mdm_default']
-#legends += ['Gen. Tik.']
-method_tag += ['tight_mdm_cutoff']
-legends += ['Cutoff signular']
+method_tag += ['tight_mdm_default']
+legends += ['Gen. Tik.']
+colors += [1]
+#method_tag += ['tight_mdm_cutoff']
+#legends += ['Cutoff signular']
 #method_tag += ['tight_mdm_tikhonov']
 #legends += ['Tikhonov']
 #method_tag += ['tight_mdm_cutoff_eigen']
 #legends += ['Cutoff Eigen']
 method_tag += ['tight_mdm_rank3']
 legends += ['9-Par']
+colors += [4]
 method_tag += ['tight_mdm_rank5']
 legends += ['21-Par']
+colors += [2]
 
-#lowrank_tag = '_'
-lowrank_tag = '_lowrank'
+#lowrank_tag = '_svd'
+lowrank_tag = '_eigen'
 for method in range(0,len(method_tag)):
     method_tag[method] += lowrank_tag
 
@@ -66,8 +70,8 @@ sample_list += ['3C264V6']
 sample_list += ['1ES1011V6']
 sample_list += ['Segue1V6']
 sample_list += ['Segue1V5']
-#sample_list += ['BLLacV6']
-#sample_list += ['BLLacV5']
+sample_list += ['BLLacV6']
+sample_list += ['BLLacV5']
 
 #ONOFF_tag = 'ON'
 #sample_list = []
@@ -124,47 +128,36 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
     mean = []
     rms = []
     amp = []
-    for h in range(0,len(Hists)):
-        mean += [0]
-        rms += [0]
-        amp += [0]
-        if Hists[h]!=0:
-            Hists[h].GetXaxis().SetTitleOffset(0.8)
-            Hists[h].GetXaxis().SetTitleSize(0.06)
-            Hists[h].GetXaxis().SetLabelSize(0.06)
-            Hists[h].GetYaxis().SetLabelSize(0.06)
-            Hists[h].GetYaxis().SetTitleOffset(1.2)
-            Hists[h].GetYaxis().SetTitleSize(0.06)
-            Hists[h].GetXaxis().SetTitle(title_x)
-            Hists[h].GetYaxis().SetTitle(title_y)
-            if max_heigh < Hists[h].GetMaximum(): 
-                max_heigh = Hists[h].GetMaximum()
-                max_hist = h
-            if min_heigh > Hists[h].GetMinimum(): 
-                min_heigh = Hists[h].GetMinimum()
+    Hists[0][0].GetXaxis().SetTitleOffset(0.8)
+    Hists[0][0].GetXaxis().SetTitleSize(0.06)
+    Hists[0][0].GetXaxis().SetLabelSize(0.06)
+    Hists[0][0].GetYaxis().SetLabelSize(0.06)
+    Hists[0][0].GetYaxis().SetTitleOffset(1.2)
+    Hists[0][0].GetYaxis().SetTitleSize(0.06)
+    Hists[0][0].GetXaxis().SetTitle(title_x)
+    Hists[0][0].GetYaxis().SetTitle(title_y)
+    Hists[0][0].SetMaximum(y_max)
+    Hists[0][0].SetMinimum(y_min)
+    Hists[0][0].Draw("E")
 
-    Hists[0].SetMaximum(1e-1)
-    Hists[0].SetMinimum(5e-3)
-    Hists[0].Draw("E")
-
-    for h in range(0,len(Hists)):
-        #if colors[h]==1 or colors[h]==2: Hists[0].SetLineWidth(3)
-        #if Hists[h]!=0:
-        Hists[h].SetLineColor(colors[h])
-        Hists[h].SetLineWidth(2)
-        Hists[h].Draw("E same")
-    Hists[0].SetLineWidth(4)
-    Hists[0].Draw("E same")
-
-    if Hists[0].GetXaxis().GetLabelOffset()==999:
-        x1 = Hists[0].GetXaxis().GetXmin()
-        x2 = Hists[0].GetXaxis().GetXmax()
-        y1 = Hists[0].GetYaxis().GetXmin()
-        y2 = Hists[0].GetYaxis().GetXmax()
-        IncValues = ROOT.TF1( "IncValues", "x", 0, 256 )
-        raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
-        raLowerAxis.SetLabelSize(Hists[0].GetXaxis().GetLabelSize())
-        raLowerAxis.Draw()
+    for method in range(0,len(Hists)):
+        for source in range(0,len(Hists[method])):
+            print '%s'%(Hists[method][source].GetBinContent(1))
+            Hists[method][source].SetLineColor(colors[method])
+            if source!=0:
+                if colors[method]==1:
+                    Hists[method][source].SetLineColor(15)
+                elif colors[method]==2:
+                    Hists[method][source].SetLineColor(45)
+                elif colors[method]==4:
+                    Hists[method][source].SetLineColor(38)
+            if source==0:
+                Hists[method][source].SetLineWidth(4)
+            else:
+                Hists[method][source].SetLineWidth(2)
+            if source!=0:
+                continue
+            Hists[method][source].Draw("E same")
 
     pad3.cd()
     legend = ROOT.TLegend(0.2,0.1,0.9,0.9)
@@ -175,29 +168,16 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
     legend.SetFillStyle(0)
     legend.SetLineColor(0)
     legend.Clear()
-    for h in range(0,len(Hists)):
-        if Hists[h]!=0:
-            legend.AddEntry(Hists[h],'%s'%(legends[h]),"pl")
+    for method in range(0,len(Hists)):
+        legend.AddEntry(Hists[method][0],'%s'%(legends[method]),"pl")
     legend.Draw("SAME")
-
-    min_y = 1.0
-    min_bin = 0
-    for binx in range(1,Hists[0].GetNbinsX()+1):
-        if Hists[0].GetBinContent(binx)<min_y:
-            min_y = Hists[0].GetBinContent(binx)
-            min_bin = binx
-
-    #lumilab1 = ROOT.TLatex(0.15,0.80,'log10 #alpha = %.1f'%(Hists[0].GetBinCenter(min_bin)) )
-    #lumilab1.SetNDC()
-    #lumilab1.SetTextSize(0.15)
-    #lumilab1.Draw()
 
     if logx: 
         pad1.SetLogx()
 
     c_both.SaveAs('output_plots/%s.png'%(name))
 
-def GetHistogramsFromFile(FilePath,which_source):
+def GetHistogramsFromFile(FilePath,which_method,which_source):
     global total_exposure_hours
     InputFile = ROOT.TFile(FilePath)
     InfoTree = InputFile.Get("InfoTree")
@@ -209,17 +189,24 @@ def GetHistogramsFromFile(FilePath,which_source):
     if energy_index==0: 
         total_exposure_hours += exposure_hours
     HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_Bkgd_Optimization[which_source].Add(InputFile.Get(HistName),1./float(len(sample_list)))
+    Hist_Bkgd_Optimization[which_method][0].Add(InputFile.Get(HistName),1./float(len(sample_list)))
+    Hist_Bkgd_Optimization[which_method][which_source+1].Add(InputFile.Get(HistName))
 
+optimiz_lower = -10.
+optimiz_upper = 0.
 Hist_Bkgd_Optimization = []
 for e in range(0,len(method_tag)):
-    Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,-6.,6.)]
+    Hist_Bkgd_Optimization_ThisMethod = []
+    for s in range(0,len(sample_list)+1):
+        Hist_Bkgd_Optimization_ThisMethod += [ROOT.TH1D("Hist_Bkgd_Optimization_%s_%s"%(e,s),"",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper)]
+    Hist_Bkgd_Optimization += [Hist_Bkgd_Optimization_ThisMethod]
 
 for e in range(0,len(energy_bin)-1):
     FilePath_List = []
     for entry in range(0,len(method_tag)):
-        Hist_Bkgd_Optimization[entry].Reset()
+        Hist_Bkgd_Optimization[entry][0].Reset()
         for source in range(0,len(sample_list)):
+            Hist_Bkgd_Optimization[entry][source+1].Reset()
             source_name = sample_list[source]
             for elev in range(0,len(root_file_tags)):
                 FilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s%s"%(method_tag[entry],root_file_tags[elev])+".root"
@@ -228,19 +215,8 @@ for e in range(0,len(energy_bin)-1):
                 print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
                 ErecS_lower_cut = energy_bin[e]
                 ErecS_upper_cut = energy_bin[e+1]
-                GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],entry)
+                GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],entry,source)
 
-    Hists = []
-    colors = []
-    for entry in range(0,len(Hist_Bkgd_Optimization)):
-        Hists += [Hist_Bkgd_Optimization[entry]]
-        colors += [entry+1]
-    MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','PerformanceEvaluation_%s_E%s'%(lowrank_tag,e),0,0,False,True)
+    MakeMultiplePlot(Hist_Bkgd_Optimization,legends,colors,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','PerformanceEvaluation%s_E%s'%(lowrank_tag,e),0,0.1,False,False)
+    #MakeMultiplePlot(Hist_Bkgd_Optimization,legends,colors,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','PerformanceEvaluation%s_E%s'%(lowrank_tag,e),1e-3,0.1,False,True)
 
-    Hists = []
-    colors = []
-    Hist_Bkgd_Optimization[0].GetXaxis().SetLabelOffset(999)
-    for entry in range(0,len(Hist_Bkgd_Optimization)):
-        Hists += [Hist_Bkgd_Optimization[entry]]
-        colors += [entry+1]
-    MakeMultiplePlot(Hists,legends,colors,'number of entries included','abs(N_{#gamma}-N_{model})/N_{#gamma}','PerformanceEvaluation_enntry_%s_E%s'%(lowrank_tag,e),0,0,False,True)

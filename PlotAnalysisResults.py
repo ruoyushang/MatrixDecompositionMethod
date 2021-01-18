@@ -22,6 +22,15 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 #method_tag = 'loose_mdm_cutoff'
 #method_tag = 'loose_mdm_tikhonov'
 method_tag = 'tight_mdm_default'
+#method_tag = 'tight_mdm_rank3'
+#method_tag = 'tight_mdm_rank5'
+#method_tag = 'tight_mdm_cutoff'
+#method_tag = 'tight_mdm_tikhonov'
+#method_tag = 'tight_mdm_cutoff_eigen'
+
+lowrank_tag = '_svd'
+#lowrank_tag = '_eigen'
+method_tag += lowrank_tag
 
 signal_ratio = '0'
 if len(sys.argv)==3:
@@ -32,7 +41,7 @@ if len(sys.argv)==3:
 #signal_tag = '_S20'
 signal_tag = '_S%s'%(signal_ratio)
 
-energy_bin_cut_low = 3
+energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
 #elev_bins = [25,45]
@@ -130,6 +139,11 @@ if sys.argv[1]=='SNRG150p3':
     sample_list = []
     sample_list += ['SNRG150p3_V6']
     
+if sys.argv[1]=='CasA':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['CasAV6']
+    
 if sys.argv[1]=='M82':
     ONOFF_tag = 'OFF'
     sample_list = []
@@ -137,14 +151,14 @@ if sys.argv[1]=='M82':
     sample_list += ['M82V4']
     
 if sys.argv[1]=='Crab':
-    ONOFF_tag = 'ON'
+    ONOFF_tag = 'OFF'
     sample_list = []
     sample_list += ['CrabV6']
     sample_list += ['CrabV5']
     sample_list += ['CrabV4']
     
 if sys.argv[1]=='Mrk421':
-    ONOFF_tag = 'ON'
+    ONOFF_tag = 'OFF'
     sample_list = []
     sample_list += ['Mrk421V5']
     
@@ -340,6 +354,8 @@ ErecS_upper_cut = 0
 n_good_matches = 0
 exposure_hours = 0.
 exposure_hours_ref = 0.
+NSB_mean_data = 0.
+Zenith_mean_data = 0.
 Skymap_size = 3.
 source_ra = 0.
 source_dec = 0.
@@ -531,6 +547,8 @@ def GetSourceInfo(file_list):
     global n_good_matches
     global exposure_hours
     global exposure_hours_ref
+    global NSB_mean_data
+    global Zenith_mean_data
     global Skymap_size
     global source_ra
     global source_dec
@@ -547,6 +565,8 @@ def GetSourceInfo(file_list):
     n_good_matches = 0
     exposure_hours = 0.
     exposure_hours_ref = 0.
+    NSB_mean_data = 0.
+    Zenith_mean_data = 0.
     for path in range(0,len(file_list)):
         print 'Read file: %s'%(file_list[path])
         if not os.path.isfile(file_list[path]):continue
@@ -570,6 +590,8 @@ def GetSourceInfo(file_list):
         NewInfoTree.GetEntry(0)
         MJD_Start = min(NewInfoTree.MJD_Start,MJD_Start)
         MJD_End = max(NewInfoTree.MJD_End,MJD_End)
+        NSB_mean_data = NewInfoTree.NSB_mean_data
+        Zenith_mean_data = NewInfoTree.Zenith_mean_data
         #if 'Theta20' in file_list[path] and 'Up' in file_list[path]:
         #if 'Y0' in file_list[path]:
         if 'Theta20' in file_list[path]:
@@ -741,6 +763,7 @@ def GetShowerHistogramsFromFile(FilePath):
 
     if Hist1D_Data_Rank0_LeftVector.Integral()==0:
         Hist_VVV_Eigenvalues.Reset()
+        Hist_Bkgd_Chi2.Reset()
         Hist_Bkgd_Optimization.Reset()
         Hist_Bkgd_Converge_Blind.Reset()
         Hist_Bkgd_Converge_Unblind.Reset()
@@ -770,6 +793,8 @@ def GetShowerHistogramsFromFile(FilePath):
         Hist1D_Dark_Rank3_RightVector.Reset()
         HistName = "Hist_VVV_Eigenvalues_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_VVV_Eigenvalues.Add(InputFile.Get(HistName))
+        HistName = "Hist_Bkgd_Chi2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_Bkgd_Chi2.Add(InputFile.Get(HistName))
         HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_Bkgd_Optimization.Add(InputFile.Get(HistName))
         HistName = "Hist_Bkgd_Converge_Blind_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -827,8 +852,14 @@ def GetShowerHistogramsFromFile(FilePath):
 
         Hist_VVV_Eigenvalues.SetMinimum(1e-2)
         MakeOneHistPlot(Hist_VVV_Eigenvalues,'entry','eigenvalue','VVV_Eigenvalue_%s_%s'%(sample_list[0],ErecS_lower_cut_int),True)
-        MakeOneHistPlot(Hist_Bkgd_Optimization,'log10 #alpha','closure','Bkgd_Optimization_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
-        MakeOneHistPlot(Hist_Bkgd_Converge_Blind,'iterations','closure','Bkgd_Converge_Blind_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
+        MakeOneHistPlot(Hist_Bkgd_Chi2,'log10 #alpha','#chi^{2} in CR','Bkgd_Chi2_%s_%s'%(sample_list[0],ErecS_lower_cut_int),True)
+        MakeOneHistPlot(Hist_Bkgd_Optimization,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','Bkgd_Optimization_%s_%s'%(sample_list[0],ErecS_lower_cut_int),True)
+
+        Hist_Bkgd_Chi2.GetXaxis().SetLabelOffset(999)
+        MakeOneHistPlot(Hist_Bkgd_Chi2,'number of entries included','#chi^{2} in CR','Bkgd_Chi2_entry_%s_%s'%(sample_list[0],ErecS_lower_cut_int),True)
+        Hist_Bkgd_Optimization.GetXaxis().SetLabelOffset(999)
+        MakeOneHistPlot(Hist_Bkgd_Optimization,'number of entries included','abs(N_{#gamma}-N_{model})/N_{#gamma}','Bkgd_Optimization_entry_%s_%s'%(sample_list[0],ErecS_lower_cut_int),True)
+        #MakeOneHistPlot(Hist_Bkgd_Converge_Blind,'iterations','closure','Bkgd_Converge_Blind_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
 
         Hists = []
         legends = []
@@ -2944,8 +2975,10 @@ def StackSkymapHistograms():
 
     Hist_OnBkgd_Skymap_Syst_RBM.Add(Hist_OnBkgd_Skymap_Syst)
     Hist_OnBkgd_Skymap_Galactic_Syst_RBM.Add(Hist_OnBkgd_Skymap_Galactic_Syst)
-    Hist_OnBkgd_Skymap_Sum.Add(Hist_OnBkgd_Skymap_Syst,1.4)
-    Hist_OnBkgd_Skymap_Galactic_Sum.Add(Hist_OnBkgd_Skymap_Galactic_Syst,1.4)
+    RBM_CR_Scale = 0.
+    #RBM_CR_Scale = 1.4
+    Hist_OnBkgd_Skymap_Sum.Add(Hist_OnBkgd_Skymap_Syst,RBM_CR_Scale)
+    Hist_OnBkgd_Skymap_Galactic_Sum.Add(Hist_OnBkgd_Skymap_Galactic_Syst,RBM_CR_Scale)
 
     Hist_OnData_Skymap_ProjX_Sum.Add(Hist_OnData_Skymap.ProjectionX())
     Hist_OnBkgd_Skymap_ProjX_Sum.Add(Hist_OnBkgd_Skymap.ProjectionX())
@@ -3624,16 +3657,20 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/OnDark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'t_{ij} coefficents' )
+    lumilab1 = ROOT.TLatex(0.15,0.70,'t_{ij} coefficents')
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
+    lumilab2 = ROOT.TLatex(0.15,0.20,'(Zenith = %0.1f, NSB = %0.1f)'%(Zenith_mean_data,NSB_mean_data) )
+    lumilab2.SetNDC()
+    lumilab2.SetTextSize(0.3)
+    lumilab2.Draw()
     pad1.cd()
-    pad1.SetLogz()
+    #pad1.SetLogz()
     #Hist2D_Coeff_Data_Sum.SetMaximum(1e-1);
-    Hist2D_Coeff_Data_Sum.SetMinimum(1e-2);
-    Hist2D_Coeff_Data_Sum.GetYaxis().SetTitle('y')
-    Hist2D_Coeff_Data_Sum.GetXaxis().SetTitle('x')
+    #Hist2D_Coeff_Data_Sum.SetMinimum(1e-6);
+    Hist2D_Coeff_Data_Sum.GetYaxis().SetTitle('n')
+    Hist2D_Coeff_Data_Sum.GetXaxis().SetTitle('k')
     Hist2D_Coeff_Data_Sum.Draw("COL4Z")
     canvas.SaveAs('output_plots/Coeff_C_data_%s_%s.png'%(name,selection_tag))
     pad1.SetLogz(0)
@@ -3657,11 +3694,11 @@ def MatrixDecompositionDemo(name):
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
     pad1.cd()
-    pad1.SetLogz()
+    #pad1.SetLogz()
     #Hist2D_Coeff_Bkgd_Sum.SetMaximum(1e-1);
-    Hist2D_Coeff_Bkgd_Sum.SetMinimum(1e-2);
-    Hist2D_Coeff_Bkgd_Sum.GetYaxis().SetTitle('y')
-    Hist2D_Coeff_Bkgd_Sum.GetXaxis().SetTitle('x')
+    #Hist2D_Coeff_Bkgd_Sum.SetMinimum(1e-6);
+    Hist2D_Coeff_Bkgd_Sum.GetYaxis().SetTitle('n')
+    Hist2D_Coeff_Bkgd_Sum.GetXaxis().SetTitle('k')
     Hist2D_Coeff_Bkgd_Sum.Draw("COL4Z")
     canvas.SaveAs('output_plots/Coeff_C_bkgd_%s_%s.png'%(name,selection_tag))
     pad1.SetLogz(0)
@@ -4112,6 +4149,16 @@ def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
     Hist.GetXaxis().SetTitle(title_x)
     Hist.GetYaxis().SetTitle(title_y)
     Hist.Draw("E")
+
+    if Hist.GetXaxis().GetLabelOffset()==999:
+        x1 = Hist.GetXaxis().GetXmin()
+        x2 = Hist.GetXaxis().GetXmax()
+        y1 = Hist.GetYaxis().GetXmin()
+        y2 = Hist.GetYaxis().GetXmax()
+        IncValues = ROOT.TF1( "IncValues", "x", 0, 256 )
+        raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
+        raLowerAxis.SetLabelSize(Hist.GetXaxis().GetLabelSize())
+        raLowerAxis.Draw()
 
     pad3.cd()
 
@@ -4679,7 +4726,10 @@ Hist2D_Rank3_Diff_Sum = ROOT.TH2D("Hist2D_Rank3_Diff_Sum","",N_bins_for_deconv,M
 Hist2D_Rank4_Diff_Sum = ROOT.TH2D("Hist2D_Rank4_Diff_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 
 n_iterations = 100
-Hist_Bkgd_Optimization = ROOT.TH1D("Hist_Bkgd_Optimization","",N_bins_for_deconv*N_bins_for_deconv,-3.,3.)
+optimiz_lower = -10.
+optimiz_upper = 0.
+Hist_Bkgd_Chi2 = ROOT.TH1D("Hist_Bkgd_Chi2","",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper)
+Hist_Bkgd_Optimization = ROOT.TH1D("Hist_Bkgd_Optimization","",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper)
 Hist_Bkgd_Converge_Blind = ROOT.TH1D("Hist_Bkgd_Converge_Blind","",n_iterations,0,n_iterations)
 Hist_Bkgd_Converge_Unblind = ROOT.TH1D("Hist_Bkgd_Converge_Unblind","",n_iterations,0,n_iterations)
 Hist_VVV_Eigenvalues = ROOT.TH1D("Hist_VVV_Eigenvalues","",N_bins_for_deconv*N_bins_for_deconv,0,N_bins_for_deconv*N_bins_for_deconv)
