@@ -25,8 +25,8 @@ folder_path = 'output_test'
 #method_tag = 'loose_mdm_default'
 method_tag = 'tight_mdm_default'
 
-#lowrank_tag = '_svd'
-lowrank_tag = '_eigen'
+lowrank_tag = '_svd'
+#lowrank_tag = '_eigen'
 method_tag += lowrank_tag
 
 ONOFF_tag = 'OFF'
@@ -42,6 +42,8 @@ sample_list += ['Segue1V6']
 sample_list += ['Segue1V5']
 sample_list += ['BLLacV6']
 sample_list += ['BLLacV5']
+sample_list += ['CrabV5']
+sample_list += ['CrabV6']
     
 elev_bins = [45,85]
 theta2_bins = [0,4]

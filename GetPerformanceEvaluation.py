@@ -45,17 +45,18 @@ colors += [1]
 #legends += ['Cutoff signular']
 #method_tag += ['tight_mdm_tikhonov']
 #legends += ['Tikhonov']
+#colors += [1]
 #method_tag += ['tight_mdm_cutoff_eigen']
 #legends += ['Cutoff Eigen']
-method_tag += ['tight_mdm_rank3']
-legends += ['9-Par']
-colors += [4]
-method_tag += ['tight_mdm_rank5']
-legends += ['21-Par']
-colors += [2]
+#method_tag += ['tight_mdm_rank3']
+#legends += ['9-Par']
+#colors += [4]
+#method_tag += ['tight_mdm_rank5']
+#legends += ['21-Par']
+#colors += [2]
 
-#lowrank_tag = '_svd'
-lowrank_tag = '_eigen'
+lowrank_tag = '_svd'
+#lowrank_tag = '_eigen'
 for method in range(0,len(method_tag)):
     method_tag[method] += lowrank_tag
 
@@ -72,6 +73,8 @@ sample_list += ['Segue1V6']
 sample_list += ['Segue1V5']
 sample_list += ['BLLacV6']
 sample_list += ['BLLacV5']
+sample_list += ['CrabV6']
+sample_list += ['CrabV5']
 
 #ONOFF_tag = 'ON'
 #sample_list = []
@@ -155,8 +158,8 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
                 Hists[method][source].SetLineWidth(4)
             else:
                 Hists[method][source].SetLineWidth(2)
-            if source!=0:
-                continue
+            #if source!=0:
+            #    continue
             Hists[method][source].Draw("E same")
 
     pad3.cd()

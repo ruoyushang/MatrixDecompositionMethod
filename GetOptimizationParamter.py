@@ -16,6 +16,7 @@ matplotlib.use('Agg')
 import numpy as np
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 ROOT.gStyle.SetOptStat(0)
 ROOT.TH1.SetDefaultSumw2()
@@ -32,6 +33,9 @@ total_exposure_hours = 0.
 Zenith_mean_data = []
 NSB_mean_data = []
 Accuracy_source = []
+color_scatter = []
+area_scatter = []
+legend_scatter = []
 
 folder_path = 'output_test'
 method_tag = 'tight_mdm_default'
@@ -56,12 +60,10 @@ sample_list += ['3C264V6']
 sample_list += ['1ES1011V6']
 sample_list += ['Segue1V6']
 sample_list += ['Segue1V5']
-#sample_list += ['BLLacV6']
-#sample_list += ['BLLacV5']
-sample_list += ['CrabV4']
+sample_list += ['BLLacV6']
+sample_list += ['BLLacV5']
 sample_list += ['CrabV5']
 sample_list += ['CrabV6']
-#sample_list += ['M82V4']
 #sample_list += ['M82V5']
 
 #ONOFF_tag = 'ON'
@@ -207,6 +209,8 @@ def GetHistogramsFromFile(FilePath,which_source):
     global total_exposure_hours
     global Zenith_mean_data
     global NSB_mean_data
+    global area_scatter
+    global legend_scatter
     InputFile = ROOT.TFile(FilePath)
     InfoTree = InputFile.Get("InfoTree")
     NewInfoTree = InputFile.Get("NewInfoTree")
@@ -220,19 +224,23 @@ def GetHistogramsFromFile(FilePath,which_source):
         total_exposure_hours += exposure_hours
     Zenith_mean = NewInfoTree.Zenith_mean_data
     Zenith_mean_data += [Zenith_mean]
+    area_scatter += [pow(exposure_hours/10.,2)]
+    legend_scatter += ['%0.1f hrs'%(exposure_hours)]
     NSB_mean = NewInfoTree.NSB_mean_data
     NSB_mean_data += [NSB_mean]
     Hist_Bkgd_Optimization[which_source+1].Reset()
+    weight = 1./float(len(sample_list))
+    #weight = exposure_hours
     HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_Bkgd_Optimization[0].Add(InputFile.Get(HistName),1./float(len(sample_list)))
+    Hist_Bkgd_Optimization[0].Add(InputFile.Get(HistName),weight)
     Hist_Bkgd_Optimization[which_source+1].Add(InputFile.Get(HistName))
     Hist_Bkgd_Chi2[which_source+1].Reset()
     HistName = "Hist_Bkgd_Chi2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_Bkgd_Chi2[0].Add(InputFile.Get(HistName),1./float(len(sample_list)))
+    Hist_Bkgd_Chi2[0].Add(InputFile.Get(HistName),weight)
     Hist_Bkgd_Chi2[which_source+1].Add(InputFile.Get(HistName))
     Hist_VVV_Eigenvalues[which_source+1].Reset()
     HistName = "Hist_VVV_Eigenvalues_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_VVV_Eigenvalues[0].Add(InputFile.Get(HistName),1./float(len(sample_list)))
+    Hist_VVV_Eigenvalues[0].Add(InputFile.Get(HistName),weight)
     Hist_VVV_Eigenvalues[which_source+1].Add(InputFile.Get(HistName))
 
 optimiz_lower = -10.
@@ -252,6 +260,9 @@ for e in range(0,len(energy_bin)-1):
     Zenith_mean_data = []
     NSB_mean_data = []
     Accuracy_source = []
+    color_scatter = []
+    area_scatter = []
+    legend_scatter = []
     for entry in range(0,len(Hist_Bkgd_Optimization)):
         Hist_Bkgd_Optimization[entry].Reset()
     for entry in range(0,len(Hist_Bkgd_Chi2)):
@@ -269,6 +280,7 @@ for e in range(0,len(energy_bin)-1):
             ErecS_upper_cut = energy_bin[e+1]
             GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source)
 
+    #Hist_Bkgd_Optimization[0].Scale(1./total_exposure_hours)
     min_y = 1.0
     min_bin = 0
     for binx in range(1,Hist_Bkgd_Optimization[0].GetNbinsX()+1):
@@ -279,20 +291,17 @@ for e in range(0,len(energy_bin)-1):
         Accuracy_source += [Hist_Bkgd_Optimization[entry].GetBinContent(min_bin)]
 
     fig, ax = plt.subplots()
-    colors = np.random.rand(len(Accuracy_source))
-    area = (30 * np.random.rand(len(Accuracy_source)))**2
+    colors = np.random.rand(len(Zenith_mean_data))
     plt.clf()
-    plt.scatter(Zenith_mean_data, Accuracy_source, color='b')
-    ax.axis('on')
-    ax.set_xlabel('Zenith')
-    ax.set_ylabel('abs(N_{#gamma}-N_{model})/N_{#gamma}')
+    plt.xlabel("Zenith")
+    plt.ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$")
+    plt.scatter(Zenith_mean_data,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
     plt.savefig("output_plots/Performance_Zenith_E%s%s.png"%(e,lowrank_tag))
 
     plt.clf()
-    plt.scatter(NSB_mean_data, Accuracy_source, color='r')
-    ax.axis('on')
-    ax.set_xlabel('NSB')
-    ax.set_ylabel('abs(N_{#gamma}-N_{model})/N_{#gamma}')
+    plt.xlabel("NSB")
+    plt.ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$")
+    plt.scatter(NSB_mean_data,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
     plt.savefig("output_plots/Performance_NSB_E%s%s.png"%(e,lowrank_tag))
 
     Hists = []
