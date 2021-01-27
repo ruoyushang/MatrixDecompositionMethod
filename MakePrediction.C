@@ -2388,6 +2388,10 @@ void LeastSquareSolutionMethod(bool DoSequential, bool isBlind, TH1D* Hist_Conve
                 mtx_temp = NuclearNormMinimization(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, 1.0, true, 0, alpha_temp);
             }
             mtx_temp = mtx_temp*data_cr_count;
+            if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
+            {
+                mtx_temp = mtx_dark;
+            }
             bkgd_count = CountGammaRegion(mtx_temp);
             Hist_Optimization->SetBinContent(binx,abs(1.-bkgd_count/data_count));
             double model_chi2 = Chi2CosmicRayRegion(mtx_data, mtx_temp);
@@ -3035,6 +3039,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH1D> Hist_Dark_Rank1_RightVector;
     vector<TH1D> Hist_Dark_Rank2_RightVector;
     vector<TH1D> Hist_Dark_Rank3_RightVector;
+    vector<TH1D> Hist_Data_Eigenvalues;
     vector<TH1D> Hist_VVV_Eigenvalues;
     for (int e=0;e<N_energy_bins;e++) 
     {
@@ -3110,6 +3115,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Dark_Rank1_RightVector.push_back(TH1D("Hist_Dark_Rank1_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Dark_Rank2_RightVector.push_back(TH1D("Hist_Dark_Rank2_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_Dark_Rank3_RightVector.push_back(TH1D("Hist_Dark_Rank3_RightVector_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
+        Hist_Data_Eigenvalues.push_back(TH1D("Hist_Data_Eigenvalues_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,0,N_bins_for_deconv));
         Hist_VVV_Eigenvalues.push_back(TH1D("Hist_VVV_Eigenvalues_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv*N_bins_for_deconv,0,N_bins_for_deconv*N_bins_for_deconv));
     }
 
@@ -3465,11 +3471,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
 
                     SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_dark);
-                    int dark_cutoff = DetermineStableNumberOfEigenvalues(mtx_dark);
-                    int data_cutoff = DetermineStableNumberOfEigenvalues(mtx_data);
-                    NumberOfEigenvectors_Stable = min(dark_cutoff,data_cutoff);
-                    //NumberOfEigenvectors_Stable = data_cutoff;
-
 
                     if (UsePerturbation)
                     {
@@ -3493,7 +3494,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                         //}
                         //NumberOfEigenvectors_Stable = cutoff_best;
                         
-                        NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,3);
+                        NumberOfEigenvectors_Stable = RankTruncation[e];
                         std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
                         double optimized_alpha = pow(10.,Log10_alpha[e]);
                         if (RegularizationType==3)
@@ -3869,6 +3870,17 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     mtx_eigenvector_inv_dark = eigensolver_dark.eigenvectors().inverse();
                     mtx_eigenvector_data = eigensolver_data.eigenvectors();
                     mtx_eigenvector_inv_data = eigensolver_data.eigenvectors().inverse();
+                    for (int i=0;i<mtx_data.cols();i++)
+                    {
+                        for (int j=0;j<mtx_data.rows();j++)
+                        {
+                            if (i==j) 
+                            {
+                                mtx_eigenval_data_redu(i,j) = eigensolver_data.eigenvalues()(i);
+                                mtx_eigenval_dark_redu(i,j) = eigensolver_dark.eigenvalues()(i);
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -3878,6 +3890,22 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     JacobiSVD<MatrixXd> svd_data(mtx_data.real(), ComputeFullU | ComputeFullV);
                     mtx_eigenvector_data = svd_data.matrixU();
                     mtx_eigenvector_inv_data = svd_data.matrixV().transpose();
+                    for (int i=0;i<mtx_data.cols();i++)
+                    {
+                        for (int j=0;j<mtx_data.rows();j++)
+                        {
+                            if (i==j) 
+                            {
+                                mtx_eigenval_data_redu(i,j) = svd_data.singularValues()(i);
+                                mtx_eigenval_dark_redu(i,j) = svd_dark.singularValues()(i);
+                            }
+                        }
+                    }
+                }
+                for (int entry=0;entry<mtx_data.cols();entry++)
+                {
+                    int hist_entry = entry+1;
+                    Hist_Data_Eigenvalues.at(e).SetBinContent(hist_entry,abs(mtx_eigenval_data_redu(entry,entry)));
                 }
                 GetReducedEigenvalueMatrix(0);
                 mtx_data_redu = mtx_eigenvector_data*mtx_eigenval_data_redu*mtx_eigenvector_inv_data;
@@ -4075,6 +4103,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Dark_Rank1_RightVector.at(e).Write();
         Hist_Dark_Rank2_RightVector.at(e).Write();
         Hist_Dark_Rank3_RightVector.at(e).Write();
+        Hist_Data_Eigenvalues.at(e).Write();
         Hist_VVV_Eigenvalues.at(e).Write();
     }
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
