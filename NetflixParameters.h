@@ -3,16 +3,16 @@ const int N_energy_bins = 6;
 
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
-bool LowRankApproximation = false;
+bool EigenDecomposition = false;
 
 char output_file_tag[50] = "tight";
 double MSCW_cut_moderate = 0.5;
 double MSCL_cut_moderate = 0.6;
-double Log10_alpha[N_energy_bins] = {1.6,0.9,0.3,0.2,0.2,0.2};
+double Log10_alpha[N_energy_bins] = {-6.4,-6.4,-6.0,-5.0,-5.0,-5.0};
 //char output_file_tag[50] = "loose";
 //double MSCW_cut_moderate = 0.9;
 //double MSCL_cut_moderate = 1.0;
-//double Log10_alpha[N_energy_bins] = {2.1,1.3,0.2,-0.3,-0.3,-0.3};
+//double Log10_alpha[N_energy_bins] = {6.0,5.0,4.5,4.0,4.0,4.0};
 
 bool UseTruncatedONData = false;
 bool UseMinChi2 = false;
@@ -26,12 +26,12 @@ bool UseRegularization = false;
 //int RegularizationType = 0;
 //char output_file2_tag[50] = "mdm_rank3";
 //int RegularizationType = 1;
-//char output_file2_tag[50] = "mdm_rank5";
-//int RegularizationType = 2;
+char output_file2_tag[50] = "mdm_rank5";
+int RegularizationType = 2;
 //char output_file2_tag[50] = "mdm_cutoff";
 //int RegularizationType = 3;
-char output_file2_tag[50] = "mdm_tikhonov";
-int RegularizationType = 4;
+//char output_file2_tag[50] = "mdm_tikhonov";
+//int RegularizationType = 4;
 //char output_file2_tag[50] = "mdm_cutoff_eigen";
 //int RegularizationType = 5;
 
@@ -45,6 +45,7 @@ double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.2;
 
 int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
+int RankTruncation[N_energy_bins] = {4,3,2,2,1,1};
 int n_dark_samples = 1;
 double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.33),pow(10,2.66),pow(10,3.0),pow(10,3.33),pow(10,3.66),pow(10,4.0)};
 const int N_energy_fine_bins = 20;
@@ -73,5 +74,5 @@ double MSCL_plot_lower = -1.;
 double Skymap_size = 4.;
 
 double brightness_cut = 1.0;
-double faint_brightness_cut = 6.0;
+double faint_brightness_cut = 5.0;
 double bright_star_radius_cut = 0.3;

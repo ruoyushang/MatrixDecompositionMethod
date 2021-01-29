@@ -107,6 +107,11 @@ double svd_threshold_scale = 1.0;
 vector<double> data_gamma_count;
 vector<double> dark_gamma_count;
 vector<double> bkgd_gamma_count;
+vector<double> rank0_gamma_count;
+vector<double> rank1_gamma_count;
+vector<double> rank2_gamma_count;
+vector<double> rank3_gamma_count;
+vector<double> rank4_gamma_count;
 
 void ResetMatrixDimension()
 {
@@ -3910,26 +3915,36 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 GetReducedEigenvalueMatrix(0);
                 mtx_data_redu = mtx_eigenvector_data*mtx_eigenval_data_redu*mtx_eigenvector_inv_data;
                 fill2DHistogram(&Hist_Rank0_MSCLW_Data.at(e),mtx_data_redu);
+                double rank0_count = CountGammaRegion(mtx_data_redu);
+                rank0_gamma_count.push_back(rank0_count);
                 mtx_dark_redu = mtx_eigenvector_dark*mtx_eigenval_dark_redu*mtx_eigenvector_inv_dark;
                 fill2DHistogram(&Hist_Rank0_MSCLW_Dark.at(e),mtx_dark_redu);
                 GetReducedEigenvalueMatrix(1);
                 mtx_data_redu = mtx_eigenvector_data*mtx_eigenval_data_redu*mtx_eigenvector_inv_data;
                 fill2DHistogram(&Hist_Rank1_MSCLW_Data.at(e),mtx_data_redu);
+                double rank1_count = CountGammaRegion(mtx_data_redu);
+                rank1_gamma_count.push_back(rank0_count+rank1_count);
                 mtx_dark_redu = mtx_eigenvector_dark*mtx_eigenval_dark_redu*mtx_eigenvector_inv_dark;
                 fill2DHistogram(&Hist_Rank1_MSCLW_Dark.at(e),mtx_dark_redu);
                 GetReducedEigenvalueMatrix(2);
                 mtx_data_redu = mtx_eigenvector_data*mtx_eigenval_data_redu*mtx_eigenvector_inv_data;
                 fill2DHistogram(&Hist_Rank2_MSCLW_Data.at(e),mtx_data_redu);
+                double rank2_count = CountGammaRegion(mtx_data_redu);
+                rank2_gamma_count.push_back(rank0_count+rank1_count+rank2_count);
                 mtx_dark_redu = mtx_eigenvector_dark*mtx_eigenval_dark_redu*mtx_eigenvector_inv_dark;
                 fill2DHistogram(&Hist_Rank2_MSCLW_Dark.at(e),mtx_dark_redu);
                 GetReducedEigenvalueMatrix(3);
                 mtx_data_redu = mtx_eigenvector_data*mtx_eigenval_data_redu*mtx_eigenvector_inv_data;
                 fill2DHistogram(&Hist_Rank3_MSCLW_Data.at(e),mtx_data_redu);
+                double rank3_count = CountGammaRegion(mtx_data_redu);
+                rank3_gamma_count.push_back(rank0_count+rank1_count+rank2_count+rank3_count);
                 mtx_dark_redu = mtx_eigenvector_dark*mtx_eigenval_dark_redu*mtx_eigenvector_inv_dark;
                 fill2DHistogram(&Hist_Rank3_MSCLW_Dark.at(e),mtx_dark_redu);
                 GetReducedEigenvalueMatrix(4);
                 mtx_data_redu = mtx_eigenvector_data*mtx_eigenval_data_redu*mtx_eigenvector_inv_data;
                 fill2DHistogram(&Hist_Rank4_MSCLW_Data.at(e),mtx_data_redu);
+                double rank4_count = CountGammaRegion(mtx_data_redu);
+                rank4_gamma_count.push_back(rank0_count+rank1_count+rank2_count+rank3_count+rank4_count);
                 mtx_dark_redu = mtx_eigenvector_dark*mtx_eigenval_dark_redu*mtx_eigenvector_inv_dark;
                 fill2DHistogram(&Hist_Rank4_MSCLW_Dark.at(e),mtx_dark_redu);
 
@@ -4049,6 +4064,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     NewInfoTree.Branch("data_gamma_count","std::vector<double>",&data_gamma_count);
     NewInfoTree.Branch("dark_gamma_count","std::vector<double>",&dark_gamma_count);
     NewInfoTree.Branch("bkgd_gamma_count","std::vector<double>",&bkgd_gamma_count);
+    NewInfoTree.Branch("rank0_gamma_count","std::vector<double>",&rank0_gamma_count);
+    NewInfoTree.Branch("rank1_gamma_count","std::vector<double>",&rank1_gamma_count);
+    NewInfoTree.Branch("rank2_gamma_count","std::vector<double>",&rank2_gamma_count);
+    NewInfoTree.Branch("rank3_gamma_count","std::vector<double>",&rank3_gamma_count);
+    NewInfoTree.Branch("rank4_gamma_count","std::vector<double>",&rank4_gamma_count);
     NewInfoTree.Fill();
     NewInfoTree.Write();
 

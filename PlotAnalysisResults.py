@@ -41,7 +41,7 @@ if len(sys.argv)==3:
 #signal_tag = '_S20'
 signal_tag = '_S%s'%(signal_ratio)
 
-energy_bin_cut_low = 3
+energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
 #elev_bins = [25,45]
@@ -1085,30 +1085,30 @@ def StackShowerHistograms():
     Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank4_Data,-1.)
     Hist2D_Rank4_Data_Sum.Add(Hist2D_OnData)
 
-    #Hist2D_Rank0_Dark_Sum.Add(Hist2D_Rank0_Dark)
-    #Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank1_Dark)
-    #Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank2_Dark)
-    #Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank3_Dark)
-    Hist2D_Rank0_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
-    Hist2D_Rank0_Dark_Sum.Add(Hist2D_OnDark)
-    Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
-    Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
-    Hist2D_Rank1_Dark_Sum.Add(Hist2D_OnDark)
-    Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
-    Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
-    Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank2_Dark,-1.)
-    Hist2D_Rank2_Dark_Sum.Add(Hist2D_OnDark)
-    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
-    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
-    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank2_Dark,-1.)
-    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank3_Dark,-1.)
-    Hist2D_Rank3_Dark_Sum.Add(Hist2D_OnDark)
-    Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
-    Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
-    Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank2_Dark,-1.)
-    Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank3_Dark,-1.)
-    Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank4_Dark,-1.)
-    Hist2D_Rank4_Dark_Sum.Add(Hist2D_OnDark)
+    Hist2D_Rank0_Dark_Sum.Add(Hist2D_Rank0_Data)
+    Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank1_Data)
+    Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank2_Data)
+    Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank3_Data)
+    #Hist2D_Rank0_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
+    #Hist2D_Rank0_Dark_Sum.Add(Hist2D_OnDark)
+    #Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
+    #Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
+    #Hist2D_Rank1_Dark_Sum.Add(Hist2D_OnDark)
+    #Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
+    #Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
+    #Hist2D_Rank2_Dark_Sum.Add(Hist2D_Rank2_Dark,-1.)
+    #Hist2D_Rank2_Dark_Sum.Add(Hist2D_OnDark)
+    #Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
+    #Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
+    #Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank2_Dark,-1.)
+    #Hist2D_Rank3_Dark_Sum.Add(Hist2D_Rank3_Dark,-1.)
+    #Hist2D_Rank3_Dark_Sum.Add(Hist2D_OnDark)
+    #Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank0_Dark,-1.)
+    #Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank1_Dark,-1.)
+    #Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank2_Dark,-1.)
+    #Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank3_Dark,-1.)
+    #Hist2D_Rank4_Dark_Sum.Add(Hist2D_Rank4_Dark,-1.)
+    #Hist2D_Rank4_Dark_Sum.Add(Hist2D_OnDark)
 
     Hist_OnData_MSCL_Sum.Add(Hist_OnData_MSCL)
     Hist_OnData_MSCW_Sum.Add(Hist_OnData_MSCW)
@@ -3549,7 +3549,7 @@ def MatrixDecompositionDemo(name):
     line2.SetLineWidth(2)
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M_{Data}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3562,7 +3562,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/OnData_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M_{Initial}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{OFF}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3651,8 +3651,9 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Coeff_H_bkgd_%s_%s.png'%(name,selection_tag))
     pad1.SetLogz(0)
 
+    pad3.Clear()
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{i=1}^{1} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{k=1}^{1} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3665,7 +3666,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank0_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{OFF} - #sum_{i=1}^{1} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#sigma_{1} u_{1} v_{1}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3678,7 +3679,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank0_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{i=1}^{2} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{k=1}^{2} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3691,7 +3692,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank1_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{OFF} - #sum_{i=1}^{2} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#sigma_{2} u_{2} v_{2}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3704,7 +3705,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank1_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{i=1}^{3} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{k=1}^{3} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3717,7 +3718,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank2_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{OFF} - #sum_{i=1}^{3} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#sigma_{3} u_{3} v_{3}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3730,7 +3731,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank2_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{i=1}^{4} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{k=1}^{4} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3743,7 +3744,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank3_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{OFF} - #sum_{i=1}^{4} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#sigma_{4} u_{4} v_{4}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3756,7 +3757,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank3_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{i=1}^{5} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{k=1}^{5} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -3769,7 +3770,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank4_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{OFF} - #sum_{i=1}^{5} #lambda_{i} r_{i} l_{i}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#sigma_{5} u_{5} v_{5}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()

@@ -321,7 +321,7 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 107.610;
                 Source_Dec = 59.150;
     }
-    if (source_name=="CasA")
+    if (source_name=="CasAV6")
     {
             Source_RA = 350.808;
                 Source_Dec = 58.807;
@@ -401,17 +401,7 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 185.360;
                 Source_Dec = 30.191;
     }
-    if (source_name=="MGRO_J1908_V6")
-    {
-            Source_RA = 286.975;
-                Source_Dec = 6.269;
-    }
-    if (source_name=="MGRO_J1908_V5")
-    {
-            Source_RA = 286.975;
-                Source_Dec = 6.269;
-    }
-    if (source_name=="MGRO_J1908_V4")
+    if (source_name.Contains("MGRO_J1908"))
     {
             Source_RA = 286.975;
                 Source_Dec = 6.269;
@@ -710,7 +700,7 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         double delta_RA = TelRAJ2000_tmp - 287.9565;
         double delta_Dec = TelDecJ2000_tmp - 4.9827;
         double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
-        if (distance>1.0)
+        if (distance>2.0)
         {
             input_file->Close();
             return false;
@@ -730,6 +720,22 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         }
     }
     if (TString(target).Contains("SS433Half2"))
+    {
+        if (Phase<=0.5)
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    if (TString(target).Contains("MGRO_J1908Half1"))
+    {
+        if (Phase>0.5)
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    if (TString(target).Contains("MGRO_J1908Half2"))
     {
         if (Phase<=0.5)
         {
