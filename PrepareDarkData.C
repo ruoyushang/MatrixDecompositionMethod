@@ -94,7 +94,8 @@ double run_tele_point_dec = 0.;
 vector<string> roi_name;
 vector<double> roi_ra;
 vector<double> roi_dec;
-vector<double> roi_radius;
+vector<double> roi_radius_inner;
+vector<double> roi_radius_outer;
 vector<vector<double>> BrightStars_Data;
 vector<vector<double>> FaintStars_Data;
 vector<vector<double>> GammaSource_Data;
@@ -128,7 +129,7 @@ bool CoincideWithGammaSources(double ra, double dec)
         double star_ra = GammaSource_Data.at(star).at(0);
         double star_dec = GammaSource_Data.at(star).at(1);
         double radius = pow((ra-star_ra)*(ra-star_ra)+(dec-star_dec)*(dec-star_dec),0.5);
-        if (radius>0.25) continue;
+        if (radius>0.2) continue;
         isCoincident = true;
     }
     return isCoincident;
@@ -154,174 +155,139 @@ pair<double,double> GetSourceRaDec(TString source_name)
 {
     double Source_RA = 0.;
     double Source_Dec = 0.;
-    if (source_name=="SgrAV6")
+    if (source_name.Contains("SgrA"))
     {
             Source_RA = 266.415;
                 Source_Dec = -29.006;
     }
-    if (source_name=="GemingaV6")
+    if (source_name.Contains("Geminga"))
     {
             Source_RA = 98.117;
                 Source_Dec = 17.367;
     }
-    if (source_name=="GemingaV5")
-    {
-            Source_RA = 98.117;
-                Source_Dec = 17.367;
-    }
-    if (source_name=="PKS1441V6")
+    if (source_name.Contains("PKS1441"))
     {
             Source_RA = 220.987;
                 Source_Dec = 25.029;
     }
-    if (source_name=="MS1221V6")
+    if (source_name.Contains("MS1221"))
     {
             Source_RA = 186.101;
                 Source_Dec = 24.607;
     }
-    if (source_name=="TychoV6")
+    if (source_name.Contains("Tycho"))
     {
             Source_RA = 6.340;
                 Source_Dec = 64.130;
     }
-    if (source_name=="CTA1V5")
+    if (source_name.Contains("CTA1"))
     {
             Source_RA = 1.608;
                 Source_Dec = 72.984;
     }
-    if (source_name=="S3_1227_V6")
+    if (source_name.Contains("S3_1227"))
     {
             Source_RA = 187.559;
                 Source_Dec = 25.302;
     }
-    if (source_name=="SNRG150p3_V6")
+    if (source_name.Contains("SNRG150p3"))
     {
             Source_RA = 66.6;
                 Source_Dec = 54.6;
     }
-    if (source_name=="CrabV6")
+    if (source_name.Contains("Crab"))
     {
             Source_RA = 83.633;
                 Source_Dec = 22.014;
     }
-    if (source_name=="CrabV5")
-    {
-            Source_RA = 83.633;
-                Source_Dec = 22.014;
-    }
-    if (source_name=="CrabV4")
-    {
-            Source_RA = 83.633;
-                Source_Dec = 22.014;
-    }
-    if (source_name=="Mrk421V5")
+    if (source_name.Contains("Mrk421"))
     {
             Source_RA = 166.079;
                 Source_Dec = 38.195;
     }
-    if (source_name=="H1426V6")
+    if (source_name.Contains("H1426"))
     {
             Source_RA = 217.136;
                 Source_Dec = 42.673;
     }
-    if (source_name=="1ES0229V6")
+    if (source_name.Contains("1ES0229"))
     {
             Source_RA = 38.222;
                 Source_Dec = 20.273;
     }
-    if (source_name=="1ES0229V5")
-    {
-            Source_RA = 38.222;
-                Source_Dec = 20.273;
-    }
-    if (source_name=="PKS1424V6")
+    if (source_name.Contains("PKS1424"))
     {
             Source_RA = 216.750;
                 Source_Dec = 23.783;
     }
-    if (source_name=="3C264V6")
+    if (source_name.Contains("3C264"))
     {
             Source_RA = 176.271;
                 Source_Dec = 19.606;
     }
-    if (source_name=="OJ287V6")
+    if (source_name.Contains("OJ287"))
     {
             Source_RA = 133.705;
                 Source_Dec = 20.100;
     }
-    if (source_name=="RBS0413V6")
+    if (source_name.Contains("RBS0413V6"))
     {
             Source_RA = 49.946;
                 Source_Dec = 18.762;
     }
-    if (source_name=="RBS0413V5")
-    {
-            Source_RA = 49.946;
-                Source_Dec = 18.762;
-    }
-    if (source_name=="PG1553V6")
+    if (source_name.Contains("PG1553"))
     {
             Source_RA = 238.936;
                 Source_Dec = 11.195;
     }
-    if (source_name=="PG1553V5")
-    {
-            Source_RA = 238.936;
-                Source_Dec = 11.195;
-    }
-    if (source_name=="Segue1V6")
+    if (source_name.Contains("Segue1"))
     {
             Source_RA = 151.767;
                 Source_Dec = 16.082;
     }
-    if (source_name=="ComaV6")
+    if (source_name.Contains("Coma"))
     {
             Source_RA = 194.953;
                 Source_Dec = 27.981;
     }
-    if (source_name=="ComaV4")
-    {
-            Source_RA = 194.953;
-                Source_Dec = 27.981;
-    }
-    if (source_name=="1ES1011V6")
+    if (source_name.Contains("1ES1011"))
     {
             Source_RA = 153.767;
                 Source_Dec = 49.434;
     }
-    if (source_name=="NGC1275V6")
+    if (source_name.Contains("NGC1275"))
     {
             Source_RA = 49.950;
                 Source_Dec = 41.512;
     }
-    if (source_name=="1ES0647V6")
+    if (source_name.Contains("1ES0647"))
     {
             Source_RA = 102.694;
                 Source_Dec = 25.050;
     }
-    if (source_name=="1ES1440V6")
+    if (source_name.Contains("1ES1440"))
     {
             Source_RA = 220.701;
                 Source_Dec = 12.011;
     }
-    if (source_name=="1ES1741V6")
+    if (source_name.Contains("1ES1741"))
     {
             Source_RA = 266.005;
                 Source_Dec = 19.546;
     }
-    if (source_name=="IC443HotSpotV6")
+    if (source_name.Contains("IC443HotSpot"))
     {
             //Source_RA = 94.511;
             //    Source_Dec = 22.660;
             Source_RA = 94.213;
                 Source_Dec = 22.503;
     }
-    if (source_name=="RGBJ0710V5")
+    if (source_name.Contains("RGBJ0710"))
     {
             Source_RA = 107.610;
                 Source_Dec = 59.150;
     }
-    if (source_name=="CasAV6")
+    if (source_name.Contains("CasA"))
     {
             Source_RA = 350.808;
                 Source_Dec = 58.807;
@@ -331,67 +297,32 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 148.970;
                 Source_Dec = 69.679;
     }
-    if (source_name=="BoomerangV4")
+    if (source_name.Contains("Boomerang"))
     {
             Source_RA = 337.183333333;
                 Source_Dec = 61.1666666667;
     }
-    if (source_name=="BoomerangV5")
-    {
-            Source_RA = 337.183333333;
-                Source_Dec = 61.1666666667;
-    }
-    if (source_name=="BoomerangV6")
-    {
-            Source_RA = 337.183333333;
-                Source_Dec = 61.1666666667;
-    }
-    if (source_name=="BLLacV5")
+    if (source_name.Contains("BLLac"))
     {
             Source_RA = 330.680416667;
                 Source_Dec = 42.2777777778;
     }
-    if (source_name=="BLLacV6")
-    {
-            Source_RA = 330.680416667;
-                Source_Dec = 42.2777777778;
-    }
-    if (source_name=="GammaCygniV6")
+    if (source_name.Contains("GammaCygni"))
     {
             Source_RA = 305.02;
                 Source_Dec = 40.7572222222;
     }
-    if (source_name=="GammaCygniV5")
-    {
-            Source_RA = 305.02;
-                Source_Dec = 40.7572222222;
-    }
-    if (source_name=="GammaCygniV4")
-    {
-            Source_RA = 305.02;
-                Source_Dec = 40.7572222222;
-    }
-    if (source_name=="G079")
+    if (source_name.Contains("G079"))
     {
             Source_RA = 308.119;
                 Source_Dec = 40.328;
     }
-    if (source_name=="WComaeV6")
+    if (source_name.Contains("WComae"))
     {
             Source_RA = 185.382;
                 Source_Dec = 28.233;
     }
-    if (source_name=="WComaeV5")
-    {
-            Source_RA = 185.382;
-                Source_Dec = 28.233;
-    }
-    if (source_name=="WComaeV4")
-    {
-            Source_RA = 185.382;
-                Source_Dec = 28.233;
-    }
-    if (source_name=="1ES1218V6")
+    if (source_name.Contains("1ES1218"))
     {
             Source_RA = 185.360;
                 Source_Dec = 30.191;
@@ -406,71 +337,27 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 287.9565;
                 Source_Dec = 4.98272222222;
     }
-    if (source_name=="MAGIC_J1857_V6")
+    if (source_name.Contains("MAGIC_J1857"))
     {
-            Source_RA = 284.398;
-                Source_Dec = 2.967;
+            Source_RA = 284.303;
+                Source_Dec = 2.729;
     }
-    if (source_name=="MAGIC_J1857_V5")
+    if (source_name.Contains("MGRO_J2031"))
     {
-            Source_RA = 284.398;
-                Source_Dec = 2.967;
+            Source_RA = 308.041666667;
+                Source_Dec = 41.4594444444;
     }
-    if (source_name=="MAGIC_J1857_V4")
-    {
-            Source_RA = 284.398;
-                Source_Dec = 2.967;
-    }
-    if (source_name=="MGRO_J2031_V6")
-    {
-            Source_RA = 307.180;
-                Source_Dec = 41.310;
-    }
-    if (source_name=="MGRO_J2031_V5")
-    {
-            Source_RA = 307.180;
-                Source_Dec = 41.310;
-    }
-    if (source_name=="MGRO_J2031_V4")
-    {
-            Source_RA = 307.180;
-                Source_Dec = 41.310;
-    }
-    if (source_name=="CygnusV6")
+    if (source_name.Contains("Cygnus"))
     {
             Source_RA = 304.646;
                 Source_Dec = 36.833;
     }
-    if (source_name=="CygnusV5")
-    {
-            Source_RA = 304.646;
-                Source_Dec = 36.833;
-    }
-    if (source_name=="Segue1V5")
-    {
-            Source_RA = 151.767;
-                Source_Dec = 16.082;
-    }
-    if (source_name=="IC443HotSpotV5")
-    {
-            //Source_RA = 94.511;
-            //    Source_Dec = 22.660;
-            Source_RA = 94.213;
-                Source_Dec = 22.503;
-    }
-    if (source_name=="IC443HotSpotV4")
-    {
-            //Source_RA = 94.511;
-            //    Source_Dec = 22.660;
-            Source_RA = 94.213;
-                Source_Dec = 22.503;
-    }
-    if (source_name=="2HWC_J1953V6")
+    if (source_name.Contains("2HWC_J1953"))
     {
             Source_RA = 298.260;
                 Source_Dec = 29.480;
     }
-    if (source_name=="2HWC_J1930V6")
+    if (source_name.Contains("2HWC_J1930"))
     {
             Source_RA = 292.150;
                 Source_Dec = 17.780;
@@ -574,7 +461,8 @@ bool RoIFoV(int which_roi) {
     double x = ra_sky-roi_ra.at(which_roi);
     double y = dec_sky-roi_dec.at(which_roi);
     double radius = pow(x*x+y*y,0.5);
-    if (radius>roi_radius.at(which_roi)) return false;
+    if (radius<roi_radius_inner.at(which_roi)) return false;
+    if (radius>roi_radius_outer.at(which_roi)) return false;
     return true;
 }
 bool SelectNImages()
@@ -694,6 +582,45 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
         double delta_RA = TelRAJ2000_tmp - 287.9565;
         double delta_Dec = TelDecJ2000_tmp - 4.9827;
+        double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
+        if (distance>2.0)
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    else if (TString(target).Contains("MGRO_J2031"))
+    {
+        double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
+        double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
+        double delta_RA = TelRAJ2000_tmp - 308.041666667;
+        double delta_Dec = TelDecJ2000_tmp - 41.4594444444;
+        double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
+        if (distance>2.0)
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    else if (TString(target).Contains("MGRO_J1908"))
+    {
+        double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
+        double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
+        double delta_RA = TelRAJ2000_tmp - 287.188333333;
+        double delta_Dec = TelDecJ2000_tmp - 6.16233333333;
+        double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
+        if (distance>2.0)
+        {
+            input_file->Close();
+            return false;
+        }
+    }
+    else if (TString(target).Contains("GammaCygni"))
+    {
+        double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
+        double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
+        double delta_RA = TelRAJ2000_tmp - 304.967;
+        double delta_Dec = TelDecJ2000_tmp - 40.811;
         double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
         if (distance>2.0)
         {
@@ -1246,6 +1173,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         source_theta2_cut = 0.;
         ONOFF_tag = "ON";
     }
+    else if (doRaster)
+    {
+        source_theta2_cut = 0.;
+        ONOFF_tag = "Raster";
+    }
     else
     {
         ONOFF_tag = "OFF";
@@ -1329,40 +1261,22 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     roi_name.push_back("Validation");
     roi_ra.push_back(mean_tele_point_ra);
     roi_dec.push_back(mean_tele_point_dec);
-    roi_radius.push_back(10.);
+    roi_radius_inner.push_back(0.);
+    roi_radius_outer.push_back(10.);
 
     if (TString(target).Contains("MGRO_J1908")) 
     {
-        roi_name.push_back("MGRO J1908+06");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(0.5);
+        roi_name.push_back("inner ring");
+        roi_ra.push_back(287.135);
+        roi_dec.push_back(6.162);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.15);
 
-        roi_name.push_back("SS 433 e1");
-        roi_ra.push_back(288.404);
-        roi_dec.push_back(4.930);
-        roi_radius.push_back(0.13);
-
-        roi_name.push_back("SS 433 e2");
-        roi_ra.push_back(288.58);
-        roi_dec.push_back(4.91);
-        roi_radius.push_back(0.32);
-
-        roi_name.push_back("SS 433 w1");
-        roi_ra.push_back(287.42);
-        roi_dec.push_back(5.04);
-        roi_radius.push_back(0.14);
-
-        //roi_name.push_back("MAGIC J1857.6+0297");
-        //roi_ra.push_back(284.398);
-        //roi_dec.push_back(2.967);
-        //roi_radius.push_back(0.3);
-
-        //roi_name.push_back("Unknown");
-        //roi_ra.push_back(284.063);
-        //roi_dec.push_back(4.037);
-        //roi_radius.push_back(0.3);
-
+        roi_name.push_back("outer ring");
+        roi_ra.push_back(287.135);
+        roi_dec.push_back(6.162);
+        roi_radius_inner.push_back(0.15);
+        roi_radius_outer.push_back(0.5);
     }
     else if (TString(target).Contains("SS433")) 
     {
@@ -1371,134 +1285,194 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_name.push_back("SS 433");
         roi_ra.push_back(287.9565);
         roi_dec.push_back(4.9827);
-        roi_radius.push_back(0.15);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.15);
 
         roi_name.push_back("SS 433 e1");
         roi_ra.push_back(288.404);
         roi_dec.push_back(4.930);
-        roi_radius.push_back(0.13);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.13);
 
         roi_name.push_back("SS 433 e1 max");
         roi_ra.push_back(288.207);
         roi_dec.push_back(4.951);
-        roi_radius.push_back(0.13);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.13);
 
         roi_name.push_back("SS 433 e2");
         roi_ra.push_back(288.58);
         roi_dec.push_back(4.91);
-        roi_radius.push_back(0.32);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.32);
 
         roi_name.push_back("SS 433 w1");
         roi_ra.push_back(287.42);
         roi_dec.push_back(5.04);
-        roi_radius.push_back(0.14);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.14);
     }
     else if (TString(target).Contains("MAGIC_J1857")) 
     {
-        roi_name.push_back("HESS J1857+026");
-        roi_ra.push_back(284.295833333);
-        roi_dec.push_back(2.66666666667);
-        roi_radius.push_back(0.3);
+        roi_name.push_back("inner ring");
+        roi_ra.push_back(284.303);
+        roi_dec.push_back(2.729);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.3);
+
+        roi_name.push_back("outer ring");
+        roi_ra.push_back(284.303);
+        roi_dec.push_back(2.729);
+        roi_radius_inner.push_back(0.3);
+        roi_radius_outer.push_back(1.0);
+
+        //roi_name.push_back("HESS J1857+026");
+        //roi_ra.push_back(284.295833333);
+        //roi_dec.push_back(2.66666666667);
+        //roi_radius_inner.push_back(0.);
+        //roi_radius_outer.push_back(0.3);
 
         roi_name.push_back("HESS J1858+020");
         roi_ra.push_back(284.583333333);
         roi_dec.push_back(2.09);
-        roi_radius.push_back(0.3);
-
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.3);
     }
     else if (TString(target).Contains("MGRO_J2031")) 
     {
-        roi_name.push_back("MGRO J2031+41");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(1.0);
-        roi_name.push_back("PSR J2032+4127");
-        roi_ra.push_back(308.041666667);
-        roi_dec.push_back(41.4594444444);
-        roi_radius.push_back(1.0);
-        roi_name.push_back("Jet 1");
-        roi_ra.push_back(305.161);
-        roi_dec.push_back(40.845);
-        roi_radius.push_back(0.3);
-        roi_name.push_back("Jet 2");
-        roi_ra.push_back(310.593);
-        roi_dec.push_back(41.950);
-        roi_radius.push_back(0.3);
+        roi_name.push_back("inner ring");
+        roi_ra.push_back(307.935);
+        roi_dec.push_back(41.513);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.15);
+
+        roi_name.push_back("outer ring");
+        roi_ra.push_back(307.935);
+        roi_dec.push_back(41.513);
+        roi_radius_inner.push_back(0.15);
+        roi_radius_outer.push_back(0.5);
+
+        //roi_name.push_back("MGRO J2031+41");
+        //roi_ra.push_back(mean_tele_point_ra);
+        //roi_dec.push_back(mean_tele_point_dec);
+        //roi_radius_inner.push_back(0.);
+        //roi_radius_outer.push_back(1.0);
+        //roi_name.push_back("PSR J2032+4127");
+        //roi_ra.push_back(308.041666667);
+        //roi_dec.push_back(41.4594444444);
+        //roi_radius_inner.push_back(0.);
+        //roi_radius_outer.push_back(1.0);
+        //roi_name.push_back("Jet 1");
+        //roi_ra.push_back(305.161);
+        //roi_dec.push_back(40.845);
+        //roi_radius_inner.push_back(0.);
+        //roi_radius_outer.push_back(0.3);
+        //roi_name.push_back("Jet 2");
+        //roi_ra.push_back(310.593);
+        //roi_dec.push_back(41.950);
+        //roi_radius_inner.push_back(0.);
+        //roi_radius_outer.push_back(0.3);
     }
     else if (TString(target).Contains("Crab")) 
     {
         roi_name.push_back("Crab");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(0.5);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.5);
     }
     else if (TString(target).Contains("Mrk421")) 
     {
         roi_name.push_back("Mrk421");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(0.5);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.5);
     }
     else if (TString(target).Contains("Geminga")) 
     {
         roi_name.push_back("Geminga");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(1.0);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(1.0);
         roi_name.push_back("deficit");
         roi_ra.push_back(98.837);
         roi_dec.push_back(16.087);
-        roi_radius.push_back(0.3);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.3);
     }
     else if (TString(target).Contains("Cygnus")) 
     {
         roi_name.push_back("Cygnus");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(1.0);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.5);
     }
     else if (TString(target).Contains("IC443")) 
     {
         roi_name.push_back("IC 443");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(0.5);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.5);
     }
     else if (TString(target).Contains("WComae")) 
     {
         roi_name.push_back("W Comae");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(0.3);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.3);
 
         roi_name.push_back("1ES 1218+304");
         roi_ra.push_back(185.360);
         roi_dec.push_back(30.191);
-        roi_radius.push_back(0.3);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.3);
 
         roi_name.push_back("1ES 1215+303");
         roi_ra.push_back(184.616);
         roi_dec.push_back(30.130);
-        roi_radius.push_back(0.3);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.3);
     }
     else if (TString(target).Contains("Boomerang")) 
     {
         roi_name.push_back("Boomerang");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(0.3);
+        roi_ra.push_back(337.001);
+        roi_dec.push_back(60.978);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.5);
 
         roi_name.push_back("Unknown");
         roi_ra.push_back(340.278);
         roi_dec.push_back(61.112);
-        roi_radius.push_back(0.3);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.3);
+    }
+    else if (TString(target).Contains("GammaCygni")) 
+    {
+        roi_name.push_back("inner ring");
+        roi_ra.push_back(304.967);
+        roi_dec.push_back(40.811);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.2);
+
+        roi_name.push_back("outer ring");
+        roi_ra.push_back(304.967);
+        roi_dec.push_back(40.811);
+        roi_radius_inner.push_back(0.2);
+        roi_radius_outer.push_back(0.6);
     }
     else
     {
         roi_name.push_back("Center");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
-        roi_radius.push_back(0.3);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.3);
     }
 
     //for (int star=0;star<FaintStars_Data.size();star++)
@@ -1506,9 +1480,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //    roi_name.push_back("b-mag "+ std::to_string(FaintStars_Data.at(star).at(3)));
     //    roi_ra.push_back(FaintStars_Data.at(star).at(0));
     //    roi_dec.push_back(FaintStars_Data.at(star).at(1));
-    //    roi_radius.push_back(bright_star_radius_cut);
+    //    roi_radius_inner.push_back(0.);
+    //    roi_radius_outer.push_back(bright_star_radius_cut);
     //}
 
+    if (TString(target).Contains("MAGIC_J1857")) 
+    {
+        Skymap_size = 3.;
+    }
 
     TH1D Hist_Elev = TH1D("Hist_Elev","",N_elev_bins,elev_bins);
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
@@ -1556,6 +1535,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<TH2D> Hist_OnDark_CR_Skymap_Galactic_Syst;
     vector<TH1D> Hist_OnData_SR_Zenith;
     vector<TH1D> Hist_OnData_CR_Zenith;
+    vector<TH1D> Hist_OnData_SR_Energy_CamCenter;
+    vector<TH1D> Hist_OnData_CR_Energy_CamCenter;
     for (int e=0;e<N_energy_bins;e++) 
     {
         char e_low[50];
@@ -1570,24 +1551,26 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_MSCLW.push_back(TH2D("Hist_Stage1_OnData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnData_SR_Skymap_Theta2.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_CR_Skymap_Theta2.push_back(TH1D("Hist_Stage1_OnData_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
-        Hist_OnData_SR_Skymap.push_back(TH2D("Hist_Stage1_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_OnData_VR_Skymap.push_back(TH2D("Hist_Stage1_OnData_VR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_OnData_CR_Skymap.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_OnData_CR_Skymap_Syst.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_OnDark_CR_Skymap_Syst.push_back(TH2D("Hist_Stage1_OnDark_CR_Skymap_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,75,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnData_SR_Skymap.push_back(TH2D("Hist_Stage1_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnData_VR_Skymap.push_back(TH2D("Hist_Stage1_OnData_VR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnData_CR_Skymap.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnData_CR_Skymap_Syst.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnDark_CR_Skymap_Syst.push_back(TH2D("Hist_Stage1_OnDark_CR_Skymap_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_SR_Energy.push_back(TH1D("Hist_Stage1_OnData_SR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_CR_Energy.push_back(TH1D("Hist_Stage1_OnData_CR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_CR_Energy_Raw.push_back(TH1D("Hist_Stage1_OnData_CR_Energy_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_SR_Zenith.push_back(TH1D("Hist_Stage1_OnData_SR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
         Hist_OnData_CR_Zenith.push_back(TH1D("Hist_Stage1_OnData_CR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
+        Hist_OnData_SR_Energy_CamCenter.push_back(TH1D("Hist_Stage1_OnData_SR_Energy_CamCenter_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+        Hist_OnData_CR_Energy_CamCenter.push_back(TH1D("Hist_Stage1_OnData_CR_Energy_CamCenter_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         pair<double,double> tele_point_l_b = ConvertRaDecToGalactic(mean_tele_point_ra, mean_tele_point_dec);
         mean_tele_point_l = tele_point_l_b.first;
         mean_tele_point_b = tele_point_l_b.second;
-        Hist_OnData_SR_Skymap_Galactic.push_back(TH2D("Hist_Stage1_OnData_SR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
-        Hist_OnData_VR_Skymap_Galactic.push_back(TH2D("Hist_Stage1_OnData_VR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
-        Hist_OnData_CR_Skymap_Galactic.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
-        Hist_OnData_CR_Skymap_Galactic_Syst.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_Galactic_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
-        Hist_OnDark_CR_Skymap_Galactic_Syst.push_back(TH2D("Hist_Stage1_OnDark_CR_Skymap_Galactic_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",75,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,75,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+        Hist_OnData_SR_Skymap_Galactic.push_back(TH2D("Hist_Stage1_OnData_SR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,Skymap_nbins,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+        Hist_OnData_VR_Skymap_Galactic.push_back(TH2D("Hist_Stage1_OnData_VR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,Skymap_nbins,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+        Hist_OnData_CR_Skymap_Galactic.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,Skymap_nbins,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+        Hist_OnData_CR_Skymap_Galactic_Syst.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_Galactic_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,Skymap_nbins,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+        Hist_OnDark_CR_Skymap_Galactic_Syst.push_back(TH2D("Hist_Stage1_OnDark_CR_Skymap_Galactic_Syst_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,Skymap_nbins,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
     }
 
     vector<vector<TH2D>> Hist_OnDark_MSCLW;
@@ -1683,10 +1666,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 sprintf(e_low, "%i", int(energy_fine_bins[e]));
                 char e_up[50];
                 sprintf(e_up, "%i", int(energy_fine_bins[e+1]));
-                Hist_OnDark_SR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_SR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,-3.,3.));
-                Hist_OnDark_VR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,-3.,3.));
-                Hist_OnDark_CR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_CR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,-3.,3.));
-                Hist_OnDark_VCR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VCR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,6,-3.,3.));
+                Hist_OnDark_SR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_SR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,12,-3.,3.));
+                Hist_OnDark_VR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,12,-3.,3.));
+                Hist_OnDark_CR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_CR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,12,-3.,3.));
+                Hist_OnDark_VCR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VCR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,12,-3.,3.));
             }
             Hist_OnDark_SR_CameraFoV_ThisSample.push_back(Hist_OnDark_SR_CameraFoV_ThisElev);
             Hist_OnDark_VR_CameraFoV_ThisSample.push_back(Hist_OnDark_VR_CameraFoV_ThisElev);
@@ -1939,6 +1922,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 if (FoV(true))
                 {
+                    if (R2off<0.2*0.2)
+                    {
+                        Hist_OnData_SR_Energy_CamCenter.at(energy).Fill(ErecS*1000.);
+                    }
                     Hist_OnData_SR_Skymap_Theta2.at(energy).Fill(theta2);
                     Hist_OnData_SR_Skymap.at(energy).Fill(ra_sky,dec_sky);
                     Hist_OnData_SR_Skymap_Galactic.at(energy).Fill(evt_l_b.first,evt_l_b.second);
@@ -2004,6 +1991,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 }
                 if (ControlSelectionTheta2())
                 {
+                    if (R2off<0.2*0.2)
+                    {
+                        Hist_OnData_CR_Energy_CamCenter.at(energy).Fill(ErecS*1000.,weight_avg);
+                    }
                     Hist_OnData_CR_Skymap_Theta2.at(energy).Fill(theta2,weight_avg);
                     Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,weight_avg);
                     Hist_OnData_CR_Skymap_Galactic.at(energy).Fill(evt_l_b.first,evt_l_b.second,weight_avg);
@@ -2264,8 +2255,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     InfoTree.Branch("roi_name","std::vector<std::string>",&roi_name);
     InfoTree.Branch("roi_ra","std::vector<double>",&roi_ra);
     InfoTree.Branch("roi_dec","std::vector<double>",&roi_dec);
-    InfoTree.Branch("roi_radius","std::vector<double>",&roi_radius);
+    InfoTree.Branch("roi_radius","std::vector<double>",&roi_radius_outer);
     InfoTree.Branch("Skymap_size",&Skymap_size,"Skymap_size/D");
+    InfoTree.Branch("Skymap_nbins",&Skymap_nbins,"Skymap_nbins/I");
     InfoTree.Fill();
     InfoTree.Write();
 
@@ -2328,6 +2320,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_CR_Skymap_Galactic_Syst.at(e).Write();
         Hist_OnDark_CR_Skymap_Syst.at(e).Write();
         Hist_OnDark_CR_Skymap_Galactic_Syst.at(e).Write();
+        Hist_OnData_SR_Energy_CamCenter.at(e).Write();
+        Hist_OnData_CR_Energy_CamCenter.at(e).Write();
     }
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {

@@ -33,8 +33,8 @@ lowrank_tag = '_svd'
 method_tag += lowrank_tag
 
 signal_ratio = '0'
-if len(sys.argv)==3:
-    signal_ratio = sys.argv[2]
+#if len(sys.argv)==3:
+#    signal_ratio = sys.argv[2]
 #signal_tag = '_S0'
 #signal_tag = '_S5'
 #signal_tag = '_S10'
@@ -58,258 +58,396 @@ ONOFF_tag = 'ON'
 sample_list = []
 
 
-if sys.argv[1]=='SgrA':
+if sys.argv[1]=='SgrA_ON':
     ONOFF_tag = 'ON'
     sample_list = []
     sample_list += ['SgrAV6']
+    elev_bins = [25,45]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='OJ287':
+if sys.argv[1]=='OJ287_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['OJ287V6']
+    sample_list += ['OJ287V6_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='1ES0229':
+if sys.argv[1]=='OJ287_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['OJ287V6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='1ES0229_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['1ES0229V6']
-    sample_list += ['1ES0229V5']
+    sample_list += ['1ES0229V6_OFF']
+    sample_list += ['1ES0229V5_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='H1426':
+if sys.argv[1]=='1ES0229_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['1ES0229V6_ON']
+    sample_list += ['1ES0229V5_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='H1426_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['H1426V6']
+    sample_list += ['H1426V6_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='PKS1424':
+if sys.argv[1]=='H1426_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['H1426V6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='PKS1424_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['PKS1424V6']
+    sample_list += ['PKS1424V6_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='3C264':
+if sys.argv[1]=='PKS1424_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['PKS1424V6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='3C264_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['3C264V6']
+    sample_list += ['3C264V6_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     # The VERITAS observations of 3C 264 were taken from February through May 2017, from February through April 2018, and from January through May 2019.
     
-if sys.argv[1]=='PG1553':
+if sys.argv[1]=='PG1553_OFF':
+    ONOFF_tag = 'OFF'
+    sample_list = []
+    sample_list += ['PG1553V5_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='PG1553_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['PG1553V5']
+    sample_list += ['PG1553V5_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='1ES1011':
+if sys.argv[1]=='PG1553_Raster':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['PG1553V5_Raster']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='1ES1011_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['1ES1011V6']
+    sample_list += ['1ES1011V6_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='RBS0413':
+if sys.argv[1]=='RBS0413_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['RBS0413V6']
-    sample_list += ['RBS0413V5']
+    sample_list += ['RBS0413V6_OFF']
+    sample_list += ['RBS0413V5_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='1ES0647':
+if sys.argv[1]=='RBS0413_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['RBS0413V6_ON']
+    sample_list += ['RBS0413V5_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='1ES0647_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['1ES0647V6']
+    sample_list += ['1ES0647V6_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='RGBJ0710':
+if sys.argv[1]=='1ES0647_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['1ES0647V6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='RGBJ0710_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['RGBJ0710V5']
+    sample_list += ['RGBJ0710V5_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='Segue1':
+if sys.argv[1]=='RGBJ0710_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['RGBJ0710V5_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='Segue1_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['Segue1V6']
-    sample_list += ['Segue1V5']
+    sample_list += ['Segue1V6_OFF']
+    sample_list += ['Segue1V5_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     # only V5 data published
     
-if sys.argv[1]=='BLLac':
+if sys.argv[1]=='Segue1_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['Segue1V6_ON']
+    sample_list += ['Segue1V5_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    # only V5 data published
+    
+if sys.argv[1]=='BLLac_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['BLLacV6']
-    sample_list += ['BLLacV5']
+    sample_list += ['BLLacV6_OFF']
+    sample_list += ['BLLacV5_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='NGC1275':
+if sys.argv[1]=='BLLac_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['NGC1275V6']
+    sample_list += ['BLLacV6_ON']
+    sample_list += ['BLLacV5_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='SNRG150p3':
-    ONOFF_tag = 'ON'
-    sample_list = []
-    sample_list += ['SNRG150p3_V6']
-    
-if sys.argv[1]=='CasA':
-    ONOFF_tag = 'ON'
-    sample_list = []
-    sample_list += ['CasAV6']
-    
-if sys.argv[1]=='M82':
+if sys.argv[1]=='NGC1275_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['M82V6']
-    sample_list += ['M82V5']
-    #sample_list += ['M82V4']
+    sample_list += ['NGC1275V6_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='Crab':
+if sys.argv[1]=='NGC1275_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['NGC1275V6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='SNRG150p3_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['SNRG150p3_V6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='CasA_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['CasAV6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='CasA_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['CrabV6']
-    sample_list += ['CrabV5']
-    sample_list += ['CrabV4']
+    sample_list += ['CasAV6_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='Mrk421':
+if sys.argv[1]=='M82_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
-    sample_list += ['Mrk421V5']
+    sample_list += ['M82V6_OFF']
+    sample_list += ['M82V5_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    #sample_list += ['M82V4_OFF']
     
-if sys.argv[1]=='2HWC_J1930':
+if sys.argv[1]=='M82_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['2HWC_J1930V6']
+    sample_list += ['M82V6_ON']
+    sample_list += ['M82V5_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    #sample_list += ['M82V4_ON']
     
-if sys.argv[1]=='2HWC_J1953':
+if sys.argv[1]=='Crab_OFF':
+    ONOFF_tag = 'OFF'
+    sample_list = []
+    sample_list += ['CrabV6_OFF']
+    sample_list += ['CrabV5_OFF']
+    sample_list += ['CrabV4_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='Mrk421_OFF':
+    ONOFF_tag = 'OFF'
+    sample_list = []
+    sample_list += ['Mrk421V5_OFF']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='2HWC_J1930_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['2HWC_J1953V6']
+    sample_list += ['2HWC_J1930V6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='WComae':
+if sys.argv[1]=='2HWC_J1953_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['WComaeV6']
-    sample_list += ['WComaeV5']
-    sample_list += ['WComaeV4']
+    sample_list += ['2HWC_J1953V6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='WComae_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['WComaeV6_ON']
+    sample_list += ['WComaeV5_ON']
+    sample_list += ['WComaeV4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
     
-if sys.argv[1]=='IC443HotSpot':
+if sys.argv[1]=='IC443HotSpot_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['IC443HotSpotV6']
-    sample_list += ['IC443HotSpotV5']
-    sample_list += ['IC443HotSpotV4']
+    sample_list += ['IC443HotSpotV6_ON']
+    sample_list += ['IC443HotSpotV5_ON']
+    sample_list += ['IC443HotSpotV4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='Boomerang':
+if sys.argv[1]=='Boomerang_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['BoomerangV6']
-    sample_list += ['BoomerangV5']
-    sample_list += ['BoomerangV4']
+    sample_list += ['BoomerangV6_ON']
+    sample_list += ['BoomerangV5_ON']
+    sample_list += ['BoomerangV4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='MGRO_J1908':
+if sys.argv[1]=='Tycho_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['MGRO_J1908_V6']
-    sample_list += ['MGRO_J1908_V5']
-    sample_list += ['MGRO_J1908_V4']
+    sample_list += ['TychoV6_ON']
+    sample_list += ['TychoV5_ON']
+    sample_list += ['TychoV4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
+
+if sys.argv[1]=='MGRO_J1908_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['MGRO_J1908_V6_ON']
+    sample_list += ['MGRO_J1908_V5_ON']
+    sample_list += ['MGRO_J1908_V4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     # this is a Tevatron
     
-if sys.argv[1]=='MGRO_J1908Half1':
+if sys.argv[1]=='SS433_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['MGRO_J1908Half1_V6']
-    sample_list += ['MGRO_J1908Half1_V5']
-    sample_list += ['MGRO_J1908Half1_V4']
-    # this is a Tevatron
+    sample_list += ['SS433_V6_ON']
+    sample_list += ['SS433_V5_ON']
+    sample_list += ['SS433_V4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='MGRO_J1908Half2':
+if sys.argv[1]=='SS433Half1_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['MGRO_J1908Half2_V6']
-    sample_list += ['MGRO_J1908Half2_V5']
-    sample_list += ['MGRO_J1908Half2_V4']
-    # this is a Tevatron
+    sample_list += ['SS433Half1_V6_ON']
+    sample_list += ['SS433Half1_V5_ON']
+    sample_list += ['SS433Half1_V4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='SS433':
+if sys.argv[1]=='SS433Half2_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['SS433_V6']
-    sample_list += ['SS433_V5']
-    sample_list += ['SS433_V4']
+    sample_list += ['SS433Half2_V6_ON']
+    sample_list += ['SS433Half2_V5_ON']
+    sample_list += ['SS433Half2_V4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='SS433Half1':
+if sys.argv[1]=='MAGIC_J1857_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['SS433Half1_V6']
-    sample_list += ['SS433Half1_V5']
-    sample_list += ['SS433Half1_V4']
-    
-if sys.argv[1]=='SS433Half2':
-    ONOFF_tag = 'ON'
-    sample_list = []
-    sample_list += ['SS433Half2_V6']
-    sample_list += ['SS433Half2_V5']
-    sample_list += ['SS433Half2_V4']
-    
-if sys.argv[1]=='SS433Quad1':
-    ONOFF_tag = 'ON'
-    sample_list = []
-    sample_list += ['SS433Quad1_V6']
-    sample_list += ['SS433Quad1_V5']
-    sample_list += ['SS433Quad1_V4']
-    
-if sys.argv[1]=='SS433Quad2':
-    ONOFF_tag = 'ON'
-    sample_list = []
-    sample_list += ['SS433Quad2_V6']
-    sample_list += ['SS433Quad2_V5']
-    sample_list += ['SS433Quad2_V4']
-    
-if sys.argv[1]=='SS433Quad3':
-    ONOFF_tag = 'ON'
-    sample_list = []
-    sample_list += ['SS433Quad3_V6']
-    sample_list += ['SS433Quad3_V5']
-    sample_list += ['SS433Quad3_V4']
-    
-if sys.argv[1]=='SS433Quad4':
-    ONOFF_tag = 'ON'
-    sample_list = []
-    sample_list += ['SS433Quad4_V6']
-    sample_list += ['SS433Quad4_V5']
-    sample_list += ['SS433Quad4_V4']
-    
-if sys.argv[1]=='MAGIC_J1857':
-    ONOFF_tag = 'ON'
-    sample_list = []
-    sample_list += ['MAGIC_J1857_V6']
-    sample_list += ['MAGIC_J1857_V5']
-    sample_list += ['MAGIC_J1857_V4']
+    sample_list += ['MAGIC_J1857_V6_ON']
+    sample_list += ['MAGIC_J1857_V5_ON']
+    sample_list += ['MAGIC_J1857_V4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     # this is a Tevatron, largely extended at 400 GeV
     
-if sys.argv[1]=='MGRO_J2031':
+if sys.argv[1]=='MGRO_J2031_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['MGRO_J2031_V6']
-    sample_list += ['MGRO_J2031_V5']
-    sample_list += ['MGRO_J2031_V4']
+    sample_list += ['MGRO_J2031_V6_ON']
+    sample_list += ['MGRO_J2031_V5_ON']
+    sample_list += ['MGRO_J2031_V4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     # this is a Tevatron with time-variable morphology
     
-if sys.argv[1]=='Cygnus':
+if sys.argv[1]=='Cygnus_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['CygnusV6']
-    sample_list += ['CygnusV5']
+    sample_list += ['CygnusV6_ON']
+    sample_list += ['CygnusV5_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     # this is a Tevatron
     
-if sys.argv[1]=='GammaCygni':
+if sys.argv[1]=='GammaCygni_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['GammaCygniV4']
-    sample_list += ['GammaCygniV5']
-    sample_list += ['GammaCygniV6']
+    sample_list += ['GammaCygniV4_ON']
+    sample_list += ['GammaCygniV5_ON']
+    sample_list += ['GammaCygniV6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     # this is a Tevatron
     
-if sys.argv[1]=='Geminga':
+if sys.argv[1]=='Geminga_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['GemingaV6']
-    sample_list += ['GemingaV5']
+    sample_list += ['GemingaV6_ON']
+    sample_list += ['GemingaV5_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
     
-if sys.argv[1]=='Coma':
+if sys.argv[1]=='Coma_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['ComaV6']
-    sample_list += ['ComaV4']
+    sample_list += ['ComaV6_ON']
+    sample_list += ['ComaV4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
 
 root_file_tags = []
 # all time
@@ -346,7 +484,6 @@ print 'Get %s'%(root_file_tags[0])
 #    #root_file_tags += [method_tag+'_TelElev%sto%s_MJD57501to59500_%s'%(elev_bins[elev],elev_bins[elev+1],ONOFF_tag)]
 
 selection_tag = root_file_tags[0]
-selection_tag += '_E%s'%(energy_bin_cut_low)
 
 folder_path = 'output_test'
 #folder_path = 'output_root'
@@ -376,6 +513,7 @@ Zenith_mean_data = 0.
 NSB_RMS_data = 0.
 Zenith_RMS_data = 0.
 Skymap_size = 3.
+Skymap_nbins = 120
 source_ra = 0.
 source_dec = 0.
 source_l = 0.
@@ -396,22 +534,39 @@ Syst_Redu = 0.02
 Syst_Corr = 0.02
 Syst_Clos = 0.02
 
+#energy_bin = []
+#energy_bin += [int(pow(10,2.0))]
+#energy_bin += [int(pow(10,2.33))]
+#energy_bin += [int(pow(10,2.66))]
+#energy_bin += [int(pow(10,3.0))]
+#energy_bin += [int(pow(10,3.33))]
+#energy_bin += [int(pow(10,3.66))]
+#energy_bin += [int(pow(10,4.0))]
+#
+#energy_syst = []
+#energy_syst += [0.007]
+#energy_syst += [0.015]
+#energy_syst += [0.021]
+#energy_syst += [0.026]
+#energy_syst += [0.082]
+#energy_syst += [0.230]
+
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
-energy_bin += [int(pow(10,2.33))]
-energy_bin += [int(pow(10,2.66))]
+energy_bin += [int(pow(10,2.25))]
+energy_bin += [int(pow(10,2.5))]
+energy_bin += [int(pow(10,2.75))]
 energy_bin += [int(pow(10,3.0))]
-energy_bin += [int(pow(10,3.33))]
-energy_bin += [int(pow(10,3.66))]
+energy_bin += [int(pow(10,3.5))]
 energy_bin += [int(pow(10,4.0))]
 
 energy_syst = []
-energy_syst += [0.015]
+energy_syst += [0.007]
 energy_syst += [0.016]
 energy_syst += [0.022]
-energy_syst += [0.036]
-energy_syst += [0.036]
-energy_syst += [0.036]
+energy_syst += [0.029]
+energy_syst += [0.035]
+energy_syst += [0.131]
 
 energy_fine_bin = []
 energy_fine_bin += [pow(10,2.0)]
@@ -556,6 +711,45 @@ def ResetStackedShowerHistograms():
     Hist2D_Coeff_Data_Sum.Reset()
     Hist2D_Coeff_Bkgd_Sum.Reset()
 
+    Hist_SystErr_MSCL.Reset()
+    Hist_SystErr_MSCW.Reset()
+    Hist_SystErr_Energy.Reset()
+    Hist_SystErr_Theta2.Reset()
+
+    Hist_OnData_Theta2_Sum.Reset()
+    Hist_OnBkgd_Theta2_Sum.Reset()
+    Hist_OnDark_Theta2_Sum.Reset()
+    Hist_OnData_Energy_Sum.Reset()
+    Hist_OnBkgd_Energy_Sum.Reset()
+    Hist_OnDark_Energy_Sum.Reset()
+    Hist_OnData_Zenith_Sum.Reset()
+    Hist_OnBkgd_Zenith_Sum.Reset()
+    Hist_OnData_Energy_CamCenter_Sum.Reset()
+    Hist_OnBkgd_Energy_CamCenter_Sum.Reset()
+
+    Hist_OnData_Skymap_Sum.Reset()
+    Hist_OnBkgd_Skymap_Sum.Reset()
+    Hist_OnDark_Skymap_Sum.Reset()
+    Hist_OnData_VR_Skymap_Sum.Reset()
+    Hist_OnData_Skymap_Galactic_Sum.Reset()
+    Hist_OnBkgd_Skymap_Galactic_Sum.Reset()
+    Hist_OnData_VR_Skymap_Galactic_Sum.Reset()
+
+    Hist_OnData_Skymap_ProjX_Sum.Reset()
+    Hist_OnBkgd_Skymap_ProjX_Sum.Reset()
+    Hist_OnBkgd_Skymap_Syst_ProjX_Sum.Reset()
+    Hist_OnData_Skymap_ProjY_Sum.Reset()
+    Hist_OnBkgd_Skymap_ProjY_Sum.Reset()
+    Hist_OnBkgd_Skymap_Syst_ProjY_Sum.Reset()
+
+    for nth_roi in range(0,len(roi_ra)):
+        Hist_OnData_RoI_Energy_Sum[nth_roi].Reset() 
+        Hist_OnBkgd_RoI_Energy_Sum[nth_roi].Reset() 
+        Hist_OnData_RoI_Theta2_Sum[nth_roi].Reset()
+        Hist_OnBkgd_RoI_Theta2_Sum[nth_roi].Reset()
+        Hist_OnData_RoI_MJD_Sum[nth_roi].Reset()
+        Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Reset()
+
     for nth_sample in range(0,n_control_samples):
 
         Hist2D_OffData_Sum[nth_sample].Reset()
@@ -563,6 +757,10 @@ def ResetStackedShowerHistograms():
         Hist_OffBkgd_MSCL_Sum[nth_sample].Reset()
         Hist_OffData_MSCW_Sum[nth_sample].Reset()
         Hist_OffBkgd_MSCW_Sum[nth_sample].Reset()
+        Hist_OffData_Energy_Sum[nth_sample].Reset()
+        Hist_OffBkgd_Energy_Sum[nth_sample].Reset()
+        Hist_OffData_CameraFoV_Theta2_Sum[nth_sample].Reset()
+        Hist_OffBkgd_CameraFoV_Theta2_Sum[nth_sample].Reset()
 
 def GetSourceInfo(file_list):
 
@@ -577,6 +775,7 @@ def GetSourceInfo(file_list):
     global NSB_RMS_data
     global Zenith_RMS_data
     global Skymap_size
+    global Skymap_nbins
     global source_ra
     global source_dec
     global source_l
@@ -610,6 +809,7 @@ def GetSourceInfo(file_list):
         MSCW_blind_cut = InfoTree.MSCW_cut_blind
         MSCL_blind_cut = InfoTree.MSCL_cut_blind
         Skymap_size = InfoTree.Skymap_size
+        Skymap_nbins = InfoTree.Skymap_nbins
         source_ra = InfoTree.mean_tele_point_ra
         source_dec = InfoTree.mean_tele_point_dec
         source_l = InfoTree.mean_tele_point_l
@@ -631,7 +831,7 @@ def GetSourceInfo(file_list):
         HistName = "Hist_EffArea"
         Hist_EffArea.Reset()
         Hist_EffArea.Add(InputFile.Get(HistName))
-        Hist_EffArea.Scale(NewInfoTree.exposure_hours*3600.)
+        Hist_EffArea.Scale(InfoTree.exposure_hours*3600.)
         Hist_EffArea_Sum.Add(Hist_EffArea)
 
         InputFile.Close()
@@ -1489,7 +1689,7 @@ def MakeSpectrumInNonCrabUnit(hist_data,hist_bkgd,legends,title,name,syst):
 
     for nth_roi in range(0,len(hist_data)):
         Hist_Flux[nth_roi].SetLineColor(nth_roi+1)
-        func_source += [ROOT.TF1("func_source_%s"%(nth_roi),"[0]*pow(10,-12)*pow(x/1000.,[1])", 100, 10000)]
+        func_source += [ROOT.TF1("func_source_%s"%(nth_roi),"[0]*pow(10,-12)*pow(x/1000.,[1])", 150, 10000)]
         func_source[nth_roi].SetParameters(37.5,-2.)
         Hist_Flux[nth_roi].Fit("func_source_%s"%(nth_roi),"N")
         Hist_Flux[nth_roi].Draw("E same")
@@ -1531,7 +1731,8 @@ def MakeSpectrumInNonCrabUnit(hist_data,hist_bkgd,legends,title,name,syst):
     legend.SetLineColor(0)
     legend.Clear()
     for nth_roi in range(0,len(hist_data)):
-        legend.AddEntry(Hist_Flux[nth_roi],"%s, A #times 10^{-12} #times E^{x}, A = %0.2f, x = %0.2f"%(legends[nth_roi],func_source[nth_roi].GetParameter(0),func_source[nth_roi].GetParameter(1)),"pl")
+        #legend.AddEntry(Hist_Flux[nth_roi],"%s, A #times 10^{-12} #times E^{x}, A = %0.2f, x = %0.2f"%(legends[nth_roi],func_source[nth_roi].GetParameter(0),func_source[nth_roi].GetParameter(1)),"pl")
+        legend.AddEntry(Hist_Flux[nth_roi],"%s, index = %0.2f #pm %0.2f"%(legends[nth_roi],func_source[nth_roi].GetParameter(1),func_source[nth_roi].GetParError(1)),"pl")
     if 'IC443' in name:
         legend.AddEntry(func_ic443,"flux from arXiv:0905.3291","pl")
     if 'MGRO_J1908' in name:
@@ -1546,7 +1747,7 @@ def MakeSpectrumInNonCrabUnit(hist_data,hist_bkgd,legends,title,name,syst):
     pad1.SetLogy()
     pad1.SetLogx()
 
-    c_both.SaveAs('output_plots/%s.png'%(name))
+    c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
 
 def MakeSignalToBkgdRatioPlot(Hist_data,Hist_bkgd,legends,colors,title,name):
 
@@ -2293,6 +2494,22 @@ def PlotsStackedHistograms(tag):
     legends = []
     colors = []
     stack_it = []
+    Hists += [Hist_OnData_Energy_CamCenter_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_Energy_CamCenter_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    plotname = 'Stack_Energy_CamCenter_MDM_%s'%(tag)
+    title = 'energy [GeV]'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
     Hists += [Hist_OnData_Energy_Sum]
     legends += ['obs. data']
     colors += [1]
@@ -2481,6 +2698,12 @@ def NormalizeEnergyHistograms(FilePath):
     HistName = "Hist_OnDark_CR_Energy_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnDark_Energy.Reset()
     Hist_OnDark_Energy.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_SR_Energy_CamCenter_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnData_Energy_CamCenter.Reset()
+    Hist_OnData_Energy_CamCenter.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_CR_Energy_CamCenter_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnBkgd_Energy_CamCenter.Reset()
+    Hist_OnBkgd_Energy_CamCenter.Add(InputFile.Get(HistName))
 
     HistName = "Hist_OnData_SR_Zenith_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnData_Zenith.Reset()
@@ -2506,6 +2729,8 @@ def NormalizeEnergyHistograms(FilePath):
     if Hist2D_OnData.Integral()<1600.:
         Hist_OnData_Energy.Reset()
         Hist_OnBkgd_Energy.Reset()
+        Hist_OnData_Energy_CamCenter.Reset()
+        Hist_OnBkgd_Energy_CamCenter.Reset()
         Hist_OnDark_Energy.Reset()
         Hist_OnData_Zenith.Reset()
         Hist_OnBkgd_Zenith.Reset()
@@ -2557,19 +2782,12 @@ def NormalizeTheta2Histograms(FilePath):
             Hist_OnData_RoI_Theta2[nth_roi].Reset()
             Hist_OnBkgd_RoI_Theta2[nth_roi].Reset()
 
-def CorrectEnergyHistograms():
-
-    Hist_OnBkgd_Energy_Sum.Scale(1.+Syst_Corr)
-    Hist_OnBkgd_Zenith_Sum.Scale(1.+Syst_Corr)
-
-    for nth_roi in range(0,len(roi_ra)):
-        Hist_OnBkgd_RoI_Energy_Sum[nth_roi].Scale(1.+Syst_Corr)
-        Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Scale(1.+Syst_Corr)
-
 def StackEnergyHistograms():
 
     Hist_OnData_Energy_Sum.Add(Hist_OnData_Energy)
     Hist_OnBkgd_Energy_Sum.Add(Hist_OnBkgd_Energy)
+    Hist_OnData_Energy_CamCenter_Sum.Add(Hist_OnData_Energy_CamCenter)
+    Hist_OnBkgd_Energy_CamCenter_Sum.Add(Hist_OnBkgd_Energy_CamCenter)
     Hist_OnDark_Energy_Sum.Add(Hist_OnDark_Energy)
     Hist_OnData_Zenith_Sum.Add(Hist_OnData_Zenith)
     Hist_OnBkgd_Zenith_Sum.Add(Hist_OnBkgd_Zenith)
@@ -2840,7 +3058,7 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
 
     Hist_Smooth = Hist_Old.Clone()
     bin_size = Hist_Old.GetXaxis().GetBinCenter(2)-Hist_Old.GetXaxis().GetBinCenter(1)
-    nbin_smooth = int(4*smooth_size/bin_size) + 1
+    nbin_smooth = int(2*smooth_size/bin_size) + 1
     for bx1 in range(1,Hist_Old.GetNbinsX()+1):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
             bin_content = 0
@@ -2920,7 +3138,8 @@ def GetHawcSkymap(hist_map, isRaDec):
         binx = hist_map.GetXaxis().FindBin(l)
         biny = hist_map.GetYaxis().FindBin(b)
         old_sig = hist_map.GetBinContent(binx+1,biny+1)
-        hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
+        #hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
+        hist_map.SetBinContent(binx+1,biny+1,max(sig,0.))
     return hist_map
 
 def OutputToTxtFile(hist_input,name):
@@ -2931,7 +3150,7 @@ def OutputToTxtFile(hist_input,name):
             file1.write('x: %s y: %s sigma: %s \n'%(hist_input.GetXaxis().GetBinCenter(binx+1),hist_input.GetYaxis().GetBinCenter(biny+1),hist_input.GetBinContent(binx+1,biny+1)))
     file1.close()
 
-def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitle,ytitle,name):
+def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_Exposure,xtitle,ytitle,name):
 
     Hist_Skymap = GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,syst_method)
     Hist_Skymap = reflectXaxis(Hist_Skymap)
@@ -2942,7 +3161,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     Hist_HAWC = Hist_SR.Clone()
     Hist_HAWC = GetHawcSkymap(Hist_HAWC, isRaDec)
     Hist_HAWC = reflectXaxis(Hist_HAWC)
-    Hist_HAWC.SetLineColor(2)
+    Hist_HAWC.SetLineColor(0)
     Hist_HAWC.SetContour(3)
     Hist_HAWC.SetContourLevel(0,5)
     Hist_HAWC.SetContourLevel(1,10)
@@ -3060,7 +3279,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     pad1.cd()
     Hist_Skymap.Draw("COL4Z")
     Hist_Contour.Draw("CONT3 same")
-    Hist_HAWC.Draw("CONT3 same")
+    #Hist_HAWC.Draw("CONT3 same")
     Hist_Skymap.GetXaxis().SetLabelOffset(999)
     Hist_Skymap.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap.GetXaxis().GetXmin()
@@ -3080,6 +3299,13 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     for star in range(0,len(faint_star_markers)):
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        mycircles[nth_roi].Draw("same")
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.70,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
     lumilab1.SetNDC()
@@ -3120,6 +3346,13 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     for star in range(0,len(faint_star_markers)):
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        mycircles[nth_roi].Draw("same")
     Hist_Skymap_Excess.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Excess.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap_Excess.GetXaxis().GetXmin()
@@ -3167,6 +3400,13 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     for star in range(0,len(faint_star_markers)):
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        mycircles[nth_roi].Draw("same")
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.70,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
     lumilab1.SetNDC()
@@ -3185,7 +3425,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     pad1.SetLogz(0)
 
 
-    Hist_SR_reflected = reflectXaxis(Hist_SR)
+    Hist_SR_reflected = reflectXaxis(Hist_Exposure)
     pad1.cd()
     Hist_SR_reflected.GetYaxis().SetTitle(ytitle)
     Hist_SR_reflected.GetXaxis().SetTitle(xtitle)
@@ -3199,6 +3439,13 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     for star in range(0,len(faint_star_markers)):
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        mycircles[nth_roi].Draw("same")
     Hist_SR_reflected.GetXaxis().SetLabelOffset(999)
     Hist_SR_reflected.GetXaxis().SetTickLength(0)
     x1 = Hist_SR_reflected.GetXaxis().GetXmin()
@@ -3209,11 +3456,11 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
     raLowerAxis.SetLabelSize(Hist_SR_reflected.GetXaxis().GetLabelSize())
     raLowerAxis.Draw()
-    canvas.SaveAs('output_plots/SkymapCounts_%s_%s.png'%(name,selection_tag))
+    canvas.SaveAs('output_plots/Skymap_Exposure_%s_%s.png'%(name,selection_tag))
 
     Hist_Skymap_Ratio = Hist_SR.Clone()
     Hist_Skymap_Ratio.Add(Hist_Bkg,-1.)
-    Hist_Skymap_Ratio.Divide(Hist_Bkg)
+    Hist_Skymap_Ratio.Divide(Hist_Exposure)
     Hist_Skymap_Ratio = reflectXaxis(Hist_Skymap_Ratio)
     #for bx in range(0,Hist_Skymap_Ratio.GetNbinsX()):
     #    for by in range(0,Hist_Skymap_Ratio.GetNbinsY()):
@@ -3226,7 +3473,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     pad1.cd()
     Hist_Skymap_Ratio.GetYaxis().SetTitle(ytitle)
     Hist_Skymap_Ratio.GetXaxis().SetTitle(xtitle)
-    Hist_Skymap_Ratio.GetZaxis().SetTitle('S/B ratio')
+    Hist_Skymap_Ratio.GetZaxis().SetTitle('Rate [evt/hour]')
     Hist_Skymap_Ratio.GetZaxis().SetTitleOffset(1.1)
     Hist_Skymap_Ratio.Draw("COL4Z")
     for star in range(0,len(other_star_markers)):
@@ -3238,6 +3485,13 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     for star in range(0,len(faint_star_markers)):
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        mycircles[nth_roi].Draw("same")
     Hist_Skymap_Ratio.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Ratio.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap_Ratio.GetXaxis().GetXmin()
@@ -3270,8 +3524,8 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
             by_center = Hist_Skymap_Excess.GetYaxis().GetBinCenter(by+1)
             bx2 = Hist_Skymap_zoomin.GetXaxis().FindBin(bx_center)
             by2 = Hist_Skymap_zoomin.GetYaxis().FindBin(by_center)
-            Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Skymap_Excess.GetBinContent(bx+1,by+1))
-            #Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Skymap_Ratio.GetBinContent(bx+1,by+1))
+            #Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Skymap_Excess.GetBinContent(bx+1,by+1))
+            Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Skymap_Ratio.GetBinContent(bx+1,by+1))
             #Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Skymap.GetBinContent(bx+1,by+1))
             Hist_Contour_zoomin.SetBinContent(bx2,by2,Hist_Contour.GetBinContent(bx+1,by+1))
             Hist_HAWC_zoomin.SetBinContent(bx2,by2,Hist_HAWC.GetBinContent(bx+1,by+1))
@@ -3287,17 +3541,17 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     pad1.cd()
     Hist_Skymap_zoomin.GetYaxis().SetTitle(ytitle)
     Hist_Skymap_zoomin.GetXaxis().SetTitle(xtitle)
-    Hist_Skymap_zoomin.GetZaxis().SetTitle('excess count')
+    Hist_Skymap_zoomin.GetZaxis().SetTitle('Rate [evt/hour]')
     #Hist_Skymap_zoomin.GetZaxis().SetTitle('S/B ratio')
     Hist_Skymap_zoomin.GetZaxis().SetTitleOffset(1.1)
     Hist_Skymap_zoomin.Draw("COL4Z")
     Hist_Contour_zoomin.Draw("CONT3 same")
-    Hist_HAWC_zoomin.SetLineColor(2)
+    Hist_HAWC_zoomin.SetLineColor(0)
     Hist_HAWC_zoomin.SetContour(3)
     Hist_HAWC_zoomin.SetContourLevel(0,5)
     Hist_HAWC_zoomin.SetContourLevel(1,10)
     Hist_HAWC_zoomin.SetContourLevel(2,15)
-    Hist_HAWC_zoomin.Draw("CONT3 same")
+    #Hist_HAWC_zoomin.Draw("CONT3 same")
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
@@ -3311,7 +3565,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,xtitl
     for nth_roi in range(0,len(roi_ra)):
         mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
         mycircles[nth_roi].SetFillStyle(0)
-        mycircles[nth_roi].SetLineColor(0)
+        mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
         mycircles[nth_roi].Draw("same")
     Hist_Skymap_zoomin.GetXaxis().SetLabelOffset(999)
@@ -3339,18 +3593,11 @@ def FindLocalMaximum(Hist_sig, init_x, init_y):
                     max_sig = Hist_sig.GetBinContent(bx+1,by+1)
     return max_sig
 
-def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold, init_x, init_y):
+def GetExtention(Hist_data, Hist_bkgd, Hist_sig, Hist_exposure, highlight_threshold, init_x, init_y):
 
     Hist_Excess = Hist_data.Clone()
     Hist_Excess.Add(Hist_bkgd,-1.)
-
-    xx, yy, zz = ROOT.Long(0), ROOT.Long(0), ROOT.Long(0)
-    maxbin = Hist_sig.GetMaximumBin()
-    Hist_sig.GetBinXYZ(maxbin, xx, yy, zz)
-    print 'max excess at %s, %s'%(Hist_sig.GetXaxis().GetBinCenter(xx),Hist_sig.GetYaxis().GetBinCenter(yy))
-    minbin = Hist_sig.GetMinimumBin()
-    Hist_sig.GetBinXYZ(minbin, xx, yy, zz)
-    print 'min excess at %s, %s'%(Hist_sig.GetXaxis().GetBinCenter(xx),Hist_sig.GetYaxis().GetBinCenter(yy))
+    Hist_Excess.Divide(Hist_exposure)
 
     for bx in range(0,Hist_Excess.GetNbinsX()):
         for by in range(0,Hist_Excess.GetNbinsY()):
@@ -3361,8 +3608,18 @@ def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold, init_x, in
                 Hist_Excess.SetBinContent(bx+1,by+1,0.)
             if not Hist_sig.GetBinContent(bx+1,by+1)>=highlight_threshold: 
                 Hist_Excess.SetBinContent(bx+1,by+1,0.)
-    excess_center_x_init = Hist_Excess.GetMean(1)
-    excess_center_y_init = Hist_Excess.GetMean(2)
+    #excess_center_x_init = Hist_Excess.GetMean(1)
+    #excess_center_y_init = Hist_Excess.GetMean(2)
+    xx, yy, zz = ROOT.Long(0), ROOT.Long(0), ROOT.Long(0)
+    maxbin = Hist_Excess.GetMaximumBin()
+    Hist_Excess.GetBinXYZ(maxbin, xx, yy, zz)
+    print 'max excess at %s, %s'%(Hist_Excess.GetXaxis().GetBinCenter(xx),Hist_Excess.GetYaxis().GetBinCenter(yy))
+    excess_center_x_init = Hist_Excess.GetXaxis().GetBinCenter(xx)
+    excess_center_y_init = Hist_Excess.GetYaxis().GetBinCenter(yy)
+    minbin = Hist_Excess.GetMinimumBin()
+    Hist_Excess.GetBinXYZ(minbin, xx, yy, zz)
+    print 'min excess at %s, %s'%(Hist_Excess.GetXaxis().GetBinCenter(xx),Hist_Excess.GetYaxis().GetBinCenter(yy))
+
     #excess_radius_init = pow(pow(Hist_Excess.GetRMS(1),2)+pow(Hist_Excess.GetRMS(2),2),0.5)
     total_mass = 0.
     total_mass_distance = 0.
@@ -3389,8 +3646,10 @@ def GetExtention(Hist_data, Hist_bkgd, Hist_sig, highlight_threshold, init_x, in
             bin_delta_dec = Hist_Excess.GetYaxis().GetBinCenter(by+1)-excess_center_y_init
             if pow(bin_delta_ra*bin_delta_ra+bin_delta_dec*bin_delta_dec,0.5)>(3.*excess_radius_init):
                 Hist_Excess.SetBinContent(bx+1,by+1,0.)
-    excess_center_x = Hist_Excess.GetMean(1)
-    excess_center_y = Hist_Excess.GetMean(2)
+    #excess_center_x = Hist_Excess.GetMean(1)
+    #excess_center_y = Hist_Excess.GetMean(2)
+    excess_center_x = excess_center_x_init
+    excess_center_y = excess_center_y_init
     #excess_radius = pow(pow(Hist_Excess.GetRMS(1),2)+pow(Hist_Excess.GetRMS(2),2),0.5)
     total_mass = 0.
     total_mass_distance = 0.
@@ -4203,11 +4462,19 @@ def GetCRcounts(name):
     colors += [2]
     MakeMultiplePlot(Hists,legends,colors,'log10 counts per bin','N bins','CR_Counts_%s'%(name),0,0,False,False)
 
-def SingleSourceAnalysis(source_list,doMap):
+def SingleSourceAnalysis(source_list,doMap,e_low,e_up):
 
     global ErecS_lower_cut
     global ErecS_upper_cut
     global Syst_MDM
+    global energy_bin_cut_low
+    global energy_bin_cut_up
+    global selection_tag
+
+    energy_bin_cut_low = e_low
+    energy_bin_cut_up = e_up
+    selection_tag = root_file_tags[0]
+    selection_tag += '_E%sto%s'%(energy_bin_cut_low,energy_bin_cut_up)
 
     FilePath_List = []
     ResetStackedShowerHistograms()
@@ -4254,7 +4521,6 @@ def SingleSourceAnalysis(source_list,doMap):
 
     Syst_MDM = energy_syst[energy_bin_cut_low]
     #CalculateSystError_v3()
-    #CorrectEnergyHistograms()
     #CorrectTheta2Histograms()
 
     PlotsStackedHistograms('%s%s'%(source_list[0],PercentCrab))
@@ -4287,7 +4553,23 @@ def SingleSourceAnalysis(source_list,doMap):
     Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_MDM,smooth_size,False)
     Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_RBM,smooth_size,False)
 
-    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_MDM,Hist_OnBkgd_Skymap_Syst_RBM,'RA','Dec','Skymap_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+    skymap_bin_size_x = Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(1)
+    skymap_bin_size_y = Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(1)
+    event_rate = Hist_OnBkgd_Energy_CamCenter_Sum.Integral()/exposure_hours*(skymap_bin_size_x*skymap_bin_size_y)/(3.14*0.2*0.2)
+    Hist_Exposure_Skymap = Hist_OnData_Skymap_Sum.Clone()
+    for bx in range(1,Hist_Exposure_Skymap.GetNbinsX()+1):
+        for by in range(1,Hist_Exposure_Skymap.GetNbinsY()+1):
+            Hist_Exposure_Skymap.SetBinContent(bx,by,event_rate)
+    Hist_Exposure_Skymap_smooth = Smooth2DMap(Hist_Exposure_Skymap,smooth_size,False)
+    center_binx = int(Hist_Exposure_Skymap.GetNbinsX()/2.)
+    center_biny = int(Hist_Exposure_Skymap.GetNbinsY()/2.)
+    event_rate_smooth = Hist_Exposure_Skymap_smooth.GetBinContent(center_binx,center_biny)
+    Hist_Exposure_Skymap_smooth = Hist_OnBkgd_Skymap_smooth.Clone()
+    Hist_Exposure_Skymap_Galactic_smooth = Hist_OnBkgd_Skymap_Galactic_smooth.Clone()
+    Hist_Exposure_Skymap_smooth.Scale(1./event_rate_smooth)
+    Hist_Exposure_Skymap_Galactic_smooth.Scale(1./event_rate_smooth)
+
+    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_MDM,Hist_OnBkgd_Skymap_Syst_RBM,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_RaDec_MDM_%s%s'%(source_name,PercentCrab))
 
     Hist_Significance_Skymap = GetSignificanceMap(Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_MDM,Hist_OnBkgd_Skymap_Syst_RBM,Syst_MDM)
     MakeSignificanceDistribution(Hist_Significance_Skymap,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,'SigDist_MDM_%s%s'%(source_name,PercentCrab))
@@ -4296,10 +4578,10 @@ def SingleSourceAnalysis(source_list,doMap):
     Hist_Significance_Skymap_Dark = GetSignificanceMap(Hist_OnData_Skymap_Sum,Hist_OnDark_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_MDM,Hist_OnBkgd_Skymap_Syst_RBM,0.)
     MakeSignificanceDistribution(Hist_Significance_Skymap_Dark,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,'SigDist_Dark_%s%s'%(source_name,PercentCrab))
 
-    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Syst_RBM_smooth,'RA','Dec','Skymap_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
-    Make2DSignificancePlot(0.,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Syst_RBM_smooth,'RA','Dec','Skymap_NoSyst_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
-    Make2DSignificancePlot(0.,Hist_OnData_Skymap_smooth,Hist_OnDark_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Syst_RBM_smooth,'RA','Dec','Skymap_Dark_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
-    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth,'gal. l.','gal. b.','Skymap_Smooth_Galactic_MDM_%s%s'%(source_name,PercentCrab))
+    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Syst_RBM_smooth,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+    Make2DSignificancePlot(0.,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Syst_RBM_smooth,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_NoSyst_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+    Make2DSignificancePlot(0.,Hist_OnData_Skymap_smooth,Hist_OnDark_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Syst_RBM_smooth,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_Dark_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+    Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth,Hist_Exposure_Skymap_Galactic_smooth,'gal. l.','gal. b.','Skymap_Smooth_Galactic_MDM_%s%s'%(source_name,PercentCrab))
 
     #Hist_Significance_Skymap_smooth = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Syst_RBM_smooth,Syst_MDM)
     Hist_Significance_Skymap_smooth = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Syst_RBM_smooth,0.)
@@ -4309,15 +4591,7 @@ def SingleSourceAnalysis(source_list,doMap):
     init_y = source_dec
     #init_x = 340.5
     #init_y = 61.0
-    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_Sum, Hist_OnBkgd_Skymap_Sum, Hist_Significance_Skymap_smooth,5,init_x,init_y)
-    print 'Excess (5 sigma) center RA = %0.3f'%(excess_center_x)
-    print 'Excess (5 sigma) center Dec = %0.3f'%(excess_center_y)
-    print 'Excess (5 sigma) radius = %0.3f'%(excess_radius)
-    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_Sum, Hist_OnBkgd_Skymap_Sum, Hist_Significance_Skymap_smooth,4,init_x,init_y)
-    print 'Excess (4 sigma) center RA = %0.3f'%(excess_center_x)
-    print 'Excess (4 sigma) center Dec = %0.3f'%(excess_center_y)
-    print 'Excess (4 sigma) radius = %0.3f'%(excess_radius)
-    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_Sum, Hist_OnBkgd_Skymap_Sum, Hist_Significance_Skymap_smooth,3,init_x,init_y)
+    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,Hist_Exposure_Skymap_smooth,3,init_x,init_y)
     print 'Excess (3 sigma) center RA = %0.3f'%(excess_center_x)
     print 'Excess (3 sigma) center Dec = %0.3f'%(excess_center_y)
     print 'Excess (3 sigma) radius = %0.3f'%(excess_radius)
@@ -4455,44 +4729,48 @@ Hist_OnBkgd_Theta2 = ROOT.TH1D("Hist_OnBkgd_Theta2","",50,0,10)
 Hist_OnDark_Theta2 = ROOT.TH1D("Hist_OnDark_Theta2","",50,0,10)
 Hist_OnData_Energy_Sum = ROOT.TH1D("Hist_OnData_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnBkgd_Energy_Sum = ROOT.TH1D("Hist_OnBkgd_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_OnData_Energy_CamCenter_Sum = ROOT.TH1D("Hist_OnData_Energy_CamCenter_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_OnBkgd_Energy_CamCenter_Sum = ROOT.TH1D("Hist_OnBkgd_Energy_CamCenter_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnDark_Energy_Sum = ROOT.TH1D("Hist_OnDark_Energy_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnData_Energy = ROOT.TH1D("Hist_OnData_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnBkgd_Energy = ROOT.TH1D("Hist_OnBkgd_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_OnData_Energy_CamCenter = ROOT.TH1D("Hist_OnData_Energy_CamCenter","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
+Hist_OnBkgd_Energy_CamCenter = ROOT.TH1D("Hist_OnBkgd_Energy_CamCenter","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnDark_Energy = ROOT.TH1D("Hist_OnDark_Energy","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_OnData_Zenith_Sum = ROOT.TH1D("Hist_OnData_Zenith_Sum","",45,0,90)
 Hist_OnBkgd_Zenith_Sum = ROOT.TH1D("Hist_OnBkgd_Zenith_Sum","",45,0,90)
 Hist_OnData_Zenith = ROOT.TH1D("Hist_OnData_Zenith","",45,0,90)
 Hist_OnBkgd_Zenith = ROOT.TH1D("Hist_OnBkgd_Zenith","",45,0,90)
 
-Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnData_VR_Skymap = ROOT.TH2D("Hist_OnData_VR_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnDark_Skymap = ROOT.TH2D("Hist_OnDark_Skymap","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnData_Skymap_Sum = ROOT.TH2D("Hist_OnData_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnData_VR_Skymap_Sum = ROOT.TH2D("Hist_OnData_VR_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnDark_Skymap_Sum = ROOT.TH2D("Hist_OnDark_Skymap_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_MDM = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_MDM","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_RBM = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_RBM","",75,source_ra-Skymap_size,source_ra+Skymap_size,75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnData_Skymap_Galactic = ROOT.TH2D("Hist_OnData_Skymap_Galactic","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnData_VR_Skymap_Galactic = ROOT.TH2D("Hist_OnData_VR_Skymap_Galactic","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic_Syst = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnData_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_Skymap_Galactic_Sum","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnData_VR_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_VR_Skymap_Galactic_Sum","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sum","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic_Syst_MDM = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst_MDM","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic_Syst_RBM = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst_RBM","",75,source_l-Skymap_size,source_l+Skymap_size,75,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnData_VR_Skymap = ROOT.TH2D("Hist_OnData_VR_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnDark_Skymap = ROOT.TH2D("Hist_OnDark_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap_Syst = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnData_Skymap_Sum = ROOT.TH2D("Hist_OnData_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnData_VR_Skymap_Sum = ROOT.TH2D("Hist_OnData_VR_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnDark_Skymap_Sum = ROOT.TH2D("Hist_OnDark_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap_Syst_MDM = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_MDM","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap_Syst_RBM = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_RBM","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnData_Skymap_Galactic = ROOT.TH2D("Hist_OnData_Skymap_Galactic","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnData_VR_Skymap_Galactic = ROOT.TH2D("Hist_OnData_VR_Skymap_Galactic","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnBkgd_Skymap_Galactic = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnBkgd_Skymap_Galactic_Syst = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnData_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_Skymap_Galactic_Sum","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnData_VR_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_VR_Skymap_Galactic_Sum","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnBkgd_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sum","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnBkgd_Skymap_Galactic_Syst_MDM = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst_MDM","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnBkgd_Skymap_Galactic_Syst_RBM = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst_RBM","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
 
-Hist_OnData_Skymap_ProjX_Sum = ROOT.TH1D("Hist_OnData_Skymap_ProjX_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size)
-Hist_OnBkgd_Skymap_ProjX_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_ProjX_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_ProjX = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjX","",75,source_ra-Skymap_size,source_ra+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_ProjX_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjX_Sum","",75,source_ra-Skymap_size,source_ra+Skymap_size)
-Hist_OnData_Skymap_ProjY_Sum = ROOT.TH1D("Hist_OnData_Skymap_ProjY_Sum","",75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_ProjY_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_ProjY_Sum","",75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_ProjY = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjY","",75,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_ProjY_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjY_Sum","",75,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnData_Skymap_ProjX_Sum = ROOT.TH1D("Hist_OnData_Skymap_ProjX_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size)
+Hist_OnBkgd_Skymap_ProjX_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_ProjX_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size)
+Hist_OnBkgd_Skymap_Syst_ProjX = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjX","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size)
+Hist_OnBkgd_Skymap_Syst_ProjX_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjX_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size)
+Hist_OnData_Skymap_ProjY_Sum = ROOT.TH1D("Hist_OnData_Skymap_ProjY_Sum","",Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap_ProjY_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_ProjY_Sum","",Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap_Syst_ProjY = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjY","",Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnBkgd_Skymap_Syst_ProjY_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjY_Sum","",Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
 
 Hist_SystErr_MSCL = ROOT.TH1D("Hist_SystErr_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_SystErr_MSCW = ROOT.TH1D("Hist_SystErr_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -4594,8 +4872,7 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-SingleSourceAnalysis(sample_list,True)
-#SingleSourceAnalysis(sample_list,False)
+SingleSourceAnalysis(sample_list,False,0,6)
 print 'n_good_matches = %s'%(n_good_matches)
 
 print "Syst_MDM = %s"%(Syst_MDM) 
