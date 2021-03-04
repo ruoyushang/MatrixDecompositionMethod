@@ -5,7 +5,7 @@ import array
 import math
 from array import *
 from ROOT import *
-from astropy import units as u
+from astropy import units as my_unit
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
 from astropy.time import Time
@@ -61,7 +61,7 @@ sample_list = []
 if sys.argv[1]=='SgrA_ON':
     ONOFF_tag = 'ON'
     sample_list = []
-    sample_list += ['SgrAV6']
+    sample_list += ['SgrAV6_ON']
     elev_bins = [25,45]
     theta2_bins = [0,4]
     
@@ -485,21 +485,19 @@ print 'Get %s'%(root_file_tags[0])
 
 selection_tag = root_file_tags[0]
 
-folder_path = 'output_test'
-#folder_path = 'output_root'
+#folder_path = 'output_test'
+folder_path = 'output_root'
 PercentCrab = ''
 
-#N_bins_for_deconv = 8
+selection_tag += '_%s'%(folder_path)
+
 N_bins_for_deconv = 16
-#N_bins_for_deconv = 24
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.5
 MSCL_blind_cut = 0.5
-MSCW_lower_cut = -1.
-MSCL_lower_cut = -1.
-MSCW_plot_lower = -1.
-MSCL_plot_lower = -1.
+MSCW_plot_lower = -0.5
+MSCL_plot_lower = -0.5
 MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
 MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
 ErecS_lower_cut = 0
@@ -534,39 +532,30 @@ Syst_Redu = 0.02
 Syst_Corr = 0.02
 Syst_Clos = 0.02
 
-#energy_bin = []
-#energy_bin += [int(pow(10,2.0))]
-#energy_bin += [int(pow(10,2.33))]
-#energy_bin += [int(pow(10,2.66))]
-#energy_bin += [int(pow(10,3.0))]
-#energy_bin += [int(pow(10,3.33))]
-#energy_bin += [int(pow(10,3.66))]
-#energy_bin += [int(pow(10,4.0))]
-#
-#energy_syst = []
-#energy_syst += [0.007]
-#energy_syst += [0.015]
-#energy_syst += [0.021]
-#energy_syst += [0.026]
-#energy_syst += [0.082]
-#energy_syst += [0.230]
-
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
-energy_bin += [int(pow(10,2.25))]
-energy_bin += [int(pow(10,2.5))]
-energy_bin += [int(pow(10,2.75))]
+if folder_path!='output_root':
+    energy_bin += [int(pow(10,2.16))]
+energy_bin += [int(pow(10,2.33))]
+if folder_path!='output_root':
+    energy_bin += [int(pow(10,2.50))]
+energy_bin += [int(pow(10,2.66))]
 energy_bin += [int(pow(10,3.0))]
-energy_bin += [int(pow(10,3.5))]
+energy_bin += [int(pow(10,3.33))]
+energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 
 energy_syst = []
-energy_syst += [0.007]
-energy_syst += [0.016]
-energy_syst += [0.022]
-energy_syst += [0.029]
-energy_syst += [0.035]
-energy_syst += [0.131]
+energy_syst += [0.010]
+if folder_path!='output_root':
+    energy_syst += [0.010]
+energy_syst += [0.020]
+if folder_path!='output_root':
+    energy_syst += [0.020]
+energy_syst += [0.030]
+energy_syst += [0.030]
+energy_syst += [0.080]
+energy_syst += [0.280]
 
 energy_fine_bin = []
 energy_fine_bin += [pow(10,2.0)]
@@ -609,6 +598,10 @@ faint_star_brightness = []
 #blue =  [1.00,1.00,1.00,1.00,0.00]
 #ROOT.TColor.CreateGradientColorTable(NRGBs,array('d',stops),array('d',red),array('d',green),array('d',blue),NCont)
 #ROOT.gStyle.SetNumberContours(NCont)
+
+def ConvertGalacticToRaDec(l, b):
+    my_sky = SkyCoord(l*my_unit.deg, b*my_unit.deg, frame='galactic')
+    return my_sky.icrs.ra.deg, my_sky.icrs.dec.deg
 
 def ConvertRaDecToGalactic(ra, dec):
     delta = dec*ROOT.TMath.Pi()/180.
@@ -816,11 +809,11 @@ def GetSourceInfo(file_list):
         source_b = InfoTree.mean_tele_point_b
         if 'Theta20' in file_list[path]:
             exposure_hours += InfoTree.exposure_hours
+        MJD_Start = min(InfoTree.MJD_Start,MJD_Start)
+        MJD_End = max(InfoTree.MJD_End,MJD_End)
 
         NewInfoTree = InputFile.Get("NewInfoTree")
         NewInfoTree.GetEntry(0)
-        MJD_Start = min(InfoTree.MJD_Start,MJD_Start)
-        MJD_End = max(InfoTree.MJD_End,MJD_End)
         NSB_mean_data = NewInfoTree.NSB_mean_data
         Zenith_mean_data = NewInfoTree.Zenith_mean_data
         NSB_RMS_data = NewInfoTree.NSB_RMS_data
@@ -872,9 +865,9 @@ def GetShowerHistogramsFromFile(FilePath):
     InfoTree.GetEntry(0)
     MSCW_blind_cut = InfoTree.MSCW_cut_blind
     MSCL_blind_cut = InfoTree.MSCL_cut_blind
-    bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_lower_cut)
+    bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_plot_lower)
     bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
-    bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_lower_cut)
+    bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
     bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
 
     ErecS_lower_cut_int = int(ErecS_lower_cut)
@@ -2210,7 +2203,7 @@ def PlotsStackedHistograms(tag):
     stack_it += [False]
     plotname = 'Stack_MSCW_MDM_%s'%(tag)
     title = 'MSCW'
-    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_lower_cut,MSCW_blind_cut,-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_plot_lower,MSCW_blind_cut,-1)
 
     Hists = []
     legends = []
@@ -2230,7 +2223,7 @@ def PlotsStackedHistograms(tag):
     stack_it += [True]
     plotname = 'Stack_Unblind_wGamma_MSCW_MDM_%s'%(tag)
     title = 'MSCW'
-    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_lower_cut,MSCW_blind_cut,-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_plot_lower,MSCW_blind_cut,-1)
 
     Hists = []
     legends = []
@@ -2250,7 +2243,7 @@ def PlotsStackedHistograms(tag):
     stack_it += [True]
     plotname = 'Stack_Unblind_wGamma_MSCL_MDM_%s'%(tag)
     title = 'MSCL'
-    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_lower_cut,MSCL_blind_cut,-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_plot_lower,MSCL_blind_cut,-1)
 
     Hists = []
     legends = []
@@ -2266,7 +2259,7 @@ def PlotsStackedHistograms(tag):
     stack_it += [True]
     plotname = 'Stack_Unblind_woGamma_MSCW_MDM_%s'%(tag)
     title = 'MSCW'
-    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_lower_cut,MSCW_blind_cut,-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_plot_lower,MSCW_blind_cut,-1)
 
     Hists = []
     legends = []
@@ -2282,7 +2275,7 @@ def PlotsStackedHistograms(tag):
     stack_it += [True]
     plotname = 'Stack_Unblind_woGamma_MSCL_MDM_%s'%(tag)
     title = 'MSCL'
-    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_lower_cut,MSCL_blind_cut,-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_plot_lower,MSCL_blind_cut,-1)
 
     Hists = []
     legends = []
@@ -2298,7 +2291,7 @@ def PlotsStackedHistograms(tag):
     stack_it += [True]
     plotname = 'Stack_MSCW_Dark_%s'%(tag)
     title = 'MSCW'
-    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_lower_cut,MSCW_blind_cut,-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCW_plot_lower,MSCW_blind_cut,-1)
 
     Hists = []
     legends = []
@@ -2318,7 +2311,7 @@ def PlotsStackedHistograms(tag):
     stack_it += [False]
     plotname = 'Stack_MSCL_MDM_%s'%(tag)
     title = 'MSCL'
-    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_lower_cut,MSCL_blind_cut,-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_plot_lower,MSCL_blind_cut,-1)
 
     Hists = []
     legends = []
@@ -2334,7 +2327,7 @@ def PlotsStackedHistograms(tag):
     stack_it += [True]
     plotname = 'Stack_MSCL_Dark_%s'%(tag)
     title = 'MSCL'
-    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_lower_cut,MSCL_blind_cut,-1)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_plot_lower,MSCL_blind_cut,-1)
 
     if energy_bin[energy_bin_cut_low]>=2000.:
         Hist_OnData_Theta2_Sum.Rebin(2)
@@ -2555,7 +2548,7 @@ def PlotsStackedHistograms(tag):
     #    stack_it += [False]
     #    plotname = 'Stack_MSCW_MDM_%s_Control%s'%(tag,nth_sample)
     #    title = 'MSCW'
-    #    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,MSCW_lower_cut,MSCW_blind_cut,-1)
+    #    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,MSCW_plot_lower,MSCW_blind_cut,-1)
 
     #    Hists = []
     #    legends = []
@@ -2571,7 +2564,7 @@ def PlotsStackedHistograms(tag):
     #    stack_it += [False]
     #    plotname = 'Stack_MSCL_MDM_%s_Control%s'%(tag,nth_sample)
     #    title = 'MSCL'
-    #    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,MSCL_lower_cut,MSCL_blind_cut,-1)
+    #    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,False,MSCL_plot_lower,MSCL_blind_cut,-1)
 
     #    Hists = []
     #    legends = []
@@ -2611,10 +2604,10 @@ def CalculateSystErrorIndividual_v3():
 
     Syst_MDM_single = 0.
 
-    binx_low_target = Hist_OnData_MSCL.FindBin(MSCL_lower_cut)
+    binx_low_target = Hist_OnData_MSCL.FindBin(MSCL_plot_lower)
     binx_up_target = Hist_OnData_MSCL.FindBin(MSCL_plot_upper)-1
     binx_blind_target = Hist_OnData_MSCL.FindBin(MSCL_blind_cut)-1
-    biny_low_target = Hist_OnData_MSCW.FindBin(MSCW_lower_cut)
+    biny_low_target = Hist_OnData_MSCW.FindBin(MSCW_plot_lower)
     biny_up_target = Hist_OnData_MSCW.FindBin(MSCW_plot_upper)-1
     biny_blind_target = Hist_OnData_MSCW.FindBin(MSCW_blind_cut)-1
 
@@ -2640,10 +2633,10 @@ def CalculateSystError_v3():
     global Syst_MDM
     Syst_MDM = 0.
 
-    binx_low_target = Hist_OnData_MSCL.FindBin(MSCL_lower_cut)
+    binx_low_target = Hist_OnData_MSCL.FindBin(MSCL_plot_lower)
     binx_up_target = Hist_OnData_MSCL.FindBin(MSCL_plot_upper)-1
     binx_blind_target = Hist_OnData_MSCL.FindBin(MSCL_blind_cut)-1
-    biny_low_target = Hist_OnData_MSCW.FindBin(MSCW_lower_cut)
+    biny_low_target = Hist_OnData_MSCW.FindBin(MSCW_plot_lower)
     biny_up_target = Hist_OnData_MSCW.FindBin(MSCW_plot_upper)-1
     biny_blind_target = Hist_OnData_MSCW.FindBin(MSCW_blind_cut)-1
 
@@ -2683,7 +2676,7 @@ def NormalizeEnergyHistograms(FilePath):
     InfoTree.GetEntry(0)
     MSCW_blind_cut = InfoTree.MSCW_cut_blind
     MSCL_blind_cut = InfoTree.MSCL_cut_blind
-    bin_lower = Hist2D_OnData.GetYaxis().FindBin(MSCW_lower_cut)
+    bin_lower = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
     bin_upper = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
 
     ErecS_lower_cut_int = int(ErecS_lower_cut)
@@ -3125,6 +3118,34 @@ def reflectXaxis(hist):
             hT.SetBinContent( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinContent( binx, biny ) )
     return hT
 
+def FillSkymapHoles(hist_map, map_resolution):
+
+    hist_map_new = hist_map.Clone()
+    bin_size = hist_map.GetXaxis().GetBinCenter(2)-hist_map.GetXaxis().GetBinCenter(1)
+    nbin_smooth = int(map_resolution/bin_size) + 1
+    for bx1 in range(1,hist_map.GetNbinsX()+1):
+        for by1 in range(1,hist_map.GetNbinsY()+1):
+            bin_content_1 = hist_map.GetBinContent(bx1,by1)
+            if bin_content_1!=0.: continue
+            min_distance = 1e10
+            min_distance_content = 0.
+            locationx1 = hist_map.GetXaxis().GetBinCenter(bx1)
+            locationy1 = hist_map.GetYaxis().GetBinCenter(by1)
+            for bx2 in range(bx1-nbin_smooth,bx1+nbin_smooth):
+                for by2 in range(by1-nbin_smooth,by1+nbin_smooth):
+                    if bx2>=1 and bx2<=hist_map.GetNbinsX():
+                        if by2>=1 and by2<=hist_map.GetNbinsY():
+                            bin_content_2 = hist_map.GetBinContent(bx2,by2)
+                            if bin_content_2==0.: continue
+                            locationx2 = hist_map.GetXaxis().GetBinCenter(bx2)
+                            locationy2 = hist_map.GetYaxis().GetBinCenter(by2)
+                            distance = pow(pow(locationx1-locationx2,2)+pow(locationy1-locationy2,2),0.5)
+                            if min_distance>distance:
+                                min_distance = distance
+                                min_distance_content = bin_content_2
+            hist_map_new.SetBinContent(bx1,by1,min_distance_content)
+    return hist_map_new
+
 def GetHawcSkymap(hist_map, isRaDec):
 
     hist_map.Reset()
@@ -3138,9 +3159,32 @@ def GetHawcSkymap(hist_map, isRaDec):
         binx = hist_map.GetXaxis().FindBin(l)
         biny = hist_map.GetYaxis().FindBin(b)
         old_sig = hist_map.GetBinContent(binx+1,biny+1)
-        #hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
         hist_map.SetBinContent(binx+1,biny+1,max(sig,0.))
-    return hist_map
+
+    map_resolution = 0.1
+    hist_map_new = FillSkymapHoles(hist_map, map_resolution)
+
+    return hist_map_new
+
+def GetCOSkymap(hist_map, isRaDec):
+
+    hist_map.Reset()
+    inputFile = open('CO_skymap.txt')
+    if isRaDec: 
+        inputFile = open('CO_skymap_RaDec.txt')
+    for line in inputFile:
+        sig = float(line.split(' ')[0])
+        l = float(line.split(' ')[1])
+        b = float(line.split(' ')[2])
+        binx = hist_map.GetXaxis().FindBin(l)
+        biny = hist_map.GetYaxis().FindBin(b)
+        old_sig = hist_map.GetBinContent(binx+1,biny+1)
+        hist_map.SetBinContent(binx+1,biny+1,max(sig,0.))
+
+    map_resolution = 0.4
+    hist_map_new = FillSkymapHoles(hist_map, map_resolution)
+
+    return hist_map_new
 
 def OutputToTxtFile(hist_input,name):
 
@@ -3158,6 +3202,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
 
     isRaDec = False
     if 'RaDec' in name: isRaDec = True
+
     Hist_HAWC = Hist_SR.Clone()
     Hist_HAWC = GetHawcSkymap(Hist_HAWC, isRaDec)
     Hist_HAWC = reflectXaxis(Hist_HAWC)
@@ -3166,6 +3211,17 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
     Hist_HAWC.SetContourLevel(0,5)
     Hist_HAWC.SetContourLevel(1,10)
     Hist_HAWC.SetContourLevel(2,15)
+
+    Hist_CO = Hist_SR.Clone()
+    Hist_CO = GetCOSkymap(Hist_CO, isRaDec)
+    Hist_CO = reflectXaxis(Hist_CO)
+    Hist_CO.SetLineColor(0)
+    Hist_CO.SetContour(5)
+    Hist_CO.SetContourLevel(0,5)
+    Hist_CO.SetContourLevel(1,10)
+    Hist_CO.SetContourLevel(2,20)
+    Hist_CO.SetContourLevel(3,40)
+    Hist_CO.SetContourLevel(4,80)
 
     other_star_labels = []
     other_star_markers = []
@@ -3180,7 +3236,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
         for star in range(0,len(other_stars)):
             if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
             star_significance = FindLocalMaximum(Hist_Skymap, -other_star_coord[star][0], other_star_coord[star][1])
-            if star_significance<3.0: continue
+            #if star_significance<3.0: continue
             other_star_markers += [ROOT.TMarker(-other_star_coord[star][0],other_star_coord[star][1],2)]
             other_star_labels += [ROOT.TLatex(-other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
@@ -3206,7 +3262,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
             gal_l, gal_b = ConvertRaDecToGalactic(other_star_coord[star][0],other_star_coord[star][1])
             if pow(source_l-gal_l,2)+pow(source_b-gal_b,2)>star_range*star_range: continue
             star_significance = FindLocalMaximum(Hist_Skymap, -gal_l, gal_b)
-            if star_significance<3.0: continue
+            #if star_significance<3.0: continue
             other_star_markers += [ROOT.TMarker(-gal_l,gal_b,2)]
             other_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
@@ -3280,6 +3336,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
     Hist_Skymap.Draw("COL4Z")
     Hist_Contour.Draw("CONT3 same")
     #Hist_HAWC.Draw("CONT3 same")
+    Hist_CO.Draw("CONT3 same")
     Hist_Skymap.GetXaxis().SetLabelOffset(999)
     Hist_Skymap.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap.GetXaxis().GetXmin()
@@ -3515,9 +3572,11 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
     Hist_Skymap_zoomin = ROOT.TH2D("Hist_Skymap_zoomin","",25,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,25,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
     Hist_Contour_zoomin = ROOT.TH2D("Hist_Contour_zoomin","",25,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,25,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
     Hist_HAWC_zoomin = ROOT.TH2D("Hist_HAWC_zoomin","",25,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,25,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
+    Hist_CO_zoomin = ROOT.TH2D("Hist_CO_zoomin","",25,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,25,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
     Hist_Skymap_zoomin.Rebin2D(n_rebin,n_rebin)
     Hist_Contour_zoomin.Rebin2D(n_rebin,n_rebin)
     Hist_HAWC_zoomin.Rebin2D(n_rebin,n_rebin)
+    Hist_CO_zoomin.Rebin2D(n_rebin,n_rebin)
     for bx in range(0,Hist_Skymap_Excess.GetNbinsX()):
         for by in range(0,Hist_Skymap_Excess.GetNbinsY()):
             bx_center = Hist_Skymap_Excess.GetXaxis().GetBinCenter(bx+1)
@@ -3529,6 +3588,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
             #Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Skymap.GetBinContent(bx+1,by+1))
             Hist_Contour_zoomin.SetBinContent(bx2,by2,Hist_Contour.GetBinContent(bx+1,by+1))
             Hist_HAWC_zoomin.SetBinContent(bx2,by2,Hist_HAWC.GetBinContent(bx+1,by+1))
+            Hist_CO_zoomin.SetBinContent(bx2,by2,Hist_CO.GetBinContent(bx+1,by+1))
     Hist_Contour_zoomin.SetContour(3)
     Hist_Contour_zoomin.SetContourLevel(0,3)
     Hist_Contour_zoomin.SetContourLevel(1,4)
@@ -3552,6 +3612,14 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
     Hist_HAWC_zoomin.SetContourLevel(1,10)
     Hist_HAWC_zoomin.SetContourLevel(2,15)
     #Hist_HAWC_zoomin.Draw("CONT3 same")
+    Hist_CO_zoomin.SetLineColor(0)
+    Hist_CO_zoomin.SetContour(5)
+    Hist_CO_zoomin.SetContourLevel(0,5)
+    Hist_CO_zoomin.SetContourLevel(1,10)
+    Hist_CO_zoomin.SetContourLevel(2,20)
+    Hist_CO_zoomin.SetContourLevel(3,40)
+    Hist_CO_zoomin.SetContourLevel(4,80)
+    Hist_CO_zoomin.Draw("CONT3 same")
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
@@ -4118,9 +4186,9 @@ def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
 
 def MakeRankResidualPlots(name):
 
-    bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_lower_cut)
+    bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_plot_lower)
     bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
-    bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_lower_cut)
+    bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
     bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
 
     data_integral = Hist2D_OnData_Sum.Integral(bin_lower_x,bin_upper_x,bin_lower_y,bin_upper_y)
@@ -4229,9 +4297,9 @@ def SystematicAnalysis():
         InfoTree.GetEntry(0)
         MSCW_blind_cut = InfoTree.MSCW_cut_blind
         MSCL_blind_cut = InfoTree.MSCL_cut_blind
-        bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_lower_cut)
+        bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_plot_lower)
         bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
-        bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_lower_cut)
+        bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
         bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
 
         Hist2D_OnData_AllGroups = []
@@ -4436,9 +4504,9 @@ def MakeSignificanceDistribution(Hist2D_Sig,Hist2D_SR,Hist2D_Bkg,name):
 
 def GetCRcounts(name):
 
-    bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_lower_cut)
+    bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_plot_lower)
     bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
-    bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_lower_cut)
+    bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
     bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
     for bx in range(1,Hist2D_OnData_Sum.GetNbinsX()+1):
         for by in range(1,Hist2D_OnData_Sum.GetNbinsY()+1):
@@ -4494,9 +4562,9 @@ def SingleSourceAnalysis(source_list,doMap,e_low,e_up):
 
             MSCW_blind_cut = InfoTree.MSCW_cut_blind
             MSCL_blind_cut = InfoTree.MSCL_cut_blind
-            bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_lower_cut)
+            bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_plot_lower)
             bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
-            bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_lower_cut)
+            bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
             bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
             for e in range(0,len(energy_bin)-1):
                 ErecS_lower_cut = energy_bin[e]
@@ -4615,9 +4683,12 @@ for source in range(0,len(sample_list)):
     for elev in range(0,len(root_file_tags)):
         SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+".root"
         FilePath_Folder += [SourceFilePath]
+        print 'Get %s...'%(FilePath_Folder[elev])
         if not os.path.isfile(FilePath_Folder[elev]): 
+            print 'Found no file!!'
             continue
         else:
+            print 'Found a file.'
             GetSourceInfo(FilePath_Folder)
 print 'analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut)
 MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
@@ -4690,8 +4761,8 @@ Hist2D_Rank4_Dark_Sum = ROOT.TH2D("Hist2D_Rank4_Dark_Sum","",N_bins_for_deconv,M
 n_iterations = 100
 optimiz_lower = -10.
 optimiz_upper = 0.
-Hist_Bkgd_Chi2 = ROOT.TH1D("Hist_Bkgd_Chi2","",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper)
-Hist_Bkgd_Optimization = ROOT.TH1D("Hist_Bkgd_Optimization","",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper)
+Hist_Bkgd_Chi2 = ROOT.TH1D("Hist_Bkgd_Chi2","",200,optimiz_lower,optimiz_upper)
+Hist_Bkgd_Optimization = ROOT.TH1D("Hist_Bkgd_Optimization","",200,optimiz_lower,optimiz_upper)
 Hist_Bkgd_Converge_Blind = ROOT.TH1D("Hist_Bkgd_Converge_Blind","",n_iterations,0,n_iterations)
 Hist_Bkgd_Converge_Unblind = ROOT.TH1D("Hist_Bkgd_Converge_Unblind","",n_iterations,0,n_iterations)
 Hist_VVV_Eigenvalues = ROOT.TH1D("Hist_VVV_Eigenvalues","",N_bins_for_deconv*N_bins_for_deconv,0,N_bins_for_deconv*N_bins_for_deconv)
@@ -4872,7 +4943,16 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-SingleSourceAnalysis(sample_list,False,0,6)
+#drawMap = False
+drawMap = True
+
+if folder_path=='output_root':
+    SingleSourceAnalysis(sample_list,drawMap,0,6)
+    #SingleSourceAnalysis(sample_list,drawMap,2,6)
+    #SingleSourceAnalysis(sample_list,drawMap,3,6)
+else:
+    SingleSourceAnalysis(sample_list,drawMap,1,8)
+
 print 'n_good_matches = %s'%(n_good_matches)
 
 print "Syst_MDM = %s"%(Syst_MDM) 

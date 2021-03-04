@@ -956,8 +956,23 @@ MatrixXcd SortEigenvectors(VectorXcd eigenval, MatrixXcd mtx_r, MatrixXcd mtx_l)
     return mtx_l_output;
 }
 
+double CountGammaRegion(MatrixXcd mtx_input)
+{
+    double count = 0.;
+    for (int col=0;col<mtx_input.cols();col++)
+    {
+        for (int row=0;row<mtx_input.rows();row++)
+        {
+            if (row>=binx_blind_global) continue;
+            if (col>=biny_blind_global) continue;
+            count += mtx_input(row,col).real();
+        }
+    }
+    return count;
+}
 MatrixXcd NuclearNormMinimization(MatrixXcd mtx_init_input, MatrixXcd mtx_data_input, MatrixXcd mtx_dark_input, int entry_start, int entry_size, double step_frac, bool isBlind, int isLeft, double alpha)
 {
+
     JacobiSVD<MatrixXd> svd_data(mtx_data_input.real(), ComputeFullU | ComputeFullV);
     MatrixXd mtx_U_data = svd_data.matrixU();
     MatrixXd mtx_V_data = svd_data.matrixV();
@@ -1027,13 +1042,11 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_init_input, MatrixXcd mtx_data_i
                     if (kth_entry>entry_size && nth_entry>entry_size) continue;
                     if (RegularizationType==1)
                     {
-                        if (kth_entry>entry_size && nth_entry>entry_size) continue;
                         if (kth_entry==3 && nth_entry==3) continue;
                         if (kth_entry>3 || nth_entry>3) continue;
                     }
                     if (RegularizationType==2)
                     {
-                        if (kth_entry>entry_size && nth_entry>entry_size) continue;
                         if (kth_entry==3 && nth_entry==3) continue;
                         if (kth_entry>5 || nth_entry>5) continue;
                     }
@@ -1059,7 +1072,7 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_init_input, MatrixXcd mtx_data_i
                 {
                     double regularization_weight = abs(mtx_regularization(idx_k,idx_n));
                     if (regularization_weight==0.) continue;
-                    mtx_A(idx_u,idx_v) = pow(alpha*1./regularization_weight,1);
+                    mtx_A(idx_u,idx_v) = pow(alpha*1./regularization_weight,1.);
                 }
                 else if (RegularizationType==4)
                 {
@@ -1708,10 +1721,10 @@ MatrixXcd SpectralDecompositionMethod_v3(MatrixXcd mtx_input, int entry_start, i
     fill2DHistogram(&Hist_Temp_Data,mtx_data_truncated);
     TH2D Hist_Temp_Dark = TH2D("Hist_Temp_Dark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper);
     fill2DHistogram(&Hist_Temp_Dark,mtx_input_truncated);
-    int binx_lower = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_cut_lower);
+    int binx_lower = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_plot_lower);
     int binx_blind = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_cut_blind)-1;
     int binx_upper = Hist_Temp_Data.GetXaxis()->FindBin(1.)-1;
-    int biny_lower = Hist_Temp_Data.GetYaxis()->FindBin(MSCW_cut_lower);
+    int biny_lower = Hist_Temp_Data.GetYaxis()->FindBin(MSCW_plot_lower);
     int biny_blind = Hist_Temp_Data.GetYaxis()->FindBin(MSCW_cut_blind)-1;
     int biny_upper = Hist_Temp_Data.GetYaxis()->FindBin(1.)-1;
     double Data_CR_Integral = Hist_Temp_Data.Integral(binx_blind+1,binx_upper+1,biny_lower,biny_blind);
@@ -2125,20 +2138,6 @@ void GetTruncatedHistogram(TH2D* hist_input, TH2D* hist_output, int rank_cutoff)
     mtx_eigenvalue_temp = CutoffEigenvalueMatrix(mtx_eigenvalue_temp, rank_cutoff);
     mtx_temp = mtx_eigenvector_temp*mtx_eigenvalue_temp*mtx_eigenvector_inv_temp;
     fill2DHistogram(hist_output,mtx_temp);
-}
-double CountGammaRegion(MatrixXcd mtx_input)
-{
-    double count = 0.;
-    for (int col=0;col<mtx_input.cols();col++)
-    {
-        for (int row=0;row<mtx_input.rows();row++)
-        {
-            if (row>=binx_blind_global) continue;
-            if (col>=biny_blind_global) continue;
-            count += mtx_input(row,col).real();
-        }
-    }
-    return count;
 }
 double CountCosmicRayRegion(MatrixXcd mtx_input)
 {
@@ -2567,10 +2566,10 @@ void GetNoiseReplacedMatrix(TH2D* hist_data, TH2D* hist_dark, bool isTight)
 }
 void NormalizeDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
 {
-    int binx_lower = hist_data->GetXaxis()->FindBin(MSCL_cut_lower);
+    int binx_lower = hist_data->GetXaxis()->FindBin(MSCL_plot_lower);
     int binx_blind = hist_data->GetXaxis()->FindBin(MSCL_cut_blind);
     int binx_upper = hist_data->GetNbinsX();
-    int biny_lower = hist_data->GetYaxis()->FindBin(MSCW_cut_lower);
+    int biny_lower = hist_data->GetYaxis()->FindBin(MSCW_plot_lower);
     int biny_blind = hist_data->GetYaxis()->FindBin(MSCW_cut_blind);
     int biny_upper = hist_data->GetNbinsY();
     double Data_CR_Integral = 0.;
@@ -2580,9 +2579,10 @@ void NormalizeDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
         for (int biny=1;biny<=hist_data->GetNbinsY();biny++)
         {
             if (binx<binx_blind && biny<biny_blind) continue;
+            //if (binx<binx_blind || biny<biny_blind) continue;
             //if (binx>binx_blind+hist_data->GetNbinsX()/4) continue;
             //if (biny>biny_blind+hist_data->GetNbinsY()/4) continue;
-            //if (binx>=binx_blind) continue;
+            //if (binx>=binx_blind && biny>=biny_blind) continue;
             Data_CR_Integral += hist_data->GetBinContent(binx,biny);
             Dark_CR_Integral += hist_dark->GetBinContent(binx,biny);
         }
@@ -2631,10 +2631,10 @@ void AlterDarkMatrix(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_dark_alter)
 //    Hist_Temp_Data.Add(Hist_Data);
 //    Hist_Temp_Dark.Add(Hist_Dark);
 //
-//    int binx_lower = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_cut_lower);
+//    int binx_lower = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_plot_lower);
 //    int binx_blind = Hist_Temp_Data.GetXaxis()->FindBin(MSCL_cut_blind)-1;
 //    int binx_upper = Hist_Temp_Data.GetXaxis()->FindBin(1.)-1;
-//    int biny_lower = Hist_Temp_Data.GetYaxis()->FindBin(MSCW_cut_lower);
+//    int biny_lower = Hist_Temp_Data.GetYaxis()->FindBin(MSCW_plot_lower);
 //    int biny_blind = Hist_Temp_Data.GetYaxis()->FindBin(MSCW_cut_blind)-1;
 //    int biny_upper = Hist_Temp_Data.GetYaxis()->FindBin(1.)-1;
 //
@@ -2864,10 +2864,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             char sample2_tag[50];
             sprintf(sample2_tag, "%i", nth_sample);
 
-            int binx_lower = Hist_OffData_MSCLW.at(0).at(e).GetXaxis()->FindBin(MSCL_cut_lower);
+            int binx_lower = Hist_OffData_MSCLW.at(0).at(e).GetXaxis()->FindBin(MSCL_plot_lower);
             binx_blind_global = Hist_OffData_MSCLW.at(0).at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
             int binx_upper = Hist_OffData_MSCLW.at(0).at(e).GetXaxis()->FindBin(1.)-1;
-            int biny_lower = Hist_OffData_MSCLW.at(0).at(e).GetYaxis()->FindBin(MSCW_cut_lower);
+            int biny_lower = Hist_OffData_MSCLW.at(0).at(e).GetYaxis()->FindBin(MSCW_plot_lower);
             biny_blind_global = Hist_OffData_MSCLW.at(0).at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
             int biny_upper = Hist_OffData_MSCLW.at(0).at(e).GetYaxis()->FindBin(1.)-1;
 
@@ -2990,8 +2990,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         //double optimiz_upper = 6.;
         double optimiz_lower = -10.;
         double optimiz_upper = 0.;
-        Hist_Bkgd_Optimization.push_back(TH1D("Hist_Bkgd_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper));
-        Hist_Bkgd_Chi2.push_back(TH1D("Hist_Bkgd_Chi2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper));
+        Hist_Bkgd_Optimization.push_back(TH1D("Hist_Bkgd_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",200,optimiz_lower,optimiz_upper));
+        Hist_Bkgd_Chi2.push_back(TH1D("Hist_Bkgd_Chi2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",200,optimiz_lower,optimiz_upper));
         Hist_Bkgd_Converge_Blind.push_back(TH1D("Hist_Bkgd_Converge_Blind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
         Hist_Bkgd_Converge_Unblind.push_back(TH1D("Hist_Bkgd_Converge_Unblind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
 
@@ -3205,11 +3205,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
         TString hist_name;
 
-        int binx_lower = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_lower);
+        int binx_lower = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_plot_lower);
         binx_blind_global = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
         biny_blind_global = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
         int binx_upper = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(1.)-1;
-        int biny_lower = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_lower);
+        int biny_lower = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_plot_lower);
         int biny_upper = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(1.)-1;
 
         hist_name  = "Hist2D_Regularization_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -3370,11 +3370,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         if (!isnan(Hist_OnBkgd_MSCLW.at(e).Integral()) && !isnan(Hist_OnData_MSCLW.at(e).Integral()))
         {
 
-            int binx_lower = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_lower);
+            int binx_lower = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_plot_lower);
             int binx_blind = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
             int binx_validate = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_blind+0.2)-1;
             int binx_upper = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(1.)-1;
-            int biny_lower = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_lower);
+            int biny_lower = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_plot_lower);
             int biny_blind = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
             int biny_validate = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind+0.2)-1;
             int biny_upper = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(1.)-1;
@@ -3706,9 +3706,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
     for (int e=0;e<N_energy_bins;e++) 
     {
-        int binx_lower = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_lower);
+        int binx_lower = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_plot_lower);
         int binx_blind = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
-        int biny_lower = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_lower);
+        int biny_lower = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_plot_lower);
         int biny_blind = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
         double Bkgd_SR_Integral = Hist_OnBkgd_MSCLW.at(e).Integral(binx_lower,binx_blind,biny_lower,biny_blind);
         double Bkgd_VR_Integral = Hist_OnData_VR_Skymap.at(e).Integral();

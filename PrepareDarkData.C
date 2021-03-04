@@ -1091,9 +1091,9 @@ void GetBrightStars()
 bool SignalSelectionTheta2()
 {
     if (MSCW>MSCW_cut_blind) return false;
-    if (MSCW<MSCW_cut_lower) return false;
+    if (MSCW<MSCW_plot_lower) return false;
     if (MSCL>MSCL_cut_blind) return false;
-    if (MSCL<MSCL_cut_lower) return false;
+    if (MSCL<MSCL_plot_lower) return false;
     return true;
 }
 bool ValidationSelectionTheta2()
@@ -1108,8 +1108,10 @@ bool ControlSelectionTheta2()
 {
     if (SignalSelectionTheta2()) return false;
     if (MSCW<MSCW_cut_blind && MSCL<MSCL_cut_blind) return false;
-    if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
-    if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
+    //if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
+    //if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
+    if (MSCL>0.5*gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
+    if (MSCW>0.5*gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     return true;
 }
 bool VRControlSelectionTheta2()
@@ -1277,6 +1279,12 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_dec.push_back(6.162);
         roi_radius_inner.push_back(0.15);
         roi_radius_outer.push_back(0.5);
+
+        //roi_name.push_back("circle 2");
+        //roi_ra.push_back(287.000);
+        //roi_dec.push_back(6.444);
+        //roi_radius_inner.push_back(0.);
+        //roi_radius_outer.push_back(0.15);
     }
     else if (TString(target).Contains("SS433")) 
     {
@@ -2047,6 +2055,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     vector<int> Data_runlist_number;
     vector<string> Data_runlist_name;
+    vector<int> Dark_runlist_number;
+    vector<string> Dark_runlist_name;
     vector<double> Data_runlist_elev;
     vector<int> Data_runlist_MJD;
     for (int run=0;run<Data_runlist.size();run++)
@@ -2061,6 +2071,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Data_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
         Data_runlist_elev.push_back(GetRunElevAzim(filename,int(Data_runlist[run].second)).first);
         Data_runlist_MJD.push_back(GetRunMJD(filename,int(Data_runlist[run].second)));
+        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+        {
+            for (int off_run=0;off_run<Dark_runlist.at(run).at(nth_sample).size();off_run++)
+            {
+                Dark_runlist_name.push_back(Dark_runlist.at(run).at(nth_sample)[off_run].first);
+                Dark_runlist_number.push_back(Dark_runlist.at(run).at(nth_sample)[off_run].second);
+            }
+        }
     }
 
     std::cout << "prepare photon template" << std::endl;
@@ -2249,6 +2267,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     InfoTree.Branch("mean_tele_point_b",&mean_tele_point_b,"mean_tele_point_b/D");
     InfoTree.Branch("Data_runlist_name","std::vector<std::string>",&Data_runlist_name);
     InfoTree.Branch("Data_runlist_number","std::vector<int>",&Data_runlist_number);
+    InfoTree.Branch("Dark_runlist_name","std::vector<std::string>",&Dark_runlist_name);
+    InfoTree.Branch("Dark_runlist_number","std::vector<int>",&Dark_runlist_number);
     InfoTree.Branch("Data_runlist_MJD","std::vector<int>",&Data_runlist_MJD);
     InfoTree.Branch("Data_runlist_elev","std::vector<double>",&Data_runlist_elev);
     InfoTree.Branch("Data_runlist_exposure","std::vector<double>",&Data_runlist_exposure);
