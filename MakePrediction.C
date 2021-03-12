@@ -404,8 +404,8 @@ MatrixXcd GetErrorMap()
 }
 void RingBackgroundSkymap(TH2D* hist_input, TH2D* hist_output, TH2D* hist_response)
 {
-    double radius_inner = 0.2;
-    double radius_outer = 0.4;
+    double radius_inner = pow(0.15,0.5);
+    double radius_outer = pow(0.30,0.5);
     for (int bx_target=1;bx_target<=hist_input->GetNbinsX();bx_target++)
     {
         for (int by_target=1;by_target<=hist_input->GetNbinsY();by_target++)

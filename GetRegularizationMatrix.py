@@ -21,7 +21,8 @@ ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
 
-folder_path = 'output_test'
+folder_path = 'output_root'
+#folder_path = 'output_test'
 #method_tag = 'loose_mdm_default'
 method_tag = 'tight_mdm_default'
 
@@ -31,26 +32,29 @@ method_tag += lowrank_tag
 
 ONOFF_tag = 'OFF'
 sample_list = []
-sample_list += ['OJ287V6']
-sample_list += ['1ES0229V6']
-sample_list += ['1ES0229V5']
-sample_list += ['H1426V6']
-sample_list += ['PKS1424V6']
-sample_list += ['3C264V6']
-sample_list += ['1ES1011V6']
-sample_list += ['Segue1V6']
-sample_list += ['Segue1V5']
-sample_list += ['BLLacV6']
-sample_list += ['BLLacV5']
-sample_list += ['CrabV5']
-sample_list += ['CrabV6']
+sample_list += ['1ES1011V6_OFF']
+sample_list += ['OJ287V6_OFF']
+sample_list += ['1ES0229V6_OFF']
+sample_list += ['1ES0229V5_OFF']
+sample_list += ['H1426V6_OFF']
+sample_list += ['PKS1424V6_OFF']
+sample_list += ['3C264V6_OFF']
+sample_list += ['Segue1V6_OFF']
+sample_list += ['Segue1V5_OFF']
+sample_list += ['BLLacV6_OFF']
+sample_list += ['BLLacV5_OFF']
+sample_list += ['CrabV5_OFF']
+sample_list += ['CrabV6_OFF']
+sample_list += ['PG1553V5_OFF']
     
 elev_bins = [45,85]
 theta2_bins = [0,4]
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
+#energy_bin += [int(pow(10,2.16))]
 energy_bin += [int(pow(10,2.33))]
+#energy_bin += [int(pow(10,2.50))]
 energy_bin += [int(pow(10,2.66))]
 energy_bin += [int(pow(10,3.0))]
 energy_bin += [int(pow(10,3.33))]
@@ -70,9 +74,13 @@ for elev in range(0,len(elev_bins)-1):
 
 def GetHistogramsFromFile(FilePath):
     global total_exposure_hours
+    dark_gamma_count = ROOT.std.vector("double")(10)
     InputFile = ROOT.TFile(FilePath)
     InfoTree = InputFile.Get("InfoTree")
     InfoTree.GetEntry(0)
+    NewInfoTree = InputFile.Get("NewInfoTree")
+    NewInfoTree.SetBranchAddress('dark_gamma_count',ROOT.AddressOf(dark_gamma_count))
+    NewInfoTree.GetEntry(0)
     exposure_hours = InfoTree.exposure_hours
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
@@ -81,26 +89,25 @@ def GetHistogramsFromFile(FilePath):
         total_exposure_hours += exposure_hours
     Hist2D_Coeff_Data.Reset()
     HistName = "Hist_Coeff_Data_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    print 'Get %s'%(HistName)
     Hist2D_Coeff_Data.Add(InputFile.Get(HistName))
     for binx in range(0,Hist2D_Coeff_Data.GetNbinsX()):
         for biny in range(0,Hist2D_Coeff_Data.GetNbinsY()):
             old_content = Hist2D_Regularization[energy_index].GetBinContent(binx+1,biny+1)
-            new_content = Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1)
-            Hist2D_Regularization[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content*new_content)
-            old_content = Hist2D_Regularization_rev[energy_index].GetBinContent(binx+1,biny+1)
-            new_content = Hist2D_Coeff_Data.GetBinContent(Hist2D_Coeff_Data.GetNbinsX()-binx,Hist2D_Coeff_Data.GetNbinsY()-biny)
-            Hist2D_Regularization_rev[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content*new_content)
+            new_content = pow(Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1),2)
+            new_content += pow(Hist2D_Coeff_Data.GetBinContent(biny+1,binx+1),2)
+            #new_content = abs(Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1))
+            #new_content += abs(Hist2D_Coeff_Data.GetBinContent(biny+1,binx+1))
+            Hist2D_Regularization[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content)
 
 Hist2D_Coeff_Data = ROOT.TH2D("Hist2D_Coeff_Data","",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)
 Hist2D_Regularization = []
-Hist2D_Regularization_rev = []
 for e in range(0,len(energy_bin)-1):
     ErecS_lower_cut = energy_bin[e]
     ErecS_upper_cut = energy_bin[e+1]
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
     Hist2D_Regularization += [ROOT.TH2D("Hist2D_Regularization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int),"",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)]
-    Hist2D_Regularization_rev += [ROOT.TH2D("Hist2D_Regularization_rev_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int),"",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)]
 
 FilePath_List = []
 for source in range(0,len(sample_list)):
@@ -108,8 +115,8 @@ for source in range(0,len(sample_list)):
     for elev in range(0,len(root_file_tags)):
         FilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+".root"
         FilePath_List += [FilePath]
-        if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
         print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
+        if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
         for e in range(0,len(energy_bin)-1):
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
@@ -139,18 +146,15 @@ pad1.Draw()
 pad3.Draw()
 for e in range(0,len(energy_bin)-1):
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#sum_{all fields} t_{kn}^{2} coefficents' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'#tau_{kn} coefficents' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
     pad1.cd()
-    pad1.SetLogz()
+    #pad1.SetLogz()
     #Hist2D_Coeff_Data_Sum.SetMaximum(1e-1);
     #Hist2D_Coeff_Data_Sum.SetMinimum(1.0);
     Hist2D_Regularization[e].GetYaxis().SetTitle('n')
     Hist2D_Regularization[e].GetXaxis().SetTitle('k')
     Hist2D_Regularization[e].Draw("COL4Z")
-    #Hist2D_Regularization_rev[e].GetYaxis().SetTitle('n')
-    #Hist2D_Regularization_rev[e].GetXaxis().SetTitle('k')
-    #Hist2D_Regularization_rev[e].Draw("COL4Z")
     canvas.SaveAs('output_plots/Coeff_t2_data_%s_%s.png'%(e,method_tag))

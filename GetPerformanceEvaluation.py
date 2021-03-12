@@ -39,7 +39,7 @@ colors = []
 #method_tag += ['loose_mdm_tikhonov']
 #legends += ['Tikhonov']
 method_tag += ['tight_mdm_default']
-legends += ['Gen. Tik.']
+legends += ['Low-rank regularization']
 colors += [1]
 #method_tag += ['tight_mdm_cutoff']
 #legends += ['Cutoff signular']
@@ -71,10 +71,10 @@ sample_list += ['3C264V6']
 sample_list += ['1ES1011V6']
 sample_list += ['Segue1V6']
 sample_list += ['Segue1V5']
-sample_list += ['BLLacV6']
-sample_list += ['BLLacV5']
 sample_list += ['CrabV6']
 sample_list += ['CrabV5']
+#sample_list += ['BLLacV6']
+#sample_list += ['BLLacV5']
 
 #ONOFF_tag = 'ON'
 #sample_list = []
@@ -161,6 +161,7 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
             #if source!=0:
             #    continue
             Hists[method][source].Draw("E same")
+    Hists[0][0].Draw("E same")
 
     pad3.cd()
     legend = ROOT.TLegend(0.2,0.1,0.9,0.9)
@@ -201,7 +202,7 @@ Hist_Bkgd_Optimization = []
 for e in range(0,len(method_tag)):
     Hist_Bkgd_Optimization_ThisMethod = []
     for s in range(0,len(sample_list)+1):
-        Hist_Bkgd_Optimization_ThisMethod += [ROOT.TH1D("Hist_Bkgd_Optimization_%s_%s"%(e,s),"",N_bins_for_deconv*N_bins_for_deconv,optimiz_lower,optimiz_upper)]
+        Hist_Bkgd_Optimization_ThisMethod += [ROOT.TH1D("Hist_Bkgd_Optimization_%s_%s"%(e,s),"",200,optimiz_lower,optimiz_upper)]
     Hist_Bkgd_Optimization += [Hist_Bkgd_Optimization_ThisMethod]
 
 for e in range(0,len(energy_bin)-1):

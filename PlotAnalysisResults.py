@@ -123,6 +123,12 @@ if sys.argv[1]=='PKS1424_ON':
     elev_bins = [45,85]
     theta2_bins = [0,4]
     
+if sys.argv[1]=='3C264_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['3C264V6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
 if sys.argv[1]=='3C264_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
@@ -152,6 +158,12 @@ if sys.argv[1]=='PG1553_Raster':
     elev_bins = [45,85]
     theta2_bins = [0,4]
     
+if sys.argv[1]=='1ES1011_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['1ES1011V6_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
 if sys.argv[1]=='1ES1011_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
@@ -277,19 +289,27 @@ if sys.argv[1]=='M82_OFF':
     sample_list = []
     sample_list += ['M82V6_OFF']
     sample_list += ['M82V5_OFF']
+    sample_list += ['M82V4_OFF']
     elev_bins = [45,85]
     theta2_bins = [0,4]
-    #sample_list += ['M82V4_OFF']
     
 if sys.argv[1]=='M82_ON':
     ONOFF_tag = 'ON'
     sample_list = []
     sample_list += ['M82V6_ON']
     sample_list += ['M82V5_ON']
+    sample_list += ['M82V4_ON']
     elev_bins = [45,85]
     theta2_bins = [0,4]
-    #sample_list += ['M82V4_ON']
     
+if sys.argv[1]=='Crab_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['CrabV6_ON']
+    sample_list += ['CrabV5_ON']
+    sample_list += ['CrabV4_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
 if sys.argv[1]=='Crab_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
@@ -299,6 +319,12 @@ if sys.argv[1]=='Crab_OFF':
     elev_bins = [45,85]
     theta2_bins = [0,4]
     
+if sys.argv[1]=='Mrk421_ON':
+    ONOFF_tag = 'ON'
+    sample_list = []
+    sample_list += ['Mrk421V5_ON']
+    elev_bins = [45,85]
+    theta2_bins = [0,4]
 if sys.argv[1]=='Mrk421_OFF':
     ONOFF_tag = 'OFF'
     sample_list = []
@@ -534,11 +560,7 @@ Syst_Clos = 0.02
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
-if folder_path!='output_root':
-    energy_bin += [int(pow(10,2.16))]
 energy_bin += [int(pow(10,2.33))]
-if folder_path!='output_root':
-    energy_bin += [int(pow(10,2.50))]
 energy_bin += [int(pow(10,2.66))]
 energy_bin += [int(pow(10,3.0))]
 energy_bin += [int(pow(10,3.33))]
@@ -546,16 +568,12 @@ energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 
 energy_syst = []
-energy_syst += [0.010]
-if folder_path!='output_root':
-    energy_syst += [0.010]
-energy_syst += [0.020]
-if folder_path!='output_root':
-    energy_syst += [0.020]
-energy_syst += [0.030]
-energy_syst += [0.030]
-energy_syst += [0.080]
-energy_syst += [0.280]
+energy_syst += [0.013]
+energy_syst += [0.014]
+energy_syst += [0.022]
+energy_syst += [0.038]
+energy_syst += [0.082]
+energy_syst += [0.320]
 
 energy_fine_bin = []
 energy_fine_bin += [pow(10,2.0)]
@@ -661,9 +679,9 @@ def GetGammaSourceInfo():
         near_a_source = False
         for entry in range(0,len(other_stars)):
             distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-            if distance<0.5*0.5:
-                near_a_source = True
-        if not near_a_source:
+            #if distance<0.3*0.3:
+            #    near_a_source = True
+        if not near_a_source and not '%' in gamma_source_name:
             other_stars += [gamma_source_name]
             other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
@@ -2090,7 +2108,7 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
     sbratio = 0
     sbratio_err = 0
     if not predict_bkg==0: 
-        sbratio = (data_SR-predict_bkg)/(data_SR)
+        sbratio = (data_SR-predict_bkg)/(predict_bkg)
     if not data_SR-predict_bkg==0 and not predict_bkg==0:
         sbratio_err = sbratio*pow(pow(pow(err_SR*err_SR+err_bkg*err_bkg,0.5)/(data_SR-predict_bkg),2)+pow(err_bkg/predict_bkg,2),0.5)
     else: sbratio_err = 0
@@ -2963,7 +2981,7 @@ def StackSkymapHistograms():
     Hist_OnBkgd_Skymap_Galactic_Sum.Add(Hist_OnBkgd_Skymap_Galactic)
 
     #RBM_CR_Scale = 0.
-    RBM_CR_Scale = 1.4
+    RBM_CR_Scale = 750./1200.
     for binx in range(0,Hist_OnBkgd_Skymap_Syst.GetNbinsX()):
         for biny in range(0,Hist_OnBkgd_Skymap_Syst.GetNbinsY()):
             Hist_OnBkgd_Skymap_Syst.SetBinError(binx+1,biny+1,0.)
@@ -3169,9 +3187,9 @@ def GetHawcSkymap(hist_map, isRaDec):
 def GetCOSkymap(hist_map, isRaDec):
 
     hist_map.Reset()
-    inputFile = open('CO_skymap.txt')
+    inputFile = open('CO_skymap_v2.txt')
     if isRaDec: 
-        inputFile = open('CO_skymap_RaDec.txt')
+        inputFile = open('CO_skymap_RaDec_v2.txt')
     for line in inputFile:
         sig = float(line.split(' ')[0])
         l = float(line.split(' ')[1])
@@ -3181,7 +3199,8 @@ def GetCOSkymap(hist_map, isRaDec):
         old_sig = hist_map.GetBinContent(binx+1,biny+1)
         hist_map.SetBinContent(binx+1,biny+1,max(sig,0.))
 
-    map_resolution = 0.4
+    map_resolution = 0.2
+    #map_resolution = 0.4
     hist_map_new = FillSkymapHoles(hist_map, map_resolution)
 
     return hist_map_new
@@ -3216,12 +3235,10 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
     Hist_CO = GetCOSkymap(Hist_CO, isRaDec)
     Hist_CO = reflectXaxis(Hist_CO)
     Hist_CO.SetLineColor(0)
-    Hist_CO.SetContour(5)
+    Hist_CO.SetContour(3)
     Hist_CO.SetContourLevel(0,5)
-    Hist_CO.SetContourLevel(1,10)
-    Hist_CO.SetContourLevel(2,20)
-    Hist_CO.SetContourLevel(3,40)
-    Hist_CO.SetContourLevel(4,80)
+    Hist_CO.SetContourLevel(1,20)
+    Hist_CO.SetContourLevel(2,80)
 
     other_star_labels = []
     other_star_markers = []
@@ -3231,12 +3248,12 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
     bright_star_markers = []
     faint_star_labels = []
     faint_star_markers = []
-    star_range = 4.0
+    star_range = 2.5
     if xtitle=="RA":
         for star in range(0,len(other_stars)):
             if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
             star_significance = FindLocalMaximum(Hist_Skymap, -other_star_coord[star][0], other_star_coord[star][1])
-            #if star_significance<3.0: continue
+            #if star_significance<2.0: continue
             other_star_markers += [ROOT.TMarker(-other_star_coord[star][0],other_star_coord[star][1],2)]
             other_star_labels += [ROOT.TLatex(-other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
@@ -3262,7 +3279,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
             gal_l, gal_b = ConvertRaDecToGalactic(other_star_coord[star][0],other_star_coord[star][1])
             if pow(source_l-gal_l,2)+pow(source_b-gal_b,2)>star_range*star_range: continue
             star_significance = FindLocalMaximum(Hist_Skymap, -gal_l, gal_b)
-            #if star_significance<3.0: continue
+            #if star_significance<2.0: continue
             other_star_markers += [ROOT.TMarker(-gal_l,gal_b,2)]
             other_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,other_stars[star])]
             other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
@@ -3613,12 +3630,10 @@ def Make2DSignificancePlot(syst_method,Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,Hist_
     Hist_HAWC_zoomin.SetContourLevel(2,15)
     #Hist_HAWC_zoomin.Draw("CONT3 same")
     Hist_CO_zoomin.SetLineColor(0)
-    Hist_CO_zoomin.SetContour(5)
+    Hist_CO_zoomin.SetContour(3)
     Hist_CO_zoomin.SetContourLevel(0,5)
-    Hist_CO_zoomin.SetContourLevel(1,10)
-    Hist_CO_zoomin.SetContourLevel(2,20)
-    Hist_CO_zoomin.SetContourLevel(3,40)
-    Hist_CO_zoomin.SetContourLevel(4,80)
+    Hist_CO_zoomin.SetContourLevel(1,20)
+    Hist_CO_zoomin.SetContourLevel(2,80)
     Hist_CO_zoomin.Draw("CONT3 same")
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
@@ -4593,7 +4608,7 @@ def SingleSourceAnalysis(source_list,doMap,e_low,e_up):
 
     PlotsStackedHistograms('%s%s'%(source_list[0],PercentCrab))
 
-    MakeRankResidualPlots('%s%s'%(source_list[0],PercentCrab))
+    #MakeRankResidualPlots('%s%s'%(source_list[0],PercentCrab))
 
     if not doMap: return
 
@@ -4930,6 +4945,9 @@ for nth_sample in range(0,n_control_samples):
 
 n_rebin = 1
 smooth_size = 0.1
+if 'Geminga' in sys.argv[1]:
+    n_rebin = 4
+    smooth_size = 0.4
 #n_rebin = 2
 #smooth_size = 0.2
 #if energy_bin[energy_bin_cut_low]>=300.:
@@ -4948,8 +4966,15 @@ drawMap = True
 
 if folder_path=='output_root':
     SingleSourceAnalysis(sample_list,drawMap,0,6)
-    #SingleSourceAnalysis(sample_list,drawMap,2,6)
     #SingleSourceAnalysis(sample_list,drawMap,3,6)
+    #SingleSourceAnalysis(sample_list,drawMap,0,2)
+    #SingleSourceAnalysis(sample_list,drawMap,2,4)
+    #SingleSourceAnalysis(sample_list,drawMap,4,6)
+    #SingleSourceAnalysis(sample_list,drawMap,0,1)
+    #SingleSourceAnalysis(sample_list,drawMap,1,2)
+    #SingleSourceAnalysis(sample_list,drawMap,2,3)
+    #SingleSourceAnalysis(sample_list,drawMap,3,4)
+    #SingleSourceAnalysis(sample_list,drawMap,4,6)
 else:
     SingleSourceAnalysis(sample_list,drawMap,1,8)
 

@@ -1110,8 +1110,17 @@ bool ControlSelectionTheta2()
     if (MSCW<MSCW_cut_blind && MSCL<MSCL_cut_blind) return false;
     //if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     //if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
-    if (MSCL>0.5*gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
-    if (MSCW>0.5*gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
+    double boundary = 0.5;
+    if (ErecS*1000.<pow(10,3.0))
+    {
+        boundary = 0.5;
+    }
+    else
+    {
+        boundary = 1.0;
+    }
+    if (MSCL>boundary*gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
+    if (MSCW>boundary*gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     return true;
 }
 bool VRControlSelectionTheta2()
@@ -1169,22 +1178,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     TH1::SetDefaultSumw2();
 
-    TString ONOFF_tag;
-    if (isON) 
-    {
-        source_theta2_cut = 0.;
-        ONOFF_tag = "ON";
-    }
-    else if (doRaster)
-    {
-        source_theta2_cut = 0.;
-        ONOFF_tag = "Raster";
-    }
-    else
-    {
-        ONOFF_tag = "OFF";
-    }
-
     if (MJD_start_cut!=0 || MJD_end_cut!=0)
     {
         sprintf(mjd_cut_tag, "_MJD%dto%d", MJD_start_cut, MJD_end_cut);
@@ -1198,6 +1191,31 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     sprintf(elev_cut_tag, "_TelElev%dto%d", int(TelElev_lower), int(TelElev_upper));
     MSCW_cut_blind = MSCW_cut_moderate;
     MSCL_cut_blind = MSCL_cut_moderate;
+
+    TString ONOFF_tag;
+    if (isON) 
+    {
+        source_theta2_cut = 0.;
+        if (TString(target).Contains("Crab"))
+        {
+            source_theta2_cut = 0.1*0.1;
+        }
+        if (TString(target).Contains("Mrk421"))
+        {
+            source_theta2_cut = 0.1*0.1;
+        }
+        ONOFF_tag = "ON";
+    }
+    else if (doRaster)
+    {
+        source_theta2_cut = 0.;
+        ONOFF_tag = "Raster";
+    }
+    else
+    {
+        ONOFF_tag = "OFF";
+    }
+
     //if (TString(target).Contains("Crab"))
     //{
     //    if (source_theta2_cut==0.)
@@ -1268,23 +1286,17 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     if (TString(target).Contains("MGRO_J1908")) 
     {
-        roi_name.push_back("inner ring");
-        roi_ra.push_back(287.135);
-        roi_dec.push_back(6.162);
+        roi_name.push_back("PSR J1907+0602");
+        roi_ra.push_back(286.975);
+        roi_dec.push_back(6.03777777778);
         roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.15);
+        roi_radius_outer.push_back(0.2);
 
         roi_name.push_back("outer ring");
-        roi_ra.push_back(287.135);
-        roi_dec.push_back(6.162);
-        roi_radius_inner.push_back(0.15);
-        roi_radius_outer.push_back(0.5);
-
-        //roi_name.push_back("circle 2");
-        //roi_ra.push_back(287.000);
-        //roi_dec.push_back(6.444);
-        //roi_radius_inner.push_back(0.);
-        //roi_radius_outer.push_back(0.15);
+        roi_ra.push_back(286.975);
+        roi_dec.push_back(6.03777777778);
+        roi_radius_inner.push_back(0.2);
+        roi_radius_outer.push_back(0.8);
     }
     else if (TString(target).Contains("SS433")) 
     {
@@ -1483,14 +1495,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_radius_outer.push_back(0.3);
     }
 
-    //for (int star=0;star<FaintStars_Data.size();star++)
-    //{
-    //    roi_name.push_back("b-mag "+ std::to_string(FaintStars_Data.at(star).at(3)));
-    //    roi_ra.push_back(FaintStars_Data.at(star).at(0));
-    //    roi_dec.push_back(FaintStars_Data.at(star).at(1));
-    //    roi_radius_inner.push_back(0.);
-    //    roi_radius_outer.push_back(bright_star_radius_cut);
-    //}
+    for (int star=0;star<FaintStars_Data.size();star++)
+    {
+        roi_name.push_back("b-mag "+ std::to_string(FaintStars_Data.at(star).at(3)));
+        roi_ra.push_back(FaintStars_Data.at(star).at(0));
+        roi_dec.push_back(FaintStars_Data.at(star).at(1));
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(bright_star_radius_cut);
+    }
 
     if (TString(target).Contains("MAGIC_J1857")) 
     {
