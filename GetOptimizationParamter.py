@@ -43,7 +43,9 @@ AccuracyErr_source = []
 color_scatter = []
 area_scatter = []
 legend_scatter = []
+data_exposure = []
 data_count = []
+bkgd_count = []
 dark_count = []
 rank0_count = []
 rank1_count = []
@@ -178,9 +180,9 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
         #if colors[h]==1 or colors[h]==2: Hists[0].SetLineWidth(3)
         #if Hists[h]!=0:
         Hists[h].SetLineColor(colors[h])
-        Hists[h].SetLineWidth(2)
+        Hists[h].SetLineWidth(4)
         Hists[h].Draw("E same")
-    Hists[0].SetLineWidth(4)
+    Hists[0].SetLineWidth(6)
     Hists[0].Draw("E same")
 
     if Hists[0].GetXaxis().GetLabelOffset()==999:
@@ -194,13 +196,14 @@ def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,
         raLowerAxis.Draw()
 
     pad3.cd()
-    legend = ROOT.TLegend(0.5,0.1,0.9,0.9)
+    legend = ROOT.TLegend(0.2,0.1,0.9,0.9)
     legend.SetTextFont(42)
     legend.SetBorderSize(0)
     legend.SetTextSize(0.1)
     legend.SetFillColor(0)
     legend.SetFillStyle(0)
     legend.SetLineColor(0)
+    legend.SetNColumns(3)
     legend.Clear()
     for h in range(0,len(Hists)):
         if Hists[h]!=0:
@@ -236,7 +239,9 @@ def GetHistogramsFromFile(FilePath,which_source):
     global NSB_RMS_dark
     global area_scatter
     global legend_scatter
+    global data_exposure
     global data_count
+    global bkgd_count
     global dark_count
     global rank0_count
     global rank1_count
@@ -244,6 +249,7 @@ def GetHistogramsFromFile(FilePath,which_source):
     global rank3_count
     global rank4_count
     data_gamma_count = ROOT.std.vector("double")(10)
+    bkgd_gamma_count = ROOT.std.vector("double")(10)
     dark_gamma_count = ROOT.std.vector("double")(10)
     rank0_gamma_count = ROOT.std.vector("double")(10)
     rank1_gamma_count = ROOT.std.vector("double")(10)
@@ -255,6 +261,7 @@ def GetHistogramsFromFile(FilePath,which_source):
     NewInfoTree = InputFile.Get("NewInfoTree")
     InfoTree.GetEntry(0)
     NewInfoTree.SetBranchAddress('data_gamma_count',ROOT.AddressOf(data_gamma_count))
+    NewInfoTree.SetBranchAddress('bkgd_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
     NewInfoTree.SetBranchAddress('dark_gamma_count',ROOT.AddressOf(dark_gamma_count))
     NewInfoTree.SetBranchAddress('rank0_gamma_count',ROOT.AddressOf(rank0_gamma_count))
     NewInfoTree.SetBranchAddress('rank1_gamma_count',ROOT.AddressOf(rank1_gamma_count))
@@ -263,6 +270,7 @@ def GetHistogramsFromFile(FilePath,which_source):
     NewInfoTree.SetBranchAddress('rank4_gamma_count',ROOT.AddressOf(rank4_gamma_count))
     NewInfoTree.GetEntry(0)
     exposure_hours = InfoTree.exposure_hours
+    data_exposure += [exposure_hours]
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
     energy_index = energy_bin.index(ErecS_lower_cut)
@@ -279,6 +287,7 @@ def GetHistogramsFromFile(FilePath,which_source):
     area_scatter += [pow(exposure_hours/10.,2)]
     legend_scatter += ['%0.1f hrs'%(exposure_hours)]
     data_count  += [data_gamma_count[energy_index]]
+    bkgd_count  += [bkgd_gamma_count[energy_index]]
     dark_count  += [dark_gamma_count[energy_index]]
     rank0_count  += [rank0_gamma_count[energy_index]]
     rank1_count  += [rank1_gamma_count[energy_index]]
@@ -312,7 +321,7 @@ def GetHistogramsFromFile(FilePath,which_source):
     Hist_Data_Eigenvalues[0].Add(InputFile.Get(HistName),weight)
     Hist_Data_Eigenvalues[which_source+1].Add(InputFile.Get(HistName))
 
-optimiz_lower = -10.
+optimiz_lower = -5.
 optimiz_upper = 0.
 Hist_Bkgd_Optimization = []
 for e in range(0,len(sample_list)+1):
@@ -341,6 +350,8 @@ for e in range(0,len(energy_bin)-1):
     area_scatter = []
     legend_scatter = []
     data_count = []
+    bkgd_count = []
+    data_exposure = []
     dark_count = []
     rank0_count = []
     rank1_count = []
@@ -365,6 +376,16 @@ for e in range(0,len(energy_bin)-1):
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
             GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source)
+
+    #for binx in range(1,Hist_Bkgd_Optimization[0].GetNbinsX()+1):
+    #    total_weight = 0.
+    #    y_content = 0.
+    #    for entry in range(1,len(Hist_Bkgd_Optimization)):
+    #        weight = pow(data_count[entry-1],0.5)
+    #        total_weight += weight
+    #        y_content += weight*Hist_Bkgd_Optimization[entry].GetBinContent(binx)
+    #    y_content = y_content/total_weight
+    #    Hist_Bkgd_Optimization[0].SetBinContent(binx,y_content)
 
     fig, ax = plt.subplots()
     colors = np.random.rand(len(Zenith_mean_data))
@@ -407,6 +428,15 @@ for e in range(0,len(energy_bin)-1):
 
     Accuracy_source = []
     AccuracyErr_source = []
+    #for entry in range(1,len(Hist_Bkgd_Optimization)):
+    #    Accuracy_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
+    #    AccuracyErr_source += [1./pow(data_count[entry-1],0.5)]
+    #Accuracy_mean = 0.
+    #Accuracy_mean_error = 0.
+    #for entry in range(0,len(Accuracy_source)):
+    #    Accuracy_mean += Accuracy_source[entry]/len(Accuracy_source)
+    #    Accuracy_mean_error += pow(AccuracyErr_source[entry],2)/len(Accuracy_source)
+    #Accuracy_mean_error = pow(Accuracy_mean_error,0.5)
     min_y = 1.0
     min_x = 1.0
     min_bin = 0
@@ -421,7 +451,7 @@ for e in range(0,len(energy_bin)-1):
     Accuracy_mean = 0.
     Accuracy_mean_error = 0.
     for entry in range(0,len(Accuracy_source)):
-        Accuracy_mean += Accuracy_source[entry]/len(Accuracy_source)
+        Accuracy_mean += Hist_Bkgd_Optimization[0].GetBinContent(min_bin)/len(Accuracy_source)
         Accuracy_mean_error += pow(AccuracyErr_source[entry],2)/len(Accuracy_source)
     Accuracy_mean_error = pow(Accuracy_mean_error,0.5)
     plt.clf()
@@ -501,11 +531,13 @@ for e in range(0,len(energy_bin)-1):
     legends += ['average']
     colors += [1]
     #Hist_Bkgd_Optimization[0].GetXaxis().SetLabelOffset(999)
+    random_gen = ROOT.TRandom3()
     for entry in range(1,len(Hist_Bkgd_Optimization)):
         Hists += [Hist_Bkgd_Optimization[entry]]
-        legends += ['source %s, %0.0f'%(entry,dark_count[entry-1])]
-        colors += [entry+1]
-    MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','OptimizationParameter_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
+        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+        #colors += [entry+1]
+        colors += [int(random_gen.Uniform(29.,49.))]
+    MakeMultiplePlot(Hists,legends,colors,'log10 #beta','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationParameter_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
 
     Hists = []
     legends = []
@@ -514,11 +546,13 @@ for e in range(0,len(energy_bin)-1):
     legends += ['average']
     colors += [1]
     #Hist_Bkgd_Chi2[0].GetXaxis().SetLabelOffset(999)
+    random_gen = ROOT.TRandom3()
     for entry in range(1,len(Hist_Bkgd_Chi2)):
         Hists += [Hist_Bkgd_Chi2[entry]]
-        legends += ['source %s'%(entry)]
-        colors += [entry+1]
-    MakeMultiplePlot(Hists,legends,colors,'log10 #alpha','#chi^{2} in CR','Chi2_E%s%s'%(e,lowrank_tag),1e-7,1e-4,False,True)
+        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+        #colors += [entry+1]
+        colors += [int(random_gen.Uniform(29.,49.))]
+    MakeMultiplePlot(Hists,legends,colors,'log10 #beta','#chi^{2} = #sum #deltaM_{ij}^{2} in CR','Chi2_E%s%s'%(e,lowrank_tag),pow(10.,-6.5),pow(10.,-4.5),False,True)
 
     Hists = []
     legends = []
@@ -527,11 +561,13 @@ for e in range(0,len(energy_bin)-1):
     Hists += [Hist_VVV_Eigenvalues[0]]
     legends += ['average']
     colors += [1]
+    random_gen = ROOT.TRandom3()
     for entry in range(1,len(Hist_VVV_Eigenvalues)):
         Hist_VVV_Eigenvalues[entry].SetMinimum(1e-3)
         Hists += [Hist_VVV_Eigenvalues[entry]]
-        legends += ['source %s'%(entry)]
-        colors += [entry+1]
+        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+        #colors += [entry+1]
+        colors += [int(random_gen.Uniform(29.,49.))]
     MakeMultiplePlot(Hists,legends,colors,'entry','singular value','SingularValue_E%s%s'%(e,lowrank_tag),0,0,False,True)
 
     Hists = []
@@ -541,11 +577,13 @@ for e in range(0,len(energy_bin)-1):
     Hists += [Hist_Data_Eigenvalues[0]]
     legends += ['average']
     colors += [1]
+    random_gen = ROOT.TRandom3()
     for entry in range(1,len(Hist_Data_Eigenvalues)):
         Hist_Data_Eigenvalues[entry].SetMinimum(1e-3)
         Hists += [Hist_Data_Eigenvalues[entry]]
-        legends += ['source %s'%(entry)]
-        colors += [entry+1]
+        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+        #colors += [entry+1]
+        colors += [int(random_gen.Uniform(29.,49.))]
     MakeMultiplePlot(Hists,legends,colors,'Rank (r)','singular value','SingularValue_Mon_E%s%s'%(e,lowrank_tag),0,0,False,True)
 
     #Hists = []

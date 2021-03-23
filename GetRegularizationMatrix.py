@@ -52,9 +52,7 @@ theta2_bins = [0,4]
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
-#energy_bin += [int(pow(10,2.16))]
 energy_bin += [int(pow(10,2.33))]
-#energy_bin += [int(pow(10,2.50))]
 energy_bin += [int(pow(10,2.66))]
 energy_bin += [int(pow(10,3.0))]
 energy_bin += [int(pow(10,3.33))]
@@ -96,8 +94,6 @@ def GetHistogramsFromFile(FilePath):
             old_content = Hist2D_Regularization[energy_index].GetBinContent(binx+1,biny+1)
             new_content = pow(Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1),2)
             new_content += pow(Hist2D_Coeff_Data.GetBinContent(biny+1,binx+1),2)
-            #new_content = abs(Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1))
-            #new_content += abs(Hist2D_Coeff_Data.GetBinContent(biny+1,binx+1))
             Hist2D_Regularization[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content)
 
 Hist2D_Coeff_Data = ROOT.TH2D("Hist2D_Coeff_Data","",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)
