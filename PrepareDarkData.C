@@ -79,6 +79,7 @@ double theta2_roi = 0;
 double ra_sky = 0;
 double dec_sky = 0;
 double exposure_hours = 0.;
+double exposure_hours_usable = 0.;
 double exposure_hours_ref = 0.;
 int MJD_Start = 2147483647;
 int MJD_End = 0;
@@ -635,6 +636,132 @@ int RunTypeCategory(int run_number, bool doPrint)
     return runtype;
 }
 
+double GetRunL3Rate(int run_number)
+{
+    string line;
+    char delimiter = ' ';
+    string acc_runnumber = "";
+    string acc_rate = "";
+    int nth_delimiter = 0;
+    std::string::size_type sz;
+    double L3_rate = 0.;
+
+    ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/L3rate_allruns.txt");
+    if (myfile.is_open())
+    {
+        while ( getline(myfile,line) )
+        {
+            acc_runnumber = "";
+            nth_delimiter = 0;
+            for(int i = 0; i < line.size(); i++)
+            {
+                if(line[i] == delimiter)
+                {
+                    nth_delimiter += 1;
+                }
+                else if (nth_delimiter==0)
+                {
+                    acc_runnumber += line[i];
+                }
+            }
+            if (std::stoi(acc_runnumber,nullptr,10)==run_number)
+            {
+                //std::cout << "find run " << run_number << std::endl;
+                nth_delimiter = 0;
+                acc_rate = "";
+                for(int i = 0; i < line.size(); i++)
+                {
+                    if (line[i] != delimiter)
+                    {
+                        acc_rate += line[i];
+                    }
+                    else
+                    {
+                        acc_rate = "";
+                        nth_delimiter += 1;
+                    }
+                }
+                L3_rate = std::stod(acc_rate,&sz);
+                break;
+            }
+        }
+        myfile.close();
+    }
+    else std::cout << "Unable to open file L3rate_allruns.txt" << std::endl; 
+
+    return L3_rate;
+}
+
+double GetRunUsableTime(int run_number)
+{
+    string line;
+    char delimiter = ' ';
+    string acc_runnumber = "";
+    string acc_time = "";
+    int nth_delimiter = 0;
+    std::string::size_type sz;
+    double usable_time = 0.;
+
+    ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/usable_time_allruns.txt");
+    if (myfile.is_open())
+    {
+        while ( getline(myfile,line) )
+        {
+            acc_runnumber = "";
+            nth_delimiter = 0;
+            for(int i = 0; i < line.size(); i++)
+            {
+                if(line[i] == delimiter)
+                {
+                    nth_delimiter += 1;
+                }
+                else if (nth_delimiter==0)
+                {
+                    acc_runnumber += line[i];
+                }
+            }
+            if (std::stoi(acc_runnumber,nullptr,10)==run_number)
+            {
+                //std::cout << "find run " << run_number << std::endl;
+                nth_delimiter = 0;
+                acc_time = "";
+                for(int i = 0; i < line.size(); i++)
+                {
+                    if (line[i] != delimiter)
+                    {
+                        acc_time += line[i];
+                    }
+                    else
+                    {
+                        acc_time = "";
+                        nth_delimiter += 1;
+                    }
+                }
+                size_t pos = 0;
+                string time_delimiter = ":";
+                if ((pos = acc_time.find(time_delimiter)) != std::string::npos)
+                {
+                    pos = acc_time.find(time_delimiter);
+                    string time_hour = acc_time.substr(0, pos);
+                    acc_time.erase(0, pos + time_delimiter.length());
+                    pos = acc_time.find(time_delimiter);
+                    string time_minute = acc_time.substr(0, pos);
+                    acc_time.erase(0, pos + time_delimiter.length());
+                    string time_second = acc_time;
+                    usable_time = std::stod(time_hour,&sz)*60.*60.;
+                    usable_time += std::stod(time_minute,&sz)*60.;
+                    usable_time += std::stod(time_second,&sz);
+                }
+                break;
+            }
+        }
+        myfile.close();
+    }
+    else std::cout << "Unable to open file usable_time_allruns.txt" << std::endl; 
+
+    return usable_time;
+}
+
 vector<pair<double,double>> GetRunTimecuts(int run_number)
 {
     string line;
@@ -1008,7 +1135,7 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
     vector<double> new_list_pointing;
     for (int run=0;run<Data_runlist.size();run++)
     {
-        if (RunTypeCategory(Data_runlist[run].second,true)!=1) continue;
+        //if (RunTypeCategory(Data_runlist[run].second,true)!=1) continue;
         char run_number[50];
         char Data_observation[50];
         sprintf(run_number, "%i", int(Data_runlist[run].second));
@@ -1042,6 +1169,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     vector<vector<double>> Dark_time;
     vector<double> ON_NSB;
     vector<double> ON_MJD;
+    vector<double> ON_L3Rate;
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
         char ON_runnumber[50];
@@ -1065,9 +1193,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         double time_0 = Time;
         Data_tree->GetEntry(Data_tree->GetEntries()-1);
         double time_1 = Time;
-        double exposure_thisrun = (time_1-time_0)/3600.;
+        //double exposure_thisrun = (time_1-time_0)/3600.;
+        double exposure_thisrun = GetRunUsableTime(ON_runlist[on_run].second);
         ON_time.push_back(exposure_thisrun);
         ON_MJD.push_back(double(MJD));
+        ON_L3Rate.push_back(GetRunL3Rate(ON_runlist[on_run].second));
         if (MJD<MJD_Start) MJD_Start = MJD;
         if (MJD>MJD_End) MJD_End = MJD;
         Hist_OnData_ElevNSB.Fill(ON_NSB[ON_NSB.size()-1],ON_pointing[ON_pointing.size()-1].first,exposure_thisrun);
@@ -1079,11 +1209,12 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     vector<pair<double,double>> OFF_pointing_radec;
     vector<double> OFF_time;
     vector<double> OFF_MJD;
+    vector<double> OFF_L3Rate;
     vector<double> OFF_NSB;
     for (int off_run=0;off_run<OFF_runlist.size();off_run++)
     {
         //std::cout << "Complete " << off_run << "/" << OFF_runlist.size()<< std::endl;
-        if (RunTypeCategory(OFF_runlist[off_run].second,false)!=1) continue;
+        //if (RunTypeCategory(OFF_runlist[off_run].second,false)!=1) continue;
         char OFF_runnumber[50];
         char OFF_observation[50];
         sprintf(OFF_runnumber, "%i", int(OFF_runlist[off_run].second));
@@ -1105,9 +1236,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         double time_0 = Time;
         Dark_tree->GetEntry(Dark_tree->GetEntries()-1);
         double time_1 = Time;
-        double exposure_thisrun = (time_1-time_0)/3600.;
+        //double exposure_thisrun = (time_1-time_0)/3600.;
+        double exposure_thisrun = GetRunUsableTime(OFF_runlist[off_run].second);
         OFF_time.push_back(exposure_thisrun);
         OFF_MJD.push_back(double(MJD));
+        OFF_L3Rate.push_back(GetRunL3Rate(OFF_runlist[off_run].second));
         Hist_OffData_ElevNSB.Fill(OFF_NSB[OFF_NSB.size()-1],OFF_pointing[OFF_pointing.size()-1].first,exposure_thisrun);
         input_file->Close();
     }
@@ -1137,6 +1270,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
             double threshold_dNSB = 0.2;
             double threshold_dElev = 10.0;
             double threshold_dMJD = 2.*365.;
+            double threshold_dL3Rate = 20.;
             while (accumulated_time<1.0*ON_time[on_run])
             {
                 pair<string,int> best_match;
@@ -1191,6 +1325,10 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     {
                         found_match = false;
                     }
+                    if (pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2)>threshold_dL3Rate*threshold_dL3Rate)
+                    {
+                        found_match = false;
+                    }
                     if (found_match && best_chi2>chi2)
                     {
                         best_chi2 = chi2;
@@ -1213,6 +1351,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     threshold_dNSB += 0.1;
                     threshold_dElev += 1.0;
                     threshold_dMJD += 1.0*365.;
+                    threshold_dL3Rate += 1.0*20.;
                     //if (threshold_dElev>=10.)
                     //{
                     //    break;
@@ -2122,8 +2261,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         double time_0 = Time;
         Data_tree->GetEntry(Data_tree->GetEntries()-1);
         double time_1 = Time;
-        Data_runlist_exposure.push_back((time_1-time_0)/3600.);
         exposure_hours += (time_1-time_0)/3600.;
+        double exposure_thisrun = GetRunUsableTime(Data_runlist[run].second)/3600.;
+        exposure_hours_usable += exposure_thisrun;
+        Data_runlist_exposure.push_back(exposure_thisrun);
         double NSB_thisrun = GetRunPedestalVar(int(Data_runlist[run].second));
         Hist_Data_NSB.Fill(NSB_thisrun);
 
@@ -2310,7 +2451,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
     for (int e=0;e<N_energy_fine_bins;e++) 
     {
-        Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)/(3600.*exposure_hours));
+        Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)/(3600.*exposure_hours_usable));
     }
 
 
@@ -2521,6 +2662,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     InfoTree.Branch("MSCW_plot_lower",&MSCW_plot_lower,"MSCW_plot_lower/D");
     InfoTree.Branch("MSCL_plot_lower",&MSCL_plot_lower,"MSCL_plot_lower/D");
     InfoTree.Branch("exposure_hours",&exposure_hours,"exposure_hours/D");
+    InfoTree.Branch("exposure_hours_usable",&exposure_hours_usable,"exposure_hours_usable/D");
     InfoTree.Branch("exposure_hours_ref",&exposure_hours_ref,"exposure_hours_ref/D");
     InfoTree.Branch("MJD_Start",&MJD_Start,"MJD_Start/I");
     InfoTree.Branch("MJD_End",&MJD_End,"MJD_End/I");

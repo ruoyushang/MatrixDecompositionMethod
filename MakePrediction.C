@@ -1095,7 +1095,7 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_init_input, MatrixXcd mtx_data_i
                 {
                     int nth_entry = idx_n+1;
                     if (kth_entry>entry_size && nth_entry>entry_size) continue;
-                    if (kth_entry>entry_size+3 || nth_entry>entry_size+3) continue;
+                    //if (kth_entry>entry_size+3 || nth_entry>entry_size+3) continue;
                     //if (abs(kth_entry-nth_entry)>=2) continue;
                     if (RegularizationType==1)
                     {

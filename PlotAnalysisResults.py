@@ -566,12 +566,12 @@ energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 
 energy_syst = []
-energy_syst += [0.017]
 energy_syst += [0.014]
-energy_syst += [0.022]
-energy_syst += [0.065]
-energy_syst += [0.239]
-energy_syst += [0.226]
+energy_syst += [0.012]
+energy_syst += [0.014]
+energy_syst += [0.034]
+energy_syst += [0.074]
+energy_syst += [0.170]
 
 #energy_fine_bin = []
 #energy_fine_bin += [pow(10,2.0)]
@@ -843,7 +843,7 @@ def GetSourceInfo(file_list):
         source_l = InfoTree.mean_tele_point_l
         source_b = InfoTree.mean_tele_point_b
         if 'Theta20' in file_list[path]:
-            exposure_hours += InfoTree.exposure_hours
+            exposure_hours += InfoTree.exposure_hours_usable
         MJD_Start = min(InfoTree.MJD_Start,MJD_Start)
         MJD_End = max(InfoTree.MJD_End,MJD_End)
 
@@ -860,7 +860,7 @@ def GetSourceInfo(file_list):
         HistName = "Hist_EffArea"
         Hist_EffArea.Reset()
         Hist_EffArea.Add(InputFile.Get(HistName))
-        Hist_EffArea.Scale(InfoTree.exposure_hours*3600.)
+        Hist_EffArea.Scale(InfoTree.exposure_hours_usable*3600.)
         Hist_EffArea_Sum.Add(Hist_EffArea)
 
         InputFile.Close()
@@ -3168,18 +3168,8 @@ def StackSkymapHistograms():
     Syst_MDM_single = Syst_MDM
     print 'Syst_MDM_single = %s'%(Syst_MDM_single)
 
-    for binx in range(0,Hist_OnBkgd_Skymap_Syst_MDM.GetNbinsX()):
-        for biny in range(0,Hist_OnBkgd_Skymap_Syst_MDM.GetNbinsY()):
-            content_a = Hist_OnBkgd_Skymap_Syst_MDM.GetBinContent(binx+1,biny+1)
-            content_b = Hist_OnBkgd_Skymap.GetBinContent(binx+1,biny+1)*Syst_MDM_single
-            content_c = content_a+content_b*content_b
-            Hist_OnBkgd_Skymap_Syst_MDM.SetBinContent(binx+1,biny+1,content_c)
-    for binx in range(0,Hist_OnBkgd_Skymap_Galactic_Syst_MDM.GetNbinsX()):
-        for biny in range(0,Hist_OnBkgd_Skymap_Galactic_Syst_MDM.GetNbinsY()):
-            content_a = Hist_OnBkgd_Skymap_Galactic_Syst_MDM.GetBinContent(binx+1,biny+1)
-            content_b = Hist_OnBkgd_Skymap_Galactic.GetBinContent(binx+1,biny+1)*Syst_MDM_single
-            content_c = content_a+content_b*content_b
-            Hist_OnBkgd_Skymap_Galactic_Syst_MDM.SetBinContent(binx+1,biny+1,content_c)
+    Hist_OnBkgd_Skymap_Syst_MDM.Add(Hist_OnBkgd_Skymap,Syst_MDM_single)
+    Hist_OnBkgd_Skymap_Galactic_Syst_MDM.Add(Hist_OnBkgd_Skymap_Galactic,Syst_MDM_single)
 
     for binx in range(0,Hist_SystErr_MSCL.GetNbinsX()):
         old_err = Hist_SystErr_MSCL.GetBinError(binx+1)
@@ -3259,10 +3249,9 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,Hist_RBM,syst_method):
             NBkg = Hist_Bkg.GetBinContent(bx+1,by+1)
             bx2 = Hist_Syst.GetXaxis().FindBin(sky_x)
             by2 = Hist_Syst.GetYaxis().FindBin(sky_y)
-            #Shape_Err = Hist_Syst.GetBinContent(bx2+1,by2+1)
+            Shape_Err = Hist_Syst.GetBinContent(bx2+1,by2+1)
             #Shape_Err = 0.
-            #NBkg_Err = pow(pow(Stat_Err,2)+pow(Shape_Err,1),0.5)
-            Shape_Err = NBkg*syst_method
+            #Shape_Err = NBkg*syst_method
             Stat_Err = Hist_Bkg.GetBinError(bx+1,by+1)
             NBkg_Err = pow(pow(Stat_Err,2)+pow(Shape_Err,2),0.5)
             if syst_method==0.: NBkg_Err = Stat_Err
@@ -4540,7 +4529,7 @@ def SystematicAnalysis():
             fillstyles += [3352]
             legends += ['Initial syst. = %0.3f'%(dark_syst_err)]
             name = "SystAnalysis_I%s"%(nth_iteration)
-            MakeSystematicPlots(hists, colors, fillstyles, legends, InfoTree.exposure_hours, name)
+            MakeSystematicPlots(hists, colors, fillstyles, legends, InfoTree.exposure_hours_usable, name)
 
         canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
         pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)

@@ -2,21 +2,12 @@
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 
 const int N_energy_bins = 6;
-//double Log10_alpha[N_energy_bins] = {-3.1,-2.8,-3.0,-2.5,-2.1,-1.9};
-double Log10_alpha[N_energy_bins] = {-4.0,-4.0,-3.0,-3.0,-2.1,-1.0};
+double Log10_alpha[N_energy_bins] = {-3.6,-3.5,-3.4,-2.8,-2.5,-1.6};
 int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
 int RankTruncation[N_energy_bins] = {3,3,2,2,1,1};
 double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.33),pow(10,2.66),pow(10,3.0),pow(10,3.33),pow(10,3.66),pow(10,4.0)};
 double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
-
-//const int N_energy_bins = 8;
-//double Log10_alpha[N_energy_bins] = {-5.9,-5.9,-5.7,-5.7,-5.7,-4.6,-4.6,-3.0};
-//int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
-//int RankTruncation[N_energy_bins] = {3,3,3,2,2,2,1,1};
-//double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.16),pow(10,2.33),pow(10,2.50),pow(10,2.66),pow(10,3.0),pow(10,3.33),pow(10,3.66),pow(10,4.0)};
-//double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.,1.,1.,1.};
-//double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.,1.,1.,1.};
 
 bool EigenDecomposition = false;
 
@@ -24,13 +15,10 @@ double MSCW_plot_lower = -0.6;
 double MSCL_plot_lower = -0.6;
 
 char output_file_tag[50] = "tight";
-double MSCW_cut_moderate = 0.5;
-double MSCL_cut_moderate = 0.7;
-double MSCW_cut_buffer = 0.5;
-double MSCL_cut_buffer = 0.9;
-//char output_file_tag[50] = "loose";
-//double MSCW_cut_moderate = 0.9;
-//double MSCL_cut_moderate = 1.0;
+double MSCW_cut_moderate = 0.6;
+double MSCL_cut_moderate = 0.6;
+double MSCW_cut_buffer = 0.6;
+double MSCL_cut_buffer = 0.6;
 
 bool UseTruncatedONData = false;
 bool UseMinChi2 = false;
