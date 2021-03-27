@@ -566,12 +566,13 @@ energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 
 energy_syst = []
-energy_syst += [0.012]
-energy_syst += [0.015]
-energy_syst += [0.028]
-energy_syst += [0.039]
-energy_syst += [0.083]
-energy_syst += [0.338]
+energy_syst += [0.017]
+energy_syst += [0.014]
+energy_syst += [0.022]
+energy_syst += [0.065]
+energy_syst += [0.239]
+energy_syst += [0.226]
+
 #energy_fine_bin = []
 #energy_fine_bin += [pow(10,2.0)]
 #energy_fine_bin += [pow(10,2.2)]
@@ -4322,7 +4323,7 @@ def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
     Hist.Draw("E")
 
     print 'plot max_chi2_diff2_position_this_energy = %0.3f'%(max_chi2_diff2_position_this_energy)
-    myline = ROOT.TLine(max_chi2_diff2_position_this_energy,0.,max_chi2_diff2_position_this_energy,1.)
+    myline = ROOT.TLine(max_chi2_diff2_position_this_energy,0.,max_chi2_diff2_position_this_energy,2.)
     myline.SetLineStyle(1)
     myline.SetLineColor(2)
     myline.SetLineWidth(2)

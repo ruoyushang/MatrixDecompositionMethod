@@ -187,32 +187,43 @@ void fill2DHistogram(TH2D* hist,MatrixXcd mtx)
         }
     }
 }
-double findHistogramMaxPosition(TH1D* hist_input, double init_pos)
+double findHistogramMaxPosition(TH1D* hist_input, TH1D* hist_norm)
 {
     double max = 0.;
     double max_pos = 0.;
     for (int binx=0;binx<hist_input->GetNbinsX();binx++)
     {
+        if (binx==0) continue;
+        if (binx==hist_input->GetNbinsX()-1) continue;
         double current_pos = hist_input->GetBinCenter(binx+1);
-        double current_max = hist_input->GetBinContent(binx+1);
-        if (abs(current_pos-init_pos)<0.5)
+        double current_max = hist_input->GetBinContent(binx+1)/hist_norm->GetBinContent(binx+1);
+        if (current_max>max)
         {
-            if (current_max>max)
-            {
-                max = current_max;
-                max_pos = current_pos;
-            }
+            max = current_max;
+            max_pos = current_pos;
         }
+        //if (abs(current_pos-init_pos)<0.5)
+        //{
+        //    if (current_max>max)
+        //    {
+        //        max = current_max;
+        //        max_pos = current_pos;
+        //    }
+        //}
     }
     return max_pos;
 }
-void findDifferentialHistogram(TH1D* hist_input, TH1D* hist_output)
+void findDifferentialHistogram(TH1D* hist_input, TH1D* hist_output, bool doSqrt)
 {
     for (int binx=0;binx<hist_input->GetNbinsX();binx++)
     {
         if (binx==0) continue;
         if (binx==hist_input->GetNbinsX()-1) continue;
         double dy = hist_input->GetBinContent(binx+1+1)-hist_input->GetBinContent(binx+1-1);
+        if (doSqrt)
+        {
+            dy = log10(hist_input->GetBinContent(binx+1+1))-log10(hist_input->GetBinContent(binx+1-1));
+        }
         double dx = hist_input->GetBinCenter(binx+1+1)-hist_input->GetBinCenter(binx+1-1);
         double new_content = dy/dx;
         hist_output->SetBinContent(binx+1,new_content);
@@ -1072,10 +1083,10 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_init_input, MatrixXcd mtx_data_i
             double sigma_data = max(1.,pow(mtx_data_input(idx_i,idx_j).real(),0.5));
             double weight = 1./sigma_data;
             //double weight = 1.;
-            //if (isBlind && idx_i>=binx_blind_global && idx_j<biny_blind_global)
-            //{
-            //    if (idx_i<binx_buffer_global) weight = 0.1;
-            //}
+            if (isBlind && idx_i>=binx_blind_global && idx_j<biny_blind_global)
+            {
+                if (idx_i<binx_buffer_global) weight = 0.*weight;
+            }
             vtr_Delta(idx_u) = weight*(mtx_data_input-mtx_init_input)(idx_i,idx_j);
             for (int idx_k=0;idx_k<size_k;idx_k++)
             {
@@ -1084,7 +1095,8 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_init_input, MatrixXcd mtx_data_i
                 {
                     int nth_entry = idx_n+1;
                     if (kth_entry>entry_size && nth_entry>entry_size) continue;
-                    //if (kth_entry>entry_size || nth_entry>entry_size) continue;
+                    if (kth_entry>entry_size+3 || nth_entry>entry_size+3) continue;
+                    //if (abs(kth_entry-nth_entry)>=2) continue;
                     if (RegularizationType==1)
                     {
                         if (kth_entry==3 && nth_entry==3) continue;
@@ -2434,9 +2446,9 @@ void LeastSquareSolutionMethod(bool isBlind, TH1D* Hist_Converge, TH1D* Hist_Opt
 
     TH1D Hist_Temp_Chi2_Diff = TH1D("Hist_Temp_Chi2_Diff","",200,optimiz_lower,optimiz_upper);
     TH1D Hist_Temp_Chi2_Diff2 = TH1D("Hist_Temp_Chi2_Diff2","",200,optimiz_lower,optimiz_upper);
-    findDifferentialHistogram(Hist_CosmicRayChi2,&Hist_Temp_Chi2_Diff);
-    findDifferentialHistogram(&Hist_Temp_Chi2_Diff,&Hist_Temp_Chi2_Diff2);
-    double new_optimized_log10_alpha = findHistogramMaxPosition(&Hist_Temp_Chi2_Diff2,log10(alpha));
+    findDifferentialHistogram(Hist_CosmicRayChi2,&Hist_Temp_Chi2_Diff,true);
+    findDifferentialHistogram(&Hist_Temp_Chi2_Diff,&Hist_Temp_Chi2_Diff2,false);
+    double new_optimized_log10_alpha = findHistogramMaxPosition(&Hist_Temp_Chi2_Diff2,Hist_CosmicRayChi2);
     std::cout << "old log10 alpha = " << log10(alpha) << std::endl;
     std::cout << "new log10 alpha = " << new_optimized_log10_alpha << std::endl;
     //double new_optimized_alpha = pow(10.,new_optimized_log10_alpha);
@@ -3366,9 +3378,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                     optimized_alpha = 1e-1;
                 }
                 LeastSquareSolutionMethod(true, &Hist_Bkgd_Converge_Blind.at(e), &Hist_Bkgd_Optimization.at(e), &Hist_Bkgd_Chi2.at(e), optimized_alpha);
-                findDifferentialHistogram(&Hist_Bkgd_Chi2.at(e),&Hist_Bkgd_Chi2_Diff.at(e));
-                findDifferentialHistogram(&Hist_Bkgd_Chi2_Diff.at(e),&Hist_Bkgd_Chi2_Diff2.at(e));
-                double new_optimized_log10_alpha = findHistogramMaxPosition(&Hist_Bkgd_Chi2_Diff2.at(e),log10(optimized_alpha));
+                findDifferentialHistogram(&Hist_Bkgd_Chi2.at(e),&Hist_Bkgd_Chi2_Diff.at(e),true);
+                findDifferentialHistogram(&Hist_Bkgd_Chi2_Diff.at(e),&Hist_Bkgd_Chi2_Diff2.at(e),false);
+                double new_optimized_log10_alpha = findHistogramMaxPosition(&Hist_Bkgd_Chi2_Diff2.at(e),&Hist_Bkgd_Chi2.at(e));
                 max_chi2_diff2_position.push_back(new_optimized_log10_alpha);
                 for (int entry=0;entry<vtr_eigenval_vvv.size();entry++)
                 {
@@ -3587,8 +3599,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
         if (!EigenDecomposition)
         {
-            mtx_coeff_data = NuclearNormMinimization(mtx_dark_rescale, mtx_data_rescale, mtx_dark_rescale, 1, mtx_dark.rows(), 1.0, false, 0, 0.);
-            mtx_coeff_bkgd = NuclearNormMinimization(mtx_dark_rescale, mtx_bkgd_rescale, mtx_dark_rescale, 1, mtx_dark.rows(), 1.0, false, 0, 0.);
+            mtx_coeff_data = NuclearNormMinimization(mtx_dark_rescale, mtx_data_rescale, mtx_dark_rescale, 1, N_bins_for_deconv, 1.0, false, 0, 0.);
+            mtx_coeff_bkgd = NuclearNormMinimization(mtx_dark_rescale, mtx_bkgd_rescale, mtx_dark_rescale, 1, N_bins_for_deconv, 1.0, false, 0, 0.);
         }
 
         fill2DHistogramAbs(&Hist_Coeff_Data.at(e),mtx_coeff_data);

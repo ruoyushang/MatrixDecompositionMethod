@@ -498,6 +498,21 @@ bool SelectNImages()
     if (NImages<3) return false;
     return true;
 }
+bool ApplyTimeCuts(double event_time, vector<pair<double,double>> timecut)
+{
+    bool pass_cut = true;
+    for (int cut=0;cut<timecut.size();cut++)
+    {
+        double timecut_start = timecut.at(cut).first;
+        double timecut_end = timecut.at(cut).second;
+        //std::cout << "event_time " << event_time << ", timecut_start " << timecut_start << ", timecut_end " << timecut_end << std::endl;
+        if (event_time>timecut_start && event_time<timecut_end)
+        {
+            pass_cut = false;
+        }
+    }
+    return pass_cut;
+}
 double GetRunPedestalVar(int run_number)
 {
     string line;
@@ -549,9 +564,156 @@ double GetRunPedestalVar(int run_number)
         }
         myfile.close();
     }
-    else cout << "Unable to open file"; 
+    else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
 
     return NSB;
+}
+
+int RunTypeCategory(int run_number, bool doPrint)
+{
+    string line;
+    char delimiter = ' ';
+    string acc_runnumber = "";
+    string acc_runtype = "";
+    int nth_delimiter = 0;
+    std::string::size_type sz;
+    int runtype = 0;
+
+    ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/category_allruns.txt");
+    if (myfile.is_open())
+    {
+        while ( getline(myfile,line) )
+        {
+            acc_runnumber = "";
+            nth_delimiter = 0;
+            for(int i = 0; i < line.size(); i++)
+            {
+                if(line[i] == delimiter)
+                {
+                    nth_delimiter += 1;
+                }
+                else if (nth_delimiter==0)
+                {
+                    acc_runnumber += line[i];
+                }
+            }
+            if (std::stoi(acc_runnumber,nullptr,10)==run_number)
+            {
+                //std::cout << "find run " << run_number << std::endl;
+                nth_delimiter = 0;
+                acc_runtype = "";
+                for(int i = 0; i < line.size(); i++)
+                {
+                    if (line[i] != delimiter)
+                    {
+                        acc_runtype += line[i];
+                    }
+                    else
+                    {
+                        acc_runtype = "";
+                        nth_delimiter += 1;
+                    }
+                }
+                if (acc_runtype!="reducedhv")
+                {
+                    runtype = 1;
+                }
+                else
+                {
+                    if (doPrint)
+                    {
+                        std::cout << "Run " << run_number << " rejected. Run Type " << acc_runtype << std::endl;
+                    }
+                }
+                break;
+            }
+        }
+        myfile.close();
+    }
+    else std::cout << "Unable to open file category_allruns.txt" << std::endl; 
+
+    return runtype;
+}
+
+vector<pair<double,double>> GetRunTimecuts(int run_number)
+{
+    string line;
+    char delimiter = ' ';
+    string acc_runnumber = "";
+    string acc_timecuts = "";
+    vector<pair<double,double>> timecuts;
+    int nth_delimiter = 0;
+    std::string::size_type sz;
+
+    ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/timecuts_allruns.txt");
+    if (myfile.is_open())
+    {
+        while ( getline(myfile,line) )
+        {
+            acc_runnumber = "";
+            nth_delimiter = 0;
+            for(int i = 0; i < line.size(); i++)
+            {
+                if(line[i] == delimiter)
+                {
+                    nth_delimiter += 1;
+                }
+                else if (nth_delimiter==0)
+                {
+                    acc_runnumber += line[i];
+                }
+            }
+            if (std::stoi(acc_runnumber,nullptr,10)==run_number)
+            {
+                //std::cout << "find run " << run_number << std::endl;
+                nth_delimiter = 0;
+                acc_timecuts = "";
+                for(int i = 0; i < line.size(); i++)
+                {
+                    if (line[i] != delimiter)
+                    {
+                        acc_timecuts += line[i];
+                    }
+                    else
+                    {
+                        size_t pos = 0;
+                        string time_delimiter = "/";
+                        if ((pos = acc_timecuts.find(time_delimiter)) != std::string::npos)
+                        {
+                            string timecut_start = acc_timecuts.substr(0, pos);
+                            acc_timecuts.erase(0, pos + time_delimiter.length());
+                            string timecut_end = acc_timecuts;
+                            //std::cout << "timecut_start " << timecut_start << std::endl;
+                            //std::cout << "timecut_end " << timecut_end << std::endl;
+                            double val_timecut_start = std::stod(timecut_start,&sz);
+                            double val_timecut_end = std::stod(timecut_end,&sz);
+                            timecuts.push_back(std::make_pair(val_timecut_start,val_timecut_end));
+                        }
+                        acc_timecuts = "";
+                        nth_delimiter += 1;
+                    }
+                }
+                size_t pos = 0;
+                string time_delimiter = "/";
+                if ((pos = acc_timecuts.find(time_delimiter)) != std::string::npos)
+                {
+                    string timecut_start = acc_timecuts.substr(0, pos);
+                    acc_timecuts.erase(0, pos + time_delimiter.length());
+                    string timecut_end = acc_timecuts;
+                    //std::cout << "timecut_start " << timecut_start << std::endl;
+                    //std::cout << "timecut_end " << timecut_end << std::endl;
+                    double val_timecut_start = std::stod(timecut_start,&sz);
+                    double val_timecut_end = std::stod(timecut_end,&sz);
+                    timecuts.push_back(std::make_pair(val_timecut_start,val_timecut_end));
+                }
+                break;
+            }
+        }
+        myfile.close();
+    }
+    else std::cout << "Unable to open file timecuts_allruns.txt" << std::endl; 
+
+    return timecuts;
 }
 
 int GetRunMJD(string file_name,int run)
@@ -846,6 +1008,7 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
     vector<double> new_list_pointing;
     for (int run=0;run<Data_runlist.size();run++)
     {
+        if (RunTypeCategory(Data_runlist[run].second,true)!=1) continue;
         char run_number[50];
         char Data_observation[50];
         sprintf(run_number, "%i", int(Data_runlist[run].second));
@@ -920,6 +1083,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     for (int off_run=0;off_run<OFF_runlist.size();off_run++)
     {
         //std::cout << "Complete " << off_run << "/" << OFF_runlist.size()<< std::endl;
+        if (RunTypeCategory(OFF_runlist[off_run].second,false)!=1) continue;
         char OFF_runnumber[50];
         char OFF_observation[50];
         sprintf(OFF_runnumber, "%i", int(OFF_runlist[off_run].second));
@@ -970,9 +1134,10 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         for (int on_run=0;on_run<ON_runlist.size();on_run++)
         {
             double accumulated_time = 0.;
-            double threshold_dNSB = 0.5;
-            double threshold_dElev = 2.0;
-            while (accumulated_time<2.0*ON_time[on_run])
+            double threshold_dNSB = 0.2;
+            double threshold_dElev = 10.0;
+            double threshold_dMJD = 2.*365.;
+            while (accumulated_time<1.0*ON_time[on_run])
             {
                 pair<string,int> best_match;
                 pair<double,double> best_pointing;
@@ -1003,25 +1168,29 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     }
                     if (already_used_run) continue;
 
-                    //double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                    double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
-                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<threshold_dNSB*threshold_dNSB)
-                    {
-                        found_match = true;
-                    }
+                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
                     if (ON_NSB[on_run]==0.)
                     {
-                        found_match = true;
-                        chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                        if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<threshold_dElev*threshold_dElev)
+                        {
+                            found_match = true;
+                        }
                     }
-                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>threshold_dElev*threshold_dElev)
+                    else
+                    {
+                        if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<threshold_dElev*threshold_dElev)
+                        {
+                            if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<threshold_dNSB*threshold_dNSB)
+                            {
+                                found_match = true;
+                            }
+                        }
+                    }
+                    if (pow(ON_MJD[on_run]-OFF_MJD[off_run],2)>threshold_dMJD*threshold_dMJD)
                     {
                         found_match = false;
                     }
-                    //if (pow(ON_MJD[on_run]-OFF_MJD[off_run],2)>(4.*365.)*(4.*365.))
-                    //{
-                    //    found_match = false;
-                    //}
                     if (found_match && best_chi2>chi2)
                     {
                         best_chi2 = chi2;
@@ -1043,10 +1212,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     // searched whole OFF list and found no match.
                     threshold_dNSB += 0.1;
                     threshold_dElev += 1.0;
-                    if (threshold_dElev>=10.)
-                    {
-                        break;
-                    }
+                    threshold_dMJD += 1.0*365.;
+                    //if (threshold_dElev>=10.)
+                    //{
+                    //    break;
+                    //}
                 }
             }
             Dark_time.at(on_run).at(nth_sample) = accumulated_time;
@@ -1839,6 +2009,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
                 TTree* Dark_tree = (TTree*) input_file->Get(root_file);
                 SetEventDisplayTreeBranch(Dark_tree);
+                vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Dark_runlist.at(on_run).at(nth_sample)[off_run].second);
 
                 Dark_tree->GetEntry(0);
                 double time_0 = Time;
@@ -1873,13 +2044,15 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     if (elevation<0) continue;
                     if (elevation>=N_elev_bins) continue;
                     if (!SelectNImages()) continue;
+                    if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
                     if (SizeSecondMax<SizeSecondMax_Cut) continue;
                     if (EmissionHeight<6.) continue;
                     if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
                     //if (R2off>4.) continue;
                     Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
                     Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
-                    double weight = Dark_weight.at(on_run).at(nth_sample);
+                    //double weight = Dark_weight.at(on_run).at(nth_sample);
+                    double weight = 1.;
                     if (DarkFoV())
                     {
                         //int zenith_bin = Hist_OnDark_Incl_CR_Zenith.at(energy).FindBin(Shower_Ze);
@@ -1940,6 +2113,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
         SetEventDisplayTreeBranch(Data_tree);
+        vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
 
         // Get effective area and livetime and determine the cosmic electron counts for this run.
         //std::cout << "Get effective area and livetime..." << std::endl;
@@ -1996,6 +2170,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (elevation<0) continue;
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
+            if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
             if (SizeSecondMax<SizeSecondMax_Cut) continue;
             if (EmissionHeight<6.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
@@ -2410,6 +2585,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
     for (int e=0;e<N_energy_bins;e++) 
     {
+        std::cout << "Hist_OnData_MSCLW.at(e).Integral() = " << Hist_OnData_MSCLW.at(e).Integral() << std::endl;
         Hist_OnData_MSCLW.at(e).Write();
         Hist_OnData_SR_Skymap_Theta2.at(e).Write();
         Hist_OnData_CR_Skymap_Theta2.at(e).Write();
@@ -2435,6 +2611,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     {
         for (int e=0;e<N_energy_bins;e++) 
         {
+            std::cout << "Hist_OnDark_MSCLW.at(e).Integral() = " << Hist_OnDark_MSCLW.at(nth_sample).at(e).Integral() << std::endl;
             Hist_OnDark_MSCLW.at(nth_sample).at(e).Write();
         }
     }
