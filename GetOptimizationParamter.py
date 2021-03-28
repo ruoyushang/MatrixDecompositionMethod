@@ -68,24 +68,43 @@ method_tag += lowrank_tag
 
 ONOFF_tag = 'OFF'
 sample_list = []
-#sample_list += ['1ES0647V6_OFF']
+sample_name = []
+sample_list += ['1ES0647V6_OFF']
+sample_name += ['1ES0647 V6']
 sample_list += ['1ES1011V6_OFF']
-sample_list += ['H1426V6_OFF']
+sample_name += ['1ES1011 V6']
 sample_list += ['OJ287V6_OFF']
-sample_list += ['1ES0229V6_OFF']
-sample_list += ['1ES0229V5_OFF']
+sample_name += ['OJ287 V6']
 sample_list += ['PKS1424V6_OFF']
+sample_name += ['PKS1424 V6']
 sample_list += ['3C264V6_OFF']
+sample_name += ['3C264 V6']
+sample_list += ['1ES0229V6_OFF']
+sample_name += ['1ES0229 V6']
+sample_list += ['1ES0229V5_OFF']
+sample_name += ['1ES0229 V5']
 sample_list += ['Segue1V6_OFF']
+sample_name += ['Segue1 V6']
 sample_list += ['Segue1V5_OFF']
+sample_name += ['Segue1 V5']
 sample_list += ['CrabV5_OFF']
+sample_name += ['Crab V5']
 sample_list += ['CrabV6_OFF']
+sample_name += ['Crab V6']
 sample_list += ['BLLacV6_OFF']
+sample_name += ['BLLac V6']
 sample_list += ['BLLacV5_OFF']
+sample_name += ['BLLac V5']
 sample_list += ['PG1553V5_OFF']
-#sample_list += ['CasAV6_OFF']
+sample_name += ['PG1553 V5']
+sample_list += ['H1426V6_OFF']
+sample_name += ['H1426 V6']
+sample_list += ['CasAV6_OFF']
+sample_name += ['CasA V6']
 #sample_list += ['M82V6_OFF']
+#sample_name += ['M82 V6']
 #sample_list += ['M82V5_OFF']
+#sample_name += ['M82 V5']
 
 #ONOFF_tag = 'ON'
 #sample_list = []
@@ -390,44 +409,47 @@ for e in range(0,len(energy_bin)-1):
     fig, ax = plt.subplots()
     colors = np.random.rand(len(Zenith_mean_data))
 
-    Accuracy_source = []
-    AccuracyErr_source = []
+    AccuracyInit_source = []
+    AccuracyInitErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        Accuracy_source += [abs(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
-        AccuracyErr_source += [1./pow(data_count[entry-1],0.5)]
-    Accuracy_mean = 0.
-    Accuracy_mean_error = 0.
-    for entry in range(0,len(Accuracy_source)):
-        Accuracy_mean += Accuracy_source[entry]/len(Accuracy_source)
-        Accuracy_mean_error += pow(AccuracyErr_source[entry],2)/len(Accuracy_source)
-    Accuracy_mean_error = pow(Accuracy_mean_error,0.5)
+        AccuracyInit_source += [abs(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
+        AccuracyInitErr_source += [1./pow(data_count[entry-1],0.5)]
+    AccuracyInit_mean = 0.
+    AccuracyInit_mean_error = 0.
+    for entry in range(0,len(AccuracyInit_source)):
+        AccuracyInit_mean += AccuracyInit_source[entry]/len(AccuracyInit_source)
+        AccuracyInit_mean_error += pow(AccuracyInitErr_source[entry],2)/len(AccuracyInit_source)
+    AccuracyInit_mean_error = pow(AccuracyInit_mean_error,0.5)
     plt.clf()
     plt.xlabel("Zenith", fontsize=18)
     plt.ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$", fontsize=18)
-    #plt.scatter(Zenith_mean_data,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
-    plt.errorbar(Zenith_mean_data,Accuracy_source,xerr=Zenith_RMS_data,yerr=AccuracyErr_source,fmt='o',color='r')
+    #plt.scatter(Zenith_mean_data,AccuracyInit_source,s=area_scatter,c=colors,alpha=0.5)
+    plt.errorbar(Zenith_mean_data,AccuracyInit_source,xerr=Zenith_RMS_data,yerr=AccuracyInitErr_source,fmt='o',color='r')
     xmin, xmax, ymin, ymax = plt.axis()
     x = np.linspace(xmin, xmax, 100)
-    y = 0.*x + Accuracy_mean
+    y = 0.*x + AccuracyInit_mean
     plt.plot(x,y,color='#1B2ACC')
-    plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#CC4F1B',alpha=0.2,facecolor='#FF9848')
-    plt.title('$<\epsilon>=%0.3f \pm %0.3f$'%(Accuracy_mean,Accuracy_mean_error))
+    plt.fill_between(x,y-AccuracyInit_mean_error,y+AccuracyInit_mean_error,edgecolor='#CC4F1B',alpha=0.2,facecolor='#FF9848')
+    plt.title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,AccuracyInit_mean_error))
     plt.savefig("output_plots/PerformanceInit_Zenith_E%s%s.png"%(e,lowrank_tag))
     plt.clf()
     plt.xlabel("NSB", fontsize=18)
     plt.ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$", fontsize=18)
-    #plt.scatter(NSB_mean_data,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
-    plt.errorbar(NSB_mean_data,Accuracy_source,xerr=NSB_RMS_data,yerr=AccuracyErr_source,fmt='o',color='r')
+    #plt.scatter(NSB_mean_data,AccuracyInit_source,s=area_scatter,c=colors,alpha=0.5)
+    plt.errorbar(NSB_mean_data,AccuracyInit_source,xerr=NSB_RMS_data,yerr=AccuracyInitErr_source,fmt='o',color='r')
     xmin, xmax, ymin, ymax = plt.axis()
     x = np.linspace(xmin, xmax, 100)
-    y = 0.*x + Accuracy_mean
+    y = 0.*x + AccuracyInit_mean
     plt.plot(x,y,color='#1B2ACC')
-    plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#CC4F1B',alpha=0.2,facecolor='#FF9848')
-    plt.title('$<\epsilon>=%0.3f \pm %0.3f$'%(Accuracy_mean,Accuracy_mean_error))
+    plt.fill_between(x,y-AccuracyInit_mean_error,y+AccuracyInit_mean_error,edgecolor='#CC4F1B',alpha=0.2,facecolor='#FF9848')
+    plt.title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,AccuracyInit_mean_error))
     plt.savefig("output_plots/PerformanceInit_NSB_E%s%s.png"%(e,lowrank_tag))
 
     Accuracy_source = []
     AccuracyErr_source = []
+    min_y = 1.0
+    min_x = 1.0
+    min_bin = 0
     #for entry in range(1,len(Hist_Bkgd_Optimization)):
     #    Accuracy_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
     #    AccuracyErr_source += [1./pow(data_count[entry-1],0.5)]
@@ -437,9 +459,6 @@ for e in range(0,len(energy_bin)-1):
     #    Accuracy_mean += Accuracy_source[entry]/len(Accuracy_source)
     #    Accuracy_mean_error += pow(AccuracyErr_source[entry],2)/len(Accuracy_source)
     #Accuracy_mean_error = pow(Accuracy_mean_error,0.5)
-    min_y = 1.0
-    min_x = 1.0
-    min_bin = 0
     for binx in range(1,Hist_Bkgd_Optimization[0].GetNbinsX()+1):
         if Hist_Bkgd_Optimization[0].GetBinContent(binx)<min_y:
             min_y = Hist_Bkgd_Optimization[0].GetBinContent(binx)
@@ -506,6 +525,22 @@ for e in range(0,len(energy_bin)-1):
     plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
     plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
     plt.savefig("output_plots/Performance_DarkNSB_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+
+    plt.clf()
+    ax = fig.add_subplot(111)
+    ind = np.arange(len(Accuracy_source))
+    width = 0.35
+    rects1 = ax.bar(ind, Accuracy_source, width, color='#089FFF', yerr=AccuracyErr_source)
+    rects2 = ax.bar(ind+width, AccuracyInit_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
+    ax.set_xlim(-width,len(ind)+width)
+    ax.set_ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$", fontsize=18)
+    ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
+    xTickMarks = sample_name
+    ax.set_xticks(ind+width)
+    xtickNames = ax.set_xticklabels(xTickMarks)
+    plt.setp(xtickNames, rotation=45, fontsize=10)
+    plt.subplots_adjust(bottom=0.15)
+    plt.savefig("output_plots/Performance_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
     RankCounts = []
     Rank = [1,2,3,4,5]
