@@ -101,6 +101,7 @@ int n_iterations = 100;
 
 double GammaScale = 0.;
 double MinChi2Unblind = 1e10;
+double current_energy = 0.;
 
 double optimiz_lower = -5.;
 double optimiz_upper = 0.;
@@ -111,8 +112,10 @@ double svd_threshold = 1e-20; // size of singular value to be considered as nonz
 double svd_threshold_scale = 1.0;
 
 vector<double> data_gamma_count;
+vector<double> data_control_count;
 vector<double> dark_gamma_count;
 vector<double> bkgd_gamma_count;
+vector<double> bkgd_control_count;
 vector<double> rank0_gamma_count;
 vector<double> rank1_gamma_count;
 vector<double> rank2_gamma_count;
@@ -187,43 +190,65 @@ void fill2DHistogram(TH2D* hist,MatrixXcd mtx)
         }
     }
 }
-double findHistogramMaxPosition(TH1D* hist_input, TH1D* hist_norm)
+double findHistogramMaxPosition(TH1D* hist_input, double init_pos)
 {
     double max = 0.;
     double max_pos = 0.;
+    vector<double> localmax_pos;
+    bool going_up = false;
     for (int binx=0;binx<hist_input->GetNbinsX();binx++)
     {
         if (binx==0) continue;
         if (binx==hist_input->GetNbinsX()-1) continue;
         double current_pos = hist_input->GetBinCenter(binx+1);
-        double current_max = hist_input->GetBinContent(binx+1)/hist_norm->GetBinContent(binx+1);
+        double current_max = hist_input->GetBinContent(binx+1);
         if (current_max>max)
         {
+            going_up = true;
             max = current_max;
             max_pos = current_pos;
         }
-        //if (abs(current_pos-init_pos)<0.5)
-        //{
-        //    if (current_max>max)
-        //    {
-        //        max = current_max;
-        //        max_pos = current_pos;
-        //    }
-        //}
+        else
+        {
+            if (going_up)
+            {
+                localmax_pos.push_back(max_pos);
+            }
+            going_up = false;
+        }
+    }
+    double min_distance = 1e10;
+    max_pos = 0.;
+    for (int nth_local=0;nth_local<localmax_pos.size();nth_local++)
+    {
+        double distance = abs(localmax_pos.at(nth_local)-init_pos);
+        if (distance<min_distance)
+        {
+            min_distance = distance;
+            max_pos = localmax_pos.at(nth_local);
+        }
     }
     return max_pos;
 }
 void findDifferentialHistogram(TH1D* hist_input, TH1D* hist_output, bool doSqrt)
 {
+    int range = 1;
     for (int binx=0;binx<hist_input->GetNbinsX();binx++)
     {
-        if (binx==0) continue;
-        if (binx==hist_input->GetNbinsX()-1) continue;
-        double dy = hist_input->GetBinContent(binx+1+1)-hist_input->GetBinContent(binx+1-1);
-        if (doSqrt)
+        if (binx-range<=0) continue;
+        if (binx+range>=hist_input->GetNbinsX()-1) continue;
+        double y_left = 0.;
+        double y_right = 0.;
+        for (int binr=1;binr<=range;binr++)
         {
-            dy = log10(hist_input->GetBinContent(binx+1+1))-log10(hist_input->GetBinContent(binx+1-1));
+            y_left += hist_input->GetBinContent(binx+1-binr);
+            y_right += hist_input->GetBinContent(binx+1+binr);
         }
+        double dy = y_right - y_left;
+        //if (doSqrt)
+        //{
+        //    dy = dy/hist_input->GetBinContent(binx+1);
+        //}
         double dx = hist_input->GetBinCenter(binx+1+1)-hist_input->GetBinCenter(binx+1-1);
         double new_content = dy/dx;
         hist_output->SetBinContent(binx+1,new_content);
@@ -1081,8 +1106,8 @@ MatrixXcd NuclearNormMinimization(MatrixXcd mtx_init_input, MatrixXcd mtx_data_i
                 continue;
             }
             double sigma_data = max(1.,pow(mtx_data_input(idx_i,idx_j).real(),0.5));
-            double weight = 1./sigma_data;
-            //double weight = 1.;
+            //double weight = 1./sigma_data;
+            double weight = 1.;
             if (isBlind && idx_i>=binx_blind_global && idx_j<biny_blind_global)
             {
                 if (idx_i<binx_buffer_global) weight = 0.*weight;
@@ -2214,6 +2239,7 @@ double Chi2CosmicRayRegion(MatrixXcd mtx_input, MatrixXcd mtx_model)
     {
         for (int row=0;row<mtx_input.rows();row++)
         {
+            if (row<binx_blind_global && col<biny_blind_global) continue;
             count += mtx_input(row,col).real();
         }
     }
@@ -2223,7 +2249,10 @@ double Chi2CosmicRayRegion(MatrixXcd mtx_input, MatrixXcd mtx_model)
         for (int row=0;row<mtx_input.rows();row++)
         {
             if (row<binx_blind_global && col<biny_blind_global) continue;
-            chi2 += pow((mtx_input(row,col)-mtx_model(row,col)).real()/count,2);
+            double sigma_data = max(1.,pow(mtx_input(row,col).real(),0.5));
+            //double weight = 1./sigma_data;
+            double weight = 1.;
+            chi2 += pow(weight*(mtx_input(row,col)-mtx_model(row,col)).real()/count,2);
         }
     }
     return chi2;
@@ -2448,11 +2477,12 @@ void LeastSquareSolutionMethod(bool isBlind, TH1D* Hist_Converge, TH1D* Hist_Opt
     TH1D Hist_Temp_Chi2_Diff2 = TH1D("Hist_Temp_Chi2_Diff2","",200,optimiz_lower,optimiz_upper);
     findDifferentialHistogram(Hist_CosmicRayChi2,&Hist_Temp_Chi2_Diff,true);
     findDifferentialHistogram(&Hist_Temp_Chi2_Diff,&Hist_Temp_Chi2_Diff2,false);
-    double new_optimized_log10_alpha = findHistogramMaxPosition(&Hist_Temp_Chi2_Diff2,Hist_CosmicRayChi2);
+    double new_optimized_log10_alpha = findHistogramMaxPosition(&Hist_Temp_Chi2_Diff2,log10(alpha));
     std::cout << "old log10 alpha = " << log10(alpha) << std::endl;
     std::cout << "new log10 alpha = " << new_optimized_log10_alpha << std::endl;
-    //double new_optimized_alpha = pow(10.,new_optimized_log10_alpha);
-    double new_optimized_alpha = alpha;
+    double new_optimized_alpha = pow(10.,new_optimized_log10_alpha);
+    if (current_energy>=1000.) new_optimized_alpha = alpha;
+    //double new_optimized_alpha = alpha;
 
     if (RegularizationType==3 || RegularizationType==4 || RegularizationType==5)
     {
@@ -2884,6 +2914,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+            current_energy = energy_bins[e];
 
 
             MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
@@ -2904,6 +2935,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+        current_energy = energy_bins[e];
 
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
@@ -2947,6 +2979,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+            current_energy = energy_bins[e];
 
 
             MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
@@ -3014,6 +3047,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+        current_energy = energy_bins[e];
 
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
@@ -3091,6 +3125,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+        current_energy = energy_bins[e];
 
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
@@ -3128,6 +3163,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+        current_energy = energy_bins[e];
 
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
@@ -3177,6 +3213,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+            current_energy = energy_bins[e];
 
 
             MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
@@ -3195,6 +3232,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             sprintf(e_low, "%i", int(energy_bins[e]));
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
+            current_energy = energy_bins[e];
 
 
             MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
@@ -3226,6 +3264,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+        current_energy = energy_bins[e];
 
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
@@ -3380,7 +3419,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 LeastSquareSolutionMethod(true, &Hist_Bkgd_Converge_Blind.at(e), &Hist_Bkgd_Optimization.at(e), &Hist_Bkgd_Chi2.at(e), optimized_alpha);
                 findDifferentialHistogram(&Hist_Bkgd_Chi2.at(e),&Hist_Bkgd_Chi2_Diff.at(e),true);
                 findDifferentialHistogram(&Hist_Bkgd_Chi2_Diff.at(e),&Hist_Bkgd_Chi2_Diff2.at(e),false);
-                double new_optimized_log10_alpha = findHistogramMaxPosition(&Hist_Bkgd_Chi2_Diff2.at(e),&Hist_Bkgd_Chi2.at(e));
+                double new_optimized_log10_alpha = findHistogramMaxPosition(&Hist_Bkgd_Chi2_Diff2.at(e),log10(optimized_alpha));
+                if (current_energy>=1000.) new_optimized_log10_alpha = log10(optimized_alpha);
                 max_chi2_diff2_position.push_back(new_optimized_log10_alpha);
                 for (int entry=0;entry<vtr_eigenval_vvv.size();entry++)
                 {
@@ -3457,6 +3497,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 Hist_OnData_CR_RoI_MJD.at(nth_roi).at(e).Scale(scale);
             }
         }
+        data_control_count.push_back(Hist_OnData_SR_RoI_Energy.at(0).at(e).Integral());
+        bkgd_control_count.push_back(Hist_OnData_CR_RoI_Energy.at(0).at(e).Integral());
         for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
             Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e).Reset();
@@ -3515,12 +3557,13 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         double epsilon_replace_redu  = data_replace_redu_count/data_full_count -1.;
         std::cout << "N^{ON} = " << data_full_count << ", N^{Swap}_{3} = " << data_replace_redu_count << ", epsilon^{Swap}_{3} = " << epsilon_replace_redu << std::endl;
         MatrixXcd mtx_bkgd_truncate = GetTruncatedMatrix(mtx_data_bkgd, NumberOfEigenvectors_Stable);
+        double bkgd_full_count = CountGammaRegion(mtx_data_bkgd);
         double bkgd_redu_count = CountGammaRegion(mtx_bkgd_truncate);
         double epsilon_bkgd_redu  = bkgd_redu_count/data_full_count -1.;
         std::cout << "N^{ON} = " << data_full_count << ", N^{Chi2}_{3} = " << bkgd_redu_count << ", epsilon^{Chi2}_{3} = " << epsilon_bkgd_redu << std::endl;
         data_gamma_count.push_back(data_full_count);
         dark_gamma_count.push_back(dark_full_count);
-        bkgd_gamma_count.push_back(bkgd_redu_count);
+        bkgd_gamma_count.push_back(bkgd_full_count);
         MatrixXcd mtx_vvv_bkgd = PerturbationMethod(mtx_data,mtx_dark,true);
         MatrixXcd mtx_vvv_truncate = GetTruncatedMatrix(mtx_vvv_bkgd, NumberOfEigenvectors_Stable);
         double vvv_redu_count = CountGammaRegion(mtx_vvv_truncate);
@@ -3800,8 +3843,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     NewInfoTree.Branch("Zenith_RMS_dark",&Zenith_RMS_dark,"Zenith_RMS_dark/D");
     NewInfoTree.Branch("max_chi2_diff2_position","std::vector<double>",&max_chi2_diff2_position);
     NewInfoTree.Branch("data_gamma_count","std::vector<double>",&data_gamma_count);
+    NewInfoTree.Branch("data_control_count","std::vector<double>",&data_control_count);
     NewInfoTree.Branch("dark_gamma_count","std::vector<double>",&dark_gamma_count);
     NewInfoTree.Branch("bkgd_gamma_count","std::vector<double>",&bkgd_gamma_count);
+    NewInfoTree.Branch("bkgd_control_count","std::vector<double>",&bkgd_control_count);
     NewInfoTree.Branch("rank0_gamma_count","std::vector<double>",&rank0_gamma_count);
     NewInfoTree.Branch("rank1_gamma_count","std::vector<double>",&rank1_gamma_count);
     NewInfoTree.Branch("rank2_gamma_count","std::vector<double>",&rank2_gamma_count);

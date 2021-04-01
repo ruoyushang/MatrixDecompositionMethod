@@ -376,6 +376,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 308.041666667;
                 Source_Dec = 41.4594444444;
     }
+    if (source_name.Contains("HESS_J1825"))
+    {
+            Source_RA = 276.37;
+                Source_Dec = -13.83;
+    }
     if (source_name.Contains("Cygnus"))
     {
             Source_RA = 304.646;
@@ -1131,6 +1136,7 @@ void SortingList(vector<pair<string,int>>* list, vector<double>* list_pointing)
 }
 vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, double Elev_cut_lower, double Elev_cut_upper, double Azim_cut_lower, double Azim_cut_upper, int MJD_start_cut, int MJD_end_cut)
 {
+    std::cout << "initial runs = " << Data_runlist.size() << std::endl;
     vector<pair<string,int>> new_list;
     vector<double> new_list_pointing;
     for (int run=0;run<Data_runlist.size();run++)
@@ -1267,11 +1273,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         for (int on_run=0;on_run<ON_runlist.size();on_run++)
         {
             double accumulated_time = 0.;
-            double threshold_dNSB = 0.2;
-            double threshold_dElev = 10.0;
+            double threshold_dNSB = 0.5;
+            double threshold_dElev = 5.0;
             double threshold_dMJD = 2.*365.;
             double threshold_dL3Rate = 20.;
-            while (accumulated_time<1.0*ON_time[on_run])
+            while (accumulated_time<2.0*ON_time[on_run])
             {
                 pair<string,int> best_match;
                 pair<double,double> best_pointing;
@@ -1302,29 +1308,25 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     }
                     if (already_used_run) continue;
 
-                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    found_match = true;
                     //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
+                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
                     if (ON_NSB[on_run]==0.)
                     {
-                        if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<threshold_dElev*threshold_dElev)
-                        {
-                            found_match = true;
-                        }
+                        chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
                     }
-                    else
-                    {
-                        if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)<threshold_dElev*threshold_dElev)
-                        {
-                            if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)<threshold_dNSB*threshold_dNSB)
-                            {
-                                found_match = true;
-                            }
-                        }
-                    }
-                    if (pow(ON_MJD[on_run]-OFF_MJD[off_run],2)>threshold_dMJD*threshold_dMJD)
+                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>threshold_dElev*threshold_dElev)
                     {
                         found_match = false;
                     }
+                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)>threshold_dNSB*threshold_dNSB)
+                    {
+                        found_match = false;
+                    }
+                    //if (pow(ON_MJD[on_run]-OFF_MJD[off_run],2)>threshold_dMJD*threshold_dMJD)
+                    //{
+                    //    found_match = false;
+                    //}
                     if (pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2)>threshold_dL3Rate*threshold_dL3Rate)
                     {
                         found_match = false;
@@ -1633,11 +1635,17 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     GetBrightStars();
     GetGammaSources();
 
-    roi_name.push_back("Validation");
+    roi_name.push_back("Control region");
     roi_ra.push_back(mean_tele_point_ra);
     roi_dec.push_back(mean_tele_point_dec);
     roi_radius_inner.push_back(0.);
     roi_radius_outer.push_back(10.);
+
+    roi_name.push_back("Validation");
+    roi_ra.push_back(mean_tele_point_ra);
+    roi_dec.push_back(mean_tele_point_dec);
+    roi_radius_inner.push_back(0.);
+    roi_radius_outer.push_back(1.5);
 
     if (TString(target).Contains("MGRO_J1908")) 
     {
@@ -1689,23 +1697,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
     else if (TString(target).Contains("MAGIC_J1857")) 
     {
-        roi_name.push_back("inner ring");
-        roi_ra.push_back(284.303);
-        roi_dec.push_back(2.729);
+        roi_name.push_back("HESS J1857+026");
+        roi_ra.push_back(284.295833333);
+        roi_dec.push_back(2.66666666667);
         roi_radius_inner.push_back(0.);
         roi_radius_outer.push_back(0.3);
-
-        roi_name.push_back("outer ring");
-        roi_ra.push_back(284.303);
-        roi_dec.push_back(2.729);
-        roi_radius_inner.push_back(0.3);
-        roi_radius_outer.push_back(1.0);
-
-        //roi_name.push_back("HESS J1857+026");
-        //roi_ra.push_back(284.295833333);
-        //roi_dec.push_back(2.66666666667);
-        //roi_radius_inner.push_back(0.);
-        //roi_radius_outer.push_back(0.3);
 
         roi_name.push_back("HESS J1858+020");
         roi_ra.push_back(284.583333333);
@@ -1715,38 +1711,16 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
     else if (TString(target).Contains("MGRO_J2031")) 
     {
-        roi_name.push_back("inner ring");
-        roi_ra.push_back(307.935);
-        roi_dec.push_back(41.513);
+        roi_name.push_back("MGRO J2031+41");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
         roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.15);
-
-        roi_name.push_back("outer ring");
-        roi_ra.push_back(307.935);
-        roi_dec.push_back(41.513);
-        roi_radius_inner.push_back(0.15);
-        roi_radius_outer.push_back(0.5);
-
-        //roi_name.push_back("MGRO J2031+41");
-        //roi_ra.push_back(mean_tele_point_ra);
-        //roi_dec.push_back(mean_tele_point_dec);
-        //roi_radius_inner.push_back(0.);
-        //roi_radius_outer.push_back(1.0);
-        //roi_name.push_back("PSR J2032+4127");
-        //roi_ra.push_back(308.041666667);
-        //roi_dec.push_back(41.4594444444);
-        //roi_radius_inner.push_back(0.);
-        //roi_radius_outer.push_back(1.0);
-        //roi_name.push_back("Jet 1");
-        //roi_ra.push_back(305.161);
-        //roi_dec.push_back(40.845);
-        //roi_radius_inner.push_back(0.);
-        //roi_radius_outer.push_back(0.3);
-        //roi_name.push_back("Jet 2");
-        //roi_ra.push_back(310.593);
-        //roi_dec.push_back(41.950);
-        //roi_radius_inner.push_back(0.);
-        //roi_radius_outer.push_back(0.3);
+        roi_radius_outer.push_back(1.0);
+        roi_name.push_back("PSR J2032+4127");
+        roi_ra.push_back(308.041666667);
+        roi_dec.push_back(41.4594444444);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(1.0);
     }
     else if (TString(target).Contains("Crab")) 
     {
@@ -1849,16 +1823,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
     else if (TString(target).Contains("GammaCygni")) 
     {
-        roi_name.push_back("inner ring");
+        roi_name.push_back("Gamma Cygni");
         roi_ra.push_back(304.967);
         roi_dec.push_back(40.811);
         roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.2);
-
-        roi_name.push_back("outer ring");
-        roi_ra.push_back(304.967);
-        roi_dec.push_back(40.811);
-        roi_radius_inner.push_back(0.2);
         roi_radius_outer.push_back(0.6);
     }
     else
