@@ -108,6 +108,7 @@ sample_list += ['CasAV6_OFF']
 sample_name += ['CasA V6']
 sample_list += ['RBS0413V6_OFF']
 sample_name += ['RBS0413 V6']
+
 #sample_list += ['RGBJ0710V5_OFF']
 #sample_name += ['RGBJ0710 V5']
 #sample_list += ['M82V6_OFF']
@@ -139,9 +140,9 @@ energy_bin += [int(pow(10,2.0))]
 energy_bin += [int(pow(10,2.33))]
 energy_bin += [int(pow(10,2.66))]
 energy_bin += [int(pow(10,3.0))]
-#energy_bin += [int(pow(10,3.33))]
-#energy_bin += [int(pow(10,3.66))]
-#energy_bin += [int(pow(10,4.0))]
+energy_bin += [int(pow(10,3.33))]
+energy_bin += [int(pow(10,3.66))]
+energy_bin += [int(pow(10,4.0))]
 
 signal_tag = '_S0'
 root_file_tags = []
@@ -388,7 +389,7 @@ def GetHistogramsFromFile(FilePath,which_source):
     Hist_GammaRegion_Contribution[which_source+1].Add(InputFile.Get(HistName))
 
 optimiz_lower = -5.
-optimiz_upper = 0.
+optimiz_upper = 20.
 Hist_Bkgd_Optimization = []
 for e in range(0,len(sample_list)+1):
     Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",100,optimiz_lower,optimiz_upper)]
@@ -488,6 +489,55 @@ for e in range(0,len(energy_bin)-1):
         AccuracyInit_mean_error += pow(AccuracyInitErr_source[entry],2)/len(AccuracyInit_source)
     AccuracyInit_mean = AccuracyInit_mean/AccuracyInit_weight
     AccuracyInit_mean_error = pow(AccuracyInit_mean_error,0.5)
+
+    AccuracyStat_source = []
+    AccuracyStatErr_source = []
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        AccuracyStat_source += [pow(data_count[entry-1],0.5)/data_count[entry-1]]
+        AccuracyStatErr_source += [1./pow(data_count[entry-1],0.5)]
+    AccuracyStat_mean = 0.
+    AccuracyStat_weight = 0.
+    AccuracyStat_mean_error = 0.
+    for entry in range(0,len(AccuracyStat_source)):
+        AccuracyStat_mean += AccuracyStat_source[entry]
+        AccuracyStat_weight += 1.
+        AccuracyStat_mean_error += pow(AccuracyStatErr_source[entry],2)/len(AccuracyStat_source)
+    AccuracyStat_mean = AccuracyStat_mean/AccuracyStat_weight
+    AccuracyStat_mean_error = pow(AccuracyStat_mean_error,0.5)
+
+    AccuracyRank2_source = []
+    AccuracyRank2Err_source = []
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        AccuracyRank2_source += [abs(data_count[entry-1]-rank2_count[entry-1])/data_count[entry-1]]
+        AccuracyRank2Err_source += [1./pow(data_count[entry-1],0.5)]
+    AccuracyRank2_mean = 0.
+    AccuracyRank2_weight = 0.
+    AccuracyRank2_mean_error = 0.
+    for entry in range(0,len(AccuracyRank2_source)):
+        AccuracyRank2_mean += 1./AccuracyRank2Err_source[entry]*AccuracyRank2_source[entry]
+        AccuracyRank2_weight += 1./AccuracyRank2Err_source[entry]
+        #AccuracyRank2_mean += AccuracyRank2_source[entry]
+        #AccuracyRank2_weight += 1.
+        AccuracyRank2_mean_error += pow(AccuracyRank2Err_source[entry],2)/len(AccuracyRank2_source)
+    AccuracyRank2_mean = AccuracyRank2_mean/AccuracyRank2_weight
+    AccuracyRank2_mean_error = pow(AccuracyRank2_mean_error,0.5)
+
+    AccuracyBestPar9_source = []
+    AccuracyBestPar9Err_source = []
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        AccuracyBestPar9_source += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)]
+        AccuracyBestPar9Err_source += [1./pow(data_count[entry-1],0.5)]
+    AccuracyBestPar9_mean = 0.
+    AccuracyBestPar9_weight = 0.
+    AccuracyBestPar9_mean_error = 0.
+    for entry in range(0,len(AccuracyBestPar9_source)):
+        AccuracyBestPar9_mean += 1./AccuracyBestPar9Err_source[entry]*AccuracyBestPar9_source[entry]
+        AccuracyBestPar9_weight += 1./AccuracyBestPar9Err_source[entry]
+        #AccuracyBestPar9_mean += AccuracyBestPar9_source[entry]
+        #AccuracyBestPar9_weight += 1.
+        AccuracyBestPar9_mean_error += pow(AccuracyBestPar9Err_source[entry],2)/len(AccuracyBestPar9_source)
+    AccuracyBestPar9_mean = AccuracyBestPar9_mean/AccuracyBestPar9_weight
+    AccuracyBestPar9_mean_error = pow(AccuracyBestPar9_mean_error,0.5)
 
     AccuracyPar9_source = []
     AccuracyPar9Err_source = []
@@ -793,7 +843,6 @@ for e in range(0,len(energy_bin)-1):
         print source_name
         tab_U_proj = [['1',0.,0.,0.,0.],['2',0.,0.,0.,0.],['3',0.,0.,0.,0.]]
         tab_V_proj = [['1',0.,0.,0.,0.],['2',0.,0.,0.,0.],['3',0.,0.,0.,0.]]
-        tab_UV_proj = [['1',0.,0.,0.,0.],['2',0.,0.,0.,0.],['3',0.,0.,0.,0.]]
         for row in range(0,Hist_U_Proj[entry].GetNbinsX()):
             for col in range(0,Hist_U_Proj[entry].GetNbinsY()):
                 content_u = Hist_U_Proj[entry].GetBinContent(row+1,col+1)
@@ -805,33 +854,90 @@ for e in range(0,len(energy_bin)-1):
                 else:
                     tab_U_proj[row][3+1] += content_u
                     tab_V_proj[row][3+1] += content_v
-        for row in range(0,len(tab_U_proj)):
-            for col in range(1,len(tab_U_proj[row])):
-                tab_UV_proj[row][col] = pow(tab_U_proj[row][col]+tab_V_proj[row][col],0.5)
+        for row in range(0,Hist_U_Proj[entry].GetNbinsX()):
+            if row>=3: continue
+            tab_U_proj[row][3+1] = pow(tab_U_proj[row][3+1],0.5)
+            tab_V_proj[row][3+1] = pow(tab_V_proj[row][3+1],0.5)
         tab_GammaRegion_Contribution = ['$\epsilon$ in gamma region',0.,0.,0.,0.]
         for row in range(0,Hist_GammaRegion_Contribution[entry].GetNbinsX()):
             if row<3:
                 tab_GammaRegion_Contribution[row+1] = pow(Hist_GammaRegion_Contribution[entry].GetBinContent(row+1),0.5)
         tab_GammaRegion_Contribution[3+1] = pow(Hist_GammaRegion_Contribution[entry].GetBinContent(Hist_GammaRegion_Contribution[entry].GetNbinsX()),0.5)
         my_table = PrettyTable()
-        my_table.field_names = ["Rank (r)", "$E^{U}_{r1}$", "$E^{U}_{r2}$", "$E^{U}_{r3}$", "$\sum_{4}^{16} E^{U}_{r2}$"]
+        my_table.field_names = ["Rank (r)", "$E^{U}_{r1}$", "$E^{U}_{r2}$", "$E^{U}_{r3}$", "$\sum_{4}^{16} E^{U}_{ri}$"]
         for row in range(0,len(tab_U_proj)):
             my_table.add_row(tab_U_proj[row])
         print(my_table)
         my_table = PrettyTable()
+        my_table.field_names = ["Rank (r)", "$E^{V}_{r1}$", "$E^{V}_{r2}$", "$E^{V}_{r3}$", "$\sum_{4}^{16} E^{V}_{ri}$"]
+        for row in range(0,len(tab_V_proj)):
+            my_table.add_row(tab_V_proj[row])
+        print(my_table)
+        sum_proj = 1./6.*(pow(tab_U_proj[0][4],2)+pow(tab_U_proj[1][4],2)+pow(tab_U_proj[2][4],2))
+        sum_proj += 1./6.*(pow(tab_V_proj[0][4],2)+pow(tab_V_proj[1][4],2)+pow(tab_V_proj[2][4],2))
+        print 'eta = %s, eta^{0.5} = %s'%(sum_proj,pow(sum_proj,0.5))
+        my_table = PrettyTable()
         my_table.field_names = ["k<=3", "n<=1", "n<=2", "n<=3", "n<=16"]
         my_table.add_row(tab_GammaRegion_Contribution)
         print(my_table)
+    eta_array = []
+    best_array = []
+    par9_array = []
+    par9_sig_array = []
     my_table = PrettyTable()
-    my_table.field_names = ["source","data","initial epsilon","8-par epsilon","9-par epsilon", "weighted 9-par epsilon", "low-rank epsilon"]
+    my_table.field_names = ["source","data","sqrt data epsilon","best rank3 epsilon","best 9-par epsilon","initial epsilon","8(9)-par epsilon", "weighted 9-par epsilon", "low-rank epsilon","eta"]
+    my_table.float_format["sqrt data epsilon"] = ".2e"
+    my_table.float_format["best rank3 epsilon"] = ".2e"
+    my_table.float_format["best 9-par epsilon"] = ".2e"
+    my_table.float_format["initial epsilon"] = ".2e"
+    my_table.float_format["8(9)-par epsilon"] = ".2e"
+    my_table.float_format["weighted 9-par epsilon"] = ".2e"
+    my_table.float_format["low-rank epsilon"] = ".2e"
+    my_table.float_format["eta"] = ".2e"
     for entry in range(0,len(Hist_U_Proj)):
+        tab_U_proj = [['1',0.,0.,0.,0.],['2',0.,0.,0.,0.],['3',0.,0.,0.,0.]]
+        tab_V_proj = [['1',0.,0.,0.,0.],['2',0.,0.,0.,0.],['3',0.,0.,0.,0.]]
+        for row in range(0,Hist_U_Proj[entry].GetNbinsX()):
+            for col in range(0,Hist_U_Proj[entry].GetNbinsY()):
+                content_u = Hist_U_Proj[entry].GetBinContent(row+1,col+1)
+                content_v = Hist_V_Proj[entry].GetBinContent(row+1,col+1)
+                if row>=3: continue
+                if col<3:
+                    tab_U_proj[row][col+1] = pow(content_u,0.5)
+                    tab_V_proj[row][col+1] = pow(content_v,0.5)
+                else:
+                    tab_U_proj[row][3+1] += content_u
+                    tab_V_proj[row][3+1] += content_v
+        for row in range(0,Hist_U_Proj[entry].GetNbinsX()):
+            if row>=3: continue
+            tab_U_proj[row][3+1] = pow(tab_U_proj[row][3+1],0.5)
+            tab_V_proj[row][3+1] = pow(tab_V_proj[row][3+1],0.5)
+        sum_proj = 1./6.*(pow(tab_U_proj[0][4],2)+pow(tab_U_proj[1][4],2)+pow(tab_U_proj[2][4],2))
+        sum_proj += 1./6.*(pow(tab_V_proj[0][4],2)+pow(tab_V_proj[1][4],2)+pow(tab_V_proj[2][4],2))
+        if entry>0:
+            eta_array += [sum_proj]
+            best_array += [abs(1.-rank2_count[entry-1]/data_count[entry-1])]
+            par9_array += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)]
+            par9_sig_array += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)/(pow(data_count[entry-1],0.5)/data_count[entry-1])]
         source_name = 'Average'
         if entry>0:
             source_name = sample_name[entry-1]
-            my_table.add_row([source_name,data_count[entry-1],abs(1.-dark_count[entry-1]/data_count[entry-1]),abs(1.-par8_count[entry-1]/data_count[entry-1]),abs(1.-par9_count[entry-1]/data_count[entry-1]),abs(1.-wpar9_count[entry-1]/data_count[entry-1]),abs(1.-bkgd_count[entry-1]/data_count[entry-1])])
+            my_table.add_row([source_name,data_count[entry-1],pow(data_count[entry-1],0.5)/data_count[entry-1],abs(1.-rank2_count[entry-1]/data_count[entry-1]),pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5),abs(1.-dark_count[entry-1]/data_count[entry-1]),abs(1.-par8_count[entry-1]/data_count[entry-1]),abs(1.-wpar9_count[entry-1]/data_count[entry-1]),abs(1.-bkgd_count[entry-1]/data_count[entry-1]),sum_proj])
         else:
-            my_table.add_row([source_name,1.,AccuracyInit_mean,AccuracyPar8_mean,AccuracyPar9_mean,AccuracyWPar9_mean,AccuracyBkgd_mean])
+            my_table.add_row([source_name,1.,AccuracyStat_mean,AccuracyRank2_mean,AccuracyBestPar9_mean,AccuracyInit_mean,AccuracyPar8_mean,AccuracyWPar9_mean,Accuracy_mean,sum_proj])
     print(my_table)
+
+    plt.clf()
+    plt.xlabel("$eta$", fontsize=18)
+    plt.ylabel("$abs(N_{\gamma}-N_{best-9-par})/N_{\gamma}$", fontsize=18)
+    plt.scatter(eta_array,par9_array)
+    plt.savefig("output_plots/EtaVsBestPar9_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+
+    plt.clf()
+    plt.xlabel("$eta$", fontsize=18)
+    plt.ylabel("$abs(N_{\gamma}-N_{best-9-par})/ sqrt(N_{\gamma})$", fontsize=18)
+    plt.scatter(eta_array,par9_sig_array)
+    plt.savefig("output_plots/EtaVsBestPar9Sig_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
     #Hists = []
     #legends = []
