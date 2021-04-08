@@ -307,11 +307,11 @@ void findDifferentialHistogram(TH1D* hist_input, TH1D* hist_output, bool doSqrt)
             y_right += hist_input->GetBinContent(binx+1+binr);
         }
         double dy = y_right - y_left;
-        if (doSqrt)
-        {
-            dy = pow(y_right,0.5) - pow(y_left,0.5);
-            //dy = dy/hist_input->GetBinContent(binx+1);
-        }
+        //if (doSqrt)
+        //{
+        //    dy = pow(y_right,0.5) - pow(y_left,0.5);
+        //    //dy = dy/hist_input->GetBinContent(binx+1);
+        //}
         double dx = hist_input->GetBinCenter(binx+1+1)-hist_input->GetBinCenter(binx+1-1);
         double new_content = dy/dx;
         hist_output->SetBinContent(binx+1,new_content);
@@ -1180,22 +1180,24 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
                 for (int idx_n=0;idx_n<size_n;idx_n++)
                 {
                     int nth_entry = idx_n+1;
-                    if (kth_entry>entry_size && nth_entry>entry_size) continue;
-                    if (kth_entry>entry_size || nth_entry>entry_size) continue;
-                    //if (kth_entry>entry_size+3 || nth_entry>entry_size+3) continue;
-                    if (RegularizationType==7)
+                    if (isBlind)
                     {
-                        if (kth_entry>=3 && nth_entry>=3) continue;
-                        if (kth_entry>3 || nth_entry>3) continue;
-                    }
-                    if (RegularizationType==1)
-                    {
-                        if (kth_entry>3 || nth_entry>3) continue;
-                    }
-                    if (RegularizationType==2)
-                    {
-                        if (kth_entry>=3 && nth_entry>=3) continue;
-                        if (kth_entry>5 || nth_entry>5) continue;
+                        if (kth_entry>entry_size && nth_entry>entry_size) continue;
+                        if (kth_entry>entry_size || nth_entry>entry_size) continue;
+                        if (RegularizationType==7)
+                        {
+                            if (kth_entry>=3 && nth_entry>=3) continue;
+                            if (kth_entry>3 || nth_entry>3) continue;
+                        }
+                        if (RegularizationType==1)
+                        {
+                            if (kth_entry>3 || nth_entry>3) continue;
+                        }
+                        if (RegularizationType==2)
+                        {
+                            if (kth_entry>=3 && nth_entry>=3) continue;
+                            if (kth_entry>5 || nth_entry>5) continue;
+                        }
                     }
                     int idx_v = idx_k*size_n + idx_n;
                     mtx_A(idx_u,idx_v) = weight*mtx_U_dark(idx_i,idx_k)*mtx_V_dark(idx_j,idx_n);
@@ -1203,48 +1205,54 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             }
         }
     }
-    if (regularization_size==length_tkn && RegularizationType!=6)
+    if (isBlind)
     {
-        for (int idx_k=0;idx_k<size_k;idx_k++)
+        if (regularization_size==length_tkn && RegularizationType!=6)
         {
-            int kth_entry = idx_k+1;
-            for (int idx_n=0;idx_n<size_n;idx_n++)
+            for (int idx_k=0;idx_k<size_k;idx_k++)
             {
-                int nth_entry = idx_n+1;
-                int idx_v = idx_k*size_n + idx_n;
-                int idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
-                if (RegularizationType==0)
+                int kth_entry = idx_k+1;
+                for (int idx_n=0;idx_n<size_n;idx_n++)
                 {
-                    double regularization_weight = pow(abs(mtx_regularization(idx_k,idx_n)),0.5);
-                    if (regularization_weight==0.) continue;
-                    mtx_A(idx_u,idx_v) = pow(alpha/regularization_weight,2);
-                }
-                else if (RegularizationType==4)
-                {
-                    mtx_A(idx_u,idx_v) = alpha*1e5;
+                    int nth_entry = idx_n+1;
+                    int idx_v = idx_k*size_n + idx_n;
+                    int idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
+                    if (RegularizationType==0)
+                    {
+                        double regularization_weight = pow(abs(mtx_regularization(idx_k,idx_n)),0.5);
+                        if (regularization_weight==0.) continue;
+                        mtx_A(idx_u,idx_v) = pow(alpha/regularization_weight,2);
+                    }
+                    else if (RegularizationType==4)
+                    {
+                        mtx_A(idx_u,idx_v) = alpha*1e5;
+                    }
                 }
             }
         }
-    }
-    else if (RegularizationType==6)
-    {
-        for (int idx_k=0;idx_k<size_k;idx_k++)
+        else if (RegularizationType==6)
         {
-            int kth_entry = idx_k+1;
-            int idx_v = idx_k*size_n + idx_k;
-            int idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
-            double regularization_weight = pow(abs(mtx_S_dark(idx_k,idx_k)),1.0);
-            if (regularization_weight==0.) continue;
-            mtx_A(idx_u,idx_v) = pow(alpha/regularization_weight,1);
+            for (int idx_k=0;idx_k<size_k;idx_k++)
+            {
+                int kth_entry = idx_k+1;
+                if (kth_entry>entry_size) continue;
+                int idx_v = idx_k*size_n + idx_k;
+                int idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
+                double regularization_weight = pow(mtx_S_dark(idx_k,idx_k),1.0);
+                double beta = pow(10.,5);
+                mtx_A(idx_u,idx_v) = pow(alpha/regularization_weight,1);
+            }
+            //for (int idx_k=0;idx_k<size_k;idx_k++)
+            //{
+            //    int kth_entry = idx_k+1;
+            //    if (kth_entry>entry_size) continue;
+            //    int idx_v = idx_k*size_n + idx_k;
+            //    int idx_u = length_tkn + mtx_init_input.rows()*mtx_init_input.cols();
+            //    double regularization_weight = pow(mtx_S_dark(idx_k,idx_k),1.0);
+            //    mtx_A(idx_u,idx_v) = alpha/regularization_weight;
+            //    vtr_Delta(idx_u) += -1.*alpha*pow(mtx_S_dark(idx_k,idx_k),0.5)/mtx_S_dark(idx_k,idx_k);
+            //}
         }
-        //for (int idx_k=0;idx_k<size_k;idx_k++)
-        //{
-        //    int kth_entry = idx_k+1;
-        //    int idx_v = idx_k*size_n + idx_k;
-        //    int idx_u = length_tkn + mtx_init_input.rows()*mtx_init_input.cols();
-        //    double regularization_weight = pow(abs(mtx_S_dark(idx_k,idx_k)),1.0);
-        //    mtx_A(idx_u,idx_v) = pow(alpha/regularization_weight,1);
-        //}
     }
 
     VectorXcd vtr_t = VectorXcd::Zero(length_tkn);
@@ -1313,8 +1321,8 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             for (int idx_n=0;idx_n<size_n;idx_n++)
             {
                 int nth_entry = idx_n+1;
-                if (idx_k>empty_and && idx_n>empty_and) continue;
-                if (idx_k>empty_or || idx_n>empty_or) continue;
+                if (kth_entry>empty_and && nth_entry>empty_and) continue;
+                if (kth_entry>empty_or || nth_entry>empty_or) continue;
                 mtx_S_vari(idx_k,idx_k) = mtx_E(idx_k,idx_k);
                 std::complex<double> coeff_u = mtx_C(idx_k,idx_n);
                 mtx_U_vari(idx_i,idx_n) += coeff_u*mtx_U_dark(idx_i,idx_k);
@@ -2598,7 +2606,7 @@ void LeastSquareSolutionMethod(bool isBlind, TH1D* Hist_Converge, TH1D* Hist_Opt
     }
     else
     {
-        mtx_temp = NuclearNormMinimization(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, true, new_optimized_alpha,std::make_pair(N_bins_for_deconv,N_bins_for_deconv)).first;
+        mtx_temp = NuclearNormMinimization(mtx_init_rescale, mtx_data_rescale, mtx_dark_rescale, 1, entry_size, true, new_optimized_alpha,std::make_pair(NumberOfEigenvectors_Stable,NumberOfEigenvectors_Stable)).first;
     }
     mtx_temp = mtx_temp*data_cr_count;
     if (CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
@@ -2728,8 +2736,8 @@ void NormalizeDarkMatrix(TH2D* hist_data, TH2D* hist_dark)
         {
             if (binx<binx_blind && biny<biny_blind) continue;
             //if (binx<binx_blind || biny<biny_blind) continue;
-            //if (binx>binx_blind+hist_data->GetNbinsX()/4) continue;
-            //if (biny>biny_blind+hist_data->GetNbinsY()/4) continue;
+            if (binx>binx_blind+hist_data->GetNbinsX()/4) continue;
+            if (biny>biny_blind+hist_data->GetNbinsY()/4) continue;
             //if (binx>=binx_blind && biny>=biny_blind) continue;
             Data_CR_Integral += hist_data->GetBinContent(binx,biny);
             Dark_CR_Integral += hist_dark->GetBinContent(binx,biny);
@@ -3523,7 +3531,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             // low-rank model 
             RegularizationType = 6;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_dark);
-            optimized_alpha = pow(10.,5.);
+            optimized_alpha = pow(10.,5);
             LeastSquareSolutionMethod(true, &Hist_Bkgd_Converge_Blind.at(e), &Hist_Bkgd_Optimization.at(e), &Hist_Bkgd_Chi2.at(e), optimized_alpha);
             fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
             Hist_OnBkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
@@ -3694,7 +3702,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         for (int col=0;col<N_bins_for_deconv;col++)
         {
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_dark);
-            MatrixXcd mtx_temp = NuclearNormMinimization(mtx_dark, mtx_data, mtx_dark, 1, N_bins_for_deconv, false, 0.,std::make_pair(RankTruncation[e]-1,col)).first;
+            MatrixXcd mtx_temp = NuclearNormMinimization(mtx_dark, mtx_data, mtx_dark, 1, N_bins_for_deconv, false, 0.,std::make_pair(RankTruncation[e],col+1)).first;
             double data_count_gamma = CountGammaRegion(mtx_data);
             double temp_count_gamma = CountGammaRegion(mtx_temp);
             Hist_GammaRegion_Contribution.at(e).SetBinContent(col+1,pow((data_count_gamma-temp_count_gamma)/data_count_gamma,2));
