@@ -1152,6 +1152,16 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
 
         if (!PointingSelection(filename,int(Data_runlist[run].second),Elev_cut_lower,Elev_cut_upper,Azim_cut_lower,Azim_cut_upper)) continue;
         if (!MJDSelection(filename,int(Data_runlist[run].second),MJD_start_cut,MJD_end_cut)) continue;
+        //double L3_rate = GetRunL3Rate(Data_runlist[run].second);
+        //if (TString(Data_runlist[run].first).Contains("H1426"))
+        //{
+        //    if (L3_rate<300.) continue;
+        //}
+        //if (TString(Data_runlist[run].first).Contains("NGC1275"))
+        //{
+        //    if (L3_rate<400.) continue;
+        //}
+
         new_list.push_back(std::make_pair(Data_runlist[run].first,Data_runlist[run].second));
         new_list_pointing.push_back(GetRunElevAzim(filename,int(Data_runlist[run].second)).first);
     }
@@ -1171,8 +1181,9 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     std::cout << "Load ON run info" << std::endl;
     vector<pair<double,double>> ON_pointing;
     vector<pair<double,double>> ON_pointing_radec;
+    vector<double> ON_count;
     vector<double> ON_time;
-    vector<vector<double>> Dark_time;
+    vector<vector<double>> Dark_count;
     vector<double> ON_NSB;
     vector<double> ON_MJD;
     vector<double> ON_L3Rate;
@@ -1204,6 +1215,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         ON_time.push_back(exposure_thisrun);
         ON_MJD.push_back(double(MJD));
         ON_L3Rate.push_back(GetRunL3Rate(ON_runlist[on_run].second));
+        ON_count.push_back(exposure_thisrun*GetRunL3Rate(ON_runlist[on_run].second));
         if (MJD<MJD_Start) MJD_Start = MJD;
         if (MJD>MJD_End) MJD_End = MJD;
         Hist_OnData_ElevNSB.Fill(ON_NSB[ON_NSB.size()-1],ON_pointing[ON_pointing.size()-1].first,exposure_thisrun);
@@ -1256,15 +1268,15 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
         vector<vector<pair<string,int>>> the_samples;
-        vector<double> Dark_time_thisrun;
+        vector<double> Dark_count_thisrun;
         for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
             vector<pair<string,int>> the_runs;
             the_samples.push_back(the_runs);
-            Dark_time_thisrun.push_back(0.);
+            Dark_count_thisrun.push_back(0.);
         }
         new_list.push_back(the_samples);
-        Dark_time.push_back(Dark_time_thisrun);
+        Dark_count.push_back(Dark_count_thisrun);
     }
     vector<pair<double,double>> ON_pointing_radec_new;
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
@@ -1272,18 +1284,18 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         std::cout << "Complete " << nth_sample << "/" << n_dark_samples << std::endl;
         for (int on_run=0;on_run<ON_runlist.size();on_run++)
         {
-            double accumulated_time = 0.;
+            double accumulated_count = 0.;
             double threshold_dNSB = 0.5;
             double threshold_dElev = 5.0;
             double threshold_dMJD = 2.*365.;
-            double threshold_dL3Rate = 20.;
-            while (accumulated_time<2.0*ON_time[on_run])
+            double threshold_dL3Rate = 50.;
+            while (accumulated_count<1.0*ON_count[on_run])
             {
                 pair<string,int> best_match;
                 pair<double,double> best_pointing;
-                double best_chi2 = 10000.;
+                double best_chi2 = 1e10;
                 int best_off_run = 0;
-                double best_time = 0.;
+                double best_count = 0.;
                 bool found_match = false;
                 for (int off_run=0;off_run<OFF_runlist.size();off_run++)
                 {
@@ -1309,8 +1321,9 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     if (already_used_run) continue;
 
                     found_match = true;
-                    //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
-                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    //double chi2 = pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2);
+                    //double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
                     if (ON_NSB[on_run]==0.)
                     {
                         chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
@@ -1337,15 +1350,15 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                         best_match = OFF_runlist[off_run];
                         best_pointing = OFF_pointing[off_run];
                         best_off_run = off_run;
-                        best_time = OFF_time[off_run];
+                        best_count = OFF_time[off_run]*OFF_L3Rate[off_run];
                     }
                 }
-                if (best_chi2<10000.) 
+                if (best_chi2<1e10) 
                 {
                     new_list.at(on_run).at(nth_sample).push_back(best_match);
                     ON_pointing_radec_new.push_back(ON_pointing_radec[on_run]);
                     n_good_matches += 1;
-                    accumulated_time += best_time;
+                    accumulated_count += best_count;
                 }
                 else
                 {
@@ -1360,7 +1373,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     //}
                 }
             }
-            Dark_time.at(on_run).at(nth_sample) = accumulated_time;
+            Dark_count.at(on_run).at(nth_sample) = accumulated_count;
         }
     }
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
@@ -1369,9 +1382,9 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
             double weight = 0.;
-            if (Dark_time.at(on_run).at(nth_sample)>0.)
+            if (Dark_count.at(on_run).at(nth_sample)>0.)
             {
-                weight = ON_time.at(on_run)/Dark_time.at(on_run).at(nth_sample);
+                weight = ON_count.at(on_run)/Dark_count.at(on_run).at(nth_sample);
             }
             Dark_weight_thisrun.push_back(weight);
         }
@@ -2158,8 +2171,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     //if (R2off>4.) continue;
                     Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
                     Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
-                    //double weight = Dark_weight.at(on_run).at(nth_sample);
-                    double weight = 1.;
+                    double weight = Dark_weight.at(on_run).at(nth_sample);
+                    //double weight = 1.;
                     if (DarkFoV())
                     {
                         //int zenith_bin = Hist_OnDark_Incl_CR_Zenith.at(energy).FindBin(Shower_Ze);
@@ -2422,12 +2435,19 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)/(3600.*exposure_hours_usable));
     }
 
+    vector<double> Data_runlist_L3Rate_all;
+    for (int run=0;run<Data_runlist_init.size();run++)
+    {
+        Data_runlist_L3Rate_all.push_back(GetRunL3Rate(int(Data_runlist_init[run].second)));
+    }
 
     vector<int> Data_runlist_number;
     vector<string> Data_runlist_name;
     vector<int> Dark_runlist_number;
     vector<string> Dark_runlist_name;
     vector<double> Data_runlist_elev;
+    vector<double> Data_runlist_L3Rate;
+    vector<double> Data_runlist_NSB;
     vector<int> Data_runlist_MJD;
     for (int run=0;run<Data_runlist.size();run++)
     {
@@ -2440,6 +2460,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         string filename;
         filename = TString("$VERITAS_USER_DATA_DIR/"+TString(Data_observation)+"_V6_Moderate-TMVA-BDT.RB."+TString(run_number)+".root");
         Data_runlist_elev.push_back(GetRunElevAzim(filename,int(Data_runlist[run].second)).first);
+        Data_runlist_L3Rate.push_back(GetRunL3Rate(int(Data_runlist[run].second)));
+        Data_runlist_NSB.push_back(GetRunPedestalVar(int(Data_runlist[run].second)));
         Data_runlist_MJD.push_back(GetRunMJD(filename,int(Data_runlist[run].second)));
         for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
@@ -2644,6 +2666,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     InfoTree.Branch("Dark_runlist_number","std::vector<int>",&Dark_runlist_number);
     InfoTree.Branch("Data_runlist_MJD","std::vector<int>",&Data_runlist_MJD);
     InfoTree.Branch("Data_runlist_elev","std::vector<double>",&Data_runlist_elev);
+    InfoTree.Branch("Data_runlist_NSB","std::vector<double>",&Data_runlist_NSB);
+    InfoTree.Branch("Data_runlist_L3Rate","std::vector<double>",&Data_runlist_L3Rate);
+    InfoTree.Branch("Data_runlist_L3Rate_all","std::vector<double>",&Data_runlist_L3Rate_all);
     InfoTree.Branch("Data_runlist_exposure","std::vector<double>",&Data_runlist_exposure);
     InfoTree.Branch("roi_name","std::vector<std::string>",&roi_name);
     InfoTree.Branch("roi_ra","std::vector<double>",&roi_ra);

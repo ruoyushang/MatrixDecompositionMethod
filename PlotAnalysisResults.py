@@ -550,6 +550,8 @@ if sys.argv[1]=='SgrA':
     n_control_samples = 1
 MJD_Start = 2147483647
 MJD_End = 0
+Data_runlist_L3Rate = ROOT.std.vector("double")(10)
+Data_runlist_L3Rate_all = ROOT.std.vector("double")(10)
 roi_name = ROOT.std.vector("string")(10)
 roi_ra = ROOT.std.vector("double")(10)
 roi_dec = ROOT.std.vector("double")(10)
@@ -573,12 +575,12 @@ energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 
 energy_syst = []
-energy_syst += [0.017]
+energy_syst += [0.015]
 energy_syst += [0.012]
 energy_syst += [0.022]
-energy_syst += [0.046]
-energy_syst += [0.076]
-energy_syst += [0.216]
+energy_syst += [0.040]
+energy_syst += [0.073]
+energy_syst += [0.167]
 
 #energy_fine_bin = []
 #energy_fine_bin += [pow(10,2.0)]
@@ -818,6 +820,8 @@ def GetSourceInfo(file_list):
     global n_control_samples
     global MJD_Start
     global MJD_End
+    global Data_runlist_L3Rate
+    global Data_runlist_L3Rate_all
     global roi_name
     global roi_ra
     global roi_dec
@@ -836,11 +840,19 @@ def GetSourceInfo(file_list):
         if not os.path.isfile(file_list[path]):continue
         InputFile = ROOT.TFile(file_list[path])
         InfoTree = InputFile.Get("InfoTree")
+        InfoTree.SetBranchAddress('Data_runlist_L3Rate',ROOT.AddressOf(Data_runlist_L3Rate))
+        InfoTree.SetBranchAddress('Data_runlist_L3Rate_all',ROOT.AddressOf(Data_runlist_L3Rate_all))
         InfoTree.SetBranchAddress('roi_name',ROOT.AddressOf(roi_name))
         InfoTree.SetBranchAddress('roi_ra',ROOT.AddressOf(roi_ra))
         InfoTree.SetBranchAddress('roi_dec',ROOT.AddressOf(roi_dec))
         InfoTree.SetBranchAddress('roi_radius',ROOT.AddressOf(roi_radius))
         InfoTree.GetEntry(0)
+        Hist_L3Rate.Reset()
+        Hist_L3Rate_all.Reset()
+        for entry in range(0,len(Data_runlist_L3Rate)):
+            Hist_L3Rate.Fill(Data_runlist_L3Rate[entry])
+        for entry in range(0,len(Data_runlist_L3Rate_all)):
+            Hist_L3Rate_all.Fill(Data_runlist_L3Rate_all[entry])
         #N_bins_for_deconv = InfoTree.N_bins_for_deconv
         MSCW_blind_cut = InfoTree.MSCW_cut_blind
         MSCL_blind_cut = InfoTree.MSCL_cut_blind
@@ -1096,10 +1108,10 @@ def GetShowerHistogramsFromFile(FilePath):
 
     Hist_VVV_Eigenvalues.SetMinimum(1e-2)
     MakeOneHistPlot(Hist_VVV_Eigenvalues,'entry','eigenvalue','VVV_Eigenvalue_%s_%s'%(sample_list[0],ErecS_lower_cut_int),True)
-    MakeOneHistPlot(Hist_Bkgd_Chi2,'log10 #alpha','#chi^{2} in CR','Bkgd_Chi2_%s_%s'%(sample_list[0],ErecS_lower_cut_int),True)
-    MakeOneHistPlot(Hist_Bkgd_Chi2_Diff,'log10 #alpha','#chi^{2} 1st derivative in CR','Bkgd_Chi2_Diff_%s_%s'%(sample_list[0],ErecS_lower_cut_int),True)
-    MakeOneHistPlot(Hist_Bkgd_Chi2_Diff2,'log10 #alpha','#chi^{2} 2nd derivative in CR','Bkgd_Chi2_Diff2_%s_%s'%(sample_list[0],ErecS_lower_cut_int),True)
-    MakeOneHistPlot(Hist_Bkgd_Optimization,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','Bkgd_Optimization_%s_%s'%(sample_list[0],ErecS_lower_cut_int),True)
+    MakeOneHistPlot(Hist_Bkgd_Chi2,'log10 #alpha','#chi^{2} in CR','Bkgd_Chi2_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
+    MakeOneHistPlot(Hist_Bkgd_Chi2_Diff,'log10 #alpha','#chi^{2} 1st derivative in CR','Bkgd_Chi2_Diff_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
+    MakeOneHistPlot(Hist_Bkgd_Chi2_Diff2,'log10 #alpha','#chi^{2} 2nd derivative in CR','Bkgd_Chi2_Diff2_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
+    MakeOneHistPlot(Hist_Bkgd_Optimization,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','Bkgd_Optimization_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
 
     #Hists = []
     #legends = []
@@ -4818,6 +4830,8 @@ def FindSourceIndex(source_name):
             return source
     return 0
 
+Hist_L3Rate = ROOT.TH1D("Hist_L3Rate","",30,0,600)
+Hist_L3Rate_all = ROOT.TH1D("Hist_L3Rate_all","",30,0,600)
 Hist_EffArea = ROOT.TH1D("Hist_EffArea","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_EffArea_Sum = ROOT.TH1D("Hist_EffArea_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 
@@ -4838,6 +4852,9 @@ for source in range(0,len(sample_list)):
         else:
             print 'Found a file.'
             GetSourceInfo(FilePath_Folder)
+    MakeOneHistPlot(Hist_L3Rate,'L3 rate','number of runs','L3Rate_%s'%(sample_list[source]),False)
+    MakeOneHistPlot(Hist_L3Rate_all,'L3 rate','number of runs','L3Rate_all_%s'%(sample_list[source]),False)
+
 print 'analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut)
 MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
 MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
@@ -5086,8 +5103,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-#drawMap = False
-drawMap = True
+drawMap = False
+#drawMap = True
 
 if folder_path=='output_root':
     SingleSourceAnalysis(sample_list,drawMap,0,6)
