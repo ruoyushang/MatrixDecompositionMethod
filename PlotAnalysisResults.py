@@ -550,6 +550,7 @@ if sys.argv[1]=='SgrA':
     n_control_samples = 1
 MJD_Start = 2147483647
 MJD_End = 0
+Data_runlist_NSB = ROOT.std.vector("double")(10)
 Data_runlist_L3Rate = ROOT.std.vector("double")(10)
 Data_runlist_L3Rate_all = ROOT.std.vector("double")(10)
 roi_name = ROOT.std.vector("string")(10)
@@ -575,12 +576,12 @@ energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 
 energy_syst = []
-energy_syst += [0.015]
-energy_syst += [0.012]
-energy_syst += [0.022]
-energy_syst += [0.040]
-energy_syst += [0.073]
-energy_syst += [0.167]
+energy_syst += [0.013]
+energy_syst += [0.011]
+energy_syst += [0.023]
+energy_syst += [0.035]
+energy_syst += [0.057]
+energy_syst += [0.221]
 
 #energy_fine_bin = []
 #energy_fine_bin += [pow(10,2.0)]
@@ -820,6 +821,7 @@ def GetSourceInfo(file_list):
     global n_control_samples
     global MJD_Start
     global MJD_End
+    global Data_runlist_NSB
     global Data_runlist_L3Rate
     global Data_runlist_L3Rate_all
     global roi_name
@@ -840,6 +842,7 @@ def GetSourceInfo(file_list):
         if not os.path.isfile(file_list[path]):continue
         InputFile = ROOT.TFile(file_list[path])
         InfoTree = InputFile.Get("InfoTree")
+        InfoTree.SetBranchAddress('Data_runlist_NSB',ROOT.AddressOf(Data_runlist_NSB))
         InfoTree.SetBranchAddress('Data_runlist_L3Rate',ROOT.AddressOf(Data_runlist_L3Rate))
         InfoTree.SetBranchAddress('Data_runlist_L3Rate_all',ROOT.AddressOf(Data_runlist_L3Rate_all))
         InfoTree.SetBranchAddress('roi_name',ROOT.AddressOf(roi_name))
@@ -847,8 +850,11 @@ def GetSourceInfo(file_list):
         InfoTree.SetBranchAddress('roi_dec',ROOT.AddressOf(roi_dec))
         InfoTree.SetBranchAddress('roi_radius',ROOT.AddressOf(roi_radius))
         InfoTree.GetEntry(0)
+        Hist_NSB.Reset()
         Hist_L3Rate.Reset()
         Hist_L3Rate_all.Reset()
+        for entry in range(0,len(Data_runlist_NSB)):
+            Hist_NSB.Fill(Data_runlist_NSB[entry])
         for entry in range(0,len(Data_runlist_L3Rate)):
             Hist_L3Rate.Fill(Data_runlist_L3Rate[entry])
         for entry in range(0,len(Data_runlist_L3Rate_all)):
@@ -3344,6 +3350,7 @@ def reflectXaxis(hist):
     for binx in range(1,hist.GetNbinsX()+1):
         for biny in range(1,hist.GetNbinsX()+1):
             hT.SetBinContent( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinContent( binx, biny ) )
+            hT.SetBinError( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinError( binx, biny ) )
     return hT
 
 def FillSkymapHoles(hist_map, map_resolution):
@@ -4830,6 +4837,7 @@ def FindSourceIndex(source_name):
             return source
     return 0
 
+Hist_NSB = ROOT.TH1D("Hist_NSB","",20,0,8)
 Hist_L3Rate = ROOT.TH1D("Hist_L3Rate","",30,0,600)
 Hist_L3Rate_all = ROOT.TH1D("Hist_L3Rate_all","",30,0,600)
 Hist_EffArea = ROOT.TH1D("Hist_EffArea","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
@@ -4852,6 +4860,7 @@ for source in range(0,len(sample_list)):
         else:
             print 'Found a file.'
             GetSourceInfo(FilePath_Folder)
+    MakeOneHistPlot(Hist_NSB,'NSB','number of runs','NSB_%s'%(sample_list[source]),False)
     MakeOneHistPlot(Hist_L3Rate,'L3 rate','number of runs','L3Rate_%s'%(sample_list[source]),False)
     MakeOneHistPlot(Hist_L3Rate_all,'L3 rate','number of runs','L3Rate_all_%s'%(sample_list[source]),False)
 
@@ -5103,8 +5112,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-drawMap = False
-#drawMap = True
+#drawMap = False
+drawMap = True
 
 if folder_path=='output_root':
     SingleSourceAnalysis(sample_list,drawMap,0,6)
