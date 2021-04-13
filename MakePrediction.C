@@ -49,6 +49,7 @@ using namespace Eigen;
 #include "PrepareDarkData.C"
 
 MatrixXcd mtx_best_residual;
+MatrixXcd mtx_frobenius_island;
 MatrixXcd mtx_regularization;
 MatrixXcd mtx_data;
 MatrixXcd mtx_dark;
@@ -137,6 +138,7 @@ vector<double> rank4_gamma_count;
 void ResetMatrixDimension()
 {
     mtx_best_residual = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
+    mtx_frobenius_island = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_regularization = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_data = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_dark = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
@@ -2581,7 +2583,7 @@ void LeastSquareSolutionMethod(bool isBlind, TH1D* Hist_Converge, TH1D* Hist_Opt
         }
         else
         {
-            mtx_temp = NuclearNormMinimization(mtx_dark, mtx_data, mtx_dark, 1, entry_size, true, alpha_temp, beta,std::make_pair(N_bins_for_deconv,N_bins_for_deconv)).first;
+            mtx_temp = NuclearNormMinimization(mtx_dark, mtx_data, mtx_dark, 1, entry_size, true, alpha_temp, beta,std::make_pair(NumberOfEigenvectors_Stable,NumberOfEigenvectors_Stable)).first;
         }
         if (!CheckIfEigenvalueMakeSense(mtx_temp, init_chi2, entry_size, isBlind))
         {
@@ -2643,6 +2645,39 @@ void LeastSquareSolutionMethod(bool isBlind, TH1D* Hist_Converge, TH1D* Hist_Opt
     }
 
     return;
+
+}
+MatrixXd GetFrobeniusIslandMatrix(MatrixXcd mtx_input, int rank_cutoff, double threshold)
+{
+
+    JacobiSVD<MatrixXd> svd_data(mtx_input.real(), ComputeFullU | ComputeFullV);
+    MatrixXd mtx_U_data = svd_data.matrixU();
+    MatrixXd mtx_V_data = svd_data.matrixV();
+    MatrixXd mtx_S_data = MatrixXd::Zero(mtx_input.rows(),mtx_input.cols());
+    for (int entry=0;entry<svd_data.singularValues().size();entry++)
+    {
+        mtx_S_data(entry,entry) = svd_data.singularValues()(entry);
+        if (entry!=rank_cutoff)
+        {
+            mtx_S_data(entry,entry) = 0.;
+        }
+    }
+    MatrixXd mtx_output = mtx_U_data*mtx_S_data*mtx_V_data.transpose();
+    for (int bx=0;bx<N_bins_for_deconv;bx++)
+    {
+        for (int by=0;by<N_bins_for_deconv;by++)
+        {
+            if (abs(mtx_output(bx,by))<threshold)
+            {
+                mtx_output(bx,by) = 0.;
+            }
+            else
+            {
+                mtx_output(bx,by) = 1.;
+            }
+        }
+    }
+    return mtx_output;
 
 }
 MatrixXd GetReducedEigenvalueMatrix(MatrixXcd mtx_input, int rank_cutoff)
@@ -3558,6 +3593,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             Hist_OnDark_MSCLW.at(e).Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),dark_weight);
             double optimized_alpha = pow(10.,Log10_alpha[e]);
             int optimized_beta = 6;
+            MSCW_chi2_upper = MSCW_cut_blind + double(optimized_beta)*(MSCW_plot_upper-MSCW_plot_lower)/double(N_bins_for_deconv);
+            MSCL_chi2_upper = MSCL_cut_blind + double(optimized_beta)*(MSCL_plot_upper-MSCL_plot_lower)/double(N_bins_for_deconv);
            
             // 8-parameter model 
             RegularizationType = 7;
@@ -3963,6 +4000,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_"+TString(lowrank_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(signal_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
     TTree *newtree = InfoTree->CloneTree();
+    newtree->Branch("MSCW_chi2_upper",&MSCW_chi2_upper,"MSCW_chi2_upper/D");
+    newtree->Branch("MSCL_chi2_upper",&MSCL_chi2_upper,"MSCL_chi2_upper/D");
+    newtree->Fill();
     newtree->Write();
     TTree *newstartree = StarTree->CloneTree();
     newstartree->Write();
