@@ -403,7 +403,8 @@ Hist_Bkgd_Optimization_beta = []
 Hist_Dark_Optimization = []
 for e in range(0,len(sample_list)+1):
     Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",100,optimiz_lower,optimiz_upper)]
-    Hist_Bkgd_Optimization_beta += [ROOT.TH1D("Hist_Bkgd_Optimization_beta_%s"%(e),"",100,-5.,0.)]
+    #Hist_Bkgd_Optimization_beta += [ROOT.TH1D("Hist_Bkgd_Optimization_beta_%s"%(e),"",100,-6.,-2.)]
+    Hist_Bkgd_Optimization_beta += [ROOT.TH1D("Hist_Bkgd_Optimization_beta_%s"%(e),"",N_bins_for_deconv/2,0,N_bins_for_deconv/2)]
     Hist_Dark_Optimization += [ROOT.TH1D("Hist_Dark_Optimization_%s"%(e),"",N_bins_for_deconv/2,0,N_bins_for_deconv/2)]
 Hist_Bkgd_Chi2 = []
 for e in range(0,len(sample_list)+1):
@@ -648,7 +649,7 @@ for e in range(0,len(energy_bin)-1):
 
     plt.clf()
     plt.xlabel("Zenith", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$", fontsize=18)
+    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
     #plt.scatter(Zenith_mean_data,AccuracyInit_source,s=area_scatter,c=colors,alpha=0.5)
     plt.errorbar(Zenith_mean_data,AccuracyInit_source,xerr=Zenith_RMS_data,yerr=AccuracyInitErr_source,fmt='o',color='r')
     xmin, xmax, ymin, ymax = plt.axis()
@@ -660,7 +661,7 @@ for e in range(0,len(energy_bin)-1):
     plt.savefig("output_plots/PerformanceInit_Zenith_E%s%s.png"%(e,lowrank_tag))
     plt.clf()
     plt.xlabel("NSB", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$", fontsize=18)
+    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
     #plt.scatter(NSB_mean_data,AccuracyInit_source,s=area_scatter,c=colors,alpha=0.5)
     plt.errorbar(NSB_mean_data,AccuracyInit_source,xerr=NSB_RMS_data,yerr=AccuracyInitErr_source,fmt='o',color='r')
     xmin, xmax, ymin, ymax = plt.axis()
@@ -727,7 +728,7 @@ for e in range(0,len(energy_bin)-1):
     plt.clf()
     plt.ylim(ymin, ymax)
     plt.xlabel("Zenith", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$", fontsize=18)
+    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
     #plt.scatter(Zenith_mean_data,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
     plt.errorbar(Zenith_mean_data,Accuracy_source,xerr=Zenith_RMS_data,yerr=AccuracyErr_source,fmt='o')
     xmin, xmax, ymin, ymax = plt.axis()
@@ -740,7 +741,7 @@ for e in range(0,len(energy_bin)-1):
     plt.clf()
     plt.ylim(ymin, ymax)
     plt.xlabel("NSB", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$", fontsize=18)
+    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
     #plt.scatter(NSB_mean_data,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
     plt.errorbar(NSB_mean_data,Accuracy_source,xerr=NSB_RMS_data,yerr=AccuracyErr_source,fmt='o')
     xmin, xmax, ymin, ymax = plt.axis()
@@ -753,7 +754,7 @@ for e in range(0,len(energy_bin)-1):
     plt.clf()
     plt.ylim(ymin, ymax)
     plt.xlabel("Zenith", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$", fontsize=18)
+    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
     #plt.scatter(Zenith_mean_dark,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
     plt.errorbar(Zenith_mean_dark,Accuracy_source,xerr=Zenith_RMS_dark,yerr=AccuracyErr_source,fmt='o')
     xmin, xmax, ymin, ymax = plt.axis()
@@ -766,7 +767,7 @@ for e in range(0,len(energy_bin)-1):
     plt.clf()
     plt.ylim(ymin, ymax)
     plt.xlabel("NSB", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$", fontsize=18)
+    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
     #plt.scatter(NSB_mean_dark,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
     plt.errorbar(NSB_mean_dark,Accuracy_source,xerr=NSB_RMS_dark,yerr=AccuracyErr_source,fmt='o')
     xmin, xmax, ymin, ymax = plt.axis()
@@ -779,19 +780,51 @@ for e in range(0,len(energy_bin)-1):
 
     plt.clf()
     ax = fig.add_subplot(111)
+    ind = np.arange(len(AccuracyInit_source))
+    width = 0.35
+    rects1 = ax.bar(ind, AccuracyInit_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
+    ax.set_xlim(-width,len(ind)+width)
+    ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,Accuracy_mean_error))
+    xTickMarks = sample_name
+    ax.set_xticks(ind+0.5*width)
+    xtickNames = ax.set_xticklabels(xTickMarks)
+    plt.setp(xtickNames, rotation=45, fontsize=10)
+    #ax.legend( (rects1[0]), ('Initial $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
+    plt.subplots_adjust(bottom=0.15)
+    plt.savefig("output_plots/PerformanceInit_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+
+    plt.clf()
+    ax = fig.add_subplot(111)
+    ind = np.arange(len(AccuracyBestPar9_source))
+    width = 0.35
+    rects1 = ax.bar(ind, AccuracyBestPar9_source, width, color='#089FFF', yerr=AccuracyErr_source)
+    rects2 = ax.bar(ind+width, AccuracyInit_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
+    ax.set_xlim(-width,len(ind)+width)
+    ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyBestPar9_mean,Accuracy_mean_error))
+    xTickMarks = sample_name
+    ax.set_xticks(ind+1.0*width)
+    xtickNames = ax.set_xticklabels(xTickMarks)
+    plt.setp(xtickNames, rotation=45, fontsize=10)
+    ax.legend( (rects1[0], rects2[0]), ('Best 9-par $<\epsilon>=%0.3f$'%(AccuracyBestPar9_mean), 'Initial $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
+    plt.subplots_adjust(bottom=0.15)
+    plt.savefig("output_plots/PerformanceBest_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+
+    plt.clf()
+    ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyBkgd_source))
     width = 0.35
     rects1 = ax.bar(ind, AccuracyBkgd_source, width, color='#089FFF', yerr=AccuracyErr_source)
-    rects2 = ax.bar(ind+2*width, AccuracyInit_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
-    rects3 = ax.bar(ind+width, AccuracyPar9_source, width, color='limegreen', yerr=AccuracyPar9Err_source)
+    rects2 = ax.bar(ind+width, AccuracyInit_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
     ax.set_xlim(-width,len(ind)+width)
-    ax.set_ylabel("$abs(N_{\gamma}-N_{model})/N_{\gamma}$", fontsize=18)
-    ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(AccuracyBkgd_mean,Accuracy_mean_error,min_x))
+    ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyBkgd_mean,Accuracy_mean_error))
     xTickMarks = sample_name
-    ax.set_xticks(ind+1.5*width)
+    ax.set_xticks(ind+1.0*width)
     xtickNames = ax.set_xticklabels(xTickMarks)
     plt.setp(xtickNames, rotation=45, fontsize=10)
-    ax.legend( (rects1[0], rects3[0], rects2[0]), ('weighted $<\epsilon>=%0.3f$'%(AccuracyBkgd_mean), '9-par $<\epsilon>=%0.3f$'%(AccuracyPar9_mean), 'Initial $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
+    ax.legend( (rects1[0], rects2[0]), ('LRR $<\epsilon>=%0.3f$'%(AccuracyBkgd_mean), 'Initial $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
     plt.subplots_adjust(bottom=0.15)
     plt.savefig("output_plots/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
@@ -799,7 +832,7 @@ for e in range(0,len(energy_bin)-1):
     Rank = [1,2,3,4,5]
     plt.clf()
     plt.xlabel("Rank (r)", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma}-N^{(r)}_{\gamma})/N_{\gamma}$", fontsize=18)
+    plt.ylabel("$abs(N_{\gamma bkg}-N^{(r)}_{\gamma bkg})/N_{\gamma bkg}$", fontsize=18)
     plt.yscale('log')
     plt.xlim(0,6)
     for s in range(0,len(sample_list)):
@@ -836,7 +869,7 @@ for e in range(0,len(energy_bin)-1):
         Hists += [Hist_Bkgd_Optimization_beta[entry]]
         legends += ['exposure %0.1f'%(data_exposure[entry-1])]
         colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'log10 #beta','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationBeta_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
+    MakeMultiplePlot(Hists,legends,colors,'normalized threshold','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationBeta_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
 
     Hists = []
     legends = []
@@ -992,15 +1025,31 @@ for e in range(0,len(energy_bin)-1):
 
     plt.clf()
     plt.xlabel("$eta$", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma}-N_{best-9-par})/N_{\gamma}$", fontsize=18)
+    plt.ylabel("$abs(N_{\gamma bkg}-N_{best-9-par})/N_{\gamma bkg}$", fontsize=18)
     plt.scatter(eta_array,par9_array)
     plt.savefig("output_plots/EtaVsBestPar9_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
     plt.clf()
     plt.xlabel("$eta$", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma}-N_{best-9-par})/ sqrt(N_{\gamma})$", fontsize=18)
+    plt.ylabel("$abs(N_{\gamma bkg}-N_{best-9-par})/ sqrt(N_{\gamma bkg})$", fontsize=18)
     plt.scatter(eta_array,par9_sig_array)
     plt.savefig("output_plots/EtaVsBestPar9Sig_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+
+    par9_epsilon = []
+    wpar9_epsilon = []
+    for entry in range(0,len(wpar9_count)):
+        par9_epsilon += [abs(data_count[entry]-par9_count[entry])/data_count[entry]]
+        wpar9_epsilon += [abs(data_count[entry]-wpar9_count[entry])/data_count[entry]]
+    plt.clf()
+    plt.xlabel("$\epsilon$ (plain Frobenius norm)", fontsize=18)
+    plt.ylabel("$\epsilon$ (weighted Frobenius norm)", fontsize=18)
+    plt.xlim(0.,0.1)
+    plt.ylim(0.,0.1)
+    plt.scatter(par9_epsilon,wpar9_epsilon)
+    line_x = np.arange(0.0, 0.1, 1e-4) # angular size
+    line_y = line_x
+    plt.plot(line_x, line_y, color='r')
+    plt.savefig("output_plots/PlainVsWeightedFrobenius_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
     #Hists = []
     #legends = []
@@ -1013,7 +1062,7 @@ for e in range(0,len(energy_bin)-1):
     #    Hists += [Hist_Bkgd_Optimization[entry]]
     #    legends += ['source %s'%(entry)]
     #    colors += [entry+1]
-    #MakeMultiplePlot(Hists,legends,colors,'number of entries included','abs(N_{#gamma}-N_{model})/N_{#gamma}','OptimizationParameter_Entry_E%s'%(e),0,0,False,False)
+    #MakeMultiplePlot(Hists,legends,colors,'number of entries included','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationParameter_Entry_E%s'%(e),0,0,False,False)
 
     #Hists = []
     #legends = []
