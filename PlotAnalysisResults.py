@@ -525,6 +525,8 @@ gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.5
 MSCL_blind_cut = 0.5
+MSCW_chi2_upper = -0.6
+MSCL_chi2_upper = -0.6
 MSCW_plot_lower = -0.6
 MSCL_plot_lower = -0.6
 MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
@@ -803,6 +805,8 @@ def GetSourceInfo(file_list):
     global N_bins_for_deconv
     global MSCW_blind_cut
     global MSCL_blind_cut
+    global MSCW_chi2_upper
+    global MSCL_chi2_upper
     #global MSCW_plot_lower
     #global MSCL_plot_lower
     global n_good_matches
@@ -862,6 +866,8 @@ def GetSourceInfo(file_list):
         #N_bins_for_deconv = InfoTree.N_bins_for_deconv
         MSCW_blind_cut = InfoTree.MSCW_cut_blind
         MSCL_blind_cut = InfoTree.MSCL_cut_blind
+        MSCW_chi2_upper = InfoTree.MSCW_chi2_upper
+        MSCL_chi2_upper = InfoTree.MSCL_chi2_upper
         #MSCW_plot_lower = InfoTree.MSCW_plot_lower
         #MSCL_plot_lower = InfoTree.MSCL_plot_lower
         Skymap_size = InfoTree.Skymap_size
@@ -924,6 +930,8 @@ def GetShowerHistogramsFromFile(FilePath):
 
     global MSCW_blind_cut
     global MSCL_blind_cut
+    global MSCW_chi2_upper
+    global MSCL_chi2_upper
     global max_chi2_diff2_position_this_energy
 
     InputFile = ROOT.TFile(FilePath)
@@ -931,6 +939,8 @@ def GetShowerHistogramsFromFile(FilePath):
     InfoTree.GetEntry(0)
     MSCW_blind_cut = InfoTree.MSCW_cut_blind
     MSCL_blind_cut = InfoTree.MSCL_cut_blind
+    MSCW_chi2_upper = InfoTree.MSCW_chi2_upper
+    MSCL_chi2_upper = InfoTree.MSCL_chi2_upper
     bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_plot_lower)
     bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
     bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
@@ -3568,8 +3578,10 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     Hist_Skymap.GetXaxis().SetTitle(xtitle)
     Hist_Skymap.GetZaxis().SetTitle('Significance')
     Hist_Skymap.GetZaxis().SetTitleOffset(1.1)
-    Hist_Skymap.SetMaximum(5)
-    Hist_Skymap.SetMinimum(-5)
+    #Hist_Skymap.SetMaximum(5)
+    #Hist_Skymap.SetMinimum(-5)
+    Hist_Skymap.SetMaximum(3)
+    Hist_Skymap.SetMinimum(-3)
 
     pad1.cd()
     Hist_Skymap.Draw("COL4Z")
@@ -3601,6 +3613,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
+        if nth_roi==1: continue
         mycircles[nth_roi].Draw("same")
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.70,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
@@ -3647,6 +3660,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
+        if nth_roi==1: continue
         mycircles[nth_roi].Draw("same")
     Hist_Skymap_Excess.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Excess.GetXaxis().SetTickLength(0)
@@ -3680,6 +3694,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
+        if nth_roi==1: continue
         mycircles[nth_roi].Draw("same")
     Hist_Exposure.GetXaxis().SetLabelOffset(999)
     Hist_Exposure.GetXaxis().SetTickLength(0)
@@ -3723,6 +3738,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
+        if nth_roi==1: continue
         mycircles[nth_roi].Draw("same")
     Hist_Skymap_Ratio.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Ratio.GetXaxis().SetTickLength(0)
@@ -3805,6 +3821,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
+        if nth_roi==1: continue
         mycircles[nth_roi].Draw("same")
     Hist_Skymap_zoomin.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_zoomin.GetXaxis().SetTickLength(0)
@@ -3959,6 +3976,14 @@ def MatrixDecompositionDemo(name):
     line2.SetLineStyle(1)
     line2.SetLineColor(2)
     line2.SetLineWidth(2)
+    line3 = ROOT.TLine(MSCL_plot_lower,MSCW_chi2_upper,MSCL_chi2_upper,MSCW_chi2_upper)
+    line3.SetLineStyle(10)
+    line3.SetLineColor(2)
+    line3.SetLineWidth(2)
+    line4 = ROOT.TLine(MSCL_chi2_upper,MSCW_plot_lower,MSCL_chi2_upper,MSCW_chi2_upper)
+    line4.SetLineStyle(10)
+    line4.SetLineColor(2)
+    line4.SetLineWidth(2)
 
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON}' )
@@ -3986,25 +4011,6 @@ def MatrixDecompositionDemo(name):
     line2.Draw("same")
     canvas.SaveAs('output_plots/OnDark_%s_%s.png'%(name,selection_tag))
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.70,'t_{ij} coefficents')
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
-    lumilab1.Draw()
-    lumilab2 = ROOT.TLatex(0.15,0.20,'(Zenith = %0.1f #pm %0.1f, NSB = %0.1f #pm %0.1f)'%(Zenith_mean_data,Zenith_RMS_data,NSB_mean_data,NSB_RMS_data) )
-    lumilab2.SetNDC()
-    lumilab2.SetTextSize(0.2)
-    lumilab2.Draw()
-    pad1.cd()
-    pad1.SetLogz()
-    #Hist2D_Coeff_Data_Sum.SetMaximum(1e-1);
-    #Hist2D_Coeff_Data_Sum.SetMinimum(1e-6);
-    Hist2D_Coeff_Data_Sum.GetYaxis().SetTitle('n')
-    Hist2D_Coeff_Data_Sum.GetXaxis().SetTitle('k')
-    Hist2D_Coeff_Data_Sum.Draw("COL4Z")
-    canvas.SaveAs('output_plots/Coeff_C_data_%s_%s.png'%(name,selection_tag))
-    pad1.SetLogz(0)
-
     entry = 1
     for entry in range(0,3):
         Hists = []
@@ -4019,18 +4025,39 @@ def MatrixDecompositionDemo(name):
         MakeMultiplePlot(Hists,legends,colors,'entry','C_{ij}','Coeff_C_entry%s_%s'%(entry,name),0,0,False,False)
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'t_{ij} coefficents' )
+    lumilab1 = ROOT.TLatex(0.15,0.70,'t_{ij} coefficents' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
+    lumilab2 = ROOT.TLatex(0.15,0.20,'(Zenith = %0.1f #pm %0.1f, NSB = %0.1f #pm %0.1f)'%(Zenith_mean_data,Zenith_RMS_data,NSB_mean_data,NSB_RMS_data) )
+    lumilab2.SetNDC()
+    lumilab2.SetTextSize(0.2)
+    lumilab2.Draw()
     pad1.cd()
-    pad1.SetLogz()
-    #Hist2D_Coeff_Bkgd_Sum.SetMaximum(1e-1);
-    #Hist2D_Coeff_Bkgd_Sum.SetMinimum(1e-6);
+    #pad1.SetLogz()
     Hist2D_Coeff_Bkgd_Sum.GetYaxis().SetTitle('n')
     Hist2D_Coeff_Bkgd_Sum.GetXaxis().SetTitle('k')
     Hist2D_Coeff_Bkgd_Sum.Draw("COL4Z")
     canvas.SaveAs('output_plots/Coeff_C_bkgd_%s_%s.png'%(name,selection_tag))
+    pad1.SetLogz(0)
+
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.70,'t_{ij} coefficents')
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    lumilab2 = ROOT.TLatex(0.15,0.20,'(Zenith = %0.1f #pm %0.1f, NSB = %0.1f #pm %0.1f)'%(Zenith_mean_data,Zenith_RMS_data,NSB_mean_data,NSB_RMS_data) )
+    lumilab2.SetNDC()
+    lumilab2.SetTextSize(0.2)
+    lumilab2.Draw()
+    pad1.cd()
+    #pad1.SetLogz()
+    #Hist2D_Coeff_Data_Sum.SetMaximum(Hist2D_Coeff_Bkgd_Sum.GetMaximum());
+    #Hist2D_Coeff_Data_Sum.SetMinimum(Hist2D_Coeff_Bkgd_Sum.GetMinimum());
+    Hist2D_Coeff_Data_Sum.GetYaxis().SetTitle('n')
+    Hist2D_Coeff_Data_Sum.GetXaxis().SetTitle('k')
+    Hist2D_Coeff_Data_Sum.Draw("COL4Z")
+    canvas.SaveAs('output_plots/Coeff_C_data_%s_%s.png'%(name,selection_tag))
     pad1.SetLogz(0)
 
     pad3.cd()
@@ -4218,24 +4245,18 @@ def MatrixDecompositionDemo(name):
                     sum_var += pow(n_data-n_bkgd-error_avg,2)
     error_var = sum_var/sum_bins
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.70,'Error map of initial matrix' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON}-M^{OFF}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.2)
+    lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
-    lumilab2 = ROOT.TLatex(0.15,0.50,'B = #Sigma #Delta / N = %0.3f'%(error_avg) )
-    lumilab2.SetNDC()
-    lumilab2.SetTextSize(0.2)
-    lumilab2.Draw()
-    lumilab3 = ROOT.TLatex(0.15,0.30,'#Sigma (#Delta-B)^{2} / N = %0.3f'%(error_var) )
-    lumilab3.SetNDC()
-    lumilab3.SetTextSize(0.2)
-    lumilab3.Draw()
     pad1.cd()
     Hist2D_ErrDark.GetYaxis().SetTitle('MSCW')
     Hist2D_ErrDark.GetXaxis().SetTitle('MSCL')
     Hist2D_ErrDark.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
+    #line3.Draw("same")
+    #line4.Draw("same")
     canvas.SaveAs('output_plots/ErrorDark_%s_%s.png'%(name,selection_tag))
 
     Hist2D_ErrBkgd = ROOT.TH2D("Hist2D_ErrBkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -4280,9 +4301,9 @@ def MatrixDecompositionDemo(name):
                     n_bkgd = Hist2D_OnBkgd_Sum.GetBinContent(binx+1,biny+1)
                     sum_var += pow(n_data-n_bkgd,2)
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.70,'Error map of modified matrix' )
+    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON}-M^{LRR}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.2)
+    lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
     pad1.cd()
     Hist2D_ErrBkgd.SetMaximum(Hist2D_ErrDark.GetMaximum());
@@ -4292,6 +4313,8 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrBkgd.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
+    #line3.Draw("same")
+    #line4.Draw("same")
     canvas.SaveAs('output_plots/ErrorBkgd_%s_%s.png'%(name,selection_tag))
 
 def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
@@ -4703,7 +4726,7 @@ def GetCRcounts(name):
     colors += [2]
     MakeMultiplePlot(Hists,legends,colors,'log10 counts per bin','N bins','CR_Counts_%s'%(name),0,0,False,False)
 
-def SingleSourceAnalysis(source_list,doMap,e_low,e_up):
+def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
 
     global ErecS_lower_cut
     global ErecS_upper_cut
@@ -4773,17 +4796,29 @@ def SingleSourceAnalysis(source_list,doMap,e_low,e_up):
 
     if not doMap: return
 
-    Hist_OnData_Skymap_smooth = Smooth2DMap(Hist_OnData_Skymap_Sum,smooth_size,False)
-    Hist_OnBkgd_Skymap_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Sum,smooth_size,False)
-    Hist_OnBkgd_Skymap_BS_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_BS_Sum,smooth_size,False)
-    Hist_OnDark_Skymap_Raw_smooth = Smooth2DMap(Hist_OnDark_Skymap_Raw_Sum,smooth_size,False)
-    Hist_OnDark_Skymap_smooth = Smooth2DMap(Hist_OnDark_Skymap_Sum,smooth_size,False)
-    Hist_OnBkgd_Skymap_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_MDM,smooth_size,False)
-    Hist_OnBkgd_Skymap_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_RBM,smooth_size,False)
-    Hist_OnData_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnData_Skymap_Galactic_Sum,smooth_size,False)
-    Hist_OnBkgd_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Sum,smooth_size,False)
-    Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_MDM,smooth_size,False)
-    Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_RBM,smooth_size,False)
+    Hist_OnData_Skymap_smooth = Hist_OnData_Skymap_Sum
+    Hist_OnBkgd_Skymap_smooth = Hist_OnBkgd_Skymap_Sum
+    Hist_OnBkgd_Skymap_BS_smooth = Hist_OnBkgd_Skymap_BS_Sum
+    Hist_OnDark_Skymap_Raw_smooth = Hist_OnDark_Skymap_Raw_Sum
+    Hist_OnDark_Skymap_smooth = Hist_OnDark_Skymap_Sum
+    Hist_OnBkgd_Skymap_Syst_MDM_smooth = Hist_OnBkgd_Skymap_Syst_MDM
+    Hist_OnBkgd_Skymap_Syst_RBM_smooth = Hist_OnBkgd_Skymap_Syst_RBM
+    Hist_OnData_Skymap_Galactic_smooth = Hist_OnData_Skymap_Galactic_Sum
+    Hist_OnBkgd_Skymap_Galactic_smooth = Hist_OnBkgd_Skymap_Galactic_Sum
+    Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth = Hist_OnBkgd_Skymap_Galactic_Syst_MDM
+    Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth = Hist_OnBkgd_Skymap_Galactic_Syst_RBM
+    if doSmooth:
+        Hist_OnData_Skymap_smooth = Smooth2DMap(Hist_OnData_Skymap_Sum,smooth_size,False)
+        Hist_OnBkgd_Skymap_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Sum,smooth_size,False)
+        Hist_OnBkgd_Skymap_BS_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_BS_Sum,smooth_size,False)
+        Hist_OnDark_Skymap_Raw_smooth = Smooth2DMap(Hist_OnDark_Skymap_Raw_Sum,smooth_size,False)
+        Hist_OnDark_Skymap_smooth = Smooth2DMap(Hist_OnDark_Skymap_Sum,smooth_size,False)
+        Hist_OnBkgd_Skymap_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_MDM,smooth_size,False)
+        Hist_OnBkgd_Skymap_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_RBM,smooth_size,False)
+        Hist_OnData_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnData_Skymap_Galactic_Sum,smooth_size,False)
+        Hist_OnBkgd_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Sum,smooth_size,False)
+        Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_MDM,smooth_size,False)
+        Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_RBM,smooth_size,False)
 
     skymap_bin_size_x = Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(1)
     skymap_bin_size_y = Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(1)
@@ -5112,21 +5147,20 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-#drawMap = False
-drawMap = True
+drawMap = False
+#drawMap = True
+#Smoothing = False
+Smoothing = True
 
-if folder_path=='output_root':
-    SingleSourceAnalysis(sample_list,drawMap,0,6)
-    #SingleSourceAnalysis(sample_list,drawMap,1,6)
-    #SingleSourceAnalysis(sample_list,drawMap,2,6)
-    #SingleSourceAnalysis(sample_list,drawMap,3,6)
-    #SingleSourceAnalysis(sample_list,drawMap,0,1)
-    #SingleSourceAnalysis(sample_list,drawMap,1,2)
-    #SingleSourceAnalysis(sample_list,drawMap,2,3)
-    #SingleSourceAnalysis(sample_list,drawMap,3,4)
-    #SingleSourceAnalysis(sample_list,drawMap,4,6)
-else:
-    SingleSourceAnalysis(sample_list,drawMap,1,8)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,1)
+SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,2)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,3)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,4)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 
 print 'n_good_matches = %s'%(n_good_matches)
 

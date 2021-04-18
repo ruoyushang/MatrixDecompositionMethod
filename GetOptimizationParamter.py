@@ -108,6 +108,8 @@ sample_list += ['CasAV6_OFF']
 sample_name += ['CasA V6']
 sample_list += ['RBS0413V6_OFF']
 sample_name += ['RBS0413 V6']
+sample_list += ['NGC1275V6_OFF']
+sample_name += ['NGC 1275 V6']
 
 #sample_list += ['RGBJ0710V5_OFF']
 #sample_name += ['RGBJ0710 V5']

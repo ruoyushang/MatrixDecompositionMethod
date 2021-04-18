@@ -12,6 +12,14 @@ from astropy.time import Time
 from prettytable import PrettyTable
 #from scipy import special
 
+import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+
+
 ROOT.gStyle.SetOptStat(0)
 ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
@@ -42,40 +50,42 @@ method_tag += lowrank_tag
 ONOFF_tag = 'OFF'
 sample_list = []
 sample_name = []
-sample_list += ['1ES0647V6_OFF']
-sample_name += ['1ES0647 V6']
-sample_list += ['1ES1011V6_OFF']
-sample_name += ['1ES1011 V6']
-sample_list += ['OJ287V6_OFF']
-sample_name += ['OJ287 V6']
-sample_list += ['PKS1424V6_OFF']
-sample_name += ['PKS1424 V6']
-sample_list += ['3C264V6_OFF']
-sample_name += ['3C264 V6']
-sample_list += ['1ES0229V6_OFF']
-sample_name += ['1ES0229 V6']
-sample_list += ['1ES0229V5_OFF']
-sample_name += ['1ES0229 V5']
-sample_list += ['Segue1V6_OFF']
-sample_name += ['Segue1 V6']
-sample_list += ['Segue1V5_OFF']
-sample_name += ['Segue1 V5']
-sample_list += ['CrabV5_OFF']
-sample_name += ['Crab V5']
-sample_list += ['CrabV6_OFF']
-sample_name += ['Crab V6']
-sample_list += ['BLLacV6_OFF']
-sample_name += ['BLLac V6']
-sample_list += ['BLLacV5_OFF']
-sample_name += ['BLLac V5']
-sample_list += ['PG1553V5_OFF']
-sample_name += ['PG1553 V5']
-sample_list += ['H1426V6_OFF']
-sample_name += ['H1426 V6']
-sample_list += ['CasAV6_OFF']
-sample_name += ['CasA V6']
-sample_list += ['RBS0413V6_OFF']
-sample_name += ['RBS0413 V6']
+#sample_list += ['1ES0647V6_OFF']
+#sample_name += ['1ES0647 V6']
+#sample_list += ['1ES1011V6_OFF']
+#sample_name += ['1ES1011 V6']
+#sample_list += ['OJ287V6_OFF']
+#sample_name += ['OJ287 V6']
+#sample_list += ['PKS1424V6_OFF']
+#sample_name += ['PKS1424 V6']
+#sample_list += ['3C264V6_OFF']
+#sample_name += ['3C264 V6']
+#sample_list += ['1ES0229V6_OFF']
+#sample_name += ['1ES0229 V6']
+#sample_list += ['1ES0229V5_OFF']
+#sample_name += ['1ES0229 V5']
+#sample_list += ['Segue1V6_OFF']
+#sample_name += ['Segue1 V6']
+#sample_list += ['Segue1V5_OFF']
+#sample_name += ['Segue1 V5']
+#sample_list += ['CrabV5_OFF']
+#sample_name += ['Crab V5']
+#sample_list += ['CrabV6_OFF']
+#sample_name += ['Crab V6']
+#sample_list += ['BLLacV6_OFF']
+#sample_name += ['BLLac V6']
+#sample_list += ['BLLacV5_OFF']
+#sample_name += ['BLLac V5']
+#sample_list += ['PG1553V5_OFF']
+#sample_name += ['PG1553 V5']
+#sample_list += ['H1426V6_OFF']
+#sample_name += ['H1426 V6']
+#sample_list += ['CasAV6_OFF']
+#sample_name += ['CasA V6']
+#sample_list += ['RBS0413V6_OFF']
+#sample_name += ['RBS0413 V6']
+sample_list += ['NGC1275V6_OFF']
+sample_name += ['NGC 1275 V6']
 
     
 elev_bins = [45,85]
@@ -134,9 +144,55 @@ def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
 
     c_both.SaveAs('output_plots/%s.png'%(name))
 
+def MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col):
+    x_var = []
+    y_var = []
+    for entry in range(0,len(sample_list)):
+        row = par1_row-1
+        col = par1_col-1
+        idx = row*3+col
+        x_var += [mtx_CDE_all_sources[entry][idx]]
+        row = par2_row-1
+        col = par2_col-1
+        idx = row*3+col
+        y_var += [mtx_CDE_all_sources[entry][idx]]
+    plt.clf()
+    plt.xlabel("(%s,%s)"%(par1_row,par1_col), fontsize=18)
+    plt.ylabel("(%s,%s)"%(par2_row,par2_col), fontsize=18)
+    plt.scatter(x_var,y_var)
+    line_x = np.arange(-0.1, 0.1, 1e-4) # angular size
+    line_y1 = line_x
+    line_y2 = -1.*line_x
+    plt.plot(line_x, line_y1, color='r')
+    plt.plot(line_x, line_y2, color='r')
+    plt.savefig("output_plots/parameter_correlation_%s%s_%s%s_data.png"%(par1_row,par1_col,par2_row,par2_col))
+    x_var = []
+    y_var = []
+    for entry in range(0,len(sample_list)):
+        row = par1_row-1
+        col = par1_col-1
+        idx = row*3+col
+        x_var += [mtx_CDE_bkgd_all_sources[entry][idx]]
+        row = par2_row-1
+        col = par2_col-1
+        idx = row*3+col
+        y_var += [mtx_CDE_bkgd_all_sources[entry][idx]]
+    plt.clf()
+    plt.xlabel("(%s,%s)"%(par1_row,par1_col), fontsize=18)
+    plt.ylabel("(%s,%s)"%(par2_row,par2_col), fontsize=18)
+    plt.scatter(x_var,y_var)
+    line_x = np.arange(-0.1, 0.1, 1e-4) # angular size
+    line_y1 = line_x
+    line_y2 = -1.*line_x
+    plt.plot(line_x, line_y1, color='r')
+    plt.plot(line_x, line_y2, color='r')
+    plt.savefig("output_plots/parameter_correlation_%s%s_%s%s_bkgd.png"%(par1_row,par1_col,par2_row,par2_col))
+
+
 def GetHistogramsFromFile(FilePath):
     global total_exposure_hours
     global mtx_CDE_all_sources
+    global mtx_CDE_bkgd_all_sources
     dark_gamma_count = ROOT.std.vector("double")(10)
     InputFile = ROOT.TFile(FilePath)
     InfoTree = InputFile.Get("InfoTree")
@@ -151,11 +207,15 @@ def GetHistogramsFromFile(FilePath):
     if energy_index==0: 
         total_exposure_hours += exposure_hours
     Hist2D_Coeff_Data.Reset()
+    Hist2D_Coeff_Bkgd.Reset()
     Hist2D_MSCLW_Data.Reset()
     Hist2D_MSCLW_Best.Reset()
     HistName = "Hist_Coeff_Data_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     print 'Get %s'%(HistName)
     Hist2D_Coeff_Data.Add(InputFile.Get(HistName))
+    HistName = "Hist_Coeff_Bkgd_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    print 'Get %s'%(HistName)
+    Hist2D_Coeff_Bkgd.Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     print 'Get %s'%(HistName)
     Hist2D_MSCLW_Data.Add(InputFile.Get(HistName))
@@ -177,20 +237,26 @@ def GetHistogramsFromFile(FilePath):
             Hist2D_Regularization[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content)
     if energy_index==1: 
         mtx_CDE = []
+        mtx_CDE_bkgd = []
         for row in range(0,3):
             for col in range(0,3):
                 mtx_CDE += [0.]
+                mtx_CDE_bkgd += [0.]
         for row in range(0,3):
             for col in range(0,3):
                 idx = row*3+col
                 content = Hist2D_Coeff_Data.GetBinContent(row+1,col+1)
                 Hist_CDE[idx].Fill(content)
                 mtx_CDE[idx] = content
+                content = Hist2D_Coeff_Bkgd.GetBinContent(row+1,col+1)
+                mtx_CDE_bkgd[idx] = content
         mtx_CDE_all_sources += [mtx_CDE]
+        mtx_CDE_bkgd_all_sources += [mtx_CDE_bkgd]
 
 Hist2D_MSCLW_Data = ROOT.TH2D("Hist2D_MSCLW_Data","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_MSCLW_Best = ROOT.TH2D("Hist2D_MSCLW_Best","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_Coeff_Data = ROOT.TH2D("Hist2D_Coeff_Data","",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)
+Hist2D_Coeff_Bkgd = ROOT.TH2D("Hist2D_Coeff_Bkgd","",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)
 Hist2D_Regularization = []
 Hist2D_MSCLW_Best_Sum = []
 for e in range(0,len(energy_bin)-1):
@@ -203,6 +269,7 @@ for e in range(0,len(energy_bin)-1):
 
 Hist_CDE = []
 mtx_CDE_all_sources = []
+mtx_CDE_bkgd_all_sources = []
 for row in range(0,3):
     for col in range(0,3):
         idx = row*3+col
@@ -296,4 +363,40 @@ for entry in range(0,len(sample_list)):
             table_row += [mtx_CDE_all_sources[entry][idx]]
     my_table.add_row(table_row)
 print(my_table)
+
+par1_row = 2
+par1_col = 1
+par2_row = 3
+par2_col = 2
+MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
+
+par1_row = 1
+par1_col = 2
+par2_row = 2
+par2_col = 3
+MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
+
+par1_row = 1
+par1_col = 2
+par2_row = 3
+par2_col = 2
+MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
+
+par1_row = 2
+par1_col = 2
+par2_row = 3
+par2_col = 3
+MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
+
+par1_row = 1
+par1_col = 3
+par2_row = 3
+par2_col = 1
+MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
+
+par1_row = 2
+par1_col = 3
+par2_row = 3
+par2_col = 2
+MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
 
