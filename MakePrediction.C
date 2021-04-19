@@ -1351,31 +1351,72 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
         }
         else if (RegularizationType==6)
         {
+            //double temp_alpha = pow(10.,5);
+            double temp_alpha = alpha;
+
             //for (int idx_k=0;idx_k<size_k;idx_k++)
             //{
             //    int kth_entry = idx_k+1;
+            //    if (kth_entry==1) continue;
             //    if (kth_entry>entry_size) continue;
             //    int idx_v0 = 0*size_n + 0;
-            //    double temp_alpha = alpha;
             //    int idx_v = idx_k*size_k + idx_k;
             //    int idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
             //    mtx_A(idx_u,idx_v) = temp_alpha*(1./mtx_S_dark(idx_k,idx_k));
             //    mtx_A(idx_u,idx_v0) = temp_alpha*(-1./mtx_S_dark(0,0));
             //}
             
-            double temp_alpha = alpha;
             int idx_k = 0;
             int idx_v = idx_k*size_k + idx_k;
             int idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
-            //idx_k = 2-1;
+            if (entry_size==3)
+            {
+                idx_k = 3-1;
+                idx_v = idx_k*size_k + idx_k;
+                idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
+                mtx_A(idx_u,idx_v) = temp_alpha*(1./mtx_S_dark(idx_k,idx_k));
+                idx_k = 2-1;
+                idx_v = idx_k*size_k + idx_k;
+                mtx_A(idx_u,idx_v) = temp_alpha*(-1./mtx_S_dark(idx_k,idx_k));
+                //idx_k = 2-1;
+                //idx_v = idx_k*size_k + idx_k;
+                //idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
+                //mtx_A(idx_u,idx_v) = temp_alpha*(1./mtx_S_dark(idx_k,idx_k));
+                //idx_k = 1-1;
+                //idx_v = idx_k*size_k + idx_k;
+                //mtx_A(idx_u,idx_v) = temp_alpha*(-1./mtx_S_dark(idx_k,idx_k));
+                idx_k = 3-1;
+                idx_v = idx_k*size_k + idx_k;
+                idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
+                mtx_A(idx_u,idx_v) = temp_alpha*(1./mtx_S_dark(idx_k,idx_k));
+                idx_k = 1-1;
+                idx_v = idx_k*size_k + idx_k;
+                mtx_A(idx_u,idx_v) = temp_alpha*(-1./mtx_S_dark(idx_k,idx_k));
+            }
+            if (entry_size==2)
+            {
+                idx_k = 2-1;
+                idx_v = idx_k*size_k + idx_k;
+                idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
+                mtx_A(idx_u,idx_v) = temp_alpha*(1./mtx_S_dark(idx_k,idx_k));
+                idx_k = 1-1;
+                idx_v = idx_k*size_k + idx_k;
+                mtx_A(idx_u,idx_v) = temp_alpha*(-1./mtx_S_dark(idx_k,idx_k));
+            }
+            //idx_k = entry_size-1;
             //idx_v = idx_k*size_k + idx_k;
             //idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
-            //mtx_A(idx_u,idx_v) = temp_alpha*(1./mtx_S_dark(idx_k,idx_k));
-            idx_k = 3-1;
-            idx_v = idx_k*size_k + idx_k;
-            idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u,idx_v) = temp_alpha*(1./mtx_S_dark(idx_k,idx_k));
+            //mtx_A(idx_u,idx_v) = temp_alpha*(1./mtx_S_dark(0,0));
+            //if (entry_size-2>0)
+            //{
+            //    idx_k = entry_size-2;
+            //    idx_v = idx_k*size_k + idx_k;
+            //    idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
+            //    mtx_A(idx_u,idx_v) = temp_alpha*(1./mtx_S_dark(0,0));
+            //}
 
+            temp_alpha = pow(10.,5);
+            //temp_alpha = alpha;
             int idx_k1 = 0;
             int idx_n1 = 0;
             int idx_k2 = 0;
@@ -1502,7 +1543,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
                 mtx_E(idx_k,idx_n) = vtr_t(idx_kn); 
                 if (kth_entry<=NumberOfEigenvectors_Stable && nth_entry<=NumberOfEigenvectors_Stable)
                 {
-                    mtx_CDE(idx_k,idx_n) = mtx_E(idx_k,idx_n)/abs(sigma_k);
+                    mtx_CDE(idx_k,idx_n) = mtx_E(idx_k,idx_n)/abs(mtx_S_dark(idx_k,idx_n));
                 }
             }
         }
