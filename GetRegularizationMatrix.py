@@ -50,40 +50,40 @@ method_tag += lowrank_tag
 ONOFF_tag = 'OFF'
 sample_list = []
 sample_name = []
-#sample_list += ['1ES0647V6_OFF']
-#sample_name += ['1ES0647 V6']
-#sample_list += ['1ES1011V6_OFF']
-#sample_name += ['1ES1011 V6']
-#sample_list += ['OJ287V6_OFF']
-#sample_name += ['OJ287 V6']
-#sample_list += ['PKS1424V6_OFF']
-#sample_name += ['PKS1424 V6']
-#sample_list += ['3C264V6_OFF']
-#sample_name += ['3C264 V6']
-#sample_list += ['1ES0229V6_OFF']
-#sample_name += ['1ES0229 V6']
-#sample_list += ['1ES0229V5_OFF']
-#sample_name += ['1ES0229 V5']
-#sample_list += ['Segue1V6_OFF']
-#sample_name += ['Segue1 V6']
-#sample_list += ['Segue1V5_OFF']
-#sample_name += ['Segue1 V5']
-#sample_list += ['CrabV5_OFF']
-#sample_name += ['Crab V5']
-#sample_list += ['CrabV6_OFF']
-#sample_name += ['Crab V6']
-#sample_list += ['BLLacV6_OFF']
-#sample_name += ['BLLac V6']
-#sample_list += ['BLLacV5_OFF']
-#sample_name += ['BLLac V5']
-#sample_list += ['PG1553V5_OFF']
-#sample_name += ['PG1553 V5']
-#sample_list += ['H1426V6_OFF']
-#sample_name += ['H1426 V6']
-#sample_list += ['CasAV6_OFF']
-#sample_name += ['CasA V6']
-#sample_list += ['RBS0413V6_OFF']
-#sample_name += ['RBS0413 V6']
+sample_list += ['1ES0647V6_OFF']
+sample_name += ['1ES0647 V6']
+sample_list += ['1ES1011V6_OFF']
+sample_name += ['1ES1011 V6']
+sample_list += ['OJ287V6_OFF']
+sample_name += ['OJ287 V6']
+sample_list += ['PKS1424V6_OFF']
+sample_name += ['PKS1424 V6']
+sample_list += ['3C264V6_OFF']
+sample_name += ['3C264 V6']
+sample_list += ['1ES0229V6_OFF']
+sample_name += ['1ES0229 V6']
+sample_list += ['1ES0229V5_OFF']
+sample_name += ['1ES0229 V5']
+sample_list += ['Segue1V6_OFF']
+sample_name += ['Segue1 V6']
+sample_list += ['Segue1V5_OFF']
+sample_name += ['Segue1 V5']
+sample_list += ['CrabV5_OFF']
+sample_name += ['Crab V5']
+sample_list += ['CrabV6_OFF']
+sample_name += ['Crab V6']
+sample_list += ['BLLacV6_OFF']
+sample_name += ['BLLac V6']
+sample_list += ['BLLacV5_OFF']
+sample_name += ['BLLac V5']
+sample_list += ['PG1553V5_OFF']
+sample_name += ['PG1553 V5']
+sample_list += ['H1426V6_OFF']
+sample_name += ['H1426 V6']
+sample_list += ['CasAV6_OFF']
+sample_name += ['CasA V6']
+sample_list += ['RBS0413V6_OFF']
+sample_name += ['RBS0413 V6']
 sample_list += ['NGC1275V6_OFF']
 sample_name += ['NGC 1275 V6']
 
@@ -376,10 +376,28 @@ par2_row = 2
 par2_col = 3
 MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
 
+par1_row = 2
+par1_col = 1
+par2_row = 2
+par2_col = 3
+MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
+
 par1_row = 1
 par1_col = 2
 par2_row = 3
 par2_col = 2
+MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
+
+par1_row = 1
+par1_col = 1
+par2_row = 2
+par2_col = 2
+MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
+
+par1_row = 1
+par1_col = 1
+par2_row = 3
+par2_col = 3
 MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
 
 par1_row = 2
@@ -398,5 +416,17 @@ par1_row = 2
 par1_col = 3
 par2_row = 3
 par2_col = 2
+MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
+
+par1_row = 3
+par1_col = 3
+par2_row = 3
+par2_col = 2
+MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
+
+par1_row = 3
+par1_col = 3
+par2_row = 3
+par2_col = 1
 MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
 

@@ -52,6 +52,11 @@ par8_count = []
 par9_count = []
 wpar9_count = []
 dark_count = []
+bkgd_chi2 = []
+par8_chi2 = []
+par9_chi2 = []
+wpar9_chi2 = []
+dark_chi2 = []
 rank0_count = []
 rank1_count = []
 rank2_count = []
@@ -108,8 +113,8 @@ sample_list += ['CasAV6_OFF']
 sample_name += ['CasA V6']
 sample_list += ['RBS0413V6_OFF']
 sample_name += ['RBS0413 V6']
-sample_list += ['NGC1275V6_OFF']
-sample_name += ['NGC 1275 V6']
+#sample_list += ['NGC1275V6_OFF']
+#sample_name += ['NGC 1275 V6']
 
 #sample_list += ['RGBJ0710V5_OFF']
 #sample_name += ['RGBJ0710 V5']
@@ -288,6 +293,11 @@ def GetHistogramsFromFile(FilePath,which_source):
     global par9_count
     global wpar9_count
     global dark_count
+    global bkgd_chi2
+    global par8_chi2
+    global par9_chi2
+    global wpar9_chi2
+    global dark_chi2
     global rank0_count
     global rank1_count
     global rank2_count
@@ -300,6 +310,11 @@ def GetHistogramsFromFile(FilePath,which_source):
     par9_gamma_count = ROOT.std.vector("double")(10)
     wpar9_gamma_count = ROOT.std.vector("double")(10)
     dark_gamma_count = ROOT.std.vector("double")(10)
+    bkgd_gamma_chi2 = ROOT.std.vector("double")(10)
+    par8_gamma_chi2 = ROOT.std.vector("double")(10)
+    par9_gamma_chi2 = ROOT.std.vector("double")(10)
+    wpar9_gamma_chi2 = ROOT.std.vector("double")(10)
+    dark_gamma_chi2 = ROOT.std.vector("double")(10)
     rank0_gamma_count = ROOT.std.vector("double")(10)
     rank1_gamma_count = ROOT.std.vector("double")(10)
     rank2_gamma_count = ROOT.std.vector("double")(10)
@@ -316,6 +331,11 @@ def GetHistogramsFromFile(FilePath,which_source):
     NewInfoTree.SetBranchAddress('par9_gamma_count',ROOT.AddressOf(par9_gamma_count))
     NewInfoTree.SetBranchAddress('wpar9_gamma_count',ROOT.AddressOf(wpar9_gamma_count))
     NewInfoTree.SetBranchAddress('dark_gamma_count',ROOT.AddressOf(dark_gamma_count))
+    NewInfoTree.SetBranchAddress('bkgd_gamma_chi2',ROOT.AddressOf(bkgd_gamma_chi2))
+    NewInfoTree.SetBranchAddress('par8_gamma_chi2',ROOT.AddressOf(par8_gamma_chi2))
+    NewInfoTree.SetBranchAddress('par9_gamma_chi2',ROOT.AddressOf(par9_gamma_chi2))
+    NewInfoTree.SetBranchAddress('wpar9_gamma_chi2',ROOT.AddressOf(wpar9_gamma_chi2))
+    NewInfoTree.SetBranchAddress('dark_gamma_chi2',ROOT.AddressOf(dark_gamma_chi2))
     NewInfoTree.SetBranchAddress('rank0_gamma_count',ROOT.AddressOf(rank0_gamma_count))
     NewInfoTree.SetBranchAddress('rank1_gamma_count',ROOT.AddressOf(rank1_gamma_count))
     NewInfoTree.SetBranchAddress('rank2_gamma_count',ROOT.AddressOf(rank2_gamma_count))
@@ -346,6 +366,11 @@ def GetHistogramsFromFile(FilePath,which_source):
     par9_count  += [par9_gamma_count[energy_index]]
     wpar9_count  += [wpar9_gamma_count[energy_index]]
     dark_count  += [dark_gamma_count[energy_index]]
+    bkgd_chi2  += [bkgd_gamma_chi2[energy_index]]
+    par8_chi2  += [par8_gamma_chi2[energy_index]]
+    par9_chi2  += [par9_gamma_chi2[energy_index]]
+    wpar9_chi2  += [wpar9_gamma_chi2[energy_index]]
+    dark_chi2  += [dark_gamma_chi2[energy_index]]
     rank0_count  += [rank0_gamma_count[energy_index]]
     rank1_count  += [rank1_gamma_count[energy_index]]
     rank2_count  += [rank2_gamma_count[energy_index]]
@@ -361,6 +386,7 @@ def GetHistogramsFromFile(FilePath,which_source):
     NSB_RMS_dark += [NSB_RMS/2.]
     Hist_Bkgd_Optimization[which_source+1].Reset()
     Hist_Bkgd_Optimization_beta[which_source+1].Reset()
+    Hist_Bkgd_OptimizationChi2_beta[which_source+1].Reset()
     Hist_Dark_Optimization[which_source+1].Reset()
     weight = 1./float(len(sample_list))
     #weight = exposure_hours
@@ -370,6 +396,9 @@ def GetHistogramsFromFile(FilePath,which_source):
     HistName = "Hist_Bkgd_Optimization_beta_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Bkgd_Optimization_beta[0].Add(InputFile.Get(HistName),weight)
     Hist_Bkgd_Optimization_beta[which_source+1].Add(InputFile.Get(HistName))
+    HistName = "Hist_Bkgd_OptimizationChi2_beta_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_Bkgd_OptimizationChi2_beta[0].Add(InputFile.Get(HistName),weight)
+    Hist_Bkgd_OptimizationChi2_beta[which_source+1].Add(InputFile.Get(HistName))
     HistName = "Hist_Dark_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Dark_Optimization[0].Add(InputFile.Get(HistName),weight)
     Hist_Dark_Optimization[which_source+1].Add(InputFile.Get(HistName))
@@ -398,19 +427,21 @@ def GetHistogramsFromFile(FilePath,which_source):
     Hist_GammaRegion_Contribution[0].Add(InputFile.Get(HistName),weight)
     Hist_GammaRegion_Contribution[which_source+1].Add(InputFile.Get(HistName))
 
-optimiz_lower = -5.
-optimiz_upper = 20.
+optimiz_lower = -10.
+optimiz_upper = 10.
 Hist_Bkgd_Optimization = []
 Hist_Bkgd_Optimization_beta = []
+Hist_Bkgd_OptimizationChi2_beta = []
 Hist_Dark_Optimization = []
 for e in range(0,len(sample_list)+1):
-    Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",100,optimiz_lower,optimiz_upper)]
-    #Hist_Bkgd_Optimization_beta += [ROOT.TH1D("Hist_Bkgd_Optimization_beta_%s"%(e),"",100,-6.,-2.)]
-    Hist_Bkgd_Optimization_beta += [ROOT.TH1D("Hist_Bkgd_Optimization_beta_%s"%(e),"",N_bins_for_deconv/2,0,N_bins_for_deconv/2)]
+    Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",50,optimiz_lower,optimiz_upper)]
+    Hist_Bkgd_Optimization_beta += [ROOT.TH1D("Hist_Bkgd_Optimization_beta_%s"%(e),"",50,-10.,0.)]
+    Hist_Bkgd_OptimizationChi2_beta += [ROOT.TH1D("Hist_Bkgd_OptimizationChi2_beta_%s"%(e),"",50,-10.,0.)]
+    #Hist_Bkgd_Optimization_beta += [ROOT.TH1D("Hist_Bkgd_Optimization_beta_%s"%(e),"",N_bins_for_deconv/2,0,N_bins_for_deconv/2)]
     Hist_Dark_Optimization += [ROOT.TH1D("Hist_Dark_Optimization_%s"%(e),"",N_bins_for_deconv/2,0,N_bins_for_deconv/2)]
 Hist_Bkgd_Chi2 = []
 for e in range(0,len(sample_list)+1):
-    Hist_Bkgd_Chi2 += [ROOT.TH1D("Hist_Bkgd_Chi2_%s"%(e),"",100,optimiz_lower,optimiz_upper)]
+    Hist_Bkgd_Chi2 += [ROOT.TH1D("Hist_Bkgd_Chi2_%s"%(e),"",50,optimiz_lower,optimiz_upper)]
 Hist_VVV_Eigenvalues = []
 for e in range(0,len(sample_list)+1):
     Hist_VVV_Eigenvalues += [ROOT.TH1D("Hist_VVV_Eigenvalues_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,0,N_bins_for_deconv*N_bins_for_deconv)]
@@ -444,6 +475,10 @@ for e in range(0,len(energy_bin)-1):
     par8_count = []
     par9_count = []
     wpar9_count = []
+    bkgd_chi2 = []
+    par8_chi2 = []
+    par9_chi2 = []
+    wpar9_chi2 = []
     data_exposure = []
     dark_count = []
     rank0_count = []
@@ -458,6 +493,7 @@ for e in range(0,len(energy_bin)-1):
     for entry in range(0,len(Hist_Bkgd_Optimization)):
         Hist_Bkgd_Optimization[entry].Reset()
         Hist_Bkgd_Optimization_beta[entry].Reset()
+        Hist_Bkgd_OptimizationChi2_beta[entry].Reset()
         Hist_Dark_Optimization[entry].Reset()
     for entry in range(0,len(Hist_Bkgd_Chi2)):
         Hist_Bkgd_Chi2[entry].Reset()
@@ -497,6 +533,16 @@ for e in range(0,len(energy_bin)-1):
             y_content += weight*Hist_Bkgd_Optimization_beta[entry].GetBinContent(binx)
         y_content = y_content/total_weight
         Hist_Bkgd_Optimization_beta[0].SetBinContent(binx,y_content)
+    for binx in range(1,Hist_Bkgd_OptimizationChi2_beta[0].GetNbinsX()+1):
+        total_weight = 0.
+        y_content = 0.
+        for entry in range(1,len(Hist_Bkgd_OptimizationChi2_beta)):
+            weight = pow(data_count[entry-1],0.5)
+            #weight = 1.
+            total_weight += weight
+            y_content += weight*Hist_Bkgd_OptimizationChi2_beta[entry].GetBinContent(binx)
+        y_content = y_content/total_weight
+        Hist_Bkgd_OptimizationChi2_beta[0].SetBinContent(binx,y_content)
 
     for binx in range(1,Hist_Dark_Optimization[0].GetNbinsX()+1):
         total_weight = 0.
@@ -872,6 +918,18 @@ for e in range(0,len(energy_bin)-1):
         legends += ['exposure %0.1f'%(data_exposure[entry-1])]
         colors += [int(random_gen.Uniform(29.,49.))]
     MakeMultiplePlot(Hists,legends,colors,'normalized threshold','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationBeta_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
+    Hists = []
+    legends = []
+    colors = []
+    Hists += [Hist_Bkgd_OptimizationChi2_beta[0]]
+    legends += ['average']
+    colors += [1]
+    random_gen = ROOT.TRandom3()
+    for entry in range(1,len(Hist_Bkgd_OptimizationChi2_beta)):
+        Hists += [Hist_Bkgd_OptimizationChi2_beta[entry]]
+        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+        colors += [int(random_gen.Uniform(29.,49.))]
+    MakeMultiplePlot(Hists,legends,colors,'normalized threshold','#sum_{k,n=1}^{3} (t_{kn}^{true}-t_{kn}^{model})^{2}','OptimizationChi2Beta_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
 
     Hists = []
     legends = []
@@ -1051,7 +1109,23 @@ for e in range(0,len(energy_bin)-1):
     line_x = np.arange(0.0, 0.1, 1e-4) # angular size
     line_y = line_x
     plt.plot(line_x, line_y, color='r')
-    plt.savefig("output_plots/PlainVsWeightedFrobenius_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    plt.savefig("output_plots/PlainVsWeightedFrobenius_Count_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+
+    par9_epsilon = []
+    wpar9_epsilon = []
+    for entry in range(0,len(wpar9_count)):
+        par9_epsilon += [par9_chi2[entry]]
+        wpar9_epsilon += [wpar9_chi2[entry]]
+    plt.clf()
+    plt.xlabel("$\epsilon$ (plain Frobenius norm)", fontsize=18)
+    plt.ylabel("$\epsilon$ (weighted Frobenius norm)", fontsize=18)
+    plt.xlim(0.,0.1)
+    plt.ylim(0.,0.1)
+    plt.scatter(par9_epsilon,wpar9_epsilon)
+    line_x = np.arange(0.0, 0.1, 1e-4) # angular size
+    line_y = line_x
+    plt.plot(line_x, line_y, color='r')
+    plt.savefig("output_plots/PlainVsWeightedFrobenius_Chi2_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
     #Hists = []
     #legends = []
