@@ -1700,6 +1700,97 @@ def MakeCrabUnitSpectrumPlot(Hist_data,Hist_bkgd,legends,colors,title,name):
 
         c_both.SaveAs('output_plots/%s_RoI%s_%s.png'%(name,roi,selection_tag))
 
+def MakeSpectrumBackgroundE27(hist_data,hist_bkgd,legends,title,name,syst):
+    
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.7,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.7)
+    pad1.SetBottomMargin(0.2)
+    pad1.SetTopMargin(0.0)
+    pad1.SetLeftMargin(0.2)
+    pad1.SetRightMargin(0.1)
+    pad1.SetBorderMode(0)
+    pad1.SetGrid()
+    pad1.Draw()
+    pad3.Draw()
+
+    pad1.cd()
+
+    Hist_EffArea_tmp = Hist_EffArea_Sum.Clone()
+
+    Hist_Flux = []
+    Hist_Flux += [ROOT.TH1D("Hist_Flux_Data","",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+    Hist_Flux += [ROOT.TH1D("Hist_Flux_Bkgd","",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+    Hist_Flux[0].Add(hist_data[0])
+    Hist_Flux[1].Add(hist_bkgd[0])
+    for binx in range(0,Hist_Flux[0].GetNbinsX()):
+        if Hist_EffArea_Sum.GetBinContent(binx+1)==0.: continue
+        deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
+        avgE = 0.5*(energy_fine_bin[binx+1]+energy_fine_bin[binx])/1000.
+        scale = 1./(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
+        Hist_Flux[0].SetBinContent(binx+1,Hist_Flux[0].GetBinContent(binx+1)*scale)
+        Hist_Flux[0].SetBinError(binx+1,Hist_Flux[0].GetBinError(binx+1)*scale)
+        Hist_Flux[1].SetBinContent(binx+1,Hist_Flux[1].GetBinContent(binx+1)*scale)
+        Hist_Flux[1].SetBinError(binx+1,Hist_Flux[1].GetBinError(binx+1)*scale)
+
+    Hist_Invisible = Hist_Flux[0].Clone()
+    Hist_Invisible.SetLineColor(0)
+    Hist_Invisible.GetXaxis().SetTitleOffset(0.8)
+    Hist_Invisible.GetXaxis().SetTitleSize(0.06)
+    Hist_Invisible.GetXaxis().SetLabelSize(0.04)
+    Hist_Invisible.GetYaxis().SetLabelSize(0.04)
+    Hist_Invisible.GetYaxis().SetTitleOffset(1.2)
+    Hist_Invisible.GetYaxis().SetTitleSize(0.06)
+    Hist_Invisible.GetXaxis().SetTitle('energy [GeV]')
+    Hist_Invisible.GetYaxis().SetTitle('flux [counts/GeV/s/cm2]')
+    Hist_Invisible.Draw()
+
+    func_source = []
+    func_source += [ROOT.TF1("func_source_data","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)]
+    func_source[0].SetParameters(37.5,-4.)
+    Hist_Flux[0].Fit("func_source_data","N")
+    Hist_Flux[0].SetLineColor(1)
+    Hist_Flux[0].Draw("E same")
+    func_source[0].SetLineColor(1)
+    func_source[0].Draw("E same")
+    func_source += [ROOT.TF1("func_source_bkgd","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)]
+    func_source[1].SetParameters(37.5,-4.)
+    Hist_Flux[1].Fit("func_source_bkgd","N")
+    Hist_Flux[1].SetLineColor(2)
+    Hist_Flux[1].Draw("E same")
+    func_source[1].SetLineColor(2)
+    func_source[1].Draw("E same")
+
+    #func_crab.SetLineColor(2)
+    #func_crab.Draw("same")
+
+    pad3.cd()
+
+    legend = ROOT.TLegend(0.1,0.1,0.94,0.9)
+    legend.SetTextFont(42)
+    legend.SetBorderSize(0)
+    legend.SetTextSize(0.1)
+    legend.SetFillColor(0)
+    legend.SetFillStyle(0)
+    legend.SetLineColor(0)
+    legend.Clear()
+    legend.AddEntry(Hist_Flux[0],"data, index = %0.2f #pm %0.2f"%(func_source[0].GetParameter(1),func_source[0].GetParError(1)),"pl")
+    legend.AddEntry(Hist_Flux[1],"model, index = %0.2f #pm %0.2f"%(func_source[1].GetParameter(1),func_source[1].GetParError(1)),"pl")
+    legend.Draw("SAME")
+
+    #lumilab1 = ROOT.TLatex(0.15,0.80,'Exposure %.1f hrs'%(exposure_hours) )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.15)
+    #lumilab1.Draw()
+
+    pad1.SetLogy()
+    pad1.SetLogx()
+
+    c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
+
 def MakeSpectrumInNonCrabUnitE2(hist_data,hist_bkgd,legends,title,name,syst):
     
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
@@ -2643,6 +2734,13 @@ def PlotsStackedHistograms(tag):
     MakeSpectrumInNonCrabUnit(Hist_data,Hist_bkgd,legends,title,plotname,-1)
     plotname = 'FluxE2_MDM_%s'%(tag)
     MakeSpectrumInNonCrabUnitE2(Hist_data,Hist_bkgd,legends,title,plotname,-1)
+    Hist_data = []
+    Hist_bkgd = []
+    Hist_data += [Hist_OnData_RoI_Energy_Sum[1]]
+    Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[1]]
+    title = 'energy [GeV]'
+    plotname = 'FluxE27_MDM_%s'%(tag)
+    MakeSpectrumBackgroundE27(Hist_data,Hist_bkgd,legends,title,plotname,-1)
 
     Hist_data_mjd = []
     Hist_bkgd_mjd = []
@@ -4968,12 +5066,12 @@ Hist2D_Rank3_Dark_Sum = ROOT.TH2D("Hist2D_Rank3_Dark_Sum","",N_bins_for_deconv,M
 Hist2D_Rank4_Dark_Sum = ROOT.TH2D("Hist2D_Rank4_Dark_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 
 n_iterations = 100
-optimiz_lower = -10.
-optimiz_upper = 10.
-Hist_Bkgd_Chi2 = ROOT.TH1D("Hist_Bkgd_Chi2","",100,optimiz_lower,optimiz_upper)
-Hist_Bkgd_Chi2_Diff = ROOT.TH1D("Hist_Bkgd_Chi2_Diff","",100,optimiz_lower,optimiz_upper)
-Hist_Bkgd_Chi2_Diff2 = ROOT.TH1D("Hist_Bkgd_Chi2_Diff2","",100,optimiz_lower,optimiz_upper)
-Hist_Bkgd_Optimization = ROOT.TH1D("Hist_Bkgd_Optimization","",100,optimiz_lower,optimiz_upper)
+optimiz_lower = -6.
+optimiz_upper = -1.
+Hist_Bkgd_Chi2 = ROOT.TH1D("Hist_Bkgd_Chi2","",50,optimiz_lower,optimiz_upper)
+Hist_Bkgd_Chi2_Diff = ROOT.TH1D("Hist_Bkgd_Chi2_Diff","",50,optimiz_lower,optimiz_upper)
+Hist_Bkgd_Chi2_Diff2 = ROOT.TH1D("Hist_Bkgd_Chi2_Diff2","",50,optimiz_lower,optimiz_upper)
+Hist_Bkgd_Optimization = ROOT.TH1D("Hist_Bkgd_Optimization","",50,optimiz_lower,optimiz_upper)
 Hist_Bkgd_Converge_Blind = ROOT.TH1D("Hist_Bkgd_Converge_Blind","",n_iterations,0,n_iterations)
 Hist_Bkgd_Converge_Unblind = ROOT.TH1D("Hist_Bkgd_Converge_Unblind","",n_iterations,0,n_iterations)
 Hist_VVV_Eigenvalues = ROOT.TH1D("Hist_VVV_Eigenvalues","",N_bins_for_deconv*N_bins_for_deconv,0,N_bins_for_deconv*N_bins_for_deconv)
@@ -5147,8 +5245,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-#drawMap = False
-drawMap = True
+drawMap = False
+#drawMap = True
 #Smoothing = False
 Smoothing = True
 

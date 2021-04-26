@@ -427,8 +427,8 @@ def GetHistogramsFromFile(FilePath,which_source):
     Hist_GammaRegion_Contribution[0].Add(InputFile.Get(HistName),weight)
     Hist_GammaRegion_Contribution[which_source+1].Add(InputFile.Get(HistName))
 
-optimiz_lower = -10.
-optimiz_upper = 10.
+optimiz_lower = -5.
+optimiz_upper = 5.
 Hist_Bkgd_Optimization = []
 Hist_Bkgd_Optimization_beta = []
 Hist_Bkgd_OptimizationChi2_beta = []

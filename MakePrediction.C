@@ -111,8 +111,8 @@ double GammaScale = 0.;
 double MinChi2Unblind = 1e10;
 double current_energy = 0.;
 
-double optimiz_lower = -10.;
-double optimiz_upper = 10.;
+double optimiz_lower = -5.;
+double optimiz_upper = 5.;
 vector<double> max_chi2_diff2_position;
 
 //double svd_threshold = 1e-6; // size of singular value to be considered as nonzero.
@@ -1244,7 +1244,13 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     for (int entry=0;entry<svd_init.singularValues().size();entry++)
     {
         mtx_S_init(entry,entry) = svd_init.singularValues()(entry);
+        //if (entry+1>entry_size)
+        //{
+        //    mtx_S_init(entry,entry) = 0.;
+        //}
     }
+    MatrixXcd mtx_init_comp = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    mtx_init_comp = mtx_U_init*mtx_S_init*mtx_V_init.transpose();
 
     JacobiSVD<MatrixXd> svd_dark(mtx_dark_input.real(), ComputeFullU | ComputeFullV);
     MatrixXd mtx_U_dark = svd_dark.matrixU();
@@ -1300,7 +1306,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             {
                 if (idx_i<binx_buffer_global) weight = 0.*weight;
             }
-            vtr_Delta(idx_u) = weight*(mtx_data_input-mtx_init_input)(idx_i,idx_j);
+            vtr_Delta(idx_u) = weight*(mtx_data_input-mtx_init_comp)(idx_i,idx_j);
             for (int idx_k=0;idx_k<size_k;idx_k++)
             {
                 int kth_entry = idx_k+1;
@@ -1372,21 +1378,21 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             int idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
             if (entry_size==3)
             {
-                //idx_k = 3-1;
-                //idx_v = idx_k*size_k + idx_k;
-                //idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
-                //mtx_A(idx_u,idx_v) = temp_alpha*mtx_S_dark(0,0)*(1./mtx_S_dark(idx_k,idx_k));
-                //idx_k = 2-1;
-                //idx_v = idx_k*size_k + idx_k;
-                //mtx_A(idx_u,idx_v) = temp_alpha*mtx_S_dark(0,0)*(-1./mtx_S_dark(idx_k,idx_k));
-
-                idx_k = 2-1;
+                idx_k = 3-1;
                 idx_v = idx_k*size_k + idx_k;
                 idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
                 mtx_A(idx_u,idx_v) = temp_alpha*mtx_S_dark(0,0)*(1./mtx_S_dark(idx_k,idx_k));
-                idx_k = 1-1;
+                idx_k = 2-1;
                 idx_v = idx_k*size_k + idx_k;
                 mtx_A(idx_u,idx_v) = temp_alpha*mtx_S_dark(0,0)*(-1./mtx_S_dark(idx_k,idx_k));
+
+                //idx_k = 2-1;
+                //idx_v = idx_k*size_k + idx_k;
+                //idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
+                //mtx_A(idx_u,idx_v) = temp_alpha*mtx_S_dark(0,0)*(1./mtx_S_dark(idx_k,idx_k));
+                //idx_k = 1-1;
+                //idx_v = idx_k*size_k + idx_k;
+                //mtx_A(idx_u,idx_v) = temp_alpha*mtx_S_dark(0,0)*(-1./mtx_S_dark(idx_k,idx_k));
 
                 idx_k = 3-1;
                 idx_v = idx_k*size_k + idx_k;
@@ -1407,7 +1413,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
                 mtx_A(idx_u,idx_v) = temp_alpha*mtx_S_dark(0,0)*(-1./mtx_S_dark(idx_k,idx_k));
             }
 
-            temp_alpha = pow(10.,0.);
+            temp_alpha = 0.;
             //temp_alpha = alpha;
             int idx_k1 = 0;
             int idx_n1 = 0;
@@ -1420,10 +1426,10 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             double sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
             double sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
             double sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
-            //idx_k1 = 2-1;
-            //idx_n1 = 1-1;
-            //idx_k2 = 3-1;
-            //idx_n2 = 2-1;
+            //idx_k1 = 1-1;
+            //idx_n1 = 2-1;
+            //idx_k2 = 2-1;
+            //idx_n2 = 3-1;
             //idx_v1 = idx_k1*size_n + idx_n1;
             //idx_v2 = idx_k2*size_n + idx_n2;
             //idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
@@ -1431,7 +1437,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             //sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
             //sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
             //sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
-            //mtx_A(idx_u1,idx_v1) = temp_alpha*mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
+            //mtx_A(idx_u1,idx_v1) = temp_alpha*mtx_S_dark(0,0)*((3./sigma_k1-3./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
             //mtx_A(idx_u1,idx_v2) = temp_alpha*mtx_S_dark(0,0)*((1./sigma_n2-1./sigma_k2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
             //
             if (entry_size==3)
@@ -1449,6 +1455,20 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
                 sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
                 mtx_Constraint(idx_u1,idx_v1) = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
                 mtx_Constraint(idx_u1,idx_v2) = mtx_S_dark(0,0)*((1./sigma_n2-1./sigma_k2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
+
+                //idx_k1 = 1-1;
+                //idx_n1 = 2-1;
+                //idx_k2 = 2-1;
+                //idx_n2 = 3-1;
+                //idx_v1 = idx_k1*size_n + idx_n1;
+                //idx_v2 = idx_k2*size_n + idx_n2;
+                //idx_u1 = idx_v1;
+                //sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
+                //sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
+                //sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
+                //sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
+                //mtx_Constraint(idx_u1,idx_v1) = mtx_S_dark(0,0)*((3./sigma_k1-3./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
+                //mtx_Constraint(idx_u1,idx_v2) = mtx_S_dark(0,0)*((1./sigma_n2-1./sigma_k2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
             }
         }
     }
@@ -4024,6 +4044,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
         for (int col=0;col<N_bins_for_deconv;col++)
         {
+            RegularizationType = 1;
+            WeightingType = 0;
             double temp_alpha = 0.;
             double temp_beta = 0.;
             //double temp_beta = N_bins_for_deconv/2;
@@ -4036,6 +4058,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
         if (!EigenDecomposition)
         {
+            RegularizationType = 1;
+            WeightingType = 0;
             double temp_alpha = 0.;
             double temp_beta = 0.;
             //double temp_beta = N_bins_for_deconv/2;

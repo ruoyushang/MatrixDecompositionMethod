@@ -1289,7 +1289,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
             double threshold_dElev = 5.0;
             double threshold_dMJD = 2.*365.;
             double threshold_dL3Rate = 50.;
-            while (accumulated_count<1.0*ON_count[on_run])
+            while (accumulated_count<2.0*ON_count[on_run])
             {
                 pair<string,int> best_match;
                 pair<double,double> best_pointing;
