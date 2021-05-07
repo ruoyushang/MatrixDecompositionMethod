@@ -35,19 +35,11 @@ lowrank_tag = '_svd'
 #lowrank_tag = '_eigen'
 method_tag += lowrank_tag
 
-signal_ratio = '0'
-#if len(sys.argv)==3:
-#    signal_ratio = sys.argv[2]
-#signal_tag = '_S0'
-#signal_tag = '_S5'
-#signal_tag = '_S10'
-#signal_tag = '_S20'
-signal_tag = '_S%s'%(signal_ratio)
-
 energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
-elev_bins = [45,85]
+elev_bins = [55,85]
+#elev_bins = [25,55]
 theta2_bins = [0,4]
 
 ONOFF_tag = 'ON'
@@ -56,426 +48,492 @@ sample_list = []
 
 if sys.argv[1]=='SgrA_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['SgrAV6_ON']
-    elev_bins = [25,45]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='OJ287_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['OJ287V6_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='OJ287_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['OJ287V6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0229_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['1ES0229V6_OFF']
     sample_list += ['1ES0229V5_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0229_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['1ES0229V6_ON']
     sample_list += ['1ES0229V5_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='H1426_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['H1426V6_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='H1426_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['H1426V6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='PKS1424_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['PKS1424V6_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='PKS1424_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['PKS1424V6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='3C264_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['3C264V6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
 if sys.argv[1]=='3C264_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['3C264V6_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     # The VERITAS observations of 3C 264 were taken from February through May 2017, from February through April 2018, and from January through May 2019.
     
 if sys.argv[1]=='PG1553_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['PG1553V5_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='PG1553_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['PG1553V5_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='PG1553_Raster':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['PG1553V5_Raster']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES1011_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['1ES1011V6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
 if sys.argv[1]=='1ES1011_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['1ES1011V6_OFF']
-    elev_bins = [45,85]
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='1ES1011_Crab02':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab2'
+    sample_list = []
+    sample_list += ['1ES1011V6_Crab02']
+    theta2_bins = [0,4]
+if sys.argv[1]=='1ES1011_Crab05':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab5'
+    sample_list = []
+    sample_list += ['1ES1011V6_Crab05']
+    theta2_bins = [0,4]
+if sys.argv[1]=='1ES1011_Crab10':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab10'
+    sample_list = []
+    sample_list += ['1ES1011V6_Crab10']
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='1ES0229_Crab02':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab2'
+    sample_list = []
+    sample_list += ['1ES0229V6_Crab02']
+    sample_list += ['1ES0229V5_Crab02']
+    theta2_bins = [0,4]
+if sys.argv[1]=='1ES0229_Crab05':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab5'
+    sample_list = []
+    sample_list += ['1ES0229V6_Crab05']
+    sample_list += ['1ES0229V5_Crab05']
+    theta2_bins = [0,4]
+if sys.argv[1]=='1ES0229_Crab10':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab10'
+    sample_list = []
+    sample_list += ['1ES0229V6_Crab10']
+    sample_list += ['1ES0229V5_Crab10']
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='Crab_Crab02':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab2'
+    sample_list = []
+    sample_list += ['CrabV6_Crab02']
+    sample_list += ['CrabV5_Crab02']
+    sample_list += ['CrabV4_Crab02']
+    theta2_bins = [0,4]
+if sys.argv[1]=='Crab_Crab05':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab5'
+    sample_list = []
+    sample_list += ['CrabV6_Crab05']
+    sample_list += ['CrabV5_Crab05']
+    sample_list += ['CrabV4_Crab05']
+    theta2_bins = [0,4]
+if sys.argv[1]=='Crab_Crab10':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab10'
+    sample_list = []
+    sample_list += ['CrabV6_Crab10']
+    sample_list += ['CrabV5_Crab10']
+    sample_list += ['CrabV4_Crab10']
     theta2_bins = [0,4]
     
 if sys.argv[1]=='RBS0413_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['RBS0413V6_OFF']
     sample_list += ['RBS0413V5_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='RBS0413_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['RBS0413V6_ON']
     sample_list += ['RBS0413V5_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0647_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['1ES0647V6_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0647_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['1ES0647V6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='RGBJ0710_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['RGBJ0710V5_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='RGBJ0710_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['RGBJ0710V5_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='Segue1_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['Segue1V6_OFF']
     sample_list += ['Segue1V5_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     # only V5 data published
     
 if sys.argv[1]=='Segue1_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['Segue1V6_ON']
     sample_list += ['Segue1V5_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     # only V5 data published
     
 if sys.argv[1]=='BLLac_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['BLLacV6_OFF']
     sample_list += ['BLLacV5_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='BLLac_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['BLLacV6_ON']
     sample_list += ['BLLacV5_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='NGC1275_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['NGC1275V6_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='NGC1275_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['NGC1275V6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='SNRG150p3_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['SNRG150p3_V6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='CasA_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['CasAV6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='CasA_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['CasAV6_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='M82_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['M82V6_OFF']
     sample_list += ['M82V5_OFF']
     #sample_list += ['M82V4_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='M82_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['M82V6_ON']
     sample_list += ['M82V5_ON']
     #sample_list += ['M82V4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='Crab_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['CrabV6_ON']
     sample_list += ['CrabV5_ON']
     sample_list += ['CrabV4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
 if sys.argv[1]=='Crab_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['CrabV6_OFF']
     sample_list += ['CrabV5_OFF']
     sample_list += ['CrabV4_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='Mrk421_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['Mrk421V5_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
 if sys.argv[1]=='Mrk421_OFF':
     ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['Mrk421V5_OFF']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='2HWC_J1930_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['2HWC_J1930V6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='2HWC_J1953_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['2HWC_J1953V6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='WComae_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['WComaeV6_ON']
     sample_list += ['WComaeV5_ON']
     sample_list += ['WComaeV4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
     
 if sys.argv[1]=='IC443HotSpot_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['IC443HotSpotV6_ON']
     sample_list += ['IC443HotSpotV5_ON']
     sample_list += ['IC443HotSpotV4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='Boomerang_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['BoomerangV6_ON']
     sample_list += ['BoomerangV5_ON']
     sample_list += ['BoomerangV4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='Tycho_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['TychoV6_ON']
     sample_list += ['TychoV5_ON']
     sample_list += ['TychoV4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
 
 if sys.argv[1]=='HESS_J1825_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['HESS_J1825_V6_ON']
-    elev_bins = [25,45]
     theta2_bins = [0,4]
 
 if sys.argv[1]=='MGRO_J1908_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['MGRO_J1908_V6_ON']
     sample_list += ['MGRO_J1908_V5_ON']
     sample_list += ['MGRO_J1908_V4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     # this is a Tevatron
     
 if sys.argv[1]=='SS433_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['SS433_V6_ON']
     sample_list += ['SS433_V5_ON']
     sample_list += ['SS433_V4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='SS433Half1_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['SS433Half1_V6_ON']
     sample_list += ['SS433Half1_V5_ON']
     sample_list += ['SS433Half1_V4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='SS433Half2_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['SS433Half2_V6_ON']
     sample_list += ['SS433Half2_V5_ON']
     sample_list += ['SS433Half2_V4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='MAGIC_J1857_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['MAGIC_J1857_V6_ON']
     sample_list += ['MAGIC_J1857_V5_ON']
     sample_list += ['MAGIC_J1857_V4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     # this is a Tevatron, largely extended at 400 GeV
     
 if sys.argv[1]=='MGRO_J2031_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['MGRO_J2031_V6_ON']
     sample_list += ['MGRO_J2031_V5_ON']
     sample_list += ['MGRO_J2031_V4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     # this is a Tevatron with time-variable morphology
     
 if sys.argv[1]=='Cygnus_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['CygnusV6_ON']
     sample_list += ['CygnusV5_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     # this is a Tevatron
     
 if sys.argv[1]=='GammaCygni_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['GammaCygniV4_ON']
     sample_list += ['GammaCygniV5_ON']
     sample_list += ['GammaCygniV6_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     # this is a Tevatron
     
 if sys.argv[1]=='Geminga_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['GemingaV6_ON']
     sample_list += ['GemingaV5_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
     
 if sys.argv[1]=='Coma_ON':
     ONOFF_tag = 'ON'
+    ONOFF_tag += '_Crab0'
     sample_list = []
     sample_list += ['ComaV6_ON']
     #sample_list += ['ComaV4_ON']
-    elev_bins = [45,85]
     theta2_bins = [0,4]
 
 root_file_tags = []
@@ -489,7 +547,7 @@ for elev in range(0,len(elev_bins)-1):
         theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
         #theta2_tag = '_Y%sto%s'%(theta2_bins[u],theta2_bins[u+1])
         for d in range(0,len(mjd_tag)):
-            root_file_tags += [method_tag+elev_tag+theta2_tag+signal_tag+mjd_tag[d]+'_'+ONOFF_tag]
+            root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]
 
 print 'Get %s'%(root_file_tags[0])
 
@@ -1979,8 +2037,8 @@ def MakeSpectrumInNonCrabUnit(hist_data,hist_bkgd,legends,title,name,syst):
         func_source[nth_roi].SetLineColor(nth_roi+1)
         func_source[nth_roi].Draw("E same")
 
-    #func_crab.SetLineColor(2)
-    #func_crab.Draw("same")
+    func_crab.SetLineColor(2)
+    func_crab.Draw("same")
 
     # MGRO J1908
     if 'MGRO_J1908' in name:
@@ -5245,8 +5303,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-drawMap = False
-#drawMap = True
+#drawMap = False
+drawMap = True
 #Smoothing = False
 Smoothing = True
 
