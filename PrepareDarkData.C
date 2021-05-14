@@ -1289,10 +1289,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         for (int on_run=0;on_run<ON_runlist.size();on_run++)
         {
             double accumulated_count = 0.;
-            double threshold_dNSB = 0.5;
-            double threshold_dElev = 5.0;
+            double threshold_dNSB = 0.2;
+            double threshold_dElev = 2.0;
             double threshold_dMJD = 2.*365.;
-            double threshold_dL3Rate = 50.;
+            double threshold_dL3Rate = 20.;
+            double threshold_dTime = 5.*60.;
             while (accumulated_count<2.0*ON_count[on_run])
             {
                 pair<string,int> best_match;
@@ -1326,8 +1327,8 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
 
                     found_match = true;
                     //double chi2 = pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2);
-                    //double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                    double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
+                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                    //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
                     if (ON_NSB[on_run]==0.)
                     {
                         chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
@@ -1345,6 +1346,10 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     //    found_match = false;
                     //}
                     if (pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2)>threshold_dL3Rate*threshold_dL3Rate)
+                    {
+                        found_match = false;
+                    }
+                    if (pow(ON_time[on_run]-OFF_time[off_run],2)>threshold_dTime*threshold_dTime)
                     {
                         found_match = false;
                     }
@@ -1367,10 +1372,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                 else
                 {
                     // searched whole OFF list and found no match.
-                    threshold_dNSB += 0.1;
+                    threshold_dNSB += 0.2;
                     threshold_dElev += 1.0;
                     threshold_dMJD += 1.0*365.;
-                    threshold_dL3Rate += 1.0*20.;
+                    threshold_dL3Rate += 20.;
+                    threshold_dTime += 5.0*60.;
                     //if (threshold_dElev>=10.)
                     //{
                     //    break;

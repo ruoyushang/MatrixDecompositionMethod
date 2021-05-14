@@ -48,6 +48,7 @@ lowrank_tag = '_svd'
 method_tag += lowrank_tag
 
 ONOFF_tag = 'OFF'
+ONOFF_tag += '_Crab0'
 sample_list = []
 sample_name = []
 sample_list += ['1ES0647V6_OFF']
@@ -82,8 +83,8 @@ sample_list += ['H1426V6_OFF']
 sample_name += ['H1426 V6']
 sample_list += ['CasAV6_OFF']
 sample_name += ['CasA V6']
-sample_list += ['RBS0413V6_OFF']
-sample_name += ['RBS0413 V6']
+#sample_list += ['RBS0413V6_OFF']
+#sample_name += ['RBS0413 V6']
 sample_list += ['NGC1275V6_OFF']
 sample_name += ['NGC 1275 V6']
 
@@ -100,7 +101,6 @@ energy_bin += [int(pow(10,3.33))]
 energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 
-signal_tag = '_S0'
 root_file_tags = []
 mjd_tag = []
 mjd_tag += ['']
@@ -109,7 +109,7 @@ for elev in range(0,len(elev_bins)-1):
     for u in range(0,len(theta2_bins)-1):
         theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
         for d in range(0,len(mjd_tag)):
-            root_file_tags += [method_tag+elev_tag+theta2_tag+signal_tag+mjd_tag[d]+'_'+ONOFF_tag]
+            root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]
 
 def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
 
@@ -151,11 +151,13 @@ def MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col):
         row = par1_row-1
         col = par1_col-1
         idx = row*3+col
-        x_var += [mtx_CDE_all_sources[entry][idx]]
+        #x_var += [mtx_CDE_all_sources[entry][idx]]
+        x_var += [mtx_CDE_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
         row = par2_row-1
         col = par2_col-1
         idx = row*3+col
-        y_var += [mtx_CDE_all_sources[entry][idx]]
+        #y_var += [mtx_CDE_all_sources[entry][idx]]
+        y_var += [mtx_CDE_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
     plt.clf()
     plt.xlabel("(%s,%s)"%(par1_row,par1_col), fontsize=18)
     plt.ylabel("(%s,%s)"%(par2_row,par2_col), fontsize=18)
@@ -172,11 +174,13 @@ def MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col):
         row = par1_row-1
         col = par1_col-1
         idx = row*3+col
-        x_var += [mtx_CDE_bkgd_all_sources[entry][idx]]
+        #x_var += [mtx_CDE_bkgd_all_sources[entry][idx]]
+        x_var += [mtx_CDE_bkgd_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
         row = par2_row-1
         col = par2_col-1
         idx = row*3+col
-        y_var += [mtx_CDE_bkgd_all_sources[entry][idx]]
+        #y_var += [mtx_CDE_bkgd_all_sources[entry][idx]]
+        y_var += [mtx_CDE_bkgd_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
     plt.clf()
     plt.xlabel("(%s,%s)"%(par1_row,par1_col), fontsize=18)
     plt.ylabel("(%s,%s)"%(par2_row,par2_col), fontsize=18)
@@ -193,11 +197,20 @@ def GetHistogramsFromFile(FilePath):
     global total_exposure_hours
     global mtx_CDE_all_sources
     global mtx_CDE_bkgd_all_sources
+    global sigma_rank0_all_sources
+    global sigma_rank1_all_sources
+    global sigma_rank2_all_sources
+    dark_sigma_rank0 = ROOT.std.vector("double")(10)
+    dark_sigma_rank1 = ROOT.std.vector("double")(10)
+    dark_sigma_rank2 = ROOT.std.vector("double")(10)
     dark_gamma_count = ROOT.std.vector("double")(10)
     InputFile = ROOT.TFile(FilePath)
     InfoTree = InputFile.Get("InfoTree")
     InfoTree.GetEntry(0)
     NewInfoTree = InputFile.Get("NewInfoTree")
+    NewInfoTree.SetBranchAddress('dark_sigma_rank0',ROOT.AddressOf(dark_sigma_rank0))
+    NewInfoTree.SetBranchAddress('dark_sigma_rank1',ROOT.AddressOf(dark_sigma_rank1))
+    NewInfoTree.SetBranchAddress('dark_sigma_rank2',ROOT.AddressOf(dark_sigma_rank2))
     NewInfoTree.SetBranchAddress('dark_gamma_count',ROOT.AddressOf(dark_gamma_count))
     NewInfoTree.GetEntry(0)
     exposure_hours = InfoTree.exposure_hours
@@ -252,6 +265,9 @@ def GetHistogramsFromFile(FilePath):
                 mtx_CDE_bkgd[idx] = content
         mtx_CDE_all_sources += [mtx_CDE]
         mtx_CDE_bkgd_all_sources += [mtx_CDE_bkgd]
+        sigma_rank0_all_sources += [dark_sigma_rank0[energy_index]]
+        sigma_rank1_all_sources += [dark_sigma_rank1[energy_index]]
+        sigma_rank2_all_sources += [dark_sigma_rank2[energy_index]]
 
 Hist2D_MSCLW_Data = ROOT.TH2D("Hist2D_MSCLW_Data","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_MSCLW_Best = ROOT.TH2D("Hist2D_MSCLW_Best","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -270,6 +286,9 @@ for e in range(0,len(energy_bin)-1):
 Hist_CDE = []
 mtx_CDE_all_sources = []
 mtx_CDE_bkgd_all_sources = []
+sigma_rank0_all_sources = []
+sigma_rank1_all_sources = []
+sigma_rank2_all_sources = []
 for row in range(0,3):
     for col in range(0,3):
         idx = row*3+col
@@ -343,16 +362,19 @@ for row in range(0,3):
         MakeOneHistPlot(Hist_CDE[idx],'perturbation','number of runs','CDE_%s_%s'%(row,col),False)
 
 my_table = PrettyTable()
-my_table.field_names = ["source","t11","D12","D13","C21","t22","D23","C31","C32","t33"]
-my_table.float_format["t11"] = ".3f"
-my_table.float_format["D12"] = ".3f"
-my_table.float_format["D13"] = ".3f"
-my_table.float_format["C21"] = ".3f"
-my_table.float_format["t22"] = ".3f"
-my_table.float_format["D23"] = ".3f"
-my_table.float_format["C31"] = ".3f"
-my_table.float_format["C32"] = ".3f"
-my_table.float_format["t33"] = ".3f"
+my_table.field_names = ["source","t11","t12","t13","t21","t22","t23","t31","t32","t33","sigma1","sigma2","sigma3"]
+my_table.float_format["t11"] = ".2e"
+my_table.float_format["t12"] = ".2e"
+my_table.float_format["t13"] = ".2e"
+my_table.float_format["t21"] = ".2e"
+my_table.float_format["t22"] = ".2e"
+my_table.float_format["t23"] = ".2e"
+my_table.float_format["t31"] = ".2e"
+my_table.float_format["t32"] = ".2e"
+my_table.float_format["t33"] = ".2e"
+my_table.float_format["sigma1"] = ".2e"
+my_table.float_format["sigma2"] = ".2e"
+my_table.float_format["sigma3"] = ".2e"
 for entry in range(0,len(sample_list)):
     table_row = []
     source_name = sample_name[entry]
@@ -361,6 +383,9 @@ for entry in range(0,len(sample_list)):
         for col in range(0,3):
             idx = row*3+col
             table_row += [mtx_CDE_all_sources[entry][idx]]
+    table_row += [sigma_rank0_all_sources[entry]]
+    table_row += [sigma_rank1_all_sources[entry]]
+    table_row += [sigma_rank2_all_sources[entry]]
     my_table.add_row(table_row)
 print(my_table)
 

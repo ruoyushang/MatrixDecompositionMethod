@@ -3071,6 +3071,67 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     }
     TFile RegularizationFile(regularization_name);
     TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+"_"+ONOFF_tag+".root");
+
+    TString hist_name;
+    hist_name  = "Hist_Data_ElevNSB";
+    Hist_Data_ElevNSB.Add( (TH2D*)InputDataFile.Get(hist_name) );
+    hist_name  = "Hist_Dark_ElevNSB";
+    Hist_Dark_ElevNSB.Add( (TH2D*)InputDataFile.Get(hist_name) );
+    hist_name  = "Hist_EffArea";
+    Hist_EffArea.Add( (TH1D*)InputDataFile.Get(hist_name) );
+    double NSB_mean_data = Hist_Data_ElevNSB.GetMean(1);
+    double NSB_RMS_data = Hist_Data_ElevNSB.GetRMS(1);
+    double NSB_mean_dark = Hist_Dark_ElevNSB.GetMean(1);
+    double NSB_RMS_dark = Hist_Dark_ElevNSB.GetRMS(1);
+    double Zenith_mean_data = Hist_Data_ElevNSB.GetMean(2);
+    double Zenith_RMS_data = Hist_Data_ElevNSB.GetRMS(2);
+    double Zenith_mean_dark = Hist_Dark_ElevNSB.GetMean(2);
+    double Zenith_RMS_dark = Hist_Dark_ElevNSB.GetRMS(2);
+
+    std::cout << "Zenith_mean_data = " << Zenith_mean_data << std::endl;
+    //if ((90.-Zenith_mean_data)>75.)
+    //{
+    //    Log10_alpha[0] = -3.;
+    //    Log10_alpha[1] = -3.;
+    //    Log10_alpha[2] = 0.;
+    //    Log10_alpha[3] = 0.;
+    //    Log10_alpha[4] = 0.;
+    //    Log10_alpha[5] = 0.;
+    //}
+    //else if ((90.-Zenith_mean_data)<=75. && (90.-Zenith_mean_data)>65.)
+    //{
+    //    Log10_alpha[0] = -3.;
+    //    Log10_alpha[1] = -3.;
+    //    Log10_alpha[2] = 0.;
+    //    Log10_alpha[3] = 0.;
+    //    Log10_alpha[4] = 0.;
+    //    Log10_alpha[5] = 0.;
+    //}
+    //else if ((90.-Zenith_mean_data)<=65. && (90.-Zenith_mean_data)>55.)
+    //{
+    //    Log10_alpha[0] = -2.;
+    //    Log10_alpha[1] = 0.;
+    //    Log10_alpha[2] = 0.;
+    //    Log10_alpha[3] = 0.;
+    //    Log10_alpha[4] = 0.;
+    //    Log10_alpha[5] = 0.;
+    //}
+    //else if ((90.-Zenith_mean_data)<=55. && (90.-Zenith_mean_data)>45.)
+    //{
+    //    Log10_alpha[0] = 0.;
+    //    Log10_alpha[1] = 0.;
+    //    Log10_alpha[2] = 0.;
+    //    Log10_alpha[3] = 0.;
+    //    Log10_alpha[4] = 0.;
+    //    Log10_alpha[5] = 0.;
+    //}
+    Log10_alpha[0] = -3.;
+    Log10_alpha[1] = -3.;
+    Log10_alpha[2] = -2.;
+    Log10_alpha[3] = 0.;
+    Log10_alpha[4] = 0.;
+    Log10_alpha[5] = 0.;
+
     TTree* InfoTree_ptr = nullptr;
     InfoTree_ptr = (TTree*) InputDataFile.Get("InfoTree");
     InfoTree_ptr->SetBranchAddress("Data_runlist_name",&Data_runlist_name_ptr);
@@ -3706,6 +3767,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             WeightingType = 1;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_dark);
             optimized_alpha = pow(10.,Log10_alpha[e]);
+            std::cout << "Log10_alpha[e] = " << Log10_alpha[e] << std::endl;
             for (int binx=1;binx<=Hist_Bkgd_Optimization.at(e).GetNbinsX();binx++)
             {
                 double temp_alpha = pow(10.,Hist_Bkgd_Optimization.at(e).GetBinCenter(binx));
@@ -4081,21 +4143,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     StarTree = (TTree*) InputFile.Get("StarTree");
     TTree* FaintStarTree = nullptr;
     FaintStarTree = (TTree*) InputFile.Get("FaintStarTree");
-    TString hist_name;
-    hist_name  = "Hist_Data_ElevNSB";
-    Hist_Data_ElevNSB.Add( (TH2D*)InputFile.Get(hist_name) );
-    hist_name  = "Hist_Dark_ElevNSB";
-    Hist_Dark_ElevNSB.Add( (TH2D*)InputFile.Get(hist_name) );
-    hist_name  = "Hist_EffArea";
-    Hist_EffArea.Add( (TH1D*)InputFile.Get(hist_name) );
-    double NSB_mean_data = Hist_Data_ElevNSB.GetMean(1);
-    double NSB_RMS_data = Hist_Data_ElevNSB.GetRMS(1);
-    double NSB_mean_dark = Hist_Dark_ElevNSB.GetMean(1);
-    double NSB_RMS_dark = Hist_Dark_ElevNSB.GetRMS(1);
-    double Zenith_mean_data = Hist_Data_ElevNSB.GetMean(2);
-    double Zenith_RMS_data = Hist_Data_ElevNSB.GetRMS(2);
-    double Zenith_mean_dark = Hist_Dark_ElevNSB.GetMean(2);
-    double Zenith_RMS_dark = Hist_Dark_ElevNSB.GetRMS(2);
 
     char lowrank_tag[50] = "";
     if (EigenDecomposition)

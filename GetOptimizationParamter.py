@@ -41,11 +41,11 @@ Zenith_RMS_dark = []
 NSB_RMS_dark = []
 Accuracy_source = []
 AccuracyErr_source = []
-color_scatter = []
-area_scatter = []
-legend_scatter = []
 data_exposure = []
-elbow_chi2_position = []
+validate_data_count = []
+validate_bkgd_count = []
+validate_rfov_count = []
+validate_comb_count = []
 data_count = []
 bkgd_count = []
 par8_count = []
@@ -77,6 +77,7 @@ lowrank_tag = '_svd'
 method_tag += lowrank_tag
 
 ONOFF_tag = 'OFF'
+ONOFF_tag += '_Crab0'
 sample_list = []
 sample_name = []
 sample_list += ['1ES0647V6_OFF']
@@ -116,16 +117,17 @@ sample_name += ['RBS0413 V6']
 #sample_list += ['NGC1275V6_OFF']
 #sample_name += ['NGC 1275 V6']
 
-#sample_list += ['RGBJ0710V5_OFF']
-#sample_name += ['RGBJ0710 V5']
 #sample_list += ['M82V6_OFF']
 #sample_name += ['M82 V6']
 #sample_list += ['M82V5_OFF']
 #sample_name += ['M82 V5']
+#sample_list += ['RGBJ0710V5_OFF']
+#sample_name += ['RGBJ0710 V5']
 #sample_list += ['RBS0413V5_OFF']
 #sample_name += ['RBS0413 V5']
 
 #ONOFF_tag = 'ON'
+#ONOFF_tag += '_Crab0'
 #sample_list = []
 #sample_name = []
 #sample_list += ['NGC1275V6_ON']
@@ -140,6 +142,18 @@ sample_name += ['RBS0413 V6']
 #sample_name += ['Crab V5']
     
 elev_bins = [45,85]
+lowrank_tag += 'elev_incl'
+#elev_bins = [45,55,65,75,85]
+#lowrank_tag += 'elev_bins'
+#elev_bins = [75,85]
+#lowrank_tag += 'elev_75_85'
+#elev_bins = [65,75]
+#lowrank_tag += 'elev_65_75'
+#elev_bins = [55,65]
+#lowrank_tag += 'elev_55_65'
+#elev_bins = [45,55]
+#lowrank_tag += 'elev_45_55'
+
 theta2_bins = [0,4]
 
 energy_bin = []
@@ -151,7 +165,6 @@ energy_bin += [int(pow(10,3.33))]
 energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 
-signal_tag = '_S0'
 root_file_tags = []
 mjd_tag = []
 mjd_tag += ['']
@@ -160,7 +173,37 @@ for elev in range(0,len(elev_bins)-1):
     for u in range(0,len(theta2_bins)-1):
         theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
         for d in range(0,len(mjd_tag)):
-            root_file_tags += [method_tag+elev_tag+theta2_tag+signal_tag+mjd_tag[d]+'_'+ONOFF_tag]
+            root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]
+
+def Make2DPlot(Hist2D,title_x,title_y,name,logz):
+
+    canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+    pad1.SetBottomMargin(0.15)
+    pad1.SetRightMargin(0.15)
+    pad1.SetLeftMargin(0.15)
+    pad1.SetTopMargin(0.0)
+    pad1.SetBorderMode(0)
+    pad1.Draw()
+    pad3.Draw()
+    pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.50,'#tau_{kn} coefficents' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.3)
+    #lumilab1.Draw()
+    pad1.cd()
+    if logz: pad1.SetLogz()
+    Hist2D.GetYaxis().SetTitle(title_y)
+    Hist2D.GetXaxis().SetTitle(title_x)
+    Hist2D.SetMaximum(0.1)
+    Hist2D.SetMinimum(0.)
+    Hist2D.Draw("COL4Z")
+    Hist2D.Draw("TEXT45 same")
+    canvas.SaveAs('output_plots/%s.png'%(name))
 
 def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,logy):
     
@@ -283,10 +326,11 @@ def GetHistogramsFromFile(FilePath,which_source):
     global NSB_mean_dark
     global Zenith_RMS_dark
     global NSB_RMS_dark
-    global area_scatter
-    global legend_scatter
     global data_exposure
-    global elbow_chi2_position
+    global validate_data_count
+    global validate_bkgd_count
+    global validate_rfov_count
+    global validate_comb_count
     global data_count
     global bkgd_count
     global par8_count
@@ -303,18 +347,21 @@ def GetHistogramsFromFile(FilePath,which_source):
     global rank2_count
     global rank3_count
     global rank4_count
-    max_chi2_diff2_position = ROOT.std.vector("double")(10)
+    data_validate_count = ROOT.std.vector("double")(10)
+    bkgd_validate_count = ROOT.std.vector("double")(10)
+    rfov_validate_count = ROOT.std.vector("double")(10)
+    comb_validate_count = ROOT.std.vector("double")(10)
     data_gamma_count = ROOT.std.vector("double")(10)
     bkgd_gamma_count = ROOT.std.vector("double")(10)
     par8_gamma_count = ROOT.std.vector("double")(10)
     par9_gamma_count = ROOT.std.vector("double")(10)
     wpar9_gamma_count = ROOT.std.vector("double")(10)
     dark_gamma_count = ROOT.std.vector("double")(10)
-    bkgd_gamma_chi2 = ROOT.std.vector("double")(10)
-    par8_gamma_chi2 = ROOT.std.vector("double")(10)
-    par9_gamma_chi2 = ROOT.std.vector("double")(10)
-    wpar9_gamma_chi2 = ROOT.std.vector("double")(10)
-    dark_gamma_chi2 = ROOT.std.vector("double")(10)
+    bkgd_coeff_chi2 = ROOT.std.vector("double")(10)
+    par8_coeff_chi2 = ROOT.std.vector("double")(10)
+    par9_coeff_chi2 = ROOT.std.vector("double")(10)
+    wpar9_coeff_chi2 = ROOT.std.vector("double")(10)
+    dark_coeff_chi2 = ROOT.std.vector("double")(10)
     rank0_gamma_count = ROOT.std.vector("double")(10)
     rank1_gamma_count = ROOT.std.vector("double")(10)
     rank2_gamma_count = ROOT.std.vector("double")(10)
@@ -324,18 +371,21 @@ def GetHistogramsFromFile(FilePath,which_source):
     InfoTree = InputFile.Get("InfoTree")
     NewInfoTree = InputFile.Get("NewInfoTree")
     InfoTree.GetEntry(0)
-    NewInfoTree.SetBranchAddress('max_chi2_diff2_position',ROOT.AddressOf(max_chi2_diff2_position))
+    NewInfoTree.SetBranchAddress('data_validate_count',ROOT.AddressOf(data_validate_count))
+    NewInfoTree.SetBranchAddress('bkgd_validate_count',ROOT.AddressOf(bkgd_validate_count))
+    NewInfoTree.SetBranchAddress('rfov_validate_count',ROOT.AddressOf(rfov_validate_count))
+    NewInfoTree.SetBranchAddress('comb_validate_count',ROOT.AddressOf(comb_validate_count))
     NewInfoTree.SetBranchAddress('data_gamma_count',ROOT.AddressOf(data_gamma_count))
     NewInfoTree.SetBranchAddress('bkgd_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
     NewInfoTree.SetBranchAddress('par8_gamma_count',ROOT.AddressOf(par8_gamma_count))
     NewInfoTree.SetBranchAddress('par9_gamma_count',ROOT.AddressOf(par9_gamma_count))
     NewInfoTree.SetBranchAddress('wpar9_gamma_count',ROOT.AddressOf(wpar9_gamma_count))
     NewInfoTree.SetBranchAddress('dark_gamma_count',ROOT.AddressOf(dark_gamma_count))
-    NewInfoTree.SetBranchAddress('bkgd_gamma_chi2',ROOT.AddressOf(bkgd_gamma_chi2))
-    NewInfoTree.SetBranchAddress('par8_gamma_chi2',ROOT.AddressOf(par8_gamma_chi2))
-    NewInfoTree.SetBranchAddress('par9_gamma_chi2',ROOT.AddressOf(par9_gamma_chi2))
-    NewInfoTree.SetBranchAddress('wpar9_gamma_chi2',ROOT.AddressOf(wpar9_gamma_chi2))
-    NewInfoTree.SetBranchAddress('dark_gamma_chi2',ROOT.AddressOf(dark_gamma_chi2))
+    NewInfoTree.SetBranchAddress('bkgd_coeff_chi2',ROOT.AddressOf(bkgd_coeff_chi2))
+    NewInfoTree.SetBranchAddress('par8_coeff_chi2',ROOT.AddressOf(par8_coeff_chi2))
+    NewInfoTree.SetBranchAddress('par9_coeff_chi2',ROOT.AddressOf(par9_coeff_chi2))
+    NewInfoTree.SetBranchAddress('wpar9_coeff_chi2',ROOT.AddressOf(wpar9_coeff_chi2))
+    NewInfoTree.SetBranchAddress('dark_coeff_chi2',ROOT.AddressOf(dark_coeff_chi2))
     NewInfoTree.SetBranchAddress('rank0_gamma_count',ROOT.AddressOf(rank0_gamma_count))
     NewInfoTree.SetBranchAddress('rank1_gamma_count',ROOT.AddressOf(rank1_gamma_count))
     NewInfoTree.SetBranchAddress('rank2_gamma_count',ROOT.AddressOf(rank2_gamma_count))
@@ -343,47 +393,48 @@ def GetHistogramsFromFile(FilePath,which_source):
     NewInfoTree.SetBranchAddress('rank4_gamma_count',ROOT.AddressOf(rank4_gamma_count))
     NewInfoTree.GetEntry(0)
     exposure_hours = InfoTree.exposure_hours
-    data_exposure += [exposure_hours]
+    data_exposure[which_source] += exposure_hours
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
     energy_index = energy_bin.index(ErecS_lower_cut)
     if energy_index==0: 
         total_exposure_hours += exposure_hours
     Zenith_mean = NewInfoTree.Zenith_mean_data
-    Zenith_mean_data += [Zenith_mean]
     Zenith_RMS = NewInfoTree.Zenith_RMS_data
-    Zenith_RMS_data += [Zenith_RMS/2.]
     Zenith_mean = NewInfoTree.Zenith_mean_data-NewInfoTree.Zenith_mean_dark
-    Zenith_mean_dark += [Zenith_mean]
     Zenith_RMS = NewInfoTree.Zenith_RMS_dark
-    Zenith_RMS_dark += [Zenith_RMS/2.]
-    area_scatter += [pow(exposure_hours/10.,2)]
-    legend_scatter += ['%0.1f hrs'%(exposure_hours)]
-    elbow_chi2_position += [max_chi2_diff2_position[energy_index]]
-    data_count  += [data_gamma_count[energy_index]]
-    bkgd_count  += [bkgd_gamma_count[energy_index]]
-    par8_count  += [par8_gamma_count[energy_index]]
-    par9_count  += [par9_gamma_count[energy_index]]
-    wpar9_count  += [wpar9_gamma_count[energy_index]]
-    dark_count  += [dark_gamma_count[energy_index]]
-    bkgd_chi2  += [bkgd_gamma_chi2[energy_index]]
-    par8_chi2  += [par8_gamma_chi2[energy_index]]
-    par9_chi2  += [par9_gamma_chi2[energy_index]]
-    wpar9_chi2  += [wpar9_gamma_chi2[energy_index]]
-    dark_chi2  += [dark_gamma_chi2[energy_index]]
-    rank0_count  += [rank0_gamma_count[energy_index]]
-    rank1_count  += [rank1_gamma_count[energy_index]]
-    rank2_count  += [rank2_gamma_count[energy_index]]
-    rank3_count  += [rank3_gamma_count[energy_index]]
-    rank4_count  += [rank4_gamma_count[energy_index]]
+    Zenith_mean_data[which_source] += Zenith_mean
+    Zenith_RMS_data[which_source] += Zenith_RMS/2.
+    Zenith_mean_dark[which_source] += Zenith_mean
+    Zenith_RMS_dark[which_source] += Zenith_RMS/2.
     NSB_mean = NewInfoTree.NSB_mean_data
-    NSB_mean_data += [NSB_mean]
     NSB_RMS = NewInfoTree.NSB_RMS_data
-    NSB_RMS_data += [NSB_RMS/2.]
     NSB_mean = NewInfoTree.NSB_mean_data-NewInfoTree.NSB_mean_dark
-    NSB_mean_dark += [NSB_mean]
     NSB_RMS = NewInfoTree.NSB_RMS_dark
-    NSB_RMS_dark += [NSB_RMS/2.]
+    NSB_mean_data[which_source] += NSB_mean
+    NSB_RMS_data[which_source] += NSB_RMS/2.
+    NSB_mean_dark[which_source] += NSB_mean
+    NSB_RMS_dark[which_source] += NSB_RMS/2.
+    validate_data_count[which_source]  += data_validate_count[energy_index]
+    validate_bkgd_count[which_source]  += bkgd_validate_count[energy_index]
+    validate_rfov_count[which_source]  += rfov_validate_count[energy_index]
+    validate_comb_count[which_source]  += comb_validate_count[energy_index]
+    data_count[which_source]  += data_gamma_count[energy_index]
+    bkgd_count[which_source]  += bkgd_gamma_count[energy_index]
+    par8_count[which_source]  += par8_gamma_count[energy_index]
+    par9_count[which_source]  += par9_gamma_count[energy_index]
+    wpar9_count[which_source]  += wpar9_gamma_count[energy_index]
+    dark_count[which_source]  += dark_gamma_count[energy_index]
+    bkgd_chi2[which_source]  += bkgd_coeff_chi2[energy_index]
+    par8_chi2[which_source]  += par8_coeff_chi2[energy_index]
+    par9_chi2[which_source]  += par9_coeff_chi2[energy_index]
+    wpar9_chi2[which_source]  += wpar9_coeff_chi2[energy_index]
+    dark_chi2[which_source]  += dark_coeff_chi2[energy_index]
+    rank0_count[which_source]  += rank0_gamma_count[energy_index]
+    rank1_count[which_source]  += rank1_gamma_count[energy_index]
+    rank2_count[which_source]  += rank2_gamma_count[energy_index]
+    rank3_count[which_source]  += rank3_gamma_count[energy_index]
+    rank4_count[which_source]  += rank4_gamma_count[energy_index]
     Hist_Bkgd_Optimization[which_source+1].Reset()
     Hist_Bkgd_Optimization_beta[which_source+1].Reset()
     Hist_Bkgd_OptimizationChi2_beta[which_source+1].Reset()
@@ -435,9 +486,8 @@ Hist_Bkgd_OptimizationChi2_beta = []
 Hist_Dark_Optimization = []
 for e in range(0,len(sample_list)+1):
     Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",50,optimiz_lower,optimiz_upper)]
-    Hist_Bkgd_Optimization_beta += [ROOT.TH1D("Hist_Bkgd_Optimization_beta_%s"%(e),"",50,-10.,0.)]
-    Hist_Bkgd_OptimizationChi2_beta += [ROOT.TH1D("Hist_Bkgd_OptimizationChi2_beta_%s"%(e),"",50,-10.,0.)]
-    #Hist_Bkgd_Optimization_beta += [ROOT.TH1D("Hist_Bkgd_Optimization_beta_%s"%(e),"",N_bins_for_deconv/2,0,N_bins_for_deconv/2)]
+    Hist_Bkgd_Optimization_beta += [ROOT.TH2D("Hist_Bkgd_Optimization_beta_%s"%(e),"",10,0.,1.,10,0.,1.)]
+    Hist_Bkgd_OptimizationChi2_beta += [ROOT.TH2D("Hist_Bkgd_OptimizationChi2_beta_%s"%(e),"",10,0.,1.,10,0.,1.)]
     Hist_Dark_Optimization += [ROOT.TH1D("Hist_Dark_Optimization_%s"%(e),"",N_bins_for_deconv/2,0,N_bins_for_deconv/2)]
 Hist_Bkgd_Chi2 = []
 for e in range(0,len(sample_list)+1):
@@ -458,34 +508,35 @@ for e in range(0,len(sample_list)+1):
 
 for e in range(0,len(energy_bin)-1):
     FilePath_List = []
-    Zenith_mean_data = []
-    NSB_mean_data = []
-    Zenith_RMS_data = []
-    NSB_RMS_data = []
-    Zenith_mean_dark = []
-    NSB_mean_dark = []
-    Zenith_RMS_dark = []
-    NSB_RMS_dark = []
-    color_scatter = []
-    area_scatter = []
-    legend_scatter = []
-    elbow_chi2_position = []
-    data_count = []
-    bkgd_count = []
-    par8_count = []
-    par9_count = []
-    wpar9_count = []
-    bkgd_chi2 = []
-    par8_chi2 = []
-    par9_chi2 = []
-    wpar9_chi2 = []
-    data_exposure = []
-    dark_count = []
-    rank0_count = []
-    rank1_count = []
-    rank2_count = []
-    rank3_count = []
-    rank4_count = []
+    Zenith_mean_data = [0.]*len(sample_list)
+    NSB_mean_data = [0.]*len(sample_list)
+    Zenith_RMS_data = [0.]*len(sample_list)
+    NSB_RMS_data = [0.]*len(sample_list)
+    Zenith_mean_dark = [0.]*len(sample_list)
+    NSB_mean_dark = [0.]*len(sample_list)
+    Zenith_RMS_dark = [0.]*len(sample_list)
+    NSB_RMS_dark = [0.]*len(sample_list)
+    validate_data_count = [0.]*len(sample_list)
+    validate_bkgd_count = [0.]*len(sample_list)
+    validate_rfov_count = [0.]*len(sample_list)
+    validate_comb_count = [0.]*len(sample_list)
+    data_count = [0.]*len(sample_list)
+    bkgd_count = [0.]*len(sample_list)
+    par8_count = [0.]*len(sample_list)
+    par9_count = [0.]*len(sample_list)
+    wpar9_count = [0.]*len(sample_list)
+    bkgd_chi2 = [0.]*len(sample_list)
+    par8_chi2 = [0.]*len(sample_list)
+    par9_chi2 = [0.]*len(sample_list)
+    wpar9_chi2 = [0.]*len(sample_list)
+    data_exposure = [0.]*len(sample_list)
+    dark_count = [0.]*len(sample_list)
+    dark_chi2 = [0.]*len(sample_list)
+    rank0_count = [0.]*len(sample_list)
+    rank1_count = [0.]*len(sample_list)
+    rank2_count = [0.]*len(sample_list)
+    rank3_count = [0.]*len(sample_list)
+    rank4_count = [0.]*len(sample_list)
     for entry in range(0,len(Hist_U_Proj)):
         Hist_U_Proj[entry].Reset()
         Hist_V_Proj[entry].Reset()
@@ -503,14 +554,26 @@ for e in range(0,len(energy_bin)-1):
         Hist_Data_Eigenvalues[entry].Reset()
     for source in range(0,len(sample_list)):
         source_name = sample_list[source]
+        nfiles_used = 0
         for elev in range(0,len(root_file_tags)):
             FilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+".root"
             FilePath_List += [FilePath]
+            print 'Trying to read file %s'%(FilePath_List[len(FilePath_List)-1])
             if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
             print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
+            nfiles_used += 1
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
             GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source)
+        if nfiles_used>0:
+            Zenith_mean_data[source] = Zenith_mean_data[source]/nfiles_used
+            NSB_mean_data[source] = NSB_mean_data[source]/nfiles_used
+            Zenith_RMS_data[source] = Zenith_RMS_data[source]/nfiles_used
+            NSB_RMS_data[source] = NSB_RMS_data[source]/nfiles_used
+            Zenith_mean_dark[source] = Zenith_mean_dark[source]/nfiles_used
+            NSB_mean_dark[source] = NSB_mean_dark[source]/nfiles_used
+            Zenith_RMS_dark[source] = Zenith_RMS_dark[source]/nfiles_used
+            NSB_RMS_dark[source] = NSB_RMS_dark[source]/nfiles_used
 
     for binx in range(1,Hist_Bkgd_Optimization[0].GetNbinsX()+1):
         total_weight = 0.
@@ -524,25 +587,27 @@ for e in range(0,len(energy_bin)-1):
         Hist_Bkgd_Optimization[0].SetBinContent(binx,y_content)
 
     for binx in range(1,Hist_Bkgd_Optimization_beta[0].GetNbinsX()+1):
-        total_weight = 0.
-        y_content = 0.
-        for entry in range(1,len(Hist_Bkgd_Optimization_beta)):
-            weight = pow(data_count[entry-1],0.5)
-            #weight = 1.
-            total_weight += weight
-            y_content += weight*Hist_Bkgd_Optimization_beta[entry].GetBinContent(binx)
-        y_content = y_content/total_weight
-        Hist_Bkgd_Optimization_beta[0].SetBinContent(binx,y_content)
+        for biny in range(1,Hist_Bkgd_Optimization_beta[0].GetNbinsY()+1):
+            total_weight = 0.
+            y_content = 0.
+            for entry in range(1,len(Hist_Bkgd_Optimization_beta)):
+                weight = pow(data_count[entry-1],0.5)
+                #weight = 1.
+                total_weight += weight
+                y_content += weight*Hist_Bkgd_Optimization_beta[entry].GetBinContent(binx,biny)
+            y_content = y_content/total_weight
+            Hist_Bkgd_Optimization_beta[0].SetBinContent(binx,biny,y_content)
     for binx in range(1,Hist_Bkgd_OptimizationChi2_beta[0].GetNbinsX()+1):
-        total_weight = 0.
-        y_content = 0.
-        for entry in range(1,len(Hist_Bkgd_OptimizationChi2_beta)):
-            weight = pow(data_count[entry-1],0.5)
-            #weight = 1.
-            total_weight += weight
-            y_content += weight*Hist_Bkgd_OptimizationChi2_beta[entry].GetBinContent(binx)
-        y_content = y_content/total_weight
-        Hist_Bkgd_OptimizationChi2_beta[0].SetBinContent(binx,y_content)
+        for biny in range(1,Hist_Bkgd_OptimizationChi2_beta[0].GetNbinsY()+1):
+            total_weight = 0.
+            y_content = 0.
+            for entry in range(1,len(Hist_Bkgd_OptimizationChi2_beta)):
+                weight = pow(data_count[entry-1],0.5)
+                #weight = 1.
+                total_weight += weight
+                y_content += weight*Hist_Bkgd_OptimizationChi2_beta[entry].GetBinContent(binx,biny)
+            y_content = y_content/total_weight
+            Hist_Bkgd_OptimizationChi2_beta[0].SetBinContent(binx,biny,y_content)
 
     for binx in range(1,Hist_Dark_Optimization[0].GetNbinsX()+1):
         total_weight = 0.
@@ -561,6 +626,7 @@ for e in range(0,len(energy_bin)-1):
     AccuracyInit_source = []
     AccuracyInitErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]==0.: continue
         AccuracyInit_source += [abs(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
         #AccuracyInit_source += [(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
         AccuracyInitErr_source += [1./pow(data_count[entry-1],0.5)]
@@ -579,6 +645,7 @@ for e in range(0,len(energy_bin)-1):
     AccuracyStat_source = []
     AccuracyStatErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]==0.: continue
         AccuracyStat_source += [pow(data_count[entry-1],0.5)/data_count[entry-1]]
         AccuracyStatErr_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyStat_mean = 0.
@@ -594,6 +661,7 @@ for e in range(0,len(energy_bin)-1):
     AccuracyRank2_source = []
     AccuracyRank2Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]==0.: continue
         AccuracyRank2_source += [abs(data_count[entry-1]-rank2_count[entry-1])/data_count[entry-1]]
         AccuracyRank2Err_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyRank2_mean = 0.
@@ -611,6 +679,7 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBestPar9_source = []
     AccuracyBestPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]==0.: continue
         AccuracyBestPar9_source += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)]
         AccuracyBestPar9Err_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyBestPar9_mean = 0.
@@ -628,8 +697,8 @@ for e in range(0,len(energy_bin)-1):
     AccuracyPar9_source = []
     AccuracyPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]==0.: continue
         AccuracyPar9_source += [abs(data_count[entry-1]-par9_count[entry-1])/data_count[entry-1]]
-        #AccuracyPar9_source += [(data_count[entry-1]-par9_count[entry-1])/data_count[entry-1]]
         AccuracyPar9Err_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyPar9_mean = 0.
     AccuracyPar9_weight = 0.
@@ -646,6 +715,7 @@ for e in range(0,len(energy_bin)-1):
     AccuracyWPar9_source = []
     AccuracyWPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]==0.: continue
         AccuracyWPar9_source += [abs(data_count[entry-1]-wpar9_count[entry-1])/data_count[entry-1]]
         AccuracyWPar9Err_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyWPar9_mean = 0.
@@ -663,8 +733,8 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBkgd_source = []
     AccuracyBkgdErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]==0.: continue
         AccuracyBkgd_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
-        #AccuracyBkgd_source += [(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
         AccuracyBkgdErr_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyBkgd_mean = 0.
     AccuracyBkgd_weight = 0.
@@ -678,9 +748,58 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBkgd_mean = AccuracyBkgd_mean/AccuracyBkgd_weight
     AccuracyBkgd_mean_error = pow(AccuracyBkgd_mean_error,0.5)
 
+    ValidateBkgd_source = []
+    ValidateBkgdErr_source = []
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if validate_data_count[entry-1]==0.: continue
+        ValidateBkgd_source += [abs(validate_data_count[entry-1]-validate_bkgd_count[entry-1])/validate_data_count[entry-1]]
+        ValidateBkgdErr_source += [1./pow(validate_data_count[entry-1],0.5)]
+    ValidateBkgd_mean = 0.
+    ValidateBkgd_weight = 0.
+    ValidateBkgd_mean_error = 0.
+    for entry in range(0,len(ValidateBkgd_source)):
+        ValidateBkgd_mean += 1./ValidateBkgdErr_source[entry]*ValidateBkgd_source[entry]
+        ValidateBkgd_weight += 1./ValidateBkgdErr_source[entry]
+        ValidateBkgd_mean_error += pow(ValidateBkgdErr_source[entry],2)/len(ValidateBkgd_source)
+    ValidateBkgd_mean = ValidateBkgd_mean/ValidateBkgd_weight
+    ValidateBkgd_mean_error = pow(ValidateBkgd_mean_error,0.5)
+
+    ValidateRFoV_source = []
+    ValidateRFoVErr_source = []
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if validate_data_count[entry-1]==0.: continue
+        ValidateRFoV_source += [abs(validate_data_count[entry-1]-validate_rfov_count[entry-1])/validate_data_count[entry-1]]
+        ValidateRFoVErr_source += [1./pow(validate_data_count[entry-1],0.5)]
+    ValidateRFoV_mean = 0.
+    ValidateRFoV_weight = 0.
+    ValidateRFoV_mean_error = 0.
+    for entry in range(0,len(ValidateRFoV_source)):
+        ValidateRFoV_mean += 1./ValidateRFoVErr_source[entry]*ValidateRFoV_source[entry]
+        ValidateRFoV_weight += 1./ValidateRFoVErr_source[entry]
+        ValidateRFoV_mean_error += pow(ValidateRFoVErr_source[entry],2)/len(ValidateRFoV_source)
+    ValidateRFoV_mean = ValidateRFoV_mean/ValidateRFoV_weight
+    ValidateRFoV_mean_error = pow(ValidateRFoV_mean_error,0.5)
+
+    ValidateComb_source = []
+    ValidateCombErr_source = []
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if validate_data_count[entry-1]==0.: continue
+        ValidateComb_source += [abs(validate_data_count[entry-1]-validate_comb_count[entry-1])/validate_data_count[entry-1]]
+        ValidateCombErr_source += [1./pow(validate_data_count[entry-1],0.5)]
+    ValidateComb_mean = 0.
+    ValidateComb_weight = 0.
+    ValidateComb_mean_error = 0.
+    for entry in range(0,len(ValidateComb_source)):
+        ValidateComb_mean += 1./ValidateCombErr_source[entry]*ValidateComb_source[entry]
+        ValidateComb_weight += 1./ValidateCombErr_source[entry]
+        ValidateComb_mean_error += pow(ValidateCombErr_source[entry],2)/len(ValidateComb_source)
+    ValidateComb_mean = ValidateComb_mean/ValidateComb_weight
+    ValidateComb_mean_error = pow(ValidateComb_mean_error,0.5)
+
     AccuracyPar8_source = []
     AccuracyPar8Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]==0.: continue
         AccuracyPar8_source += [abs(data_count[entry-1]-par8_count[entry-1])/data_count[entry-1]]
         AccuracyPar8Err_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyPar8_mean = 0.
@@ -695,58 +814,29 @@ for e in range(0,len(energy_bin)-1):
     AccuracyPar8_mean = AccuracyPar8_mean/AccuracyPar8_weight
     AccuracyPar8_mean_error = pow(AccuracyPar8_mean_error,0.5)
 
-    plt.clf()
-    plt.xlabel("Zenith", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    #plt.scatter(Zenith_mean_data,AccuracyInit_source,s=area_scatter,c=colors,alpha=0.5)
-    plt.errorbar(Zenith_mean_data,AccuracyInit_source,xerr=Zenith_RMS_data,yerr=AccuracyInitErr_source,fmt='o',color='r')
-    xmin, xmax, ymin, ymax = plt.axis()
-    x = np.linspace(xmin, xmax, 100)
-    y = 0.*x + AccuracyInit_mean
-    plt.plot(x,y,color='#1B2ACC')
-    plt.fill_between(x,y-AccuracyInit_mean_error,y+AccuracyInit_mean_error,edgecolor='#CC4F1B',alpha=0.2,facecolor='#FF9848')
-    plt.title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,AccuracyInit_mean_error))
-    plt.savefig("output_plots/PerformanceInit_Zenith_E%s%s.png"%(e,lowrank_tag))
-    plt.clf()
-    plt.xlabel("NSB", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    #plt.scatter(NSB_mean_data,AccuracyInit_source,s=area_scatter,c=colors,alpha=0.5)
-    plt.errorbar(NSB_mean_data,AccuracyInit_source,xerr=NSB_RMS_data,yerr=AccuracyInitErr_source,fmt='o',color='r')
-    xmin, xmax, ymin, ymax = plt.axis()
-    x = np.linspace(xmin, xmax, 100)
-    y = 0.*x + AccuracyInit_mean
-    plt.plot(x,y,color='#1B2ACC')
-    plt.fill_between(x,y-AccuracyInit_mean_error,y+AccuracyInit_mean_error,edgecolor='#CC4F1B',alpha=0.2,facecolor='#FF9848')
-    plt.title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,AccuracyInit_mean_error))
-    plt.savefig("output_plots/PerformanceInit_NSB_E%s%s.png"%(e,lowrank_tag))
+    #plt.clf()
+    #plt.xlabel("Zenith", fontsize=18)
+    #plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    #plt.errorbar(Zenith_mean_data,AccuracyInit_source,xerr=Zenith_RMS_data,yerr=AccuracyInitErr_source,fmt='o',color='r')
+    #xmin, xmax, ymin, ymax = plt.axis()
+    #x = np.linspace(xmin, xmax, 100)
+    #y = 0.*x + AccuracyInit_mean
+    #plt.plot(x,y,color='#1B2ACC')
+    #plt.fill_between(x,y-AccuracyInit_mean_error,y+AccuracyInit_mean_error,edgecolor='#CC4F1B',alpha=0.2,facecolor='#FF9848')
+    #plt.title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,AccuracyInit_mean_error))
+    #plt.savefig("output_plots/PerformanceInit_Zenith_E%s%s.png"%(e,lowrank_tag))
+    #plt.clf()
+    #plt.xlabel("NSB", fontsize=18)
+    #plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    #plt.errorbar(NSB_mean_data,AccuracyInit_source,xerr=NSB_RMS_data,yerr=AccuracyInitErr_source,fmt='o',color='r')
+    #xmin, xmax, ymin, ymax = plt.axis()
+    #x = np.linspace(xmin, xmax, 100)
+    #y = 0.*x + AccuracyInit_mean
+    #plt.plot(x,y,color='#1B2ACC')
+    #plt.fill_between(x,y-AccuracyInit_mean_error,y+AccuracyInit_mean_error,edgecolor='#CC4F1B',alpha=0.2,facecolor='#FF9848')
+    #plt.title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,AccuracyInit_mean_error))
+    #plt.savefig("output_plots/PerformanceInit_NSB_E%s%s.png"%(e,lowrank_tag))
 
-    AccuracyElbow_source = []
-    AccuracyElbowErr_source = []
-    min_y = 1.0
-    min_x = 1.0
-    min_bin = 0
-    for entry in range(1,len(Hist_Bkgd_Optimization)):
-        elbow_chi2_position[entry-1]
-        min_distance = 100.
-        min_bin = 0
-        for binx in range(1,Hist_Bkgd_Optimization[0].GetNbinsX()+1):
-            distance = abs(Hist_Bkgd_Optimization[entry].GetBinCenter(binx)-elbow_chi2_position[entry-1])
-            if min_distance>distance: 
-                min_distance = distance
-                min_bin = binx
-        AccuracyElbow_source += [Hist_Bkgd_Optimization[entry].GetBinContent(min_bin)]
-        AccuracyElbowErr_source += [1./pow(data_count[entry-1],0.5)]
-    AccuracyElbow_mean = 0.
-    AccuracyElbow_weight = 0.
-    AccuracyElbow_mean_error = 0.
-    for entry in range(0,len(AccuracyElbow_source)):
-        AccuracyElbow_mean += 1./AccuracyElbowErr_source[entry]*Hist_Bkgd_Optimization[0].GetBinContent(min_bin)
-        AccuracyElbow_weight += 1./AccuracyElbowErr_source[entry]
-        #AccuracyElbow_mean += Hist_Bkgd_Optimization[0].GetBinContent(min_bin)
-        #AccuracyElbow_weight += 1.
-        AccuracyElbow_mean_error += pow(AccuracyElbowErr_source[entry],2)/len(AccuracyElbow_source)
-    AccuracyElbow_mean = AccuracyElbow_mean/AccuracyElbow_weight
-    AccuracyElbow_mean_error = pow(AccuracyElbow_mean_error,0.5)
 
     Accuracy_source = []
     AccuracyErr_source = []
@@ -759,6 +849,7 @@ for e in range(0,len(energy_bin)-1):
             min_x = Hist_Bkgd_Optimization[0].GetBinCenter(binx)
             min_bin = binx
     for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]==0.: continue
         Accuracy_source += [Hist_Bkgd_Optimization[entry].GetBinContent(min_bin)]
         AccuracyErr_source += [1./pow(data_count[entry-1],0.5)]
     Accuracy_mean = 0.
@@ -773,58 +864,54 @@ for e in range(0,len(energy_bin)-1):
     Accuracy_mean = Accuracy_mean/Accuracy_weight
     Accuracy_mean_error = pow(Accuracy_mean_error,0.5)
 
-    plt.clf()
-    plt.ylim(ymin, ymax)
-    plt.xlabel("Zenith", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    #plt.scatter(Zenith_mean_data,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
-    plt.errorbar(Zenith_mean_data,Accuracy_source,xerr=Zenith_RMS_data,yerr=AccuracyErr_source,fmt='o')
-    xmin, xmax, ymin, ymax = plt.axis()
-    x = np.linspace(xmin, xmax, 100)
-    y = 0.*x + Accuracy_mean
-    plt.plot(x,y,color='#1B2ACC')
-    plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
-    plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
-    plt.savefig("output_plots/PerformanceMin_Zenith_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
-    plt.clf()
-    plt.ylim(ymin, ymax)
-    plt.xlabel("NSB", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    #plt.scatter(NSB_mean_data,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
-    plt.errorbar(NSB_mean_data,Accuracy_source,xerr=NSB_RMS_data,yerr=AccuracyErr_source,fmt='o')
-    xmin, xmax, ymin, ymax = plt.axis()
-    x = np.linspace(xmin, xmax, 100)
-    y = 0.*x + Accuracy_mean
-    plt.plot(x,y,color='#1B2ACC')
-    plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
-    plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
-    plt.savefig("output_plots/PerformanceMin_NSB_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
-    plt.clf()
-    plt.ylim(ymin, ymax)
-    plt.xlabel("Zenith", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    #plt.scatter(Zenith_mean_dark,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
-    plt.errorbar(Zenith_mean_dark,Accuracy_source,xerr=Zenith_RMS_dark,yerr=AccuracyErr_source,fmt='o')
-    xmin, xmax, ymin, ymax = plt.axis()
-    x = np.linspace(xmin, xmax, 100)
-    y = 0.*x + Accuracy_mean
-    plt.plot(x,y,color='#1B2ACC')
-    plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
-    plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
-    plt.savefig("output_plots/PerformanceMin_DarkZenith_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
-    plt.clf()
-    plt.ylim(ymin, ymax)
-    plt.xlabel("NSB", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    #plt.scatter(NSB_mean_dark,Accuracy_source,s=area_scatter,c=colors,alpha=0.5)
-    plt.errorbar(NSB_mean_dark,Accuracy_source,xerr=NSB_RMS_dark,yerr=AccuracyErr_source,fmt='o')
-    xmin, xmax, ymin, ymax = plt.axis()
-    x = np.linspace(xmin, xmax, 100)
-    y = 0.*x + Accuracy_mean
-    plt.plot(x,y,color='#1B2ACC')
-    plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
-    plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
-    plt.savefig("output_plots/PerformanceMin_DarkNSB_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    #plt.clf()
+    #plt.ylim(ymin, ymax)
+    #plt.xlabel("Zenith", fontsize=18)
+    #plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    #plt.errorbar(Zenith_mean_data,Accuracy_source,xerr=Zenith_RMS_data,yerr=AccuracyErr_source,fmt='o')
+    #xmin, xmax, ymin, ymax = plt.axis()
+    #x = np.linspace(xmin, xmax, 100)
+    #y = 0.*x + Accuracy_mean
+    #plt.plot(x,y,color='#1B2ACC')
+    #plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
+    #plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
+    #plt.savefig("output_plots/PerformanceMin_Zenith_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    #plt.clf()
+    #plt.ylim(ymin, ymax)
+    #plt.xlabel("NSB", fontsize=18)
+    #plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    #plt.errorbar(NSB_mean_data,Accuracy_source,xerr=NSB_RMS_data,yerr=AccuracyErr_source,fmt='o')
+    #xmin, xmax, ymin, ymax = plt.axis()
+    #x = np.linspace(xmin, xmax, 100)
+    #y = 0.*x + Accuracy_mean
+    #plt.plot(x,y,color='#1B2ACC')
+    #plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
+    #plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
+    #plt.savefig("output_plots/PerformanceMin_NSB_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    #plt.clf()
+    #plt.ylim(ymin, ymax)
+    #plt.xlabel("Zenith", fontsize=18)
+    #plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    #plt.errorbar(Zenith_mean_dark,Accuracy_source,xerr=Zenith_RMS_dark,yerr=AccuracyErr_source,fmt='o')
+    #xmin, xmax, ymin, ymax = plt.axis()
+    #x = np.linspace(xmin, xmax, 100)
+    #y = 0.*x + Accuracy_mean
+    #plt.plot(x,y,color='#1B2ACC')
+    #plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
+    #plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
+    #plt.savefig("output_plots/PerformanceMin_DarkZenith_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    #plt.clf()
+    #plt.ylim(ymin, ymax)
+    #plt.xlabel("NSB", fontsize=18)
+    #plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    #plt.errorbar(NSB_mean_dark,Accuracy_source,xerr=NSB_RMS_dark,yerr=AccuracyErr_source,fmt='o')
+    #xmin, xmax, ymin, ymax = plt.axis()
+    #x = np.linspace(xmin, xmax, 100)
+    #y = 0.*x + Accuracy_mean
+    #plt.plot(x,y,color='#1B2ACC')
+    #plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
+    #plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
+    #plt.savefig("output_plots/PerformanceMin_DarkNSB_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
     plt.clf()
     ax = fig.add_subplot(111)
@@ -876,6 +963,26 @@ for e in range(0,len(energy_bin)-1):
     plt.subplots_adjust(bottom=0.15)
     plt.savefig("output_plots/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
+    plt.clf()
+    ax = fig.add_subplot(111)
+    ind = np.arange(len(ValidateBkgd_source))
+    width = 0.35
+    rects1 = ax.bar(ind, ValidateBkgd_source, width, color='#089FFF', yerr=ValidateBkgdErr_source)
+    rects2 = ax.bar(ind+width, ValidateRFoV_source, width, color='#FF9848', yerr=ValidateBkgdErr_source)
+    #rects3 = ax.bar(ind+2*width, ValidateComb_source, width, color='green', yerr=ValidateBkgdErr_source)
+    ax.set_xlim(-width,len(ind)+width)
+    ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    combined_mean = 1. / (1./ValidateBkgd_mean + 1./ValidateRFoV_mean)
+    ax.set_title('$combined <\epsilon>=%0.3f \pm %0.3f$'%(combined_mean,ValidateBkgd_mean_error))
+    xTickMarks = sample_name
+    ax.set_xticks(ind+width)
+    xtickNames = ax.set_xticklabels(xTickMarks)
+    plt.setp(xtickNames, rotation=45, fontsize=10)
+    ax.legend( (rects1[0], rects2[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean)), loc='best' )
+    #ax.legend( (rects1[0], rects2[0], rects3[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean), 'combined $<\epsilon>=%0.3f$'%(ValidateComb_mean)), loc='best' )
+    plt.subplots_adjust(bottom=0.15)
+    plt.savefig("output_plots/PerformanceRFoV_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+
     RankCounts = []
     Rank = [1,2,3,4,5]
     plt.clf()
@@ -884,6 +991,7 @@ for e in range(0,len(energy_bin)-1):
     plt.yscale('log')
     plt.xlim(0,6)
     for s in range(0,len(sample_list)):
+        if data_count[s]==0.: continue
         RankCounts = []
         RankCounts += [abs(data_count[s]-rank0_count[s])/data_count[s]]
         RankCounts += [abs(data_count[s]-rank1_count[s])/data_count[s]]
@@ -906,30 +1014,8 @@ for e in range(0,len(energy_bin)-1):
         colors += [int(random_gen.Uniform(29.,49.))]
     MakeMultiplePlot(Hists,legends,colors,'log10 #beta','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationAlpha_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
 
-    Hists = []
-    legends = []
-    colors = []
-    Hists += [Hist_Bkgd_Optimization_beta[0]]
-    legends += ['average']
-    colors += [1]
-    random_gen = ROOT.TRandom3()
-    for entry in range(1,len(Hist_Bkgd_Optimization_beta)):
-        Hists += [Hist_Bkgd_Optimization_beta[entry]]
-        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
-        colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'normalized threshold','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationBeta_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
-    Hists = []
-    legends = []
-    colors = []
-    Hists += [Hist_Bkgd_OptimizationChi2_beta[0]]
-    legends += ['average']
-    colors += [1]
-    random_gen = ROOT.TRandom3()
-    for entry in range(1,len(Hist_Bkgd_OptimizationChi2_beta)):
-        Hists += [Hist_Bkgd_OptimizationChi2_beta[entry]]
-        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
-        colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'normalized threshold','#sum_{k,n=1}^{3} (t_{kn}^{true}-t_{kn}^{model})^{2}','OptimizationChi2Beta_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
+    Make2DPlot(Hist_Bkgd_Optimization_beta[0],'C_{1}','C_{2}','OptimizationBeta_E%s%s'%(e,lowrank_tag),False)
+    Make2DPlot(Hist_Bkgd_OptimizationChi2_beta[0],'C_{1}','C_{2}','OptimizationChi2Beta_E%s%s'%(e,lowrank_tag),False)
 
     Hists = []
     legends = []
@@ -1070,13 +1156,13 @@ for e in range(0,len(energy_bin)-1):
             tab_V_proj[row][3+1] = pow(tab_V_proj[row][3+1],0.5)
         sum_proj = 1./6.*(pow(tab_U_proj[0][4],2)+pow(tab_U_proj[1][4],2)+pow(tab_U_proj[2][4],2))
         sum_proj += 1./6.*(pow(tab_V_proj[0][4],2)+pow(tab_V_proj[1][4],2)+pow(tab_V_proj[2][4],2))
-        if entry>0:
+        if entry>0 and data_count[entry-1]>0.:
             eta_array += [sum_proj]
             best_array += [abs(1.-rank2_count[entry-1]/data_count[entry-1])]
             par9_array += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)]
             par9_sig_array += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)/(pow(data_count[entry-1],0.5)/data_count[entry-1])]
         source_name = 'Average'
-        if entry>0:
+        if entry>0 and data_count[entry-1]>0.:
             source_name = sample_name[entry-1]
             my_table.add_row([source_name,data_count[entry-1],pow(data_count[entry-1],0.5)/data_count[entry-1],abs(1.-rank2_count[entry-1]/data_count[entry-1]),pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5),abs(1.-dark_count[entry-1]/data_count[entry-1]),abs(1.-par9_count[entry-1]/data_count[entry-1]),abs(1.-wpar9_count[entry-1]/data_count[entry-1]),abs(1.-bkgd_count[entry-1]/data_count[entry-1]),sum_proj])
         else:
@@ -1098,6 +1184,7 @@ for e in range(0,len(energy_bin)-1):
     par9_epsilon = []
     wpar9_epsilon = []
     for entry in range(0,len(wpar9_count)):
+        if data_count[entry]==0.: continue
         par9_epsilon += [abs(data_count[entry]-par9_count[entry])/data_count[entry]]
         wpar9_epsilon += [abs(data_count[entry]-wpar9_count[entry])/data_count[entry]]
     plt.clf()
