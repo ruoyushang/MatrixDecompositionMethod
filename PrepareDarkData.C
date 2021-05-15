@@ -106,6 +106,11 @@ double GetCrabFlux(double energy_gev)
     double flux = 3.75*pow(10,-7)*pow(energy_gev/1000.,-2.467-0.16*log(energy_gev/1000.));
     return flux;
 }
+double GetModelFlux(double energy_gev, double amp, double index)
+{
+    double flux = amp*pow(10,-7)*pow(energy_gev/1000.,-1.*index);
+    return flux;
+}
 double FindBrightStarWeight(double ra, double dec)
 {
     double weight = 1.;
@@ -478,8 +483,8 @@ bool DarkFoV() {
     return true;
 }
 bool MCFoV() {
-    double angular_dist = pow(pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2),0.5);
-    if (angular_dist>1.5) return false;
+    //double angular_dist = pow(pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2),0.5);
+    //if (angular_dist>1.5) return false;
     return true;
 }
 bool FoV(bool remove_bright_stars) {
@@ -1553,10 +1558,9 @@ void SetEventDisplayTreeBranch(TTree* Data_tree)
     Data_tree->SetBranchAddress("MJD",&MJD);
 }
 
-void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doRaster, double SignalStrength)
+void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doRaster, int GammaModel)
 {
 
-    PercentCrab = SignalStrength;
 
     TH1::SetDefaultSumw2();
 
@@ -1593,8 +1597,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         ONOFF_tag = "OFF";
     }
     char char_SignalStrength[50];
-    sprintf(char_SignalStrength, "%i", int(SignalStrength));
-    ONOFF_tag += TString("_Crab")+TString(char_SignalStrength);
+    sprintf(char_SignalStrength, "%i", GammaModel);
+    ONOFF_tag += TString("_Model")+TString(char_SignalStrength);
 
     //if (TString(target).Contains("Crab"))
     //{
@@ -1909,6 +1913,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<TH1D> Hist_OnData_CR_Energy_Raw;
     vector<TH1D> Hist_OnData_SR_Skymap_Theta2;
     vector<TH1D> Hist_OnData_CR_Skymap_Theta2;
+    vector<TH2D> Hist_Photon_Exp_Skymap;
+    vector<TH2D> Hist_Photon_Raw_Skymap;
     vector<TH2D> Hist_OnData_SR_Skymap;
     vector<TH2D> Hist_OnData_CR_Skymap;
     vector<TH2D> Hist_OnData_CR_Skymap_Raw;
@@ -1937,6 +1943,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_MSCLW.push_back(TH2D("Hist_Stage1_OnData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnData_SR_Skymap_Theta2.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_CR_Skymap_Theta2.push_back(TH1D("Hist_Stage1_OnData_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
+        Hist_Photon_Exp_Skymap.push_back(TH2D("Hist_Stage1_Photon_Exp_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_Photon_Raw_Skymap.push_back(TH2D("Hist_Stage1_Photon_Raw_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_SR_Skymap.push_back(TH2D("Hist_Stage1_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_CR_Skymap.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_CR_Skymap_Raw.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
@@ -2056,10 +2064,27 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 sprintf(e_low, "%i", int(energy_fine_bins[e]));
                 char e_up[50];
                 sprintf(e_up, "%i", int(energy_fine_bins[e+1]));
-                Hist_OnDark_SR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_SR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,12,-3.,3.));
-                Hist_OnDark_VR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,12,-3.,3.));
-                Hist_OnDark_CR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_CR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,12,-3.,3.));
-                Hist_OnDark_VCR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VCR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,0,10,12,-3.,3.));
+                int nbins_Roff = 40;
+                int nbins_Yoff = 12;
+                if (energy_fine_bins[e]>pow(10,2.66))
+                {
+                    nbins_Roff = 20;
+                    nbins_Yoff = 6;
+                }
+                if (energy_fine_bins[e]>pow(10,3.00))
+                {
+                    nbins_Roff = 10;
+                    nbins_Yoff = 6;
+                }
+                if (energy_fine_bins[e]>pow(10,3.33))
+                {
+                    nbins_Roff = 5;
+                    nbins_Yoff = 3;
+                }
+                Hist_OnDark_SR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_SR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",nbins_Roff,0,10,nbins_Yoff,-3.,3.));
+                Hist_OnDark_VR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",nbins_Roff,0,10,nbins_Yoff,-3.,3.));
+                Hist_OnDark_CR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_CR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",nbins_Roff,0,10,nbins_Yoff,-3.,3.));
+                Hist_OnDark_VCR_CameraFoV_ThisElev.push_back(TH2D("Hist_OnDark_VCR_CameraFoV_V"+TString(sample_tag)+"_Elev"+TString(elev_low)+TString("to")+TString(elev_up)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",nbins_Roff,0,10,nbins_Yoff,-3.,3.));
             }
             Hist_OnDark_SR_CameraFoV_ThisSample.push_back(Hist_OnDark_SR_CameraFoV_ThisElev);
             Hist_OnDark_VR_CameraFoV_ThisSample.push_back(Hist_OnDark_VR_CameraFoV_ThisElev);
@@ -2262,10 +2287,102 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         for (int e=0;e<N_energy_fine_bins;e++) 
         {
             double eff_area = i_hEffAreaP->GetBinContent( i_hEffAreaP->FindBin( log10(0.5*(energy_fine_bins[e]+energy_fine_bins[e+1])/1000.)));
-            gamma_flux[e] = PercentCrab/100.*GetCrabFlux((energy_fine_bins[e+1]+energy_fine_bins[e])/2.);
-            double expected_electrons = gamma_flux[e]*eff_area*(time_1-time_0)*(energy_fine_bins[e+1]-energy_fine_bins[e])/1000.;
-            gamma_count[e] += expected_electrons; // this is used to normalize MC electron template.
             Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)+eff_area*(time_1-time_0));
+        }
+        for (int e=0;e<N_energy_bins;e++) 
+        {
+            double eff_area = i_hEffAreaP->GetBinContent( i_hEffAreaP->FindBin( log10(0.5*(energy_bins[e]+energy_bins[e+1])/1000.)));
+            double binx_size = Hist_Photon_Exp_Skymap.at(e).GetXaxis()->GetBinCenter(2)-Hist_Photon_Exp_Skymap.at(e).GetXaxis()->GetBinCenter(1);
+            double biny_size = Hist_Photon_Exp_Skymap.at(e).GetYaxis()->GetBinCenter(2)-Hist_Photon_Exp_Skymap.at(e).GetYaxis()->GetBinCenter(1);
+            for (int binx=0;binx<Hist_Photon_Exp_Skymap.at(e).GetNbinsX();binx++)
+            {
+                for (int biny=0;biny<Hist_Photon_Exp_Skymap.at(e).GetNbinsY();biny++)
+                {
+                    double bin_ra = Hist_Photon_Exp_Skymap.at(e).GetXaxis()->GetBinCenter(binx+1);
+                    double bin_dec = Hist_Photon_Exp_Skymap.at(e).GetYaxis()->GetBinCenter(biny+1);
+                    double source_extension = 1.0;
+                    double offset_ra = 0.;
+                    double offset_dec = 0.;
+                    double distance = 0.;
+                    double radial_density = 0.;
+                    double PercentCrab = 0.;
+                    double gamma_flux = 0.;
+                    double expected_photons = 0.;
+                    double expected_photons_local = 0.;
+                    double old_content = Hist_Photon_Exp_Skymap.at(e).GetBinContent(binx+1,biny+1);
+                    if (GammaModel==0) // no MC signal
+                    {
+                        expected_photons_local = 0.;
+                    }
+                    else if (GammaModel==1) // 2 percent Crab, 1 Guassian, RMS = 1 degrees
+                    {
+                        offset_ra = 0.;
+                        offset_dec = 0.;
+                        source_extension = 1.;
+                        distance = pow(pow(mean_tele_point_ra+offset_ra-bin_ra,2)+pow(mean_tele_point_dec+offset_dec-bin_dec,2),0.5);
+                        radial_density = exp(-0.5*distance*distance/(source_extension*source_extension))/(source_extension*source_extension*2.*M_PI);
+                        PercentCrab = 2.;
+                        gamma_flux = PercentCrab/100.*GetCrabFlux((energy_bins[e+1]+energy_bins[e])/2.);
+                        expected_photons = gamma_flux*eff_area*(time_1-time_0)*(energy_bins[e+1]-energy_bins[e])/1000.;
+                        expected_photons_local = expected_photons*radial_density*(binx_size*biny_size);
+                    }
+                    else if (GammaModel==2) // 5 percent Crab, 1 Guassian, RMS = 1 degrees
+                    {
+                        offset_ra = 0.;
+                        offset_dec = 0.;
+                        source_extension = 1.;
+                        distance = pow(pow(mean_tele_point_ra+offset_ra-bin_ra,2)+pow(mean_tele_point_dec+offset_dec-bin_dec,2),0.5);
+                        radial_density = exp(-0.5*distance*distance/(source_extension*source_extension))/(source_extension*source_extension*2.*M_PI);
+                        PercentCrab = 5.;
+                        gamma_flux = PercentCrab/100.*GetCrabFlux((energy_bins[e+1]+energy_bins[e])/2.);
+                        expected_photons = gamma_flux*eff_area*(time_1-time_0)*(energy_bins[e+1]-energy_bins[e])/1000.;
+                        expected_photons_local = expected_photons*radial_density*(binx_size*biny_size);
+                    }
+                    else if (GammaModel==3) // 10 percent Crab, 1 Guassian, RMS = 1 degrees
+                    {
+                        offset_ra = 0.;
+                        offset_dec = 0.;
+                        source_extension = 1.;
+                        distance = pow(pow(mean_tele_point_ra+offset_ra-bin_ra,2)+pow(mean_tele_point_dec+offset_dec-bin_dec,2),0.5);
+                        radial_density = exp(-0.5*distance*distance/(source_extension*source_extension))/(source_extension*source_extension*2.*M_PI);
+                        PercentCrab = 10.;
+                        gamma_flux = PercentCrab/100.*GetCrabFlux((energy_bins[e+1]+energy_bins[e])/2.);
+                        expected_photons = gamma_flux*eff_area*(time_1-time_0)*(energy_bins[e+1]-energy_bins[e])/1000.;
+                        expected_photons_local = expected_photons*radial_density*(binx_size*biny_size);
+                    }
+                    else if (GammaModel==4) // 2 Guassians, RMS = 0.5 degrees
+                    {
+                        offset_ra = 1.;
+                        offset_dec = 1.;
+                        source_extension = 0.5;
+                        gamma_flux = GetModelFlux((energy_bins[e+1]+energy_bins[e])/2.,0.2,2.5);
+                        distance = pow(pow(mean_tele_point_ra+offset_ra-bin_ra,2)+pow(mean_tele_point_dec+offset_dec-bin_dec,2),0.5);
+                        radial_density = exp(-0.5*distance*distance/(source_extension*source_extension))/(source_extension*source_extension*2.*M_PI);
+                        expected_photons = gamma_flux*eff_area*(time_1-time_0)*(energy_bins[e+1]-energy_bins[e])/1000.;
+                        expected_photons_local += expected_photons*radial_density*(binx_size*biny_size);
+                        offset_ra = -1.;
+                        offset_dec = -1.;
+                        source_extension = 0.5;
+                        gamma_flux = GetModelFlux((energy_bins[e+1]+energy_bins[e])/2.,0.1,3.5);
+                        distance = pow(pow(mean_tele_point_ra+offset_ra-bin_ra,2)+pow(mean_tele_point_dec+offset_dec-bin_dec,2),0.5);
+                        radial_density = exp(-0.5*distance*distance/(source_extension*source_extension))/(source_extension*source_extension*2.*M_PI);
+                        expected_photons = gamma_flux*eff_area*(time_1-time_0)*(energy_bins[e+1]-energy_bins[e])/1000.;
+                        expected_photons_local += expected_photons*radial_density*(binx_size*biny_size);
+                    }
+                    else if (GammaModel==5) // 1 Guassian, RMS = 0.5 degrees
+                    {
+                        offset_ra = -1.;
+                        offset_dec = -1.;
+                        source_extension = 0.5;
+                        gamma_flux = GetModelFlux((energy_bins[e+1]+energy_bins[e])/2.,0.1,3.5);
+                        distance = pow(pow(mean_tele_point_ra+offset_ra-bin_ra,2)+pow(mean_tele_point_dec+offset_dec-bin_dec,2),0.5);
+                        radial_density = exp(-0.5*distance*distance/(source_extension*source_extension))/(source_extension*source_extension*2.*M_PI);
+                        expected_photons = gamma_flux*eff_area*(time_1-time_0)*(energy_bins[e+1]-energy_bins[e])/1000.;
+                        expected_photons_local += expected_photons*radial_density*(binx_size*biny_size);
+                    }
+                    Hist_Photon_Exp_Skymap.at(e).SetBinContent(binx+1,biny+1,expected_photons_local+old_content);
+                }
+            }
         }
 
         for (int entry=0;entry<Data_tree->GetEntries();entry++) 
@@ -2562,7 +2679,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_GammaMC_MSCLW.at(energy).Fill(MSCL,MSCW);
             if (MCFoV() && FoV(true))
             {
-                raw_gamma_count[energy_fine] += 1.;
+                Hist_Photon_Raw_Skymap.at(energy).Fill(ra_sky,dec_sky);
             }
         }
 
@@ -2588,7 +2705,15 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (energy>=N_energy_bins) continue;
             if (!SelectNImages()) continue;
 
-            double gamma_weight = gamma_count[energy_fine]/raw_gamma_count[energy_fine];
+            int binx_sky = Hist_Photon_Exp_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
+            int biny_sky = Hist_Photon_Exp_Skymap.at(energy).GetYaxis()->FindBin(dec_sky);
+            double expected_photons = Hist_Photon_Exp_Skymap.at(energy).GetBinContent(binx_sky,biny_sky);
+            double raw_photons = Hist_Photon_Raw_Skymap.at(energy).GetBinContent(binx_sky,biny_sky);
+            double gamma_weight = 0.;
+            if (raw_photons>0.)
+            {
+                gamma_weight = expected_photons/raw_photons;
+            }
             if (MCFoV() && FoV(true))
             {
                 Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW,gamma_weight);

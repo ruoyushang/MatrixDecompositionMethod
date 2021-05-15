@@ -2974,7 +2974,7 @@ void AlterDarkMatrix(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_dark_alter)
     }
 
 }
-void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, double SignalStrength)
+void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel)
 {
 
     TH1::SetDefaultSumw2();
@@ -2991,8 +2991,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         ONOFF_tag = "OFF";
     }
     char char_SignalStrength[50];
-    sprintf(char_SignalStrength, "%i", int(SignalStrength));
-    ONOFF_tag += TString("_Crab")+TString(char_SignalStrength);
+    sprintf(char_SignalStrength, "%i", GammaModel);
+    ONOFF_tag += TString("_Model")+TString(char_SignalStrength);
 
     if (MJD_start_cut!=0 || MJD_end_cut!=0)
     {
