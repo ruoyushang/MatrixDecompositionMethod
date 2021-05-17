@@ -25,6 +25,7 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
+target_energy_index = 1
 N_bins_for_deconv = 16
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
@@ -48,7 +49,7 @@ lowrank_tag = '_svd'
 method_tag += lowrank_tag
 
 ONOFF_tag = 'OFF'
-ONOFF_tag += '_Crab0'
+ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
 sample_list += ['1ES0647V6_OFF']
@@ -144,6 +145,35 @@ def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
 
     c_both.SaveAs('output_plots/%s.png'%(name))
 
+def PrincipalComponentAnalysis(list_var):
+
+    n_variables = len(list_var)
+    n_samples = len(sample_list)
+    mtx_var = np.zeros((n_samples,n_variables))
+    for sample in range(0,n_samples):
+        for var in range(0,n_variables):
+            row = list_var[var][0]-1
+            col = list_var[var][1]-1
+            idx = row*3+col
+            mtx_var[sample][var] = mtx_CDE_all_sources[sample][idx]
+
+    #mtx_var_centered = mtx_var - np.mean(mtx_var , axis = 0)
+    mtx_var_square = np.square(mtx_var)
+    mtx_var_mean = np.mean(mtx_var_square , axis = 0)
+    mtx_var_rms = np.sqrt(mtx_var_mean)
+    print ('mtx_var_rms = \n {0}'.format(mtx_var_rms))
+
+    mtx_cov = np.cov(mtx_var, rowvar = False)
+    eigen_values , eigen_vectors = np.linalg.eigh(mtx_cov)
+    print ('eigen_values = \n {0}'.format(eigen_values))
+    print ('eigen_value ratio = {0}'.format(eigen_values[n_variables-1]/eigen_values[n_variables-2]))
+    print ('eigen_vectors = ')
+    for var in range(0,n_variables):
+        print ('({1},{2}) {0}'.format(eigen_vectors[n_variables-1][var],list_var[var][0],list_var[var][1]))
+    print ('eigen_vectors = ')
+    for var in range(0,n_variables):
+        print ('({1},{2}) {0}'.format(eigen_vectors[n_variables-2][var],list_var[var][0],list_var[var][1]))
+
 def MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col):
     x_var = []
     y_var = []
@@ -151,13 +181,13 @@ def MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col):
         row = par1_row-1
         col = par1_col-1
         idx = row*3+col
-        #x_var += [mtx_CDE_all_sources[entry][idx]]
-        x_var += [mtx_CDE_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
+        x_var += [mtx_CDE_all_sources[entry][idx]]
+        #x_var += [mtx_CDE_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
         row = par2_row-1
         col = par2_col-1
         idx = row*3+col
-        #y_var += [mtx_CDE_all_sources[entry][idx]]
-        y_var += [mtx_CDE_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
+        y_var += [mtx_CDE_all_sources[entry][idx]]
+        #y_var += [mtx_CDE_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
     plt.clf()
     plt.xlabel("(%s,%s)"%(par1_row,par1_col), fontsize=18)
     plt.ylabel("(%s,%s)"%(par2_row,par2_col), fontsize=18)
@@ -174,13 +204,13 @@ def MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col):
         row = par1_row-1
         col = par1_col-1
         idx = row*3+col
-        #x_var += [mtx_CDE_bkgd_all_sources[entry][idx]]
-        x_var += [mtx_CDE_bkgd_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
+        x_var += [mtx_CDE_bkgd_all_sources[entry][idx]]
+        #x_var += [mtx_CDE_bkgd_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
         row = par2_row-1
         col = par2_col-1
         idx = row*3+col
-        #y_var += [mtx_CDE_bkgd_all_sources[entry][idx]]
-        y_var += [mtx_CDE_bkgd_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
+        y_var += [mtx_CDE_bkgd_all_sources[entry][idx]]
+        #y_var += [mtx_CDE_bkgd_all_sources[entry][idx]/sigma_rank0_all_sources[entry]]
     plt.clf()
     plt.xlabel("(%s,%s)"%(par1_row,par1_col), fontsize=18)
     plt.ylabel("(%s,%s)"%(par2_row,par2_col), fontsize=18)
@@ -248,7 +278,7 @@ def GetHistogramsFromFile(FilePath):
             old_content = Hist2D_Regularization[energy_index].GetBinContent(binx+1,biny+1)
             new_content = pow(Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1),2)
             Hist2D_Regularization[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content)
-    if energy_index==1: 
+    if energy_index==target_energy_index: 
         mtx_CDE = []
         mtx_CDE_bkgd = []
         for row in range(0,3):
@@ -455,3 +485,18 @@ par2_row = 3
 par2_col = 1
 MakeCorrelationPlot(par1_row,par1_col,par2_row,par2_col)
 
+list_var = []
+#list_var += [[2,1]]
+#list_var += [[3,2]]
+#list_var += [[1,3]]
+#list_var += [[3,1]]
+#list_var += [[1,2]]
+#list_var += [[2,3]]
+list_var += [[1,1]]
+list_var += [[2,2]]
+list_var += [[3,3]]
+#for row in range(0,3):
+#    for col in range(0,3):
+#        if row==col: continue
+#        list_var += [[row+1,col+1]]
+PrincipalComponentAnalysis(list_var)

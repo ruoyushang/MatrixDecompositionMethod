@@ -77,7 +77,7 @@ lowrank_tag = '_svd'
 method_tag += lowrank_tag
 
 ONOFF_tag = 'OFF'
-ONOFF_tag += '_Crab0'
+ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
 sample_list += ['1ES0647V6_OFF']
@@ -114,8 +114,8 @@ sample_list += ['CasAV6_OFF']
 sample_name += ['CasA V6']
 sample_list += ['RBS0413V6_OFF']
 sample_name += ['RBS0413 V6']
-#sample_list += ['NGC1275V6_OFF']
-#sample_name += ['NGC 1275 V6']
+sample_list += ['NGC1275V6_OFF']
+sample_name += ['NGC 1275 V6']
 
 #sample_list += ['M82V6_OFF']
 #sample_name += ['M82 V6']
@@ -127,7 +127,7 @@ sample_name += ['RBS0413 V6']
 #sample_name += ['RBS0413 V5']
 
 #ONOFF_tag = 'ON'
-#ONOFF_tag += '_Crab0'
+#ONOFF_tag += '_Model0'
 #sample_list = []
 #sample_name = []
 #sample_list += ['NGC1275V6_ON']
