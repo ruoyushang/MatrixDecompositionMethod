@@ -25,7 +25,7 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-target_energy_index = 0
+target_energy_index = 1
 N_bins_for_deconv = 16
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
@@ -145,7 +145,7 @@ def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
 
     c_both.SaveAs('output_plots/%s.png'%(name))
 
-def PrincipalComponentAnalysis(list_var):
+def PrincipalComponentAnalysis(list_var, output_type):
 
     n_variables = len(list_var)
     n_samples = len(sample_list)
@@ -161,7 +161,7 @@ def PrincipalComponentAnalysis(list_var):
     mtx_var_square = np.square(mtx_var)
     mtx_var_mean = np.mean(mtx_var_square , axis = 0)
     mtx_var_rms = np.sqrt(mtx_var_mean)
-    #print ('mtx_var_rms = \n {0}'.format(mtx_var_rms))
+    if output_type==1: return mtx_var_rms
 
     mtx_var_norm = np.zeros((n_samples,n_variables))
     for sample in range(0,n_samples):
@@ -170,12 +170,12 @@ def PrincipalComponentAnalysis(list_var):
 
     mtx_cov = np.cov(mtx_var_norm, rowvar = False)
     eigen_values , eigen_vectors = np.linalg.eigh(mtx_cov)
-    #print ('eigen_values = \n {0}'.format(eigen_values))
-    #print ('eigen_value ratio = {0}'.format(eigen_values[n_variables-1]/eigen_values[n_variables-2]))
-    #print ('eigen_vectors = ')
-    #for var in range(0,n_variables):
-    #    print ('({1},{2}) {0}'.format(eigen_vectors[n_variables-1][var],list_var[var][0],list_var[var][1]))
-    #print ('eigen_vectors = ')
+    print ('eigen_values = \n {0}'.format(eigen_values))
+    print ('mtx_var_rms = \n {0}'.format(mtx_var_rms))
+    print ('primary eigen_vectors = ')
+    for var in range(0,n_variables):
+        print ('({1},{2}) {0}'.format(eigen_vectors[n_variables-1][var],list_var[var][0],list_var[var][1]))
+    #print ('sencondary eigen_vectors = ')
     #for var in range(0,n_variables):
     #    print ('({1},{2}) {0}'.format(eigen_vectors[n_variables-2][var],list_var[var][0],list_var[var][1]))
     return eigen_values[n_variables-1]
@@ -427,16 +427,9 @@ for entry in range(0,len(sample_list)):
 print(my_table)
 
 
-list_var = []
-#list_var += [[2,1]]
-#list_var += [[3,2]]
-#list_var += [[1,3]]
-#list_var += [[3,1]]
-#list_var += [[1,2]]
-#list_var += [[2,3]]
-#list_var += [[1,1]]
-#list_var += [[2,2]]
-#list_var += [[3,3]]
+list_var_pair = []
+good_var_pair = []
+good_eigenvalue = []
 for row1 in range(0,3):
     for col1 in range(0,3):
         for row2 in range(0,3):
@@ -444,9 +437,56 @@ for row1 in range(0,3):
                 idx1 = row1*3+col1
                 idx2 = row2*3+col2
                 if idx1>=idx2: continue
-                list_var = [[row1+1,col1+1]]
-                list_var += [[row2+1,col2+1]]
-                max_eigenvalue = PrincipalComponentAnalysis(list_var)
+                list_var_pair = [[row1+1,col1+1]]
+                list_var_pair += [[row2+1,col2+1]]
+                print('=======================================================')
+                max_eigenvalue = PrincipalComponentAnalysis(list_var_pair,0)
                 if max_eigenvalue>1.5:
-                    print('{0}, {1}'.format(list_var,max_eigenvalue))
-                    MakeCorrelationPlot(list_var)
+                    MakeCorrelationPlot(list_var_pair)
+                    good_var_pair += [list_var_pair]
+                    good_eigenvalue += [max_eigenvalue]
+for entry in range(0,len(good_eigenvalue)):
+    print('{0}, {1}'.format(good_var_pair[entry],good_eigenvalue[entry]))
+
+list_var = []
+list_rms = []
+for row in range(0,3):
+    for col in range(0,3):
+        idx = row*3+col
+        list_var += [[row+1,col+1]]
+        tmp_list_var = [[row+1,col+1]]
+        tmp_list_rms = PrincipalComponentAnalysis(tmp_list_var,1)
+        list_rms += [tmp_list_rms[0]]
+for entry in range(0,len(list_var)):
+    print('RMS: \n {0}, {1}'.format(list_var[entry],list_rms[entry]))
+
+fig, ax = plt.subplots()
+
+plt.clf()
+ax = fig.add_subplot(111)
+ind = np.arange(len(list_rms))
+width = 0.35
+rects1 = ax.bar(ind, list_rms, width, color='#089FFF')
+ax.set_xlim(-width,len(ind)+width)
+ax.set_ylabel("RMS", fontsize=18)
+xTickMarks = list_var
+ax.set_xticks(ind+0.5*width)
+xtickNames = ax.set_xticklabels(xTickMarks)
+plt.setp(xtickNames, rotation=45, fontsize=10)
+plt.subplots_adjust(bottom=0.15)
+plt.savefig("output_plots/VariableRMS.png")
+
+plt.clf()
+ax = fig.add_subplot(111)
+ind = np.arange(len(good_eigenvalue))
+width = 0.35
+rects1 = ax.bar(ind, good_eigenvalue, width, color='#089FFF')
+ax.set_xlim(-width,len(ind)+width)
+ax.set_ylim(1.5,2.0)
+ax.set_ylabel("eigenvalue", fontsize=18)
+xTickMarks = good_var_pair
+ax.set_xticks(ind+0.5*width)
+xtickNames = ax.set_xticklabels(xTickMarks)
+plt.setp(xtickNames, rotation=45, fontsize=10)
+plt.subplots_adjust(bottom=0.15)
+plt.savefig("output_plots/VarPairEigenvalue.png")
