@@ -82,40 +82,40 @@ sample_list = []
 sample_name = []
 sample_list += ['1ES0647V6_OFF']
 sample_name += ['1ES0647 V6']
-sample_list += ['1ES1011V6_OFF']
-sample_name += ['1ES1011 V6']
-sample_list += ['OJ287V6_OFF']
-sample_name += ['OJ287 V6']
+#sample_list += ['1ES1011V6_OFF']
+#sample_name += ['1ES1011 V6']
+#sample_list += ['OJ287V6_OFF']
+#sample_name += ['OJ287 V6']
 sample_list += ['PKS1424V6_OFF']
 sample_name += ['PKS1424 V6']
 sample_list += ['3C264V6_OFF']
 sample_name += ['3C264 V6']
-sample_list += ['1ES0229V6_OFF']
-sample_name += ['1ES0229 V6']
-sample_list += ['1ES0229V5_OFF']
-sample_name += ['1ES0229 V5']
+#sample_list += ['1ES0229V6_OFF']
+#sample_name += ['1ES0229 V6']
+#sample_list += ['1ES0229V5_OFF']
+#sample_name += ['1ES0229 V5']
 sample_list += ['Segue1V6_OFF']
 sample_name += ['Segue1 V6']
-sample_list += ['Segue1V5_OFF']
-sample_name += ['Segue1 V5']
-sample_list += ['CrabV5_OFF']
-sample_name += ['Crab V5']
-sample_list += ['CrabV6_OFF']
-sample_name += ['Crab V6']
-sample_list += ['BLLacV6_OFF']
-sample_name += ['BLLac V6']
-sample_list += ['BLLacV5_OFF']
-sample_name += ['BLLac V5']
-sample_list += ['PG1553V5_OFF']
-sample_name += ['PG1553 V5']
-sample_list += ['H1426V6_OFF']
-sample_name += ['H1426 V6']
-sample_list += ['CasAV6_OFF']
-sample_name += ['CasA V6']
-sample_list += ['RBS0413V6_OFF']
-sample_name += ['RBS0413 V6']
-sample_list += ['NGC1275V6_OFF']
-sample_name += ['NGC 1275 V6']
+#sample_list += ['Segue1V5_OFF']
+#sample_name += ['Segue1 V5']
+#sample_list += ['CrabV5_OFF']
+#sample_name += ['Crab V5']
+#sample_list += ['CrabV6_OFF']
+#sample_name += ['Crab V6']
+#sample_list += ['BLLacV6_OFF']
+#sample_name += ['BLLac V6']
+#sample_list += ['BLLacV5_OFF']
+#sample_name += ['BLLac V5']
+#sample_list += ['PG1553V5_OFF']
+#sample_name += ['PG1553 V5']
+#sample_list += ['H1426V6_OFF']
+#sample_name += ['H1426 V6']
+#sample_list += ['CasAV6_OFF']
+#sample_name += ['CasA V6']
+#sample_list += ['RBS0413V6_OFF']
+#sample_name += ['RBS0413 V6']
+#sample_list += ['NGC1275V6_OFF']
+#sample_name += ['NGC 1275 V6']
 
 #sample_list += ['M82V6_OFF']
 #sample_name += ['M82 V6']
@@ -154,7 +154,7 @@ lowrank_tag += 'elev_incl'
 #elev_bins = [45,55]
 #lowrank_tag += 'elev_45_55'
 
-theta2_bins = [0,4]
+theta2_bins = [0,9]
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
@@ -479,7 +479,7 @@ def GetHistogramsFromFile(FilePath,which_source):
     Hist_GammaRegion_Contribution[which_source+1].Add(InputFile.Get(HistName))
 
 optimiz_lower = -5.
-optimiz_upper = 5.
+optimiz_upper = -3.
 Hist_Bkgd_Optimization = []
 Hist_Bkgd_Optimization_beta = []
 Hist_Bkgd_OptimizationChi2_beta = []
@@ -583,7 +583,7 @@ for e in range(0,len(energy_bin)-1):
             #weight = 1.
             total_weight += weight
             y_content += weight*Hist_Bkgd_Optimization[entry].GetBinContent(binx)
-        y_content = y_content/total_weight
+        if total_weight>0.: y_content = y_content/total_weight
         Hist_Bkgd_Optimization[0].SetBinContent(binx,y_content)
 
     for binx in range(1,Hist_Bkgd_Optimization_beta[0].GetNbinsX()+1):
@@ -595,7 +595,7 @@ for e in range(0,len(energy_bin)-1):
                 #weight = 1.
                 total_weight += weight
                 y_content += weight*Hist_Bkgd_Optimization_beta[entry].GetBinContent(binx,biny)
-            y_content = y_content/total_weight
+            if total_weight>0.: y_content = y_content/total_weight
             Hist_Bkgd_Optimization_beta[0].SetBinContent(binx,biny,y_content)
     for binx in range(1,Hist_Bkgd_OptimizationChi2_beta[0].GetNbinsX()+1):
         for biny in range(1,Hist_Bkgd_OptimizationChi2_beta[0].GetNbinsY()+1):
@@ -606,7 +606,7 @@ for e in range(0,len(energy_bin)-1):
                 #weight = 1.
                 total_weight += weight
                 y_content += weight*Hist_Bkgd_OptimizationChi2_beta[entry].GetBinContent(binx,biny)
-            y_content = y_content/total_weight
+            if total_weight>0.: y_content = y_content/total_weight
             Hist_Bkgd_OptimizationChi2_beta[0].SetBinContent(binx,biny,y_content)
 
     for binx in range(1,Hist_Dark_Optimization[0].GetNbinsX()+1):
@@ -617,7 +617,7 @@ for e in range(0,len(energy_bin)-1):
             #weight = 1.
             total_weight += weight
             y_content += weight*Hist_Dark_Optimization[entry].GetBinContent(binx)
-        y_content = y_content/total_weight
+        if total_weight>0.: y_content = y_content/total_weight
         Hist_Dark_Optimization[0].SetBinContent(binx,y_content)
 
     fig, ax = plt.subplots()
@@ -639,7 +639,7 @@ for e in range(0,len(energy_bin)-1):
         #AccuracyInit_mean += AccuracyInit_source[entry]
         #AccuracyInit_weight += 1.
         AccuracyInit_mean_error += pow(AccuracyInitErr_source[entry],2)/len(AccuracyInit_source)
-    AccuracyInit_mean = AccuracyInit_mean/AccuracyInit_weight
+    if AccuracyInit_weight>0.: AccuracyInit_mean = AccuracyInit_mean/AccuracyInit_weight
     AccuracyInit_mean_error = pow(AccuracyInit_mean_error,0.5)
 
     AccuracyStat_source = []
@@ -655,7 +655,7 @@ for e in range(0,len(energy_bin)-1):
         AccuracyStat_mean += AccuracyStat_source[entry]
         AccuracyStat_weight += 1.
         AccuracyStat_mean_error += pow(AccuracyStatErr_source[entry],2)/len(AccuracyStat_source)
-    AccuracyStat_mean = AccuracyStat_mean/AccuracyStat_weight
+    if AccuracyStat_weight>0.: AccuracyStat_mean = AccuracyStat_mean/AccuracyStat_weight
     AccuracyStat_mean_error = pow(AccuracyStat_mean_error,0.5)
 
     AccuracyRank2_source = []
@@ -673,7 +673,7 @@ for e in range(0,len(energy_bin)-1):
         #AccuracyRank2_mean += AccuracyRank2_source[entry]
         #AccuracyRank2_weight += 1.
         AccuracyRank2_mean_error += pow(AccuracyRank2Err_source[entry],2)/len(AccuracyRank2_source)
-    AccuracyRank2_mean = AccuracyRank2_mean/AccuracyRank2_weight
+    if AccuracyRank2_weight>0.: AccuracyRank2_mean = AccuracyRank2_mean/AccuracyRank2_weight
     AccuracyRank2_mean_error = pow(AccuracyRank2_mean_error,0.5)
 
     AccuracyBestPar9_source = []
@@ -691,7 +691,7 @@ for e in range(0,len(energy_bin)-1):
         #AccuracyBestPar9_mean += AccuracyBestPar9_source[entry]
         #AccuracyBestPar9_weight += 1.
         AccuracyBestPar9_mean_error += pow(AccuracyBestPar9Err_source[entry],2)/len(AccuracyBestPar9_source)
-    AccuracyBestPar9_mean = AccuracyBestPar9_mean/AccuracyBestPar9_weight
+    if AccuracyBestPar9_weight>0.: AccuracyBestPar9_mean = AccuracyBestPar9_mean/AccuracyBestPar9_weight
     AccuracyBestPar9_mean_error = pow(AccuracyBestPar9_mean_error,0.5)
 
     AccuracyPar9_source = []
@@ -709,7 +709,7 @@ for e in range(0,len(energy_bin)-1):
         #AccuracyPar9_mean += AccuracyPar9_source[entry]
         #AccuracyPar9_weight += 1.
         AccuracyPar9_mean_error += pow(AccuracyPar9Err_source[entry],2)/len(AccuracyPar9_source)
-    AccuracyPar9_mean = AccuracyPar9_mean/AccuracyPar9_weight
+    if AccuracyPar9_weight>0.: AccuracyPar9_mean = AccuracyPar9_mean/AccuracyPar9_weight
     AccuracyPar9_mean_error = pow(AccuracyPar9_mean_error,0.5)
 
     AccuracyWPar9_source = []
@@ -727,7 +727,7 @@ for e in range(0,len(energy_bin)-1):
         #AccuracyWPar9_mean += AccuracyWPar9_source[entry]
         #AccuracyWPar9_weight += 1.
         AccuracyWPar9_mean_error += pow(AccuracyWPar9Err_source[entry],2)/len(AccuracyWPar9_source)
-    AccuracyWPar9_mean = AccuracyWPar9_mean/AccuracyWPar9_weight
+    if AccuracyWPar9_weight>0.: AccuracyWPar9_mean = AccuracyWPar9_mean/AccuracyWPar9_weight
     AccuracyWPar9_mean_error = pow(AccuracyWPar9_mean_error,0.5)
 
     AccuracyBkgd_source = []
@@ -745,7 +745,7 @@ for e in range(0,len(energy_bin)-1):
         #AccuracyBkgd_mean += AccuracyBkgd_source[entry]
         #AccuracyBkgd_weight += 1.
         AccuracyBkgd_mean_error += pow(AccuracyBkgdErr_source[entry],2)/len(AccuracyBkgd_source)
-    AccuracyBkgd_mean = AccuracyBkgd_mean/AccuracyBkgd_weight
+    if AccuracyBkgd_weight>0.: AccuracyBkgd_mean = AccuracyBkgd_mean/AccuracyBkgd_weight
     AccuracyBkgd_mean_error = pow(AccuracyBkgd_mean_error,0.5)
 
     ValidateBkgd_source = []
@@ -761,7 +761,7 @@ for e in range(0,len(energy_bin)-1):
         ValidateBkgd_mean += 1./ValidateBkgdErr_source[entry]*ValidateBkgd_source[entry]
         ValidateBkgd_weight += 1./ValidateBkgdErr_source[entry]
         ValidateBkgd_mean_error += pow(ValidateBkgdErr_source[entry],2)/len(ValidateBkgd_source)
-    ValidateBkgd_mean = ValidateBkgd_mean/ValidateBkgd_weight
+    if ValidateBkgd_weight>0.: ValidateBkgd_mean = ValidateBkgd_mean/ValidateBkgd_weight
     ValidateBkgd_mean_error = pow(ValidateBkgd_mean_error,0.5)
 
     ValidateRFoV_source = []
@@ -777,7 +777,7 @@ for e in range(0,len(energy_bin)-1):
         ValidateRFoV_mean += 1./ValidateRFoVErr_source[entry]*ValidateRFoV_source[entry]
         ValidateRFoV_weight += 1./ValidateRFoVErr_source[entry]
         ValidateRFoV_mean_error += pow(ValidateRFoVErr_source[entry],2)/len(ValidateRFoV_source)
-    ValidateRFoV_mean = ValidateRFoV_mean/ValidateRFoV_weight
+    if ValidateRFoV_weight>0.: ValidateRFoV_mean = ValidateRFoV_mean/ValidateRFoV_weight
     ValidateRFoV_mean_error = pow(ValidateRFoV_mean_error,0.5)
 
     ValidateComb_source = []
@@ -793,7 +793,7 @@ for e in range(0,len(energy_bin)-1):
         ValidateComb_mean += 1./ValidateCombErr_source[entry]*ValidateComb_source[entry]
         ValidateComb_weight += 1./ValidateCombErr_source[entry]
         ValidateComb_mean_error += pow(ValidateCombErr_source[entry],2)/len(ValidateComb_source)
-    ValidateComb_mean = ValidateComb_mean/ValidateComb_weight
+    if ValidateComb_weight>0.: ValidateComb_mean = ValidateComb_mean/ValidateComb_weight
     ValidateComb_mean_error = pow(ValidateComb_mean_error,0.5)
 
     AccuracyPar8_source = []
@@ -811,7 +811,7 @@ for e in range(0,len(energy_bin)-1):
         #AccuracyPar8_mean += AccuracyPar8_source[entry]
         #AccuracyPar8_weight += 1.
         AccuracyPar8_mean_error += pow(AccuracyPar8Err_source[entry],2)/len(AccuracyPar8_source)
-    AccuracyPar8_mean = AccuracyPar8_mean/AccuracyPar8_weight
+    if AccuracyPar8_weight>0.: AccuracyPar8_mean = AccuracyPar8_mean/AccuracyPar8_weight
     AccuracyPar8_mean_error = pow(AccuracyPar8_mean_error,0.5)
 
     #plt.clf()
@@ -861,57 +861,9 @@ for e in range(0,len(energy_bin)-1):
         #Accuracy_mean += Hist_Bkgd_Optimization[0].GetBinContent(min_bin)
         #Accuracy_weight += 1.
         Accuracy_mean_error += pow(AccuracyErr_source[entry],2)/len(Accuracy_source)
-    Accuracy_mean = Accuracy_mean/Accuracy_weight
+    if Accuracy_weight>0.: Accuracy_mean = Accuracy_mean/Accuracy_weight
     Accuracy_mean_error = pow(Accuracy_mean_error,0.5)
 
-    #plt.clf()
-    #plt.ylim(ymin, ymax)
-    #plt.xlabel("Zenith", fontsize=18)
-    #plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    #plt.errorbar(Zenith_mean_data,Accuracy_source,xerr=Zenith_RMS_data,yerr=AccuracyErr_source,fmt='o')
-    #xmin, xmax, ymin, ymax = plt.axis()
-    #x = np.linspace(xmin, xmax, 100)
-    #y = 0.*x + Accuracy_mean
-    #plt.plot(x,y,color='#1B2ACC')
-    #plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
-    #plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
-    #plt.savefig("output_plots/PerformanceMin_Zenith_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
-    #plt.clf()
-    #plt.ylim(ymin, ymax)
-    #plt.xlabel("NSB", fontsize=18)
-    #plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    #plt.errorbar(NSB_mean_data,Accuracy_source,xerr=NSB_RMS_data,yerr=AccuracyErr_source,fmt='o')
-    #xmin, xmax, ymin, ymax = plt.axis()
-    #x = np.linspace(xmin, xmax, 100)
-    #y = 0.*x + Accuracy_mean
-    #plt.plot(x,y,color='#1B2ACC')
-    #plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
-    #plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
-    #plt.savefig("output_plots/PerformanceMin_NSB_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
-    #plt.clf()
-    #plt.ylim(ymin, ymax)
-    #plt.xlabel("Zenith", fontsize=18)
-    #plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    #plt.errorbar(Zenith_mean_dark,Accuracy_source,xerr=Zenith_RMS_dark,yerr=AccuracyErr_source,fmt='o')
-    #xmin, xmax, ymin, ymax = plt.axis()
-    #x = np.linspace(xmin, xmax, 100)
-    #y = 0.*x + Accuracy_mean
-    #plt.plot(x,y,color='#1B2ACC')
-    #plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
-    #plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
-    #plt.savefig("output_plots/PerformanceMin_DarkZenith_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
-    #plt.clf()
-    #plt.ylim(ymin, ymax)
-    #plt.xlabel("NSB", fontsize=18)
-    #plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    #plt.errorbar(NSB_mean_dark,Accuracy_source,xerr=NSB_RMS_dark,yerr=AccuracyErr_source,fmt='o')
-    #xmin, xmax, ymin, ymax = plt.axis()
-    #x = np.linspace(xmin, xmax, 100)
-    #y = 0.*x + Accuracy_mean
-    #plt.plot(x,y,color='#1B2ACC')
-    #plt.fill_between(x,y-Accuracy_mean_error,y+Accuracy_mean_error,edgecolor='#1B2ACC',alpha=0.2,facecolor='#089FFF')
-    #plt.title('$<\epsilon>=%0.3f \pm %0.3f$ at log 10 alpha=%0.1f'%(Accuracy_mean,Accuracy_mean_error,min_x))
-    #plt.savefig("output_plots/PerformanceMin_DarkNSB_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
     plt.clf()
     ax = fig.add_subplot(111)
