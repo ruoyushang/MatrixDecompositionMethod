@@ -515,7 +515,7 @@ bool RoIFoV(int which_roi) {
 }
 bool SelectNImages()
 {
-    if (NImages<3) return false;
+    if (NImages<2) return false;
     return true;
 }
 bool ApplyTimeCuts(double event_time, vector<pair<double,double>> timecut)
@@ -597,7 +597,7 @@ int RunTypeCategory(int run_number, bool doPrint)
     string acc_runtype = "";
     int nth_delimiter = 0;
     std::string::size_type sz;
-    int runtype = 0;
+    int runtype = 2;
 
     ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/category_allruns.txt");
     if (myfile.is_open())
@@ -634,12 +634,21 @@ int RunTypeCategory(int run_number, bool doPrint)
                         nth_delimiter += 1;
                     }
                 }
-                if (acc_runtype!="reducedhv")
+                if (acc_runtype=="science" || acc_runtype=="NULL")
+                {
+                    runtype = 0;
+                }
+                else if (acc_runtype=="reducedhv")
                 {
                     runtype = 1;
+                    if (doPrint)
+                    {
+                        std::cout << "Run " << run_number << " rejected. Run Type " << acc_runtype << std::endl;
+                    }
                 }
                 else
                 {
+                    runtype = 2;
                     if (doPrint)
                     {
                         std::cout << "Run " << run_number << " rejected. Run Type " << acc_runtype << std::endl;
@@ -1155,7 +1164,7 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
     vector<double> new_list_pointing;
     for (int run=0;run<Data_runlist.size();run++)
     {
-        //if (RunTypeCategory(Data_runlist[run].second,true)!=1) continue;
+        if (RunTypeCategory(Data_runlist[run].second,true)!=0) continue;
         char run_number[50];
         char Data_observation[50];
         sprintf(run_number, "%i", int(Data_runlist[run].second));
@@ -1247,7 +1256,6 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     for (int off_run=0;off_run<OFF_runlist.size();off_run++)
     {
         //std::cout << "Complete " << off_run << "/" << OFF_runlist.size()<< std::endl;
-        //if (RunTypeCategory(OFF_runlist[off_run].second,false)!=1) continue;
         char OFF_runnumber[50];
         char OFF_observation[50];
         sprintf(OFF_runnumber, "%i", int(OFF_runlist[off_run].second));
@@ -1297,15 +1305,24 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {
         std::cout << "Complete " << nth_sample << "/" << n_dark_samples << std::endl;
+        double total_dNSB_chi2 = 0.;
+        double total_dElev_chi2 = 0.;
+        double total_dMJD_chi2 = 0.;
+        double total_dL3Rate_chi2 = 0.;
+        double dNSB_chi2 = 0.;
+        double dElev_chi2 = 0.;
+        double dMJD_chi2 = 0.;
+        double dL3Rate_chi2 = 0.;
         for (int on_run=0;on_run<ON_runlist.size();on_run++)
         {
+            int number_of_search = 0;
             double accumulated_count = 0.;
-            double threshold_dNSB = 0.2;
-            double threshold_dElev = 2.0;
+            double threshold_dNSB = 0.5;
+            double threshold_dElev = 5.0;
             double threshold_dMJD = 3.*365.;
             double threshold_dL3Rate = 20.;
-            double threshold_dTime = 5.*60.;
-            while (accumulated_count<2.0*ON_count[on_run])
+            double threshold_dTime = 15.*60.;
+            while (accumulated_count<1.0*ON_count[on_run])
             {
                 pair<string,int> best_match;
                 pair<double,double> best_pointing;
@@ -1316,6 +1333,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                 for (int off_run=0;off_run<OFF_runlist.size();off_run++)
                 {
 
+                    if (RunTypeCategory(OFF_runlist[off_run].second,false)!=0) continue;
                     double diff_ra = ON_pointing_radec[on_run].first-OFF_pointing_radec[off_run].first;
                     double diff_dec = ON_pointing_radec[on_run].second-OFF_pointing_radec[off_run].second;
                     if ((diff_ra*diff_ra+diff_dec*diff_dec)<10.*10.) continue;
@@ -1380,6 +1398,10 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                         best_pointing = OFF_pointing[off_run];
                         best_off_run = off_run;
                         best_count = OFF_time[off_run]*OFF_L3Rate[off_run];
+                        dElev_chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
+                        dNSB_chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
+                        dMJD_chi2 = pow(ON_MJD[on_run]-OFF_MJD[off_run],2);
+                        dL3Rate_chi2 = pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2);
                     }
                 }
                 if (best_chi2<1e10) 
@@ -1388,23 +1410,38 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     ON_pointing_radec_new.push_back(ON_pointing_radec[on_run]);
                     n_good_matches += 1;
                     accumulated_count += best_count;
+                    total_dNSB_chi2 += dNSB_chi2;
+                    total_dElev_chi2 += dElev_chi2;
+                    total_dMJD_chi2 += dMJD_chi2;
+                    total_dL3Rate_chi2 += dL3Rate_chi2;
                 }
                 else
                 {
                     // searched whole OFF list and found no match.
+                    number_of_search += 1;
+                    std::cout << on_run << "/" << ON_runlist.size() << ", number_of_search = " << number_of_search << std::endl;
                     threshold_dNSB += 0.2;
                     threshold_dElev += 1.0;
-                    //threshold_dMJD += 1.0*365.;
-                    threshold_dL3Rate += 20.;
+                    threshold_dMJD += 1.0*365.;
+                    threshold_dL3Rate += 10.;
                     threshold_dTime += 5.0*60.;
-                    //if (threshold_dElev>=10.)
-                    //{
-                    //    break;
-                    //}
+                    if (number_of_search>=4)
+                    {
+                        std::cout << "couldn't find a matched run, break" << std::endl;
+                        break;
+                    }
                 }
             }
             Dark_count.at(on_run).at(nth_sample) = accumulated_count;
         }
+        total_dNSB_chi2 = pow(total_dNSB_chi2/double(OFF_runlist.size()),0.5);
+        total_dElev_chi2 = pow(total_dElev_chi2/double(OFF_runlist.size()),0.5);
+        total_dMJD_chi2 = pow(total_dMJD_chi2/double(OFF_runlist.size()),0.5);
+        total_dL3Rate_chi2 = pow(total_dL3Rate_chi2/double(OFF_runlist.size()),0.5);
+        std::cout << "total_dNSB_chi2 = " << total_dNSB_chi2 << std::endl;
+        std::cout << "total_dElev_chi2 = " << total_dElev_chi2 << std::endl;
+        std::cout << "total_dMJD_chi2 = " << total_dMJD_chi2 << std::endl;
+        std::cout << "total_dL3Rate_chi2 = " << total_dL3Rate_chi2 << std::endl;
     }
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
@@ -1643,6 +1680,17 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     else Data_runlist = Data_runlist_init;
     std::cout << "Data_runlist size = " << Data_runlist.size() << std::endl;
     if (Data_runlist.size()==0) return;
+    for (int on_run=0;on_run<Data_runlist.size();on_run++)
+    {
+        std::cout << "selected ON run " << Data_runlist[on_run].second << std::endl;
+        vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[on_run].second);
+        std::cout << "time cut: ";
+        for (int entry=0;entry<timecut_thisrun.size();entry++)
+        {
+            std::cout << timecut_thisrun.at(entry).first << "-" << timecut_thisrun.at(entry).second << ", ";
+        }
+        std::cout << std::endl;
+    }
 
     std::cout << "Get a list of dark runs" << std::endl;
     vector<vector<vector<pair<string,int>>>> Dark_runlist;
@@ -2007,12 +2055,16 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     vector<vector<TH1D>> Hist_OnData_PerElev_MSCW;
     vector<vector<TH1D>> Hist_OnData_PerElev_MSCL;
+    vector<vector<TH1D>> Hist_OnData_PerElev_Xoff;
+    vector<vector<TH1D>> Hist_OnData_PerElev_Yoff;
     for (int elev=0;elev<N_elev_bins;elev++)
     {
         char elev_tag[50];
         sprintf(elev_tag, "%i", elev);
         vector<TH1D> Hist_OnData_ThisElev_MSCW;
         vector<TH1D> Hist_OnData_ThisElev_MSCL;
+        vector<TH1D> Hist_OnData_ThisElev_Xoff;
+        vector<TH1D> Hist_OnData_ThisElev_Yoff;
         for (int e=0;e<N_energy_bins;e++) 
         {
             char e_low[50];
@@ -2026,19 +2078,27 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
             Hist_OnData_ThisElev_MSCW.push_back(TH1D("Hist_OnData_ThisElev_MSCW_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnData_ThisElev_MSCL.push_back(TH1D("Hist_OnData_ThisElev_MSCL_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper));
+            Hist_OnData_ThisElev_Xoff.push_back(TH1D("Hist_OnData_ThisElev_Xoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/4,-Skymap_size,Skymap_size));
+            Hist_OnData_ThisElev_Yoff.push_back(TH1D("Hist_OnData_ThisElev_Yoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/4,-Skymap_size,Skymap_size));
         }
         Hist_OnData_PerElev_MSCW.push_back(Hist_OnData_ThisElev_MSCW);
         Hist_OnData_PerElev_MSCL.push_back(Hist_OnData_ThisElev_MSCL);
+        Hist_OnData_PerElev_Xoff.push_back(Hist_OnData_ThisElev_Xoff);
+        Hist_OnData_PerElev_Yoff.push_back(Hist_OnData_ThisElev_Yoff);
     }
 
     vector<vector<TH1D>> Hist_OnData_PerYear_MSCW;
     vector<vector<TH1D>> Hist_OnData_PerYear_MSCL;
+    vector<vector<TH1D>> Hist_OnData_PerYear_Xoff;
+    vector<vector<TH1D>> Hist_OnData_PerYear_Yoff;
     for (int year=0;year<N_MJD_bins;year++)
     {
         char year_tag[50];
         sprintf(year_tag, "%i", year);
         vector<TH1D> Hist_OnData_ThisYear_MSCW;
         vector<TH1D> Hist_OnData_ThisYear_MSCL;
+        vector<TH1D> Hist_OnData_ThisYear_Xoff;
+        vector<TH1D> Hist_OnData_ThisYear_Yoff;
         for (int e=0;e<N_energy_bins;e++) 
         {
             char e_low[50];
@@ -2052,9 +2112,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
             Hist_OnData_ThisYear_MSCW.push_back(TH1D("Hist_OnData_ThisYear_MSCW_V"+TString(year_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnData_ThisYear_MSCL.push_back(TH1D("Hist_OnData_ThisYear_MSCL_V"+TString(year_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper));
+            Hist_OnData_ThisYear_Xoff.push_back(TH1D("Hist_OnData_ThisYear_Xoff_V"+TString(year_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/4,-Skymap_size,Skymap_size));
+            Hist_OnData_ThisYear_Yoff.push_back(TH1D("Hist_OnData_ThisYear_Yoff_V"+TString(year_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/4,-Skymap_size,Skymap_size));
         }
         Hist_OnData_PerYear_MSCW.push_back(Hist_OnData_ThisYear_MSCW);
         Hist_OnData_PerYear_MSCL.push_back(Hist_OnData_ThisYear_MSCL);
+        Hist_OnData_PerYear_Xoff.push_back(Hist_OnData_ThisYear_Xoff);
+        Hist_OnData_PerYear_Yoff.push_back(Hist_OnData_ThisYear_Yoff);
     }
 
     vector<vector<TH1D>> Hist_OnData_SR_RoI_Energy;
@@ -2520,6 +2584,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 {
                     Hist_OnData_PerElev_MSCL.at(elevation).at(energy).Fill(MSCL);
                     Hist_OnData_PerYear_MSCL.at(year).at(energy).Fill(MSCL);
+                }
+                if (MSCL<MSCL_cut_blind && MSCW<MSCW_cut_blind)
+                {
+                    Hist_OnData_PerElev_Xoff.at(elevation).at(energy).Fill(Xoff);
+                    Hist_OnData_PerElev_Yoff.at(elevation).at(energy).Fill(Yoff);
+                    Hist_OnData_PerYear_Xoff.at(year).at(energy).Fill(Xoff);
+                    Hist_OnData_PerYear_Yoff.at(year).at(energy).Fill(Yoff);
                 }
             }
             if (SignalSelectionTheta2())
@@ -3068,6 +3139,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         {
             Hist_OnData_PerElev_MSCL.at(elev).at(e).Write();
             Hist_OnData_PerElev_MSCW.at(elev).at(e).Write();
+            Hist_OnData_PerElev_Xoff.at(elev).at(e).Write();
+            Hist_OnData_PerElev_Yoff.at(elev).at(e).Write();
         }
     }
     for (int year=0;year<N_MJD_bins;year++)
@@ -3076,6 +3149,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         {
             Hist_OnData_PerYear_MSCL.at(year).at(e).Write();
             Hist_OnData_PerYear_MSCW.at(year).at(e).Write();
+            Hist_OnData_PerYear_Xoff.at(year).at(e).Write();
+            Hist_OnData_PerYear_Yoff.at(year).at(e).Write();
         }
     }
     
