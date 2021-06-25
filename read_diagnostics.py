@@ -10,6 +10,12 @@ from astropy.coordinates import SkyCoord
 from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
 from scipy import special
 
+import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+
 def GetDistance(x1,y1,x2,y2):
     distance = pow((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2),0.5)
     return distance
@@ -38,14 +44,14 @@ def ConvertRaDecToGalactic(ra, dec):
 # W Comae
 #target_ra = 185.382083333
 #target_dec = 28.2330555556
-#range_ra = 1.0
-#range_dec = 1.0
-
-## MGRO J1908
-#target_ra = 286.975
-#target_dec = 6.269
 #range_ra = 3.0
 #range_dec = 3.0
+
+# MGRO J1908
+target_ra = 286.975
+target_dec = 6.269
+range_ra = 3.0
+range_dec = 3.0
 
 # IC 443
 #target_ra = 94.511
@@ -96,10 +102,10 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 2.0
 
 # MGRO J2031+41
-target_ra = 307.18
-target_dec = 41.31
-range_ra = 4.0
-range_dec = 4.0
+#target_ra = 307.18
+#target_dec = 41.31
+#range_ra = 4.0
+#range_dec = 4.0
 
 # 1ES 0229
 #target_ra = 38.2216666667
@@ -222,7 +228,7 @@ range_dec = 4.0
 #range_ra = 4.0
 #range_dec = 4.0
 
-# M 82
+## M 82
 #target_ra = 148.969583333
 #target_dec = 69.6794444444
 #range_ra = 1.0
@@ -258,23 +264,114 @@ range_dec = 4.0
 #range_ra = 4.0
 #range_dec = 4.0
 
-# Perseus cluster
-#target_ra = 49.9466666667
-#target_dec = 41.5130555556
-#range_ra = 2.0
-#range_dec = 2.0
-
 # SNR G150.3+4.5
 #target_ra = 66.5
 #target_dec = 55.0
 #range_ra = 4.0
 #range_dec = 4.0
 
-search_for_on_data = True
+# VER J2019+368
+#target_ra = 304.854166667
+#target_dec = 36.8038888889
+#range_ra = 3.0
+#range_dec = 3.0
 
-V4 = True
+# Cas A
+#target_ra = 350.8075
+#target_dec = 58.8072222222
+#range_ra = 2.0
+#range_dec = 2.0
+
+# Something near Boomerang
+#target_ra = 340.5
+#target_dec = 61.0
+#range_ra = 2.0
+#range_dec = 2.0
+
+## HESS J1857+026
+#target_ra = 284.295833333
+#target_dec = 2.66666666667 
+#range_ra = 2.0
+#range_dec = 2.0
+
+## Tycho
+#target_ra = 6.34
+#target_dec = 64.13
+#range_ra = 2.0
+#range_dec = 2.0
+
+## HESS J1844-030
+#target_ra = 281.17175
+#target_dec = -3.09294444444
+#range_ra = 2.0
+#range_dec = 2.0
+
+## HESS J1912+101
+#target_ra = 288.204166667
+#target_dec = 10.1516666667
+#range_ra = 2.0
+#range_dec = 2.0
+
+## HESS J1852-000
+#target_ra = 283.058333333
+#target_dec = 0.0988888888889
+#range_ra = 2.0
+#range_dec = 2.0
+
+# 3HWC J1928+178
+#target_ra = 292.10
+#target_dec = 17.82
+#range_ra = 2.0
+#range_dec = 2.0
+
+# PSR J0030+0451
+#target_ra = 7.61428208333
+#target_dec = 4.86103055556
+#range_ra = 3.0
+#range_dec = 3.0
+
+# PSR B0114+58
+#target_ra = 19.4110875
+#target_dec = 59.2439972222
+#range_ra = 3.0
+#range_dec = 3.0
+
+# HESS J1825-137
+#target_ra = 276.37
+#target_dec = -13.83
+#range_ra = 3.0
+#range_dec = 3.0
+
+# Perseus cluster
+#target_ra = 49.9466666667
+#target_dec = 41.5130555556
+#range_ra = 2.0
+#range_dec = 2.0
+
+# M 31
+#target_ra = 10.6847083333
+#target_dec = 41.26875
+#range_ra = 3.0
+#range_dec = 3.0
+
+# Virgo Cluster (M 87)
+#target_ra = 187.70593076
+#target_dec = 12.3911232939
+#range_ra = 5.0
+#range_dec = 5.0
+
+# SNR G150.3+4.5
+#target_ra = 67.82
+#target_dec = 55.89
+#range_ra = 2.0
+#range_dec = 2.0
+
+#search_for_on_data = True
+search_for_on_data = False
+
+V4 = False
 V5 = False
-V6 = False
+V6 = True
 
 
 RunNumber = 0
@@ -318,15 +415,20 @@ Source_PedVar_DC = []
 Source_Elev = []
 Source_Azim = []
 Source_Livetime = []
-#sourceFile = open('../data/output_list/MGRO_J2031_V5_runlist.txt')
-#for line in sourceFile:
-#    Source_RunNumber += [int(line)]
-#    Source_PedVar_DC += [0.]
-#    Source_Elev += [0.]
-#    Source_Azim += [0.]
-#    Source_Livetime += [0.]
+#Search_Range_RA = [0.,360.]
+#Search_Range_Dec = [-90.,90.]
+Search_Range_RA = [250.,280.]
+Search_Range_Dec = [55.,65.]
+sourceFile = open('../data/output_list/MGRO_J1908_V6_runlist.txt')
+for line in sourceFile:
+    Source_RunNumber += [int(line)]
+    Source_PedVar_DC += [0.]
+    Source_Elev += [0.]
+    Source_Azim += [0.]
+    Source_Livetime += [0.]
 
-inputFile = open('diagnostics.txt')
+#inputFile = open('diagnostics.txt')
+inputFile = open('diagnostics_20210308.txt')
 for line in inputFile:
     if line.split(' ')[0]=="#": 
         #print 'this is a comment line'
@@ -403,6 +505,8 @@ for line in inputFile:
 
 
 List_Used = []
+List_Used_RA = []
+List_Used_Dec = []
 
 if search_for_on_data:
 
@@ -444,18 +548,20 @@ if search_for_on_data:
         print 'RunNumber %s, L3_rate %s, Livetime %s, Elev %s, RA %s, Dec %s'%(RunNumber,L3_rate,Livetime,Elev,T1_RA,T1_Dec)
     
         List_Used += [RunNumber]
+        List_Used_RA += [T1_RA]
+        List_Used_Dec += [T1_Dec]
 
 else: 
 
     List_Produced = []
-    inputFile = open('temp_output.txt')
-    for line in inputFile:
-        if not 'root' in line: continue
-        line_segments = line.split('.')
-        RunNumber = line_segments[len(line_segments)-2]
-        List_Produced += [RunNumber]
+    #inputFile = open('temp_output.txt')
+    #for line in inputFile:
+    #    if not 'root' in line: continue
+    #    line_segments = line.split('.')
+    #    RunNumber = line_segments[len(line_segments)-2]
+    #    List_Produced += [RunNumber]
     
-    n_matches = 5
+    n_matches = 2
     for nth_sample in range(0,n_matches):
         for entry2 in range(0,len(Source_RunNumber)):
             found_matches = 0
@@ -503,6 +609,22 @@ else:
                     if abs(float(T2_RA)-target_ra)<10. and abs(float(T2_Dec)-target_dec)<10.: continue
                     if abs(float(T3_RA)-target_ra)<10. and abs(float(T3_Dec)-target_dec)<10.: continue
                     if abs(float(T4_RA)-target_ra)<10. and abs(float(T4_Dec)-target_dec)<10.: continue
+                    if (T1_RA<Search_Range_RA[0]): continue
+                    if (T1_RA>Search_Range_RA[1]): continue
+                    if (T1_Dec<Search_Range_Dec[0]): continue
+                    if (T1_Dec>Search_Range_Dec[1]): continue
+                    if (T2_RA<Search_Range_RA[0]): continue
+                    if (T2_RA>Search_Range_RA[1]): continue
+                    if (T2_Dec<Search_Range_Dec[0]): continue
+                    if (T2_Dec>Search_Range_Dec[1]): continue
+                    if (T3_RA<Search_Range_RA[0]): continue
+                    if (T3_RA>Search_Range_RA[1]): continue
+                    if (T3_Dec<Search_Range_Dec[0]): continue
+                    if (T3_Dec>Search_Range_Dec[1]): continue
+                    if (T4_RA<Search_Range_RA[0]): continue
+                    if (T4_RA>Search_Range_RA[1]): continue
+                    if (T4_Dec<Search_Range_Dec[0]): continue
+                    if (T4_Dec>Search_Range_Dec[1]): continue
                     if not (T1_RA==0. and T1_Dec==0.):
                         gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
                         if abs(gal_b)<10.: continue
@@ -533,12 +655,12 @@ else:
                         if GetDistance(T4_RA,T4_Dec,98.117,17.367)<3.: continue  # Geminga
                     else: continue # there is no pointing info
                     #if abs(Livetime-Source_Livetime[entry2])/Source_Livetime[entry2]>0.5: continue
-                    if abs(Elev-Source_Elev[entry2])>5.: continue
+                    if abs(Elev-Source_Elev[entry2])>4.: continue
                     if abs(PedVar_DC-Source_PedVar_DC[entry2])>1.0: continue
                     already_used = False
                     for entry3 in range(0,len(List_Produced)):
                         if int(List_Produced[entry3])==int(RunNumber): 
-                            #print 'RunNumber %s is in the List_Produced'%(RunNumber)
+                            print 'RunNumber %s is in the List_Produced'%(RunNumber)
                             already_used = True
                     for entry3 in range(0,len(List_Used)):
                         if int(List_Used[entry3])==int(RunNumber): 
@@ -546,6 +668,8 @@ else:
                             already_used = True
                     if already_used: continue
                     List_Used += [RunNumber]
+                    List_Used_RA += [T1_RA]
+                    List_Used_Dec += [T1_Dec]
                     found_matches += 1
                     print 'Size of the list: %s / %s'%(len(List_Used),n_matches*len(Source_RunNumber))
 
@@ -553,3 +677,29 @@ else:
 for entry in range(0,len(List_Used)):
     print List_Used[entry]
 print 'total %s runs.'%(len(List_Used))
+
+plt.clf()
+fig, ax = plt.subplots()
+plt.hist(List_Used_RA, bins='auto')
+ax.axis('on')
+ax.set_xlabel('RA')
+ax.set_ylabel('counts')
+plt.savefig("output_plots/RunRA.png")
+
+plt.clf()
+fig, ax = plt.subplots()
+plt.hist(List_Used_Dec, bins='auto')
+ax.axis('on')
+ax.set_xlabel('Dec')
+ax.set_ylabel('counts')
+plt.savefig("output_plots/RunDec.png")
+
+plt.clf()
+fig, ax = plt.subplots()
+plt.hist2d(List_Used_RA, List_Used_Dec, bins=(50, 50), cmap=plt.cm.Greys)
+plt.colorbar()
+ax.axis('on')
+ax.set_xlabel('RA')
+ax.set_ylabel('Dec')
+plt.savefig("output_plots/RunRADec.png")
+
