@@ -26,7 +26,7 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 target_energy_index = 1
-N_bins_for_deconv = 16
+N_bins_for_deconv = 12
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.5
@@ -64,34 +64,34 @@ sample_list += ['3C264V6_OFF']
 sample_name += ['3C264 V6']
 sample_list += ['1ES0229V6_OFF']
 sample_name += ['1ES0229 V6']
-sample_list += ['1ES0229V5_OFF']
-sample_name += ['1ES0229 V5']
+#sample_list += ['1ES0229V5_OFF']
+#sample_name += ['1ES0229 V5']
 sample_list += ['Segue1V6_OFF']
 sample_name += ['Segue1 V6']
-sample_list += ['Segue1V5_OFF']
-sample_name += ['Segue1 V5']
-sample_list += ['CrabV5_OFF']
-sample_name += ['Crab V5']
-sample_list += ['CrabV6_OFF']
-sample_name += ['Crab V6']
+#sample_list += ['Segue1V5_OFF']
+#sample_name += ['Segue1 V5']
+#sample_list += ['CrabV5_OFF']
+#sample_name += ['Crab V5']
+#sample_list += ['CrabV6_OFF']
+#sample_name += ['Crab V6']
 sample_list += ['BLLacV6_OFF']
 sample_name += ['BLLac V6']
-sample_list += ['BLLacV5_OFF']
-sample_name += ['BLLac V5']
-sample_list += ['PG1553V5_OFF']
-sample_name += ['PG1553 V5']
+#sample_list += ['BLLacV5_OFF']
+#sample_name += ['BLLac V5']
+#sample_list += ['PG1553V5_OFF']
+#sample_name += ['PG1553 V5']
 sample_list += ['H1426V6_OFF']
 sample_name += ['H1426 V6']
-sample_list += ['CasAV6_OFF']
-sample_name += ['CasA V6']
+#sample_list += ['CasAV6_OFF']
+#sample_name += ['CasA V6']
 #sample_list += ['RBS0413V6_OFF']
 #sample_name += ['RBS0413 V6']
-sample_list += ['NGC1275V6_OFF']
-sample_name += ['NGC 1275 V6']
+#sample_list += ['NGC1275V6_OFF']
+#sample_name += ['NGC 1275 V6']
 
     
 elev_bins = [45,85]
-theta2_bins = [0,4]
+theta2_bins = [0,9]
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
@@ -166,7 +166,10 @@ def PrincipalComponentAnalysis(list_var, output_type):
     mtx_var_norm = np.zeros((n_samples,n_variables))
     for sample in range(0,n_samples):
         for var in range(0,n_variables):
-            mtx_var_norm[sample][var] = mtx_var[sample][var]/mtx_var_rms[var]
+            if mtx_var_rms[var]==0.:
+                mtx_var_norm[sample][var] = 0.
+            else:
+                mtx_var_norm[sample][var] = mtx_var[sample][var]/mtx_var_rms[var]
 
     mtx_cov = np.cov(mtx_var_norm, rowvar = False)
     eigen_values , eigen_vectors = np.linalg.eigh(mtx_cov)
@@ -218,11 +221,11 @@ def MakeCorrelationPlot(list_var):
     plt.xlabel("(%s,%s)"%(par1_row,par1_col), fontsize=18)
     plt.ylabel("(%s,%s)"%(par2_row,par2_col), fontsize=18)
     plt.scatter(x_var,y_var)
-    line_x = np.arange(-0.1, 0.1, 1e-4) # angular size
-    line_y1 = line_x
-    line_y2 = -1.*line_x
-    plt.plot(line_x, line_y1, color='r')
-    plt.plot(line_x, line_y2, color='r')
+    #line_x = np.arange(-0.1, 0.1, 1e-4) # angular size
+    #line_y1 = line_x
+    #line_y2 = -1.*line_x
+    #plt.plot(line_x, line_y1, color='r')
+    #plt.plot(line_x, line_y2, color='r')
 
     x_var = mtx_var_bkgd_norm.transpose()[0]
     y_var = mtx_var_bkgd_norm.transpose()[1]
@@ -482,7 +485,7 @@ ind = np.arange(len(good_eigenvalue))
 width = 0.35
 rects1 = ax.bar(ind, good_eigenvalue, width, color='#089FFF')
 ax.set_xlim(-width,len(ind)+width)
-ax.set_ylim(1.5,2.0)
+ax.set_ylim(1.5,2.2)
 ax.set_ylabel("eigenvalue", fontsize=18)
 xTickMarks = good_var_pair
 ax.set_xticks(ind+0.5*width)

@@ -53,6 +53,24 @@ target_dec = 6.269
 range_ra = 3.0
 range_dec = 3.0
 
+# Draco dSph
+#target_ra = 260.059729167
+#target_dec = 57.9212194444
+#range_ra = 2.0
+#range_dec = 2.0
+
+# 1ES 0502+675
+#target_ra = 76.9839421535
+#target_dec = 67.6234172932
+#range_ra = 2.0
+#range_dec = 2.0
+
+# 3C 273
+#target_ra = 187.277915345
+#target_dec = 2.05238856846
+#range_ra = 2.0
+#range_dec = 2.0
+
 # IC 443
 #target_ra = 94.511
 #target_dec = 22.660
@@ -373,6 +391,22 @@ V4 = False
 V5 = False
 V6 = True
 
+Search_Range_RA = [0.,360.]
+Search_Range_Dec = [-90.,90.]
+
+Search_Range_Elev = [40.,70.]
+Search_Range_PedVar_DC = [5.,7.]
+
+# Ursa Major II
+#Search_Center_RA = 132.
+#Search_Center_Dec = 62.
+
+#RGBJ0710+591
+#Search_Center_RA = 104.
+#Search_Center_Dec = 58.
+
+#Search_Range_RA = [Search_Center_RA-4.,Search_Center_RA+4.]
+#Search_Range_Dec = [Search_Center_Dec-4.,Search_Center_Dec+4.]
 
 RunNumber = 0
 Elev = 0
@@ -415,17 +449,18 @@ Source_PedVar_DC = []
 Source_Elev = []
 Source_Azim = []
 Source_Livetime = []
-#Search_Range_RA = [0.,360.]
-#Search_Range_Dec = [-90.,90.]
-Search_Range_RA = [250.,280.]
-Search_Range_Dec = [55.,65.]
-sourceFile = open('../data/output_list/MGRO_J1908_V6_runlist.txt')
-for line in sourceFile:
-    Source_RunNumber += [int(line)]
-    Source_PedVar_DC += [0.]
-    Source_Elev += [0.]
-    Source_Azim += [0.]
-    Source_Livetime += [0.]
+#if not search_for_on_data:
+#    #Search_Range_RA = [60.,75.]
+#    #Search_Range_Dec = [72.,76.]
+#    #Search_Range_RA = [75.,80.]
+#    #Search_Range_Dec = [66.,70.]
+#    sourceFile = open('../data/output_list/MGRO_J1908_V6_runlist.txt')
+#    for line in sourceFile:
+#        Source_RunNumber += [int(line)]
+#        Source_PedVar_DC += [0.]
+#        Source_Elev += [0.]
+#        Source_Azim += [0.]
+#        Source_Livetime += [0.]
 
 #inputFile = open('diagnostics.txt')
 inputFile = open('diagnostics_20210308.txt')
@@ -560,118 +595,213 @@ else:
     #    line_segments = line.split('.')
     #    RunNumber = line_segments[len(line_segments)-2]
     #    List_Produced += [RunNumber]
+
+    for entry in range(0,len(List_RunNumber)):
+        RunNumber = List_RunNumber[entry]
+        Elev = List_Elev[entry]
+        Azim = List_Azim[entry]
+        T1_RA = List_T1_RA[entry]
+        T1_Dec = List_T1_Dec[entry]
+        T2_RA = List_T2_RA[entry]
+        T2_Dec = List_T2_Dec[entry]
+        T3_RA = List_T3_RA[entry]
+        T3_Dec = List_T3_Dec[entry]
+        T4_RA = List_T4_RA[entry]
+        T4_Dec = List_T4_Dec[entry]
+        PedVar_DC = List_PedVar_DC[entry]
+        PedVar_PE = List_PedVar_PE[entry]
+        L3_rate = List_L3_rate[entry]
+        Livetime = List_Livetime[entry]
+        if L3_rate<150.: continue
+        #if L3_rate>450.: continue
+        if Livetime<15.: continue
+        if V4:
+            if int(RunNumber)<=36398: continue
+            if int(RunNumber)>=46642: continue
+        if V5:
+            if int(RunNumber)<46642: continue
+            if int(RunNumber)>=63373: continue
+        if V6:
+            if int(RunNumber)<63373: continue
+        if abs(float(T1_RA)-target_ra)<10. and abs(float(T1_Dec)-target_dec)<10.: continue
+        if abs(float(T2_RA)-target_ra)<10. and abs(float(T2_Dec)-target_dec)<10.: continue
+        if abs(float(T3_RA)-target_ra)<10. and abs(float(T3_Dec)-target_dec)<10.: continue
+        if abs(float(T4_RA)-target_ra)<10. and abs(float(T4_Dec)-target_dec)<10.: continue
+        if (T1_RA<Search_Range_RA[0]): continue
+        if (T1_RA>Search_Range_RA[1]): continue
+        if (T1_Dec<Search_Range_Dec[0]): continue
+        if (T1_Dec>Search_Range_Dec[1]): continue
+        if (T2_RA<Search_Range_RA[0]): continue
+        if (T2_RA>Search_Range_RA[1]): continue
+        if (T2_Dec<Search_Range_Dec[0]): continue
+        if (T2_Dec>Search_Range_Dec[1]): continue
+        if (T3_RA<Search_Range_RA[0]): continue
+        if (T3_RA>Search_Range_RA[1]): continue
+        if (T3_Dec<Search_Range_Dec[0]): continue
+        if (T3_Dec>Search_Range_Dec[1]): continue
+        if (T4_RA<Search_Range_RA[0]): continue
+        if (T4_RA>Search_Range_RA[1]): continue
+        if (T4_Dec<Search_Range_Dec[0]): continue
+        if (T4_Dec>Search_Range_Dec[1]): continue
+        if not (T1_RA==0. and T1_Dec==0.):
+            gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
+            if abs(gal_b)<10.: continue
+            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if GetDistance(T1_RA,T1_Dec,83.633,22.014)<3.: continue  # Crab
+            if GetDistance(T1_RA,T1_Dec,166.079,38.195)<3.: continue  # Mrk 421
+            if GetDistance(T1_RA,T1_Dec,98.117,17.367)<3.: continue  # Geminga
+        elif not (T2_RA==0. and T2_Dec==0.):
+            gal_l, gal_b = ConvertRaDecToGalactic(T2_RA,T2_Dec)
+            if abs(gal_b)<10.: continue
+            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if GetDistance(T2_RA,T2_Dec,83.633,22.014)<3.: continue  # Crab
+            if GetDistance(T2_RA,T2_Dec,166.079,38.195)<3.: continue  # Mrk 421
+            if GetDistance(T2_RA,T2_Dec,98.117,17.367)<3.: continue  # Geminga
+        elif not (T3_RA==0. and T3_Dec==0.):
+            gal_l, gal_b = ConvertRaDecToGalactic(T3_RA,T3_Dec)
+            if abs(gal_b)<10.: continue
+            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if GetDistance(T3_RA,T3_Dec,83.633,22.014)<3.: continue  # Crab
+            if GetDistance(T3_RA,T3_Dec,166.079,38.195)<3.: continue  # Mrk 421
+            if GetDistance(T3_RA,T3_Dec,98.117,17.367)<3.: continue  # Geminga
+        elif not (T4_RA==0. and T4_Dec==0.):
+            gal_l, gal_b = ConvertRaDecToGalactic(T4_RA,T4_Dec)
+            if abs(gal_b)<10.: continue
+            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if GetDistance(T4_RA,T4_Dec,83.633,22.014)<3.: continue  # Crab
+            if GetDistance(T4_RA,T4_Dec,166.079,38.195)<3.: continue  # Mrk 421
+            if GetDistance(T4_RA,T4_Dec,98.117,17.367)<3.: continue  # Geminga
+        else: continue # there is no pointing info
+
+        if Elev<Search_Range_Elev[0]: continue
+        if Elev>Search_Range_Elev[1]: continue
+        if PedVar_DC<Search_Range_PedVar_DC[0]: continue
+        if PedVar_DC>Search_Range_PedVar_DC[1]: continue
+        already_used = False
+        for entry2 in range(0,len(List_Used)):
+            if int(List_Used[entry2])==int(RunNumber): 
+                #print 'RunNumber %s is in the List_Produced'%(RunNumber)
+                already_used = True
+        if already_used: continue
+        List_Used += [RunNumber]
+        List_Used_RA += [T1_RA]
+        List_Used_Dec += [T1_Dec]
     
-    n_matches = 2
-    for nth_sample in range(0,n_matches):
-        for entry2 in range(0,len(Source_RunNumber)):
-            found_matches = 0
-            entry_in_list = 0
-            if int(Source_RunNumber[entry2])<=36398: continue
-            for entry in range(0,len(List_RunNumber)):
-                RunNumber = List_RunNumber[entry]
-                if int(Source_RunNumber[entry2])==int(RunNumber):
-                    entry_in_list = entry
-            for entry in range(0,len(List_RunNumber)):
-                if found_matches>=1: continue
-                for direction in range(0,2):
-                    entry_plus = 0
-                    if direction==0: entry_plus = entry_in_list+entry+1
-                    else: entry_plus = entry_in_list-entry-1
-                    if entry_plus<0: continue
-                    if entry_plus>=len(List_RunNumber): continue
-                    RunNumber = List_RunNumber[entry_plus]
-                    Elev = List_Elev[entry_plus]
-                    Azim = List_Azim[entry_plus]
-                    T1_RA = List_T1_RA[entry_plus]
-                    T1_Dec = List_T1_Dec[entry_plus]
-                    T2_RA = List_T2_RA[entry_plus]
-                    T2_Dec = List_T2_Dec[entry_plus]
-                    T3_RA = List_T3_RA[entry_plus]
-                    T3_Dec = List_T3_Dec[entry_plus]
-                    T4_RA = List_T4_RA[entry_plus]
-                    T4_Dec = List_T4_Dec[entry_plus]
-                    PedVar_DC = List_PedVar_DC[entry_plus]
-                    PedVar_PE = List_PedVar_PE[entry_plus]
-                    L3_rate = List_L3_rate[entry_plus]
-                    Livetime = List_Livetime[entry_plus]
-                    if L3_rate<150.: continue
-                    #if L3_rate>450.: continue
-                    if Livetime<15.: continue
-                    if V4:
-                        if int(RunNumber)<=36398: continue
-                        if int(RunNumber)>=46642: continue
-                    if V5:
-                        if int(RunNumber)<46642: continue
-                        if int(RunNumber)>=63373: continue
-                    if V6:
-                        if int(RunNumber)<63373: continue
-                    if abs(float(T1_RA)-target_ra)<10. and abs(float(T1_Dec)-target_dec)<10.: continue
-                    if abs(float(T2_RA)-target_ra)<10. and abs(float(T2_Dec)-target_dec)<10.: continue
-                    if abs(float(T3_RA)-target_ra)<10. and abs(float(T3_Dec)-target_dec)<10.: continue
-                    if abs(float(T4_RA)-target_ra)<10. and abs(float(T4_Dec)-target_dec)<10.: continue
-                    if (T1_RA<Search_Range_RA[0]): continue
-                    if (T1_RA>Search_Range_RA[1]): continue
-                    if (T1_Dec<Search_Range_Dec[0]): continue
-                    if (T1_Dec>Search_Range_Dec[1]): continue
-                    if (T2_RA<Search_Range_RA[0]): continue
-                    if (T2_RA>Search_Range_RA[1]): continue
-                    if (T2_Dec<Search_Range_Dec[0]): continue
-                    if (T2_Dec>Search_Range_Dec[1]): continue
-                    if (T3_RA<Search_Range_RA[0]): continue
-                    if (T3_RA>Search_Range_RA[1]): continue
-                    if (T3_Dec<Search_Range_Dec[0]): continue
-                    if (T3_Dec>Search_Range_Dec[1]): continue
-                    if (T4_RA<Search_Range_RA[0]): continue
-                    if (T4_RA>Search_Range_RA[1]): continue
-                    if (T4_Dec<Search_Range_Dec[0]): continue
-                    if (T4_Dec>Search_Range_Dec[1]): continue
-                    if not (T1_RA==0. and T1_Dec==0.):
-                        gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
-                        if abs(gal_b)<10.: continue
-                        #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-                        if GetDistance(T1_RA,T1_Dec,83.633,22.014)<3.: continue  # Crab
-                        if GetDistance(T1_RA,T1_Dec,166.079,38.195)<3.: continue  # Mrk 421
-                        if GetDistance(T1_RA,T1_Dec,98.117,17.367)<3.: continue  # Geminga
-                    elif not (T2_RA==0. and T2_Dec==0.):
-                        gal_l, gal_b = ConvertRaDecToGalactic(T2_RA,T2_Dec)
-                        if abs(gal_b)<10.: continue
-                        #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-                        if GetDistance(T2_RA,T2_Dec,83.633,22.014)<3.: continue  # Crab
-                        if GetDistance(T2_RA,T2_Dec,166.079,38.195)<3.: continue  # Mrk 421
-                        if GetDistance(T2_RA,T2_Dec,98.117,17.367)<3.: continue  # Geminga
-                    elif not (T3_RA==0. and T3_Dec==0.):
-                        gal_l, gal_b = ConvertRaDecToGalactic(T3_RA,T3_Dec)
-                        if abs(gal_b)<10.: continue
-                        #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-                        if GetDistance(T3_RA,T3_Dec,83.633,22.014)<3.: continue  # Crab
-                        if GetDistance(T3_RA,T3_Dec,166.079,38.195)<3.: continue  # Mrk 421
-                        if GetDistance(T3_RA,T3_Dec,98.117,17.367)<3.: continue  # Geminga
-                    elif not (T4_RA==0. and T4_Dec==0.):
-                        gal_l, gal_b = ConvertRaDecToGalactic(T4_RA,T4_Dec)
-                        if abs(gal_b)<10.: continue
-                        #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-                        if GetDistance(T4_RA,T4_Dec,83.633,22.014)<3.: continue  # Crab
-                        if GetDistance(T4_RA,T4_Dec,166.079,38.195)<3.: continue  # Mrk 421
-                        if GetDistance(T4_RA,T4_Dec,98.117,17.367)<3.: continue  # Geminga
-                    else: continue # there is no pointing info
-                    #if abs(Livetime-Source_Livetime[entry2])/Source_Livetime[entry2]>0.5: continue
-                    if abs(Elev-Source_Elev[entry2])>4.: continue
-                    if abs(PedVar_DC-Source_PedVar_DC[entry2])>1.0: continue
-                    already_used = False
-                    for entry3 in range(0,len(List_Produced)):
-                        if int(List_Produced[entry3])==int(RunNumber): 
-                            print 'RunNumber %s is in the List_Produced'%(RunNumber)
-                            already_used = True
-                    for entry3 in range(0,len(List_Used)):
-                        if int(List_Used[entry3])==int(RunNumber): 
-                            #print 'RunNumber %s is in the List_Produced'%(RunNumber)
-                            already_used = True
-                    if already_used: continue
-                    List_Used += [RunNumber]
-                    List_Used_RA += [T1_RA]
-                    List_Used_Dec += [T1_Dec]
-                    found_matches += 1
-                    print 'Size of the list: %s / %s'%(len(List_Used),n_matches*len(Source_RunNumber))
+    #n_matches = 3
+    #for nth_sample in range(0,n_matches):
+    #    for entry2 in range(0,len(Source_RunNumber)):
+    #        found_matches = 0
+    #        entry_in_list = 0
+    #        if int(Source_RunNumber[entry2])<=36398: continue
+    #        for entry in range(0,len(List_RunNumber)):
+    #            RunNumber = List_RunNumber[entry]
+    #            if int(Source_RunNumber[entry2])==int(RunNumber):
+    #                entry_in_list = entry
+    #        for entry in range(0,len(List_RunNumber)):
+    #            if found_matches>=1: continue
+    #            for direction in range(0,2):
+    #                entry_plus = 0
+    #                if direction==0: entry_plus = entry_in_list+entry+1
+    #                else: entry_plus = entry_in_list-entry-1
+    #                if entry_plus<0: continue
+    #                if entry_plus>=len(List_RunNumber): continue
+    #                RunNumber = List_RunNumber[entry_plus]
+    #                Elev = List_Elev[entry_plus]
+    #                Azim = List_Azim[entry_plus]
+    #                T1_RA = List_T1_RA[entry_plus]
+    #                T1_Dec = List_T1_Dec[entry_plus]
+    #                T2_RA = List_T2_RA[entry_plus]
+    #                T2_Dec = List_T2_Dec[entry_plus]
+    #                T3_RA = List_T3_RA[entry_plus]
+    #                T3_Dec = List_T3_Dec[entry_plus]
+    #                T4_RA = List_T4_RA[entry_plus]
+    #                T4_Dec = List_T4_Dec[entry_plus]
+    #                PedVar_DC = List_PedVar_DC[entry_plus]
+    #                PedVar_PE = List_PedVar_PE[entry_plus]
+    #                L3_rate = List_L3_rate[entry_plus]
+    #                Livetime = List_Livetime[entry_plus]
+    #                if L3_rate<150.: continue
+    #                #if L3_rate>450.: continue
+    #                if Livetime<15.: continue
+    #                if V4:
+    #                    if int(RunNumber)<=36398: continue
+    #                    if int(RunNumber)>=46642: continue
+    #                if V5:
+    #                    if int(RunNumber)<46642: continue
+    #                    if int(RunNumber)>=63373: continue
+    #                if V6:
+    #                    if int(RunNumber)<63373: continue
+    #                if abs(float(T1_RA)-target_ra)<10. and abs(float(T1_Dec)-target_dec)<10.: continue
+    #                if abs(float(T2_RA)-target_ra)<10. and abs(float(T2_Dec)-target_dec)<10.: continue
+    #                if abs(float(T3_RA)-target_ra)<10. and abs(float(T3_Dec)-target_dec)<10.: continue
+    #                if abs(float(T4_RA)-target_ra)<10. and abs(float(T4_Dec)-target_dec)<10.: continue
+    #                if (T1_RA<Search_Range_RA[0]): continue
+    #                if (T1_RA>Search_Range_RA[1]): continue
+    #                if (T1_Dec<Search_Range_Dec[0]): continue
+    #                if (T1_Dec>Search_Range_Dec[1]): continue
+    #                if (T2_RA<Search_Range_RA[0]): continue
+    #                if (T2_RA>Search_Range_RA[1]): continue
+    #                if (T2_Dec<Search_Range_Dec[0]): continue
+    #                if (T2_Dec>Search_Range_Dec[1]): continue
+    #                if (T3_RA<Search_Range_RA[0]): continue
+    #                if (T3_RA>Search_Range_RA[1]): continue
+    #                if (T3_Dec<Search_Range_Dec[0]): continue
+    #                if (T3_Dec>Search_Range_Dec[1]): continue
+    #                if (T4_RA<Search_Range_RA[0]): continue
+    #                if (T4_RA>Search_Range_RA[1]): continue
+    #                if (T4_Dec<Search_Range_Dec[0]): continue
+    #                if (T4_Dec>Search_Range_Dec[1]): continue
+    #                if not (T1_RA==0. and T1_Dec==0.):
+    #                    gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
+    #                    if abs(gal_b)<10.: continue
+    #                    #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+    #                    if GetDistance(T1_RA,T1_Dec,83.633,22.014)<3.: continue  # Crab
+    #                    if GetDistance(T1_RA,T1_Dec,166.079,38.195)<3.: continue  # Mrk 421
+    #                    if GetDistance(T1_RA,T1_Dec,98.117,17.367)<3.: continue  # Geminga
+    #                elif not (T2_RA==0. and T2_Dec==0.):
+    #                    gal_l, gal_b = ConvertRaDecToGalactic(T2_RA,T2_Dec)
+    #                    if abs(gal_b)<10.: continue
+    #                    #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+    #                    if GetDistance(T2_RA,T2_Dec,83.633,22.014)<3.: continue  # Crab
+    #                    if GetDistance(T2_RA,T2_Dec,166.079,38.195)<3.: continue  # Mrk 421
+    #                    if GetDistance(T2_RA,T2_Dec,98.117,17.367)<3.: continue  # Geminga
+    #                elif not (T3_RA==0. and T3_Dec==0.):
+    #                    gal_l, gal_b = ConvertRaDecToGalactic(T3_RA,T3_Dec)
+    #                    if abs(gal_b)<10.: continue
+    #                    #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+    #                    if GetDistance(T3_RA,T3_Dec,83.633,22.014)<3.: continue  # Crab
+    #                    if GetDistance(T3_RA,T3_Dec,166.079,38.195)<3.: continue  # Mrk 421
+    #                    if GetDistance(T3_RA,T3_Dec,98.117,17.367)<3.: continue  # Geminga
+    #                elif not (T4_RA==0. and T4_Dec==0.):
+    #                    gal_l, gal_b = ConvertRaDecToGalactic(T4_RA,T4_Dec)
+    #                    if abs(gal_b)<10.: continue
+    #                    #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+    #                    if GetDistance(T4_RA,T4_Dec,83.633,22.014)<3.: continue  # Crab
+    #                    if GetDistance(T4_RA,T4_Dec,166.079,38.195)<3.: continue  # Mrk 421
+    #                    if GetDistance(T4_RA,T4_Dec,98.117,17.367)<3.: continue  # Geminga
+    #                else: continue # there is no pointing info
+    #                #if abs(Livetime-Source_Livetime[entry2])/Source_Livetime[entry2]>0.5: continue
+    #                #if abs(Elev-Source_Elev[entry2])>4.: continue
+    #                #if abs(PedVar_DC-Source_PedVar_DC[entry2])>1.0: continue
+    #                if Elev<Search_Elev[0]: continue
+    #                if Elev>Search_Elev[1]: continue
+    #                if PedVar_DC<Search_PedVar_DC[0]: continue
+    #                if PedVar_DC>Search_PedVar_DC[1]: continue
+    #                already_used = False
+    #                for entry3 in range(0,len(List_Produced)):
+    #                    if int(List_Produced[entry3])==int(RunNumber): 
+    #                        print 'RunNumber %s is in the List_Produced'%(RunNumber)
+    #                        already_used = True
+    #                for entry3 in range(0,len(List_Used)):
+    #                    if int(List_Used[entry3])==int(RunNumber): 
+    #                        #print 'RunNumber %s is in the List_Produced'%(RunNumber)
+    #                        already_used = True
+    #                if already_used: continue
+    #                List_Used += [RunNumber]
+    #                List_Used_RA += [T1_RA]
+    #                List_Used_Dec += [T1_Dec]
+    #                found_matches += 1
+    #                print 'Size of the list: %s / %s'%(len(List_Used),n_matches*len(Source_RunNumber))
 
         
 for entry in range(0,len(List_Used)):
@@ -696,8 +826,13 @@ plt.savefig("output_plots/RunDec.png")
 
 plt.clf()
 fig, ax = plt.subplots()
-plt.hist2d(List_Used_RA, List_Used_Dec, bins=(50, 50), cmap=plt.cm.Greys)
+hist, xbins, ybins, im = plt.hist2d(List_Used_RA, List_Used_Dec, range = [[0,360], [-90,90]], bins=(90, 45), cmap=plt.cm.Greys)
 plt.colorbar()
+for i in range(len(xbins)-1):
+    for j in range(len(ybins)-1):
+        if hist[i,j]>50:
+            print "counts %s, RA %s, Dec %s"%(hist[i,j],xbins[i],ybins[j])
+            #ax.text(xbins[i]+3.,ybins[j]+3.,hist[i,j],color="black", ha="center", va="center", fontweight="bold")
 ax.axis('on')
 ax.set_xlabel('RA')
 ax.set_ylabel('Dec')
