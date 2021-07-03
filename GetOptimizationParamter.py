@@ -27,8 +27,8 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 energy_bin_cut_low = 3
 energy_bin_cut_up = 4
 
-#N_bins_for_deconv = 16
-N_bins_for_deconv = 12
+N_bins_for_deconv = 16
+#N_bins_for_deconv = 12
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
@@ -159,7 +159,7 @@ lowrank_tag += 'elev_incl'
 #elev_bins = [45,55]
 #lowrank_tag += 'elev_45_55'
 
-theta2_bins = [0,9]
+theta2_bins = [0,4]
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]

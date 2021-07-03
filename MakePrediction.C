@@ -3485,7 +3485,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH1D> Hist_OnData_SR_Skymap_Theta2;
     vector<TH1D> Hist_OnData_CR_Skymap_Theta2;
     vector<TH1D> Hist_OnData_SR_Yoff;
+    vector<TH2D> Hist_OnData_SR_XYoff;
+    vector<TH2D> Hist_OnDark_SR_XYoff;
     vector<TH1D> Hist_OnData_CR_Yoff;
+    vector<TH2D> Hist_OnData_CR_XYoff;
     vector<TH1D> Hist_OnData_CR_Yoff_Raw;
     vector<TH1D> Hist_OnRFoV_CR_Skymap_Theta2;
     vector<TH1D> Hist_OnDark_CR_Skymap_Theta2;
@@ -3513,7 +3516,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_SR_Skymap_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_CR_Skymap_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_SR_Yoff.push_back(TH1D("Hist_OnData_SR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
+        Hist_OnData_SR_XYoff.push_back(TH2D("Hist_OnData_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,-3,3,12,-3,3));
+        Hist_OnDark_SR_XYoff.push_back(TH2D("Hist_OnDark_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,-3,3,12,-3,3));
         Hist_OnData_CR_Yoff.push_back(TH1D("Hist_OnData_CR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
+        Hist_OnData_CR_XYoff.push_back(TH2D("Hist_OnData_CR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,-3,3,12,-3,3));
         Hist_OnData_CR_Yoff_Raw.push_back(TH1D("Hist_OnData_CR_Yoff_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_OnRFoV_CR_Skymap_Theta2.push_back(TH1D("Hist_OnRFoV_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnDark_CR_Skymap_Theta2.push_back(TH1D("Hist_OnDark_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
@@ -3648,8 +3654,14 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnDark_CR_Skymap_Theta2.at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_SR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_OnData_SR_Yoff.at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
+        hist_name  = "Hist_Stage1_OnData_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+        Hist_OnData_SR_XYoff.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+        hist_name  = "Hist_Stage1_OnDark_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+        Hist_OnDark_SR_XYoff.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_CR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_OnData_CR_Yoff.at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
+        hist_name  = "Hist_Stage1_OnData_CR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+        Hist_OnData_CR_XYoff.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_CR_Yoff_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_OnData_CR_Yoff_Raw.at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -3901,6 +3913,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_CR_Zenith.at(e).Scale(scale);
         Hist_OnData_CR_Skymap_Theta2.at(e).Scale(scale);
         Hist_OnData_CR_Yoff.at(e).Scale(scale);
+        Hist_OnData_CR_XYoff.at(e).Scale(scale);
         Hist_OnData_CR_Yoff_Raw.at(e).Scale(scale);
         Hist_OnDark_CR_Skymap_Theta2.at(e).Scale(scale_dark);
         Hist_OnData_CR_Skymap.at(e).Scale(scale);
@@ -4358,7 +4371,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_SR_Skymap_Theta2.at(e).Write();
         Hist_OnData_CR_Skymap_Theta2.at(e).Write();
         Hist_OnData_SR_Yoff.at(e).Write();
+        Hist_OnData_SR_XYoff.at(e).Write();
+        Hist_OnDark_SR_XYoff.at(e).Write();
         Hist_OnData_CR_Yoff.at(e).Write();
+        Hist_OnData_CR_XYoff.at(e).Write();
         Hist_OnData_CR_Yoff_Raw.at(e).Write();
         Hist_OnRFoV_CR_Skymap_Theta2.at(e).Write();
         Hist_OnDark_CR_Skymap_Theta2.at(e).Write();

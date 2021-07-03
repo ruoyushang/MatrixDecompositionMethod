@@ -26,7 +26,8 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 target_energy_index = 1
-N_bins_for_deconv = 12
+N_bins_for_deconv = 16
+#N_bins_for_deconv = 12
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.5
@@ -91,7 +92,7 @@ sample_name += ['H1426 V6']
 
     
 elev_bins = [45,85]
-theta2_bins = [0,9]
+theta2_bins = [0,4]
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]

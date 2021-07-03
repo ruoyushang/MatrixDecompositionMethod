@@ -48,10 +48,10 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 3.0
 
 # MGRO J1908
-target_ra = 286.975
-target_dec = 6.269
-range_ra = 3.0
-range_dec = 3.0
+#target_ra = 286.975
+#target_dec = 6.269
+#range_ra = 3.0
+#range_dec = 3.0
 
 # Draco dSph
 #target_ra = 260.059729167
@@ -384,12 +384,12 @@ range_dec = 3.0
 #range_ra = 2.0
 #range_dec = 2.0
 
-#search_for_on_data = True
-search_for_on_data = False
+search_for_on_data = True
+#search_for_on_data = False
 
 V4 = False
-V5 = False
-V6 = True
+V5 = True
+V6 = False
 
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
