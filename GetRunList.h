@@ -17,7 +17,9 @@ vector<std::pair<string,int>> GetRunListFromFile(string source)
     std::string::size_type sz;
     vector<std::pair<string,int>> list;
 
-    ifstream myfile ("$SMI_DIR/runlist_backup/RunList_"+source+".txt");
+    string SMI_DIR;
+    SMI_DIR = string(std::getenv("SMI_DIR"));
+    ifstream myfile (SMI_DIR+"/runlist_backup/RunList_"+source+".txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
