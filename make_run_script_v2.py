@@ -1,4 +1,7 @@
 
+import os
+SMI_DIR = os.environ['SMI_DIR']
+SMI_OUTPUT = os.environ['SMI_OUTPUT']
 
 source = []
 mjd_cut = []
@@ -9,8 +12,7 @@ gamma_model = []
 #epoch_bins = [53613,55074,56535,57996,59457]
 epoch_bins = [0,0]
 
-folder = 'output_root'
-#folder = 'output_test'
+folder = '%s'%(SMI_OUTPUT)
 rank = 3
 MSCW_cut = 0.3
 MSCL_cut = 0.3
@@ -1016,8 +1018,8 @@ job_counts = 0
 for s in range(0,len(source)):
     job_counts += 1
     file = open("run/run_Netflix1_%s_MJD%sto%s_%s.sh"%(source[s],mjd_cut[s][0],mjd_cut[s][1],folder),"w") 
-    file.write('cd /home/rshang/EventDisplay/MatrixDecompositionMethod\n')
-    file.write('source /home/rshang/EventDisplay/setup_env.sh\n')
+    file.write('cd %s\n'%(SMI_DIR))
+    file.write('source setup_env.sh\n')
     file.write('rm -r %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
     file.write('mkdir %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
     file.write('cp GetRunList.h %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
@@ -1106,8 +1108,8 @@ job_counts = 0
 for s in range(0,len(source)):
     job_counts += 1
     file = open("run/run_Netflix2_%s_MJD%sto%s_%s.sh"%(source[s],mjd_cut[s][0],mjd_cut[s][1],folder),"w") 
-    file.write('cd /home/rshang/EventDisplay/MatrixDecompositionMethod\n')
-    file.write('source /home/rshang/EventDisplay/setup_env.sh\n')
+    file.write('cd %s\n'%(SMI_DIR))
+    file.write('source setup_env.sh\n')
     file.write('rm -r %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
     file.write('mkdir %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
     file.write('cp GetRunList.h %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
@@ -1148,8 +1150,8 @@ for s in range(0,len(source)):
 qfile.close() 
 
 file = open("run/run_ObservingEffect.sh","w") 
-file.write('cd /home/rshang/EventDisplay/MatrixDecompositionMethod\n')
-file.write('source /home/rshang/EventDisplay/setup_env.sh\n')
+file.write('cd %s\n'%(SMI_DIR))
+file.write('source setup_env.sh\n')
 file.write('rm -r %s/ObservingEffect\n'%(folder))
 file.write('mkdir %s/ObservingEffect\n'%(folder))
 file.write('cp GetRunList.h %s/ObservingEffect\n'%(folder))
