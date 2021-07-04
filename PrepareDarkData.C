@@ -1340,11 +1340,8 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         {
             int number_of_search = 0;
             double accumulated_count = 0.;
-            //double threshold_dNSB = 0.5;
-            //double threshold_dElev = 5.0;
-            //double threshold_dMJD = 3.*365.;
-            //double threshold_dL3Rate = 0.1;
-            //double threshold_dTime = 15.*60.;
+            double offset_NSB = 0.;
+            double offset_Elev = 0.;
             double threshold_dNSB = 0.5;
             double threshold_dElev = 2.0;
             double threshold_dMJD = 3.*365.;
@@ -1393,17 +1390,17 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
 
                     found_match = true;
                     //double chi2 = pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2);
-                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                    //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
+                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first-offset_Elev,2);
+                    //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run]-offset_NSB,2);
                     if (ON_NSB[on_run]==0.)
                     {
                         chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
                     }
-                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2)>threshold_dElev*threshold_dElev)
+                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first-offset_Elev,2)>threshold_dElev*threshold_dElev)
                     {
                         found_match = false;
                     }
-                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run],2)>threshold_dNSB*threshold_dNSB)
+                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run]-offset_NSB,2)>threshold_dNSB*threshold_dNSB)
                     {
                         found_match = false;
                     }

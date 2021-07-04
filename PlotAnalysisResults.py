@@ -651,7 +651,7 @@ for elev in range(0,len(elev_range)-1):
         for d in range(0,len(mjd_tag)):
             root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]
 
-print 'Get %s'%(root_file_tags[0])
+print ('Get %s'%(root_file_tags[0]))
 
 #for elev in range(0,len(elev_range)-1):
 #    # all time
@@ -674,8 +674,7 @@ print 'Get %s'%(root_file_tags[0])
 
 selection_tag = root_file_tags[0]
 
-#folder_path = 'output_test'
-folder_path = 'output_root'
+folder_path = 'output_nominal'
 PercentCrab = ''
 
 selection_tag += '_%s'%(folder_path)
@@ -847,13 +846,13 @@ def GetBrightStarInfo(file_path):
     global faint_star_dec
     global faint_star_brightness
 
-    print 'Read file: %s'%(file_path)
+    print ('Read file: %s'%(file_path))
     if not os.path.isfile(file_path): 
-        print 'No such a file!'
+        print ('No such a file!')
         return
     InputFile = ROOT.TFile(file_path)
     StarTree = InputFile.Get("StarTree")
-    print 'StarTree.GetEntries() = %s'%(StarTree.GetEntries())
+    print ('StarTree.GetEntries() = %s'%(StarTree.GetEntries()))
     for entry in range(0,StarTree.GetEntries()):
         StarTree.GetEntry(entry)
         distance_to_center = pow(pow(source_ra-StarTree.star_ra,2)+pow(source_dec-StarTree.star_dec,2),0.5)
@@ -1039,7 +1038,7 @@ def GetSourceInfo(file_list):
     NSB_RMS_data = 0.
     Zenith_RMS_data = 0.
     for path in range(0,len(file_list)):
-        print 'Read file: %s'%(file_list[path])
+        print ('Read file: %s'%(file_list[path]))
         if not os.path.isfile(file_list[path]):continue
         InputFile = ROOT.TFile(file_list[path])
         InfoTree = InputFile.Get("InfoTree")
@@ -1069,7 +1068,7 @@ def GetSourceInfo(file_list):
         #MSCL_plot_lower = InfoTree.MSCL_plot_lower
         Skymap_size = InfoTree.Skymap_size
         Skymap_nbins = InfoTree.Skymap_nbins
-        Skymap_nbins = Skymap_nbins/n_rebins
+        Skymap_nbins = int(Skymap_nbins/n_rebins)
         source_ra = InfoTree.mean_tele_point_ra
         source_dec = InfoTree.mean_tele_point_dec
         source_l = InfoTree.mean_tele_point_l
@@ -1147,28 +1146,28 @@ def GetShowerHistogramsFromFile(FilePath):
     ErecS_upper_cut_int = int(ErecS_upper_cut)
 
     HistName = "Hist_OnData_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    print 'Getting histogram %s'%(HistName)
+    print ('Getting histogram %s'%(HistName))
     Hist2D_OnData.Reset()
     Hist2D_OnData.Add(InputFile.Get(HistName))
     #HistTemp = MergeHistogram(Hist2D_OnData,InputFile.Get(HistName))
     #Hist2D_OnData.Add(HistTemp)
 
     HistName = "Hist_OnDark_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    print 'Getting histogram %s'%(HistName)
+    print ('Getting histogram %s'%(HistName))
     Hist2D_OnDark.Reset()
     Hist2D_OnDark.Add(InputFile.Get(HistName))
     #HistTemp = MergeHistogram(Hist2D_OnDark,InputFile.Get(HistName))
     #Hist2D_OnDark.Add(HistTemp)
 
     HistName = "Hist_OnBkgd_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    print 'Getting histogram %s'%(HistName)
+    print ('Getting histogram %s'%(HistName))
     Hist2D_OnBkgd.Reset()
     Hist2D_OnBkgd.Add(InputFile.Get(HistName))
     #HistTemp = MergeHistogram(Hist2D_OnBkgd,InputFile.Get(HistName))
     #Hist2D_OnBkgd.Add(HistTemp)
 
     HistName = "Hist_Gamma_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    print 'Getting histogram %s'%(HistName)
+    print ('Getting histogram %s'%(HistName))
     Hist2D_OnGamma.Reset()
     Hist2D_OnGamma.Add(InputFile.Get(HistName))
     #HistTemp = MergeHistogram(Hist2D_OnGamma,InputFile.Get(HistName))
@@ -1447,7 +1446,7 @@ def GetShowerHistogramsFromFile(FilePath):
     for nth_sample in range(0,n_control_samples):
 
         HistName = "Hist_OffData2_MSCLW_V%s_ErecS%sto%s"%(nth_sample,ErecS_lower_cut_int,ErecS_upper_cut_int)
-        print 'Getting histogram %s'%(HistName)
+        print ('Getting histogram %s'%(HistName))
         Hist2D_OffData[nth_sample].Reset()
         Hist2D_OffData[nth_sample].Add(InputFile.Get(HistName))
         #HistTemp = MergeHistogram(Hist2D_OffData[nth_sample],InputFile.Get(HistName))
@@ -2117,7 +2116,7 @@ def MakeSpectrumInNonCrabUnitE2(hist_data,hist_bkgd,legends,title,name,syst):
         func_1908.Draw("same")
     # IC 443 https://arxiv.org/pdf/0905.3291.pdf
     if 'IC443' in name:
-        print 'Compare to official IC 443 flux...'
+        print ('Compare to official IC 443 flux...')
         func_ic443 = ROOT.TF1("func_ic443","pow(x/1000.,2)*[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
         func_ic443.SetParameters(0.838,-2.99)
         func_ic443.SetLineColor(4)
@@ -2237,7 +2236,7 @@ def MakeSpectrumInNonCrabUnit(hist_data,hist_bkgd,legends,title,name,syst):
         func_1908.Draw("same")
     # IC 443 https://arxiv.org/pdf/0905.3291.pdf
     if 'IC443' in name:
-        print 'Compare to official IC 443 flux...'
+        print ('Compare to official IC 443 flux...')
         func_ic443 = ROOT.TF1("func_ic443","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
         func_ic443.SetParameters(0.838,-2.99)
         func_ic443.SetLineColor(4)
@@ -2437,7 +2436,7 @@ def MakeLightCurvePlot(Hist_data,Hist_bkgd,legends,colors,title,name):
             significance = Hist_ratio_mjd[roi].GetBinContent(binx+1)/Hist_ratio_mjd[roi].GetBinError(binx+1)
             if significance<4.0: continue
             if Hist_ratio_mjd[roi].GetBinContent(binx+1)>ratio_threshold:
-                print '>%s Crab, bin edge: %s, %s'%(ratio_threshold,Hist_ratio_mjd[roi].GetBinLowEdge(binx+1),Hist_ratio_mjd[roi].GetBinLowEdge(binx+2))
+                print ('>%s Crab, bin edge: %s, %s'%(ratio_threshold,Hist_ratio_mjd[roi].GetBinLowEdge(binx+1),Hist_ratio_mjd[roi].GetBinLowEdge(binx+2)))
 
         pads[0].cd()
         Hist_ratio_mjd[roi].SetLineColor(1)
@@ -3600,7 +3599,7 @@ def StackSkymapHistograms(ebin):
 
     #Syst_MDM_single = CalculateSystErrorIndividual_v3()
     Syst_MDM_single = Syst_MDM
-    print 'Syst_MDM_single = %s'%(Syst_MDM_single)
+    print ('Syst_MDM_single = %s'%(Syst_MDM_single))
 
     Hist_Syst_Energy_Skymap[ebin].Scale(Syst_MDM_single)
 
@@ -4208,12 +4207,12 @@ def VariableSkymapBins(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_input,
         skymap_bin_size_x = Hist_SR.GetXaxis().GetBinCenter(2)-Hist_SR.GetXaxis().GetBinCenter(1)
         skymap_bin_size_y = Hist_SR.GetYaxis().GetBinCenter(2)-Hist_SR.GetYaxis().GetBinCenter(1)
         list_binsize += [skymap_bin_size_x]
-        print 'syst_method = %s, nbins = %s, nbins_5sigma = %s, max_sigma = %0.2f'%(syst_method,nbins,nbins_5sigma,max_sigma)
+        print ('syst_method = %s, nbins = %s, nbins_5sigma = %s, max_sigma = %0.2f'%(syst_method,nbins,nbins_5sigma,max_sigma))
         if nbins==1:
             total_data = Hist_SR.GetBinContent(1,1)
             total_bkgd = Hist_Bkg.GetBinContent(1,1)
             total_syst = Hist_Syst.GetBinContent(1,1)
-            print 'total_data = %0.2f, total_bkgd = %0.2f, total_syst = %0.2f'%(total_data,total_bkgd,total_syst)
+            print ('total_data = %0.2f, total_bkgd = %0.2f, total_syst = %0.2f'%(total_data,total_bkgd,total_syst))
         if max_nbins_5sigma<nbins_5sigma:
             max_nbins_5sigma = nbins_5sigma
             best_nbins = nbins
@@ -4789,7 +4788,7 @@ def GetExtention(Hist_data, Hist_bkgd, Hist_sig, Hist_exposure, highlight_thresh
     xx, yy, zz = ROOT.Long(0), ROOT.Long(0), ROOT.Long(0)
     maxbin = Hist_Excess.GetMaximumBin()
     Hist_Excess.GetBinXYZ(maxbin, xx, yy, zz)
-    print 'max excess at %s, %s'%(Hist_Excess.GetXaxis().GetBinCenter(xx),Hist_Excess.GetYaxis().GetBinCenter(yy))
+    print ('max excess at %s, %s'%(Hist_Excess.GetXaxis().GetBinCenter(xx),Hist_Excess.GetYaxis().GetBinCenter(yy)))
     excess_center_x_init = Hist_Excess.GetXaxis().GetBinCenter(xx)
     excess_center_y_init = Hist_Excess.GetYaxis().GetBinCenter(yy)
 
@@ -4806,7 +4805,7 @@ def GetExtention(Hist_data, Hist_bkgd, Hist_sig, Hist_exposure, highlight_thresh
     if total_mass>0.: total_mass_distance = pow(total_mass_distance/total_mass,0.5)
     else: total_mass_distance = 0.
     excess_radius_init = total_mass_distance
-    print 'excess_radius_init = %s'%(excess_radius_init)
+    print ('excess_radius_init = %s'%(excess_radius_init))
 
     Hist_Excess.Reset()
     Hist_Excess.Add(Hist_data)
@@ -5318,13 +5317,6 @@ def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
     Hist.GetYaxis().SetTitle(title_y)
     Hist.Draw("E")
 
-    #print 'plot max_chi2_diff2_position_this_energy = %0.3f'%(max_chi2_diff2_position_this_energy)
-    #myline = ROOT.TLine(max_chi2_diff2_position_this_energy,0.,max_chi2_diff2_position_this_energy,100.)
-    #myline.SetLineStyle(1)
-    #myline.SetLineColor(2)
-    #myline.SetLineWidth(2)
-    #myline.Draw("same")
-
     if Hist.GetXaxis().GetLabelOffset()==999:
         x1 = Hist.GetXaxis().GetXmin()
         x2 = Hist.GetXaxis().GetXmax()
@@ -5358,7 +5350,7 @@ def MakeAccumulatedSignificancePlot(hist_data,hist_bkgd,hist_syst,direction,titl
             bkgd = hist_bkgd.Integral(binx+1,hist_data.GetNbinsX())
             syst = hist_syst_content.Integral(binx+1,hist_data.GetNbinsX())
         sig = CalculateSignificance(data-bkgd,bkgd,syst)
-        print 'data = %0.2f, bkgd = %0.2f, syst = %0.2f, sig = %0.2f'%(data,bkgd,syst,sig)
+        print ('data = %0.2f, bkgd = %0.2f, syst = %0.2f, sig = %0.2f'%(data,bkgd,syst,sig))
         hist_sig.SetBinContent(binx+1,sig)
         hist_sig.SetBinError(binx+1,0.)
     MakeOneHistPlot(hist_sig,title_x,title_y,'%s_%s'%(name,selection_tag),False)
@@ -5469,7 +5461,7 @@ def SystematicAnalysis():
     for elev in range(0,len(root_file_tags)):
         FilePath = "%s/Netflix_"%(folder_path)+"Syst_%s"%(root_file_tags[elev])+".root"
         FilePath_List += [FilePath]
-        print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
+        print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
         if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
         InputFile = ROOT.TFile(FilePath_List[len(FilePath_List)-1])
         InfoTree = InputFile.Get("InfoTree")
@@ -5732,14 +5724,14 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
     ResetStackedShowerHistograms()
     FilePath = "%s/Netflix_"%(folder_path)+source_list[0]+"_%s"%(root_file_tags[0])+".root"
     GetBrightStarInfo(FilePath)
-    print 'len(bright_star_ra) = %s'%(len(bright_star_ra))
+    print ('len(bright_star_ra) = %s'%(len(bright_star_ra)))
     for source in range(0,len(source_list)):
         source_name = source_list[source]
         for elev in range(0,len(root_file_tags)):
             FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+".root"
             FilePath_List += [FilePath]
             if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
-            print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
+            print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
             InputFile = ROOT.TFile(FilePath_List[len(FilePath_List)-1])
             InfoTree = InputFile.Get("InfoTree")
             InfoTree.GetEntry(0)
@@ -5754,7 +5746,7 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
                 max_chi2_diff2_position_this_energy = max_chi2_diff2_position[e]
                 ErecS_lower_cut = energy_bin[e]
                 ErecS_upper_cut = energy_bin[e+1]
-                print 'max_chi2_diff2_position_this_energy = %0.3f'%(max_chi2_diff2_position_this_energy)
+                print ('max_chi2_diff2_position_this_energy = %0.3f'%(max_chi2_diff2_position_this_energy))
                 if ErecS_upper_cut<=energy_bin[energy_bin_cut_low]: continue
                 if ErecS_lower_cut>=energy_bin[energy_bin_cut_up]: continue
                 Syst_MDM = energy_syst[e]
@@ -5855,22 +5847,13 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
         MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_Syst_Energy_Skymap,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),12,1)
         MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_Syst_Energy_Skymap,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s_zoomin'%(source_name,PercentCrab),30,3)
 
-    print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+    print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     init_x = source_ra
     init_y = source_dec
     excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,Hist_Exposure_Skymap_smooth,2,init_x,init_y)
-    print 'Excess (2 sigma) center RA = %0.3f'%(excess_center_x)
-    print 'Excess (2 sigma) center Dec = %0.3f'%(excess_center_y)
-    print 'Excess (2 sigma) radius = %0.3f'%(excess_radius)
-    #for ebin in range(0,len(energy_bin)-1):
-    #    print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-    #    init_x = source_ra
-    #    init_y = source_dec
-    #    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_Data_Energy_Skymap_smooth[ebin],Hist_Bkgd_Energy_Skymap_smooth[ebin],Hist_Significance_Skymap_smooth,Hist_Expo_Energy_Skymap[ebin],2,init_x,init_y)
-    #    print 'Energy %0.1f GeV'%(energy_bin[ebin])
-    #    print 'Excess (2 sigma) center RA = %0.3f'%(excess_center_x)
-    #    print 'Excess (2 sigma) center Dec = %0.3f'%(excess_center_y)
-    #    print 'Excess (2 sigma) radius = %0.3f'%(excess_radius)
+    print ('Excess (2 sigma) center RA = %0.3f'%(excess_center_x))
+    print ('Excess (2 sigma) center Dec = %0.3f'%(excess_center_y))
+    print ('Excess (2 sigma) radius = %0.3f'%(excess_radius))
 
 def FindSourceIndex(source_name):
     for source in range(0,len(sample_list)):
@@ -5894,21 +5877,21 @@ for source in range(0,len(sample_list)):
     for elev in range(0,len(root_file_tags)):
         SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+".root"
         FilePath_Folder += [SourceFilePath]
-        print 'Get %s...'%(FilePath_Folder[elev])
+        print ('Get %s...'%(FilePath_Folder[elev]))
         if not os.path.isfile(FilePath_Folder[elev]): 
-            print 'Found no file!!'
+            print ('Found no file!!')
             continue
         else:
-            print 'Found a file.'
+            print ('Found a file.')
             GetSourceInfo(FilePath_Folder)
     MakeOneHistPlot(Hist_NSB,'NSB','number of runs','NSB_%s'%(sample_list[source]),False)
     MakeOneHistPlot(Hist_L3Rate,'L3 rate','number of runs','L3Rate_%s'%(sample_list[source]),False)
     MakeOneHistPlot(Hist_L3Rate_all,'L3 rate','number of runs','L3Rate_all_%s'%(sample_list[source]),False)
 
-print 'analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut)
+print ('analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut))
 MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
 MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
-print 'plot range: MSCL = %s, MSCW = %s'%(MSCL_plot_upper,MSCW_plot_upper)
+print ('plot range: MSCL = %s, MSCW = %s'%(MSCL_plot_upper,MSCW_plot_upper))
 
 Hist2D_OnData_Sum = ROOT.TH2D("Hist2D_OnData_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnBkgd_Sum = ROOT.TH2D("Hist2D_OnBkgd_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -6086,18 +6069,18 @@ Hist_SystErr_Theta2 = ROOT.TH1D("Hist_SystErr_Theta2","",50,0,10)
 Hist_CR_Counts_MSCW = ROOT.TH1D("Hist_CR_Counts_MSCW","",6,0,6)
 Hist_CR_Counts_MSCL = ROOT.TH1D("Hist_CR_Counts_MSCL","",6,0,6)
 
-print 'MJD_Start = %s'%(MJD_Start)
+print ('MJD_Start = %s'%(MJD_Start))
 time = Time(MJD_Start, format='mjd')
 time.format = 'decimalyear'
 year_start = time.value
-print 'MJD_End = %s'%(MJD_End)
+print ('MJD_End = %s'%(MJD_End))
 time = Time(MJD_End, format='mjd')
 time.format = 'decimalyear'
 year_end = time.value
-print 'year_start = %s'%(year_start)
-print 'year_end = %s'%(year_end)
-print 'roi_ra = %s'%(roi_ra[0])
-print 'roi_dec = %s'%(roi_dec[0])
+print ('year_start = %s'%(year_start))
+print ('year_end = %s'%(year_end))
+print ('roi_ra = %s'%(roi_ra[0]))
+print ('roi_dec = %s'%(roi_dec[0]))
 Hist_OnData_RoI_Energy_Sum = [] 
 Hist_OnBkgd_RoI_Energy_Sum = [] 
 Hist_OnData_RoI_Energy = [] 
@@ -6186,9 +6169,3 @@ SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,5,6)
 
-print 'n_good_matches = %s'%(n_good_matches)
-
-print "Syst_MDM = %s"%(Syst_MDM) 
-print "Syst_Init = %s"%(Syst_Init) 
-print "Syst_Redu = %s"%(Syst_Redu) 
-print "Syst_Clos = %s"%(Syst_Clos) 
