@@ -41,8 +41,8 @@ ClassImp(TSpline);
 #include <math.h>
 #include <complex>
 #include <cmath>
-#include "$EIGEN_HEAD/Eigen/Dense"
-#include "$EIGEN_HEAD/Eigen/StdVector"
+#include "/u/home/r/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
+#include "/u/home/r/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
 using namespace Eigen;
 
 #include "PrepareDarkData.C"
