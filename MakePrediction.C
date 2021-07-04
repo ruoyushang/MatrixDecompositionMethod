@@ -659,10 +659,10 @@ double BlindedChi2(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_model, TH2D* his
             //weight = 1./(data_err*data_err+model_err*model_err);
             //weight = 1./(data_err*data_err);
             double chi2_this = weight*pow(data-model,2);
-            if (isnan(chi2_this))
+            if (std::isnan(chi2_this))
             {
-                if (isnan(weight)) std::cout << "weight==nan!!!" << std::endl;
-                if (isnan(pow(data-model,2))) std::cout << "pow(data-model,2)==nan!!!" << std::endl;
+                if (std::isnan(weight)) std::cout << "weight==nan!!!" << std::endl;
+                if (std::isnan(pow(data-model,2))) std::cout << "pow(data-model,2)==nan!!!" << std::endl;
                 std::cout << "model = " << model << std::endl;
                 std::cout << "data = " << data << std::endl;
                 return 1e10;
@@ -2730,7 +2730,7 @@ bool CheckIfEigenvalueMakeSense(MatrixXcd mtx_input, double init_chi2, int rank,
     //    std::cout << "break (chi2 increasing.)" << std::endl;
     //    return false;
     //}
-    if (isnan(current_chi2))
+    if (std::isnan(current_chi2))
     {
         std::cout << "break (chi2 is nan.)" << std::endl;
         return false;
