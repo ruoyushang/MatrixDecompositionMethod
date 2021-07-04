@@ -1017,7 +1017,7 @@ gamma += [0]
 job_counts = 0
 for s in range(0,len(source)):
     job_counts += 1
-    file = open("run/run_Netflix1_%s_MJD%sto%s_%s.sh"%(source[s],mjd_cut[s][0],mjd_cut[s][1],folder),"w") 
+    file = open("run/run_Netflix1_%s_MJD%sto%s.sh"%(source[s],mjd_cut[s][0],mjd_cut[s][1]),"w") 
     file.write('cd %s\n'%(SMI_DIR))
     file.write('source setup_env.sh\n')
     file.write('rm -r %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
@@ -1046,7 +1046,7 @@ job_counts = 0
 qfile = open("run/qsub_Netflix1.sh","w") 
 for s in range(0,len(source)):
     job_counts += 1
-    qfile.write('qsub -V -N job_%s run_Netflix1_%s_MJD%sto%s_%s.sh\n'%(source[s],source[s],mjd_cut[s][0],mjd_cut[s][1],folder))
+    qfile.write('qsub -V -N job_%s run_Netflix1_%s_MJD%sto%s.sh\n'%(source[s],source[s],mjd_cut[s][0],mjd_cut[s][1]))
     qfile.write('sleep 30s\n')
     #qfile.write('qsub -l nodes=1:gamma5:ppn=1 -V -N job_%s run_Netflix1_%s_MJD%sto%s_%s.sh\n'%(source[s],source[s],mjd_cut[s][0],mjd_cut[s][1],folder))
 qfile.close() 
@@ -1107,7 +1107,7 @@ qfile.close()
 job_counts = 0
 for s in range(0,len(source)):
     job_counts += 1
-    file = open("run/run_Netflix2_%s_MJD%sto%s_%s.sh"%(source[s],mjd_cut[s][0],mjd_cut[s][1],folder),"w") 
+    file = open("run/run_Netflix2_%s_MJD%sto%s.sh"%(source[s],mjd_cut[s][0],mjd_cut[s][1]),"w") 
     file.write('cd %s\n'%(SMI_DIR))
     file.write('source setup_env.sh\n')
     file.write('rm -r %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
@@ -1134,7 +1134,7 @@ qfile = open("run/qsub_Netflix2.sh","w")
 for s in range(0,len(source)):
     job_counts += 1
     #if not for_syst[s]: continue
-    qfile.write('qsub -V -N job_%s run_Netflix2_%s_MJD%sto%s_%s.sh\n'%(source[s],source[s],mjd_cut[s][0],mjd_cut[s][1],folder))
+    qfile.write('qsub -V -N job_%s run_Netflix2_%s_MJD%sto%s.sh\n'%(source[s],source[s],mjd_cut[s][0],mjd_cut[s][1]))
     qfile.write('sleep 5s\n')
     #qfile.write('qsub -l nodes=1:gamma5:ppn=1 -V -N job_%s run_Netflix2_%s_MJD%sto%s_%s.sh\n'%(source[s],source[s],mjd_cut[s][0],mjd_cut[s][1],folder))
 qfile.close() 
@@ -1145,7 +1145,7 @@ for s in range(0,len(source)):
     if job_counts==7:
         job_counts = 0
         qfile.write('wait\n')
-    qfile.write('sh run_Netflix1_%s_MJD%sto%s_%s.sh &\n'%(source[s],mjd_cut[s][0],mjd_cut[s][1],folder))
+    qfile.write('sh run_Netflix1_%s_MJD%sto%s.sh &\n'%(source[s],mjd_cut[s][0],mjd_cut[s][1]))
     job_counts += 1
 qfile.close() 
 
