@@ -28,14 +28,14 @@
 #include "TBranch.h"
 #include "TRandom.h"
 
-#include "/home/rshang/EventDisplay/EVNDISP-480e/inc/VEvndispRunParameter.h"
+#include "$EVNDISP_HEAD/VEvndispRunParameter.h"
 
 #include "GetRunList.h"
 #include "NetflixParameters.h"
 
 #include <complex>
-#include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
-#include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
+#include "$EIGEN_HEAD/Eigen/Dense"
+#include "$EIGEN_HEAD/Eigen/StdVector"
 using namespace Eigen;
 
 double TelElev_lower = 70.;
@@ -564,8 +564,7 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    //ifstream myfile ("/home/rshang/EventDisplay/NewBkgMethodExtendedSource/allrunsdiagnostic.txt");
-    ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/diagnostics.txt");
+    ifstream myfile ("$SMI_DIR/diagnostics.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -618,7 +617,7 @@ int RunTypeCategory(int run_number, bool doPrint)
     std::string::size_type sz;
     int runtype = 2;
 
-    ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/category_allruns.txt");
+    ifstream myfile ("$SMI_DIR/category_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -693,7 +692,7 @@ double GetRunL3Rate(int run_number)
     std::string::size_type sz;
     double L3_rate = 0.;
 
-    ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/L3rate_allruns.txt");
+    ifstream myfile ("$SMI_DIR/L3rate_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -749,7 +748,7 @@ double GetRunUsableTime(int run_number)
     std::string::size_type sz;
     double usable_time = 0.;
 
-    ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/usable_time_allruns.txt");
+    ifstream myfile ("$SMI_DIR/usable_time_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -819,7 +818,7 @@ vector<pair<double,double>> GetRunTimecuts(int run_number)
     int nth_delimiter = 0;
     std::string::size_type sz;
 
-    ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/timecuts_allruns.txt");
+    ifstream myfile ("$SMI_DIR/timecuts_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -1502,8 +1501,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
 
 void GetGammaSources()
 {
-    std::ifstream astro_file("/home/rshang/EventDisplay/MatrixDecompositionMethod/TeVCat_RaDec.txt");
-    //std::ifstream astro_file("/home/rshang/EventDisplay/MatrixDecompositionMethod/TeVCat_RaDec_Strong.txt");
+    std::ifstream astro_file("$SMI_DIR/TeVCat_RaDec.txt");
     std::string line;
     // Read one line at a time into the variable line:
     while(std::getline(astro_file, line))
@@ -1528,7 +1526,7 @@ void GetGammaSources()
 
 void GetBrightStars()
 {
-    std::ifstream astro_file("/home/rshang/EventDisplay/aux/AstroData/Catalogues/Hipparcos_MAG8_1997.dat");
+    std::ifstream astro_file("$SMI_DIR/Hipparcos_MAG8_1997.dat");
     std::string line;
     // Read one line at a time into the variable line:
     while(std::getline(astro_file, line))
