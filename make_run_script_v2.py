@@ -2,7 +2,7 @@
 import os
 SMI_DIR = os.environ['SMI_DIR']
 SMI_OUTPUT = os.environ['SMI_OUTPUT']
-CONDA_DIR = os.environ['CONDA_DIR']
+#CONDA_DIR = os.environ['CONDA_DIR']
 
 source = []
 mjd_cut = []
