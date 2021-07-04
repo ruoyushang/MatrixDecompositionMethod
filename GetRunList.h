@@ -17,8 +17,7 @@ vector<std::pair<string,int>> GetRunListFromFile(string source)
     std::string::size_type sz;
     vector<std::pair<string,int>> list;
 
-    //ifstream myfile ("/home/rshang/EventDisplay/NewBkgMethodExtendedSource/RunList_"+source+".txt");
-    ifstream myfile ("/home/rshang/EventDisplay/MatrixDecompositionMethod/runlist_backup/RunList_"+source+".txt");
+    ifstream myfile ("$SMI_DIR/runlist_backup/RunList_"+source+".txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
