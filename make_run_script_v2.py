@@ -1142,7 +1142,7 @@ for s in range(0,len(source)):
     file.write('#$ -o joblog.$JOB_ID\n')
     file.write('#$ -j y\n')
     file.write('## Edit the line below as needed:\n')
-    file.write('#$ -l h_rt=2:00:00,h_data=1G\n')
+    file.write('#$ -l h_rt=0:30:00,h_data=1G\n')
     file.write('## Modify the parallel environment\n')
     file.write('## and the number of cores as needed:\n')
     file.write('#$ -pe shared 1\n')
