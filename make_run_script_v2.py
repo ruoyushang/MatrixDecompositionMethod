@@ -1018,12 +1018,10 @@ job_counts = 0
 for s in range(0,len(source)):
     job_counts += 1
     file = open("run/run_Netflix1_%s_MJD%sto%s.sh"%(source[s],mjd_cut[s][0],mjd_cut[s][1]),"w") 
-    file.write('qrsh -l h_rt=2:00:00,h_data=4g\n')
-    file.write('module load anaconda3\n')
     file.write('source $CONDA_DIR/etc/profile.d/conda.sh\n')
     file.write('conda activate root_env\n')
     file.write('cd %s\n'%(SMI_DIR))
-    file.write('source setup_env.sh\n')
+    file.write('source %s/setup_env.sh\n'%(SMI_DIR))
     file.write('rm -r %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
     file.write('mkdir %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
     file.write('cp GetRunList.h %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
@@ -1112,12 +1110,10 @@ job_counts = 0
 for s in range(0,len(source)):
     job_counts += 1
     file = open("run/run_Netflix2_%s_MJD%sto%s.sh"%(source[s],mjd_cut[s][0],mjd_cut[s][1]),"w") 
-    file.write('qrsh -l h_rt=2:00:00,h_data=4g\n')
-    file.write('module load anaconda3\n')
     file.write('source $CONDA_DIR/etc/profile.d/conda.sh\n')
     file.write('conda activate root_env\n')
     file.write('cd %s\n'%(SMI_DIR))
-    file.write('source setup_env.sh\n')
+    file.write('source %s/setup_env.sh\n'%(SMI_DIR))
     file.write('rm -r %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
     file.write('mkdir %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
     file.write('cp GetRunList.h %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
@@ -1158,12 +1154,10 @@ for s in range(0,len(source)):
 qfile.close() 
 
 file = open("run/run_ObservingEffect.sh","w") 
-file.write('qrsh -l h_rt=2:00:00,h_data=4g\n')
-file.write('module load anaconda3\n')
 file.write('source $CONDA_DIR/etc/profile.d/conda.sh\n')
 file.write('conda activate root_env\n')
 file.write('cd %s\n'%(SMI_DIR))
-file.write('source setup_env.sh\n')
+file.write('source %s/setup_env.sh\n'%(SMI_DIR))
 file.write('rm -r %s/ObservingEffect\n'%(folder))
 file.write('mkdir %s/ObservingEffect\n'%(folder))
 file.write('cp GetRunList.h %s/ObservingEffect\n'%(folder))
