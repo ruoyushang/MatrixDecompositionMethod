@@ -105,6 +105,10 @@ vector<vector<double>> GammaSource_Data;
 vector<vector<double>> Dark_weight;
 vector<bool> did_i_find_a_match;
 
+string SMI_INPUT;
+string SMI_OUTPUT;
+string SMI_DIR;
+
 double GetCrabFlux(double energy_gev)
 {
     double flux = 3.75*pow(10,-7)*pow(energy_gev/1000.,-2.467-0.16*log(energy_gev/1000.));
@@ -564,7 +568,7 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    ifstream myfile ("$SMI_DIR/diagnostics.txt");
+    ifstream myfile (SMI_DIR+"/diagnostics.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -617,7 +621,7 @@ int RunTypeCategory(int run_number, bool doPrint)
     std::string::size_type sz;
     int runtype = 2;
 
-    ifstream myfile ("$SMI_DIR/category_allruns.txt");
+    ifstream myfile (SMI_DIR+"/category_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -692,7 +696,7 @@ double GetRunL3Rate(int run_number)
     std::string::size_type sz;
     double L3_rate = 0.;
 
-    ifstream myfile ("$SMI_DIR/L3rate_allruns.txt");
+    ifstream myfile (SMI_DIR+"/L3rate_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -748,7 +752,7 @@ double GetRunUsableTime(int run_number)
     std::string::size_type sz;
     double usable_time = 0.;
 
-    ifstream myfile ("$SMI_DIR/usable_time_allruns.txt");
+    ifstream myfile (SMI_DIR+"/usable_time_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -818,7 +822,7 @@ vector<pair<double,double>> GetRunTimecuts(int run_number)
     int nth_delimiter = 0;
     std::string::size_type sz;
 
-    ifstream myfile ("$SMI_DIR/timecuts_allruns.txt");
+    ifstream myfile (SMI_DIR+"/timecuts_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -896,7 +900,7 @@ int GetRunMJD(string file_name,int run)
     sprintf(run_number, "%i", int(run));
     TFile*  input_file = TFile::Open(file_name.c_str());
     TTree* pointing_tree = nullptr;
-    pointing_tree = (TTree*) input_file->Get("run_"+TString(run_number)+"/stereo/pointingDataReduced");
+    pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
     pointing_tree->SetBranchAddress("MJD",&MJD_UInt_t);
     double total_entries = (double)pointing_tree->GetEntries();
     pointing_tree->GetEntry(0);
@@ -912,7 +916,7 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
     TFile*  input_file = TFile::Open(file_name.c_str());
 
     TTree* pointing_tree = nullptr;
-    pointing_tree = (TTree*) input_file->Get("run_"+TString(run_number)+"/stereo/pointingDataReduced");
+    pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
     pointing_tree->SetBranchAddress("TelElevation",&TelElevation);
     pointing_tree->SetBranchAddress("TelAzimuth",&TelAzimuth);
     pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
@@ -1089,7 +1093,7 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     sprintf(run_number, "%i", int(run));
     TFile*  input_file = TFile::Open(file_name.c_str());
     TTree* pointing_tree = nullptr;
-    pointing_tree = (TTree*) input_file->Get("run_"+TString(run_number)+"/stereo/pointingDataReduced");
+    pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
     pointing_tree->SetBranchAddress("TelElevation",&TelElevation);
     pointing_tree->SetBranchAddress("TelAzimuth",&TelAzimuth);
     pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
@@ -1107,7 +1111,7 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     sprintf(run_number, "%i", int(run));
     TFile*  input_file = TFile::Open(file_name.c_str());
     TTree* pointing_tree = nullptr;
-    pointing_tree = (TTree*) input_file->Get("run_"+TString(run_number)+"/stereo/pointingDataReduced");
+    pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
     pointing_tree->SetBranchStatus("*",0);
     pointing_tree->SetBranchStatus("TelElevation",1);
     pointing_tree->SetBranchStatus("TelAzimuth",1);
@@ -1143,7 +1147,7 @@ bool MJDSelection(string file_name,int run, int MJD_start_cut, int MJD_end_cut)
     TFile*  input_file = TFile::Open(file_name.c_str());
 
     TTree* pointing_tree = nullptr;
-    pointing_tree = (TTree*) input_file->Get("run_"+TString(run_number)+"/stereo/pointingDataReduced");
+    pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
     pointing_tree->SetBranchAddress("MJD",&MJD_UInt_t);
     double total_entries = (double)pointing_tree->GetEntries();
     pointing_tree->GetEntry(0);
@@ -1189,7 +1193,7 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
         sprintf(Data_observation, "%s", Data_runlist[run].first.c_str());
         double NSB_thisrun = GetRunPedestalVar(int(Data_runlist[run].second));
         string filename;
-        filename = TString("$SMI_INPUT/"+TString(run_number)+".anasum.root");
+        filename = TString(SMI_INPUT+"/"+string(run_number)+".anasum.root");
 
         if (!PointingSelection(filename,int(Data_runlist[run].second),Elev_cut_lower,Elev_cut_upper,Azim_cut_lower,Azim_cut_upper)) continue;
         if (!MJDSelection(filename,int(Data_runlist[run].second),MJD_start_cut,MJD_end_cut)) continue;
@@ -1236,7 +1240,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         sprintf(ON_runnumber, "%i", int(ON_runlist[on_run].second));
         sprintf(ON_observation, "%s", ON_runlist[on_run].first.c_str());
         string ON_filename;
-        ON_filename = TString("$SMI_INPUT/"+TString(ON_runnumber)+".anasum.root");
+        ON_filename = TString(SMI_INPUT+"/"+string(ON_runnumber)+".anasum.root");
         if (TString(ON_observation).Contains("Proton")) ON_pointing.push_back(std::make_pair(70,0));
         else ON_pointing.push_back(GetRunElevAzim(ON_filename,int(ON_runlist[on_run].second)));
         if (TString(ON_observation).Contains("Proton")) ON_pointing_radec.push_back(std::make_pair(0,0));
@@ -1279,7 +1283,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         sprintf(OFF_runnumber, "%i", int(OFF_runlist[off_run].second));
         sprintf(OFF_observation, "%s", OFF_runlist[off_run].first.c_str());
         string OFF_filename;
-        OFF_filename = TString("$SMI_INPUT/"+TString(OFF_runnumber)+".anasum.root");
+        OFF_filename = TString(SMI_INPUT+"/"+string(OFF_runnumber)+".anasum.root");
         if (TString(OFF_observation).Contains("Proton")) OFF_pointing.push_back(std::make_pair(70,0));
         else OFF_pointing.push_back(GetRunElevAzim(OFF_filename,int(OFF_runlist[off_run].second)));
         if (TString(OFF_observation).Contains("Proton")) OFF_pointing_radec.push_back(std::make_pair(0,0));
@@ -1501,7 +1505,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
 
 void GetGammaSources()
 {
-    std::ifstream astro_file("$SMI_DIR/TeVCat_RaDec.txt");
+    std::ifstream astro_file(SMI_DIR+"/TeVCat_RaDec.txt");
     std::string line;
     // Read one line at a time into the variable line:
     while(std::getline(astro_file, line))
@@ -1526,7 +1530,7 @@ void GetGammaSources()
 
 void GetBrightStars()
 {
-    std::ifstream astro_file("$SMI_DIR/Hipparcos_MAG8_1997.dat");
+    std::ifstream astro_file(SMI_DIR+"/Hipparcos_MAG8_1997.dat");
     std::string line;
     // Read one line at a time into the variable line:
     while(std::getline(astro_file, line))
@@ -1648,6 +1652,9 @@ void SetEventDisplayTreeBranch(TTree* Data_tree)
 void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doRaster, int GammaModel)
 {
 
+    SMI_INPUT = string(std::getenv("SMI_INPUT"));
+    SMI_OUTPUT = string(std::getenv("SMI_OUTPUT"));
+    SMI_DIR = string(std::getenv("SMI_DIR"));
 
     TH1::SetDefaultSumw2();
 
@@ -2171,7 +2178,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(run_number, "%i", int(Data_runlist[run].second));
         sprintf(Data_observation, "%s", Data_runlist[run].first.c_str());
         string filename;
-        filename = TString("$SMI_INPUT/"+TString(run_number)+".anasum.root");
+        filename = TString(SMI_INPUT+"/"+string(run_number)+".anasum.root");
 
         //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
         pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
@@ -2180,7 +2187,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         run_tele_point_dec = tele_point_ra_dec.second;
 
         TFile*  input_file = TFile::Open(filename.c_str());
-        TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
+        TString root_file = "run_"+string(run_number)+"/stereo/data_on";
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
         SetEventDisplayTreeBranch(Data_tree);
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
@@ -2420,7 +2427,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(run_number, "%i", int(Data_runlist[run].second));
         sprintf(Data_observation, "%s", Data_runlist[run].first.c_str());
         string filename;
-        filename = TString("$SMI_INPUT/"+TString(run_number)+".anasum.root");
+        filename = TString(SMI_INPUT+"/"+string(run_number)+".anasum.root");
 
         //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
         pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
@@ -2438,11 +2445,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 sprintf(run_number, "%i", int(Dark_runlist.at(run).at(nth_sample)[off_run].second));
                 sprintf(Dark_observation, "%s", Dark_runlist.at(run).at(nth_sample)[off_run].first.c_str());
                 string filename_dark;
-                filename_dark = TString("$SMI_INPUT/"+TString(run_number)+".anasum.root");
+                filename_dark = TString(SMI_INPUT+"/"+string(run_number)+".anasum.root");
 
                 TFile*  dark_input_file = TFile::Open(filename_dark.c_str());
                 TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(dark_input_file,Dark_runlist.at(run).at(nth_sample)[off_run].second);
-                TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
+                TString root_file = "run_"+string(run_number)+"/stereo/data_on";
                 TTree* Dark_tree = (TTree*) dark_input_file->Get(root_file);
                 SetEventDisplayTreeBranch(Dark_tree);
                 vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Dark_runlist.at(run).at(nth_sample)[off_run].second);
@@ -2619,7 +2626,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(run_number, "%i", int(Data_runlist[run].second));
         sprintf(Data_observation, "%s", Data_runlist[run].first.c_str());
         string filename;
-        filename = TString("$SMI_INPUT/"+TString(run_number)+".anasum.root");
+        filename = TString(SMI_INPUT+"/"+string(run_number)+".anasum.root");
 
         //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
         pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
@@ -2628,7 +2635,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         run_tele_point_dec = tele_point_ra_dec.second;
 
         TFile*  input_file = TFile::Open(filename.c_str());
-        TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
+        TString root_file = "run_"+string(run_number)+"/stereo/data_on";
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
         SetEventDisplayTreeBranch(Data_tree);
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
@@ -2783,7 +2790,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(run_number, "%i", int(Data_runlist[run].second));
         sprintf(Data_observation, "%s", Data_runlist[run].first.c_str());
         string filename;
-        filename = TString("$SMI_INPUT/"+TString(run_number)+".anasum.root");
+        filename = TString(SMI_INPUT+"/"+string(run_number)+".anasum.root");
         Data_runlist_elev.push_back(GetRunElevAzim(filename,int(Data_runlist[run].second)).first);
         Data_runlist_L3Rate.push_back(GetRunL3Rate(int(Data_runlist[run].second)));
         Data_runlist_NSB.push_back(GetRunPedestalVar(int(Data_runlist[run].second)));
@@ -2832,9 +2839,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //    sprintf(run_number, "%i", int(PhotonMC_runlist[run].second));
     //    sprintf(Data_observation, "%s", PhotonMC_runlist[run].first.c_str());
     //    string filename;
-    //    filename = TString("$SMI_INPUT/"+TString(run_number)+".anasum.root");
+    //    filename = TString("$SMI_INPUT/"+string(run_number)+".anasum.root");
     //    TFile*  input_file = TFile::Open(filename.c_str());
-    //    TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
+    //    TString root_file = "run_"+string(run_number)+"/stereo/data_on";
     //    TTree* Data_tree = (TTree*) input_file->Get(root_file);
     //    Data_tree->SetBranchAddress("Xoff",&Xoff);
     //    Data_tree->SetBranchAddress("Yoff",&Yoff);
@@ -2969,10 +2976,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //    sprintf(run_number, "%i", int(PhotonData_runlist[run].second));
     //    sprintf(Data_observation, "%s", PhotonData_runlist[run].first.c_str());
     //    string filename;
-    //    filename = TString("$SMI_INPUT/"+TString(run_number)+".anasum.root");
+    //    filename = TString("$SMI_INPUT/"+string(run_number)+".anasum.root");
 
     //    TFile*  input_file = TFile::Open(filename.c_str());
-    //    TString root_file = "run_"+TString(run_number)+"/stereo/data_on";
+    //    TString root_file = "run_"+string(run_number)+"/stereo/data_on";
     //    TTree* Data_tree = (TTree*) input_file->Get(root_file);
     //    SetEventDisplayTreeBranch(Data_tree);
 
