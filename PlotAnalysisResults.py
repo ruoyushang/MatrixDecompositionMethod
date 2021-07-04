@@ -61,12 +61,14 @@ if sys.argv[1]=='3C273_OFF':
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['3C273V6_OFF']
+    sample_list += ['3C273V5_OFF']
     theta2_bins = [0,4]
 if sys.argv[1]=='3C273_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['3C273V6_ON']
+    sample_list += ['3C273V5_ON']
     theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0502_OFF':
@@ -74,12 +76,14 @@ if sys.argv[1]=='1ES0502_OFF':
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['1ES0502V6_OFF']
+    sample_list += ['1ES0502V5_OFF']
     theta2_bins = [0,4]
 if sys.argv[1]=='1ES0502_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['1ES0502V6_ON']
+    sample_list += ['1ES0502V5_ON']
     theta2_bins = [0,4]
     
 if sys.argv[1]=='Draco_OFF':
@@ -87,12 +91,14 @@ if sys.argv[1]=='Draco_OFF':
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['DracoV6_OFF']
+    sample_list += ['DracoV5_OFF']
     theta2_bins = [0,4]
 if sys.argv[1]=='Draco_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['DracoV6_ON']
+    sample_list += ['DracoV5_ON']
     theta2_bins = [0,4]
     
 if sys.argv[1]=='OJ287_OFF':
