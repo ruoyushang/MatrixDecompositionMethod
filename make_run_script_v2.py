@@ -1049,7 +1049,7 @@ qfile = open("run/qsub_Netflix1.sh","w")
 for s in range(0,len(source)):
     job_counts += 1
     qfile.write('qsub -V -N job_%s run_Netflix1_%s_MJD%sto%s.sh\n'%(source[s],source[s],mjd_cut[s][0],mjd_cut[s][1]))
-    qfile.write('sleep 30s\n')
+    #qfile.write('sleep 30s\n')
     #qfile.write('qsub -l nodes=1:gamma5:ppn=1 -V -N job_%s run_Netflix1_%s_MJD%sto%s_%s.sh\n'%(source[s],source[s],mjd_cut[s][0],mjd_cut[s][1],folder))
 qfile.close() 
 
@@ -1139,7 +1139,7 @@ for s in range(0,len(source)):
     job_counts += 1
     #if not for_syst[s]: continue
     qfile.write('qsub -V -N job_%s run_Netflix2_%s_MJD%sto%s.sh\n'%(source[s],source[s],mjd_cut[s][0],mjd_cut[s][1]))
-    qfile.write('sleep 5s\n')
+    #qfile.write('sleep 5s\n')
     #qfile.write('qsub -l nodes=1:gamma5:ppn=1 -V -N job_%s run_Netflix2_%s_MJD%sto%s_%s.sh\n'%(source[s],source[s],mjd_cut[s][0],mjd_cut[s][1],folder))
 qfile.close() 
 
