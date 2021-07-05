@@ -3895,49 +3895,58 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         {
             Dark_SR_Integral += dark_weight*Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e).Integral(binx_lower,binx_blind_global,biny_lower,biny_blind_global);
         }
-        double Old_Integral = Hist_OnData_CR_Energy.at(e).Integral();
+        double Old_Integral_Energy = Hist_OnData_CR_Energy.at(e).Integral();
+        double Old_Integral_Yoff = Hist_OnData_CR_Yoff.at(e).Integral();
         double Old_Integral_Raw = Hist_OnData_CR_Energy_Raw.at(e).Integral();
-        double scale = 0.;
+        double scale_energy = 0.;
+        double scale_yoff = 0.;
         double scale_dark = 0.;
         double scale_dark_raw = 0.;
         double scale_raw = 0.;
-        if (Old_Integral>0.)
+        if (Old_Integral_Energy>0.)
         {
-            scale = Bkgd_SR_Integral/Old_Integral;
-            scale_dark = Dark_SR_Integral/Old_Integral;
+            scale_energy = Bkgd_SR_Integral/Old_Integral_Energy;
+            scale_dark = Dark_SR_Integral/Old_Integral_Energy;
+        }
+        if (Old_Integral_Yoff>0.)
+        {
+            scale_yoff = Bkgd_SR_Integral/Old_Integral_Yoff;
+        }
+        if (Old_Integral_Raw>0.)
+        {
             scale_raw = Bkgd_SR_Integral/Old_Integral_Raw;
             scale_dark_raw = Dark_SR_Integral/Old_Integral_Raw;
         }
-        Hist_OnData_CR_Energy.at(e).Scale(scale);
+        Hist_OnData_CR_Energy.at(e).Scale(scale_energy);
         Hist_OnDark_CR_Energy.at(e).Scale(scale_dark);
-        Hist_OnData_CR_Energy_CamCenter.at(e).Scale(scale);
-        Hist_OnData_CR_Zenith.at(e).Scale(scale);
-        Hist_OnData_CR_Skymap_Theta2.at(e).Scale(scale);
-        Hist_OnData_CR_Yoff.at(e).Scale(scale);
-        Hist_OnData_CR_XYoff.at(e).Scale(scale);
-        Hist_OnData_CR_Yoff_Raw.at(e).Scale(scale);
+        Hist_OnData_CR_Energy_CamCenter.at(e).Scale(scale_energy);
+        Hist_OnData_CR_Zenith.at(e).Scale(scale_yoff);
+        Hist_OnData_CR_Skymap_Theta2.at(e).Scale(scale_yoff);
+        Hist_OnData_CR_Yoff.at(e).Scale(scale_yoff);
+        Hist_OnData_CR_XYoff.at(e).Scale(scale_yoff);
+        Hist_OnData_CR_Yoff_Raw.at(e).Scale(scale_yoff);
         Hist_OnDark_CR_Skymap_Theta2.at(e).Scale(scale_dark);
-        Hist_OnData_CR_Skymap.at(e).Scale(scale);
+        Hist_OnData_CR_Skymap.at(e).Scale(scale_yoff);
         Hist_OnDark_CR_Skymap_Raw.at(e).Scale(scale_dark_raw);
-        Hist_OnData_CR_Skymap_Galactic.at(e).Scale(scale);
+        Hist_OnData_CR_Skymap_Galactic.at(e).Scale(scale_yoff);
         for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
         {
-            Hist_OnData_CR_RoI_Energy.at(nth_roi).at(e).Scale(scale);
-            Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(e).Scale(scale);
-            Hist_OnData_CR_RoI_MJD.at(nth_roi).at(e).Scale(scale);
+            Hist_OnData_CR_RoI_Energy.at(nth_roi).at(e).Scale(scale_energy);
+            Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(e).Scale(scale_yoff);
+            Hist_OnData_CR_RoI_MJD.at(nth_roi).at(e).Scale(scale_energy);
         }
         data_control_count.push_back(Hist_OnData_SR_RoI_Energy.at(0).at(e).Integral());
         data_validate_count.push_back(Hist_OnData_SR_RoI_Energy.at(1).at(e).Integral());
         bkgd_control_count.push_back(Hist_OnData_CR_RoI_Energy.at(0).at(e).Integral());
         bkgd_validate_count.push_back(Hist_OnData_CR_RoI_Energy.at(1).at(e).Integral());
         double scale_rfov = Hist_OnData_SR_RoI_Energy.at(0).at(e).Integral()/Hist_OnData_CR_RoI_Energy.at(0).at(e).Integral();
-        Hist_OnRFoV_CR_Energy.at(e).Scale(scale*scale_rfov);
-        Hist_OnRFoV_CR_Skymap_Theta2.at(e).Scale(scale*scale_rfov);
-        Hist_OnRFoV_CR_Skymap.at(e).Scale(scale*scale_rfov);
-        Hist_OnRFoV_CR_Skymap_Galactic.at(e).Scale(scale*scale_rfov);
+        Hist_OnRFoV_CR_Energy.at(e).Scale(scale_energy*scale_rfov);
+        Hist_OnRFoV_CR_Skymap_Theta2.at(e).Scale(scale_yoff*scale_rfov);
+        Hist_OnRFoV_CR_Skymap.at(e).Scale(scale_yoff*scale_rfov);
+        Hist_OnRFoV_CR_Skymap_Galactic.at(e).Scale(scale_yoff*scale_rfov);
         for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
         {
-            Hist_OnRFoV_CR_RoI_Energy.at(nth_roi).at(e).Scale(scale*scale_rfov);
+            Hist_OnRFoV_CR_RoI_Energy.at(nth_roi).at(e).Scale(scale_energy*scale_rfov);
         }
         rfov_validate_count.push_back(Hist_OnRFoV_CR_RoI_Energy.at(1).at(e).Integral());
         for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)

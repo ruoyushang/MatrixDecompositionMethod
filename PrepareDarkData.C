@@ -2803,7 +2803,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_CR_Skymap_Raw.at(energy).Fill(ra_sky,dec_sky,1.);
                     Hist_OnData_CR_Energy.at(energy).Fill(ErecS*1000.,energy_weight);
                     Hist_OnData_CR_Energy_Raw.at(energy).Fill(ErecS*1000.,1.);
-                    Hist_OnData_CR_Zenith.at(energy).Fill(Shower_Ze,1.);
+                    Hist_OnData_CR_Zenith.at(energy).Fill(Shower_Ze,yoff_weight);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
                         if (nth_roi>0)
