@@ -3759,7 +3759,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             for (int i=0;i<mtx_data.cols()-1;i++)
             {
                 if (find_elbow) continue;
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1)<5.)
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1)<3.)
                 {
                     find_elbow = true;
                     NumberOfEigenvectors_Stable = i+1;

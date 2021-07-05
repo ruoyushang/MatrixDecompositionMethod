@@ -41,7 +41,7 @@ double MSCW_cut_loose = 0.9;
 double MSCL_cut_loose = 1.0;
 double camera_theta2_cut_lower = 0.;
 double camera_theta2_cut_upper = 1.;
-double source_theta2_cut = 0.2;
+double source_theta2_cut = 0.02;
 
 int n_dark_samples = 1;
 //const int N_energy_fine_bins = 10;

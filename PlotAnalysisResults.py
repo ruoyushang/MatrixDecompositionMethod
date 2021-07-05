@@ -6159,9 +6159,9 @@ Smoothing = True
 #set_palette('gray')
 
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
+SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,6)
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,1)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,2)

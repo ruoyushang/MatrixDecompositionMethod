@@ -2362,9 +2362,12 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (SizeSecondMax<SizeSecondMax_Cut) continue;
             if (EmissionHeight<6.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-            if (SignalSelectionTheta2())
+            if (FoV(true))
             {
-                Hist_Source_Theta2.at(energy).Fill(theta2);
+                if (SignalSelectionTheta2())
+                {
+                    Hist_Source_Theta2.at(energy).Fill(theta2);
+                }
             }
         }
         vector<double> source_weight;
@@ -2590,9 +2593,12 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     //if (R2off>4.) continue;
                     double run_weight = Dark_weight.at(run).at(nth_sample);
                     double weight = run_weight;
-                    if (SignalSelectionTheta2())
+                    if (DarkFoV())
                     {
-                        Hist_Source_Theta2.at(energy).Fill(theta2_dark);
+                        if (SignalSelectionTheta2())
+                        {
+                            Hist_Source_Theta2.at(energy).Fill(theta2_dark);
+                        }
                     }
                 }
 
@@ -2664,21 +2670,24 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     double weight = run_weight;
                     if (theta2_dark<source_theta2_cut && SignalSelectionTheta2()) weight = run_weight*source_weight.at(energy);
 
-                    if (SignalSelectionTheta2())
+                    if (DarkFoV())
                     {
-                        Hist_SRDark_XYoff.at(energy).Fill(Xoff,Yoff,weight);
-                        Hist_OnDark_SR_XYoff.at(energy).Fill(Xoff,Yoff,weight);
-                        Hist_SRDark_Energy.at(energy).Fill(ErecS*1000.,weight);
-                    }
-                    else if (ControlSelectionTheta2())
-                    {
-                        Hist_CRDark_XYoff.at(energy).Fill(Xoff,Yoff,run_weight);
-                        Hist_CRDark_Energy.at(energy).Fill(ErecS*1000.,run_weight);
-                    }
+                        if (SignalSelectionTheta2())
+                        {
+                            Hist_SRDark_XYoff.at(energy).Fill(Xoff,Yoff,weight);
+                            Hist_OnDark_SR_XYoff.at(energy).Fill(Xoff,Yoff,weight);
+                            Hist_SRDark_Energy.at(energy).Fill(ErecS*1000.,weight);
+                        }
+                        else if (ControlSelectionTheta2())
+                        {
+                            Hist_CRDark_XYoff.at(energy).Fill(Xoff,Yoff,run_weight);
+                            Hist_CRDark_Energy.at(energy).Fill(ErecS*1000.,run_weight);
+                        }
 
-                    if (theta2_dark>source_theta2_cut)
-                    {
-                        Hist_OnDark_MSCLW.at(nth_sample).at(energy).Fill(MSCL,MSCW,weight);
+                        if (theta2_dark>source_theta2_cut)
+                        {
+                            Hist_OnDark_MSCLW.at(nth_sample).at(energy).Fill(MSCL,MSCW,weight);
+                        }
                     }
 
                 }
