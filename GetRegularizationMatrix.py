@@ -25,7 +25,7 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-target_energy_index = 1
+target_energy_index = 2
 N_bins_for_deconv = 16
 #N_bins_for_deconv = 12
 gamma_hadron_dim_ratio_w = 1.
@@ -51,14 +51,26 @@ ONOFF_tag = 'OFF'
 ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
+sample_list += ['3C273V6_OFF']
+sample_name += ['3C273 V6']
+sample_list += ['3C273V5_OFF']
+sample_name += ['3C273 V5']
+sample_list += ['1ES0502V6_OFF']
+sample_name += ['1ES0502 V6']
+sample_list += ['1ES0502V5_OFF']
+sample_name += ['1ES0502 V5']
+sample_list += ['DracoV6_OFF']
+sample_name += ['Draco V6']
+sample_list += ['DracoV5_OFF']
+sample_name += ['Draco V5']
 sample_list += ['1ES0647V6_OFF']
 sample_name += ['1ES0647 V6']
 sample_list += ['1ES1011V6_OFF']
 sample_name += ['1ES1011 V6']
 sample_list += ['OJ287V6_OFF']
 sample_name += ['OJ287 V6']
-sample_list += ['PKS1424V6_OFF']
-sample_name += ['PKS1424 V6']
+#sample_list += ['PKS1424V6_OFF']
+#sample_name += ['PKS1424 V6']
 sample_list += ['3C264V6_OFF']
 sample_name += ['3C264 V6']
 sample_list += ['1ES0229V6_OFF']
@@ -67,8 +79,8 @@ sample_name += ['1ES0229 V6']
 #sample_name += ['1ES0229 V5']
 sample_list += ['Segue1V6_OFF']
 sample_name += ['Segue1 V6']
-#sample_list += ['Segue1V5_OFF']
-#sample_name += ['Segue1 V5']
+sample_list += ['Segue1V5_OFF']
+sample_name += ['Segue1 V5']
 #sample_list += ['CrabV5_OFF']
 #sample_name += ['Crab V5']
 #sample_list += ['CrabV6_OFF']
@@ -77,16 +89,14 @@ sample_list += ['BLLacV6_OFF']
 sample_name += ['BLLac V6']
 #sample_list += ['BLLacV5_OFF']
 #sample_name += ['BLLac V5']
-#sample_list += ['PG1553V5_OFF']
-#sample_name += ['PG1553 V5']
+sample_list += ['PG1553V5_OFF']
+sample_name += ['PG1553 V5']
 sample_list += ['H1426V6_OFF']
 sample_name += ['H1426 V6']
-#sample_list += ['CasAV6_OFF']
-#sample_name += ['CasA V6']
-#sample_list += ['RBS0413V6_OFF']
-#sample_name += ['RBS0413 V6']
-#sample_list += ['NGC1275V6_OFF']
-#sample_name += ['NGC 1275 V6']
+sample_list += ['M82V6_OFF']
+sample_name += ['M82 V6']
+sample_list += ['M82V5_OFF']
+sample_name += ['M82 V5']
 
     
 elev_bins = [45,85]
@@ -435,6 +445,7 @@ for row1 in range(0,3):
                 list_var_pair += [[row2+1,col2+1]]
                 print('=======================================================')
                 max_eigenvalue = PrincipalComponentAnalysis(list_var_pair,0)
+                if math.isnan(max_eigenvalue): continue
                 if max_eigenvalue>1.5:
                     MakeCorrelationPlot(list_var_pair)
                     good_var_pair += [list_var_pair]
@@ -447,9 +458,10 @@ list_rms = []
 for row in range(0,3):
     for col in range(0,3):
         idx = row*3+col
-        list_var += [[row+1,col+1]]
         tmp_list_var = [[row+1,col+1]]
         tmp_list_rms = PrincipalComponentAnalysis(tmp_list_var,1)
+        if math.isnan(tmp_list_rms[0]): continue
+        list_var += [[row+1,col+1]]
         list_rms += [tmp_list_rms[0]]
 for entry in range(0,len(list_var)):
     print('RMS: \n {0}, {1}'.format(list_var[entry],list_rms[entry]))
