@@ -40,9 +40,7 @@ ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
 
-folder_path = 'output_root'
-#folder_path = 'output_test'
-#method_tag = 'loose_mdm_default'
+folder_path = 'output_nominal'
 method_tag = 'tight_mdm_default'
 
 lowrank_tag = '_svd'
@@ -347,14 +345,6 @@ for source in range(0,len(sample_list)):
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
             GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
-
-OutputFilePath = "%s/Regularization%s.root"%(folder_path,lowrank_tag)
-OutputFile = ROOT.TFile(OutputFilePath,"recreate")
-print ("total_exposure_hours = %s"%(total_exposure_hours))
-for e in range(0,len(energy_bin)-1):
-    Hist2D_Regularization[e].Write()
-    Hist2D_MSCLW_Best_Sum[e].Write()
-OutputFile.Close()
 
 
 canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)

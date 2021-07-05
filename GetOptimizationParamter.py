@@ -81,12 +81,18 @@ ONOFF_tag = 'OFF'
 ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
-#sample_list += ['3C273V6_OFF']
-#sample_name += ['3C273 V6']
-#sample_list += ['1ES0502V6_OFF']
-#sample_name += ['1ES0502 V6']
-#sample_list += ['DracoV6_OFF']
-#sample_name += ['Draco V6']
+sample_list += ['3C273V6_OFF']
+sample_name += ['3C273 V6']
+sample_list += ['3C273V5_OFF']
+sample_name += ['3C273 V5']
+sample_list += ['1ES0502V6_OFF']
+sample_name += ['1ES0502 V6']
+sample_list += ['1ES0502V5_OFF']
+sample_name += ['1ES0502 V5']
+sample_list += ['DracoV6_OFF']
+sample_name += ['Draco V6']
+sample_list += ['DracoV5_OFF']
+sample_name += ['Draco V5']
 sample_list += ['1ES0647V6_OFF']
 sample_name += ['1ES0647 V6']
 sample_list += ['1ES1011V6_OFF']
@@ -97,35 +103,34 @@ sample_list += ['PKS1424V6_OFF']
 sample_name += ['PKS1424 V6']
 sample_list += ['3C264V6_OFF']
 sample_name += ['3C264 V6']
-#sample_list += ['1ES0229V6_OFF']
-#sample_name += ['1ES0229 V6']
+sample_list += ['1ES0229V6_OFF']
+sample_name += ['1ES0229 V6']
 #sample_list += ['1ES0229V5_OFF']
 #sample_name += ['1ES0229 V5']
-#sample_list += ['Segue1V6_OFF']
-#sample_name += ['Segue1 V6']
-#sample_list += ['Segue1V5_OFF']
-#sample_name += ['Segue1 V5']
+sample_list += ['Segue1V6_OFF']
+sample_name += ['Segue1 V6']
+sample_list += ['Segue1V5_OFF']
+sample_name += ['Segue1 V5']
 #sample_list += ['CrabV5_OFF']
 #sample_name += ['Crab V5']
 #sample_list += ['CrabV6_OFF']
 #sample_name += ['Crab V6']
-#sample_list += ['BLLacV6_OFF']
-#sample_name += ['BLLac V6']
+sample_list += ['BLLacV6_OFF']
+sample_name += ['BLLac V6']
 #sample_list += ['BLLacV5_OFF']
 #sample_name += ['BLLac V5']
-#sample_list += ['PG1553V5_OFF']
-#sample_name += ['PG1553 V5']
-#sample_list += ['H1426V6_OFF']
-#sample_name += ['H1426 V6']
+sample_list += ['PG1553V5_OFF']
+sample_name += ['PG1553 V5']
+sample_list += ['H1426V6_OFF']
+sample_name += ['H1426 V6']
 #sample_list += ['RBS0413V6_OFF']
 #sample_name += ['RBS0413 V6']
 #sample_list += ['NGC1275V6_OFF']
 #sample_name += ['NGC 1275 V6']
-
-#sample_list += ['M82V6_OFF']
-#sample_name += ['M82 V6']
-#sample_list += ['M82V5_OFF']
-#sample_name += ['M82 V5']
+sample_list += ['M82V6_OFF']
+sample_name += ['M82 V6']
+sample_list += ['M82V5_OFF']
+sample_name += ['M82 V5']
 #sample_list += ['RGBJ0710V5_OFF']
 #sample_name += ['RGBJ0710 V5']
 #sample_list += ['RBS0413V5_OFF']
@@ -631,10 +636,12 @@ for e in range(0,len(energy_bin)-1):
     AccuracyInit_source = []
     AccuracyInitErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.: continue
-        AccuracyInit_source += [abs(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
-        #AccuracyInit_source += [(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
-        AccuracyInitErr_source += [1./pow(data_count[entry-1],0.5)]
+        if data_count[entry-1]==0.:
+            AccuracyInit_source += [0.]
+            AccuracyInitErr_source += [1e10]
+        else:
+            AccuracyInit_source += [abs(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
+            AccuracyInitErr_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyInit_mean = 0.
     AccuracyInit_weight = 0.
     AccuracyInit_mean_error = 0.
@@ -650,9 +657,12 @@ for e in range(0,len(energy_bin)-1):
     AccuracyStat_source = []
     AccuracyStatErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.: continue
-        AccuracyStat_source += [pow(data_count[entry-1],0.5)/data_count[entry-1]]
-        AccuracyStatErr_source += [1./pow(data_count[entry-1],0.5)]
+        if data_count[entry-1]==0.:
+            AccuracyStat_source += [0.]
+            AccuracyStatErr_source += [1e10]
+        else:
+            AccuracyStat_source += [pow(data_count[entry-1],0.5)/data_count[entry-1]]
+            AccuracyStatErr_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyStat_mean = 0.
     AccuracyStat_weight = 0.
     AccuracyStat_mean_error = 0.
@@ -666,9 +676,12 @@ for e in range(0,len(energy_bin)-1):
     AccuracyRank2_source = []
     AccuracyRank2Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.: continue
-        AccuracyRank2_source += [abs(data_count[entry-1]-rank2_count[entry-1])/data_count[entry-1]]
-        AccuracyRank2Err_source += [1./pow(data_count[entry-1],0.5)]
+        if data_count[entry-1]==0.:
+            AccuracyRank2_source += [0.]
+            AccuracyRank2Err_source += [1e10]
+        else:
+            AccuracyRank2_source += [abs(data_count[entry-1]-rank2_count[entry-1])/data_count[entry-1]]
+            AccuracyRank2Err_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyRank2_mean = 0.
     AccuracyRank2_weight = 0.
     AccuracyRank2_mean_error = 0.
@@ -684,9 +697,12 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBestPar9_source = []
     AccuracyBestPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.: continue
-        AccuracyBestPar9_source += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)]
-        AccuracyBestPar9Err_source += [1./pow(data_count[entry-1],0.5)]
+        if data_count[entry-1]==0.:
+            AccuracyBestPar9_source += [0.]
+            AccuracyBestPar9Err_source += [1e10]
+        else:
+            AccuracyBestPar9_source += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)]
+            AccuracyBestPar9Err_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyBestPar9_mean = 0.
     AccuracyBestPar9_weight = 0.
     AccuracyBestPar9_mean_error = 0.
@@ -702,9 +718,12 @@ for e in range(0,len(energy_bin)-1):
     AccuracyPar9_source = []
     AccuracyPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.: continue
-        AccuracyPar9_source += [abs(data_count[entry-1]-par9_count[entry-1])/data_count[entry-1]]
-        AccuracyPar9Err_source += [1./pow(data_count[entry-1],0.5)]
+        if data_count[entry-1]==0.:
+            AccuracyPar9_source += [0.]
+            AccuracyPar9Err_source += [1e10]
+        else:
+            AccuracyPar9_source += [abs(data_count[entry-1]-par9_count[entry-1])/data_count[entry-1]]
+            AccuracyPar9Err_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyPar9_mean = 0.
     AccuracyPar9_weight = 0.
     AccuracyPar9_mean_error = 0.
@@ -720,9 +739,12 @@ for e in range(0,len(energy_bin)-1):
     AccuracyWPar9_source = []
     AccuracyWPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.: continue
-        AccuracyWPar9_source += [abs(data_count[entry-1]-wpar9_count[entry-1])/data_count[entry-1]]
-        AccuracyWPar9Err_source += [1./pow(data_count[entry-1],0.5)]
+        if data_count[entry-1]==0.:
+            AccuracyWPar9_source += [0.]
+            AccuracyWPar9Err_source += [1e10]
+        else:
+            AccuracyWPar9_source += [abs(data_count[entry-1]-wpar9_count[entry-1])/data_count[entry-1]]
+            AccuracyWPar9Err_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyWPar9_mean = 0.
     AccuracyWPar9_weight = 0.
     AccuracyWPar9_mean_error = 0.
@@ -738,9 +760,12 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBkgd_source = []
     AccuracyBkgdErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.: continue
-        AccuracyBkgd_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
-        AccuracyBkgdErr_source += [1./pow(data_count[entry-1],0.5)]
+        if data_count[entry-1]==0.:
+            AccuracyBkgd_source += [0.]
+            AccuracyBkgdErr_source += [1e10]
+        else:
+            AccuracyBkgd_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
+            AccuracyBkgdErr_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyBkgd_mean = 0.
     AccuracyBkgd_weight = 0.
     AccuracyBkgd_mean_error = 0.
@@ -756,9 +781,12 @@ for e in range(0,len(energy_bin)-1):
     ValidateBkgd_source = []
     ValidateBkgdErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if validate_data_count[entry-1]==0.: continue
-        ValidateBkgd_source += [abs(validate_data_count[entry-1]-validate_bkgd_count[entry-1])/validate_data_count[entry-1]]
-        ValidateBkgdErr_source += [1./pow(validate_data_count[entry-1],0.5)]
+        if validate_data_count[entry-1]==0.:
+            ValidateBkgd_source += [0.]
+            ValidateBkgdErr_source += [1e10]
+        else:
+            ValidateBkgd_source += [abs(validate_data_count[entry-1]-validate_bkgd_count[entry-1])/validate_data_count[entry-1]]
+            ValidateBkgdErr_source += [1./pow(validate_data_count[entry-1],0.5)]
     ValidateBkgd_mean = 0.
     ValidateBkgd_weight = 0.
     ValidateBkgd_mean_error = 0.
@@ -772,9 +800,12 @@ for e in range(0,len(energy_bin)-1):
     ValidateRFoV_source = []
     ValidateRFoVErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if validate_data_count[entry-1]==0.: continue
-        ValidateRFoV_source += [abs(validate_data_count[entry-1]-validate_rfov_count[entry-1])/validate_data_count[entry-1]]
-        ValidateRFoVErr_source += [1./pow(validate_data_count[entry-1],0.5)]
+        if validate_data_count[entry-1]==0.:
+            ValidateRFoV_source += [0.]
+            ValidateRFoVErr_source += [1e10]
+        else:
+            ValidateRFoV_source += [abs(validate_data_count[entry-1]-validate_rfov_count[entry-1])/validate_data_count[entry-1]]
+            ValidateRFoVErr_source += [1./pow(validate_data_count[entry-1],0.5)]
     ValidateRFoV_mean = 0.
     ValidateRFoV_weight = 0.
     ValidateRFoV_mean_error = 0.
@@ -788,9 +819,12 @@ for e in range(0,len(energy_bin)-1):
     ValidateComb_source = []
     ValidateCombErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if validate_data_count[entry-1]==0.: continue
-        ValidateComb_source += [abs(validate_data_count[entry-1]-validate_comb_count[entry-1])/validate_data_count[entry-1]]
-        ValidateCombErr_source += [1./pow(validate_data_count[entry-1],0.5)]
+        if validate_data_count[entry-1]==0.:
+            ValidateComb_source += [0.]
+            ValidateCombErr_source += [1e10]
+        else:
+            ValidateComb_source += [abs(validate_data_count[entry-1]-validate_comb_count[entry-1])/validate_data_count[entry-1]]
+            ValidateCombErr_source += [1./pow(validate_data_count[entry-1],0.5)]
     ValidateComb_mean = 0.
     ValidateComb_weight = 0.
     ValidateComb_mean_error = 0.
@@ -804,9 +838,12 @@ for e in range(0,len(energy_bin)-1):
     AccuracyPar8_source = []
     AccuracyPar8Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.: continue
-        AccuracyPar8_source += [abs(data_count[entry-1]-par8_count[entry-1])/data_count[entry-1]]
-        AccuracyPar8Err_source += [1./pow(data_count[entry-1],0.5)]
+        if data_count[entry-1]==0.:
+            AccuracyPar8_source += [0.]
+            AccuracyPar8Err_source += [1e10]
+        else:
+            AccuracyPar8_source += [abs(data_count[entry-1]-par8_count[entry-1])/data_count[entry-1]]
+            AccuracyPar8Err_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyPar8_mean = 0.
     AccuracyPar8_weight = 0.
     AccuracyPar8_mean_error = 0.
@@ -890,7 +927,7 @@ for e in range(0,len(energy_bin)-1):
     ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyBestPar9_source))
     width = 0.35
-    rects1 = ax.bar(ind, AccuracyBestPar9_source, width, color='#089FFF', yerr=AccuracyErr_source)
+    rects1 = ax.bar(ind, AccuracyBestPar9_source, width, color='#089FFF', yerr=AccuracyBestPar9Err_source)
     rects2 = ax.bar(ind+width, AccuracyInit_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
     ax.set_xlim(-width,len(ind)+width)
     ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
@@ -907,7 +944,7 @@ for e in range(0,len(energy_bin)-1):
     ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyBkgd_source))
     width = 0.35
-    rects1 = ax.bar(ind, AccuracyBkgd_source, width, color='#089FFF', yerr=AccuracyErr_source)
+    rects1 = ax.bar(ind, AccuracyBkgd_source, width, color='#089FFF', yerr=AccuracyBkgdErr_source)
     rects2 = ax.bar(ind+width, AccuracyInit_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
     ax.set_xlim(-width,len(ind)+width)
     ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)

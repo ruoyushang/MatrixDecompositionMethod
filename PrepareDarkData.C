@@ -1452,11 +1452,14 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     if (number_of_search>=1)
                     {
                         std::cout << "couldn't find a matched run, relax time cuts." << std::endl;
-                        threshold_dMJD += 3.0*365.;
+                        threshold_dMJD += 10.0*365.;
                         threshold_dTime += 5.0*60.;
                     }
                     if (number_of_search>=2)
                     {
+                        did_i_find_a_match.at(on_run) = false;
+                        std::cout << "couldn't find a matched run, break." << std::endl;
+                        break;
                         std::cout << "couldn't find a matched run, relax all cuts." << std::endl;
                         threshold_dNSB += 10.;
                         threshold_dElev += 20.;
