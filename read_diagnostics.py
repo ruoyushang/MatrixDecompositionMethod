@@ -384,12 +384,18 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_ra = 2.0
 #range_dec = 2.0
 
+# LHAASO J2108+5157
+target_ra = 317.15
+target_dec = 51.95
+range_ra = 2.0
+range_dec = 2.0
+
 search_for_on_data = True
 #search_for_on_data = False
 
 V4 = False
-V5 = True
-V6 = False
+V5 = False
+V6 = True
 
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
