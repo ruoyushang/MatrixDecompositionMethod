@@ -2662,7 +2662,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
                     double run_weight = Dark_weight.at(run).at(nth_sample);
                     double weight = run_weight;
-                    if (theta2_dark<source_theta2_cut && && SignalSelectionTheta2()) weight = run_weight*source_weight.at(energy);
+                    if (theta2_dark<source_theta2_cut && SignalSelectionTheta2()) weight = run_weight*source_weight.at(energy);
 
                     if (SignalSelectionTheta2())
                     {
