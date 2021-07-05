@@ -1590,14 +1590,14 @@ bool ControlSelectionTheta2()
     //if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     //if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     double boundary = 0.5;
-    if (ErecS*1000.<pow(10,3.0))
-    {
-        boundary = 0.5;
-    }
-    else
-    {
-        boundary = 1.0;
-    }
+    //if (ErecS*1000.<pow(10,3.0))
+    //{
+    //    boundary = 0.5;
+    //}
+    //else
+    //{
+    //    boundary = 1.0;
+    //}
     if (MSCL>boundary*gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     if (MSCW>boundary*gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     return true;
@@ -2102,12 +2102,12 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     vector<TH2D> Hist_SRDark_XYoff;
     vector<TH2D> Hist_CRDark_XYoff;
-    for (int e=0;e<N_energy_fine_bins;e++) 
+    for (int e=0;e<N_energy_bins;e++) 
     {
         char e_low[50];
-        sprintf(e_low, "%i", int(energy_fine_bins[e]));
+        sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
-        sprintf(e_up, "%i", int(energy_fine_bins[e+1]));
+        sprintf(e_up, "%i", int(energy_bins[e+1]));
         Hist_SRDark_XYoff.push_back(TH2D("Hist_SRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,-3,3,12,-3,3));
         Hist_CRDark_XYoff.push_back(TH2D("Hist_CRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,-3,3,12,-3,3));
     }
@@ -2684,13 +2684,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     {
                         if (SignalSelectionTheta2())
                         {
-                            Hist_SRDark_XYoff.at(energy_fine).Fill(Xoff,Yoff,weight);
+                            Hist_SRDark_XYoff.at(energy).Fill(Xoff,Yoff,weight);
                             Hist_OnDark_SR_XYoff.at(energy).Fill(Xoff,Yoff,weight);
                             Hist_SRDark_Energy.at(energy).Fill(ErecS*1000.,weight);
                         }
                         else if (ControlSelectionTheta2())
                         {
-                            Hist_CRDark_XYoff.at(energy_fine).Fill(Xoff,Yoff,run_weight);
+                            Hist_CRDark_XYoff.at(energy).Fill(Xoff,Yoff,run_weight);
                             Hist_CRDark_Energy.at(energy).Fill(ErecS*1000.,run_weight);
                         }
 
@@ -2778,12 +2778,12 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (R2off>4.) continue;
             
             int bin_energy = Hist_CRDark_Energy.at(energy).FindBin(ErecS*1000.);
-            int bin_xoff = Hist_CRDark_XYoff.at(energy_fine).GetXaxis()->FindBin(Xoff);
-            int bin_yoff = Hist_CRDark_XYoff.at(energy_fine).GetYaxis()->FindBin(Yoff);
+            int bin_xoff = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(Xoff);
+            int bin_yoff = Hist_CRDark_XYoff.at(energy).GetYaxis()->FindBin(Yoff);
             double data_cr_content_energy = Hist_SRDark_Energy.at(energy).GetBinContent(bin_energy);
             double dark_cr_content_energy = Hist_CRDark_Energy.at(energy).GetBinContent(bin_energy);
-            double data_cr_content_xyoff = Hist_SRDark_XYoff.at(energy_fine).GetBinContent(bin_xoff,bin_yoff);
-            double dark_cr_content_xyoff = Hist_CRDark_XYoff.at(energy_fine).GetBinContent(bin_xoff,bin_yoff);
+            double data_cr_content_xyoff = Hist_SRDark_XYoff.at(energy).GetBinContent(bin_xoff,bin_yoff);
+            double dark_cr_content_xyoff = Hist_CRDark_XYoff.at(energy).GetBinContent(bin_xoff,bin_yoff);
             double energy_weight = 1.;
             double yoff_weight = 1.;
             if (data_cr_content_xyoff>10. && dark_cr_content_xyoff>10.)
