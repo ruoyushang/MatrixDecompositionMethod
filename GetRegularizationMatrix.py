@@ -265,16 +265,16 @@ def GetHistogramsFromFile(FilePath):
     Hist2D_MSCLW_Data.Reset()
     Hist2D_MSCLW_Best.Reset()
     HistName = "Hist_Coeff_Data_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    print 'Get %s'%(HistName)
+    print ('Get %s'%(HistName))
     Hist2D_Coeff_Data.Add(InputFile.Get(HistName))
     HistName = "Hist_Coeff_Bkgd_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    print 'Get %s'%(HistName)
+    print ('Get %s'%(HistName))
     Hist2D_Coeff_Bkgd.Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    print 'Get %s'%(HistName)
+    print ('Get %s'%(HistName))
     Hist2D_MSCLW_Data.Add(InputFile.Get(HistName))
     HistName = "Hist_OnBest_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    print 'Get %s'%(HistName)
+    print ('Get %s'%(HistName))
     Hist2D_MSCLW_Best.Add(InputFile.Get(HistName))
     if Hist2D_MSCLW_Data.Integral()>0.:
         Hist2D_MSCLW_Best.Add(Hist2D_MSCLW_Data,-1.)
@@ -341,7 +341,7 @@ for source in range(0,len(sample_list)):
     for elev in range(0,len(root_file_tags)):
         FilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+".root"
         FilePath_List += [FilePath]
-        print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
+        print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
         if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
         for e in range(0,len(energy_bin)-1):
             ErecS_lower_cut = energy_bin[e]
@@ -350,7 +350,7 @@ for source in range(0,len(sample_list)):
 
 OutputFilePath = "%s/Regularization%s.root"%(folder_path,lowrank_tag)
 OutputFile = ROOT.TFile(OutputFilePath,"recreate")
-print "total_exposure_hours = %s"%(total_exposure_hours)
+print ("total_exposure_hours = %s"%(total_exposure_hours))
 for e in range(0,len(energy_bin)-1):
     Hist2D_Regularization[e].Write()
     Hist2D_MSCLW_Best_Sum[e].Write()

@@ -519,15 +519,15 @@ bool MCFoV() {
     return true;
 }
 bool FoV(bool remove_bright_stars) {
+
     if (R2off>9.) return false;
     if (R2off<camera_theta2_cut_lower) return false;
     if (R2off>camera_theta2_cut_upper) return false;
-    //if (Yoff<camera_theta2_cut_lower) return false;
-    //if (Yoff>camera_theta2_cut_upper) return false;
+    
     double x = ra_sky-mean_tele_point_ra;
     double y = dec_sky-mean_tele_point_dec;
-    if (source_theta2_cut>(x*x+y*y)) return false;
-    if (remove_bright_stars && CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    //if (source_theta2_cut>(x*x+y*y)) return false;
+    //if (remove_bright_stars && CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
@@ -2319,6 +2319,74 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             }
         }
 
+        for (int e=0;e<N_energy_bins;e++) 
+        {
+            Hist_Source_Theta2.at(e).Reset();
+        }
+        for (int entry=0;entry<Data_tree->GetEntries();entry++) 
+        {
+            ErecS = 0;
+            EChi2S = 0;
+            NImages = 0;
+            Xcore = 0;
+            Ycore = 0;
+            SizeSecondMax = 0;
+            MSCW = 0;
+            MSCL = 0;
+            R2off = 0;
+            Data_tree->GetEntry(entry);
+            R2off = Xoff*Xoff+Yoff*Yoff;
+            Phioff = atan2(Yoff,Xoff)+M_PI;
+            ra_sky = tele_point_ra_dec.first+Xoff_derot;
+            dec_sky = tele_point_ra_dec.second+Yoff_derot;
+            if (doRaster)
+            {
+                double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
+                double delta_r = 1.0;
+                ra_sky += delta_r*cos(delta_phi);
+                dec_sky += delta_r*sin(delta_phi);
+            }
+            // redefine theta2
+            theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
+            pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
+            int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
+            int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
+            int elevation = Hist_Elev.FindBin(tele_elev)-1;
+            int year = Hist_MJD.FindBin(MJD)-1;
+            if (energy<0) continue;
+            if (energy>=N_energy_bins) continue;
+            if (elevation<0) continue;
+            if (elevation>=N_elev_bins) continue;
+            if (!SelectNImages()) continue;
+            if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
+            if (SizeSecondMax<SizeSecondMax_Cut) continue;
+            if (EmissionHeight<6.) continue;
+            if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+            if (SignalSelectionTheta2())
+            {
+                Hist_Source_Theta2.at(energy).Fill(theta2);
+            }
+        }
+        vector<double> source_weight;
+        for (int e=0;e<N_energy_bins;e++) 
+        {
+            int nbins = Hist_Source_Theta2.at(e).GetNbinsX();
+            double background_counts = 0.;
+            for (int bin=2;bin<=nbins;bin++) // first bin is the signal region
+            {
+                background_counts += Hist_Source_Theta2.at(e).GetBinContent(bin);
+            }
+            double background_avg = background_counts/double(nbins-1);
+            if (Hist_Source_Theta2.at(e).GetBinContent(1)>0.)
+            {
+                source_weight.push_back(background_avg/Hist_Source_Theta2.at(e).GetBinContent(1));
+            }
+            else
+            {
+                source_weight.push_back(0.);
+            }
+        }
+
         for (int entry=0;entry<Data_tree->GetEntries();entry++) 
         {
             ErecS = 0;
@@ -2361,11 +2429,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (TString(target).Contains("Crab") && theta2<0.3) continue;
             //if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             //if (R2off>4.) continue;
+            double weight = 1.;
+            if (theta2<source_theta2_cut && SignalSelectionTheta2()) weight = source_weight.at(energy);
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
             if (FoV(true) || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
-                Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW);
+                Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW,weight);
             }
             if (SignalSelectionTheta2())
             {
@@ -2373,26 +2443,26 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 {
                     if (R2off<0.2*0.2)
                     {
-                        Hist_OnData_SR_Energy_CamCenter.at(energy).Fill(ErecS*1000.);
+                        Hist_OnData_SR_Energy_CamCenter.at(energy).Fill(ErecS*1000.,weight);
                     }
-                    Hist_OnData_SR_Yoff.at(energy).Fill(Yoff);
-                    Hist_OnData_SR_XYoff.at(energy).Fill(Xoff,Yoff);
-                    Hist_OnData_SR_Skymap_Theta2.at(energy).Fill(theta2);
-                    Hist_OnData_SR_Skymap.at(energy).Fill(ra_sky,dec_sky);
-                    Hist_OnData_SR_Skymap_Galactic.at(energy).Fill(evt_l_b.first,evt_l_b.second);
-                    Hist_OnData_SR_Energy.at(energy).Fill(ErecS*1000.);
-                    Hist_OnData_SR_Zenith.at(energy).Fill(Shower_Ze);
+                    Hist_OnData_SR_Yoff.at(energy).Fill(Yoff,weight);
+                    Hist_OnData_SR_XYoff.at(energy).Fill(Xoff,Yoff,weight);
+                    Hist_OnData_SR_Skymap_Theta2.at(energy).Fill(theta2,weight);
+                    Hist_OnData_SR_Skymap.at(energy).Fill(ra_sky,dec_sky,weight);
+                    Hist_OnData_SR_Skymap_Galactic.at(energy).Fill(evt_l_b.first,evt_l_b.second,weight);
+                    Hist_OnData_SR_Energy.at(energy).Fill(ErecS*1000.,weight);
+                    Hist_OnData_SR_Zenith.at(energy).Fill(Shower_Ze,weight);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
                         if (nth_roi>0)
                         {
                             if (RoIFoV(nth_roi)) 
                             {
-                                Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.);
-                                Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD);
+                                Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight);
+                                Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                            Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi);
+                            Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,weight);
                         }
                         else
                         {
@@ -2403,11 +2473,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                             }
                             if (!isRoI)
                             {
-                                Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.);
-                                Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD);
+                                Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight);
+                                Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                            Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi);
+                            Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,weight);
                         }
                     }
                 }
@@ -2592,7 +2662,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
                     double run_weight = Dark_weight.at(run).at(nth_sample);
                     double weight = run_weight;
-                    if (theta2_dark<source_theta2_cut) weight = run_weight*source_weight.at(energy);
+                    if (theta2_dark<source_theta2_cut && && SignalSelectionTheta2()) weight = run_weight*source_weight.at(energy);
 
                     if (SignalSelectionTheta2())
                     {

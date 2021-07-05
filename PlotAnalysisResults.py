@@ -3882,10 +3882,10 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
     hist_syst_skymap = []
     hist_expo_skymap = []
     for ebin in range(0,len(energy_bin)-1):
-        hist_diff_skymap += [ROOT.TH2D("hist_diff_skymap_%s"%(ebin),"",Skymap_nbins/zoomin_scale,MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,Skymap_nbins/zoomin_scale,MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_data_skymap += [ROOT.TH2D("hist_data_skymap_%s"%(ebin),"",Skymap_nbins/zoomin_scale,MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,Skymap_nbins/zoomin_scale,MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_syst_skymap += [ROOT.TH2D("hist_syst_skymap_%s"%(ebin),"",Skymap_nbins/zoomin_scale,MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,Skymap_nbins/zoomin_scale,MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_expo_skymap += [ROOT.TH2D("hist_expo_skymap_%s"%(ebin),"",Skymap_nbins/zoomin_scale,MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,Skymap_nbins/zoomin_scale,MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_diff_skymap += [ROOT.TH2D("hist_diff_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_data_skymap += [ROOT.TH2D("hist_data_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_syst_skymap += [ROOT.TH2D("hist_syst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_expo_skymap += [ROOT.TH2D("hist_expo_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
     for ebin in range(0,len(energy_bin)-1):
         for bx in range(0,hist_contour[0].GetNbinsX()):
             for by in range(0,hist_contour[0].GetNbinsY()):
@@ -3906,10 +3906,10 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
                 old_content = hist_expo_skymap[ebin].GetBinContent(bx2,by2)
                 hist_expo_skymap[ebin].SetBinContent(bx2,by2,old_content+new_content)
     for ebin in range(0,len(energy_bin)-1):
-        hist_syst_skymap[ebin].Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
-        hist_data_skymap[ebin].Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
-        hist_diff_skymap[ebin].Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
-        hist_expo_skymap[ebin].Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
+        hist_syst_skymap[ebin].Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+        hist_data_skymap[ebin].Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+        hist_diff_skymap[ebin].Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+        hist_expo_skymap[ebin].Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
     for ebin in range(0,len(energy_bin)-1):
         max_exposure = hist_expo_skymap[ebin].GetMaximum()
         if max_exposure>0.:
@@ -3918,10 +3918,10 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
             hist_expo_skymap[ebin].Scale(0.)
 
 
-    hist_index_skymap = ROOT.TH2D("hist_index_skymap","",Skymap_nbins/zoomin_scale,MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,Skymap_nbins/zoomin_scale,MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_index_skymap.Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
-    hist_index_skymap_full = ROOT.TH2D("hist_index_skymap_full","",Skymap_nbins/zoomin_scale,MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,Skymap_nbins/zoomin_scale,MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_index_skymap_full.Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
+    hist_index_skymap = ROOT.TH2D("hist_index_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_index_skymap.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+    hist_index_skymap_full = ROOT.TH2D("hist_index_skymap_full","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_index_skymap_full.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
 
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
     pad3 = ROOT.TPad("pad3","pad3",0,0.7,1,1)
@@ -4008,7 +4008,7 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
             Hist_Flux.Fit("func_source_%s"%(nth_roi-1),"N","",ErecS_lower_cut,ErecS_upper_cut)
             good_fit = True
             good_data = True
-            if (max_nbins/best_nbins)>=4:
+            if (int(max_nbins/best_nbins))>=4:
                 if n_3sigma_connect_max<4 and n_4sigma_connect_max<3: good_data = False
             else:
                 if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
@@ -4194,11 +4194,11 @@ def VariableSkymapBins(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_input,
         Hist_Syst = reflectXaxis(Hist_Syst_input)
         Hist_RBM = reflectXaxis(Hist_RBM_input)
         Hist_Exposure = reflectXaxis(Hist_Exposure_input)
-        Hist_SR.Rebin2D(max_nbins/nbins,max_nbins/nbins)
-        Hist_Bkg.Rebin2D(max_nbins/nbins,max_nbins/nbins)
-        Hist_Syst.Rebin2D(max_nbins/nbins,max_nbins/nbins)
-        Hist_RBM.Rebin2D(max_nbins/nbins,max_nbins/nbins)
-        Hist_Exposure.Rebin2D(max_nbins/nbins,max_nbins/nbins)
+        Hist_SR.Rebin2D(int(max_nbins/nbins),int(max_nbins/nbins))
+        Hist_Bkg.Rebin2D(int(max_nbins/nbins),int(max_nbins/nbins))
+        Hist_Syst.Rebin2D(int(max_nbins/nbins),int(max_nbins/nbins))
+        Hist_RBM.Rebin2D(int(max_nbins/nbins),int(max_nbins/nbins))
+        Hist_Exposure.Rebin2D(int(max_nbins/nbins),int(max_nbins/nbins))
         Hist_Skymap = GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,syst_method)
         nbins_5sigma = Count5SigmaBins(Hist_Skymap,Hist_SR,threshold_sigma)
         max_sigma = Hist_Skymap.GetMaximum()
@@ -4231,11 +4231,11 @@ def VariableSkymapBins(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_input,
     Hist_Syst = reflectXaxis(Hist_Syst_input)
     Hist_RBM = reflectXaxis(Hist_RBM_input)
     Hist_Exposure = reflectXaxis(Hist_Exposure_input)
-    Hist_SR.Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
-    Hist_Bkg.Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
-    Hist_Syst.Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
-    Hist_RBM.Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
-    Hist_Exposure.Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
+    Hist_SR.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+    Hist_Bkg.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+    Hist_Syst.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+    Hist_RBM.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+    Hist_Exposure.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
     Hist_Skymap = GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,syst_method)
     Hist_Skymap.GetYaxis().SetTitle(ytitle)
     Hist_Skymap.GetXaxis().SetTitle(xtitle)
@@ -4603,10 +4603,10 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     Hist_Bkg_reflect = reflectXaxis(Hist_Bkg_input)
     Hist_Syst_reflect = reflectXaxis(Hist_Syst_input)
     Hist_RBM_reflect = reflectXaxis(Hist_RBM_input)
-    Hist_SR_reflect.Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
-    Hist_Bkg_reflect.Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
-    Hist_Syst_reflect.Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
-    Hist_RBM_reflect.Rebin2D(max_nbins/best_nbins,max_nbins/best_nbins)
+    Hist_SR_reflect.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+    Hist_Bkg_reflect.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+    Hist_Syst_reflect.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+    Hist_RBM_reflect.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
     Hist_Skymap_reflect = GetSignificanceMap(Hist_SR_reflect,Hist_Bkg_reflect,Hist_Syst_reflect,syst_method)
     Hist_Skymap_ImportantBins = Hist_Skymap_reflect.Clone()
     for bx in range(0,Hist_Skymap_ImportantBins.GetNbinsX()):
@@ -4674,10 +4674,10 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     MapCenter_y = (MapEdge_upper+MapEdge_lower)/2.
     MapSize_x = (MapEdge_right-MapEdge_left)/2.
     MapSize_y = (MapEdge_upper-MapEdge_lower)/2.
-    Hist_Skymap_zoomin = ROOT.TH2D("Hist_Skymap_zoomin","",Skymap_nbins/3,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,Skymap_nbins/3,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
-    Hist_Contour_zoomin = ROOT.TH2D("Hist_Contour_zoomin","",Skymap_nbins/3,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,Skymap_nbins/3,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
-    Hist_HAWC_zoomin = ROOT.TH2D("Hist_HAWC_zoomin","",Skymap_nbins/3,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,Skymap_nbins/3,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
-    Hist_CO_zoomin = ROOT.TH2D("Hist_CO_zoomin","",Skymap_nbins/3,MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,Skymap_nbins/3,MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
+    Hist_Skymap_zoomin = ROOT.TH2D("Hist_Skymap_zoomin","",int(Skymap_nbins/3),MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,int(Skymap_nbins/3),MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
+    Hist_Contour_zoomin = ROOT.TH2D("Hist_Contour_zoomin","",int(Skymap_nbins/3),MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,int(Skymap_nbins/3),MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
+    Hist_HAWC_zoomin = ROOT.TH2D("Hist_HAWC_zoomin","",int(Skymap_nbins/3),MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,int(Skymap_nbins/3),MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
+    Hist_CO_zoomin = ROOT.TH2D("Hist_CO_zoomin","",int(Skymap_nbins/3),MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,int(Skymap_nbins/3),MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
     for bx in range(0,Hist_Skymap_Excess.GetNbinsX()):
         for by in range(0,Hist_Skymap_Excess.GetNbinsY()):
             bx_center = Hist_Skymap_Excess.GetXaxis().GetBinCenter(bx+1)
@@ -4785,7 +4785,7 @@ def GetExtention(Hist_data, Hist_bkgd, Hist_sig, Hist_exposure, highlight_thresh
                 Hist_Excess.SetBinContent(bx+1,by+1,0.)
             if not Hist_sig.GetBinContent(bx+1,by+1)>=highlight_threshold: 
                 Hist_Excess.SetBinContent(bx+1,by+1,0.)
-    xx, yy, zz = ROOT.Long(0), ROOT.Long(0), ROOT.Long(0)
+    xx, yy, zz = ROOT.Int(0), ROOT.Int(0), ROOT.Int(0)
     maxbin = Hist_Excess.GetMaximumBin()
     Hist_Excess.GetBinXYZ(maxbin, xx, yy, zz)
     print ('max excess at %s, %s'%(Hist_Excess.GetXaxis().GetBinCenter(xx),Hist_Excess.GetYaxis().GetBinCenter(yy)))
@@ -6150,8 +6150,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-drawMap = False
-#drawMap = True
+#drawMap = False
+drawMap = True
 #Smoothing = False
 Smoothing = True
 
@@ -6159,13 +6159,13 @@ Smoothing = True
 #set_palette('gray')
 
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
+SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,1)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,2)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,4)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,5,6)
 

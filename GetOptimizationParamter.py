@@ -493,7 +493,7 @@ for e in range(0,len(sample_list)+1):
     Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",50,optimiz_lower,optimiz_upper)]
     Hist_Bkgd_Optimization_beta += [ROOT.TH2D("Hist_Bkgd_Optimization_beta_%s"%(e),"",10,0.,1.,10,0.,1.)]
     Hist_Bkgd_OptimizationChi2_beta += [ROOT.TH2D("Hist_Bkgd_OptimizationChi2_beta_%s"%(e),"",10,0.,1.,10,0.,1.)]
-    Hist_Dark_Optimization += [ROOT.TH1D("Hist_Dark_Optimization_%s"%(e),"",N_bins_for_deconv/2,0,N_bins_for_deconv/2)]
+    Hist_Dark_Optimization += [ROOT.TH1D("Hist_Dark_Optimization_%s"%(e),"",int(N_bins_for_deconv/2),0,N_bins_for_deconv/2)]
 Hist_Bkgd_Chi2 = []
 for e in range(0,len(sample_list)+1):
     Hist_Bkgd_Chi2 += [ROOT.TH1D("Hist_Bkgd_Chi2_%s"%(e),"",50,optimiz_lower,optimiz_upper)]
@@ -563,9 +563,9 @@ for e in range(0,len(energy_bin)-1):
         for elev in range(0,len(root_file_tags)):
             FilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+".root"
             FilePath_List += [FilePath]
-            print 'Trying to read file %s'%(FilePath_List[len(FilePath_List)-1])
+            print ('Trying to read file %s'%(FilePath_List[len(FilePath_List)-1]))
             if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
-            print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
+            print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
             nfiles_used += 1
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
@@ -1034,12 +1034,12 @@ for e in range(0,len(energy_bin)-1):
         colors += [int(random_gen.Uniform(29.,49.))]
     MakeMultiplePlot(Hists,legends,colors,'Rank (r)','singular value','SingularValue_Mon_E%s%s'%(e,lowrank_tag),0,0,False,True)
 
-    print 'Energy %s'%(energy_bin[e])
+    print ('Energy %s'%(energy_bin[e]))
     for entry in range(0,len(Hist_U_Proj)):
         source_name = 'Average'
         if entry>0:
             source_name = sample_name[entry-1]
-        print source_name
+        print (source_name)
         tab_U_proj = [['1',0.,0.,0.,0.],['2',0.,0.,0.,0.],['3',0.,0.,0.,0.]]
         tab_V_proj = [['1',0.,0.,0.,0.],['2',0.,0.,0.,0.],['3',0.,0.,0.,0.]]
         for row in range(0,Hist_U_Proj[entry].GetNbinsX()):
@@ -1074,7 +1074,7 @@ for e in range(0,len(energy_bin)-1):
         print(my_table)
         sum_proj = 1./6.*(pow(tab_U_proj[0][4],2)+pow(tab_U_proj[1][4],2)+pow(tab_U_proj[2][4],2))
         sum_proj += 1./6.*(pow(tab_V_proj[0][4],2)+pow(tab_V_proj[1][4],2)+pow(tab_V_proj[2][4],2))
-        print 'eta = %s, eta^{0.5} = %s'%(sum_proj,pow(sum_proj,0.5))
+        print ('eta = %s, eta^{0.5} = %s'%(sum_proj,pow(sum_proj,0.5)))
         my_table = PrettyTable()
         my_table.field_names = ["k<=3", "n<=1", "n<=2", "n<=3", "n<=16"]
         my_table.add_row(tab_GammaRegion_Contribution)
