@@ -1531,14 +1531,14 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
 
         if (ebin==1)
         {
-            idx_k1 = 1-1;
-            idx_n1 = 3-1;
-            idx_k2 = 2-1;
-            idx_n2 = 1-1;
-            ratio_1 = -0.7083163484809455;
-            ratio_2 = 0.7058951412742687;
-            variance_1 = 0.0160378;
-            variance_2 = 0.04212988;
+            idx_k1 = 2-1;
+            idx_n1 = 1-1;
+            idx_k2 = 3-1;
+            idx_n2 = 2-1;
+            ratio_1 = -0.7100925688317113;
+            ratio_2 = -0.7041083323537517;
+            variance_1 = 0.04212988;
+            variance_2 = 0.04845724;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_v2 = idx_k2*size_n + idx_n2;
             idx_u1 = idx_v1;
