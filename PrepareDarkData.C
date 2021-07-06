@@ -509,7 +509,7 @@ bool DarkFoV() {
     if (R2off>camera_theta2_cut_upper) return false;
     //if (Yoff<camera_theta2_cut_lower) return false;
     //if (Yoff>camera_theta2_cut_upper) return false;
-    //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     if (CoincideWithGammaSources(ra_sky_dark,dec_sky_dark)) return false;
     return true;
 }
@@ -526,7 +526,7 @@ bool FoV(bool remove_bright_stars) {
     
     double x = ra_sky-mean_tele_point_ra;
     double y = dec_sky-mean_tele_point_dec;
-    //if (source_theta2_cut>(x*x+y*y)) return false;
+    if (source_theta2_cut>(x*x+y*y)) return false;
     //if (remove_bright_stars && CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
