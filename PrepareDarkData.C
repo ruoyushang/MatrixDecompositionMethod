@@ -1346,11 +1346,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
             double offset_NSB = 0.;
             double offset_Elev = 0.;
             double threshold_dNSB = 0.5;
-            double threshold_dElev = 2.0;
+            double threshold_dElev = 1.0;
             double threshold_dMJD = 3.*365.;
             double threshold_dL3Rate = 0.2;
             double threshold_dTime = 15.*60.;
-            while (accumulated_count<1.0*ON_count[on_run])
+            while (accumulated_count<2.0*ON_count[on_run])
             {
                 pair<string,int> best_match;
                 pair<double,double> best_pointing;
@@ -1458,11 +1458,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     if (number_of_search>=2)
                     {
                         did_i_find_a_match.at(on_run) = false;
-                        std::cout << "couldn't find a matched run, break." << std::endl;
+                        std::cout << "couldn't find a matched run for " << int(ON_runlist[on_run].second) << ", break." << std::endl;
                         break;
                         std::cout << "couldn't find a matched run, relax all cuts." << std::endl;
                         threshold_dNSB += 10.;
-                        threshold_dElev += 20.;
+                        threshold_dElev += 10.;
                         threshold_dMJD += 10.0*365.;
                         threshold_dL3Rate += 0.3;
                         threshold_dTime += 5.0*60.;
@@ -1470,7 +1470,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     if (number_of_search>=3)
                     {
                         did_i_find_a_match.at(on_run) = false;
-                        std::cout << "couldn't find a matched run, break." << std::endl;
+                        std::cout << "couldn't find a matched run for" << int(ON_runlist[on_run].second) << ", break." << std::endl;
                         break;
                     }
                 }
@@ -2181,7 +2181,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<double> Data_runlist_exposure;
     for (int run=0;run<Data_runlist.size();run++)
     {
-        if (!did_i_find_a_match.at(run)) continue;
+        if (!did_i_find_a_match.at(run)) 
+        {
+            std::cout << "Skip run " << int(Data_runlist[run].second) << std::endl;
+            continue;
+        }
 
         char run_number[50];
         char Data_observation[50];
@@ -2793,8 +2797,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (data_cr_content_energy>10. && dark_cr_content_energy>10.)
             {
                 energy_weight = data_cr_content_energy/dark_cr_content_energy;
+                //energy_weight = data_cr_content_xyoff/dark_cr_content_xyoff;
             }
-            double shape_weight = energy_weight*yoff_weight;
 
             if (FoV(true))
             {

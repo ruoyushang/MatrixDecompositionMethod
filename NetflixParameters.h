@@ -1,7 +1,8 @@
 
 //int N_bins_for_deconv = 20; // 8 should be the lowest bin number
-//int N_bins_for_deconv = 16; // 8 should be the lowest bin number
-int N_bins_for_deconv = 12; // 8 should be the lowest bin number
+int N_bins_for_deconv = 16; // 8 should be the lowest bin number
+//int N_bins_for_deconv = 12; // 8 should be the lowest bin number
+//int N_bins_for_deconv = 8; // 8 should be the lowest bin number
 
 const int N_energy_bins = 6;
 double Log10_alpha[N_energy_bins] = {0.,0.,0.,0.,0.,0.};

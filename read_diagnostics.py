@@ -48,10 +48,10 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 3.0
 
 # MGRO J1908
-#target_ra = 286.975
-#target_dec = 6.269
-#range_ra = 3.0
-#range_dec = 3.0
+target_ra = 286.975
+target_dec = 6.269
+range_ra = 3.0
+range_dec = 3.0
 
 # Draco dSph
 #target_ra = 260.059729167
@@ -385,17 +385,17 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 2.0
 
 # LHAASO J2108+5157
-target_ra = 317.15
-target_dec = 51.95
-range_ra = 2.0
-range_dec = 2.0
+#target_ra = 317.15
+#target_dec = 51.95
+#range_ra = 2.0
+#range_dec = 2.0
 
-search_for_on_data = True
-#search_for_on_data = False
+#search_for_on_data = True
+search_for_on_data = False
 
 V4 = False
-V5 = False
-V6 = True
+V5 = True
+V6 = False
 
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
@@ -469,7 +469,7 @@ Source_Livetime = []
 #        Source_Livetime += [0.]
 
 #inputFile = open('diagnostics.txt')
-inputFile = open('diagnostics_20210308.txt')
+inputFile = open('diagnostics_20210705.txt')
 for line in inputFile:
     if line.split(' ')[0]=="#": 
         #print 'this is a comment line'

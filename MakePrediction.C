@@ -1528,52 +1528,54 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
         //    mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(variance_1);
         //}
 
-        if (entry_size==3 && ebin==1)
-        {
-            idx_k1 = 1-1;
-            idx_n1 = 3-1;
-            idx_k2 = 2-1;
-            idx_n2 = 1-1;
-            ratio_1 = -0.7077883715600473;
-            ratio_2 = 0.7064245331841019;
-            variance_1 = 0.0160815;
-            variance_2 = 0.04199518;
-            idx_v1 = idx_k1*size_n + idx_n1;
-            idx_v2 = idx_k2*size_n + idx_n2;
-            idx_u1 = idx_v1;
-            sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
-            sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
-            sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
-            sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
-            coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
-            coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
-            mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
-            mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
-            //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
-            //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
-            
-            idx_k1 = 2-1;
-            idx_n1 = 1-1;
-            idx_k2 = 3-1;
-            idx_n2 = 2-1;
-            ratio_1 = -0.7100925688317113;
-            ratio_2 = -0.7041083323537517;
-            variance_1 = 0.04212988;
-            variance_2 = 0.04845724;
-            idx_v1 = idx_k1*size_n + idx_n1;
-            idx_v2 = idx_k2*size_n + idx_n2;
-            idx_u1 = idx_v1;
-            sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
-            sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
-            sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
-            sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
-            coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
-            coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
-            mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
-            mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
-            //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
-            //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
-        }
+        //if (entry_size==3 && ebin==1)
+        //{
+        //    idx_k1 = 2-1;
+        //    idx_n1 = 1-1;
+        //    idx_k2 = 3-1;
+        //    idx_n2 = 2-1;
+        //    ratio_1 = -0.7100925688317113;
+        //    ratio_2 = -0.7041083323537517;
+        //    variance_1 = 0.04212988;
+        //    variance_2 = 0.04845724;
+        //    idx_v1 = idx_k1*size_n + idx_n1;
+        //    idx_v2 = idx_k2*size_n + idx_n2;
+        //    idx_u1 = idx_v1;
+        //    sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
+        //    sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
+        //    sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
+        //    sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
+        //    coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
+        //    coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
+        //    mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
+        //    mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
+        //    //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
+        //    //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
+        //}
+        //if (entry_size==3 && ebin==2)
+        //{
+        //    idx_k1 = 2-1;
+        //    idx_n1 = 1-1;
+        //    idx_k2 = 3-1;
+        //    idx_n2 = 2-1;
+        //    ratio_1 = -0.7159364013510664;
+        //    ratio_2 = -0.6981655027430707;
+        //    variance_1 = 0.05289851;
+        //    variance_2 = 0.05620204;
+        //    idx_v1 = idx_k1*size_n + idx_n1;
+        //    idx_v2 = idx_k2*size_n + idx_n2;
+        //    idx_u1 = idx_v1;
+        //    sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
+        //    sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
+        //    sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
+        //    sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
+        //    coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
+        //    coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
+        //    mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
+        //    mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
+        //    //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
+        //    //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
+        //}
         
     }
 
