@@ -261,8 +261,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("SNR_G150p3Plus04p5_V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("3C273V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            //list_temp = GetRunListFromFile("3C273V6");
+            //list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("1ES0502V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("DracoV6");
@@ -428,8 +428,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
             //list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("M82V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("3C273V5");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            //list_temp = GetRunListFromFile("3C273V5");
+            //list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("1ES0502V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("DracoV5");
