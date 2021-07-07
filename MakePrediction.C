@@ -3702,11 +3702,13 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             for (int i=0;i<mtx_data.cols()-1;i++)
             {
                 if (find_elbow) continue;
+                std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1) << std::endl;
                 if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1)<3.)
                 {
                     find_elbow = true;
-                    NumberOfEigenvectors_Stable = i+1;
                 }
+                if (find_elbow) continue;
+                NumberOfEigenvectors_Stable = i+1;
             }
             NumberOfEigenvectors_Stable = max(NumberOfEigenvectors_Stable,1);
             NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,3);
