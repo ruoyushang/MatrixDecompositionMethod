@@ -400,19 +400,23 @@ V6 = False
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
 
-Search_Range_Elev = [40.,70.]
-Search_Range_PedVar_DC = [5.,7.]
+Search_Range_Elev = [40.,90.]
+Search_Range_PedVar_DC = [0.,10.]
+
+# 1ES 0414 Elev 55-60
+Search_Center_RA = 64.0
+Search_Center_Dec = -2.0
 
 # Ursa Major II
 #Search_Center_RA = 132.
 #Search_Center_Dec = 62.
 
-#RGBJ0710+591
+#RGBJ0710+591 Elev 60-65
 #Search_Center_RA = 104.
 #Search_Center_Dec = 58.
 
-#Search_Range_RA = [Search_Center_RA-4.,Search_Center_RA+4.]
-#Search_Range_Dec = [Search_Center_Dec-4.,Search_Center_Dec+4.]
+Search_Range_RA = [Search_Center_RA-4.,Search_Center_RA+4.]
+Search_Range_Dec = [Search_Center_Dec-4.,Search_Center_Dec+4.]
 
 RunNumber = 0
 Elev = 0
@@ -460,9 +464,9 @@ Source_Livetime = []
 #    #Search_Range_Dec = [72.,76.]
 #    #Search_Range_RA = [75.,80.]
 #    #Search_Range_Dec = [66.,70.]
-#    sourceFile = open('../data/output_list/MGRO_J1908_V6_runlist.txt')
+#    sourceFile = open('runlist_backup/RunList_MGRO_J1908_V5.txt')
 #    for line in sourceFile:
-#        Source_RunNumber += [int(line)]
+#        Source_RunNumber += [int(linei.split(',')[1])]
 #        Source_PedVar_DC += [0.]
 #        Source_Elev += [0.]
 #        Source_Azim += [0.]
@@ -693,7 +697,7 @@ else:
         List_Used_RA += [T1_RA]
         List_Used_Dec += [T1_Dec]
     
-    #n_matches = 3
+    #n_matches = 2
     #for nth_sample in range(0,n_matches):
     #    for entry2 in range(0,len(Source_RunNumber)):
     #        found_matches = 0
@@ -794,13 +798,12 @@ else:
     #                if PedVar_DC<Search_PedVar_DC[0]: continue
     #                if PedVar_DC>Search_PedVar_DC[1]: continue
     #                already_used = False
-    #                for entry3 in range(0,len(List_Produced)):
-    #                    if int(List_Produced[entry3])==int(RunNumber): 
-    #                        print 'RunNumber %s is in the List_Produced'%(RunNumber)
-    #                        already_used = True
+    #                #for entry3 in range(0,len(List_Produced)):
+    #                #    if int(List_Produced[entry3])==int(RunNumber): 
+    #                #        print 'RunNumber %s is in the List_Produced'%(RunNumber)
+    #                #        already_used = True
     #                for entry3 in range(0,len(List_Used)):
     #                    if int(List_Used[entry3])==int(RunNumber): 
-    #                        #print 'RunNumber %s is in the List_Produced'%(RunNumber)
     #                        already_used = True
     #                if already_used: continue
     #                List_Used += [RunNumber]
@@ -836,7 +839,7 @@ hist, xbins, ybins, im = plt.hist2d(List_Used_RA, List_Used_Dec, range = [[0,360
 plt.colorbar()
 for i in range(len(xbins)-1):
     for j in range(len(ybins)-1):
-        if hist[i,j]>50:
+        if hist[i,j]>30:
             print "counts %s, RA %s, Dec %s"%(hist[i,j],xbins[i],ybins[j])
             #ax.text(xbins[i]+3.,ybins[j]+3.,hist[i,j],color="black", ha="center", va="center", fontweight="bold")
 ax.axis('on')
