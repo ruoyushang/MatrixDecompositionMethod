@@ -26,8 +26,9 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 target_energy_index = 2
-N_bins_for_deconv = 16
-#N_bins_for_deconv = 12
+#N_bins_for_deconv = 20
+#N_bins_for_deconv = 16
+N_bins_for_deconv = 12
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.5
@@ -40,6 +41,8 @@ ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
 
+#folder_path = 'output_20x20'
+#folder_path = 'output_12x12'
 folder_path = 'output_nominal'
 method_tag = 'tight_mdm_default'
 
@@ -69,8 +72,8 @@ sample_list += ['1ES1011V6_OFF']
 sample_name += ['1ES1011 V6']
 sample_list += ['OJ287V6_OFF']
 sample_name += ['OJ287 V6']
-#sample_list += ['PKS1424V6_OFF']
-#sample_name += ['PKS1424 V6']
+sample_list += ['PKS1424V6_OFF']
+sample_name += ['PKS1424 V6']
 sample_list += ['3C264V6_OFF']
 sample_name += ['3C264 V6']
 sample_list += ['1ES0229V6_OFF']
@@ -81,10 +84,10 @@ sample_list += ['Segue1V6_OFF']
 sample_name += ['Segue1 V6']
 sample_list += ['Segue1V5_OFF']
 sample_name += ['Segue1 V5']
-#sample_list += ['CrabV5_OFF']
-#sample_name += ['Crab V5']
-#sample_list += ['CrabV6_OFF']
-#sample_name += ['Crab V6']
+sample_list += ['CrabV5_OFF']
+sample_name += ['Crab V5']
+sample_list += ['CrabV6_OFF']
+sample_name += ['Crab V6']
 sample_list += ['BLLacV6_OFF']
 sample_name += ['BLLac V6']
 #sample_list += ['BLLacV5_OFF']

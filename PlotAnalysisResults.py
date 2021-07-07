@@ -548,7 +548,7 @@ if sys.argv[1]=='MGRO_J1908_ON':
     sample_list = []
     sample_list += ['MGRO_J1908_V6_ON']
     sample_list += ['MGRO_J1908_V5_ON']
-    sample_list += ['MGRO_J1908_V4_ON']
+    #sample_list += ['MGRO_J1908_V4_ON']
     theta2_bins = [0,4]
     # this is a Tevatron
     
@@ -680,7 +680,6 @@ PercentCrab = ''
 selection_tag += '_%s'%(folder_path)
 
 N_bins_for_deconv = 16
-#N_bins_for_deconv = 12
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.5
