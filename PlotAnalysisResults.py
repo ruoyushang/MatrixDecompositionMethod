@@ -4048,32 +4048,6 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
         hist_contour_reflect[ebin].SetContourLevel(1,4)
         hist_contour_reflect[ebin].SetContourLevel(2,5)
 
-    Hist_CO = hist_data[0].Clone()
-    ContourLevel_1 = 0.
-    ContourLevel_2 = 0.
-    ContourLevel_3 = 0.
-    if sys.argv[1]=='GammaCygni_ON':
-        Hist_CO = GetSkyViewMap("MWL_maps/skv19487154506678_1420MHz_GammaCygni.txt", Hist_CO, True)
-        ContourLevel_1 = 11000.
-        ContourLevel_2 = 13000.
-        ContourLevel_3 = 15000.
-    if sys.argv[1]=='MGRO_J1908_ON':
-        Hist_CO = GetSkyViewMap("MWL_maps/skv22338613766121_SwiftBat14keV_J1908.txt", Hist_CO, True)
-        ContourLevel_1 = 1.0
-        ContourLevel_2 = 2.0
-        ContourLevel_3 = 4.0
-    if sys.argv[1]=='MAGIC_J1857_ON':
-        Hist_CO = GetSkyViewMap("MWL_maps/skv19487414377965_1420MHz_J1857.txt", Hist_CO, True)
-        ContourLevel_1 = 7000.
-        ContourLevel_2 = 9000.
-        ContourLevel_3 = 11000.
-    Hist_CO = reflectXaxis(Hist_CO)
-    Hist_CO.SetContour(3)
-    Hist_CO.SetContourLevel(0,ContourLevel_1)
-    Hist_CO.SetContourLevel(1,ContourLevel_2)
-    Hist_CO.SetContourLevel(2,ContourLevel_3)
-    Hist_CO.SetLineColor(2)
-
     other_star_labels = []
     other_star_markers = []
     other_star_names = []
@@ -4148,7 +4122,6 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
     pad1.cd()
     hist_index_skymap_reflect.Draw("COL4Z")
     #hist_index_skymap_full_reflect.Draw("COL4Z")
-    #Hist_CO.Draw("CONT3 same")
     #hist_index_skymap_reflect.Draw("TEXT45 same")
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
@@ -4295,6 +4268,171 @@ def VariableSkymapBins(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_input,
     lumilab4.Draw()
     canvas.SaveAs('output_plots/SkymapSig_%s_%s.png'%(name,selection_tag))
 
+def MakeMWLSkymap(Hist_Veritas_input,xtitle,ytitle,name):
+
+    Hist_Veritas = reflectXaxis(Hist_Veritas_input)
+
+    isRaDec = False
+    if 'RaDec' in name: isRaDec = True
+    Hist_MWL = Hist_Veritas_input.Clone()
+    #Hist_MWL = GetHawcSkymap(Hist_MWL, isRaDec)
+    #Hist_MWL = GetCOSkymap(Hist_MWL, isRaDec)
+    #Hist_MWL = GetSkyViewMap("MWL_maps/skv23774123153055_fermi5_J1908.txt", Hist_MWL, isRaDec)
+    Hist_MWL = GetSkyViewMap("MWL_maps/skv23774832380255_CO_J1908.txt", Hist_MWL, isRaDec)
+    Hist_MWL = reflectXaxis(Hist_MWL)
+
+    other_star_labels = []
+    other_star_markers = []
+    other_star_names = []
+    other_star_significance = []
+    bright_star_labels = []
+    bright_star_markers = []
+    faint_star_labels = []
+    faint_star_markers = []
+    star_range = 2.5
+    if xtitle=="RA":
+        for star in range(0,len(other_stars)):
+            if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
+            star_significance = FindLocalMaximum(Hist_Veritas, -other_star_coord[star][0], other_star_coord[star][1])
+            #if star_significance<2.0: continue
+            other_star_markers += [ROOT.TMarker(-other_star_coord[star][0],other_star_coord[star][1],2)]
+            other_star_labels += [ROOT.TLatex(-other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
+            other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
+            other_star_labels[len(other_star_labels)-1].SetTextSize(0.03)
+            other_star_names += [other_stars[star]]
+            other_star_significance += [star_significance]
+        for star in range(0,len(bright_star_ra)):
+            bright_star_markers += [ROOT.TMarker(-bright_star_ra[star],bright_star_dec[star],30)]
+            bright_star_markers[len(bright_star_markers)-1].SetMarkerColor(2)
+            bright_star_markers[len(bright_star_markers)-1].SetMarkerSize(1.5)
+            bright_star_labels += [ROOT.TLatex(-bright_star_ra[star]-0.15,bright_star_dec[star]+0.15,'b-mag %s'%(bright_star_brightness[star]))]
+            bright_star_labels[len(bright_star_labels)-1].SetTextColor(2)
+            bright_star_labels[len(bright_star_labels)-1].SetTextSize(0.02)
+        for star in range(0,len(faint_star_ra)):
+            faint_star_markers += [ROOT.TMarker(-faint_star_ra[star],faint_star_dec[star],30)]
+            faint_star_markers[len(faint_star_markers)-1].SetMarkerColor(3)
+            faint_star_markers[len(faint_star_markers)-1].SetMarkerSize(1.5)
+            faint_star_labels += [ROOT.TLatex(-faint_star_ra[star]-0.15,faint_star_dec[star]+0.15,'b-mag %s'%(faint_star_brightness[star]))]
+            faint_star_labels[len(faint_star_labels)-1].SetTextColor(3)
+            faint_star_labels[len(faint_star_labels)-1].SetTextSize(0.02)
+    else:
+        for star in range(0,len(other_stars)):
+            gal_l, gal_b = ConvertRaDecToGalactic(other_star_coord[star][0],other_star_coord[star][1])
+            if pow(source_l-gal_l,2)+pow(source_b-gal_b,2)>star_range*star_range: continue
+            star_significance = FindLocalMaximum(Hist_Veritas, -gal_l, gal_b)
+            #if star_significance<2.0: continue
+            other_star_markers += [ROOT.TMarker(-gal_l,gal_b,2)]
+            other_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,other_stars[star])]
+            other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
+            other_star_labels[len(other_star_labels)-1].SetTextSize(0.03)
+            other_star_names += [other_stars[star]]
+            other_star_significance += [star_significance]
+        for star in range(0,len(bright_star_ra)):
+            gal_l, gal_b = ConvertRaDecToGalactic(bright_star_ra[star],bright_star_dec[star])
+            bright_star_markers += [ROOT.TMarker(-gal_l,gal_b,30)]
+            bright_star_markers[len(bright_star_markers)-1].SetMarkerColor(2)
+            bright_star_markers[len(bright_star_markers)-1].SetMarkerSize(1.5)
+            bright_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,'b-mag %s'%(bright_star_brightness[star]))]
+            bright_star_labels[len(bright_star_labels)-1].SetTextColor(2)
+            bright_star_labels[len(bright_star_labels)-1].SetTextSize(0.02)
+        for star in range(0,len(faint_star_ra)):
+            gal_l, gal_b = ConvertRaDecToGalactic(faint_star_ra[star],faint_star_dec[star])
+            faint_star_markers += [ROOT.TMarker(-gal_l,gal_b,30)]
+            faint_star_markers[len(faint_star_markers)-1].SetMarkerColor(3)
+            faint_star_markers[len(faint_star_markers)-1].SetMarkerSize(1.5)
+            faint_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,'b-mag %s'%(faint_star_brightness[star]))]
+            faint_star_labels[len(faint_star_labels)-1].SetTextColor(3)
+            faint_star_labels[len(faint_star_labels)-1].SetTextSize(0.02)
+
+    canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+    #pad1 = ROOT.TPad("pad1","pad1",0,0,1,1)
+    pad1.SetBottomMargin(0.15)
+    pad1.SetRightMargin(0.15)
+    pad1.SetLeftMargin(0.15)
+    #pad1.SetTopMargin(0.15)
+    pad1.SetTopMargin(0.0)
+    pad1.SetBorderMode(0)
+    pad1.Draw()
+    pad3.Draw()
+
+    pad1.cd()
+
+    legend = ROOT.TLegend(0.55,0.1,0.94,0.9)
+    legend.SetTextFont(42)
+    legend.SetBorderSize(0)
+    legend.SetTextSize(0.15)
+    legend.SetFillColor(0)
+    legend.SetFillStyle(0)
+    legend.SetLineColor(0)
+    legend.Clear()
+    for star in range(0,len(other_star_names)):
+        legend.AddEntry(other_stars[star],'%s (%0.1f#sigma)'%(other_star_names[star],other_star_significance[star]))
+
+
+    Hist_Contour = Hist_Veritas.Clone()
+    Hist_Contour.Reset()
+    for bx in range(0,Hist_Veritas.GetNbinsX()):
+        for by in range(0,Hist_Veritas.GetNbinsY()):
+            Hist_Contour.SetBinContent(bx+1,by+1,(Hist_Veritas.GetBinContent(bx+1,by+1)))
+    Hist_Contour.SetContour(3)
+    Hist_Contour.SetContourLevel(0,3)
+    Hist_Contour.SetContourLevel(1,4)
+    Hist_Contour.SetContourLevel(2,5)
+    Hist_Contour.SetLineColor(0)
+
+    pad1.cd()
+    Hist_MWL.Draw("COL4Z")
+    Hist_Contour.Draw("CONT3 same")
+    Hist_MWL.GetYaxis().SetTitle(ytitle)
+    Hist_MWL.GetXaxis().SetTitle(xtitle)
+    Hist_MWL.GetZaxis().SetTitle('Amplitude')
+    Hist_MWL.GetZaxis().SetTitleOffset(1.1)
+    #Hist_MWL.SetMaximum(5)
+    #Hist_MWL.SetMinimum(-5)
+    Hist_MWL.GetXaxis().SetLabelOffset(999)
+    Hist_MWL.GetXaxis().SetTickLength(0)
+    x1 = Hist_MWL.GetXaxis().GetXmin()
+    x2 = Hist_MWL.GetXaxis().GetXmax()
+    y1 = Hist_MWL.GetYaxis().GetXmin()
+    y2 = Hist_MWL.GetYaxis().GetXmax()
+    IncValues = ROOT.TF1( "IncValues", "-x", -x2, -x1 )
+    raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
+    raLowerAxis.SetLabelSize(Hist_MWL.GetXaxis().GetLabelSize())
+    raLowerAxis.Draw()
+    for star in range(0,len(other_star_markers)):
+        other_star_markers[star].Draw("same")
+        other_star_labels[star].Draw("same")
+    for star in range(0,len(bright_star_markers)):
+        bright_star_markers[star].Draw("same")
+        bright_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        if nth_roi==1: continue
+        mycircles[nth_roi].Draw("same")
+    pad3.cd()
+    lumilab3 = ROOT.TLatex(0.15,0.50,'E >%0.1f GeV (%.1f hrs)'%(energy_bin[energy_bin_cut_low],exposure_hours) )
+    lumilab3.SetNDC()
+    lumilab3.SetTextSize(0.15)
+    lumilab3.Draw()
+    lumilab4 = ROOT.TLatex(0.15,0.30,'MJD %s-%s'%(MJD_Start,MJD_End) )
+    lumilab4.SetNDC()
+    lumilab4.SetTextSize(0.15)
+    lumilab4.Draw()
+    legend.Draw("SAME")
+    canvas.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
+
 def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_input,Hist_RBM_input,Hist_Exposure_input,xtitle,ytitle,name):
 
     Hist_SR = reflectXaxis(Hist_SR_input)
@@ -4308,48 +4446,6 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
 
     isRaDec = False
     if 'RaDec' in name: isRaDec = True
-
-    Hist_HAWC = Hist_SR_input.Clone()
-    Hist_HAWC = GetHawcSkymap(Hist_HAWC, isRaDec)
-    Hist_HAWC = reflectXaxis(Hist_HAWC)
-    Hist_HAWC.SetLineColor(0)
-    Hist_HAWC.SetContour(3)
-    Hist_HAWC.SetContourLevel(0,5)
-    Hist_HAWC.SetContourLevel(1,10)
-    Hist_HAWC.SetContourLevel(2,15)
-
-    Hist_CO = Hist_SR_input.Clone()
-    ContourLevel_1 = 0.
-    ContourLevel_2 = 0.
-    ContourLevel_3 = 0.
-    #Hist_CO = GetCOSkymap(Hist_CO, isRaDec)
-    #Hist_CO = reflectXaxis(Hist_CO)
-    #Hist_CO.SetLineColor(0)
-    #Hist_CO.SetContour(3)
-    #Hist_CO.SetContourLevel(0,5)
-    #Hist_CO.SetContourLevel(1,20)
-    #Hist_CO.SetContourLevel(2,80)
-    if sys.argv[1]=='GammaCygni_ON':
-        Hist_CO = GetSkyViewMap("MWL_maps/skv19487154506678_1420MHz_GammaCygni.txt", Hist_CO, isRaDec)
-        ContourLevel_1 = 11000.
-        ContourLevel_2 = 13000.
-        ContourLevel_3 = 15000.
-    if sys.argv[1]=='MGRO_J1908_ON':
-        Hist_CO = GetSkyViewMap("MWL_maps/skv22338613766121_SwiftBat14keV_J1908.txt", Hist_CO, isRaDec)
-        ContourLevel_1 = 1.0
-        ContourLevel_2 = 2.0
-        ContourLevel_3 = 4.0
-    if sys.argv[1]=='MAGIC_J1857_ON':
-        Hist_CO = GetSkyViewMap("MWL_maps/skv19487414377965_1420MHz_J1857.txt", Hist_CO, isRaDec)
-        ContourLevel_1 = 7000.
-        ContourLevel_2 = 9000.
-        ContourLevel_3 = 11000.
-    Hist_CO = reflectXaxis(Hist_CO)
-    Hist_CO.SetContour(3)
-    Hist_CO.SetContourLevel(0,ContourLevel_1)
-    Hist_CO.SetContourLevel(1,ContourLevel_2)
-    Hist_CO.SetContourLevel(2,ContourLevel_3)
-    Hist_CO.SetLineColor(0)
 
     other_star_labels = []
     other_star_markers = []
@@ -4465,8 +4561,6 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     pad1.cd()
     Hist_Skymap.Draw("COL4Z")
     Hist_Contour.Draw("CONT3 same")
-    #Hist_HAWC.Draw("CONT3 same")
-    #Hist_CO.Draw("CONT3 same")
     Hist_Skymap.GetXaxis().SetLabelOffset(999)
     Hist_Skymap.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap.GetXaxis().GetXmin()
@@ -4675,8 +4769,6 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     MapSize_y = (MapEdge_upper-MapEdge_lower)/2.
     Hist_Skymap_zoomin = ROOT.TH2D("Hist_Skymap_zoomin","",int(Skymap_nbins/3),MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,int(Skymap_nbins/3),MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
     Hist_Contour_zoomin = ROOT.TH2D("Hist_Contour_zoomin","",int(Skymap_nbins/3),MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,int(Skymap_nbins/3),MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
-    Hist_HAWC_zoomin = ROOT.TH2D("Hist_HAWC_zoomin","",int(Skymap_nbins/3),MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,int(Skymap_nbins/3),MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
-    Hist_CO_zoomin = ROOT.TH2D("Hist_CO_zoomin","",int(Skymap_nbins/3),MapCenter_x-MapSize_x/3.,MapCenter_x+MapSize_x/3.,int(Skymap_nbins/3),MapCenter_y-MapSize_y/3.,MapCenter_y+MapSize_y/3)
     for bx in range(0,Hist_Skymap_Excess.GetNbinsX()):
         for by in range(0,Hist_Skymap_Excess.GetNbinsY()):
             bx_center = Hist_Skymap_Excess.GetXaxis().GetBinCenter(bx+1)
@@ -4688,8 +4780,6 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
             #Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Skymap.GetBinContent(bx+1,by+1))
             #Hist_Skymap_zoomin.SetBinContent(bx2,by2,Hist_Bkg.GetBinContent(bx+1,by+1))
             Hist_Contour_zoomin.SetBinContent(bx2,by2,Hist_Contour.GetBinContent(bx+1,by+1))
-            Hist_HAWC_zoomin.SetBinContent(bx2,by2,Hist_HAWC.GetBinContent(bx+1,by+1))
-            Hist_CO_zoomin.SetBinContent(bx2,by2,Hist_CO.GetBinContent(bx+1,by+1))
     Hist_Contour_zoomin.SetContour(3)
     Hist_Contour_zoomin.SetContourLevel(0,3)
     Hist_Contour_zoomin.SetContourLevel(1,4)
@@ -4707,18 +4797,6 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     Hist_Skymap_zoomin.GetZaxis().SetTitleOffset(1.1)
     Hist_Skymap_zoomin.Draw("COL4Z")
     Hist_Contour_zoomin.Draw("CONT3 same")
-    Hist_HAWC_zoomin.SetLineColor(0)
-    Hist_HAWC_zoomin.SetContour(3)
-    Hist_HAWC_zoomin.SetContourLevel(0,5)
-    Hist_HAWC_zoomin.SetContourLevel(1,10)
-    Hist_HAWC_zoomin.SetContourLevel(2,15)
-    #Hist_HAWC_zoomin.Draw("CONT3 same")
-    Hist_CO_zoomin.SetLineColor(2)
-    Hist_CO_zoomin.SetContour(3)
-    Hist_CO_zoomin.SetContourLevel(0,ContourLevel_1)
-    Hist_CO_zoomin.SetContourLevel(1,ContourLevel_2)
-    Hist_CO_zoomin.SetContourLevel(2,ContourLevel_3)
-    Hist_CO_zoomin.Draw("CONT3 same")
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
@@ -5821,6 +5899,8 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
     Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth,Hist_Exposure_Skymap_Galactic_smooth,'gal. l.','gal. b.','Skymap_Smooth_Galactic_MDM_%s%s'%(source_name,PercentCrab))
 
     Hist_Significance_Skymap_smooth = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,Syst_MDM)
+    MakeMWLSkymap(Hist_Significance_Skymap_smooth,'RA','Dec','Skymap_MWL_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+
     ErecS_lower_cut = energy_bin[energy_bin_cut_low]
     ErecS_upper_cut = energy_bin[energy_bin_cut_up]
     if doSmooth:

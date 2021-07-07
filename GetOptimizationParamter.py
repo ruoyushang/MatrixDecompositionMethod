@@ -28,9 +28,9 @@ energy_bin_cut_low = 3
 energy_bin_cut_up = 4
 
 #N_bins_for_deconv = 20
-#N_bins_for_deconv = 16
+N_bins_for_deconv = 16
 #N_bins_for_deconv = 12
-N_bins_for_deconv = 8
+#N_bins_for_deconv = 8
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
@@ -66,9 +66,7 @@ rank2_count = []
 rank3_count = []
 rank4_count = []
 
-#folder_path = 'output_nominal'
-folder_path = 'output_8x8'
-#folder_path = 'output_test'
+folder_path = 'output_nominal'
 method_tag = 'tight_mdm_default'
 #method_tag = 'tight_mdm_rank3'
 #method_tag = 'tight_mdm_rank5'
@@ -84,10 +82,10 @@ ONOFF_tag = 'OFF'
 ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
-sample_list += ['3C273V6_OFF']
-sample_name += ['3C273 V6']
-sample_list += ['3C273V5_OFF']
-sample_name += ['3C273 V5']
+#sample_list += ['3C273V6_OFF']
+#sample_name += ['3C273 V6']
+#sample_list += ['3C273V5_OFF']
+#sample_name += ['3C273 V5']
 sample_list += ['1ES0502V6_OFF']
 sample_name += ['1ES0502 V6']
 sample_list += ['1ES0502V5_OFF']
@@ -102,12 +100,12 @@ sample_list += ['1ES1011V6_OFF']
 sample_name += ['1ES1011 V6']
 sample_list += ['OJ287V6_OFF']
 sample_name += ['OJ287 V6']
-#sample_list += ['PKS1424V6_OFF']
-#sample_name += ['PKS1424 V6']
+sample_list += ['PKS1424V6_OFF']
+sample_name += ['PKS1424 V6']
 sample_list += ['3C264V6_OFF']
 sample_name += ['3C264 V6']
-#sample_list += ['1ES0229V6_OFF']
-#sample_name += ['1ES0229 V6']
+sample_list += ['1ES0229V6_OFF']
+sample_name += ['1ES0229 V6']
 #sample_list += ['1ES0229V5_OFF']
 #sample_name += ['1ES0229 V5']
 sample_list += ['Segue1V6_OFF']
@@ -116,20 +114,20 @@ sample_list += ['Segue1V5_OFF']
 sample_name += ['Segue1 V5']
 sample_list += ['CrabV5_OFF']
 sample_name += ['Crab V5']
-#sample_list += ['CrabV6_OFF']
-#sample_name += ['Crab V6']
+sample_list += ['CrabV6_OFF']
+sample_name += ['Crab V6']
 sample_list += ['BLLacV6_OFF']
 sample_name += ['BLLac V6']
 #sample_list += ['BLLacV5_OFF']
 #sample_name += ['BLLac V5']
 sample_list += ['PG1553V5_OFF']
 sample_name += ['PG1553 V5']
-sample_list += ['H1426V6_OFF']
-sample_name += ['H1426 V6']
 sample_list += ['M82V6_OFF']
 sample_name += ['M82 V6']
 sample_list += ['M82V5_OFF']
 sample_name += ['M82 V5']
+#sample_list += ['H1426V6_OFF']
+#sample_name += ['H1426 V6']
 ##sample_list += ['RBS0413V6_OFF']
 ##sample_name += ['RBS0413 V6']
 ##sample_list += ['NGC1275V6_OFF']
@@ -639,9 +637,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyInit_source = []
     AccuracyInitErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.:
+        if data_count[entry-1]<100.:
             AccuracyInit_source += [0.]
-            AccuracyInitErr_source += [1e10]
+            AccuracyInitErr_source += [0.]
         else:
             AccuracyInit_source += [abs(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
             AccuracyInitErr_source += [1./pow(data_count[entry-1],0.5)]
@@ -649,10 +647,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyInit_weight = 0.
     AccuracyInit_mean_error = 0.
     for entry in range(0,len(AccuracyInit_source)):
+        if AccuracyInitErr_source[entry]==0.: continue
         AccuracyInit_mean += 1./AccuracyInitErr_source[entry]*AccuracyInit_source[entry]
         AccuracyInit_weight += 1./AccuracyInitErr_source[entry]
-        #AccuracyInit_mean += AccuracyInit_source[entry]
-        #AccuracyInit_weight += 1.
         AccuracyInit_mean_error += pow(AccuracyInitErr_source[entry],2)/len(AccuracyInit_source)
     if AccuracyInit_weight>0.: AccuracyInit_mean = AccuracyInit_mean/AccuracyInit_weight
     AccuracyInit_mean_error = pow(AccuracyInit_mean_error,0.5)
@@ -660,9 +657,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyStat_source = []
     AccuracyStatErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.:
+        if data_count[entry-1]<100.:
             AccuracyStat_source += [0.]
-            AccuracyStatErr_source += [1e10]
+            AccuracyStatErr_source += [0.]
         else:
             AccuracyStat_source += [pow(data_count[entry-1],0.5)/data_count[entry-1]]
             AccuracyStatErr_source += [1./pow(data_count[entry-1],0.5)]
@@ -679,9 +676,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyRank2_source = []
     AccuracyRank2Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.:
+        if data_count[entry-1]<100.:
             AccuracyRank2_source += [0.]
-            AccuracyRank2Err_source += [1e10]
+            AccuracyRank2Err_source += [0.]
         else:
             AccuracyRank2_source += [abs(data_count[entry-1]-rank2_count[entry-1])/data_count[entry-1]]
             AccuracyRank2Err_source += [1./pow(data_count[entry-1],0.5)]
@@ -689,10 +686,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyRank2_weight = 0.
     AccuracyRank2_mean_error = 0.
     for entry in range(0,len(AccuracyRank2_source)):
+        if AccuracyRank2Err_source[entry]==0.: continue
         AccuracyRank2_mean += 1./AccuracyRank2Err_source[entry]*AccuracyRank2_source[entry]
         AccuracyRank2_weight += 1./AccuracyRank2Err_source[entry]
-        #AccuracyRank2_mean += AccuracyRank2_source[entry]
-        #AccuracyRank2_weight += 1.
         AccuracyRank2_mean_error += pow(AccuracyRank2Err_source[entry],2)/len(AccuracyRank2_source)
     if AccuracyRank2_weight>0.: AccuracyRank2_mean = AccuracyRank2_mean/AccuracyRank2_weight
     AccuracyRank2_mean_error = pow(AccuracyRank2_mean_error,0.5)
@@ -700,9 +696,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBestPar9_source = []
     AccuracyBestPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.:
+        if data_count[entry-1]<100.:
             AccuracyBestPar9_source += [0.]
-            AccuracyBestPar9Err_source += [1e10]
+            AccuracyBestPar9Err_source += [0.]
         else:
             AccuracyBestPar9_source += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)]
             AccuracyBestPar9Err_source += [1./pow(data_count[entry-1],0.5)]
@@ -710,10 +706,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBestPar9_weight = 0.
     AccuracyBestPar9_mean_error = 0.
     for entry in range(0,len(AccuracyBestPar9_source)):
+        if AccuracyBestPar9Err_source[entry]==0.: continue
         AccuracyBestPar9_mean += 1./AccuracyBestPar9Err_source[entry]*AccuracyBestPar9_source[entry]
         AccuracyBestPar9_weight += 1./AccuracyBestPar9Err_source[entry]
-        #AccuracyBestPar9_mean += AccuracyBestPar9_source[entry]
-        #AccuracyBestPar9_weight += 1.
         AccuracyBestPar9_mean_error += pow(AccuracyBestPar9Err_source[entry],2)/len(AccuracyBestPar9_source)
     if AccuracyBestPar9_weight>0.: AccuracyBestPar9_mean = AccuracyBestPar9_mean/AccuracyBestPar9_weight
     AccuracyBestPar9_mean_error = pow(AccuracyBestPar9_mean_error,0.5)
@@ -721,9 +716,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyPar9_source = []
     AccuracyPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.:
+        if data_count[entry-1]<100.:
             AccuracyPar9_source += [0.]
-            AccuracyPar9Err_source += [1e10]
+            AccuracyPar9Err_source += [0.]
         else:
             AccuracyPar9_source += [abs(data_count[entry-1]-par9_count[entry-1])/data_count[entry-1]]
             AccuracyPar9Err_source += [1./pow(data_count[entry-1],0.5)]
@@ -731,10 +726,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyPar9_weight = 0.
     AccuracyPar9_mean_error = 0.
     for entry in range(0,len(AccuracyPar9_source)):
+        if AccuracyPar9Err_source[entry]==0.: continue
         AccuracyPar9_mean += 1./AccuracyPar9Err_source[entry]*AccuracyPar9_source[entry]
         AccuracyPar9_weight += 1./AccuracyPar9Err_source[entry]
-        #AccuracyPar9_mean += AccuracyPar9_source[entry]
-        #AccuracyPar9_weight += 1.
         AccuracyPar9_mean_error += pow(AccuracyPar9Err_source[entry],2)/len(AccuracyPar9_source)
     if AccuracyPar9_weight>0.: AccuracyPar9_mean = AccuracyPar9_mean/AccuracyPar9_weight
     AccuracyPar9_mean_error = pow(AccuracyPar9_mean_error,0.5)
@@ -742,9 +736,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyWPar9_source = []
     AccuracyWPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.:
+        if data_count[entry-1]<100.:
             AccuracyWPar9_source += [0.]
-            AccuracyWPar9Err_source += [1e10]
+            AccuracyWPar9Err_source += [0.]
         else:
             AccuracyWPar9_source += [abs(data_count[entry-1]-wpar9_count[entry-1])/data_count[entry-1]]
             AccuracyWPar9Err_source += [1./pow(data_count[entry-1],0.5)]
@@ -752,10 +746,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyWPar9_weight = 0.
     AccuracyWPar9_mean_error = 0.
     for entry in range(0,len(AccuracyWPar9_source)):
+        if AccuracyWPar9Err_source[entry]==0.: continue
         AccuracyWPar9_mean += 1./AccuracyWPar9Err_source[entry]*AccuracyWPar9_source[entry]
         AccuracyWPar9_weight += 1./AccuracyWPar9Err_source[entry]
-        #AccuracyWPar9_mean += AccuracyWPar9_source[entry]
-        #AccuracyWPar9_weight += 1.
         AccuracyWPar9_mean_error += pow(AccuracyWPar9Err_source[entry],2)/len(AccuracyWPar9_source)
     if AccuracyWPar9_weight>0.: AccuracyWPar9_mean = AccuracyWPar9_mean/AccuracyWPar9_weight
     AccuracyWPar9_mean_error = pow(AccuracyWPar9_mean_error,0.5)
@@ -763,9 +756,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBkgd_source = []
     AccuracyBkgdErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.:
+        if data_count[entry-1]<100.:
             AccuracyBkgd_source += [0.]
-            AccuracyBkgdErr_source += [1e10]
+            AccuracyBkgdErr_source += [0.]
         else:
             AccuracyBkgd_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
             AccuracyBkgdErr_source += [1./pow(data_count[entry-1],0.5)]
@@ -773,10 +766,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBkgd_weight = 0.
     AccuracyBkgd_mean_error = 0.
     for entry in range(0,len(AccuracyBkgd_source)):
+        if AccuracyBkgdErr_source[entry]==0.: continue
         AccuracyBkgd_mean += 1./AccuracyBkgdErr_source[entry]*AccuracyBkgd_source[entry]
         AccuracyBkgd_weight += 1./AccuracyBkgdErr_source[entry]
-        #AccuracyBkgd_mean += AccuracyBkgd_source[entry]
-        #AccuracyBkgd_weight += 1.
         AccuracyBkgd_mean_error += pow(AccuracyBkgdErr_source[entry],2)/len(AccuracyBkgd_source)
     if AccuracyBkgd_weight>0.: AccuracyBkgd_mean = AccuracyBkgd_mean/AccuracyBkgd_weight
     AccuracyBkgd_mean_error = pow(AccuracyBkgd_mean_error,0.5)
@@ -784,9 +776,9 @@ for e in range(0,len(energy_bin)-1):
     ValidateBkgd_source = []
     ValidateBkgdErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if validate_data_count[entry-1]==0.:
+        if validate_data_count[entry-1]<100.:
             ValidateBkgd_source += [0.]
-            ValidateBkgdErr_source += [1e10]
+            ValidateBkgdErr_source += [0.]
         else:
             ValidateBkgd_source += [abs(validate_data_count[entry-1]-validate_bkgd_count[entry-1])/validate_data_count[entry-1]]
             ValidateBkgdErr_source += [1./pow(validate_data_count[entry-1],0.5)]
@@ -794,6 +786,7 @@ for e in range(0,len(energy_bin)-1):
     ValidateBkgd_weight = 0.
     ValidateBkgd_mean_error = 0.
     for entry in range(0,len(ValidateBkgd_source)):
+        if ValidateBkgdErr_source[entry]==0.: continue
         ValidateBkgd_mean += 1./ValidateBkgdErr_source[entry]*ValidateBkgd_source[entry]
         ValidateBkgd_weight += 1./ValidateBkgdErr_source[entry]
         ValidateBkgd_mean_error += pow(ValidateBkgdErr_source[entry],2)/len(ValidateBkgd_source)
@@ -803,9 +796,9 @@ for e in range(0,len(energy_bin)-1):
     ValidateRFoV_source = []
     ValidateRFoVErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if validate_data_count[entry-1]==0.:
+        if validate_data_count[entry-1]<100.:
             ValidateRFoV_source += [0.]
-            ValidateRFoVErr_source += [1e10]
+            ValidateRFoVErr_source += [0.]
         else:
             ValidateRFoV_source += [abs(validate_data_count[entry-1]-validate_rfov_count[entry-1])/validate_data_count[entry-1]]
             ValidateRFoVErr_source += [1./pow(validate_data_count[entry-1],0.5)]
@@ -813,6 +806,7 @@ for e in range(0,len(energy_bin)-1):
     ValidateRFoV_weight = 0.
     ValidateRFoV_mean_error = 0.
     for entry in range(0,len(ValidateRFoV_source)):
+        if ValidateRFoVErr_source[entry]==0.: continue
         ValidateRFoV_mean += 1./ValidateRFoVErr_source[entry]*ValidateRFoV_source[entry]
         ValidateRFoV_weight += 1./ValidateRFoVErr_source[entry]
         ValidateRFoV_mean_error += pow(ValidateRFoVErr_source[entry],2)/len(ValidateRFoV_source)
@@ -822,9 +816,9 @@ for e in range(0,len(energy_bin)-1):
     ValidateComb_source = []
     ValidateCombErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if validate_data_count[entry-1]==0.:
+        if validate_data_count[entry-1]<100.:
             ValidateComb_source += [0.]
-            ValidateCombErr_source += [1e10]
+            ValidateCombErr_source += [0.]
         else:
             ValidateComb_source += [abs(validate_data_count[entry-1]-validate_comb_count[entry-1])/validate_data_count[entry-1]]
             ValidateCombErr_source += [1./pow(validate_data_count[entry-1],0.5)]
@@ -832,6 +826,7 @@ for e in range(0,len(energy_bin)-1):
     ValidateComb_weight = 0.
     ValidateComb_mean_error = 0.
     for entry in range(0,len(ValidateComb_source)):
+        if ValidateCombErr_source[entry]==0.: continue
         ValidateComb_mean += 1./ValidateCombErr_source[entry]*ValidateComb_source[entry]
         ValidateComb_weight += 1./ValidateCombErr_source[entry]
         ValidateComb_mean_error += pow(ValidateCombErr_source[entry],2)/len(ValidateComb_source)
@@ -841,9 +836,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyPar8_source = []
     AccuracyPar8Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]==0.:
+        if data_count[entry-1]<100.:
             AccuracyPar8_source += [0.]
-            AccuracyPar8Err_source += [1e10]
+            AccuracyPar8Err_source += [0.]
         else:
             AccuracyPar8_source += [abs(data_count[entry-1]-par8_count[entry-1])/data_count[entry-1]]
             AccuracyPar8Err_source += [1./pow(data_count[entry-1],0.5)]
@@ -851,10 +846,9 @@ for e in range(0,len(energy_bin)-1):
     AccuracyPar8_weight = 0.
     AccuracyPar8_mean_error = 0.
     for entry in range(0,len(AccuracyPar8_source)):
+        if AccuracyPar8Err_source[entry]==0.: continue
         AccuracyPar8_mean += 1./AccuracyPar8Err_source[entry]*AccuracyPar8_source[entry]
         AccuracyPar8_weight += 1./AccuracyPar8Err_source[entry]
-        #AccuracyPar8_mean += AccuracyPar8_source[entry]
-        #AccuracyPar8_weight += 1.
         AccuracyPar8_mean_error += pow(AccuracyPar8Err_source[entry],2)/len(AccuracyPar8_source)
     if AccuracyPar8_weight>0.: AccuracyPar8_mean = AccuracyPar8_mean/AccuracyPar8_weight
     AccuracyPar8_mean_error = pow(AccuracyPar8_mean_error,0.5)
