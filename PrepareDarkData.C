@@ -2111,6 +2111,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_SRDark_XYoff.push_back(TH2D("Hist_SRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,-3,3,12,-3,3));
         Hist_CRDark_XYoff.push_back(TH2D("Hist_CRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,-3,3,12,-3,3));
     }
+    vector<TH1D> Hist_SRDark_R2off;
+    vector<TH1D> Hist_CRDark_R2off;
     vector<TH1D> Hist_SRDark_Energy;
     vector<TH1D> Hist_CRDark_Energy;
     for (int e=0;e<N_energy_bins;e++) 
@@ -2119,6 +2121,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
+        Hist_SRDark_R2off.push_back(TH1D("Hist_SRDark_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",18,0,9));
+        Hist_CRDark_R2off.push_back(TH1D("Hist_CRDark_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",18,0,9));
         Hist_SRDark_Energy.push_back(TH1D("Hist_SRDark_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_CRDark_Energy.push_back(TH1D("Hist_CRDark_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
     }
@@ -2448,6 +2452,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (R2off>4.) continue;
             double weight = 1.;
             if (theta2<source_theta2_cut && SignalSelectionTheta2()) weight = source_weight.at(energy);
+            double R2off_weight = 1.;
+            int bin_r2off = Hist_SRDark_R2off.at(energy).FindBin(R2off);
+            R2off_weight = Hist_SRDark_R2off.at(energy).GetBinContent(1)/Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off);
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
             if (FoV(true) || Data_runlist[run].first.find("Proton")!=std::string::npos)
@@ -2475,7 +2482,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                         {
                             if (RoIFoV(nth_roi)) 
                             {
-                                Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight);
+                                Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight*R2off_weight);
                                 Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
@@ -2490,7 +2497,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                             }
                             if (!isRoI)
                             {
-                                Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight);
+                                Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight*R2off_weight);
                                 Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
@@ -2691,11 +2698,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                             Hist_SRDark_XYoff.at(energy).Fill(Xoff,Yoff,weight);
                             Hist_OnDark_SR_XYoff.at(energy).Fill(Xoff,Yoff,weight);
                             Hist_SRDark_Energy.at(energy).Fill(ErecS*1000.,weight);
+                            Hist_SRDark_R2off.at(energy).Fill(R2off,weight);
                         }
                         else if (ControlSelectionTheta2())
                         {
                             Hist_CRDark_XYoff.at(energy).Fill(Xoff,Yoff,run_weight);
                             Hist_CRDark_Energy.at(energy).Fill(ErecS*1000.,run_weight);
+                            Hist_CRDark_R2off.at(energy).Fill(R2off,run_weight);
                         }
 
                         if (theta2_dark>source_theta2_cut)
@@ -2799,6 +2808,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 energy_weight = data_cr_content_energy/dark_cr_content_energy;
                 //energy_weight = data_cr_content_xyoff/dark_cr_content_xyoff;
             }
+            double R2off_weight = 1.;
+            int bin_r2off = Hist_SRDark_R2off.at(energy).FindBin(R2off);
+            R2off_weight = Hist_SRDark_R2off.at(energy).GetBinContent(1)/Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off);
 
             if (FoV(true))
             {
@@ -2824,7 +2836,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                         {
                             if (RoIFoV(nth_roi)) 
                             {
-                                Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight);
+                                Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2off_weight);
                                 Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,energy_weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
@@ -2839,7 +2851,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                             }
                             if (!isRoI)
                             {
-                                Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight);
+                                Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2off_weight);
                                 Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,energy_weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
