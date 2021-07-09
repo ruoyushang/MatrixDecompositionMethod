@@ -400,20 +400,20 @@ V6 = False
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
 
-Search_Range_Elev = [40.,90.]
+Search_Range_Elev = [20.,90.]
 Search_Range_PedVar_DC = [0.,10.]
 
 # 1ES 0414 Elev 55-60
-Search_Center_RA = 64.0
-Search_Center_Dec = -2.0
+#Search_Center_RA = 64.0
+#Search_Center_Dec = -2.0
 
 # Ursa Major II
 #Search_Center_RA = 132.
 #Search_Center_Dec = 62.
 
 #RGBJ0710+591 Elev 60-65
-#Search_Center_RA = 104.
-#Search_Center_Dec = 58.
+Search_Center_RA = 104.
+Search_Center_Dec = 58.
 
 Search_Range_RA = [Search_Center_RA-4.,Search_Center_RA+4.]
 Search_Range_Dec = [Search_Center_Dec-4.,Search_Center_Dec+4.]

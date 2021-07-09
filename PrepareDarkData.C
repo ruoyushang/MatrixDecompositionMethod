@@ -2465,11 +2465,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             double weight = 1.;
             if (theta2<source_theta2_cut && SignalSelectionTheta2()) weight = source_weight.at(energy);
             double R2off_weight = 1.;
-            int bin_r2off = Hist_SRDark_R2off.at(energy).FindBin(R2off);
-            if (Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off)>10.)
-            {
-                R2off_weight = Hist_SRDark_R2off.at(energy).GetBinContent(1)/Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off);
-            }
+            //int bin_r2off = Hist_SRDark_R2off.at(energy).FindBin(R2off);
+            //if (Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off)>10.)
+            //{
+            //    R2off_weight = Hist_SRDark_R2off.at(energy).GetBinContent(1)/Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off);
+            //}
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
             if (FoV(true) || Data_runlist[run].first.find("Proton")!=std::string::npos)
@@ -2824,11 +2824,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 //energy_weight = data_cr_content_xyoff/dark_cr_content_xyoff;
             }
             double R2off_weight = 1.;
-            int bin_r2off = Hist_SRDark_R2off.at(energy).FindBin(R2off);
-            if (Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off)>10.)
-            {
-                R2off_weight = Hist_SRDark_R2off.at(energy).GetBinContent(1)/Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off);
-            }
+            //int bin_r2off = Hist_SRDark_R2off.at(energy).FindBin(R2off);
+            //if (Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off)>10.)
+            //{
+            //    R2off_weight = Hist_SRDark_R2off.at(energy).GetBinContent(1)/Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off);
+            //}
 
             if (FoV(true))
             {
