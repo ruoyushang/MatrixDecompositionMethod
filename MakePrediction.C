@@ -1523,16 +1523,16 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
         //    mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(variance_1);
         //}
 
-        //if (entry_size==3 && ebin==1)
+        //if (entry_size==3)
         //{
         //    idx_k1 = 2-1;
-        //    idx_n1 = 2-1;
+        //    idx_n1 = 1-1;
         //    idx_k2 = 3-1;
-        //    idx_n2 = 1-1;
-        //    ratio_1 = 0.507401158342468;
-        //    ratio_2 = 0.8617099654249809;
-        //    variance_1 = 0.02149518;
-        //    variance_2 = 0.00993188;
+        //    idx_n2 = 2-1;
+        //    ratio_1 = 1.0;
+        //    ratio_2 = 1.0;
+        //    variance_1 = 1.0;
+        //    variance_2 = 1.0;
         //    idx_v1 = idx_k1*size_n + idx_n1;
         //    idx_v2 = idx_k2*size_n + idx_n2;
         //    idx_u1 = idx_v1;
@@ -1547,6 +1547,54 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
         //    //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
         //    //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
         //}
+        if (entry_size==3)
+        {
+            idx_k1 = 2-1;
+            idx_n1 = 3-1;
+            idx_k2 = 2-1;
+            idx_n2 = 1-1;
+            ratio_1 = 1.0;
+            ratio_2 = 1.0;
+            variance_1 = 1.0;
+            variance_2 = 1.0;
+            idx_v1 = idx_k1*size_n + idx_n1;
+            idx_v2 = idx_k2*size_n + idx_n2;
+            idx_u1 = idx_v1;
+            sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
+            sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
+            sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
+            sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
+            coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
+            coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
+            mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
+            mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
+            //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
+            //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
+        }
+        if (entry_size==3)
+        {
+            idx_k1 = 1-1;
+            idx_n1 = 2-1;
+            idx_k2 = 3-1;
+            idx_n2 = 2-1;
+            ratio_1 = 1.0;
+            ratio_2 = 1.0;
+            variance_1 = 1.0;
+            variance_2 = 1.0;
+            idx_v1 = idx_k1*size_n + idx_n1;
+            idx_v2 = idx_k2*size_n + idx_n2;
+            idx_u1 = idx_v1;
+            sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
+            sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
+            sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
+            sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
+            coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
+            coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
+            mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
+            mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
+            //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
+            //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
+        }
         //if (entry_size==3 && ebin==2)
         //{
         //    idx_k1 = 2-1;
@@ -3698,7 +3746,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             {
                 if (find_elbow) continue;
                 std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(3) << std::endl;
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(3)<1.2)
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(3)<1.5)
                 {
                     find_elbow = true;
                 }
@@ -4039,11 +4087,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         fill2DHistogram(&Hist_Coeff_Data.at(e),mtx_coeff_data);
         fill2DHistogram(&Hist_Coeff_Bkgd.at(e),mtx_coeff_bkgd);
         //int print_size = mtx_data.rows();
-        int print_size = 10;
+        int print_size = 4;
         std::cout << "mtx_coeff_data:" << std::endl;
-        std::cout << mtx_coeff_data.block(mtx_data.rows()-print_size,mtx_data.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
+        std::cout << mtx_coeff_data.block(0,0,print_size,print_size) << std::endl;
         std::cout << "mtx_coeff_bkgd:" << std::endl;
-        std::cout << mtx_coeff_bkgd.block(mtx_data.rows()-print_size,mtx_data.cols()-print_size,print_size,print_size).cwiseAbs() << std::endl;
+        std::cout << mtx_coeff_bkgd.block(0,0,print_size,print_size) << std::endl;
 
         if (EigenDecomposition)
         {
