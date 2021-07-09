@@ -255,6 +255,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("DracoV6");
         }
+        if (source.find("LHAASO_J2108_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J2108_V6");
+        }
         if (source=="Everything")
         {
             list_temp = GetRunListFromFile("PKS1424V6");
@@ -370,6 +374,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("1ES0229V5");
         }
+        if (source.find("1ES0414V5") != std::string::npos)
+        {
+            list = GetRunListFromFile("1ES0414V5");
+        }
         if (source.find("RGBJ0710V5") != std::string::npos)
         {
             list = GetRunListFromFile("RGBJ0710V5");
@@ -412,11 +420,13 @@ vector<std::pair<string,int>> GetRunList(string source) {
         }
         if (source=="EverythingV5")
         {
-            //list_temp = GetRunListFromFile("BLLacV5");
-            //list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("BLLacV5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
             //list_temp = GetRunListFromFile("RGBJ0710V5");
             //list.insert(list.end(), list_temp.begin(), list_temp.end());
-            //list_temp = GetRunListFromFile("1ES0229V5");
+            list_temp = GetRunListFromFile("1ES0229V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            //list_temp = GetRunListFromFile("1ES0414V5");
             //list.insert(list.end(), list_temp.begin(), list_temp.end());
             //list_temp = GetRunListFromFile("RBS0413V5");
             //list.insert(list.end(), list_temp.begin(), list_temp.end());
