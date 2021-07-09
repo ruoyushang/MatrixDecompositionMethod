@@ -28,17 +28,17 @@
 #include "TBranch.h"
 #include "TRandom.h"
 
-//#include "/u/home/r/rshang/EventDisplay/VEvndispRunParameter.h"
-#include "/home/rshang/EventDisplay/EVNDISP-480e/inc/VEvndispRunParameter.h"
+#include "../../EventDisplay/VEvndispRunParameter.h"
+//#include "/home/rshang/EventDisplay/EVNDISP-480e/inc/VEvndispRunParameter.h"
 
 #include "GetRunList.h"
 #include "NetflixParameters.h"
 
 #include <complex>
-//#include "/u/home/r/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
-//#include "/u/home/r/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
-#include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
-#include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
+#include "../../Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
+#include "../../Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
+//#include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
+//#include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
 using namespace Eigen;
 
 double TelElev_lower = 70.;
