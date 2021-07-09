@@ -3699,11 +3699,11 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
             JacobiSVD<MatrixXd> svd_Moff(mtx_dark.real(), ComputeFullU | ComputeFullV);
             bool find_elbow = false;
-            for (int i=0;i<mtx_data.cols()-1;i++)
+            for (int i=0;i<3;i++)
             {
                 if (find_elbow) continue;
-                std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1) << std::endl;
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1)<2.)
+                std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(3) << std::endl;
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(3)<1.2)
                 {
                     find_elbow = true;
                 }

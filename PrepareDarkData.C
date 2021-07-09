@@ -354,6 +354,16 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 330.680416667;
                 Source_Dec = 42.2777777778;
     }
+    if (source_name.Contains("LHAASO_J2108"))
+    {
+            Source_RA = 317.15;
+                Source_Dec = 51.95;
+    }
+    if (source_name.Contains("1ES0414"))
+    {
+            Source_RA = 64.2206666667;
+                Source_Dec = 1.089;
+    }
     if (source_name.Contains("3C273"))
     {
             Source_RA = 187.277915345;
@@ -659,7 +669,7 @@ int RunTypeCategory(int run_number, bool doPrint)
                         nth_delimiter += 1;
                     }
                 }
-                if (acc_runtype=="science" || acc_runtype=="NULL")
+                if (acc_runtype=="science" || acc_runtype=="NULL" || acc_runtype=="None")
                 {
                     runtype = 0;
                 }
@@ -790,21 +800,22 @@ double GetRunUsableTime(int run_number)
                         nth_delimiter += 1;
                     }
                 }
-                size_t pos = 0;
-                string time_delimiter = ":";
-                if ((pos = acc_time.find(time_delimiter)) != std::string::npos)
-                {
-                    pos = acc_time.find(time_delimiter);
-                    string time_hour = acc_time.substr(0, pos);
-                    acc_time.erase(0, pos + time_delimiter.length());
-                    pos = acc_time.find(time_delimiter);
-                    string time_minute = acc_time.substr(0, pos);
-                    acc_time.erase(0, pos + time_delimiter.length());
-                    string time_second = acc_time;
-                    usable_time = std::stod(time_hour,&sz)*60.*60.;
-                    usable_time += std::stod(time_minute,&sz)*60.;
-                    usable_time += std::stod(time_second,&sz);
-                }
+                usable_time = std::stod(acc_time,&sz);
+                //size_t pos = 0;
+                //string time_delimiter = ":";
+                //if ((pos = acc_time.find(time_delimiter)) != std::string::npos)
+                //{
+                //    pos = acc_time.find(time_delimiter);
+                //    string time_hour = acc_time.substr(0, pos);
+                //    acc_time.erase(0, pos + time_delimiter.length());
+                //    pos = acc_time.find(time_delimiter);
+                //    string time_minute = acc_time.substr(0, pos);
+                //    acc_time.erase(0, pos + time_delimiter.length());
+                //    string time_second = acc_time;
+                //    usable_time = std::stod(time_hour,&sz)*60.*60.;
+                //    usable_time += std::stod(time_minute,&sz)*60.;
+                //    usable_time += std::stod(time_second,&sz);
+                //}
                 break;
             }
         }
@@ -1348,7 +1359,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
             double threshold_dNSB = 0.5;
             double threshold_dElev = 1.0;
             double threshold_dMJD = 3.*365.;
-            double threshold_dL3Rate = 0.2;
+            double threshold_dL3Rate = 0.3;
             double threshold_dTime = 15.*60.;
             while (accumulated_count<2.0*ON_count[on_run])
             {
@@ -1431,10 +1442,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                         dMJD_chi2 = pow(ON_MJD[on_run]-OFF_MJD[off_run],2);
                         dL3Rate_chi2 = pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2);
                     }
-                    if (best_chi2<0.2*0.2) break;
+                    //if (best_chi2<0.2*0.2) break;
                 }
                 if (best_chi2<1e10) 
                 {
+                    std::cout << on_run << "/" << ON_runlist.size() << ", found a match " << best_match.first << " " << best_match.second << std::endl;
                     new_list.at(on_run).at(nth_sample).push_back(best_match);
                     ON_pointing_radec_new.push_back(ON_pointing_radec[on_run]);
                     n_good_matches += 1;
@@ -2454,7 +2466,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (theta2<source_theta2_cut && SignalSelectionTheta2()) weight = source_weight.at(energy);
             double R2off_weight = 1.;
             int bin_r2off = Hist_SRDark_R2off.at(energy).FindBin(R2off);
-            R2off_weight = Hist_SRDark_R2off.at(energy).GetBinContent(1)/Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off);
+            if (Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off)>10.)
+            {
+                R2off_weight = Hist_SRDark_R2off.at(energy).GetBinContent(1)/Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off);
+            }
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
             if (FoV(true) || Data_runlist[run].first.find("Proton")!=std::string::npos)
@@ -2810,7 +2825,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             }
             double R2off_weight = 1.;
             int bin_r2off = Hist_SRDark_R2off.at(energy).FindBin(R2off);
-            R2off_weight = Hist_SRDark_R2off.at(energy).GetBinContent(1)/Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off);
+            if (Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off)>10.)
+            {
+                R2off_weight = Hist_SRDark_R2off.at(energy).GetBinContent(1)/Hist_SRDark_R2off.at(energy).GetBinContent(bin_r2off);
+            }
 
             if (FoV(true))
             {
