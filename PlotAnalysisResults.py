@@ -39,7 +39,8 @@ method_tag += lowrank_tag
 energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
-elev_range = [45,85]
+#elev_range = [45,85]
+elev_range = [40,70]
 #elev_range = [25,55]
 #elev_range = [45,55,65,75,85]
 theta2_bins = [0,4]
@@ -69,6 +70,19 @@ if sys.argv[1]=='3C273_ON':
     sample_list = []
     sample_list += ['3C273V6_ON']
     sample_list += ['3C273V5_ON']
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='1ES0414_OFF':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['1ES0414V5_OFF']
+    theta2_bins = [0,4]
+if sys.argv[1]=='1ES0414_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['1ES0414V5_ON']
     theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0502_OFF':
@@ -541,6 +555,14 @@ if sys.argv[1]=='HESS_J1825_ON':
     sample_list += ['HESS_J1825_V6_ON']
     theta2_bins = [0,4]
     elev_range = [25,55]
+
+if sys.argv[1]=='LHAASO_J2108_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J2108_V6_ON']
+    theta2_bins = [0,4]
+    # this is a Tevatron
 
 if sys.argv[1]=='MGRO_J1908_ON':
     ONOFF_tag = 'ON'
@@ -4386,6 +4408,7 @@ def MakeMWLSkymap(Hist_Veritas_input,xtitle,ytitle,name):
     Hist_Contour.SetLineColor(0)
 
     pad1.cd()
+    #pad1.SetLogz()
     Hist_MWL.Draw("COL4Z")
     Hist_Contour.Draw("CONT3 same")
     Hist_MWL.GetYaxis().SetTitle(ytitle)
@@ -6246,5 +6269,6 @@ SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,2)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,4)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,5)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,5,6)
 

@@ -25,10 +25,8 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-target_energy_index = 2
-#N_bins_for_deconv = 20
-#N_bins_for_deconv = 16
-N_bins_for_deconv = 12
+target_energy_index = 1
+N_bins_for_deconv = 16
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.5
@@ -41,8 +39,6 @@ ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
 
-#folder_path = 'output_20x20'
-#folder_path = 'output_12x12'
 folder_path = 'output_nominal'
 method_tag = 'tight_mdm_default'
 
@@ -66,6 +62,14 @@ sample_list += ['DracoV6_OFF']
 sample_name += ['Draco V6']
 sample_list += ['DracoV5_OFF']
 sample_name += ['Draco V5']
+sample_list += ['PG1553V5_OFF']
+sample_name += ['PG1553 V5']
+sample_list += ['M82V6_OFF']
+sample_name += ['M82 V6']
+sample_list += ['M82V5_OFF']
+sample_name += ['M82 V5']
+sample_list += ['1ES0414V5_OFF']
+sample_name += ['1ES0410 V5']
 sample_list += ['1ES0647V6_OFF']
 sample_name += ['1ES0647 V6']
 sample_list += ['1ES1011V6_OFF']
@@ -78,8 +82,8 @@ sample_list += ['3C264V6_OFF']
 sample_name += ['3C264 V6']
 sample_list += ['1ES0229V6_OFF']
 sample_name += ['1ES0229 V6']
-#sample_list += ['1ES0229V5_OFF']
-#sample_name += ['1ES0229 V5']
+sample_list += ['1ES0229V5_OFF']
+sample_name += ['1ES0229 V5']
 sample_list += ['Segue1V6_OFF']
 sample_name += ['Segue1 V6']
 sample_list += ['Segue1V5_OFF']
@@ -90,19 +94,14 @@ sample_list += ['CrabV6_OFF']
 sample_name += ['Crab V6']
 sample_list += ['BLLacV6_OFF']
 sample_name += ['BLLac V6']
-#sample_list += ['BLLacV5_OFF']
-#sample_name += ['BLLac V5']
-sample_list += ['PG1553V5_OFF']
-sample_name += ['PG1553 V5']
+sample_list += ['BLLacV5_OFF']
+sample_name += ['BLLac V5']
+
 sample_list += ['H1426V6_OFF']
 sample_name += ['H1426 V6']
-sample_list += ['M82V6_OFF']
-sample_name += ['M82 V6']
-sample_list += ['M82V5_OFF']
-sample_name += ['M82 V5']
 
     
-elev_bins = [45,85]
+elev_bins = [40,70]
 theta2_bins = [0,4]
 
 energy_bin = []
@@ -353,7 +352,9 @@ for source in range(0,len(sample_list)):
         FilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+".root"
         FilePath_List += [FilePath]
         print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
-        if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
+        if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):
+            print ('cannot find file %s'%(FilePath_List[len(FilePath_List)-1]))
+            continue
         for e in range(0,len(energy_bin)-1):
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
@@ -449,7 +450,7 @@ for row1 in range(0,3):
                 print('=======================================================')
                 max_eigenvalue = PrincipalComponentAnalysis(list_var_pair,0)
                 if math.isnan(max_eigenvalue): continue
-                if max_eigenvalue>1.5:
+                if max_eigenvalue>1.8:
                     MakeCorrelationPlot(list_var_pair)
                     good_var_pair += [list_var_pair]
                     good_eigenvalue += [max_eigenvalue]
