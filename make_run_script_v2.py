@@ -4,6 +4,8 @@ SMI_DIR = os.environ['SMI_DIR']
 SMI_OUTPUT = os.environ['SMI_OUTPUT']
 #CONDA_DIR = os.environ['CONDA_DIR']
 
+isGamma2 = True
+
 source = []
 mjd_cut = []
 for_syst = []
@@ -21,9 +23,10 @@ MSCL_cut = 0.3
 
 elev = []
 #elev_bins = [85,55,25]
-elev_bins = [85,45]
-#elev_bins = [85,75,65,55,45]
-#elev_bins = [85,75]
+#elev_bins = [85,45]
+#elev_bins = [70,40]
+#elev_bins = [80,60,40]
+elev_bins = [80,70,60,50,40]
 theta2 = []
 
 #source += ['SgrAV6_ON']
@@ -303,7 +306,7 @@ gamma_model += [0]
 #
 
 source += ['LHAASO_J2108_V6_ON']
-elev += [elev_bins]
+elev += [[55,25]]
 theta2 += [[0,4]]
 mjd_cut += [epoch_bins]
 for_syst += [False]
@@ -1085,27 +1088,28 @@ job_counts = 0
 for s in range(0,len(source)):
     job_counts += 1
     file = open("run/run_Netflix1_%s_MJD%sto%s.sh"%(source[s],mjd_cut[s][0],mjd_cut[s][1]),"w") 
-    #file.write('#### submit_job.sh START ####\n')
-    #file.write('#!/bin/bash\n')
-    #file.write('#$ -cwd\n')
-    #file.write('# error = Merged with joblog\n')
-    #file.write('#$ -o joblog.$JOB_ID\n')
-    #file.write('#$ -j y\n')
-    #file.write('## Edit the line below as needed:\n')
-    #file.write('#$ -l h_rt=2:00:00,h_data=4G\n')
-    #file.write('## Modify the parallel environment\n')
-    #file.write('## and the number of cores as needed:\n')
-    #file.write('#$ -pe shared 1\n')
-    #file.write('# Email address to notify\n')
-    #file.write('#$ -M $USER@mail\n')
-    #file.write('# Notify when\n')
-    ##file.write('#$ -m bea\n')
-    #file.write('#$ -m e\n')
-    #file.write('. /u/local/Modules/default/init/modules.sh\n')
-    #file.write('module load cern_root/6.12.06\n')
-    ##file.write('module load anaconda3\n')
-    ##file.write('source %s/etc/profile.d/conda.sh\n'%(CONDA_DIR))
-    ##file.write('conda activate root_env\n')
+    if not isGamma2:
+        file.write('#### submit_job.sh START ####\n')
+        file.write('#!/bin/bash\n')
+        file.write('#$ -cwd\n')
+        file.write('# error = Merged with joblog\n')
+        file.write('#$ -o joblog.$JOB_ID\n')
+        file.write('#$ -j y\n')
+        file.write('## Edit the line below as needed:\n')
+        file.write('#$ -l h_rt=2:00:00,h_data=4G\n')
+        file.write('## Modify the parallel environment\n')
+        file.write('## and the number of cores as needed:\n')
+        file.write('#$ -pe shared 1\n')
+        file.write('# Email address to notify\n')
+        file.write('#$ -M $USER@mail\n')
+        file.write('# Notify when\n')
+        #file.write('#$ -m bea\n')
+        file.write('#$ -m e\n')
+        file.write('. /u/local/Modules/default/init/modules.sh\n')
+        file.write('module load cern_root/6.12.06\n')
+        #file.write('module load anaconda3\n')
+        #file.write('source %s/etc/profile.d/conda.sh\n'%(CONDA_DIR))
+        #file.write('conda activate root_env\n')
     file.write('cd %s\n'%(SMI_DIR))
     file.write('source %s/setup_env.sh\n'%(SMI_DIR))
     file.write('rm -r %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
@@ -1201,27 +1205,28 @@ job_counts = 0
 for s in range(0,len(source)):
     job_counts += 1
     file = open("run/run_Netflix2_%s_MJD%sto%s.sh"%(source[s],mjd_cut[s][0],mjd_cut[s][1]),"w") 
-    #file.write('#### submit_job.sh START ####\n')
-    #file.write('#!/bin/bash\n')
-    #file.write('#$ -cwd\n')
-    #file.write('# error = Merged with joblog\n')
-    #file.write('#$ -o joblog.$JOB_ID\n')
-    #file.write('#$ -j y\n')
-    #file.write('## Edit the line below as needed:\n')
-    #file.write('#$ -l h_rt=2:00:00,h_data=4G\n')
-    #file.write('## Modify the parallel environment\n')
-    #file.write('## and the number of cores as needed:\n')
-    #file.write('#$ -pe shared 1\n')
-    #file.write('# Email address to notify\n')
-    #file.write('#$ -M $USER@mail\n')
-    #file.write('# Notify when\n')
-    ##file.write('#$ -m bea\n')
-    #file.write('#$ -m e\n')
-    #file.write('. /u/local/Modules/default/init/modules.sh\n')
-    #file.write('module load cern_root/6.12.06\n')
-    ##file.write('module load anaconda3\n')
-    ##file.write('source %s/etc/profile.d/conda.sh\n'%(CONDA_DIR))
-    ##file.write('conda activate root_env\n')
+    if not isGamma2:
+        file.write('#### submit_job.sh START ####\n')
+        file.write('#!/bin/bash\n')
+        file.write('#$ -cwd\n')
+        file.write('# error = Merged with joblog\n')
+        file.write('#$ -o joblog.$JOB_ID\n')
+        file.write('#$ -j y\n')
+        file.write('## Edit the line below as needed:\n')
+        file.write('#$ -l h_rt=2:00:00,h_data=4G\n')
+        file.write('## Modify the parallel environment\n')
+        file.write('## and the number of cores as needed:\n')
+        file.write('#$ -pe shared 1\n')
+        file.write('# Email address to notify\n')
+        file.write('#$ -M $USER@mail\n')
+        file.write('# Notify when\n')
+        #file.write('#$ -m bea\n')
+        file.write('#$ -m e\n')
+        file.write('. /u/local/Modules/default/init/modules.sh\n')
+        file.write('module load cern_root/6.12.06\n')
+        #file.write('module load anaconda3\n')
+        #file.write('source %s/etc/profile.d/conda.sh\n'%(CONDA_DIR))
+        #file.write('conda activate root_env\n')
     file.write('cd %s\n'%(SMI_DIR))
     file.write('source %s/setup_env.sh\n'%(SMI_DIR))
     file.write('rm -r %s/%s_MJD%sto%s\n'%(folder,source[s],mjd_cut[s][0],mjd_cut[s][1]))
@@ -1269,27 +1274,28 @@ for s in range(0,len(source)):
 qfile.close() 
 
 file = open("run/run_ObservingEffect.sh","w") 
-#file.write('#### submit_job.sh START ####\n')
-#file.write('#!/bin/bash\n')
-#file.write('#$ -cwd\n')
-#file.write('# error = Merged with joblog\n')
-#file.write('#$ -o joblog.$JOB_ID\n')
-#file.write('#$ -j y\n')
-#file.write('## Edit the line below as needed:\n')
-#file.write('#$ -l h_rt=2:00:00,h_data=4G\n')
-#file.write('## Modify the parallel environment\n')
-#file.write('## and the number of cores as needed:\n')
-#file.write('#$ -pe shared 1\n')
-#file.write('# Email address to notify\n')
-#file.write('#$ -M $USER@mail\n')
-#file.write('# Notify when\n')
-##file.write('#$ -m bea\n')
-#file.write('#$ -m e\n')
-#file.write('. /u/local/Modules/default/init/modules.sh\n')
-#file.write('module load cern_root/6.12.06\n')
-##file.write('module load anaconda3\n')
-##file.write('source %s/etc/profile.d/conda.sh\n'%(CONDA_DIR))
-##file.write('conda activate root_env\n')
+if not isGamma2:
+    file.write('#### submit_job.sh START ####\n')
+    file.write('#!/bin/bash\n')
+    file.write('#$ -cwd\n')
+    file.write('# error = Merged with joblog\n')
+    file.write('#$ -o joblog.$JOB_ID\n')
+    file.write('#$ -j y\n')
+    file.write('## Edit the line below as needed:\n')
+    file.write('#$ -l h_rt=2:00:00,h_data=4G\n')
+    file.write('## Modify the parallel environment\n')
+    file.write('## and the number of cores as needed:\n')
+    file.write('#$ -pe shared 1\n')
+    file.write('# Email address to notify\n')
+    file.write('#$ -M $USER@mail\n')
+    file.write('# Notify when\n')
+    #file.write('#$ -m bea\n')
+    file.write('#$ -m e\n')
+    file.write('. /u/local/Modules/default/init/modules.sh\n')
+    file.write('module load cern_root/6.12.06\n')
+    #file.write('module load anaconda3\n')
+    #file.write('source %s/etc/profile.d/conda.sh\n'%(CONDA_DIR))
+    #file.write('conda activate root_env\n')
 file.write('cd %s\n'%(SMI_DIR))
 file.write('source %s/setup_env.sh\n'%(SMI_DIR))
 file.write('rm -r %s/ObservingEffect\n'%(folder))
