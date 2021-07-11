@@ -1442,7 +1442,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                         dMJD_chi2 = pow(ON_MJD[on_run]-OFF_MJD[off_run],2);
                         dL3Rate_chi2 = pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2);
                     }
-                    //if (best_chi2<0.2*0.2) break;
+                    if (best_chi2<0.2*0.2) break;
                 }
                 if (best_chi2<1e10) 
                 {
