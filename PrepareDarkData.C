@@ -581,7 +581,7 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    ifstream myfile (SMI_DIR+"/diagnostics.txt");
+    ifstream myfile (SMI_DIR+"/diagnostics_20210705.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -1121,35 +1121,98 @@ pair<double,double> GetRunRaDec(string file_name, int run)
 }
 pair<double,double> GetRunElevAzim(string file_name, int run)
 {
-    char run_number[50];
-    sprintf(run_number, "%i", int(run));
-    TFile*  input_file = TFile::Open(file_name.c_str());
-    TTree* pointing_tree = nullptr;
-    pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
-    pointing_tree->SetBranchStatus("*",0);
-    pointing_tree->SetBranchStatus("TelElevation",1);
-    pointing_tree->SetBranchStatus("TelAzimuth",1);
-    pointing_tree->SetBranchStatus("TelRAJ2000",1);
-    pointing_tree->SetBranchStatus("TelDecJ2000",1);
-    pointing_tree->SetBranchAddress("TelElevation",&TelElevation);
-    pointing_tree->SetBranchAddress("TelAzimuth",&TelAzimuth);
-    pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
-    pointing_tree->SetBranchAddress("TelDecJ2000",&TelDecJ2000);
-    double total_entries = (double)pointing_tree->GetEntries();
+    //char run_number[50];
+    //sprintf(run_number, "%i", int(run));
+    //TFile*  input_file = TFile::Open(file_name.c_str());
+    //TTree* pointing_tree = nullptr;
+    //pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
+    //pointing_tree->SetBranchStatus("*",0);
+    //pointing_tree->SetBranchStatus("TelElevation",1);
+    //pointing_tree->SetBranchStatus("TelAzimuth",1);
+    //pointing_tree->SetBranchStatus("TelRAJ2000",1);
+    //pointing_tree->SetBranchStatus("TelDecJ2000",1);
+    //pointing_tree->SetBranchAddress("TelElevation",&TelElevation);
+    //pointing_tree->SetBranchAddress("TelAzimuth",&TelAzimuth);
+    //pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
+    //pointing_tree->SetBranchAddress("TelDecJ2000",&TelDecJ2000);
+    //double total_entries = (double)pointing_tree->GetEntries();
+    //double TelElevation_avg = 0.;
+    //double TelAzimuth_avg = 0.;
+    ////for (int entry=0;entry<total_entries;entry++)
+    ////{
+    ////    pointing_tree->GetEntry(entry);
+    ////    TelElevation_avg += TelElevation;
+    ////    TelAzimuth_avg += TelAzimuth;
+    ////}
+    ////TelElevation_avg = TelElevation_avg/total_entries;
+    ////TelAzimuth_avg = TelAzimuth_avg/total_entries;
+    //pointing_tree->GetEntry(int(total_entries/2.));
+    //TelElevation_avg = TelElevation;
+    //TelAzimuth_avg = TelAzimuth;
+    //input_file->Close();
+
+    string line;
+    char delimiter = ' ';
+    string acc_runnumber = "";
+    string acc_version = "";
+    string acc_elev = "";
+    string acc_az = "";
+    int nth_line = 0;
+    int nth_delimiter = 0;
+    std::string::size_type sz;
     double TelElevation_avg = 0.;
     double TelAzimuth_avg = 0.;
-    //for (int entry=0;entry<total_entries;entry++)
-    //{
-    //    pointing_tree->GetEntry(entry);
-    //    TelElevation_avg += TelElevation;
-    //    TelAzimuth_avg += TelAzimuth;
-    //}
-    //TelElevation_avg = TelElevation_avg/total_entries;
-    //TelAzimuth_avg = TelAzimuth_avg/total_entries;
-    pointing_tree->GetEntry(int(total_entries/2.));
-    TelElevation_avg = TelElevation;
-    TelAzimuth_avg = TelAzimuth;
-    input_file->Close();
+
+    ifstream myfile (SMI_DIR+"/diagnostics_20210705.txt");
+    if (myfile.is_open())
+    {
+        while ( getline(myfile,line) )
+        {
+            acc_runnumber = "";
+            acc_version = "";
+            acc_elev = "";
+            acc_az = "";
+            nth_delimiter = 0;
+            for(int i = 0; i < line.size(); i++)
+            {
+                if (nth_line<84) continue;
+                if(line[i] == delimiter)
+                {
+                    if (nth_delimiter==7 && std::stoi(acc_runnumber,nullptr,10)==run) 
+                    {
+                        TelElevation_avg = std::stod(acc_elev,&sz);
+                        if (std::stoi(acc_version,nullptr,10)!=2) TelElevation_avg = 0.;
+                    }
+                    if (nth_delimiter==8 && std::stoi(acc_runnumber,nullptr,10)==run) 
+                    {
+                        TelAzimuth_avg = std::stod(acc_az,&sz);
+                        if (std::stoi(acc_version,nullptr,10)!=2) TelAzimuth_avg = 0.;
+                    }
+                    nth_delimiter += 1;
+                }
+                else if (nth_delimiter==0)
+                {
+                    acc_runnumber += line[i];
+                }
+                else if (nth_delimiter==1)
+                {
+                    acc_version += line[i];
+                }
+                else if (nth_delimiter==7)
+                {
+                    acc_elev += line[i];
+                }
+                else if (nth_delimiter==8)
+                {
+                    acc_az += line[i];
+                }
+            }
+            nth_line += 1;
+        }
+        myfile.close();
+    }
+    else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
+
     return std::make_pair(TelElevation_avg,TelAzimuth_avg);
 }
 bool MJDSelection(string file_name,int run, int MJD_start_cut, int MJD_end_cut)
@@ -1413,22 +1476,27 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first-offset_Elev,2)>threshold_dElev*threshold_dElev)
                     {
                         found_match = false;
+                        continue;
                     }
                     if (pow(ON_NSB[on_run]-OFF_NSB[off_run]-offset_NSB,2)>threshold_dNSB*threshold_dNSB)
                     {
                         found_match = false;
+                        continue;
                     }
                     if (pow(ON_MJD[on_run]-OFF_MJD[off_run],2)>threshold_dMJD*threshold_dMJD)
                     {
                         found_match = false;
+                        continue;
                     }
                     if (pow((ON_L3Rate[on_run]-OFF_L3Rate[off_run])/ON_L3Rate[on_run],2)>threshold_dL3Rate*threshold_dL3Rate)
                     {
                         found_match = false;
+                        continue;
                     }
                     if (pow(ON_time[on_run]-OFF_time[off_run],2)>threshold_dTime*threshold_dTime)
                     {
                         found_match = false;
+                        continue;
                     }
                     if (found_match && best_chi2>chi2)
                     {
@@ -1442,7 +1510,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                         dMJD_chi2 = pow(ON_MJD[on_run]-OFF_MJD[off_run],2);
                         dL3Rate_chi2 = pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2);
                     }
-                    if (best_chi2<0.2*0.2) break;
+                    //if (best_chi2<0.2*0.2) break;
                 }
                 if (best_chi2<1e10) 
                 {
@@ -2207,6 +2275,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         {
             std::cout << "Skip run " << int(Data_runlist[run].second) << std::endl;
             continue;
+        }
+        else
+        {
+            std::cout << "Prepare run ..." << int(Data_runlist[run].second) << std::endl;
         }
 
         char run_number[50];

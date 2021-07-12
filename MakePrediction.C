@@ -1376,8 +1376,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     int size_n = mtx_init_input.cols();
     int length_tkn = size_k*size_n;
     int regularization_size = 0;
-    if (RegularizationType==8) regularization_size = length_tkn;
-    if (RegularizationType==6) regularization_size = length_tkn;
+    regularization_size = length_tkn;
     VectorXcd vtr_Delta = VectorXcd::Zero(mtx_init_input.rows()*mtx_init_input.cols()+regularization_size);
     MatrixXcd mtx_A = MatrixXcd::Zero(mtx_init_input.rows()*mtx_init_input.cols()+regularization_size,length_tkn);
     MatrixXcd mtx_Constraint = MatrixXcd::Zero(regularization_size,length_tkn);
@@ -1435,52 +1434,31 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             }
         }
     }
-    if (regularization_size==length_tkn && RegularizationType!=6)
-    {
-        for (int idx_k=0;idx_k<size_k;idx_k++)
-        {
-            int kth_entry = idx_k+1;
-            for (int idx_n=0;idx_n<size_n;idx_n++)
-            {
-                int nth_entry = idx_n+1;
-                int idx_v = idx_k*size_n + idx_n;
-                int idx_u = idx_v + mtx_init_input.rows()*mtx_init_input.cols();
-                if (RegularizationType==8)
-                {
-                    double regularization_weight = pow(abs(mtx_regularization(idx_k,idx_n)),0.5);
-                    if (regularization_weight==0.) continue;
-                    mtx_A(idx_u,idx_v) = pow(alpha/regularization_weight,2);
-                }
-                else if (RegularizationType==4)
-                {
-                    mtx_A(idx_u,idx_v) = alpha*1e5;
-                }
-            }
-        }
-    }
-    else if (RegularizationType==6)
+
+    int idx_k1 = 0;
+    int idx_n1 = 0;
+    int idx_k2 = 0;
+    int idx_n2 = 0;
+    int idx_v1 = idx_k1*size_n + idx_n1;
+    int idx_v2 = idx_k2*size_n + idx_n2;
+    int idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
+    double sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
+    double sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
+    double sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
+    double sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
+    double ratio_1 = 0.;
+    double ratio_2 = 0.;
+    double variance_1 = 0.;
+    double variance_2 = 0.;
+    double coeff_1 = 0.;
+    double coeff_2 = 0.;
+    double eigenvalue = 1.;
+    if (RegularizationType==6)
     {
         //double temp_alpha = pow(10.,0.);
         //double temp_alpha = 0.;
         double temp_alpha = alpha;
 
-        int idx_k1 = 0;
-        int idx_n1 = 0;
-        int idx_k2 = 0;
-        int idx_n2 = 0;
-        int idx_v1 = idx_k1*size_n + idx_n1;
-        int idx_v2 = idx_k2*size_n + idx_n2;
-        int idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-        double sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
-        double sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
-        double sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
-        double sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
-        double ratio_1 = 0.;
-        double ratio_2 = 0.;
-        double variance_1 = 0.;
-        double variance_2 = 0.;
-        double coeff_1 = 0.;
-        double coeff_2 = 0.;
 
         //if (entry_size==3)
         //{
@@ -1503,37 +1481,16 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
         //    mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(variance_1);
         //}
 
-        //if (ebin==1)
-        //{
-        //    idx_k1 = 3-1;
-        //    variance_1 = 0.07389423;
-        //    idx_v1 = idx_k1*size_k + idx_k1;
-        //    idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-        //    sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
-        //    coeff_1 = mtx_S_dark(0,0)*(1./sigma_k1);
-        //    mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(variance_1);
-        //}
-        //if (ebin==3)
-        //{
-        //    idx_k1 = 2-1;
-        //    variance_1 = 0.121923337561;
-        //    idx_v1 = idx_k1*size_k + idx_k1;
-        //    idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-        //    sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
-        //    coeff_1 = mtx_S_dark(0,0)*(1./sigma_k1);
-        //    mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(variance_1);
-        //}
-
         if (entry_size==3)
         {
             idx_k1 = 2-1;
             idx_n1 = 1-1;
             idx_k2 = 3-1;
             idx_n2 = 2-1;
-            ratio_1 = 0.7001560979116933;
-            ratio_2 = 0.7139898028382977;
-            variance_1 = 0.03738744;
-            variance_2 = 0.04586987;
+            ratio_1 = -0.7071696601117096;
+            ratio_2 = -0.7070438966694284;
+            variance_1 = 0.03030318;
+            variance_2 = 0.04040614;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_v2 = idx_k2*size_n + idx_n2;
             idx_u1 = idx_v1;
@@ -1547,17 +1504,15 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
             //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
             //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
-        }
-        if (entry_size==3)
-        {
-            idx_k1 = 3-1;
-            idx_n1 = 3-1;
-            idx_k2 = 2-1;
-            idx_n2 = 3-1;
-            ratio_1 = -0.6841875675659449;
-            ratio_2 = -0.7293060896415138;
-            variance_1 = 0.15405244;
-            variance_2 = 0.02832422;
+            
+            idx_k1 = 2-1;
+            idx_n1 = 2-1;
+            idx_k2 = 1-1;
+            idx_n2 = 2-1;
+            ratio_1 = -0.705114550892242;
+            ratio_2 = 0.7090934142410518;
+            variance_1 = 0.03052454;
+            variance_2 = 0.01838737;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_v2 = idx_k2*size_n + idx_n2;
             idx_u1 = idx_v1;
@@ -1577,11 +1532,11 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_k1 = 2-1;
             idx_n1 = 2-1;
             idx_k2 = 1-1;
-            idx_n2 = 1-1;
-            ratio_1 = 0.5974750554013868;
-            ratio_2 = 0.8018874972046327;
-            variance_1 = 0.04410798;
-            variance_2 = 0.00964175;
+            idx_n2 = 2-1;
+            ratio_1 = -0.5769097633592606;
+            ratio_2 = 0.8168078874134126;
+            variance_1 = 0.06170505;
+            variance_2 = 0.01779413;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_v2 = idx_k2*size_n + idx_n2;
             idx_u1 = idx_v1;
@@ -1590,13 +1545,13 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
             sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
             coeff_1 = mtx_S_dark(0,0)*(1./sigma_k1);
-            coeff_2 = mtx_S_dark(0,0)*(1./sigma_k2);
+            coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
             mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
             mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
             //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
             //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
         }
-        
+
     }
 
     VectorXcd vtr_t = VectorXcd::Zero(length_tkn);
@@ -1604,22 +1559,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     //bdc_svd.setThreshold(1e-10);  // size of singular value to be considered as nonzero.
     //std::cout << "bdc_svd.singularValues():" << std::endl;
     //std::cout << bdc_svd.singularValues() << std::endl;
-    if (RegularizationType==3)
-    {
-        MatrixXcd mtx_U = bdc_svd.matrixU();
-        MatrixXcd mtx_V = bdc_svd.matrixV();
-        MatrixXcd mtx_S = MatrixXcd::Zero(mtx_A.rows(),mtx_A.cols());
-        MatrixXcd mtx_S_inv = MatrixXcd::Zero(mtx_A.cols(),mtx_A.rows());
-        for (int entry=0;entry<bdc_svd.singularValues().size();entry++)
-        {
-            if (abs(bdc_svd.singularValues()(entry))==0.) continue;
-            if (entry>int(alpha-1.)) continue;
-            mtx_S(entry,entry) = bdc_svd.singularValues()(entry);
-            mtx_S_inv(entry,entry) = 1./(bdc_svd.singularValues()(entry));
-        }
-        vtr_t = mtx_V*mtx_S_inv*mtx_U.conjugate().transpose()*vtr_Delta;
-    }
-    else if (RegularizationType==6)
+    if (RegularizationType==6)
     {
         vtr_t = SolutionWithConstraints(mtx_A, mtx_Constraint, vtr_Delta, vtr_Constraint_Delta);
     }
@@ -3375,12 +3315,12 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Rank4_MSCLW_Dark.push_back(TH2D("Hist_Rank4_MSCLW_Dark_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
 
         Hist_Dark_Optimization.push_back(TH1D("Hist_Dark_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv/2,0,N_bins_for_deconv/2));
-        Hist_Bkgd_Optimization.push_back(TH1D("Hist_Bkgd_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,optimiz_lower,optimiz_upper));
+        Hist_Bkgd_Optimization.push_back(TH1D("Hist_Bkgd_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,optimiz_lower,optimiz_upper));
         Hist_Bkgd_Optimization_beta.push_back(TH2D("Hist_Bkgd_Optimization_beta_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,0.,1.,10,0.,1.));
         Hist_Bkgd_OptimizationChi2_beta.push_back(TH2D("Hist_Bkgd_OptimizationChi2_beta_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,0.,1.,10,0.,1.));
-        Hist_Bkgd_Chi2.push_back(TH1D("Hist_Bkgd_Chi2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,optimiz_lower,optimiz_upper));
-        Hist_Bkgd_Chi2_Diff.push_back(TH1D("Hist_Bkgd_Chi2_Diff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,optimiz_lower,optimiz_upper));
-        Hist_Bkgd_Chi2_Diff2.push_back(TH1D("Hist_Bkgd_Chi2_Diff2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,optimiz_lower,optimiz_upper));
+        Hist_Bkgd_Chi2.push_back(TH1D("Hist_Bkgd_Chi2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,optimiz_lower,optimiz_upper));
+        Hist_Bkgd_Chi2_Diff.push_back(TH1D("Hist_Bkgd_Chi2_Diff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,optimiz_lower,optimiz_upper));
+        Hist_Bkgd_Chi2_Diff2.push_back(TH1D("Hist_Bkgd_Chi2_Diff2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,optimiz_lower,optimiz_upper));
         Hist_Bkgd_Converge_Blind.push_back(TH1D("Hist_Bkgd_Converge_Blind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
         Hist_Bkgd_Converge_Unblind.push_back(TH1D("Hist_Bkgd_Converge_Unblind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
 
@@ -3816,7 +3756,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             WeightingType = 1;
             SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_dark);
             optimized_alpha = pow(10.,Log10_alpha[e]);
-            //std::cout << "Log10_alpha[e] = " << Log10_alpha[e] << std::endl;
+            std::cout << "Log10_alpha[e] = " << Log10_alpha[e] << std::endl;
             //for (int binx=1;binx<=Hist_Bkgd_Optimization.at(e).GetNbinsX();binx++)
             //{
             //    double temp_alpha = pow(10.,Hist_Bkgd_Optimization.at(e).GetBinCenter(binx));
