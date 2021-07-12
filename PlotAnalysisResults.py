@@ -40,9 +40,10 @@ energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
 #elev_range = [45,85]
-elev_range = [40,70]
+#elev_range = [40,70]
+#elev_range = [60,80]
 #elev_range = [25,55]
-#elev_range = [45,55,65,75,85]
+elev_range = [40,50,60,70,80]
 theta2_bins = [0,4]
 
 ONOFF_tag = 'ON'
@@ -6252,8 +6253,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-#drawMap = False
-drawMap = True
+drawMap = False
+#drawMap = True
 #Smoothing = False
 Smoothing = True
 

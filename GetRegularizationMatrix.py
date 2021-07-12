@@ -25,7 +25,7 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-target_energy_index = 1
+target_energy_index = 2
 N_bins_for_deconv = 16
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
@@ -50,10 +50,6 @@ ONOFF_tag = 'OFF'
 ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
-sample_list += ['3C273V6_OFF']
-sample_name += ['3C273 V6']
-sample_list += ['3C273V5_OFF']
-sample_name += ['3C273 V5']
 sample_list += ['1ES0502V6_OFF']
 sample_name += ['1ES0502 V6']
 sample_list += ['1ES0502V5_OFF']
@@ -88,20 +84,22 @@ sample_list += ['Segue1V6_OFF']
 sample_name += ['Segue1 V6']
 sample_list += ['Segue1V5_OFF']
 sample_name += ['Segue1 V5']
-sample_list += ['CrabV5_OFF']
-sample_name += ['Crab V5']
-sample_list += ['CrabV6_OFF']
-sample_name += ['Crab V6']
 sample_list += ['BLLacV6_OFF']
 sample_name += ['BLLac V6']
 sample_list += ['BLLacV5_OFF']
 sample_name += ['BLLac V5']
-
 sample_list += ['H1426V6_OFF']
 sample_name += ['H1426 V6']
 
     
-elev_bins = [40,70]
+#elev_bins = [40,70]
+#elev_bins = [60,80]
+#elev_bins = [40,60]
+elev_bins = [50,60,70,80]
+#elev_bins = [70,80]
+#elev_bins = [60,70]
+#elev_bins = [50,60]
+#elev_bins = [40,50]
 theta2_bins = [0,4]
 
 energy_bin = []
@@ -159,19 +157,25 @@ def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
 def PrincipalComponentAnalysis(list_var, output_type):
 
     n_variables = len(list_var)
-    n_samples = len(sample_list)
+    n_samples = len(mtx_CDE_all_sources)
     mtx_var = np.zeros((n_samples,n_variables))
+    mtx_var_bkg = np.zeros((n_samples,n_variables))
+    chi2 = np.zeros(n_variables)
     for sample in range(0,n_samples):
         for var in range(0,n_variables):
             row = list_var[var][0]-1
             col = list_var[var][1]-1
             idx = row*3+col
             mtx_var[sample][var] = mtx_CDE_all_sources[sample][idx]
+            mtx_var_bkg[sample][var] = mtx_CDE_bkgd_all_sources[sample][idx]
+            chi2[var] += pow(mtx_var[sample][var]-mtx_var_bkg[sample][var],2)
 
     #mtx_var_centered = mtx_var - np.mean(mtx_var , axis = 0)
     mtx_var_square = np.square(mtx_var)
     mtx_var_mean = np.mean(mtx_var_square , axis = 0)
     mtx_var_rms = np.sqrt(mtx_var_mean)
+    for var in range(0,n_variables):
+        chi2[var] = chi2[var]/mtx_var_rms[var]
     if output_type==1: return mtx_var_rms
 
     mtx_var_norm = np.zeros((n_samples,n_variables))
@@ -185,14 +189,16 @@ def PrincipalComponentAnalysis(list_var, output_type):
     mtx_cov = np.cov(mtx_var_norm, rowvar = False)
     eigen_values , eigen_vectors = np.linalg.eigh(mtx_cov)
     print ('eigen_values = \n {0}'.format(eigen_values))
+    print ('eigen_values ratio = \n {0}'.format(eigen_values[0]/eigen_values[n_variables-1]))
     print ('mtx_var_rms = \n {0}'.format(mtx_var_rms))
+    print ('chi2 = \n {0}'.format(chi2))
     print ('primary eigen_vectors = ')
     for var in range(0,n_variables):
         print ('({1},{2}) {0}'.format(eigen_vectors[n_variables-1][var],list_var[var][0],list_var[var][1]))
     #print ('sencondary eigen_vectors = ')
     #for var in range(0,n_variables):
     #    print ('({1},{2}) {0}'.format(eigen_vectors[n_variables-2][var],list_var[var][0],list_var[var][1]))
-    return eigen_values[n_variables-1]
+    return eigen_values[n_variables-1], chi2
 
 def MakeCorrelationPlot(list_var):
 
@@ -202,7 +208,7 @@ def MakeCorrelationPlot(list_var):
     par2_col = list_var[1][1]
 
     n_variables = len(list_var)
-    n_samples = len(sample_list)
+    n_samples = len(mtx_CDE_all_sources)
     mtx_var = np.zeros((n_samples,n_variables))
     mtx_var_bkgd = np.zeros((n_samples,n_variables))
     for sample in range(0,n_samples):
@@ -251,6 +257,7 @@ def GetHistogramsFromFile(FilePath):
     global sigma_rank0_all_sources
     global sigma_rank1_all_sources
     global sigma_rank2_all_sources
+    dark_stable_rank = ROOT.std.vector("int")(10)
     dark_sigma_rank0 = ROOT.std.vector("double")(10)
     dark_sigma_rank1 = ROOT.std.vector("double")(10)
     dark_sigma_rank2 = ROOT.std.vector("double")(10)
@@ -259,6 +266,7 @@ def GetHistogramsFromFile(FilePath):
     InfoTree = InputFile.Get("InfoTree")
     InfoTree.GetEntry(0)
     NewInfoTree = InputFile.Get("NewInfoTree")
+    NewInfoTree.SetBranchAddress('dark_stable_rank',ROOT.AddressOf(dark_stable_rank))
     NewInfoTree.SetBranchAddress('dark_sigma_rank0',ROOT.AddressOf(dark_sigma_rank0))
     NewInfoTree.SetBranchAddress('dark_sigma_rank1',ROOT.AddressOf(dark_sigma_rank1))
     NewInfoTree.SetBranchAddress('dark_sigma_rank2',ROOT.AddressOf(dark_sigma_rank2))
@@ -299,7 +307,7 @@ def GetHistogramsFromFile(FilePath):
             old_content = Hist2D_Regularization[energy_index].GetBinContent(binx+1,biny+1)
             new_content = pow(Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1),2)
             Hist2D_Regularization[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content)
-    if energy_index==target_energy_index: 
+    if dark_gamma_count[energy_index]>1000. and dark_stable_rank[energy_index]==3 and energy_index==1: 
         mtx_CDE = []
         mtx_CDE_bkgd = []
         for row in range(0,3):
@@ -316,6 +324,7 @@ def GetHistogramsFromFile(FilePath):
                 mtx_CDE_bkgd[idx] = content
         mtx_CDE_all_sources += [mtx_CDE]
         mtx_CDE_bkgd_all_sources += [mtx_CDE_bkgd]
+    if target_energy_index==energy_index:
         sigma_rank0_all_sources += [dark_sigma_rank0[energy_index]]
         sigma_rank1_all_sources += [dark_sigma_rank1[energy_index]]
         sigma_rank2_all_sources += [dark_sigma_rank2[energy_index]]
@@ -406,33 +415,33 @@ for row in range(0,3):
         idx = row*3+col
         MakeOneHistPlot(Hist_CDE[idx],'perturbation','number of runs','CDE_%s_%s'%(row,col),False)
 
-my_table = PrettyTable()
-my_table.field_names = ["source","t11","t12","t13","t21","t22","t23","t31","t32","t33","sigma1","sigma2","sigma3"]
-my_table.float_format["t11"] = ".2e"
-my_table.float_format["t12"] = ".2e"
-my_table.float_format["t13"] = ".2e"
-my_table.float_format["t21"] = ".2e"
-my_table.float_format["t22"] = ".2e"
-my_table.float_format["t23"] = ".2e"
-my_table.float_format["t31"] = ".2e"
-my_table.float_format["t32"] = ".2e"
-my_table.float_format["t33"] = ".2e"
-my_table.float_format["sigma1"] = ".2e"
-my_table.float_format["sigma2"] = ".2e"
-my_table.float_format["sigma3"] = ".2e"
-for entry in range(0,len(sample_list)):
-    table_row = []
-    source_name = sample_name[entry]
-    table_row += [source_name]
-    for row in range(0,3):
-        for col in range(0,3):
-            idx = row*3+col
-            table_row += [mtx_CDE_all_sources[entry][idx]]
-    table_row += [sigma_rank0_all_sources[entry]]
-    table_row += [sigma_rank1_all_sources[entry]]
-    table_row += [sigma_rank2_all_sources[entry]]
-    my_table.add_row(table_row)
-print(my_table)
+#my_table = PrettyTable()
+#my_table.field_names = ["source","t11","t12","t13","t21","t22","t23","t31","t32","t33","sigma1","sigma2","sigma3"]
+#my_table.float_format["t11"] = ".2e"
+#my_table.float_format["t12"] = ".2e"
+#my_table.float_format["t13"] = ".2e"
+#my_table.float_format["t21"] = ".2e"
+#my_table.float_format["t22"] = ".2e"
+#my_table.float_format["t23"] = ".2e"
+#my_table.float_format["t31"] = ".2e"
+#my_table.float_format["t32"] = ".2e"
+#my_table.float_format["t33"] = ".2e"
+#my_table.float_format["sigma1"] = ".2e"
+#my_table.float_format["sigma2"] = ".2e"
+#my_table.float_format["sigma3"] = ".2e"
+#for entry in range(0,len(sample_list)):
+#    table_row = []
+#    source_name = sample_name[entry]
+#    table_row += [source_name]
+#    for row in range(0,3):
+#        for col in range(0,3):
+#            idx = row*3+col
+#            table_row += [mtx_CDE_all_sources[entry][idx]]
+#    table_row += [sigma_rank0_all_sources[entry]]
+#    table_row += [sigma_rank1_all_sources[entry]]
+#    table_row += [sigma_rank2_all_sources[entry]]
+#    my_table.add_row(table_row)
+#print(my_table)
 
 
 list_var_pair = []
@@ -444,13 +453,14 @@ for row1 in range(0,3):
             for col2 in range(0,3):
                 idx1 = row1*3+col1
                 idx2 = row2*3+col2
-                if idx1>=idx2: continue
                 list_var_pair = [[row1+1,col1+1]]
                 list_var_pair += [[row2+1,col2+1]]
                 print('=======================================================')
-                max_eigenvalue = PrincipalComponentAnalysis(list_var_pair,0)
+                max_eigenvalue, chi2 = PrincipalComponentAnalysis(list_var_pair,0)
                 if math.isnan(max_eigenvalue): continue
-                if max_eigenvalue>1.8:
+                #if row1==2 and col1==2:
+                if idx1>=idx2: continue
+                if max_eigenvalue>1.4:
                     MakeCorrelationPlot(list_var_pair)
                     good_var_pair += [list_var_pair]
                     good_eigenvalue += [max_eigenvalue]

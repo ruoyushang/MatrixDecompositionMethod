@@ -82,10 +82,10 @@ ONOFF_tag = 'OFF'
 ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
-sample_list += ['3C273V6_OFF']
-sample_name += ['3C273 V6']
-sample_list += ['3C273V5_OFF']
-sample_name += ['3C273 V5']
+#sample_list += ['3C273V6_OFF']
+#sample_name += ['3C273 V6']
+#sample_list += ['3C273V5_OFF']
+#sample_name += ['3C273 V5']
 sample_list += ['1ES0502V6_OFF']
 sample_name += ['1ES0502 V6']
 sample_list += ['1ES0502V5_OFF']
@@ -120,17 +120,17 @@ sample_list += ['Segue1V6_OFF']
 sample_name += ['Segue1 V6']
 sample_list += ['Segue1V5_OFF']
 sample_name += ['Segue1 V5']
-sample_list += ['CrabV5_OFF']
-sample_name += ['Crab V5']
-sample_list += ['CrabV6_OFF']
-sample_name += ['Crab V6']
 sample_list += ['BLLacV6_OFF']
 sample_name += ['BLLac V6']
 sample_list += ['BLLacV5_OFF']
 sample_name += ['BLLac V5']
-
 sample_list += ['H1426V6_OFF']
 sample_name += ['H1426 V6']
+
+#sample_list += ['CrabV5_OFF']
+#sample_name += ['Crab V5']
+#sample_list += ['CrabV6_OFF']
+#sample_name += ['Crab V6']
 ##sample_list += ['RBS0413V6_OFF']
 ##sample_name += ['RBS0413 V6']
 ##sample_list += ['NGC1275V6_OFF']
@@ -156,7 +156,14 @@ sample_name += ['H1426 V6']
 #sample_name += ['Crab V5']
     
 #elev_bins = [45,85]
-elev_bins = [40,70]
+#elev_bins = [40,70]
+#elev_bins = [60,80]
+#elev_bins = [40,60]
+elev_bins = [50,60,70,80]
+#elev_bins = [70,80]
+#elev_bins = [60,70]
+#elev_bins = [50,60]
+#elev_bins = [40,50]
 lowrank_tag += 'elev_incl'
 
 theta2_bins = [0,4]
@@ -490,13 +497,13 @@ Hist_Bkgd_Optimization_beta = []
 Hist_Bkgd_OptimizationChi2_beta = []
 Hist_Dark_Optimization = []
 for e in range(0,len(sample_list)+1):
-    Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",50,optimiz_lower,optimiz_upper)]
+    Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",10,optimiz_lower,optimiz_upper)]
     Hist_Bkgd_Optimization_beta += [ROOT.TH2D("Hist_Bkgd_Optimization_beta_%s"%(e),"",10,0.,1.,10,0.,1.)]
     Hist_Bkgd_OptimizationChi2_beta += [ROOT.TH2D("Hist_Bkgd_OptimizationChi2_beta_%s"%(e),"",10,0.,1.,10,0.,1.)]
     Hist_Dark_Optimization += [ROOT.TH1D("Hist_Dark_Optimization_%s"%(e),"",int(N_bins_for_deconv/2),0,N_bins_for_deconv/2)]
 Hist_Bkgd_Chi2 = []
 for e in range(0,len(sample_list)+1):
-    Hist_Bkgd_Chi2 += [ROOT.TH1D("Hist_Bkgd_Chi2_%s"%(e),"",50,optimiz_lower,optimiz_upper)]
+    Hist_Bkgd_Chi2 += [ROOT.TH1D("Hist_Bkgd_Chi2_%s"%(e),"",10,optimiz_lower,optimiz_upper)]
 Hist_VVV_Eigenvalues = []
 for e in range(0,len(sample_list)+1):
     Hist_VVV_Eigenvalues += [ROOT.TH1D("Hist_VVV_Eigenvalues_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,0,N_bins_for_deconv*N_bins_for_deconv)]
@@ -948,25 +955,25 @@ for e in range(0,len(energy_bin)-1):
     plt.subplots_adjust(bottom=0.15)
     plt.savefig("output_plots/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
-    plt.clf()
-    ax = fig.add_subplot(111)
-    ind = np.arange(len(ValidateBkgd_source))
-    width = 0.35
-    rects1 = ax.bar(ind, ValidateBkgd_source, width, color='#089FFF', yerr=ValidateBkgdErr_source)
-    rects2 = ax.bar(ind+width, ValidateRFoV_source, width, color='#FF9848', yerr=ValidateBkgdErr_source)
-    #rects3 = ax.bar(ind+2*width, ValidateComb_source, width, color='green', yerr=ValidateBkgdErr_source)
-    ax.set_xlim(-width,len(ind)+width)
-    ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    combined_mean = 1. / (1./ValidateBkgd_mean + 1./ValidateRFoV_mean)
-    ax.set_title('$combined <\epsilon>=%0.3f \pm %0.3f$'%(combined_mean,ValidateBkgd_mean_error))
-    xTickMarks = sample_name
-    ax.set_xticks(ind+width)
-    xtickNames = ax.set_xticklabels(xTickMarks)
-    plt.setp(xtickNames, rotation=45, fontsize=10)
-    ax.legend( (rects1[0], rects2[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean)), loc='best' )
-    #ax.legend( (rects1[0], rects2[0], rects3[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean), 'combined $<\epsilon>=%0.3f$'%(ValidateComb_mean)), loc='best' )
-    plt.subplots_adjust(bottom=0.15)
-    plt.savefig("output_plots/PerformanceRFoV_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    #plt.clf()
+    #ax = fig.add_subplot(111)
+    #ind = np.arange(len(ValidateBkgd_source))
+    #width = 0.35
+    #rects1 = ax.bar(ind, ValidateBkgd_source, width, color='#089FFF', yerr=ValidateBkgdErr_source)
+    #rects2 = ax.bar(ind+width, ValidateRFoV_source, width, color='#FF9848', yerr=ValidateBkgdErr_source)
+    ##rects3 = ax.bar(ind+2*width, ValidateComb_source, width, color='green', yerr=ValidateBkgdErr_source)
+    #ax.set_xlim(-width,len(ind)+width)
+    #ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    #combined_mean = 1. / (1./ValidateBkgd_mean + 1./ValidateRFoV_mean)
+    #ax.set_title('$combined <\epsilon>=%0.3f \pm %0.3f$'%(combined_mean,ValidateBkgd_mean_error))
+    #xTickMarks = sample_name
+    #ax.set_xticks(ind+width)
+    #xtickNames = ax.set_xticklabels(xTickMarks)
+    #plt.setp(xtickNames, rotation=45, fontsize=10)
+    #ax.legend( (rects1[0], rects2[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean)), loc='best' )
+    ##ax.legend( (rects1[0], rects2[0], rects3[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean), 'combined $<\epsilon>=%0.3f$'%(ValidateComb_mean)), loc='best' )
+    #plt.subplots_adjust(bottom=0.15)
+    #plt.savefig("output_plots/PerformanceRFoV_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
     RankCounts = []
     Rank = [1,2,3,4,5]
