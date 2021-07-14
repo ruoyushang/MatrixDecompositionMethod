@@ -67,6 +67,9 @@ rank3_count = []
 rank4_count = []
 
 folder_path = 'output_nominal'
+#folder_path = 'output_ElevPlus5'
+#folder_path = 'output_ElevMinus5'
+#folder_path = 'output_NsbPlus2'
 method_tag = 'tight_mdm_default'
 #method_tag = 'tight_mdm_rank3'
 #method_tag = 'tight_mdm_rank5'
@@ -82,10 +85,6 @@ ONOFF_tag = 'OFF'
 ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
-#sample_list += ['3C273V6_OFF']
-#sample_name += ['3C273 V6']
-#sample_list += ['3C273V5_OFF']
-#sample_name += ['3C273 V5']
 sample_list += ['1ES0502V6_OFF']
 sample_name += ['1ES0502 V6']
 sample_list += ['1ES0502V5_OFF']
@@ -102,6 +101,10 @@ sample_list += ['M82V5_OFF']
 sample_name += ['M82 V5']
 sample_list += ['1ES0414V5_OFF']
 sample_name += ['1ES0410 V5']
+sample_list += ['3C273V6_OFF']
+sample_name += ['3C273 V6']
+sample_list += ['3C273V5_OFF']
+sample_name += ['3C273 V5']
 sample_list += ['1ES0647V6_OFF']
 sample_name += ['1ES0647 V6']
 sample_list += ['1ES1011V6_OFF']
@@ -951,8 +954,8 @@ for e in range(0,len(energy_bin)-1):
     ax.set_xticks(ind+1.0*width)
     xtickNames = ax.set_xticklabels(xTickMarks)
     plt.setp(xtickNames, rotation=45, fontsize=10)
-    ax.legend( (rects1[0], rects2[0]), ('LRR $<\epsilon>=%0.3f$'%(AccuracyBkgd_mean), 'Initial $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
-    plt.subplots_adjust(bottom=0.15)
+    ax.legend( (rects1[0], rects2[0]), ('MIBE $<\epsilon>=%0.3f$'%(AccuracyBkgd_mean), 'ON/OFF $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
+    plt.subplots_adjust(bottom=0.25)
     plt.savefig("output_plots/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
     #plt.clf()

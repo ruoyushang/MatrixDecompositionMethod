@@ -18,7 +18,8 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 n_rebins = 2
-smooth_size = 0.1
+smooth_size_skymap = 0.1
+smooth_size_spectroscopy = 0.12
 
 #method_tag = 'loose_mdm_default'
 #method_tag = 'loose_mdm_rank3'
@@ -760,12 +761,12 @@ energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 
 energy_syst = []
-energy_syst += [0.012]
-energy_syst += [0.011]
-energy_syst += [0.025]
-energy_syst += [0.038]
-energy_syst += [0.061]
-energy_syst += [0.240]
+energy_syst += [0.051]
+energy_syst += [0.015]
+energy_syst += [0.018]
+energy_syst += [0.037]
+energy_syst += [0.060]
+energy_syst += [0.115]
 
 #energy_fine_bin = []
 #energy_fine_bin += [pow(10,2.0)]
@@ -4031,7 +4032,8 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
             good_fit = True
             good_data = True
             if (int(max_nbins/best_nbins))>=4:
-                if n_3sigma_connect_max<4 and n_4sigma_connect_max<3: good_data = False
+                #if n_3sigma_connect_max<4 and n_4sigma_connect_max<3: good_data = False
+                if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
             else:
                 if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
             if abs(func_source[nth_roi-1].GetParameter(1))<5.*func_source[nth_roi-1].GetParError(1): good_fit = False
@@ -4146,6 +4148,14 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
     hist_index_skymap_reflect.Draw("COL4Z")
     #hist_index_skymap_full_reflect.Draw("COL4Z")
     #hist_index_skymap_reflect.Draw("TEXT45 same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        if nth_roi==1: continue
+        mycircles[nth_roi].Draw("same")
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
@@ -4196,7 +4206,7 @@ def VariableSkymapBins(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_input,
         Hist_Exposure.Rebin2D(int(max_nbins/nbins),int(max_nbins/nbins))
         Hist_Skymap = GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,syst_method)
         nbins_5sigma = Count5SigmaBins(Hist_Skymap,Hist_SR,threshold_sigma)
-        max_sigma = Hist_Skymap.GetMaximum()
+        max_sigma = max(abs(Hist_Skymap.GetMaximum()),abs(Hist_Skymap.GetMinimum()))
         max_sigma = CorrectLEE(max_sigma,Hist_Skymap.GetNbinsX()*Hist_Skymap.GetNbinsY(),threshold_sigma)
         list_maxsig += [max_sigma]
         skymap_bin_size_x = Hist_SR.GetXaxis().GetBinCenter(2)-Hist_SR.GetXaxis().GetBinCenter(1)
@@ -5885,14 +5895,14 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
     Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth = Hist_OnBkgd_Skymap_Galactic_Syst_MDM
     Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth = Hist_OnBkgd_Skymap_Galactic_Syst_RBM
     if doSmooth:
-        Hist_OnData_Skymap_smooth = Smooth2DMap(Hist_OnData_Skymap_Sum,smooth_size,False)
-        Hist_OnBkgd_Skymap_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Sum,smooth_size,False)
-        Hist_OnBkgd_Skymap_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_MDM,smooth_size,False)
-        Hist_OnBkgd_Skymap_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_RBM,smooth_size,False)
-        Hist_OnData_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnData_Skymap_Galactic_Sum,smooth_size,False)
-        Hist_OnBkgd_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Sum,smooth_size,False)
-        Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_MDM,smooth_size,False)
-        Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_RBM,smooth_size,False)
+        Hist_OnData_Skymap_smooth = Smooth2DMap(Hist_OnData_Skymap_Sum,smooth_size_skymap,False)
+        Hist_OnBkgd_Skymap_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Sum,smooth_size_skymap,False)
+        Hist_OnBkgd_Skymap_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_MDM,smooth_size_skymap,False)
+        Hist_OnBkgd_Skymap_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_RBM,smooth_size_skymap,False)
+        Hist_OnData_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnData_Skymap_Galactic_Sum,smooth_size_skymap,False)
+        Hist_OnBkgd_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Sum,smooth_size_skymap,False)
+        Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_MDM,smooth_size_skymap,False)
+        Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_RBM,smooth_size_skymap,False)
 
     skymap_bin_size_x = Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(1)
     skymap_bin_size_y = Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(1)
@@ -5901,7 +5911,7 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
     for bx in range(1,Hist_Exposure_Skymap.GetNbinsX()+1):
         for by in range(1,Hist_Exposure_Skymap.GetNbinsY()+1):
             Hist_Exposure_Skymap.SetBinContent(bx,by,event_rate)
-    Hist_Exposure_Skymap_smooth = Smooth2DMap(Hist_Exposure_Skymap,smooth_size,False)
+    Hist_Exposure_Skymap_smooth = Smooth2DMap(Hist_Exposure_Skymap,smooth_size_skymap,False)
     center_binx = int(Hist_Exposure_Skymap.GetNbinsX()/2.)
     center_biny = int(Hist_Exposure_Skymap.GetNbinsY()/2.)
     event_rate_smooth = Hist_Exposure_Skymap_smooth.GetBinContent(center_binx,center_biny)
@@ -5938,13 +5948,13 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
             Hist_Data_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Data_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
             Hist_Bkgd_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
         for ebin in range(0,len(energy_bin)-1):
-            Hist_Data_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Data_Energy_Skymap[ebin],smooth_size,False)
-            Hist_Bkgd_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size,False)
-            Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Syst_Energy_Skymap[ebin],smooth_size,False)
+            Hist_Data_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Data_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
+            Hist_Bkgd_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
+            Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Syst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Zscore_Energy_Skymap_smooth[ebin] = GetSignificanceMap(Hist_Data_Energy_Skymap_smooth[ebin],Hist_Bkgd_Energy_Skymap_smooth[ebin],Hist_Syst_Energy_Skymap_smooth[ebin],Syst_MDM)
             Hist_Expo_Energy_Skymap[ebin] = Hist_Bkgd_Energy_Skymap_smooth[ebin].Clone()
             Hist_Expo_Energy_Skymap[ebin].Scale(1./event_rate_smooth)
-        MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),30,1)
+        MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
         MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s_zoomin'%(source_name,PercentCrab),60,2)
     else:
         MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_Syst_Energy_Skymap,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),12,1)
@@ -6253,8 +6263,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-drawMap = False
-#drawMap = True
+#drawMap = False
+drawMap = True
 #Smoothing = False
 Smoothing = True
 
