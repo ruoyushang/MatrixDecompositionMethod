@@ -909,17 +909,71 @@ vector<pair<double,double>> GetRunTimecuts(int run_number)
 
 int GetRunMJD(string file_name,int run)
 {
-    int run_mjd = 0;
-    char run_number[50];
-    sprintf(run_number, "%i", int(run));
-    TFile*  input_file = TFile::Open(file_name.c_str());
-    TTree* pointing_tree = nullptr;
-    pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
-    pointing_tree->SetBranchAddress("MJD",&MJD_UInt_t);
-    double total_entries = (double)pointing_tree->GetEntries();
-    pointing_tree->GetEntry(0);
-    run_mjd = MJD_UInt_t;
-    input_file->Close();
+
+    int run_mjd = 0.;
+
+    //char run_number[50];
+    //sprintf(run_number, "%i", int(run));
+    //TFile*  input_file = TFile::Open(file_name.c_str());
+    //TTree* pointing_tree = nullptr;
+    //pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
+    //pointing_tree->SetBranchAddress("MJD",&MJD_UInt_t);
+    //double total_entries = (double)pointing_tree->GetEntries();
+    //pointing_tree->GetEntry(0);
+    //run_mjd = MJD_UInt_t;
+    //input_file->Close();
+    //std::cout << "root file MJD = " << run_mjd << std::endl;
+
+    string line;
+    char delimiter = ' ';
+    string acc_runnumber = "";
+    string acc_version = "";
+    string acc_nsb = "";
+    int nth_line = 0;
+    int nth_delimiter = 0;
+    std::string::size_type sz;
+
+    ifstream myfile (SMI_DIR+"/diagnostics_20210705.txt");
+    if (myfile.is_open())
+    {
+        while ( getline(myfile,line) )
+        {
+            acc_runnumber = "";
+            acc_version = "";
+            acc_nsb = "";
+            nth_delimiter = 0;
+            for(int i = 0; i < line.size(); i++)
+            {
+                if (nth_line<84) continue;
+                if(line[i] == delimiter)
+                {
+                    if (nth_delimiter==4 && std::stoi(acc_runnumber,nullptr,10)==run) 
+                    {
+                        run_mjd = std::stoi(acc_nsb,&sz);
+                        if (std::stoi(acc_version,nullptr,10)!=2) run_mjd = 0;
+                    }
+                    nth_delimiter += 1;
+                }
+                else if (nth_delimiter==0)
+                {
+                    acc_runnumber += line[i];
+                }
+                else if (nth_delimiter==1)
+                {
+                    acc_version += line[i];
+                }
+                else if (nth_delimiter==4)
+                {
+                    acc_nsb += line[i];
+                }
+            }
+            nth_line += 1;
+        }
+        myfile.close();
+    }
+    else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
+    //std::cout << "diag file MJD = " << run_mjd << std::endl;
+
     return run_mjd;
 }
 bool PointingSelection(string file_name,int run, double Elev_cut_lower, double Elev_cut_upper, double Azim_cut_lower, double Azim_cut_upper)
@@ -1103,24 +1157,94 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
 
 pair<double,double> GetRunRaDec(string file_name, int run)
 {
-    char run_number[50];
-    sprintf(run_number, "%i", int(run));
-    TFile*  input_file = TFile::Open(file_name.c_str());
-    TTree* pointing_tree = nullptr;
-    pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
-    pointing_tree->SetBranchAddress("TelElevation",&TelElevation);
-    pointing_tree->SetBranchAddress("TelAzimuth",&TelAzimuth);
-    pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
-    pointing_tree->SetBranchAddress("TelDecJ2000",&TelDecJ2000);
-    double total_entries = (double)pointing_tree->GetEntries();
-    pointing_tree->GetEntry(int(total_entries/2.));
-    double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
-    double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
-    input_file->Close();
+
+    double TelRAJ2000_tmp = 0.;
+    double TelDecJ2000_tmp = 0.;
+
+    //char run_number[50];
+    //sprintf(run_number, "%i", int(run));
+    //TFile*  input_file = TFile::Open(file_name.c_str());
+    //TTree* pointing_tree = nullptr;
+    //pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
+    //pointing_tree->SetBranchAddress("TelElevation",&TelElevation);
+    //pointing_tree->SetBranchAddress("TelAzimuth",&TelAzimuth);
+    //pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
+    //pointing_tree->SetBranchAddress("TelDecJ2000",&TelDecJ2000);
+    //double total_entries = (double)pointing_tree->GetEntries();
+    //pointing_tree->GetEntry(int(total_entries/2.));
+    //TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
+    //TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
+    //input_file->Close();
+    //std::cout << "root file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
+
+    string line;
+    char delimiter = ' ';
+    string acc_runnumber = "";
+    string acc_version = "";
+    string acc_elev = "";
+    string acc_az = "";
+    int nth_line = 0;
+    int nth_delimiter = 0;
+    std::string::size_type sz;
+
+    ifstream myfile (SMI_DIR+"/diagnostics_20210705.txt");
+    if (myfile.is_open())
+    {
+        while ( getline(myfile,line) )
+        {
+            acc_runnumber = "";
+            acc_version = "";
+            acc_elev = "";
+            acc_az = "";
+            nth_delimiter = 0;
+            for(int i = 0; i < line.size(); i++)
+            {
+                if (nth_line<84) continue;
+                if(line[i] == delimiter)
+                {
+                    if (nth_delimiter==45 && std::stoi(acc_runnumber,nullptr,10)==run) 
+                    {
+                        TelRAJ2000_tmp = std::stod(acc_elev,&sz);
+                        if (std::stoi(acc_version,nullptr,10)!=2) TelRAJ2000_tmp = 0.;
+                    }
+                    if (nth_delimiter==46 && std::stoi(acc_runnumber,nullptr,10)==run) 
+                    {
+                        TelDecJ2000_tmp = std::stod(acc_az,&sz);
+                        if (std::stoi(acc_version,nullptr,10)!=2) TelDecJ2000_tmp = 0.;
+                    }
+                    nth_delimiter += 1;
+                }
+                else if (nth_delimiter==0)
+                {
+                    acc_runnumber += line[i];
+                }
+                else if (nth_delimiter==1)
+                {
+                    acc_version += line[i];
+                }
+                else if (nth_delimiter==45)
+                {
+                    acc_elev += line[i];
+                }
+                else if (nth_delimiter==46)
+                {
+                    acc_az += line[i];
+                }
+            }
+            nth_line += 1;
+        }
+        myfile.close();
+    }
+    else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
+    //std::cout << "diag file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
+
     return std::make_pair(TelRAJ2000_tmp,TelDecJ2000_tmp);
 }
 pair<double,double> GetRunElevAzim(string file_name, int run)
 {
+    double TelElevation_avg = 0.;
+    double TelAzimuth_avg = 0.;
+
     //char run_number[50];
     //sprintf(run_number, "%i", int(run));
     //TFile*  input_file = TFile::Open(file_name.c_str());
@@ -1136,8 +1260,6 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     //pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
     //pointing_tree->SetBranchAddress("TelDecJ2000",&TelDecJ2000);
     //double total_entries = (double)pointing_tree->GetEntries();
-    //double TelElevation_avg = 0.;
-    //double TelAzimuth_avg = 0.;
     ////for (int entry=0;entry<total_entries;entry++)
     ////{
     ////    pointing_tree->GetEntry(entry);
@@ -1150,6 +1272,7 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     //TelElevation_avg = TelElevation;
     //TelAzimuth_avg = TelAzimuth;
     //input_file->Close();
+    //std::cout << "root file elev = " << TelElevation_avg << " azim = " << TelAzimuth_avg << std::endl;
 
     string line;
     char delimiter = ' ';
@@ -1160,8 +1283,6 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     int nth_line = 0;
     int nth_delimiter = 0;
     std::string::size_type sz;
-    double TelElevation_avg = 0.;
-    double TelAzimuth_avg = 0.;
 
     ifstream myfile (SMI_DIR+"/diagnostics_20210705.txt");
     if (myfile.is_open())
@@ -1212,6 +1333,7 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
         myfile.close();
     }
     else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
+    //std::cout << "diag file elev = " << TelElevation_avg << " azim = " << TelAzimuth_avg << std::endl;
 
     return std::make_pair(TelElevation_avg,TelAzimuth_avg);
 }
@@ -1324,25 +1446,14 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         else ON_pointing_radec.push_back(GetRunRaDec(ON_filename,int(ON_runlist[on_run].second)));
         double NSB_thisrun = GetRunPedestalVar(int(ON_runlist[on_run].second));
         ON_NSB.push_back(NSB_thisrun);
-        TFile*  input_file = TFile::Open(ON_filename.c_str());
-        TString root_file = "run_"+TString(ON_runnumber)+"/stereo/data_on";
-        TTree* Data_tree = (TTree*) input_file->Get(root_file);
-        Data_tree->SetBranchAddress("Time",&Time);
-        Data_tree->SetBranchAddress("MJD",&MJD);
-        Data_tree->GetEntry(0);
-        double time_0 = Time;
-        Data_tree->GetEntry(Data_tree->GetEntries()-1);
-        double time_1 = Time;
-        //double exposure_thisrun = (time_1-time_0)/3600.;
         double exposure_thisrun = GetRunUsableTime(ON_runlist[on_run].second);
         ON_time.push_back(exposure_thisrun);
-        ON_MJD.push_back(double(MJD));
+        ON_MJD.push_back(GetRunMJD(ON_filename,int(ON_runlist[on_run].second)));
         ON_L3Rate.push_back(GetRunL3Rate(ON_runlist[on_run].second));
         ON_count.push_back(exposure_thisrun*GetRunL3Rate(ON_runlist[on_run].second));
         if (MJD<MJD_Start) MJD_Start = MJD;
         if (MJD>MJD_End) MJD_End = MJD;
         Hist_OnData_ElevNSB.Fill(ON_NSB[ON_NSB.size()-1],ON_pointing[ON_pointing.size()-1].first,exposure_thisrun);
-        input_file->Close();
     }
 
     std::cout << "Load OFF run info" << std::endl;
@@ -1354,7 +1465,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
     vector<double> OFF_NSB;
     for (int off_run=0;off_run<OFF_runlist.size();off_run++)
     {
-        //std::cout << "Complete " << off_run << "/" << OFF_runlist.size()<< std::endl;
+        //std::cout << "Load OFF run " << OFF_runlist[off_run].second << std::endl;
         char OFF_runnumber[50];
         char OFF_observation[50];
         sprintf(OFF_runnumber, "%i", int(OFF_runlist[off_run].second));
@@ -1367,22 +1478,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         else OFF_pointing_radec.push_back(GetRunRaDec(OFF_filename,int(OFF_runlist[off_run].second)));
         double NSB_thisrun = GetRunPedestalVar(int(OFF_runlist[off_run].second));
         OFF_NSB.push_back(NSB_thisrun);
-        TFile*  input_file = TFile::Open(OFF_filename.c_str());
-        TString root_file = "run_"+TString(OFF_runnumber)+"/stereo/data_on";
-        TTree* Dark_tree = (TTree*) input_file->Get(root_file);
-        Dark_tree->SetBranchAddress("Time",&Time);
-        Dark_tree->SetBranchAddress("MJD",&MJD);
-        Dark_tree->GetEntry(0);
-        double time_0 = Time;
-        Dark_tree->GetEntry(Dark_tree->GetEntries()-1);
-        double time_1 = Time;
-        //double exposure_thisrun = (time_1-time_0)/3600.;
         double exposure_thisrun = GetRunUsableTime(OFF_runlist[off_run].second);
         OFF_time.push_back(exposure_thisrun);
-        OFF_MJD.push_back(double(MJD));
+        OFF_MJD.push_back(GetRunMJD(OFF_filename,int(OFF_runlist[off_run].second)));
         OFF_L3Rate.push_back(GetRunL3Rate(OFF_runlist[off_run].second));
         Hist_OffData_ElevNSB.Fill(OFF_NSB[OFF_NSB.size()-1],OFF_pointing[OFF_pointing.size()-1].first,exposure_thisrun);
-        input_file->Close();
     }
 
     std::cout << "Select matched runs" << std::endl;
@@ -1868,19 +1968,19 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_ra.push_back(286.975);
         roi_dec.push_back(6.03777777778);
         roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
+        roi_radius_outer.push_back(0.2);
 
         roi_name.push_back("G40.5-0.5");
         roi_ra.push_back(286.786);
         roi_dec.push_back(6.498);
         roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
+        roi_radius_outer.push_back(0.2);
 
         roi_name.push_back("outer ring");
-        roi_ra.push_back(286.975);
-        roi_dec.push_back(6.03777777778);
+        roi_ra.push_back(287.);
+        roi_dec.push_back(6.25);
         roi_radius_inner.push_back(0.3);
-        roi_radius_outer.push_back(1.0);
+        roi_radius_outer.push_back(0.8);
     }
     else if (TString(target).Contains("SS433")) 
     {
@@ -2627,6 +2727,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             for (int off_run=0;off_run<Dark_runlist.at(run).at(nth_sample).size();off_run++)
             {
 
+                std::cout << "Prepare off run ..." << int(Dark_runlist.at(run).at(nth_sample)[off_run].second) << std::endl;
                 char run_number[50];
                 char Dark_observation[50];
                 sprintf(run_number, "%i", int(Dark_runlist.at(run).at(nth_sample)[off_run].second));

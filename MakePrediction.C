@@ -1328,6 +1328,13 @@ MatrixXd GetReducedEigenvalueMatrix(MatrixXcd mtx_input, int rank_cutoff)
 pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, MatrixXcd mtx_data_input, MatrixXcd mtx_dark_input, int entry_start, int entry_size, bool isBlind, double alpha, double beta1, double beta2, pair<int,int> empty_row_n_col, int ebin)
 {
 
+    MatrixXcd mtx_output = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    MatrixXcd mtx_CDE = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    if (mtx_init_input.cwiseAbs().sum()==0. || mtx_data_input.cwiseAbs().sum()==0.)
+    {
+        return std::make_pair(mtx_output,mtx_CDE);
+    }
+
     mtx_frobenius_island = GetFrobeniusIslandMatrix(mtx_dark_input, entry_size, beta1, beta2);
 
     JacobiSVD<MatrixXd> svd_data(mtx_data_input.real(), ComputeFullU | ComputeFullV);
@@ -1400,7 +1407,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             //double weight = 1./pow(sigma_syst*sigma_syst,0.5);
             //double weight = 1./pow(sigma_data*sigma_data+sigma_syst*sigma_syst,0.5);
             double weight = 1.;
-            if (WeightingType==1) weight = 1./pow(sigma_data*sigma_data,0.5);
+            if (WeightingType==1 && entry_size>1) weight = 1./pow(sigma_data*sigma_data,0.5);
             if (isBlind && idx_i>=binx_blind_global && idx_j<biny_blind_global)
             {
                 if (idx_i<binx_buffer_global) weight = 0.*weight;
@@ -1573,7 +1580,6 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     MatrixXcd mtx_C = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     MatrixXcd mtx_D = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     MatrixXcd mtx_E = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
-    MatrixXcd mtx_CDE = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     for (int idx_k=0;idx_k<size_k;idx_k++)
     {
         int kth_entry = idx_k+1;
@@ -1634,7 +1640,6 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     }
 
 
-    MatrixXcd mtx_output = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     mtx_output = mtx_init_comp;
     MatrixXcd mtx_vari = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
     mtx_vari += mtx_U_init*mtx_S_init*mtx_V_vari.transpose();
