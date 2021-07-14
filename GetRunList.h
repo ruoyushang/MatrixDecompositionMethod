@@ -72,6 +72,9 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source.find("PKS1424V6") != std::string::npos) {
             list = GetRunListFromFile("PKS1424V6");
         }
+        if (source.find("PG1553V6") != std::string::npos) {
+            list = GetRunListFromFile("PG1553V6");
+        }
         if (source.find("IC443HotSpotV6") != std::string::npos) {
             list = GetRunListFromFile("IC443HotSpotV6");
         }
@@ -263,6 +266,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list_temp = GetRunListFromFile("PKS1424V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("PG1553V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("SNR_G150p3Plus04p5_V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             //list_temp = GetRunListFromFile("3C273V6");
@@ -382,6 +387,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("RGBJ0710V5");
         }
+        if (source.find("PKS1424V5") != std::string::npos)
+        {
+            list = GetRunListFromFile("PKS1424V5");
+        }
         if (source.find("M82V5") != std::string::npos)
         {
             list = GetRunListFromFile("M82V5");
@@ -422,8 +431,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list_temp = GetRunListFromFile("BLLacV5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
-            //list_temp = GetRunListFromFile("RGBJ0710V5");
-            //list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("RGBJ0710V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("PKS1424V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("1ES0229V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("1ES0414V5");
