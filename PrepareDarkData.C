@@ -2165,14 +2165,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_radius_outer.push_back(0.3);
     }
 
-    for (int star=0;star<FaintStars_Data.size();star++)
-    {
-        roi_name.push_back("b-mag "+ std::to_string(FaintStars_Data.at(star).at(3)));
-        roi_ra.push_back(FaintStars_Data.at(star).at(0));
-        roi_dec.push_back(FaintStars_Data.at(star).at(1));
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(bright_star_radius_cut);
-    }
+    //for (int star=0;star<FaintStars_Data.size();star++)
+    //{
+    //    roi_name.push_back("b-mag "+ std::to_string(FaintStars_Data.at(star).at(3)));
+    //    roi_ra.push_back(FaintStars_Data.at(star).at(0));
+    //    roi_dec.push_back(FaintStars_Data.at(star).at(1));
+    //    roi_radius_inner.push_back(0.);
+    //    roi_radius_outer.push_back(bright_star_radius_cut);
+    //}
 
     if (TString(target).Contains("MAGIC_J1857")) 
     {

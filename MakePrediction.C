@@ -1494,10 +1494,27 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_n1 = 1-1;
             idx_k2 = 3-1;
             idx_n2 = 2-1;
-            ratio_1 = -0.7071696601117096;
-            ratio_2 = -0.7070438966694284;
-            variance_1 = 0.03030318;
-            variance_2 = 0.04040614;
+            if (TelElev_upper==80.)
+            {
+                ratio_1 = -0.7128339464307233;
+                ratio_2 = -0.7013328488071843;
+                variance_1 = 0.0366986;
+                variance_2 = 0.04156744;
+            }
+            else if (TelElev_upper==70.)
+            {
+                ratio_1 = 0.7058843934614035;
+                ratio_2 = 0.7083270593925002;
+                variance_1 = 0.04132266;
+                variance_2 = 0.04427159;
+            }
+            else
+            {
+                ratio_1 = -0.7077641322338933;
+                ratio_2 = -0.7064488184739245;
+                variance_1 = 0.04711973;
+                variance_2 = 0.05161359;
+            }
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_v2 = idx_k2*size_n + idx_n2;
             idx_u1 = idx_v1;
@@ -1514,12 +1531,29 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             
             idx_k1 = 2-1;
             idx_n1 = 2-1;
-            idx_k2 = 1-1;
-            idx_n2 = 2-1;
-            ratio_1 = -0.705114550892242;
-            ratio_2 = 0.7090934142410518;
-            variance_1 = 0.03052454;
-            variance_2 = 0.01838737;
+            idx_k2 = 3-1;
+            idx_n2 = 1-1;
+            if (TelElev_upper==80.)
+            {
+                ratio_1 = 0.6779513997471464;
+                ratio_2 = 0.7351067266600713;
+                variance_1 = 0.0187869;
+                variance_2 = 0.00637321;
+            }
+            else if (TelElev_upper==70.)
+            {
+                ratio_1 = 0.7045327815564411;
+                ratio_2 = 0.7096714449041498;
+                variance_1 = 0.02814277;
+                variance_2 = 0.00968906;
+            }
+            else
+            {
+                ratio_1 = 0.5317319662286669;
+                ratio_2 = 0.8469126968528667;
+                variance_1 = 0.0270161;
+                variance_2 = 0.01133222;
+            }
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_v2 = idx_k2*size_n + idx_n2;
             idx_u1 = idx_v1;
