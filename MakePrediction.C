@@ -2989,6 +2989,11 @@ void AlterDarkMatrix(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_dark_alter)
 void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel)
 {
 
+    SMI_INPUT = string(std::getenv("SMI_INPUT"));
+    SMI_OUTPUT = string(std::getenv("SMI_OUTPUT"));
+    SMI_DIR = string(std::getenv("SMI_DIR"));
+    SMI_AUX = string(std::getenv("SMI_AUX"));
+
     TH1::SetDefaultSumw2();
     sprintf(target, "%s", target_data.c_str());
 
@@ -3082,7 +3087,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         regularization_name  = "../Regularization_eigen.root";
     }
     TFile RegularizationFile(regularization_name);
-    TFile InputDataFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TFile InputDataFile(SMI_OUTPUT+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
 
     TString hist_name;
     hist_name  = "Hist_Data_ElevNSB";
@@ -4160,7 +4165,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     }
     InputDataFile.Close();
 
-    TFile InputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TFile InputFile(SMI_OUTPUT+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputFile.Get("InfoTree");
     TTree* StarTree = nullptr;
@@ -4177,7 +4182,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     {
         sprintf(lowrank_tag, "svd");
     }
-    TFile OutputFile("../Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_"+TString(lowrank_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
+    TFile OutputFile(SMI_OUTPUT+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_"+TString(lowrank_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
     TTree *newtree = InfoTree->CloneTree();
     newtree->Branch("MSCW_chi2_upper",&MSCW_chi2_upper,"MSCW_chi2_upper/D");
