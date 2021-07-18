@@ -111,6 +111,7 @@ vector<bool> did_i_find_a_match;
 string SMI_INPUT;
 string SMI_OUTPUT;
 string SMI_DIR;
+string SMI_AUX;
 
 double GetCrabFlux(double energy_gev)
 {
@@ -1837,6 +1838,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
     SMI_OUTPUT = string(std::getenv("SMI_OUTPUT"));
     SMI_DIR = string(std::getenv("SMI_DIR"));
+    SMI_AUX = string(std::getenv("SMI_AUX"));
 
     TH1::SetDefaultSumw2();
 
