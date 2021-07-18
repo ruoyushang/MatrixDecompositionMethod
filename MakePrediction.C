@@ -3087,7 +3087,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         regularization_name  = "../Regularization_eigen.root";
     }
     TFile RegularizationFile(regularization_name);
-    TFile InputDataFile(SMI_OUTPUT+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TFile InputDataFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
 
     TString hist_name;
     hist_name  = "Hist_Data_ElevNSB";
@@ -4165,7 +4165,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     }
     InputDataFile.Close();
 
-    TFile InputFile(SMI_OUTPUT+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TFile InputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputFile.Get("InfoTree");
     TTree* StarTree = nullptr;
@@ -4182,7 +4182,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     {
         sprintf(lowrank_tag, "svd");
     }
-    TFile OutputFile(SMI_OUTPUT+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_"+TString(lowrank_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
+    TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_"+TString(lowrank_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
 
     TTree *newtree = InfoTree->CloneTree();
     newtree->Branch("MSCW_chi2_upper",&MSCW_chi2_upper,"MSCW_chi2_upper/D");
