@@ -581,7 +581,7 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    ifstream myfile (SMI_DIR+"/diagnostics_20210705.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics_20210705.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -634,7 +634,7 @@ int RunTypeCategory(int run_number, bool doPrint)
     std::string::size_type sz;
     int runtype = 2;
 
-    ifstream myfile (SMI_DIR+"/category_allruns.txt");
+    ifstream myfile (SMI_AUX+"/category_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -709,7 +709,7 @@ double GetRunL3Rate(int run_number)
     std::string::size_type sz;
     double L3_rate = 0.;
 
-    ifstream myfile (SMI_DIR+"/L3rate_allruns.txt");
+    ifstream myfile (SMI_AUX+"/L3rate_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -765,7 +765,7 @@ double GetRunUsableTime(int run_number)
     std::string::size_type sz;
     double usable_time = 0.;
 
-    ifstream myfile (SMI_DIR+"/usable_time_allruns.txt");
+    ifstream myfile (SMI_AUX+"/usable_time_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -836,7 +836,7 @@ vector<pair<double,double>> GetRunTimecuts(int run_number)
     int nth_delimiter = 0;
     std::string::size_type sz;
 
-    ifstream myfile (SMI_DIR+"/timecuts_allruns.txt");
+    ifstream myfile (SMI_AUX+"/timecuts_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -935,7 +935,7 @@ int GetRunMJD(string file_name,int run)
     //int nth_delimiter = 0;
     //std::string::size_type sz;
 
-    //ifstream myfile (SMI_DIR+"/diagnostics_20210705.txt");
+    //ifstream myfile (SMI_AUX+"/diagnostics_20210705.txt");
     //if (myfile.is_open())
     //{
     //    while ( getline(myfile,line) )
@@ -1190,7 +1190,7 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     //int nth_delimiter = 0;
     //std::string::size_type sz;
 
-    //ifstream myfile (SMI_DIR+"/diagnostics_20210705.txt");
+    //ifstream myfile (SMI_AUX+"/diagnostics_20210705.txt");
     //if (myfile.is_open())
     //{
     //    while ( getline(myfile,line) )
@@ -1283,7 +1283,7 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     //int nth_delimiter = 0;
     //std::string::size_type sz;
 
-    //ifstream myfile (SMI_DIR+"/diagnostics_20210705.txt");
+    //ifstream myfile (SMI_AUX+"/diagnostics_20210705.txt");
     //if (myfile.is_open())
     //{
     //    while ( getline(myfile,line) )
@@ -1687,7 +1687,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
 
 void GetGammaSources()
 {
-    std::ifstream astro_file(SMI_DIR+"/TeVCat_RaDec.txt");
+    std::ifstream astro_file(SMI_AUX+"/TeVCat_RaDec.txt");
     std::string line;
     // Read one line at a time into the variable line:
     while(std::getline(astro_file, line))
@@ -1712,7 +1712,7 @@ void GetGammaSources()
 
 void GetBrightStars()
 {
-    std::ifstream astro_file(SMI_DIR+"/Hipparcos_MAG8_1997.dat");
+    std::ifstream astro_file(SMI_AUX+"/Hipparcos_MAG8_1997.dat");
     std::string line;
     // Read one line at a time into the variable line:
     while(std::getline(astro_file, line))
