@@ -1,7 +1,7 @@
 
 import os
 SMI_DIR = os.environ['SMI_DIR']
-SMI_OUTPUT = os.environ['SMI_OUTPUT']
+SMI_BIN = os.environ['SMI_BIN']
 #CONDA_DIR = os.environ['CONDA_DIR']
 
 isGamma2 = True
@@ -15,7 +15,7 @@ gamma_model = []
 #epoch_bins = [53613,55074,56535,57996,59457]
 epoch_bins = [0,0]
 
-folder = '%s'%(SMI_OUTPUT)
+folder = '%s'%(SMI_BIN)
 rank = 3
 MSCW_cut = 0.3
 MSCL_cut = 0.3
