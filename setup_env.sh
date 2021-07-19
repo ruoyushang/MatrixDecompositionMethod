@@ -12,4 +12,6 @@ export SMI_OUTPUT=/veritas/userspace/rshang/SMI_output/output_nominal
 
 #export SMI_INPUT=/u/scratch/r/rshang/EventDisplay_output
 #export SMI_DIR=/u/home/r/rshang/MatrixDecompositionMethod
-#export SMI_OUTPUT=/u/home/r/rshang/MatrixDecompositionMethod/output_nominal
+#export SMI_BIN=/u/home/r/rshang/MatrixDecompositionMethod/bin
+#export SMI_AUX=/u/scratch/r/rshang/SMI_AUX
+#export SMI_OUTPUT=/u/scratch/r/rshang/SMI_output/output_nominal
