@@ -58,6 +58,8 @@ sample_list += ['DracoV6_OFF']
 sample_name += ['Draco V6']
 sample_list += ['DracoV5_OFF']
 sample_name += ['Draco V5']
+sample_list += ['PG1553V6_OFF']
+sample_name += ['PG1553 V6']
 sample_list += ['PG1553V5_OFF']
 sample_name += ['PG1553 V5']
 sample_list += ['M82V6_OFF']
@@ -66,6 +68,10 @@ sample_list += ['M82V5_OFF']
 sample_name += ['M82 V5']
 sample_list += ['1ES0414V5_OFF']
 sample_name += ['1ES0410 V5']
+sample_list += ['3C273V6_OFF']
+sample_name += ['3C273 V6']
+sample_list += ['3C273V5_OFF']
+sample_name += ['3C273 V5']
 sample_list += ['1ES0647V6_OFF']
 sample_name += ['1ES0647 V6']
 sample_list += ['1ES1011V6_OFF']
@@ -74,6 +80,8 @@ sample_list += ['OJ287V6_OFF']
 sample_name += ['OJ287 V6']
 sample_list += ['PKS1424V6_OFF']
 sample_name += ['PKS1424 V6']
+sample_list += ['PKS1424V5_OFF']
+sample_name += ['PKS1424 V5']
 sample_list += ['3C264V6_OFF']
 sample_name += ['3C264 V6']
 sample_list += ['1ES0229V6_OFF']
@@ -90,13 +98,14 @@ sample_list += ['BLLacV5_OFF']
 sample_name += ['BLLac V5']
 sample_list += ['H1426V6_OFF']
 sample_name += ['H1426 V6']
-
+sample_list += ['RGBJ0710V5_OFF']
+sample_name += ['RGBJ0710 V5']
     
 #elev_bins = [40,70]
 #elev_bins = [60,80]
 #elev_bins = [40,60]
-elev_bins = [50,60,70,80]
-#elev_bins = [70,80]
+#elev_bins = [50,60,70,80]
+elev_bins = [70,80]
 #elev_bins = [60,70]
 #elev_bins = [50,60]
 #elev_bins = [40,50]
@@ -455,12 +464,12 @@ for row1 in range(0,3):
                 idx2 = row2*3+col2
                 list_var_pair = [[row1+1,col1+1]]
                 list_var_pair += [[row2+1,col2+1]]
-                print('=======================================================')
-                max_eigenvalue, chi2 = PrincipalComponentAnalysis(list_var_pair,0)
-                if math.isnan(max_eigenvalue): continue
-                #if row1==2 and col1==2:
-                if idx1>=idx2: continue
-                if max_eigenvalue>1.4:
+                #if idx1<idx2:
+                if row1==1 and col1==1:
+                    print('=======================================================')
+                    max_eigenvalue, chi2 = PrincipalComponentAnalysis(list_var_pair,0)
+                    if math.isnan(max_eigenvalue): continue
+                    #if max_eigenvalue<1.4: continue
                     MakeCorrelationPlot(list_var_pair)
                     good_var_pair += [list_var_pair]
                     good_eigenvalue += [max_eigenvalue]
