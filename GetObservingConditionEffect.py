@@ -26,7 +26,7 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 target_energy_index = 0
-N_bins_for_deconv = 12
+N_bins_for_deconv = 16
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.5
@@ -41,7 +41,7 @@ total_exposure_hours = 0.
 Skymap_nbins = 120
 Skymap_size = 3.
 
-folder_path = 'output_root'
+folder_path = 'output_nominal'
 #folder_path = 'output_test'
 #method_tag = 'loose_mdm_default'
 method_tag = 'tight_mdm_default'
@@ -250,9 +250,9 @@ for energy in range(0,len(energy_bin)-1):
     for elev in range(0,len(elev_bins)-1):
         Hist_OnData_PerElev_MSCW += [ROOT.TH1D("Hist_OnData_PerElev_MSCW_E%s_Z%s"%(energy,elev),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
         Hist_OnData_PerElev_MSCL += [ROOT.TH1D("Hist_OnData_PerElev_MSCL_E%s_Z%s"%(energy,elev),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
-        Hist_OnData_PerElev_Xoff += [ROOT.TH1D("Hist_OnData_PerElev_Xoff_E%s_Z%s"%(energy,elev),"",Skymap_nbins/6,-Skymap_size,Skymap_size)]
-        Hist_OnData_PerElev_Yoff += [ROOT.TH1D("Hist_OnData_PerElev_Yoff_E%s_Z%s"%(energy,elev),"",Skymap_nbins/6,-Skymap_size,Skymap_size)]
-        Hist_CRData_PerElev_Yoff += [ROOT.TH1D("Hist_OnData_PerElev_Yoff_E%s_Z%s"%(energy,elev),"",Skymap_nbins/6,-Skymap_size,Skymap_size)]
+        Hist_OnData_PerElev_Xoff += [ROOT.TH1D("Hist_OnData_PerElev_Xoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/6),-Skymap_size,Skymap_size)]
+        Hist_OnData_PerElev_Yoff += [ROOT.TH1D("Hist_OnData_PerElev_Yoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/6),-Skymap_size,Skymap_size)]
+        Hist_CRData_PerElev_Yoff += [ROOT.TH1D("Hist_OnData_PerElev_Yoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/6),-Skymap_size,Skymap_size)]
 
 Hist_OnData_DiffElev_Yoff = []
 Hist_OnData_DiffRefElev_Yoff = []
@@ -265,8 +265,8 @@ for energy in range(0,len(energy_bin)-1):
     for year in range(0,len(MJD_bins)-1):
         Hist_OnData_PerYear_MSCW += [ROOT.TH1D("Hist_OnData_PerYear_MSCW_E%s_Y%s"%(energy,year),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
         Hist_OnData_PerYear_MSCL += [ROOT.TH1D("Hist_OnData_PerYear_MSCL_E%s_Y%s"%(energy,year),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
-        Hist_OnData_PerYear_Xoff += [ROOT.TH1D("Hist_OnData_PerYear_Xoff_E%s_Y%s"%(energy,year),"",Skymap_nbins/6,-Skymap_size,Skymap_size)]
-        Hist_OnData_PerYear_Yoff += [ROOT.TH1D("Hist_OnData_PerYear_Yoff_E%s_Y%s"%(energy,year),"",Skymap_nbins/6,-Skymap_size,Skymap_size)]
+        Hist_OnData_PerYear_Xoff += [ROOT.TH1D("Hist_OnData_PerYear_Xoff_E%s_Y%s"%(energy,year),"",int(Skymap_nbins/6),-Skymap_size,Skymap_size)]
+        Hist_OnData_PerYear_Yoff += [ROOT.TH1D("Hist_OnData_PerYear_Yoff_E%s_Y%s"%(energy,year),"",int(Skymap_nbins/6),-Skymap_size,Skymap_size)]
 
 FilePath_List = []
 #for source in range(0,len(sample_list)):
@@ -281,9 +281,9 @@ FilePath_List = []
 #            ErecS_upper_cut = energy_bin[e+1]
 #            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
 
-FilePath = "output_root/ObservingEffect/ObservingEffect.root"
+FilePath = "output_nominal/ObservingEffect.root"
 FilePath_List += [FilePath]
-print 'Reading file %s'%(FilePath_List[len(FilePath_List)-1])
+print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
 for energy in range(0,len(energy_bin)-1):
     ErecS_lower_cut = energy_bin[energy]
     ErecS_upper_cut = energy_bin[energy+1]
@@ -373,30 +373,30 @@ for energy in range(0,len(energy_bin)-1):
         if norm>0.: Hist_CRData_PerElev_Yoff[index].Scale(1./norm)
     for elev in range(0,len(elev_bins)-1):
         index = (len(elev_bins)-1)*energy + elev
-        Hist_OnData_DiffElev_Yoff += [ROOT.TH1D("Hist_OnData_DiffElev_Yoff_E%s_Z%s"%(energy,elev),"",Skymap_nbins/6,-Skymap_size,Skymap_size)]
+        Hist_OnData_DiffElev_Yoff += [ROOT.TH1D("Hist_OnData_DiffElev_Yoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/6),-Skymap_size,Skymap_size)]
         ref_bin = elev - 1 
         if ref_bin<0: continue
-        print "ref_bin = %s"%(ref_bin)
+        print ("ref_bin = %s"%(ref_bin))
         ref_index = (len(elev_bins)-1)*energy + ref_bin
         Hist_OnData_DiffElev_Yoff[index].Add(Hist_OnData_PerElev_Yoff[ref_index])
         Hist_OnData_DiffElev_Yoff[index].Add(Hist_OnData_PerElev_Yoff[index],-1.)
         Hist_OnData_DiffElev_Yoff[index].Divide(Hist_OnData_PerElev_Yoff[index])
     for elev in range(0,len(elev_bins)-1):
         index = (len(elev_bins)-1)*energy + elev
-        Hist_OnData_DiffRefElev_Yoff += [ROOT.TH1D("Hist_OnData_DiffRefElev_Yoff_E%s_Z%s"%(energy,elev),"",Skymap_nbins/6,-Skymap_size,Skymap_size)]
+        Hist_OnData_DiffRefElev_Yoff += [ROOT.TH1D("Hist_OnData_DiffRefElev_Yoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/6),-Skymap_size,Skymap_size)]
         ref_bin = len(elev_bins)-3 
         if ref_bin<0: continue
-        print "ref_bin = %s"%(ref_bin)
+        print ("ref_bin = %s"%(ref_bin))
         ref_index = (len(elev_bins)-1)*energy + ref_bin
         Hist_OnData_DiffRefElev_Yoff[index].Add(Hist_OnData_PerElev_Yoff[ref_index])
         Hist_OnData_DiffRefElev_Yoff[index].Add(Hist_OnData_PerElev_Yoff[index],-1.)
         Hist_OnData_DiffRefElev_Yoff[index].Divide(Hist_OnData_PerElev_Yoff[index])
     for elev in range(0,len(elev_bins)-1):
         index = (len(elev_bins)-1)*energy + elev
-        Hist_CRData_DiffRefElev_Yoff += [ROOT.TH1D("Hist_CRData_DiffRefElev_Yoff_E%s_Z%s"%(energy,elev),"",Skymap_nbins/6,-Skymap_size,Skymap_size)]
+        Hist_CRData_DiffRefElev_Yoff += [ROOT.TH1D("Hist_CRData_DiffRefElev_Yoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/6),-Skymap_size,Skymap_size)]
         ref_bin = len(elev_bins)-3 
         if ref_bin<0: continue
-        print "ref_bin = %s"%(ref_bin)
+        print ("ref_bin = %s"%(ref_bin))
         ref_index = (len(elev_bins)-1)*energy + ref_bin
         Hist_CRData_DiffRefElev_Yoff[index].Add(Hist_CRData_PerElev_Yoff[ref_index])
         Hist_CRData_DiffRefElev_Yoff[index].Add(Hist_CRData_PerElev_Yoff[index],-1.)
