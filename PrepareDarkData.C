@@ -520,7 +520,7 @@ bool DarkFoV() {
     if (R2off>camera_theta2_cut_upper) return false;
     //if (Yoff<camera_theta2_cut_lower) return false;
     //if (Yoff>camera_theta2_cut_upper) return false;
-    if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    //if (CoincideWithBrightStars(ra_sky_dark,dec_sky_dark)) return false;
     if (CoincideWithGammaSources(ra_sky_dark,dec_sky_dark)) return false;
     return true;
 }
@@ -529,7 +529,7 @@ bool MCFoV() {
     //if (angular_dist>1.5) return false;
     return true;
 }
-bool FoV(bool remove_bright_stars) {
+bool FoV() {
 
     if (R2off>9.) return false;
     if (R2off<camera_theta2_cut_lower) return false;
@@ -538,7 +538,7 @@ bool FoV(bool remove_bright_stars) {
     double x = ra_sky-mean_tele_point_ra;
     double y = dec_sky-mean_tele_point_dec;
     if (source_theta2_cut>(x*x+y*y)) return false;
-    //if (remove_bright_stars && CoincideWithBrightStars(ra_sky,dec_sky)) return false;
+    if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     return true;
 }
@@ -1518,7 +1518,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
             int number_of_search = 0;
             double accumulated_count = 0.;
             double offset_NSB = 0.;
-            double offset_Elev = 0.;
+            double offset_Elev = 5.;
             double threshold_dNSB = 0.5;
             double threshold_dElev = 1.0;
             double threshold_dMJD = 3.*365.;
@@ -1567,13 +1567,13 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
 
                     found_match = true;
                     //double chi2 = pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2);
-                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first-offset_Elev,2);
+                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first+offset_Elev,2);
                     //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run]-offset_NSB,2);
                     if (ON_NSB[on_run]==0.)
                     {
                         chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
                     }
-                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first-offset_Elev,2)>threshold_dElev*threshold_dElev)
+                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first+offset_Elev,2)>threshold_dElev*threshold_dElev)
                     {
                         found_match = false;
                         continue;
@@ -2212,7 +2212,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<TH2D> Hist_OnData_MSCLW;
     vector<TH1D> Hist_OnData_SR_Energy;
     vector<TH1D> Hist_OnData_CR_Energy;
-    vector<TH1D> Hist_OnData_CR_Energy_Raw;
+    vector<TH1D> Hist_OnDark_SR_Energy;
     vector<TH1D> Hist_OnData_SR_Skymap_Theta2;
     vector<TH1D> Hist_OnData_CR_Skymap_Theta2;
     vector<TH1D> Hist_OnData_SR_Yoff;
@@ -2225,7 +2225,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<TH2D> Hist_Photon_Raw_Skymap;
     vector<TH2D> Hist_OnData_SR_Skymap;
     vector<TH2D> Hist_OnData_CR_Skymap;
-    vector<TH2D> Hist_OnData_CR_Skymap_Raw;
+    vector<TH2D> Hist_OnDark_SR_Skymap;
     vector<TH2D> Hist_OnData_SR_Skymap_Galactic;
     vector<TH2D> Hist_OnData_CR_Skymap_Galactic;
     vector<TH1D> Hist_OnData_SR_Zenith;
@@ -2256,10 +2256,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_Photon_Raw_Skymap.push_back(TH2D("Hist_Stage1_Photon_Raw_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_SR_Skymap.push_back(TH2D("Hist_Stage1_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_CR_Skymap.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_OnData_CR_Skymap_Raw.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnDark_SR_Skymap.push_back(TH2D("Hist_Stage1_OnDark_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_SR_Energy.push_back(TH1D("Hist_Stage1_OnData_SR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_CR_Energy.push_back(TH1D("Hist_Stage1_OnData_CR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
-        Hist_OnData_CR_Energy_Raw.push_back(TH1D("Hist_Stage1_OnData_CR_Energy_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+        Hist_OnDark_SR_Energy.push_back(TH1D("Hist_Stage1_OnDark_SR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_SR_Zenith.push_back(TH1D("Hist_Stage1_OnData_SR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
         Hist_OnData_CR_Zenith.push_back(TH1D("Hist_Stage1_OnData_CR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
         Hist_OnData_SR_Energy_CamCenter.push_back(TH1D("Hist_Stage1_OnData_SR_Energy_CamCenter_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
@@ -2577,7 +2577,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (SizeSecondMax<SizeSecondMax_Cut) continue;
             if (EmissionHeight<6.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-            if (FoV(true))
+            if (FoV())
             {
                 if (SignalSelectionTheta2())
                 {
@@ -2651,13 +2651,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (theta2<source_theta2_cut && SignalSelectionTheta2()) weight = source_weight.at(energy);
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
-            if (FoV(true) || Data_runlist[run].first.find("Proton")!=std::string::npos)
+            if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
                 Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW,weight);
             }
             if (SignalSelectionTheta2())
             {
-                if (FoV(true))
+                if (FoV())
                 {
                     if (R2off<0.2*0.2)
                     {
@@ -2894,6 +2894,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                             Hist_OnDark_SR_XYoff.at(energy).Fill(Xoff,Yoff,weight);
                             Hist_SRDark_Energy.at(energy).Fill(ErecS*1000.,weight);
                             Hist_SRDark_R2off.at(energy).Fill(R2off,weight);
+                            if (FoV())
+                            {
+                                Hist_OnDark_SR_Skymap.at(energy).Fill(ra_sky,dec_sky,weight);
+                                Hist_OnDark_SR_Energy.at(energy).Fill(ErecS*1000.,weight);
+                            }
                         }
                         else if (ControlSelectionTheta2())
                         {
@@ -3004,7 +3009,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 //energy_weight = data_cr_content_xyoff/dark_cr_content_xyoff;
             }
 
-            if (FoV(true))
+            if (FoV())
             {
                 if (ControlSelectionTheta2())
                 {
@@ -3018,9 +3023,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_CR_Yoff_Raw.at(energy).Fill(Yoff,1.);
                     Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,yoff_weight);
                     Hist_OnData_CR_Skymap_Galactic.at(energy).Fill(evt_l_b.first,evt_l_b.second,yoff_weight);
-                    Hist_OnData_CR_Skymap_Raw.at(energy).Fill(ra_sky,dec_sky,1.);
                     Hist_OnData_CR_Energy.at(energy).Fill(ErecS*1000.,energy_weight);
-                    Hist_OnData_CR_Energy_Raw.at(energy).Fill(ErecS*1000.,1.);
                     Hist_OnData_CR_Zenith.at(energy).Fill(Shower_Ze,yoff_weight);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
@@ -3179,7 +3182,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //        if (energy>=N_energy_bins) continue;
     //        if (!SelectNImages()) continue;
     //        Hist_GammaMC_MSCLW.at(energy).Fill(MSCL,MSCW);
-    //        if (MCFoV() && FoV(true))
+    //        if (MCFoV() && FoV())
     //        {
     //            Hist_Photon_Raw_Skymap.at(energy).Fill(ra_sky,dec_sky);
     //        }
@@ -3216,13 +3219,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //        {
     //            gamma_weight = expected_photons/raw_photons;
     //        }
-    //        if (MCFoV() && FoV(true))
+    //        if (MCFoV() && FoV())
     //        {
     //            Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW,gamma_weight);
     //        }
     //        if (SignalSelectionTheta2())
     //        {
-    //            if (MCFoV() && FoV(true))
+    //            if (MCFoV() && FoV())
     //            {
     //                if (R2off<0.2*0.2)
     //                {
@@ -3440,12 +3443,12 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_CR_Yoff_Raw.at(e).Write();
         Hist_OnData_SR_Skymap.at(e).Write();
         Hist_OnData_CR_Skymap.at(e).Write();
-        Hist_OnData_CR_Skymap_Raw.at(e).Write();
+        Hist_OnDark_SR_Skymap.at(e).Write();
         Hist_OnData_SR_Skymap_Galactic.at(e).Write();
         Hist_OnData_CR_Skymap_Galactic.at(e).Write();
         Hist_OnData_SR_Energy.at(e).Write();
         Hist_OnData_CR_Energy.at(e).Write();
-        Hist_OnData_CR_Energy_Raw.at(e).Write();
+        Hist_OnDark_SR_Energy.at(e).Write();
         Hist_OnData_SR_Zenith.at(e).Write();
         Hist_OnData_CR_Zenith.at(e).Write();
         Hist_OnData_SR_Energy_CamCenter.at(e).Write();

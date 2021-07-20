@@ -45,6 +45,11 @@ ClassImp(TSpline);
 void ObservingEffect()
 {
 
+    SMI_INPUT = string(std::getenv("SMI_INPUT"));
+    SMI_OUTPUT = string(std::getenv("SMI_OUTPUT"));
+    SMI_DIR = string(std::getenv("SMI_DIR"));
+    SMI_AUX = string(std::getenv("SMI_AUX"));
+
     TH1::SetDefaultSumw2();
 
     camera_theta2_cut_lower = 0.;
@@ -62,17 +67,28 @@ void ObservingEffect()
     vector<string> source_list;
     source_list.push_back("OJ287V6");
     source_list.push_back("M82V6");
+    source_list.push_back("M82V5");
     source_list.push_back("Segue1V6");
+    source_list.push_back("Segue1V5");
     source_list.push_back("1ES0647V6");
     source_list.push_back("1ES1011V6");
     source_list.push_back("3C264V6");
     source_list.push_back("PKS1424V6");
+    source_list.push_back("PKS1424V5");
     source_list.push_back("H1426V6");
     source_list.push_back("1ES0229V6");
+    source_list.push_back("1ES0229V5");
     source_list.push_back("SNR_G150p3Plus04p5_V6");
-    source_list.push_back("3C273V6");
-    source_list.push_back("1ES0502V6");
     source_list.push_back("DracoV6");
+    source_list.push_back("DracoV5");
+    source_list.push_back("1ES0502V6");
+    source_list.push_back("1ES0502V5");
+    source_list.push_back("BLLacV6");
+    source_list.push_back("BLLacV5");
+    source_list.push_back("RGBJ0710V5");
+    source_list.push_back("1ES0414V5");
+    source_list.push_back("PG1553V6");
+    source_list.push_back("PG1553V5");
 
     TH1D Hist_Elev = TH1D("Hist_Elev","",N_elev_bins,elev_bins);
     TH1D Hist_MJD = TH1D("Hist_MJD","",N_MJD_bins,MJD_bins);
@@ -177,17 +193,18 @@ void ObservingEffect()
         vector<pair<string,int>> Data_runlist;
         if (!TString(target).Contains("Proton")) Data_runlist = SelectONRunList(Data_runlist_init,TelElev_lower,TelElev_upper,0,360,0,0);
         else Data_runlist = Data_runlist_init;
-        std::cout << "Data_runlist size = " << Data_runlist.size() << std::endl;
 
-        std::cout << "Prepare ON run samples..." << std::endl;
+        std::cout << "Prepare ON run samples... " << source_list[source] << std::endl;
+        std::cout << "Data_runlist size = " << Data_runlist.size() << std::endl;
         for (int run=0;run<Data_runlist.size();run++)
         {
+            std::cout << "Get run... " << Data_runlist[run].second << std::endl;
             char run_number[50];
             char Data_observation[50];
             sprintf(run_number, "%i", int(Data_runlist[run].second));
             sprintf(Data_observation, "%s", Data_runlist[run].first.c_str());
             string filename;
-            filename = TString("$SMI_INPUT/"+TString(run_number)+".anasum.root");
+            filename = TString(TString(SMI_INPUT)+"/"+TString(run_number)+".anasum.root");
 
             mean_tele_point_ra = 0.;
             mean_tele_point_dec = 0.;
@@ -277,7 +294,7 @@ void ObservingEffect()
             sprintf(run_number, "%i", int(Data_runlist[run].second));
             sprintf(Data_observation, "%s", Data_runlist[run].first.c_str());
             string filename;
-            filename = TString("$SMI_INPUT/"+TString(run_number)+".anasum.root");
+            filename = TString(TString(SMI_INPUT)+"/"+TString(run_number)+".anasum.root");
 
             mean_tele_point_ra = 0.;
             mean_tele_point_dec = 0.;
@@ -362,7 +379,7 @@ void ObservingEffect()
 
     }
 
-    TFile OutputFile("ObservingEffect.root","recreate");
+    TFile OutputFile(TString(SMI_OUTPUT)+"/ObservingEffect.root","recreate");
     for (int source=0;source<source_list.size();source++)
     {
         for (int e=0;e<N_energy_bins;e++) 

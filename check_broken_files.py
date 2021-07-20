@@ -3,7 +3,7 @@ import os.path
 import sys,ROOT
 from ROOT import *
 
-#inputname = 'runlist_backup/RunList_1ES0229V6.txt'
+inputname = 'runlist_backup/RunList_1ES0229V6.txt'
 #inputname = 'runlist_backup/RunList_OJ287V6.txt'
 #inputname = 'runlist_backup/RunList_Segue1V6.txt'
 #inputname = 'runlist_backup/RunList_1ES1011V6.txt'
@@ -32,10 +32,8 @@ from ROOT import *
 #inputname = 'runlist_backup/RunList_RGBJ0710V5.txt'
 #inputname = 'runlist_backup/RunList_PKS1424V5.txt'
 #inputname = 'runlist_backup/RunList_PG1553V6.txt'
-
 #inputname = 'runlist_backup/RunList_RGBJ0710V5.txt'
-#inputname = 'runlist_backup/RunList_PKS1424V5.txt'
-inputname = 'runlist_backup/RunList_PG1553V6.txt'
+#inputname = 'runlist_backup/RunList_PG1553V6.txt'
 
 inputList = open(inputname)
 broken_files = []
@@ -65,6 +63,15 @@ for line_list in inputList:
             print '%s, the Recover procedure has been run when opening the file'%(runnumber)
         else:
             print '%s, looks okay.'%(runnumber)
+        InfoTree = InputFile.Get("run_"+runnumber+"/stereo/data_on")
+        print 'run %s, InfoTree.GetEntries() = %s'%(runnumber,InfoTree.GetEntries())
+        for entry in range(0,InfoTree.GetEntries()):
+            InfoTree.GetEntry(entry)
+            try:
+                energy = InfoTree.ErecS
+                #print 'run %s,energy = %s'%(runnumber,InfoTree.ErecS)
+            except AttributeError:
+                print 'corrupted run %s'%(runnumber)
         InputFile.Close()
     else:
         print '%s, does not exist.'%(runnumber)
