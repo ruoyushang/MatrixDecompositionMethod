@@ -98,6 +98,7 @@ void ObservingEffect()
     vector<vector<TH1D>> Hist_OnData_PerElev_MSCL;
     vector<vector<TH1D>> Hist_OnData_PerElev_Xoff;
     vector<vector<TH1D>> Hist_OnData_PerElev_Yoff;
+    vector<vector<TH1D>> Hist_CRData_PerElev_Xoff;
     vector<vector<TH1D>> Hist_CRData_PerElev_Yoff;
     for (int elev=0;elev<N_elev_bins;elev++)
     {
@@ -107,6 +108,7 @@ void ObservingEffect()
         vector<TH1D> Hist_OnData_ThisElev_MSCL;
         vector<TH1D> Hist_OnData_ThisElev_Xoff;
         vector<TH1D> Hist_OnData_ThisElev_Yoff;
+        vector<TH1D> Hist_CRData_ThisElev_Xoff;
         vector<TH1D> Hist_CRData_ThisElev_Yoff;
         for (int e=0;e<N_energy_bins;e++) 
         {
@@ -123,12 +125,14 @@ void ObservingEffect()
             Hist_OnData_ThisElev_MSCL.push_back(TH1D("Hist_OnData_ThisElev_MSCL_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper));
             Hist_OnData_ThisElev_Xoff.push_back(TH1D("Hist_OnData_ThisElev_Xoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
             Hist_OnData_ThisElev_Yoff.push_back(TH1D("Hist_OnData_ThisElev_Yoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
+            Hist_CRData_ThisElev_Xoff.push_back(TH1D("Hist_CRData_ThisElev_Xoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
             Hist_CRData_ThisElev_Yoff.push_back(TH1D("Hist_CRData_ThisElev_Yoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
         }
         Hist_OnData_PerElev_MSCW.push_back(Hist_OnData_ThisElev_MSCW);
         Hist_OnData_PerElev_MSCL.push_back(Hist_OnData_ThisElev_MSCL);
         Hist_OnData_PerElev_Xoff.push_back(Hist_OnData_ThisElev_Xoff);
         Hist_OnData_PerElev_Yoff.push_back(Hist_OnData_ThisElev_Yoff);
+        Hist_CRData_PerElev_Xoff.push_back(Hist_CRData_ThisElev_Xoff);
         Hist_CRData_PerElev_Yoff.push_back(Hist_CRData_ThisElev_Yoff);
     }
 
@@ -371,6 +375,7 @@ void ObservingEffect()
                 }
                 if (ControlSelectionTheta2())
                 {
+                    Hist_CRData_PerElev_Xoff.at(elevation).at(energy).Fill(Xoff);
                     Hist_CRData_PerElev_Yoff.at(elevation).at(energy).Fill(Yoff);
                 }
             }
@@ -396,6 +401,7 @@ void ObservingEffect()
             Hist_OnData_PerElev_MSCW.at(elev).at(e).Write();
             Hist_OnData_PerElev_Xoff.at(elev).at(e).Write();
             Hist_OnData_PerElev_Yoff.at(elev).at(e).Write();
+            Hist_CRData_PerElev_Xoff.at(elev).at(e).Write();
             Hist_CRData_PerElev_Yoff.at(elev).at(e).Write();
         }
     }

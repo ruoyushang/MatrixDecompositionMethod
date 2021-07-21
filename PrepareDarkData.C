@@ -1518,7 +1518,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
             int number_of_search = 0;
             double accumulated_count = 0.;
             double offset_NSB = 0.;
-            double offset_Elev = 5.;
+            double offset_Elev = 0.;
             double threshold_dNSB = 0.5;
             double threshold_dElev = 1.0;
             double threshold_dMJD = 3.*365.;
