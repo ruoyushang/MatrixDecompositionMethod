@@ -92,6 +92,7 @@ void ObservingEffect()
 
     TH1D Hist_Elev = TH1D("Hist_Elev","",N_elev_bins,elev_bins);
     TH1D Hist_MJD = TH1D("Hist_MJD","",N_MJD_bins,MJD_bins);
+    TH1D Hist_NSB = TH1D("Hist_NSB","",N_NSB_bins,NSB_bins);
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
 
     vector<vector<TH1D>> Hist_OnData_PerElev_MSCW;
@@ -168,6 +169,48 @@ void ObservingEffect()
         Hist_OnData_PerYear_MSCL.push_back(Hist_OnData_ThisYear_MSCL);
         Hist_OnData_PerYear_Xoff.push_back(Hist_OnData_ThisYear_Xoff);
         Hist_OnData_PerYear_Yoff.push_back(Hist_OnData_ThisYear_Yoff);
+    }
+
+    vector<vector<TH1D>> Hist_OnData_PerNSB_MSCW;
+    vector<vector<TH1D>> Hist_OnData_PerNSB_MSCL;
+    vector<vector<TH1D>> Hist_OnData_PerNSB_Xoff;
+    vector<vector<TH1D>> Hist_OnData_PerNSB_Yoff;
+    vector<vector<TH1D>> Hist_CRData_PerNSB_Xoff;
+    vector<vector<TH1D>> Hist_CRData_PerNSB_Yoff;
+    for (int nsb=0;nsb<N_NSB_bins;nsb++)
+    {
+        char nsb_tag[50];
+        sprintf(nsb_tag, "%i", nsb);
+        vector<TH1D> Hist_OnData_ThisNSB_MSCW;
+        vector<TH1D> Hist_OnData_ThisNSB_MSCL;
+        vector<TH1D> Hist_OnData_ThisNSB_Xoff;
+        vector<TH1D> Hist_OnData_ThisNSB_Yoff;
+        vector<TH1D> Hist_CRData_ThisNSB_Xoff;
+        vector<TH1D> Hist_CRData_ThisNSB_Yoff;
+        for (int e=0;e<N_energy_bins;e++) 
+        {
+            char e_low[50];
+            sprintf(e_low, "%i", int(energy_bins[e]));
+            char e_up[50];
+            sprintf(e_up, "%i", int(energy_bins[e+1]));
+
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+            N_bins_for_deconv = N_bins_for_deconv_func_E[e];
+
+            Hist_OnData_ThisNSB_MSCW.push_back(TH1D("Hist_OnData_ThisNSB_MSCW_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+            Hist_OnData_ThisNSB_MSCL.push_back(TH1D("Hist_OnData_ThisNSB_MSCL_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper));
+            Hist_OnData_ThisNSB_Xoff.push_back(TH1D("Hist_OnData_ThisNSB_Xoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
+            Hist_OnData_ThisNSB_Yoff.push_back(TH1D("Hist_OnData_ThisNSB_Yoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
+            Hist_CRData_ThisNSB_Xoff.push_back(TH1D("Hist_CRData_ThisNSB_Xoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
+            Hist_CRData_ThisNSB_Yoff.push_back(TH1D("Hist_CRData_ThisNSB_Yoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
+        }
+        Hist_OnData_PerNSB_MSCW.push_back(Hist_OnData_ThisNSB_MSCW);
+        Hist_OnData_PerNSB_MSCL.push_back(Hist_OnData_ThisNSB_MSCL);
+        Hist_OnData_PerNSB_Xoff.push_back(Hist_OnData_ThisNSB_Xoff);
+        Hist_OnData_PerNSB_Yoff.push_back(Hist_OnData_ThisNSB_Yoff);
+        Hist_CRData_PerNSB_Xoff.push_back(Hist_CRData_ThisNSB_Xoff);
+        Hist_CRData_PerNSB_Yoff.push_back(Hist_CRData_ThisNSB_Yoff);
     }
 
     vector<vector<TH1D>> Hist_Source_Theta2;
@@ -319,6 +362,7 @@ void ObservingEffect()
             vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
 
             double tele_elev = GetRunElevAzim(filename,int(Data_runlist[run].second)).first;
+            double NSB_thisrun = GetRunPedestalVar(int(Data_runlist[run].second));
 
             Data_tree->GetEntry(0);
             double time_0 = Time;
@@ -344,10 +388,13 @@ void ObservingEffect()
                 int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
                 int elevation = Hist_Elev.FindBin(tele_elev)-1;
                 int year = Hist_MJD.FindBin(MJD)-1;
+                int nsb = Hist_NSB.FindBin(NSB_thisrun)-1;
                 if (energy<0) continue;
                 if (energy>=N_energy_bins) continue;
                 if (elevation<0) continue;
                 if (elevation>=N_elev_bins) continue;
+                if (nsb<0) continue;
+                if (nsb>=N_NSB_bins) continue;
                 if (!SelectNImages()) continue;
                 if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
                 if (SizeSecondMax<SizeSecondMax_Cut) continue;
@@ -359,11 +406,13 @@ void ObservingEffect()
                 {
                     Hist_OnData_PerElev_MSCW.at(elevation).at(energy).Fill(MSCW,weight);
                     Hist_OnData_PerYear_MSCW.at(year).at(energy).Fill(MSCW,weight);
+                    Hist_OnData_PerNSB_MSCW.at(nsb).at(energy).Fill(MSCW,weight);
                 }
                 if (MSCW<MSCW_cut_blind)
                 {
                     Hist_OnData_PerElev_MSCL.at(elevation).at(energy).Fill(MSCL,weight);
                     Hist_OnData_PerYear_MSCL.at(year).at(energy).Fill(MSCL,weight);
+                    Hist_OnData_PerNSB_MSCL.at(nsb).at(energy).Fill(MSCL,weight);
                 }
                 if (MSCL<MSCL_cut_blind && MSCW<MSCW_cut_blind)
                 {
@@ -372,11 +421,15 @@ void ObservingEffect()
                     Hist_OnData_PerElev_Yoff.at(elevation).at(energy).Fill(Yoff,weight);
                     Hist_OnData_PerYear_Xoff.at(year).at(energy).Fill(Xoff,weight);
                     Hist_OnData_PerYear_Yoff.at(year).at(energy).Fill(Yoff,weight);
+                    Hist_OnData_PerNSB_Xoff.at(nsb).at(energy).Fill(Xoff,weight);
+                    Hist_OnData_PerNSB_Yoff.at(nsb).at(energy).Fill(Yoff,weight);
                 }
                 if (ControlSelectionTheta2())
                 {
                     Hist_CRData_PerElev_Xoff.at(elevation).at(energy).Fill(Xoff);
                     Hist_CRData_PerElev_Yoff.at(elevation).at(energy).Fill(Yoff);
+                    Hist_CRData_PerNSB_Xoff.at(nsb).at(energy).Fill(Xoff);
+                    Hist_CRData_PerNSB_Yoff.at(nsb).at(energy).Fill(Yoff);
                 }
             }
             input_file->Close();
@@ -413,6 +466,18 @@ void ObservingEffect()
             Hist_OnData_PerYear_MSCW.at(year).at(e).Write();
             Hist_OnData_PerYear_Xoff.at(year).at(e).Write();
             Hist_OnData_PerYear_Yoff.at(year).at(e).Write();
+        }
+    }
+    for (int nsb=0;nsb<N_NSB_bins;nsb++)
+    {
+        for (int e=0;e<N_energy_bins;e++) 
+        {
+            Hist_OnData_PerNSB_MSCL.at(nsb).at(e).Write();
+            Hist_OnData_PerNSB_MSCW.at(nsb).at(e).Write();
+            Hist_OnData_PerNSB_Xoff.at(nsb).at(e).Write();
+            Hist_OnData_PerNSB_Yoff.at(nsb).at(e).Write();
+            Hist_CRData_PerNSB_Xoff.at(nsb).at(e).Write();
+            Hist_CRData_PerNSB_Yoff.at(nsb).at(e).Write();
         }
     }
 

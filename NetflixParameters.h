@@ -56,6 +56,8 @@ double elev_bins[N_elev_bins+1] = {45,50,55,60,65,70,75,80,85};
 //double MJD_bins[N_MJD_bins+1] = {53613,53978,54343,54709,55074,55439,55804,56170,56535,56900,57265,57631,57996,58361,58726,59092,59457};
 const int N_MJD_bins = 4; // Aug 31st of every 4 years
 double MJD_bins[N_MJD_bins+1] = {53613,55074,56535,57996,59457};
+const int N_NSB_bins = 7;
+double NSB_bins[N_NSB_bins+1] = {1,2,3,4,5,6,7,8};
 
 double MSCW_cut_blind = 1.0;
 double MSCL_cut_blind = 1.0;
