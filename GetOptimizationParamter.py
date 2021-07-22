@@ -66,10 +66,9 @@ rank2_count = []
 rank3_count = []
 rank4_count = []
 
-folder_path = 'output_nominal'
-#folder_path = 'output_ElevPlus5'
-#folder_path = 'output_ElevMinus5'
-#folder_path = 'output_NsbPlus2'
+#folder_path = 'output_nominal'
+#folder_path = 'output_elev_p5'
+folder_path = 'output_nsb_m1'
 method_tag = 'tight_mdm_default'
 #method_tag = 'tight_mdm_rank3'
 #method_tag = 'tight_mdm_rank5'

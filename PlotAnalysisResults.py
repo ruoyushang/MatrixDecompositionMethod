@@ -44,7 +44,7 @@ energy_bin_cut_up = 6
 #elev_range = [40,70]
 #elev_range = [60,80]
 #elev_range = [25,55]
-elev_range = [40,50,60,70,80]
+elev_range = [30,40,50,60,70,80]
 theta2_bins = [0,4]
 
 ONOFF_tag = 'ON'
@@ -524,7 +524,7 @@ if sys.argv[1]=='WComae_ON':
     sample_list = []
     sample_list += ['WComaeV6_ON']
     sample_list += ['WComaeV5_ON']
-    sample_list += ['WComaeV4_ON']
+    #sample_list += ['WComaeV4_ON']
     theta2_bins = [0,4]
     # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
     
@@ -561,7 +561,6 @@ if sys.argv[1]=='HESS_J1825_ON':
     sample_list = []
     sample_list += ['HESS_J1825_V6_ON']
     theta2_bins = [0,4]
-    elev_range = [25,55]
 
 if sys.argv[1]=='LHAASO_J2108_ON':
     ONOFF_tag = 'ON'
@@ -2183,6 +2182,106 @@ def MakeSpectrumInNonCrabUnitE2(hist_data,hist_bkgd,legends,title,name,syst):
     #lumilab1.SetNDC()
     #lumilab1.SetTextSize(0.15)
     #lumilab1.Draw()
+
+    pad1.SetLogy()
+    pad1.SetLogx()
+
+    c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
+
+def MakeSpectrumFromFluxHist(hist_flux,legends,title,name):
+    
+    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.7,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.7)
+    pad1.SetBottomMargin(0.2)
+    pad1.SetTopMargin(0.0)
+    pad1.SetLeftMargin(0.2)
+    pad1.SetRightMargin(0.1)
+    pad1.SetBorderMode(0)
+    pad1.SetGrid()
+    pad1.Draw()
+    pad3.Draw()
+
+    pad1.cd()
+
+    # Crab https://arxiv.org/pdf/1508.06442.pdf
+    func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 100, 10000)
+    func_crab.SetParameters(37.5,-2.467,-0.16)
+
+    Hist_Invisible = hist_flux[0].Clone()
+    ymax = 0.
+    ymin = 0.
+    for nth_roi in range(2,len(hist_flux)):
+        ymax = max(hist_flux[nth_roi].GetMaximum(),Hist_Invisible.GetBinContent(1))
+        ymin = min(hist_flux[nth_roi].GetMinimum(),Hist_Invisible.GetBinContent(2))
+        Hist_Invisible.SetBinContent(1,ymax)
+        Hist_Invisible.SetBinContent(2,ymin)
+    Hist_Invisible.SetLineColor(0)
+    Hist_Invisible.GetXaxis().SetTitleOffset(0.8)
+    Hist_Invisible.GetXaxis().SetTitleSize(0.06)
+    Hist_Invisible.GetXaxis().SetLabelSize(0.04)
+    Hist_Invisible.GetYaxis().SetLabelSize(0.04)
+    Hist_Invisible.GetYaxis().SetTitleOffset(1.2)
+    Hist_Invisible.GetYaxis().SetTitleSize(0.06)
+    Hist_Invisible.GetXaxis().SetTitle('energy [GeV]')
+    Hist_Invisible.GetYaxis().SetTitle('flux [counts/GeV/s/cm2]')
+    Hist_Invisible.Draw()
+
+    func_source = []
+    for nth_roi in range(0,len(hist_flux)):
+        func_source += [ROOT.TF1("func_source_%s"%(nth_roi),"[0]*pow(10,-12)*pow(x/1000.,[1])", 150, 10000)]
+        func_source[nth_roi].SetParameters(37.5,-2.)
+        if nth_roi<2: continue
+        hist_flux[nth_roi].SetLineColor(nth_roi-1)
+        hist_flux[nth_roi].Fit("func_source_%s"%(nth_roi),"N")
+        hist_flux[nth_roi].Draw("E same")
+        func_source[nth_roi].SetLineColor(nth_roi-1)
+        func_source[nth_roi].Draw("E same")
+
+    func_crab.SetLineColor(2)
+    func_crab.Draw("same")
+
+    # MGRO J1908
+    if 'MGRO_J1908' in name:
+        func_1908 = ROOT.TF1("func_1908","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
+        func_1908.SetParameters(4.23,-2.2)
+        func_1908.SetLineColor(4)
+        func_1908.Draw("same")
+    # IC 443 https://arxiv.org/pdf/0905.3291.pdf
+    if 'IC443' in name:
+        print ('Compare to official IC 443 flux...')
+        func_ic443 = ROOT.TF1("func_ic443","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
+        func_ic443.SetParameters(0.838,-2.99)
+        func_ic443.SetLineColor(4)
+        func_ic443.Draw("same")
+    # 1ES 1218 https://arxiv.org/pdf/0810.0301.pdf
+    if '1ES1218' in name:
+        func_1218 = ROOT.TF1("func_1218","[0]*pow(10,-12)*pow(x/500.,[1])", 200, 4000)
+        func_1218.SetParameters(7.5,-3.08)
+        func_1218.SetLineColor(4)
+        func_1218.Draw("same")
+
+
+    pad3.cd()
+
+    legend = ROOT.TLegend(0.1,0.1,0.94,0.9)
+    legend.SetTextFont(42)
+    legend.SetBorderSize(0)
+    legend.SetTextSize(0.1)
+    legend.SetFillColor(0)
+    legend.SetFillStyle(0)
+    legend.SetLineColor(0)
+    legend.Clear()
+    for nth_roi in range(2,len(hist_flux)):
+        legend.AddEntry(hist_flux[nth_roi],"%s, index = %0.2f #pm %0.2f"%(legends[nth_roi],func_source[nth_roi].GetParameter(1),func_source[nth_roi].GetParError(1)),"pl")
+    if 'IC443' in name:
+        legend.AddEntry(func_ic443,"flux from arXiv:0905.3291","pl")
+    if 'MGRO_J1908' in name:
+        legend.AddEntry(func_1908,"flux from arXiv:1404.7185","pl")
+    legend.Draw("SAME")
 
     pad1.SetLogy()
     pad1.SetLogx()
@@ -4012,9 +4111,11 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
     pad1.SetLogx()
     pad1.SetLogy()
 
+    for nth_roi in range(0,len(roi_ra)):
+        Hist_RoI_Flux[nth_roi].Reset()
     Hist_Flux = ROOT.TH1D("Hist_Flux","",len(energy_bin)-1,array('d',energy_bin))
     func_source = []
-    nth_roi = 0
+    nth_bin = 0
     min_index = 0.
     for binx in range(0,hist_index_skymap.GetNbinsX()):
         for biny in range(0,hist_index_skymap.GetNbinsY()):
@@ -4022,8 +4123,8 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
             by_center = hist_index_skymap.GetYaxis().GetBinCenter(biny+1)
             binx2 = hist_contour[0].GetXaxis().FindBin(bx_center)
             biny2 = hist_contour[0].GetYaxis().FindBin(by_center)
-            nth_roi += 1
-            func_source += [ROOT.TF1("func_source_%s"%(nth_roi-1),"[0]*pow(10,-12)*pow(x/1000.,[1])", 150, 10000)]
+            nth_bin += 1
+            func_source += [ROOT.TF1("func_source_%s"%(nth_bin-1),"[0]*pow(10,-12)*pow(x/1000.,[1])", 150, 10000)]
             Hist_Flux.Reset()
             max_z_score = 0.
             min_z_score = 99.
@@ -4071,11 +4172,20 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
                     scale = 1./(Hist_EffArea_Sum.GetBinContent(ebin_fine)*10000.*deltaE*acceptance)
                     Hist_Flux.SetBinContent(ebin+1,diff_count*scale)
                     Hist_Flux.SetBinError(ebin+1,pow(data_count+syst_error*syst_error,0.5)*scale)
+                    for nth_roi in range(0,len(roi_ra)):
+                        distance = pow(pow(bx_center-roi_ra[nth_roi],2)+pow(by_center-roi_dec[nth_roi],2),0.5)
+                        if distance<roi_radius[nth_roi]:
+                            old_content = Hist_RoI_Flux[nth_roi].GetBinContent(ebin+1)
+                            old_error = Hist_RoI_Flux[nth_roi].GetBinError(ebin+1)
+                            new_content = old_content + diff_count*scale
+                            new_error = pow(old_error*old_error + (data_count+syst_error*syst_error)*scale*scale,0.5)
+                            Hist_RoI_Flux[nth_roi].SetBinContent(ebin+1,new_content)
+                            Hist_RoI_Flux[nth_roi].SetBinError(ebin+1,new_error)
                 else:
                     Hist_Flux.SetBinContent(ebin+1,0.)
                     Hist_Flux.SetBinError(ebin+1,0.)
-            func_source[nth_roi-1].SetParameters(37.5/(nbins*nbins),-2.)
-            Hist_Flux.Fit("func_source_%s"%(nth_roi-1),"N","",ErecS_lower_cut,ErecS_upper_cut)
+            func_source[nth_bin-1].SetParameters(37.5/(nbins*nbins),-2.)
+            Hist_Flux.Fit("func_source_%s"%(nth_bin-1),"N","",ErecS_lower_cut,ErecS_upper_cut)
             good_fit = True
             good_data = True
             if (int(max_nbins/best_nbins))>=4:
@@ -4083,24 +4193,24 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
                 if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
             else:
                 if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
-            if abs(func_source[nth_roi-1].GetParameter(1))<5.*func_source[nth_roi-1].GetParError(1): good_fit = False
+            if abs(func_source[nth_bin-1].GetParameter(1))<5.*func_source[nth_bin-1].GetParError(1): good_fit = False
             if good_fit and good_data:
-                hist_index_skymap.SetBinContent(binx+1,biny+1,func_source[nth_roi-1].GetParameter(1))
-                hist_index_skymap.SetBinError(binx+1,biny+1,func_source[nth_roi-1].GetParError(1))
-                if func_source[nth_roi-1].GetParameter(1)<min_index:
-                    min_index = func_source[nth_roi-1].GetParameter(1)
+                hist_index_skymap.SetBinContent(binx+1,biny+1,func_source[nth_bin-1].GetParameter(1))
+                hist_index_skymap.SetBinError(binx+1,biny+1,func_source[nth_bin-1].GetParError(1))
+                if func_source[nth_bin-1].GetParameter(1)<min_index:
+                    min_index = func_source[nth_bin-1].GetParameter(1)
                 #Hist_Flux.Draw("E")
-                #func_source[nth_roi-1].Draw("same")
+                #func_source[nth_bin-1].Draw("same")
                 #c_both.SaveAs('output_plots/Fit_x%s_y%s.png'%(binx,biny))
             else:
                 hist_index_skymap.SetBinContent(binx+1,biny+1,-99.)
                 hist_index_skymap.SetBinError(binx+1,biny+1,-99.)
                 #Hist_Flux.Draw("E")
-                #func_source[nth_roi-1].Draw("same")
+                #func_source[nth_bin-1].Draw("same")
                 #c_both.SaveAs('output_plots/Fit_x%s_y%s.png'%(binx,biny))
             if good_fit:
-                hist_index_skymap_full.SetBinContent(binx+1,biny+1,func_source[nth_roi-1].GetParameter(1))
-                hist_index_skymap_full.SetBinError(binx+1,biny+1,func_source[nth_roi-1].GetParError(1))
+                hist_index_skymap_full.SetBinContent(binx+1,biny+1,func_source[nth_bin-1].GetParameter(1))
+                hist_index_skymap_full.SetBinError(binx+1,biny+1,func_source[nth_bin-1].GetParError(1))
             else:
                 hist_index_skymap_full.SetBinContent(binx+1,biny+1,-99.)
                 hist_index_skymap_full.SetBinError(binx+1,biny+1,-99.)
@@ -6003,9 +6113,14 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
             Hist_Expo_Energy_Skymap[ebin].Scale(1./event_rate_smooth)
         MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
         MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s_zoomin'%(source_name,PercentCrab),60,2)
-    else:
-        MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_Syst_Energy_Skymap,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),12,1)
-        MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_Syst_Energy_Skymap,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s_zoomin'%(source_name,PercentCrab),30,3)
+
+        MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_Syst_Energy_Skymap,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
+        legends = []
+        for nth_roi in range(0,len(roi_ra)):
+            legends += ['%s'%(roi_name[nth_roi])]
+        title = 'energy [GeV]'
+        plotname = 'FluxCorrected_MDM'
+        MakeSpectrumFromFluxHist(Hist_RoI_Flux,legends,title,plotname)
 
     print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     init_x = source_ra
@@ -6257,6 +6372,7 @@ Hist_OnData_RoI_MJD = []
 Hist_OnBkgd_RoI_MJD = [] 
 Hist_OnData_RoI_MJD_Sum = [] 
 Hist_OnBkgd_RoI_MJD_Sum = [] 
+Hist_RoI_Flux = []
 for nth_roi in range(0,len(roi_ra)):
     Hist_OnData_RoI_Energy_Sum += [ROOT.TH1D("Hist_OnData_RoI_Energy_Sum_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
     Hist_OnBkgd_RoI_Energy_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Energy_Sum_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
@@ -6270,6 +6386,7 @@ for nth_roi in range(0,len(roi_ra)):
     Hist_OnBkgd_RoI_MJD += [ROOT.TH1D("Hist_OnBkgd_RoI_MJD_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
     Hist_OnData_RoI_MJD_Sum += [ROOT.TH1D("Hist_OnData_RoI_MJD_Sum_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
     Hist_OnBkgd_RoI_MJD_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_MJD_Sum_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
+    Hist_RoI_Flux += [ROOT.TH1D("Hist_RoI_Flux_%s"%(nth_roi),"",len(energy_bin)-1,array('d',energy_bin))]
 
 
 Hist2D_OffData = []
