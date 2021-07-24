@@ -77,7 +77,6 @@ method_tag = 'tight_mdm_default'
 #method_tag = 'tight_mdm_cutoff_eigen'
 
 lowrank_tag = '_svd'
-#lowrank_tag = '_eigen'
 method_tag += lowrank_tag
 
 ONOFF_tag = 'OFF'
@@ -642,13 +641,16 @@ for e in range(0,len(energy_bin)-1):
     colors = np.random.rand(len(Zenith_mean_data))
 
     AccuracyInit_source = []
+    AccuracyInitSigned_source = []
     AccuracyInitErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
         if data_count[entry-1]<100.:
             AccuracyInit_source += [0.]
+            AccuracyInitSigned_source += [0.]
             AccuracyInitErr_source += [0.]
         else:
             AccuracyInit_source += [abs(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
+            AccuracyInitSigned_source += [(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
             AccuracyInitErr_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyInit_mean = 0.
     AccuracyInit_weight = 0.
@@ -761,13 +763,16 @@ for e in range(0,len(energy_bin)-1):
     AccuracyWPar9_mean_error = pow(AccuracyWPar9_mean_error,0.5)
 
     AccuracyBkgd_source = []
+    AccuracyBkgdSigned_source = []
     AccuracyBkgdErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
         if data_count[entry-1]<100.:
             AccuracyBkgd_source += [0.]
+            AccuracyBkgdSigned_source += [0.]
             AccuracyBkgdErr_source += [0.]
         else:
             AccuracyBkgd_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
+            AccuracyBkgdSigned_source += [(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
             AccuracyBkgdErr_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyBkgd_mean = 0.
     AccuracyBkgd_weight = 0.
@@ -912,6 +917,7 @@ for e in range(0,len(energy_bin)-1):
 
 
     plt.clf()
+    plt.rcParams["figure.figsize"] = (10,6)
     ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyInit_source))
     width = 0.35
@@ -925,9 +931,27 @@ for e in range(0,len(energy_bin)-1):
     plt.setp(xtickNames, rotation=45, fontsize=10)
     #ax.legend( (rects1[0]), ('Initial $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
     plt.subplots_adjust(bottom=0.15)
-    plt.savefig("output_plots/PerformanceInit_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    plt.savefig("output_plots/PerformanceInit_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     plt.clf()
+    plt.rcParams["figure.figsize"] = (10,6)
+    ax = fig.add_subplot(111)
+    ind = np.arange(len(AccuracyInitSigned_source))
+    width = 0.35
+    rects1 = ax.bar(ind, AccuracyInitSigned_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
+    ax.set_xlim(-width,len(ind)+width)
+    ax.set_ylabel("$(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,Accuracy_mean_error))
+    xTickMarks = sample_name
+    ax.set_xticks(ind+0.5*width)
+    xtickNames = ax.set_xticklabels(xTickMarks)
+    plt.setp(xtickNames, rotation=45, fontsize=10)
+    #ax.legend( (rects1[0]), ('Initial $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
+    plt.subplots_adjust(bottom=0.25)
+    plt.savefig("output_plots/PerformanceInitSigned_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
+
+    plt.clf()
+    plt.rcParams["figure.figsize"] = (10,6)
     ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyBestPar9_source))
     width = 0.35
@@ -942,9 +966,10 @@ for e in range(0,len(energy_bin)-1):
     plt.setp(xtickNames, rotation=45, fontsize=10)
     ax.legend( (rects1[0], rects2[0]), ('Best 9-par $<\epsilon>=%0.3f$'%(AccuracyBestPar9_mean), 'Initial $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
     plt.subplots_adjust(bottom=0.15)
-    plt.savefig("output_plots/PerformanceBest_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    plt.savefig("output_plots/PerformanceBest_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     plt.clf()
+    plt.rcParams["figure.figsize"] = (10,6)
     ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyBkgd_source))
     width = 0.35
@@ -959,9 +984,28 @@ for e in range(0,len(energy_bin)-1):
     plt.setp(xtickNames, rotation=45, fontsize=10)
     ax.legend( (rects1[0], rects2[0]), ('MIBE $<\epsilon>=%0.3f$'%(AccuracyBkgd_mean), 'ON/OFF $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
     plt.subplots_adjust(bottom=0.25)
-    plt.savefig("output_plots/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    plt.savefig("output_plots/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
+
+    plt.clf()
+    plt.rcParams["figure.figsize"] = (10,6)
+    ax = fig.add_subplot(111)
+    ind = np.arange(len(AccuracyBkgdSigned_source))
+    width = 0.35
+    rects1 = ax.bar(ind, AccuracyBkgdSigned_source, width, color='#089FFF', yerr=AccuracyBkgdErr_source)
+    rects2 = ax.bar(ind+width, AccuracyInitSigned_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
+    ax.set_xlim(-width,len(ind)+width)
+    ax.set_ylabel("$(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyBkgd_mean,Accuracy_mean_error))
+    xTickMarks = sample_name
+    ax.set_xticks(ind+1.0*width)
+    xtickNames = ax.set_xticklabels(xTickMarks)
+    plt.setp(xtickNames, rotation=45, fontsize=10)
+    ax.legend( (rects1[0], rects2[0]), ('MIBE $<\epsilon>=%0.3f$'%(AccuracyBkgd_mean), 'ON/OFF $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
+    plt.subplots_adjust(bottom=0.25)
+    plt.savefig("output_plots/PerformanceSigned_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     #plt.clf()
+    #plt.rcParams["figure.figsize"] = (10,6)
     #ax = fig.add_subplot(111)
     #ind = np.arange(len(ValidateBkgd_source))
     #width = 0.35
@@ -997,7 +1041,7 @@ for e in range(0,len(energy_bin)-1):
         RankCounts += [abs(data_count[s]-rank3_count[s])/data_count[s]]
         RankCounts += [abs(data_count[s]-rank4_count[s])/data_count[s]]
         plt.errorbar(Rank,RankCounts,fmt='o')
-    plt.savefig("output_plots/RankCounts_E%s%s.png"%(e,lowrank_tag))
+    plt.savefig("output_plots/RankCounts_E%s%s.png"%(e,folder_path))
 
     Hists = []
     legends = []
@@ -1010,10 +1054,10 @@ for e in range(0,len(energy_bin)-1):
         Hists += [Hist_Bkgd_Optimization[entry]]
         legends += ['exposure %0.1f'%(data_exposure[entry-1])]
         colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'log10 #beta','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationAlpha_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
+    MakeMultiplePlot(Hists,legends,colors,'log10 #beta','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationAlpha_E%s%s'%(e,folder_path),1e-3,0.1,False,False)
 
-    Make2DPlot(Hist_Bkgd_Optimization_beta[0],'C_{1}','C_{2}','OptimizationBeta_E%s%s'%(e,lowrank_tag),False)
-    Make2DPlot(Hist_Bkgd_OptimizationChi2_beta[0],'C_{1}','C_{2}','OptimizationChi2Beta_E%s%s'%(e,lowrank_tag),False)
+    Make2DPlot(Hist_Bkgd_Optimization_beta[0],'C_{1}','C_{2}','OptimizationBeta_E%s%s'%(e,folder_path),False)
+    Make2DPlot(Hist_Bkgd_OptimizationChi2_beta[0],'C_{1}','C_{2}','OptimizationChi2Beta_E%s%s'%(e,folder_path),False)
 
     Hists = []
     legends = []
@@ -1026,7 +1070,7 @@ for e in range(0,len(energy_bin)-1):
         Hists += [Hist_Dark_Optimization[entry]]
         legends += ['exposure %0.1f'%(data_exposure[entry-1])]
         colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'normalization bins','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationNormalization_E%s%s'%(e,lowrank_tag),1e-3,0.1,False,False)
+    MakeMultiplePlot(Hists,legends,colors,'normalization bins','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationNormalization_E%s%s'%(e,folder_path),1e-3,0.1,False,False)
 
     Hists = []
     legends = []
@@ -1041,7 +1085,7 @@ for e in range(0,len(energy_bin)-1):
         legends += ['exposure %0.1f'%(data_exposure[entry-1])]
         #colors += [entry+1]
         colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'log10 #beta','#chi^{2} = #sum #deltaM_{ij}^{2} in CR','Chi2_E%s%s'%(e,lowrank_tag),pow(10.,-6.5),pow(10.,-4.5),False,False)
+    MakeMultiplePlot(Hists,legends,colors,'log10 #beta','#chi^{2} = #sum #deltaM_{ij}^{2} in CR','Chi2_E%s%s'%(e,folder_path),pow(10.,-6.5),pow(10.,-4.5),False,False)
 
     Hists = []
     legends = []
@@ -1057,7 +1101,7 @@ for e in range(0,len(energy_bin)-1):
         legends += ['exposure %0.1f'%(data_exposure[entry-1])]
         #colors += [entry+1]
         colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'entry','singular value','SingularValue_E%s%s'%(e,lowrank_tag),0,0,False,True)
+    MakeMultiplePlot(Hists,legends,colors,'entry','singular value','SingularValue_E%s%s'%(e,folder_path),0,0,False,True)
 
     Hists = []
     legends = []
@@ -1073,7 +1117,7 @@ for e in range(0,len(energy_bin)-1):
         legends += ['exposure %0.1f'%(data_exposure[entry-1])]
         #colors += [entry+1]
         colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'Rank (r)','singular value','SingularValue_Mon_E%s%s'%(e,lowrank_tag),0,0,False,True)
+    MakeMultiplePlot(Hists,legends,colors,'Rank (r)','singular value','SingularValue_Mon_E%s%s'%(e,folder_path),0,0,False,True)
 
     print ('Energy %s'%(energy_bin[e]))
     for entry in range(0,len(Hist_U_Proj)):
@@ -1171,13 +1215,13 @@ for e in range(0,len(energy_bin)-1):
     plt.xlabel("$eta$", fontsize=18)
     plt.ylabel("$abs(N_{\gamma bkg}-N_{best-9-par})/N_{\gamma bkg}$", fontsize=18)
     plt.scatter(eta_array,par9_array)
-    plt.savefig("output_plots/EtaVsBestPar9_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    plt.savefig("output_plots/EtaVsBestPar9_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     plt.clf()
     plt.xlabel("$eta$", fontsize=18)
     plt.ylabel("$abs(N_{\gamma bkg}-N_{best-9-par})/ sqrt(N_{\gamma bkg})$", fontsize=18)
     plt.scatter(eta_array,par9_sig_array)
-    plt.savefig("output_plots/EtaVsBestPar9Sig_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    plt.savefig("output_plots/EtaVsBestPar9Sig_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     par9_epsilon = []
     wpar9_epsilon = []
@@ -1194,7 +1238,7 @@ for e in range(0,len(energy_bin)-1):
     line_x = np.arange(0.0, 0.1, 1e-4) # angular size
     line_y = line_x
     plt.plot(line_x, line_y, color='r')
-    plt.savefig("output_plots/PlainVsWeightedFrobenius_Count_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    plt.savefig("output_plots/PlainVsWeightedFrobenius_Count_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     par9_epsilon = []
     wpar9_epsilon = []
@@ -1210,7 +1254,7 @@ for e in range(0,len(energy_bin)-1):
     line_x = np.arange(0.0, 0.1, 1e-4) # angular size
     line_y = line_x
     plt.plot(line_x, line_y, color='r')
-    plt.savefig("output_plots/PlainVsWeightedFrobenius_Chi2_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    plt.savefig("output_plots/PlainVsWeightedFrobenius_Chi2_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     #Hists = []
     #legends = []
