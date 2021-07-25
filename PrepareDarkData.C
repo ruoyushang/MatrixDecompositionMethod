@@ -2425,7 +2425,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         for (int e=0;e<N_energy_fine_bins;e++) 
         {
             double eff_area = i_hEffAreaP->GetBinContent( i_hEffAreaP->FindBin( log10(0.5*(energy_fine_bins[e]+energy_fine_bins[e+1])/1000.)));
-            Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)+eff_area*(time_1-time_0));
+            Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)+eff_area*(3600.*exposure_thisrun));
         }
         for (int e=0;e<N_energy_bins;e++) 
         {
