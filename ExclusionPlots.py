@@ -3,41 +3,57 @@ matplotlib.use('Agg')
 import numpy as np
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
 
 
-eff_area = 10000.*(100.*100.) #cm^2
+delta = 0.33
+log_energy = np.arange(2.15, 4.15, delta) # energy in GeV
+energy = pow(10.,log_energy)
+eff_area_const = 10000.*(12.6*100.*100.) #cm^2
+eff_area = np.piecewise(energy, [energy>=100,energy>=214,energy>=457,energy>=1000], [67.0798*10000.,19522.2*10000.,95972.3*10000.,126646*10000.])
 angular_size = 1.0
 time = 100. # exposure in hours
-delta = 1.0
-energy = np.arange(214, 10000, delta) # energy in GeV
-bkg_rate = 1e-12*33.7*pow(energy/1000.,-3.4)*3600. # per hour per 2 degree FoV
+bkg_rate = 1e-12*66.6*pow(energy/1000.,-3.6)*3600. # per hour per 2 degree FoV
 crab_rate = 1e-12*37.5*pow(energy/1000.,-2.5)*3600.
+geminga_rate = 1e-12*3.5*pow(energy/1000.,-2.2)*3600.
 
 N_CR = eff_area*bkg_rate*time*(angular_size*angular_size)/(2.*2.)
 Err_CR_Stat = pow(N_CR,0.5)
 
 crab_percent = 0.1
 N_gamma_Crab10 = eff_area*crab_rate*crab_percent*time
-Err_CR_Stat_Crab10 = pow(N_CR+N_gamma_Crab10,0.5)
+N_gamma_Geminga = eff_area*geminga_rate*time
+N_normalization = eff_area*geminga_rate*time
+#N_normalization = eff_area*crab_rate*crab_percent*time
+Err_CR_Stat = pow(N_CR,0.5)
+
+scale_index = 0.
 
 #Err_CR_Syst = N_CR*0.01
-Err_CR_Syst = N_CR*np.piecewise(energy, [energy>=214,energy>=457,energy>=1000], [0.014, 0.018, 0.037])
-Limit = 5.0*pow(Err_CR_Syst*Err_CR_Syst+Err_CR_Stat_Crab10*Err_CR_Stat_Crab10,0.5)
-Limit_Err = 1.0*pow(Err_CR_Stat_Crab10*Err_CR_Stat_Crab10,0.5)
+Err_CR_Syst = N_CR*np.piecewise(energy, [energy>=100,energy>=214,energy>=457,energy>=1000], [0.121,0.017, 0.019, 0.036])
+Limit = 5.0*pow(Err_CR_Syst*Err_CR_Syst+Err_CR_Stat*Err_CR_Stat,0.5)*pow(energy,scale_index)
+Limit_Smooth = interp1d(energy, Limit, kind='cubic')
+Limit_Err = 1.0*pow(Err_CR_Stat*Err_CR_Stat,0.5)*pow(energy,scale_index)
+Limit_Err_Smooth = interp1d(energy, Limit_Err, kind='cubic')
 
 #Err_CR_Syst = N_CR*0.03
-Err_CR_Syst = N_CR*np.piecewise(energy, [energy>=214,energy>=457,energy>=1000], [0.040, 0.048, 0.056])
-Limit_Init = 5.0*pow(Err_CR_Syst*Err_CR_Syst+Err_CR_Stat_Crab10*Err_CR_Stat_Crab10,0.5)
+Err_CR_Syst = N_CR*np.piecewise(energy, [energy>=100,energy>=214,energy>=457,energy>=1000], [0.126, 0.047, 0.059, 0.071])
+Limit_Init = 5.0*pow(Err_CR_Syst*Err_CR_Syst+Err_CR_Stat*Err_CR_Stat,0.5)*pow(energy,scale_index)
+Limit_Init_Smooth = interp1d(energy, Limit_Init, kind='cubic')
+
+Limit_Stat = 5.0*pow(Err_CR_Stat*Err_CR_Stat,0.5)*pow(energy,scale_index)
+Limit_Stat_Smooth = interp1d(energy, Limit_Stat, kind='cubic')
 
 fig, ax = plt.subplots()
-plt.plot(energy, N_gamma_Crab10*pow(energy,2), color='r', label='10% Crab in 1-deg FoV')
-plt.plot(energy, Limit*pow(energy,2), color='b', label='MIBE')
-plt.fill_between(energy, (Limit-Limit_Err)*pow(energy,2), (Limit+Limit_Err)*pow(energy,2), alpha=0.2, color='b')
-plt.plot(energy, Limit_Init*pow(energy,2), color='b',linestyle='dashed', label='ON/OFF')
-#plt.ylim(0, 10)
+#plt.plot(energy, N_gamma_Crab10*pow(energy,scale_index), color='r', linestyle='dashed', label='10% Crab in 1-deg FoV')
+plt.plot(energy, N_gamma_Geminga*pow(energy,scale_index)/N_normalization, color='r', label='Geminga in 1-deg FoV')
+plt.plot(energy, Limit/N_normalization, color='b', label='MIBE')
+plt.plot(energy, Limit_Init/N_normalization, color='b',linestyle='dashed', label='ON/OFF')
+plt.plot(energy, Limit_Stat/N_normalization, color='g', label='only stat. err.')
+#plt.xlim(214., 10000.)
 ax.axis('on')
 ax.set_xlabel('Energy [GeV]')
-ax.set_ylabel('$E^{2}$ Flux')
+ax.set_ylabel('Unit in Geminga flux')
 ax.legend(loc='best')
 ax.set_xscale('log')
 ax.set_yscale('log')

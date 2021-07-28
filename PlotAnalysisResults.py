@@ -765,12 +765,12 @@ energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 
 energy_syst = []
-energy_syst += [0.051]
-energy_syst += [0.015]
-energy_syst += [0.018]
-energy_syst += [0.037]
-energy_syst += [0.060]
-energy_syst += [0.115]
+energy_syst += [0.121]
+energy_syst += [0.017]
+energy_syst += [0.019]
+energy_syst += [0.036]
+energy_syst += [0.080]
+energy_syst += [0.095]
 
 #energy_fine_bin = []
 #energy_fine_bin += [pow(10,2.0)]
@@ -2263,6 +2263,11 @@ def MakeSpectrumFromFluxHist(hist_flux,legends,title,name):
         func_1218.SetParameters(7.5,-3.08)
         func_1218.SetLineColor(4)
         func_1218.Draw("same")
+    if 'Geminga' in name:
+        func_geminga = ROOT.TF1("func_geminga","[0]*pow(10,-12)*pow(x/1000.,[1])", 100, 10000)
+        func_geminga.SetParameters(3.5,-2.2)
+        func_geminga.SetLineColor(4)
+        func_geminga.Draw("same")
 
 
     pad3.cd()
@@ -4507,8 +4512,8 @@ def MakeMWLSkymap(Hist_Veritas_input,contour_level,xtitle,ytitle,name):
     if 'RaDec' in name: isRaDec = True
     Hist_MWL = Hist_Veritas_input.Clone()
     #Hist_MWL = GetCOSkymap(Hist_MWL, isRaDec)
-    Hist_MWL = GetHawcSkymap(Hist_MWL, isRaDec)
-    MWL_label = 'HAWC significance map'
+    #Hist_MWL = GetHawcSkymap(Hist_MWL, isRaDec)
+    #MWL_label = 'HAWC significance map'
     #Hist_MWL = GetSkyViewMap("MWL_maps/skv25081611580573_NineYear_INTEGRAL_IBIS_17_35keV_J1908.txt", Hist_MWL, isRaDec)
     #MWL_label = '9 year Integral IBIS 17-35 keV'
     #Hist_MWL = GetSkyViewMap("MWL_maps/skv25082422748501_SwiftBAT_70_Month_14_195keV_J1908.txt", Hist_MWL, isRaDec)
@@ -4517,8 +4522,8 @@ def MakeMWLSkymap(Hist_Veritas_input,contour_level,xtitle,ytitle,name):
     #MWL_label = 'ROSAT X-ray Band 7'
     #Hist_MWL = GetSkyViewMap("MWL_maps/skv23774123153055_fermi5_J1908.txt", Hist_MWL, isRaDec)
     #MWL_label = 'Fermi 5'
-    #Hist_MWL = GetSkyViewMap("MWL_maps/skv23774832380255_CO_J1908.txt", Hist_MWL, isRaDec)
-    #MWL_label = 'CO Galactic Plane Survey'
+    Hist_MWL = GetSkyViewMap("MWL_maps/skv23774832380255_CO_J1908.txt", Hist_MWL, isRaDec)
+    MWL_label = 'CO Galactic Plane Survey'
     #Hist_MWL = GetSkyViewMap("MWL_maps/skv25103829773371_Effelsberg_Bonn_HI_J1908.txt", Hist_MWL, isRaDec)
     #MWL_label = 'Effelsberg-Bonn HI Survey'
     #Hist_MWL = GetGalacticCoordMap("MWL_maps/FGN_04100+0000_2x2_12CO_v1.00_image.txt", Hist_MWL, isRaDec)
@@ -6191,7 +6196,7 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
         for nth_roi in range(0,len(roi_ra)):
             legends += ['%s'%(roi_name[nth_roi])]
         title = 'energy [GeV]'
-        plotname = 'FluxCorrected_MDM'
+        plotname = 'FluxCorrected_MDM_%s'%(source_name)
         MakeSpectrumFromFluxHist(Hist_RoI_Flux,legends,title,plotname)
 
     print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
@@ -6514,8 +6519,8 @@ Smoothing = True
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
+SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
 

@@ -927,7 +927,7 @@ for e in range(0,len(energy_bin)-1):
     width = 0.35
     rects1 = ax.bar(ind, AccuracyInit_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
     ax.set_xlim(-width,len(ind)+width)
-    ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    ax.set_ylabel("$abs(N_{data}-N_{bkg})/N_{data}$", fontsize=18)
     ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,Accuracy_mean_error))
     xTickMarks = sample_name
     ax.set_xticks(ind+0.5*width)
@@ -944,7 +944,7 @@ for e in range(0,len(energy_bin)-1):
     width = 0.35
     rects1 = ax.bar(ind, AccuracyInitSigned_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
     ax.set_xlim(-width,len(ind)+width)
-    ax.set_ylabel("$(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    ax.set_ylabel("$abs(N_{data}-N_{bkg})/N_{data}$", fontsize=18)
     ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,Accuracy_mean_error))
     xTickMarks = sample_name
     ax.set_xticks(ind+0.5*width)
@@ -962,7 +962,7 @@ for e in range(0,len(energy_bin)-1):
     rects1 = ax.bar(ind, AccuracyBestPar9_source, width, color='#089FFF', yerr=AccuracyBestPar9Err_source)
     rects2 = ax.bar(ind+width, AccuracyInit_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
     ax.set_xlim(-width,len(ind)+width)
-    ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    ax.set_ylabel("$abs(N_{data}-N_{bkg})/N_{data}$", fontsize=18)
     ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyBestPar9_mean,Accuracy_mean_error))
     xTickMarks = sample_name
     ax.set_xticks(ind+1.0*width)
@@ -980,7 +980,7 @@ for e in range(0,len(energy_bin)-1):
     rects1 = ax.bar(ind, AccuracyBkgd_source, width, color='#089FFF', yerr=AccuracyBkgdErr_source)
     rects2 = ax.bar(ind+width, AccuracyInit_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
     ax.set_xlim(-width,len(ind)+width)
-    ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    ax.set_ylabel("$abs(N_{data}-N_{bkg})/N_{data}$", fontsize=18)
     ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyBkgd_mean,Accuracy_mean_error))
     xTickMarks = sample_name
     ax.set_xticks(ind+1.0*width)
@@ -991,8 +991,8 @@ for e in range(0,len(energy_bin)-1):
     plt.savefig("output_plots/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     energy_dependent_stat += [Accuracy_mean_error]
-    energy_dependent_syst += [AccuracyBkgd_mean]
-    energy_dependent_syst_init += [AccuracyInit_mean]
+    energy_dependent_syst += [pow(max(0.,pow(AccuracyBkgd_mean,2)-pow(Accuracy_mean_error,2)),0.5)]
+    energy_dependent_syst_init += [pow(max(0.,pow(AccuracyInit_mean,2)-pow(Accuracy_mean_error,2)),0.5)]
 
     plt.clf()
     plt.rcParams["figure.figsize"] = (10,6)
@@ -1002,7 +1002,7 @@ for e in range(0,len(energy_bin)-1):
     rects1 = ax.bar(ind, AccuracyBkgdSigned_source, width, color='#089FFF', yerr=AccuracyBkgdErr_source)
     rects2 = ax.bar(ind+width, AccuracyInitSigned_source, width, color='#FF9848', yerr=AccuracyInitErr_source)
     ax.set_xlim(-width,len(ind)+width)
-    ax.set_ylabel("$(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    ax.set_ylabel("$abs(N_{data}-N_{bkg})/N_{data}$", fontsize=18)
     ax.set_title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyBkgd_mean,Accuracy_mean_error))
     xTickMarks = sample_name
     ax.set_xticks(ind+1.0*width)
@@ -1292,9 +1292,9 @@ for e in range(0,len(energy_bin)-1):
 
 my_table = PrettyTable()
 my_table.field_names = ["Syst. err MIBE", "Syst. err init.", "Stat. err"]
-my_table.float_format["Syst. err MIBE"] = ".3e"
-my_table.float_format["Syst. err init."] = ".3e"
-my_table.float_format["Stat. err"] = ".3e"
+my_table.float_format["Syst. err MIBE"] = ".3"
+my_table.float_format["Syst. err init."] = ".3"
+my_table.float_format["Stat. err"] = ".3"
 for entry in range(0,len(energy_dependent_syst)):
     my_table.add_row([energy_dependent_syst[entry],energy_dependent_syst_init[entry],energy_dependent_stat[entry]])
 print(my_table)
