@@ -1978,15 +1978,15 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_radius_outer.push_back(0.2);
 
         roi_name.push_back("inner ring");
-        roi_ra.push_back(287.25);
-        roi_dec.push_back(6.25);
+        roi_ra.push_back(287.058);
+        roi_dec.push_back(6.291);
         roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.4);
+        roi_radius_outer.push_back(0.3);
 
         roi_name.push_back("outer ring");
-        roi_ra.push_back(287.25);
-        roi_dec.push_back(6.25);
-        roi_radius_inner.push_back(0.4);
+        roi_ra.push_back(287.058);
+        roi_dec.push_back(6.291);
+        roi_radius_inner.push_back(0.3);
         roi_radius_outer.push_back(0.8);
     }
     else if (TString(target).Contains("SS433")) 
