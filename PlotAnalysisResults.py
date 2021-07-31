@@ -20,6 +20,7 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 n_rebins = 2
 smooth_size_skymap = 0.1
 smooth_size_spectroscopy = 0.1
+smooth_size_exposure = 0.1
 
 #method_tag = 'loose_mdm_default'
 #method_tag = 'loose_mdm_rank3'
@@ -1434,25 +1435,25 @@ def GetShowerHistogramsFromFile(FilePath):
     #colors += [3]
     #MakeComparisonPlot(Hists,legends,colors,'entry','#vec{q_{3}}','Rank2_RightVector_%s_%s'%(sample_list[0],ErecS_lower_cut_int),0,0,False,False)
 
-    if Hist2D_OnData.Integral()<1600. or Hist2D_OnDark.Integral()<1600.:
-        Hist2D_OnData.Reset()
-        Hist2D_OnDark.Reset()
-        Hist2D_OnBkgd.Reset()
-        Hist2D_OnGamma.Reset()
-        Hist2D_Rank0_Data.Reset()
-        Hist2D_Rank1_Data.Reset()
-        Hist2D_Rank2_Data.Reset()
-        Hist2D_Rank3_Data.Reset()
-        Hist2D_Rank4_Data.Reset()
-        Hist2D_Rank0_Dark.Reset()
-        Hist2D_Rank1_Dark.Reset()
-        Hist2D_Rank2_Dark.Reset()
-        Hist2D_Rank3_Dark.Reset()
-        Hist2D_Rank4_Dark.Reset()
-        Hist2D_U_Proj.Reset()
-        Hist2D_V_Proj.Reset()
-        Hist2D_Coeff_Data.Reset()
-        Hist2D_Coeff_Bkgd.Reset()
+    #if Hist2D_OnData.Integral()<1600. or Hist2D_OnDark.Integral()<1600.:
+    #    Hist2D_OnData.Reset()
+    #    Hist2D_OnDark.Reset()
+    #    Hist2D_OnBkgd.Reset()
+    #    Hist2D_OnGamma.Reset()
+    #    Hist2D_Rank0_Data.Reset()
+    #    Hist2D_Rank1_Data.Reset()
+    #    Hist2D_Rank2_Data.Reset()
+    #    Hist2D_Rank3_Data.Reset()
+    #    Hist2D_Rank4_Data.Reset()
+    #    Hist2D_Rank0_Dark.Reset()
+    #    Hist2D_Rank1_Dark.Reset()
+    #    Hist2D_Rank2_Dark.Reset()
+    #    Hist2D_Rank3_Dark.Reset()
+    #    Hist2D_Rank4_Dark.Reset()
+    #    Hist2D_U_Proj.Reset()
+    #    Hist2D_V_Proj.Reset()
+    #    Hist2D_Coeff_Data.Reset()
+    #    Hist2D_Coeff_Bkgd.Reset()
 
     Hist_OnData_MSCL.Reset()
     Hist_OnData_MSCL.Add(Hist2D_OnData.ProjectionX("Hist1D_OnData_MSCL",bin_lower_y,bin_upper_y))
@@ -1482,8 +1483,8 @@ def GetShowerHistogramsFromFile(FilePath):
         #HistTemp = MergeHistogram(Hist2D_OffData[nth_sample],InputFile.Get(HistName))
         #Hist2D_OffData[nth_sample].Add(HistTemp)
 
-        if Hist2D_OffData[nth_sample].Integral()<1600.:
-            Hist2D_OffData[nth_sample].Reset()
+        #if Hist2D_OffData[nth_sample].Integral()<1600.:
+        #    Hist2D_OffData[nth_sample].Reset()
         if math.isnan(Hist2D_OffData[nth_sample].Integral()):
             Hist2D_OffData[nth_sample].Reset()
 
@@ -2213,12 +2214,14 @@ def MakeSpectrumFromFluxHist(hist_flux,legends,title,name):
 
     Hist_Invisible = hist_flux[0].Clone()
     ymax = 0.
-    ymin = 0.
+    ymin = 1.
     for nth_roi in range(2,len(hist_flux)):
-        ymax = max(hist_flux[nth_roi].GetMaximum(),Hist_Invisible.GetBinContent(1))
-        ymin = min(hist_flux[nth_roi].GetMinimum(),Hist_Invisible.GetBinContent(2))
-        Hist_Invisible.SetBinContent(1,ymax)
-        Hist_Invisible.SetBinContent(2,ymin)
+        for binx in range(0,hist_flux[nth_roi].GetNbinsX()):
+            if hist_flux[nth_roi].GetBinContent(binx+1)<=0.: continue
+            ymax = max(hist_flux[nth_roi].GetBinContent(binx+1),ymax)
+            ymin = min(hist_flux[nth_roi].GetBinContent(binx+1),ymin)
+    Hist_Invisible.SetBinContent(1,ymax)
+    Hist_Invisible.SetBinContent(2,ymin)
     Hist_Invisible.SetLineColor(0)
     Hist_Invisible.GetXaxis().SetTitleOffset(0.8)
     Hist_Invisible.GetXaxis().SetTitleSize(0.06)
@@ -2241,33 +2244,33 @@ def MakeSpectrumFromFluxHist(hist_flux,legends,title,name):
         func_source[nth_roi].SetLineColor(nth_roi-1)
         func_source[nth_roi].Draw("E same")
 
-    func_crab.SetLineColor(2)
-    func_crab.Draw("same")
+    #func_crab.SetLineColor(2)
+    #func_crab.Draw("same")
 
-    # MGRO J1908
-    if 'MGRO_J1908' in name:
-        func_1908 = ROOT.TF1("func_1908","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
-        func_1908.SetParameters(4.23,-2.2)
-        func_1908.SetLineColor(4)
-        func_1908.Draw("same")
-    # IC 443 https://arxiv.org/pdf/0905.3291.pdf
-    if 'IC443' in name:
-        print ('Compare to official IC 443 flux...')
-        func_ic443 = ROOT.TF1("func_ic443","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
-        func_ic443.SetParameters(0.838,-2.99)
-        func_ic443.SetLineColor(4)
-        func_ic443.Draw("same")
-    # 1ES 1218 https://arxiv.org/pdf/0810.0301.pdf
-    if '1ES1218' in name:
-        func_1218 = ROOT.TF1("func_1218","[0]*pow(10,-12)*pow(x/500.,[1])", 200, 4000)
-        func_1218.SetParameters(7.5,-3.08)
-        func_1218.SetLineColor(4)
-        func_1218.Draw("same")
-    if 'Geminga' in name:
-        func_geminga = ROOT.TF1("func_geminga","[0]*pow(10,-12)*pow(x/1000.,[1])", 100, 10000)
-        func_geminga.SetParameters(3.5,-2.2)
-        func_geminga.SetLineColor(4)
-        func_geminga.Draw("same")
+    ## MGRO J1908
+    #if 'MGRO_J1908' in name:
+    #    func_1908 = ROOT.TF1("func_1908","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
+    #    func_1908.SetParameters(4.23,-2.2)
+    #    func_1908.SetLineColor(4)
+    #    func_1908.Draw("same")
+    ## IC 443 https://arxiv.org/pdf/0905.3291.pdf
+    #if 'IC443' in name:
+    #    print ('Compare to official IC 443 flux...')
+    #    func_ic443 = ROOT.TF1("func_ic443","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
+    #    func_ic443.SetParameters(0.838,-2.99)
+    #    func_ic443.SetLineColor(4)
+    #    func_ic443.Draw("same")
+    ## 1ES 1218 https://arxiv.org/pdf/0810.0301.pdf
+    #if '1ES1218' in name:
+    #    func_1218 = ROOT.TF1("func_1218","[0]*pow(10,-12)*pow(x/500.,[1])", 200, 4000)
+    #    func_1218.SetParameters(7.5,-3.08)
+    #    func_1218.SetLineColor(4)
+    #    func_1218.Draw("same")
+    #if 'Geminga' in name:
+    #    func_geminga = ROOT.TF1("func_geminga","[0]*pow(10,-12)*pow(x/1000.,[1])", 100, 10000)
+    #    func_geminga.SetParameters(3.5,-2.2)
+    #    func_geminga.SetLineColor(4)
+    #    func_geminga.Draw("same")
 
 
     pad3.cd()
@@ -2282,10 +2285,10 @@ def MakeSpectrumFromFluxHist(hist_flux,legends,title,name):
     legend.Clear()
     for nth_roi in range(2,len(hist_flux)):
         legend.AddEntry(hist_flux[nth_roi],"%s, index = %0.2f #pm %0.2f"%(legends[nth_roi],func_source[nth_roi].GetParameter(1),func_source[nth_roi].GetParError(1)),"pl")
-    if 'IC443' in name:
-        legend.AddEntry(func_ic443,"flux from arXiv:0905.3291","pl")
-    if 'MGRO_J1908' in name:
-        legend.AddEntry(func_1908,"flux from arXiv:1404.7185","pl")
+    #if 'IC443' in name:
+    #    legend.AddEntry(func_ic443,"flux from arXiv:0905.3291","pl")
+    #if 'MGRO_J1908' in name:
+    #    legend.AddEntry(func_1908,"flux from arXiv:1404.7185","pl")
     legend.Draw("SAME")
 
     pad1.SetLogy()
@@ -3502,20 +3505,20 @@ def NormalizeEnergyHistograms(FilePath):
         Hist_OnBkgd_RoI_MJD[nth_roi].Add(InputFile.Get(HistName))
 
 
-    if Hist2D_OnData.Integral()<1600.:
-        Hist_OnData_Energy.Reset()
-        Hist_OnBkgd_Energy.Reset()
-        Hist_OnRFoV_Energy.Reset()
-        Hist_OnData_Energy_CamCenter.Reset()
-        Hist_OnBkgd_Energy_CamCenter.Reset()
-        Hist_OnDark_Energy.Reset()
-        Hist_OnData_Zenith.Reset()
-        Hist_OnBkgd_Zenith.Reset()
-        for nth_roi in range(0,len(roi_ra)):
-            Hist_OnData_RoI_Energy[nth_roi].Reset()
-            Hist_OnBkgd_RoI_Energy[nth_roi].Reset()
-            Hist_OnData_RoI_MJD[nth_roi].Reset()
-            Hist_OnBkgd_RoI_MJD[nth_roi].Reset()
+    #if Hist2D_OnData.Integral()<1600.:
+    #    Hist_OnData_Energy.Reset()
+    #    Hist_OnBkgd_Energy.Reset()
+    #    Hist_OnRFoV_Energy.Reset()
+    #    Hist_OnData_Energy_CamCenter.Reset()
+    #    Hist_OnBkgd_Energy_CamCenter.Reset()
+    #    Hist_OnDark_Energy.Reset()
+    #    Hist_OnData_Zenith.Reset()
+    #    Hist_OnBkgd_Zenith.Reset()
+    #    for nth_roi in range(0,len(roi_ra)):
+    #        Hist_OnData_RoI_Energy[nth_roi].Reset()
+    #        Hist_OnBkgd_RoI_Energy[nth_roi].Reset()
+    #        Hist_OnData_RoI_MJD[nth_roi].Reset()
+    #        Hist_OnBkgd_RoI_MJD[nth_roi].Reset()
 
 def NormalizeTheta2Histograms(FilePath):
 
@@ -3572,20 +3575,20 @@ def NormalizeTheta2Histograms(FilePath):
         Hist_OnBkgd_RoI_Theta2[nth_roi].Add(InputFile.Get(HistName))
 
 
-    if Hist2D_OnData.Integral()<1600.:
-        Hist_OnData_SR_XYoff.Reset()
-        Hist_OnDark_SR_XYoff.Reset()
-        Hist_OnData_CR_XYoff.Reset()
-        Hist_OnData_Yoff.Reset()
-        Hist_OnBkgd_Yoff.Reset()
-        Hist_OnBkgd_Yoff_Raw.Reset()
-        Hist_OnData_Theta2.Reset()
-        Hist_OnBkgd_Theta2.Reset()
-        Hist_OnRFoV_Theta2.Reset()
-        Hist_OnDark_Theta2.Reset()
-        for nth_roi in range(0,len(roi_ra)):
-            Hist_OnData_RoI_Theta2[nth_roi].Reset()
-            Hist_OnBkgd_RoI_Theta2[nth_roi].Reset()
+    #if Hist2D_OnData.Integral()<1600.:
+    #    Hist_OnData_SR_XYoff.Reset()
+    #    Hist_OnDark_SR_XYoff.Reset()
+    #    Hist_OnData_CR_XYoff.Reset()
+    #    Hist_OnData_Yoff.Reset()
+    #    Hist_OnBkgd_Yoff.Reset()
+    #    Hist_OnBkgd_Yoff_Raw.Reset()
+    #    Hist_OnData_Theta2.Reset()
+    #    Hist_OnBkgd_Theta2.Reset()
+    #    Hist_OnRFoV_Theta2.Reset()
+    #    Hist_OnDark_Theta2.Reset()
+    #    for nth_roi in range(0,len(roi_ra)):
+    #        Hist_OnData_RoI_Theta2[nth_roi].Reset()
+    #        Hist_OnBkgd_RoI_Theta2[nth_roi].Reset()
 
 def StackEnergyHistograms():
 
@@ -3653,9 +3656,9 @@ def NormalizeCameraFoVHistograms(FilePath):
         Hist_OffBkgd_CameraFoV_Theta2[nth_sample].Reset()
         Hist_OffBkgd_CameraFoV_Theta2[nth_sample].Add(InputFile.Get(HistName))
 
-        if Hist2D_OffData[nth_sample].Integral()<1600.:
-            Hist_OffData_CameraFoV_Theta2[nth_sample].Reset()
-            Hist_OffBkgd_CameraFoV_Theta2[nth_sample].Reset()
+        #if Hist2D_OffData[nth_sample].Integral()<1600.:
+        #    Hist_OffData_CameraFoV_Theta2[nth_sample].Reset()
+        #    Hist_OffBkgd_CameraFoV_Theta2[nth_sample].Reset()
 
         data_total, data_err = IntegralAndError(Hist_OffData_Energy[nth_sample],bin_lower,bin_upper)
         if data_total==0.:
@@ -3750,12 +3753,12 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
     Hist_OnBkgd_Skymap_Galactic.Reset()
     Hist_OnBkgd_Skymap_Galactic.Add(InputFile.Get(HistName))
 
-    if Hist2D_OnData.Integral()<1600.:
-        Hist_OnData_Skymap.Reset()
-        Hist_OnDark_Skymap.Reset()
-        Hist_OnData_Skymap_Galactic.Reset()
-        Hist_OnBkgd_Skymap.Reset()
-        Hist_OnBkgd_Skymap_Galactic.Reset()
+    #if Hist2D_OnData.Integral()<1600.:
+    #    Hist_OnData_Skymap.Reset()
+    #    Hist_OnDark_Skymap.Reset()
+    #    Hist_OnData_Skymap_Galactic.Reset()
+    #    Hist_OnBkgd_Skymap.Reset()
+    #    Hist_OnBkgd_Skymap_Galactic.Reset()
 
 def StackSkymapHistograms(ebin):
 
@@ -4132,6 +4135,8 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
 
     hist_index_skymap = ROOT.TH2D("hist_index_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_index_skymap.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
+    hist_index_err_skymap = ROOT.TH2D("hist_index_err_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_index_err_skymap.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
     hist_index_skymap_full = ROOT.TH2D("hist_index_skymap_full","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_index_skymap_full.Rebin2D(int(max_nbins/best_nbins),int(max_nbins/best_nbins))
 
@@ -4231,15 +4236,19 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
             Hist_Flux.Fit("func_source_%s"%(nth_bin-1),"N","",ErecS_lower_cut,ErecS_upper_cut)
             good_fit = True
             good_data = True
-            if (int(max_nbins/best_nbins))>=4:
-                #if n_3sigma_connect_max<4 and n_4sigma_connect_max<3: good_data = False
-                if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
-            else:
-                if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
+            #if (int(max_nbins/best_nbins))>=4:
+            #    #if n_3sigma_connect_max<4 and n_4sigma_connect_max<3: good_data = False
+            #    if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
+            #else:
+            #    if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
+            #if n_3sigma_connect_max<2: good_data = False
+            if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
             if abs(func_source[nth_bin-1].GetParameter(1))<5.*func_source[nth_bin-1].GetParError(1): good_fit = False
-            if good_fit and good_data:
+            #if good_fit and good_data:
+            if good_data:
                 hist_index_skymap.SetBinContent(binx+1,biny+1,func_source[nth_bin-1].GetParameter(1))
                 hist_index_skymap.SetBinError(binx+1,biny+1,func_source[nth_bin-1].GetParError(1))
+                hist_index_err_skymap.SetBinContent(binx+1,biny+1,func_source[nth_bin-1].GetChisquare()/3.)
                 if func_source[nth_bin-1].GetParameter(1)<min_index:
                     min_index = func_source[nth_bin-1].GetParameter(1)
                 #Hist_Flux.Draw("E")
@@ -4248,6 +4257,7 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
             else:
                 hist_index_skymap.SetBinContent(binx+1,biny+1,-99.)
                 hist_index_skymap.SetBinError(binx+1,biny+1,-99.)
+                hist_index_err_skymap.SetBinContent(binx+1,biny+1,0.)
                 #Hist_Flux.Draw("E")
                 #func_source[nth_bin-1].Draw("same")
                 #c_both.SaveAs('output_plots/Fit_x%s_y%s.png'%(binx,biny))
@@ -4259,6 +4269,7 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
                 hist_index_skymap_full.SetBinError(binx+1,biny+1,-99.)
 
     hist_index_skymap_reflect = reflectXaxis(hist_index_skymap)
+    hist_index_err_skymap_reflect = reflectXaxis(hist_index_err_skymap)
     hist_index_skymap_reflect.SetMinimum(min_index)
     hist_index_skymap_full_reflect = reflectXaxis(hist_index_skymap_full)
     hist_index_skymap_full_reflect.SetMaximum(hist_index_skymap_reflect.GetMaximum())
@@ -4379,6 +4390,40 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
     lumilab4.SetTextSize(0.15)
     lumilab4.Draw()
     canvas.SaveAs('output_plots/SkymapIndex_%s_%s.png'%(name,selection_tag))
+
+    pad1.cd()
+    hist_index_err_skymap_reflect.Draw("COL4Z")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        if nth_roi==1: continue
+        mycircles[nth_roi].Draw("same")
+    for star in range(0,len(other_star_markers)):
+        other_star_markers[star].Draw("same")
+        other_star_labels[star].Draw("same")
+    hist_index_err_skymap_reflect.GetXaxis().SetLabelOffset(999)
+    hist_index_err_skymap_reflect.GetXaxis().SetTickLength(0)
+    x1 = hist_index_err_skymap_reflect.GetXaxis().GetXmin()
+    x2 = hist_index_err_skymap_reflect.GetXaxis().GetXmax()
+    y1 = hist_index_err_skymap_reflect.GetYaxis().GetXmin()
+    y2 = hist_index_err_skymap_reflect.GetYaxis().GetXmax()
+    IncValues = ROOT.TF1( "IncValues", "-x", -x2, -x1 )
+    raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
+    raLowerAxis.SetLabelSize(hist_index_err_skymap_reflect.GetXaxis().GetLabelSize())
+    raLowerAxis.Draw()
+    pad3.cd()
+    lumilab3 = ROOT.TLatex(0.15,0.50,'E >%0.1f GeV (%.1f hrs)'%(energy_bin[energy_bin_cut_low],exposure_hours) )
+    lumilab3.SetNDC()
+    lumilab3.SetTextSize(0.15)
+    lumilab3.Draw()
+    lumilab4 = ROOT.TLatex(0.15,0.30,'MJD %s-%s'%(MJD_Start,MJD_End) )
+    lumilab4.SetNDC()
+    lumilab4.SetTextSize(0.15)
+    lumilab4.Draw()
+    canvas.SaveAs('output_plots/SkymapIndexErr_%s_%s.png'%(name,selection_tag))
 
     return hist_index_skymap
 
@@ -4632,6 +4677,7 @@ def MakeMWLSkymap(Hist_Veritas_input,contour_level,xtitle,ytitle,name):
     for level in range(0,len(contour_level)):
         Hist_Contour.SetContourLevel(level,contour_level[level])
     Hist_Contour.SetLineColor(0)
+    Hist_Contour.SetLineWidth(2)
 
     pad1.cd()
     #pad1.SetLogz()
@@ -6117,21 +6163,33 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
 
     if not doMap: return
 
+    ErecS_lower_cut = energy_bin[energy_bin_cut_low]
+    ErecS_upper_cut = energy_bin[energy_bin_cut_up]
+
+    global smooth_size_exposure
+    smooth_size_exposure = 0.1
+    if ErecS_lower_cut>=1000.: smooth_size_exposure = 0.15
+    if ErecS_lower_cut>=2000.: smooth_size_exposure = 0.2
+
     Hist_OnData_Skymap_smooth = Hist_OnData_Skymap_Sum
     Hist_OnBkgd_Skymap_smooth = Hist_OnBkgd_Skymap_Sum
+    Hist_OnExpo_Skymap_smooth = Hist_OnBkgd_Skymap_Sum
     Hist_OnBkgd_Skymap_Syst_MDM_smooth = Hist_OnBkgd_Skymap_Syst_MDM
     Hist_OnBkgd_Skymap_Syst_RBM_smooth = Hist_OnBkgd_Skymap_Syst_RBM
     Hist_OnData_Skymap_Galactic_smooth = Hist_OnData_Skymap_Galactic_Sum
     Hist_OnBkgd_Skymap_Galactic_smooth = Hist_OnBkgd_Skymap_Galactic_Sum
+    Hist_OnExpo_Skymap_Galactic_smooth = Hist_OnBkgd_Skymap_Galactic_Sum
     Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth = Hist_OnBkgd_Skymap_Galactic_Syst_MDM
     Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth = Hist_OnBkgd_Skymap_Galactic_Syst_RBM
     if doSmooth:
         Hist_OnData_Skymap_smooth = Smooth2DMap(Hist_OnData_Skymap_Sum,smooth_size_skymap,False)
         Hist_OnBkgd_Skymap_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Sum,smooth_size_skymap,False)
+        Hist_OnExpo_Skymap_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Sum,smooth_size_exposure,False)
         Hist_OnBkgd_Skymap_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_MDM,smooth_size_skymap,False)
         Hist_OnBkgd_Skymap_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_RBM,smooth_size_skymap,False)
         Hist_OnData_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnData_Skymap_Galactic_Sum,smooth_size_skymap,False)
         Hist_OnBkgd_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Sum,smooth_size_skymap,False)
+        Hist_OnExpo_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Sum,smooth_size_exposure,False)
         Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_MDM,smooth_size_skymap,False)
         Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_RBM,smooth_size_skymap,False)
 
@@ -6146,8 +6204,8 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
     center_binx = int(Hist_Exposure_Skymap.GetNbinsX()/2.)
     center_biny = int(Hist_Exposure_Skymap.GetNbinsY()/2.)
     event_rate_smooth = Hist_Exposure_Skymap_smooth.GetBinContent(center_binx,center_biny)
-    Hist_Exposure_Skymap_smooth = Hist_OnBkgd_Skymap_smooth.Clone()
-    Hist_Exposure_Skymap_Galactic_smooth = Hist_OnBkgd_Skymap_Galactic_smooth.Clone()
+    Hist_Exposure_Skymap_smooth = Hist_OnExpo_Skymap_smooth.Clone()
+    Hist_Exposure_Skymap_Galactic_smooth = Hist_OnExpo_Skymap_Galactic_smooth.Clone()
     Hist_Exposure_Skymap_smooth.Scale(1./event_rate_smooth)
     Hist_Exposure_Skymap_Galactic_smooth.Scale(1./event_rate_smooth)
 
@@ -6168,11 +6226,10 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
     MakeMWLSkymap(Hist_Significance_Skymap_smooth, [3,4,5],'RA','Dec','Skymap_MWL_RaDec_MDM_%s%s'%(source_name,PercentCrab))
     MakeMWLSkymap(Hist_Significance_Skymap_smooth_zoomin, [3,4,5],'RA','Dec','Skymap_MWL_RaDec_MDM_ZoomIn_%s%s'%(source_name,PercentCrab))
 
-    ErecS_lower_cut = energy_bin[energy_bin_cut_low]
-    ErecS_upper_cut = energy_bin[energy_bin_cut_up]
     if doSmooth:
         Hist_Data_Energy_Skymap_smooth = []
         Hist_Bkgd_Energy_Skymap_smooth = []
+        Hist_Expo_Energy_Skymap_smooth = []
         Hist_Zscore_Energy_Skymap_smooth = []
         Hist_Syst_Energy_Skymap_smooth = []
         for ebin in range(0,len(energy_bin)-1):
@@ -6180,16 +6237,21 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
             Hist_Syst_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Syst_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
             Hist_Data_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Data_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
             Hist_Bkgd_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+            Hist_Expo_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Expo_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
         for ebin in range(0,len(energy_bin)-1):
+            smooth_size_exposure = 0.1
+            if energy_bin[ebin]>=1000.: smooth_size_exposure = 0.15
+            if energy_bin[ebin]>=2000.: smooth_size_exposure = 0.2
             Hist_Data_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Data_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Bkgd_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
+            Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_exposure,False)
             Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Syst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Zscore_Energy_Skymap_smooth[ebin] = GetSignificanceMap(Hist_Data_Energy_Skymap_smooth[ebin],Hist_Bkgd_Energy_Skymap_smooth[ebin],Hist_Syst_Energy_Skymap_smooth[ebin],Syst_MDM,False)
-            Hist_Expo_Energy_Skymap[ebin] = Hist_Bkgd_Energy_Skymap_smooth[ebin].Clone()
+            Hist_Expo_Energy_Skymap[ebin] = Hist_Expo_Energy_Skymap_smooth[ebin].Clone()
             Hist_Expo_Energy_Skymap[ebin].Scale(1./event_rate_smooth)
         Hist_IndexMap = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
         Hist_IndexMap_ZoomIn = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s_zoomin'%(source_name,PercentCrab),60,2)
-        MakeMWLSkymap(Hist_IndexMap_ZoomIn,[2.0],'RA','Dec','Skymap_MWL_Index_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+        MakeMWLSkymap(Hist_IndexMap_ZoomIn,[2.2],'RA','Dec','Skymap_MWL_Index_RaDec_MDM_%s%s'%(source_name,PercentCrab))
 
         Hist_IndexMap_Unsmooth = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_Syst_Energy_Skymap,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
         legends = []
@@ -6517,10 +6579,15 @@ Smoothing = True
 #set_palette('gray')
 
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
+SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,6)
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,2)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,3)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,4)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,5)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,5,6)
 

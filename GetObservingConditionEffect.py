@@ -116,6 +116,30 @@ for elev in range(0,len(elev_bins)-1):
         for d in range(0,len(mjd_tag)):
             root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]
 
+def Make2DPlot(hist,name):
+
+    canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+    pad3.SetBottomMargin(0.0)
+    pad3.SetTopMargin(0.03)
+    pad3.SetBorderMode(1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+    pad1.SetBottomMargin(0.15)
+    pad1.SetRightMargin(0.15)
+    pad1.SetLeftMargin(0.15)
+    pad1.SetTopMargin(0.0)
+    pad1.SetBorderMode(0)
+    pad1.Draw()
+    pad3.Draw()
+
+    pad3.cd()
+    pad1.cd()
+    hist.GetYaxis().SetTitle('elev.')
+    hist.GetXaxis().SetTitle('azim.')
+    hist.Draw("COL4Z")
+    canvas.SaveAs('output_plots/%s.png'%(name))
+
+
 def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,logy,normalized):
     
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
@@ -206,6 +230,7 @@ def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,log
 
 def GetHistogramsFromFile(FilePath):
     global total_exposure_hours
+    global Hist_ElevAzim
     global Hist_OnData_PerElev_MSCW
     global Hist_OnData_PerElev_MSCL
     global Hist_OnData_PerElev_Xoff
@@ -224,6 +249,9 @@ def GetHistogramsFromFile(FilePath):
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
     energy_index = energy_bin.index(ErecS_lower_cut)
+    HistName = "Hist_ElevAzim"
+    Hist_ElevAzim.Reset()
+    Hist_ElevAzim.Add(InputFile.Get(HistName))
     for elev in range(0,len(elev_bins)-1):
         index = (len(elev_bins)-1)*energy_index + elev
         HistName = "Hist_OnData_ThisElev_MSCW_V%s_ErecS%sto%s"%(elev,ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -263,6 +291,7 @@ elev_bins = [45,50,55,60,65,70,75,80,85]
 MJD_bins = [53613,55074,56535,57996,59457]
 nsb_bins = [1,2,3,4,5,6,7,8]
 
+Hist_ElevAzim = ROOT.TH2D("Hist_ElevAzim","",18,0,90,18,0,360)
 Hist_OnData_PerElev_MSCW = []
 Hist_OnData_PerElev_MSCL = []
 Hist_OnData_PerElev_Xoff = []
@@ -330,6 +359,7 @@ for energy in range(0,len(energy_bin)-1):
     ErecS_upper_cut = energy_bin[energy+1]
     GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
 
+Make2DPlot(Hist_ElevAzim,'ElevAzim')
 for energy in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
