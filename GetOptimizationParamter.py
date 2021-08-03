@@ -174,13 +174,13 @@ lowrank_tag += 'elev_incl'
 theta2_bins = [0,4]
 
 energy_bin = []
-energy_bin += [int(pow(10,2.0))]
+#energy_bin += [int(pow(10,2.0))]
 energy_bin += [int(pow(10,2.33))]
 energy_bin += [int(pow(10,2.66))]
 energy_bin += [int(pow(10,3.0))]
 energy_bin += [int(pow(10,3.33))]
-energy_bin += [int(pow(10,3.66))]
-energy_bin += [int(pow(10,4.0))]
+#energy_bin += [int(pow(10,3.66))]
+#energy_bin += [int(pow(10,4.0))]
 
 energy_dependent_stat = []
 energy_dependent_syst = []
@@ -499,6 +499,10 @@ def GetHistogramsFromFile(FilePath,which_source):
     Hist_GammaRegion_Contribution[0].Add(InputFile.Get(HistName),weight)
     Hist_GammaRegion_Contribution[which_source+1].Add(InputFile.Get(HistName))
 
+
+Hist_SystErrDist_MDM = ROOT.TH1D("Hist_SystErrDist_MDM","",20,-0.2,0.2)
+Hist_SystErrDist_Init = ROOT.TH1D("Hist_SystErrDist_Init","",20,-0.2,0.2)
+
 optimiz_lower = -5.
 optimiz_upper = -3.
 Hist_Bkgd_Optimization = []
@@ -659,8 +663,10 @@ for e in range(0,len(energy_bin)-1):
     AccuracyInit_mean = 0.
     AccuracyInit_weight = 0.
     AccuracyInit_mean_error = 0.
+    #Hist_SystErrDist_Init.Reset()
     for entry in range(0,len(AccuracyInit_source)):
         if AccuracyInitErr_source[entry]==0.: continue
+        Hist_SystErrDist_Init.Fill(AccuracyInitSigned_source[entry])
         AccuracyInit_mean += 1./AccuracyInitErr_source[entry]*pow(AccuracyInit_source[entry],2)
         AccuracyInit_weight += 1./AccuracyInitErr_source[entry]
         AccuracyInit_mean_error += pow(AccuracyInitErr_source[entry],2)/len(AccuracyInit_source)
@@ -781,8 +787,10 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBkgd_mean = 0.
     AccuracyBkgd_weight = 0.
     AccuracyBkgd_mean_error = 0.
+    #Hist_SystErrDist_MDM.Reset()
     for entry in range(0,len(AccuracyBkgd_source)):
         if AccuracyBkgdErr_source[entry]==0.: continue
+        Hist_SystErrDist_MDM.Fill(AccuracyBkgdSigned_source[entry])
         AccuracyBkgd_mean += 1./AccuracyBkgdErr_source[entry]*pow(AccuracyBkgd_source[entry],2)
         AccuracyBkgd_weight += 1./AccuracyBkgdErr_source[entry]
         AccuracyBkgd_mean_error += pow(AccuracyBkgdErr_source[entry],2)/len(AccuracyBkgd_source)
@@ -1298,4 +1306,15 @@ my_table.float_format["Stat. err"] = ".3"
 for entry in range(0,len(energy_dependent_syst)):
     my_table.add_row([energy_dependent_syst[entry],energy_dependent_syst_init[entry],energy_dependent_stat[entry]])
 print(my_table)
+
+Hists = []
+legends = []
+colors = []
+Hists += [Hist_SystErrDist_MDM]
+legends += ['MIBE']
+colors += [1]
+Hists += [Hist_SystErrDist_Init]
+legends += ['Init.']
+colors += [2]
+MakeMultiplePlot(Hists,legends,colors,'relative error','number of observations','SystErrDist_E%s%s'%(e,folder_path),0.,0.,False,False)
 
