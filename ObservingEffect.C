@@ -126,10 +126,10 @@ void ObservingEffect()
 
             Hist_OnData_ThisElev_MSCW.push_back(TH1D("Hist_OnData_ThisElev_MSCW_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnData_ThisElev_MSCL.push_back(TH1D("Hist_OnData_ThisElev_MSCL_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper));
-            Hist_OnData_ThisElev_Xoff.push_back(TH1D("Hist_OnData_ThisElev_Xoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
-            Hist_OnData_ThisElev_Yoff.push_back(TH1D("Hist_OnData_ThisElev_Yoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
-            Hist_CRData_ThisElev_Xoff.push_back(TH1D("Hist_CRData_ThisElev_Xoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
-            Hist_CRData_ThisElev_Yoff.push_back(TH1D("Hist_CRData_ThisElev_Yoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
+            Hist_OnData_ThisElev_Xoff.push_back(TH1D("Hist_OnData_ThisElev_Xoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/12,-Skymap_size,Skymap_size));
+            Hist_OnData_ThisElev_Yoff.push_back(TH1D("Hist_OnData_ThisElev_Yoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/12,-Skymap_size,Skymap_size));
+            Hist_CRData_ThisElev_Xoff.push_back(TH1D("Hist_CRData_ThisElev_Xoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/12,-Skymap_size,Skymap_size));
+            Hist_CRData_ThisElev_Yoff.push_back(TH1D("Hist_CRData_ThisElev_Yoff_V"+TString(elev_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/12,-Skymap_size,Skymap_size));
         }
         Hist_OnData_PerElev_MSCW.push_back(Hist_OnData_ThisElev_MSCW);
         Hist_OnData_PerElev_MSCL.push_back(Hist_OnData_ThisElev_MSCL);
@@ -164,8 +164,8 @@ void ObservingEffect()
 
             Hist_OnData_ThisYear_MSCW.push_back(TH1D("Hist_OnData_ThisYear_MSCW_V"+TString(year_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnData_ThisYear_MSCL.push_back(TH1D("Hist_OnData_ThisYear_MSCL_V"+TString(year_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper));
-            Hist_OnData_ThisYear_Xoff.push_back(TH1D("Hist_OnData_ThisYear_Xoff_V"+TString(year_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
-            Hist_OnData_ThisYear_Yoff.push_back(TH1D("Hist_OnData_ThisYear_Yoff_V"+TString(year_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
+            Hist_OnData_ThisYear_Xoff.push_back(TH1D("Hist_OnData_ThisYear_Xoff_V"+TString(year_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/12,-Skymap_size,Skymap_size));
+            Hist_OnData_ThisYear_Yoff.push_back(TH1D("Hist_OnData_ThisYear_Yoff_V"+TString(year_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/12,-Skymap_size,Skymap_size));
         }
         Hist_OnData_PerYear_MSCW.push_back(Hist_OnData_ThisYear_MSCW);
         Hist_OnData_PerYear_MSCL.push_back(Hist_OnData_ThisYear_MSCL);
@@ -202,10 +202,10 @@ void ObservingEffect()
 
             Hist_OnData_ThisNSB_MSCW.push_back(TH1D("Hist_OnData_ThisNSB_MSCW_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
             Hist_OnData_ThisNSB_MSCL.push_back(TH1D("Hist_OnData_ThisNSB_MSCL_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper));
-            Hist_OnData_ThisNSB_Xoff.push_back(TH1D("Hist_OnData_ThisNSB_Xoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
-            Hist_OnData_ThisNSB_Yoff.push_back(TH1D("Hist_OnData_ThisNSB_Yoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
-            Hist_CRData_ThisNSB_Xoff.push_back(TH1D("Hist_CRData_ThisNSB_Xoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
-            Hist_CRData_ThisNSB_Yoff.push_back(TH1D("Hist_CRData_ThisNSB_Yoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/6,-Skymap_size,Skymap_size));
+            Hist_OnData_ThisNSB_Xoff.push_back(TH1D("Hist_OnData_ThisNSB_Xoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/12,-Skymap_size,Skymap_size));
+            Hist_OnData_ThisNSB_Yoff.push_back(TH1D("Hist_OnData_ThisNSB_Yoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/12,-Skymap_size,Skymap_size));
+            Hist_CRData_ThisNSB_Xoff.push_back(TH1D("Hist_CRData_ThisNSB_Xoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/12,-Skymap_size,Skymap_size));
+            Hist_CRData_ThisNSB_Yoff.push_back(TH1D("Hist_CRData_ThisNSB_Yoff_V"+TString(nsb_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/12,-Skymap_size,Skymap_size));
         }
         Hist_OnData_PerNSB_MSCW.push_back(Hist_OnData_ThisNSB_MSCW);
         Hist_OnData_PerNSB_MSCL.push_back(Hist_OnData_ThisNSB_MSCL);
