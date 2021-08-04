@@ -55,18 +55,19 @@ par8_count = []
 par9_count = []
 wpar9_count = []
 dark_count = []
-bkgd_chi2 = []
-par8_chi2 = []
-par9_chi2 = []
-wpar9_chi2 = []
-dark_chi2 = []
+#bkgd_chi2 = []
+#par8_chi2 = []
+#par9_chi2 = []
+#wpar9_chi2 = []
+#dark_chi2 = []
 rank0_count = []
 rank1_count = []
 rank2_count = []
 rank3_count = []
 rank4_count = []
 
-folder_path = 'output_nominal'
+#folder_path = 'output_nominal'
+folder_path = 'output_nocameracorrect'
 #folder_path = 'output_elev_p5'
 #folder_path = 'output_nsb_m1'
 method_tag = 'tight_mdm_default'
@@ -174,13 +175,13 @@ lowrank_tag += 'elev_incl'
 theta2_bins = [0,4]
 
 energy_bin = []
-#energy_bin += [int(pow(10,2.0))]
+energy_bin += [int(pow(10,2.0))]
 energy_bin += [int(pow(10,2.33))]
 energy_bin += [int(pow(10,2.66))]
 energy_bin += [int(pow(10,3.0))]
 energy_bin += [int(pow(10,3.33))]
-#energy_bin += [int(pow(10,3.66))]
-#energy_bin += [int(pow(10,4.0))]
+energy_bin += [int(pow(10,3.66))]
+energy_bin += [int(pow(10,4.0))]
 
 energy_dependent_stat = []
 energy_dependent_syst = []
@@ -358,11 +359,11 @@ def GetHistogramsFromFile(FilePath,which_source):
     global par9_count
     global wpar9_count
     global dark_count
-    global bkgd_chi2
-    global par8_chi2
-    global par9_chi2
-    global wpar9_chi2
-    global dark_chi2
+    #global bkgd_chi2
+    #global par8_chi2
+    #global par9_chi2
+    #global wpar9_chi2
+    #global dark_chi2
     global rank0_count
     global rank1_count
     global rank2_count
@@ -378,11 +379,11 @@ def GetHistogramsFromFile(FilePath,which_source):
     par9_gamma_count = ROOT.std.vector("double")(10)
     wpar9_gamma_count = ROOT.std.vector("double")(10)
     dark_gamma_count = ROOT.std.vector("double")(10)
-    bkgd_coeff_chi2 = ROOT.std.vector("double")(10)
-    par8_coeff_chi2 = ROOT.std.vector("double")(10)
-    par9_coeff_chi2 = ROOT.std.vector("double")(10)
-    wpar9_coeff_chi2 = ROOT.std.vector("double")(10)
-    dark_coeff_chi2 = ROOT.std.vector("double")(10)
+    #bkgd_coeff_chi2 = ROOT.std.vector("double")(10)
+    #par8_coeff_chi2 = ROOT.std.vector("double")(10)
+    #par9_coeff_chi2 = ROOT.std.vector("double")(10)
+    #wpar9_coeff_chi2 = ROOT.std.vector("double")(10)
+    #dark_coeff_chi2 = ROOT.std.vector("double")(10)
     rank0_gamma_count = ROOT.std.vector("double")(10)
     rank1_gamma_count = ROOT.std.vector("double")(10)
     rank2_gamma_count = ROOT.std.vector("double")(10)
@@ -402,16 +403,16 @@ def GetHistogramsFromFile(FilePath,which_source):
     NewInfoTree.SetBranchAddress('par9_gamma_count',ROOT.AddressOf(par9_gamma_count))
     NewInfoTree.SetBranchAddress('wpar9_gamma_count',ROOT.AddressOf(wpar9_gamma_count))
     NewInfoTree.SetBranchAddress('dark_gamma_count',ROOT.AddressOf(dark_gamma_count))
-    NewInfoTree.SetBranchAddress('bkgd_coeff_chi2',ROOT.AddressOf(bkgd_coeff_chi2))
-    NewInfoTree.SetBranchAddress('par8_coeff_chi2',ROOT.AddressOf(par8_coeff_chi2))
-    NewInfoTree.SetBranchAddress('par9_coeff_chi2',ROOT.AddressOf(par9_coeff_chi2))
-    NewInfoTree.SetBranchAddress('wpar9_coeff_chi2',ROOT.AddressOf(wpar9_coeff_chi2))
-    NewInfoTree.SetBranchAddress('dark_coeff_chi2',ROOT.AddressOf(dark_coeff_chi2))
-    NewInfoTree.SetBranchAddress('rank0_gamma_count',ROOT.AddressOf(rank0_gamma_count))
-    NewInfoTree.SetBranchAddress('rank1_gamma_count',ROOT.AddressOf(rank1_gamma_count))
-    NewInfoTree.SetBranchAddress('rank2_gamma_count',ROOT.AddressOf(rank2_gamma_count))
-    NewInfoTree.SetBranchAddress('rank3_gamma_count',ROOT.AddressOf(rank3_gamma_count))
-    NewInfoTree.SetBranchAddress('rank4_gamma_count',ROOT.AddressOf(rank4_gamma_count))
+    #NewInfoTree.SetBranchAddress('bkgd_coeff_chi2',ROOT.AddressOf(bkgd_coeff_chi2))
+    #NewInfoTree.SetBranchAddress('par8_coeff_chi2',ROOT.AddressOf(par8_coeff_chi2))
+    #NewInfoTree.SetBranchAddress('par9_coeff_chi2',ROOT.AddressOf(par9_coeff_chi2))
+    #NewInfoTree.SetBranchAddress('wpar9_coeff_chi2',ROOT.AddressOf(wpar9_coeff_chi2))
+    #NewInfoTree.SetBranchAddress('dark_coeff_chi2',ROOT.AddressOf(dark_coeff_chi2))
+    #NewInfoTree.SetBranchAddress('rank0_gamma_count',ROOT.AddressOf(rank0_gamma_count))
+    #NewInfoTree.SetBranchAddress('rank1_gamma_count',ROOT.AddressOf(rank1_gamma_count))
+    #NewInfoTree.SetBranchAddress('rank2_gamma_count',ROOT.AddressOf(rank2_gamma_count))
+    #NewInfoTree.SetBranchAddress('rank3_gamma_count',ROOT.AddressOf(rank3_gamma_count))
+    #NewInfoTree.SetBranchAddress('rank4_gamma_count',ROOT.AddressOf(rank4_gamma_count))
     NewInfoTree.GetEntry(0)
     exposure_hours = InfoTree.exposure_hours
     data_exposure[which_source] += exposure_hours
@@ -446,11 +447,11 @@ def GetHistogramsFromFile(FilePath,which_source):
     par9_count[which_source]  += par9_gamma_count[energy_index]
     wpar9_count[which_source]  += wpar9_gamma_count[energy_index]
     dark_count[which_source]  += dark_gamma_count[energy_index]
-    bkgd_chi2[which_source]  += bkgd_coeff_chi2[energy_index]
-    par8_chi2[which_source]  += par8_coeff_chi2[energy_index]
-    par9_chi2[which_source]  += par9_coeff_chi2[energy_index]
-    wpar9_chi2[which_source]  += wpar9_coeff_chi2[energy_index]
-    dark_chi2[which_source]  += dark_coeff_chi2[energy_index]
+    #bkgd_chi2[which_source]  += bkgd_coeff_chi2[energy_index]
+    #par8_chi2[which_source]  += par8_coeff_chi2[energy_index]
+    #par9_chi2[which_source]  += par9_coeff_chi2[energy_index]
+    #wpar9_chi2[which_source]  += wpar9_coeff_chi2[energy_index]
+    #dark_chi2[which_source]  += dark_coeff_chi2[energy_index]
     rank0_count[which_source]  += rank0_gamma_count[energy_index]
     rank1_count[which_source]  += rank1_gamma_count[energy_index]
     rank2_count[which_source]  += rank2_gamma_count[energy_index]
@@ -550,18 +551,18 @@ for e in range(0,len(energy_bin)-1):
     par8_count = [0.]*len(sample_list)
     par9_count = [0.]*len(sample_list)
     wpar9_count = [0.]*len(sample_list)
-    bkgd_chi2 = [0.]*len(sample_list)
-    par8_chi2 = [0.]*len(sample_list)
-    par9_chi2 = [0.]*len(sample_list)
-    wpar9_chi2 = [0.]*len(sample_list)
-    data_exposure = [0.]*len(sample_list)
-    dark_count = [0.]*len(sample_list)
-    dark_chi2 = [0.]*len(sample_list)
+    #bkgd_chi2 = [0.]*len(sample_list)
+    #par8_chi2 = [0.]*len(sample_list)
+    #par9_chi2 = [0.]*len(sample_list)
+    #wpar9_chi2 = [0.]*len(sample_list)
+    #dark_chi2 = [0.]*len(sample_list)
     rank0_count = [0.]*len(sample_list)
     rank1_count = [0.]*len(sample_list)
     rank2_count = [0.]*len(sample_list)
     rank3_count = [0.]*len(sample_list)
     rank4_count = [0.]*len(sample_list)
+    data_exposure = [0.]*len(sample_list)
+    dark_count = [0.]*len(sample_list)
     for entry in range(0,len(Hist_U_Proj)):
         Hist_U_Proj[entry].Reset()
         Hist_V_Proj[entry].Reset()
@@ -1256,21 +1257,21 @@ for e in range(0,len(energy_bin)-1):
     plt.plot(line_x, line_y, color='r')
     plt.savefig("output_plots/PlainVsWeightedFrobenius_Count_E%s_%s%s.png"%(e,method_tag,folder_path))
 
-    par9_epsilon = []
-    wpar9_epsilon = []
-    for entry in range(0,len(wpar9_count)):
-        par9_epsilon += [par9_chi2[entry]]
-        wpar9_epsilon += [wpar9_chi2[entry]]
-    plt.clf()
-    plt.xlabel("$\epsilon$ (plain Frobenius norm)", fontsize=18)
-    plt.ylabel("$\epsilon$ (weighted Frobenius norm)", fontsize=18)
-    plt.xlim(0.,0.1)
-    plt.ylim(0.,0.1)
-    plt.scatter(par9_epsilon,wpar9_epsilon)
-    line_x = np.arange(0.0, 0.1, 1e-4) # angular size
-    line_y = line_x
-    plt.plot(line_x, line_y, color='r')
-    plt.savefig("output_plots/PlainVsWeightedFrobenius_Chi2_E%s_%s%s.png"%(e,method_tag,folder_path))
+    #par9_epsilon = []
+    #wpar9_epsilon = []
+    #for entry in range(0,len(wpar9_count)):
+    #    par9_epsilon += [par9_chi2[entry]]
+    #    wpar9_epsilon += [wpar9_chi2[entry]]
+    #plt.clf()
+    #plt.xlabel("$\epsilon$ (plain Frobenius norm)", fontsize=18)
+    #plt.ylabel("$\epsilon$ (weighted Frobenius norm)", fontsize=18)
+    #plt.xlim(0.,0.1)
+    #plt.ylim(0.,0.1)
+    #plt.scatter(par9_epsilon,wpar9_epsilon)
+    #line_x = np.arange(0.0, 0.1, 1e-4) # angular size
+    #line_y = line_x
+    #plt.plot(line_x, line_y, color='r')
+    #plt.savefig("output_plots/PlainVsWeightedFrobenius_Chi2_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     #Hists = []
     #legends = []
