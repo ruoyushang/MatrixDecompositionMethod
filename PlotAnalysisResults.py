@@ -704,7 +704,7 @@ print ('Get %s'%(root_file_tags[0]))
 selection_tag = root_file_tags[0]
 
 #folder_path = 'output_nominal'
-folder_path = 'output_finebins'
+folder_path = 'output_nocameracorrect'
 PercentCrab = ''
 
 selection_tag += '_%s'%(folder_path)
@@ -2210,7 +2210,7 @@ def MakeSpectrumFromFluxHist(hist_flux,legends,title,name):
     pad1.cd()
 
     # Crab https://arxiv.org/pdf/1508.06442.pdf
-    func_crab = ROOT.TF1("func_crab","[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 100, 10000)
+    func_crab = ROOT.TF1("func_crab","pow(x/1000.,2)*[0]*pow(10,-12)*pow(x/1000.,[1]+[2]*log(x/1000.))", 100, 10000)
     func_crab.SetParameters(37.5,-2.467,-0.16)
 
     Hist_Invisible = hist_flux[0].Clone()
@@ -2236,7 +2236,7 @@ def MakeSpectrumFromFluxHist(hist_flux,legends,title,name):
 
     func_source = []
     for nth_roi in range(0,len(hist_flux)):
-        func_source += [ROOT.TF1("func_source_%s"%(nth_roi),"[0]*pow(10,-12)*pow(x/1000.,[1])", ErecS_lower_cut, ErecS_upper_cut)]
+        func_source += [ROOT.TF1("func_source_%s"%(nth_roi),"pow(x/1000.,2)*[0]*pow(10,-12)*pow(x/1000.,[1])", ErecS_lower_cut, ErecS_upper_cut)]
         func_source[nth_roi].SetParameters(37.5,-2.)
         if nth_roi<2: continue
         hist_flux[nth_roi].SetLineColor(nth_roi-1)
@@ -2248,30 +2248,30 @@ def MakeSpectrumFromFluxHist(hist_flux,legends,title,name):
     #func_crab.SetLineColor(2)
     #func_crab.Draw("same")
 
-    ## MGRO J1908
-    #if 'MGRO_J1908' in name:
-    #    func_1908 = ROOT.TF1("func_1908","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
-    #    func_1908.SetParameters(4.23,-2.2)
-    #    func_1908.SetLineColor(4)
-    #    func_1908.Draw("same")
-    ## IC 443 https://arxiv.org/pdf/0905.3291.pdf
-    #if 'IC443' in name:
-    #    print ('Compare to official IC 443 flux...')
-    #    func_ic443 = ROOT.TF1("func_ic443","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
-    #    func_ic443.SetParameters(0.838,-2.99)
-    #    func_ic443.SetLineColor(4)
-    #    func_ic443.Draw("same")
-    ## 1ES 1218 https://arxiv.org/pdf/0810.0301.pdf
-    #if '1ES1218' in name:
-    #    func_1218 = ROOT.TF1("func_1218","[0]*pow(10,-12)*pow(x/500.,[1])", 200, 4000)
-    #    func_1218.SetParameters(7.5,-3.08)
-    #    func_1218.SetLineColor(4)
-    #    func_1218.Draw("same")
-    #if 'Geminga' in name:
-    #    func_geminga = ROOT.TF1("func_geminga","[0]*pow(10,-12)*pow(x/1000.,[1])", 100, 10000)
-    #    func_geminga.SetParameters(3.5,-2.2)
-    #    func_geminga.SetLineColor(4)
-    #    func_geminga.Draw("same")
+    # MGRO J1908
+    if 'MGRO_J1908' in name:
+        func_1908 = ROOT.TF1("func_1908","pow(x/1000.,2)*[0]*pow(10,-12)*pow(x/1000.,[1])", 500, 10000)
+        func_1908.SetParameters(4.23,-2.2)
+        func_1908.SetLineColor(4)
+        func_1908.Draw("same")
+    # IC 443 https://arxiv.org/pdf/0905.3291.pdf
+    if 'IC443' in name:
+        print ('Compare to official IC 443 flux...')
+        func_ic443 = ROOT.TF1("func_ic443","pow(x/1000.,2)*[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
+        func_ic443.SetParameters(0.838,-2.99)
+        func_ic443.SetLineColor(4)
+        func_ic443.Draw("same")
+    # 1ES 1218 https://arxiv.org/pdf/0810.0301.pdf
+    if '1ES1218' in name:
+        func_1218 = ROOT.TF1("func_1218","pow(x/1000.,2)*[0]*pow(10,-12)*pow(x/500.,[1])", 200, 4000)
+        func_1218.SetParameters(7.5,-3.08)
+        func_1218.SetLineColor(4)
+        func_1218.Draw("same")
+    if 'Geminga' in name:
+        func_geminga = ROOT.TF1("func_geminga","pow(x/1000.,2)*[0]*pow(10,-12)*pow(x/1000.,[1])", 100, 10000)
+        func_geminga.SetParameters(3.5,-2.2)
+        func_geminga.SetLineColor(4)
+        func_geminga.Draw("same")
 
 
     pad3.cd()
@@ -2820,6 +2820,14 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
     c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
 
 def PlotsStackedHistograms(tag):
+
+    if energy_bin[energy_bin_cut_low]>=2000.:
+        Hist_OnData_Skymap_ProjX_Sum.Rebin(2)
+        Hist_OnDark_Skymap_ProjX_Sum.Rebin(2)
+        Hist_OnBkgd_Skymap_ProjX_Sum.Rebin(2)
+        Hist_OnData_Skymap_ProjY_Sum.Rebin(2)
+        Hist_OnDark_Skymap_ProjY_Sum.Rebin(2)
+        Hist_OnBkgd_Skymap_ProjY_Sum.Rebin(2)
 
     Hists = []
     legends = []
@@ -3769,12 +3777,19 @@ def StackSkymapHistograms(ebin):
     Hist_OnBkgd_Skymap_Sum.Add(Hist_OnBkgd_Skymap)
     Hist_OnBkgd_Skymap_Galactic_Sum.Add(Hist_OnBkgd_Skymap_Galactic)
 
-    Hist_OnData_Skymap_ProjX_Sum.Add(Hist_OnData_Skymap.ProjectionX())
-    Hist_OnDark_Skymap_ProjX_Sum.Add(Hist_OnDark_Skymap.ProjectionX())
-    Hist_OnBkgd_Skymap_ProjX_Sum.Add(Hist_OnBkgd_Skymap.ProjectionX())
-    Hist_OnData_Skymap_ProjY_Sum.Add(Hist_OnData_Skymap.ProjectionY())
-    Hist_OnDark_Skymap_ProjY_Sum.Add(Hist_OnDark_Skymap.ProjectionY())
-    Hist_OnBkgd_Skymap_ProjY_Sum.Add(Hist_OnBkgd_Skymap.ProjectionY())
+    slice_center_x = roi_ra[2]
+    slice_center_y = roi_dec[2]
+    slice_radius = roi_radius[2]
+    first_bin_x = Hist_OnData_Skymap.GetXaxis().FindBin(slice_center_x-slice_radius)
+    last_bin_x = Hist_OnData_Skymap.GetXaxis().FindBin(slice_center_x+slice_radius)
+    first_bin_y = Hist_OnData_Skymap.GetYaxis().FindBin(slice_center_y-slice_radius)
+    last_bin_y = Hist_OnData_Skymap.GetYaxis().FindBin(slice_center_y+slice_radius)
+    Hist_OnData_Skymap_ProjX_Sum.Add(Hist_OnData_Skymap.ProjectionX("",first_bin_x,last_bin_x,"eo"))
+    Hist_OnDark_Skymap_ProjX_Sum.Add(Hist_OnDark_Skymap.ProjectionX("",first_bin_x,last_bin_x,"eo"))
+    Hist_OnBkgd_Skymap_ProjX_Sum.Add(Hist_OnBkgd_Skymap.ProjectionX("",first_bin_x,last_bin_x,"eo"))
+    Hist_OnData_Skymap_ProjY_Sum.Add(Hist_OnData_Skymap.ProjectionY("",first_bin_y,last_bin_y,"eo"))
+    Hist_OnDark_Skymap_ProjY_Sum.Add(Hist_OnDark_Skymap.ProjectionY("",first_bin_y,last_bin_y,"eo"))
+    Hist_OnBkgd_Skymap_ProjY_Sum.Add(Hist_OnBkgd_Skymap.ProjectionY("",first_bin_y,last_bin_y,"eo"))
 
     #Syst_MDM_single = CalculateSystErrorIndividual_v3()
     Syst_MDM_single = Syst_MDM
@@ -4226,8 +4241,8 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
                         if distance<roi_radius[nth_roi]:
                             old_content = Hist_RoI_Flux[nth_roi].GetBinContent(ebin+1)
                             old_error = Hist_RoI_Flux[nth_roi].GetBinError(ebin+1)
-                            new_content = old_content + diff_count*scale
-                            new_error = pow(old_error*old_error + (data_count+syst_error*syst_error)*scale*scale,0.5)
+                            new_content = old_content + diff_count*scale*pow(Hist_RoI_Flux[nth_roi].GetBinCenter(ebin+1),2)
+                            new_error = pow(old_error*old_error + (data_count+syst_error*syst_error)*scale*scale*pow(Hist_RoI_Flux[nth_roi].GetBinCenter(ebin+1),4),0.5)
                             Hist_RoI_Flux[nth_roi].SetBinContent(ebin+1,new_content)
                             Hist_RoI_Flux[nth_roi].SetBinError(ebin+1,new_error)
                 else:
@@ -6571,8 +6586,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-#drawMap = False
-drawMap = True
+drawMap = False
+#drawMap = True
 #Smoothing = False
 Smoothing = True
 
@@ -6580,10 +6595,10 @@ Smoothing = True
 #set_palette('gray')
 
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
+SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
