@@ -3455,6 +3455,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_up, "%i", int(energy_bins[e+1]));
         current_energy = energy_bins[e];
 
+        int XYoff_bins = 12;
+        if (energy_bins[e]>2000.) XYoff_bins = 6;
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
         MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
@@ -3464,10 +3466,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_SR_Skymap_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_CR_Skymap_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_SR_Yoff.push_back(TH1D("Hist_OnData_SR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
-        Hist_OnData_SR_XYoff.push_back(TH2D("Hist_OnData_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,-3,3,12,-3,3));
-        Hist_OnDark_SR_XYoff.push_back(TH2D("Hist_OnDark_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,-3,3,12,-3,3));
+        Hist_OnData_SR_XYoff.push_back(TH2D("Hist_OnData_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
+        Hist_OnDark_SR_XYoff.push_back(TH2D("Hist_OnDark_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
         Hist_OnData_CR_Yoff.push_back(TH1D("Hist_OnData_CR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
-        Hist_OnData_CR_XYoff.push_back(TH2D("Hist_OnData_CR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,-3,3,12,-3,3));
+        Hist_OnData_CR_XYoff.push_back(TH2D("Hist_OnData_CR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
         Hist_OnData_CR_Yoff_Raw.push_back(TH1D("Hist_OnData_CR_Yoff_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_OnRFoV_CR_Skymap_Theta2.push_back(TH1D("Hist_OnRFoV_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnDark_CR_Skymap_Theta2.push_back(TH1D("Hist_OnDark_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
@@ -3874,6 +3876,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_CR_Zenith.at(e).Scale(scale_yoff);
         Hist_OnData_CR_Skymap_Theta2.at(e).Scale(scale_yoff);
         Hist_OnData_CR_Yoff.at(e).Scale(scale_yoff);
+        Hist_OnDark_SR_XYoff.at(e).Scale(scale_dark_raw);
         Hist_OnData_CR_XYoff.at(e).Scale(scale_yoff);
         Hist_OnData_CR_Yoff_Raw.at(e).Scale(scale_yoff);
         Hist_OnDark_CR_Skymap_Theta2.at(e).Scale(scale_dark_yoff);
@@ -3981,14 +3984,14 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         double bkgd_redu_count = CountGammaRegion(mtx_bkgd_truncate);
         double epsilon_bkgd_redu  = bkgd_redu_count/data_full_count -1.;
         std::cout << "N^{ON} = " << data_full_count << ", N^{Chi2}_{3} = " << bkgd_redu_count << ", epsilon^{Chi2}_{3} = " << epsilon_bkgd_redu << std::endl;
-        //dark_stable_rank.push_back(NumberOfEigenvectors_Stable);
-        //data_gamma_count.push_back(data_full_count);
-        //dark_gamma_count.push_back(dark_full_count);
-        //best_gamma_count.push_back(best_full_count);
-        //bkgd_gamma_count.push_back(bkgd_full_count);
-        //par8_gamma_count.push_back(par8_full_count);
-        //par9_gamma_count.push_back(par9_full_count);
-        //wpar9_gamma_count.push_back(wpar9_full_count);
+        dark_stable_rank.push_back(NumberOfEigenvectors_Stable);
+        data_gamma_count.push_back(data_full_count);
+        dark_gamma_count.push_back(dark_full_count);
+        best_gamma_count.push_back(best_full_count);
+        bkgd_gamma_count.push_back(bkgd_full_count);
+        par8_gamma_count.push_back(par8_full_count);
+        par9_gamma_count.push_back(par9_full_count);
+        wpar9_gamma_count.push_back(wpar9_full_count);
         //dark_coeff_chi2.push_back(dark_full_chi2);
         //best_coeff_chi2.push_back(best_full_chi2);
         //bkgd_coeff_chi2.push_back(bkgd_full_chi2);
