@@ -703,7 +703,8 @@ print ('Get %s'%(root_file_tags[0]))
 
 selection_tag = root_file_tags[0]
 
-folder_path = 'output_nominal'
+#folder_path = 'output_nominal'
+folder_path = 'output_finebins'
 PercentCrab = ''
 
 selection_tag += '_%s'%(folder_path)
@@ -2026,14 +2027,14 @@ def MakeSpectrumBackgroundE27(hist_data,hist_bkgd,legends,title,name,syst):
     Hist_Invisible.Draw()
 
     func_source = []
-    func_source += [ROOT.TF1("func_source_data","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)]
+    func_source += [ROOT.TF1("func_source_data","[0]*pow(10,-12)*pow(x/1000.,[1])", ErecS_lower_cut, ErecS_upper_cut)]
     func_source[0].SetParameters(37.5,-4.)
     Hist_Flux[0].Fit("func_source_data","N")
     Hist_Flux[0].SetLineColor(1)
     Hist_Flux[0].Draw("E same")
     func_source[0].SetLineColor(1)
     func_source[0].Draw("E same")
-    func_source += [ROOT.TF1("func_source_bkgd","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)]
+    func_source += [ROOT.TF1("func_source_bkgd","[0]*pow(10,-12)*pow(x/1000.,[1])", ErecS_lower_cut, ErecS_upper_cut)]
     func_source[1].SetParameters(37.5,-4.)
     Hist_Flux[1].Fit("func_source_bkgd","N")
     Hist_Flux[1].SetLineColor(2)
@@ -2069,7 +2070,7 @@ def MakeSpectrumBackgroundE27(hist_data,hist_bkgd,legends,title,name,syst):
     c_both.SaveAs('output_plots/%s_%s.png'%(name,selection_tag))
 
 def MakeSpectrumInNonCrabUnitE2(hist_data,hist_bkgd,legends,title,name,syst):
-    
+
     c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
     pad3 = ROOT.TPad("pad3","pad3",0,0.7,1,1)
     pad3.SetBottomMargin(0.0)
@@ -2129,7 +2130,7 @@ def MakeSpectrumInNonCrabUnitE2(hist_data,hist_bkgd,legends,title,name,syst):
 
     for nth_roi in range(0,len(hist_data)):
         Hist_Flux[nth_roi].SetLineColor(nth_roi+1)
-        func_source += [ROOT.TF1("func_source_%s"%(nth_roi),"pow(x/1000.,2)*[0]*pow(10,-12)*pow(x/1000.,[1])", 150, 10000)]
+        func_source += [ROOT.TF1("func_source_%s"%(nth_roi),"pow(x/1000.,2)*[0]*pow(10,-12)*pow(x/1000.,[1])", ErecS_lower_cut, ErecS_upper_cut)]
         func_source[nth_roi].SetParameters(37.5,-2.)
         Hist_Flux[nth_roi].Fit("func_source_%s"%(nth_roi),"N")
         Hist_Flux[nth_roi].Draw("E same")
@@ -2141,7 +2142,7 @@ def MakeSpectrumInNonCrabUnitE2(hist_data,hist_bkgd,legends,title,name,syst):
 
     # MGRO J1908
     if 'MGRO_J1908' in name:
-        func_1908 = ROOT.TF1("func_1908","pow(x/1000.,2)*[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
+        func_1908 = ROOT.TF1("func_1908","pow(x/1000.,2)*[0]*pow(10,-12)*pow(x/1000.,[1])", 500, 10000)
         func_1908.SetParameters(4.23,-2.2)
         func_1908.SetLineColor(4)
         func_1908.Draw("same")
@@ -2235,7 +2236,7 @@ def MakeSpectrumFromFluxHist(hist_flux,legends,title,name):
 
     func_source = []
     for nth_roi in range(0,len(hist_flux)):
-        func_source += [ROOT.TF1("func_source_%s"%(nth_roi),"[0]*pow(10,-12)*pow(x/1000.,[1])", 150, 10000)]
+        func_source += [ROOT.TF1("func_source_%s"%(nth_roi),"[0]*pow(10,-12)*pow(x/1000.,[1])", ErecS_lower_cut, ErecS_upper_cut)]
         func_source[nth_roi].SetParameters(37.5,-2.)
         if nth_roi<2: continue
         hist_flux[nth_roi].SetLineColor(nth_roi-1)
@@ -2357,19 +2358,19 @@ def MakeSpectrumInNonCrabUnit(hist_data,hist_bkgd,legends,title,name,syst):
 
     for nth_roi in range(0,len(hist_data)):
         Hist_Flux[nth_roi].SetLineColor(nth_roi+1)
-        func_source += [ROOT.TF1("func_source_%s"%(nth_roi),"[0]*pow(10,-12)*pow(x/1000.,[1])", 150, 10000)]
+        func_source += [ROOT.TF1("func_source_%s"%(nth_roi),"[0]*pow(10,-12)*pow(x/1000.,[1])", ErecS_lower_cut, ErecS_upper_cut)]
         func_source[nth_roi].SetParameters(37.5,-2.)
         Hist_Flux[nth_roi].Fit("func_source_%s"%(nth_roi),"N")
         Hist_Flux[nth_roi].Draw("E same")
         func_source[nth_roi].SetLineColor(nth_roi+1)
         func_source[nth_roi].Draw("E same")
 
-    func_crab.SetLineColor(2)
-    func_crab.Draw("same")
+    #func_crab.SetLineColor(2)
+    #func_crab.Draw("same")
 
     # MGRO J1908
     if 'MGRO_J1908' in name:
-        func_1908 = ROOT.TF1("func_1908","[0]*pow(10,-12)*pow(x/1000.,[1])", 200, 4000)
+        func_1908 = ROOT.TF1("func_1908","[0]*pow(10,-12)*pow(x/1000.,[1])", 500, 10000)
         func_1908.SetParameters(4.23,-2.2)
         func_1908.SetLineColor(4)
         func_1908.Draw("same")
@@ -4875,14 +4876,14 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     for star in range(0,len(faint_star_markers)):
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
-    #mycircles = []
-    #for nth_roi in range(0,len(roi_ra)):
-    #    mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
-    #    mycircles[nth_roi].SetFillStyle(0)
-    #    mycircles[nth_roi].SetLineColor(2)
-    #    if nth_roi==0: continue
-    #    if nth_roi==1: continue
-    #    mycircles[nth_roi].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        if nth_roi==1: continue
+        mycircles[nth_roi].Draw("same")
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.70,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
     lumilab1.SetNDC()
@@ -4922,14 +4923,14 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     for star in range(0,len(faint_star_markers)):
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
-    #mycircles = []
-    #for nth_roi in range(0,len(roi_ra)):
-    #    mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
-    #    mycircles[nth_roi].SetFillStyle(0)
-    #    mycircles[nth_roi].SetLineColor(2)
-    #    if nth_roi==0: continue
-    #    if nth_roi==1: continue
-    #    mycircles[nth_roi].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        if nth_roi==1: continue
+        mycircles[nth_roi].Draw("same")
     Hist_Skymap_Excess.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Excess.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap_Excess.GetXaxis().GetXmin()
@@ -4956,14 +4957,14 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     for star in range(0,len(faint_star_markers)):
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
-    #mycircles = []
-    #for nth_roi in range(0,len(roi_ra)):
-    #    mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
-    #    mycircles[nth_roi].SetFillStyle(0)
-    #    mycircles[nth_roi].SetLineColor(2)
-    #    if nth_roi==0: continue
-    #    if nth_roi==1: continue
-    #    mycircles[nth_roi].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        if nth_roi==1: continue
+        mycircles[nth_roi].Draw("same")
     Hist_Exposure.GetXaxis().SetLabelOffset(999)
     Hist_Exposure.GetXaxis().SetTickLength(0)
     x1 = Hist_Exposure.GetXaxis().GetXmin()
@@ -5032,14 +5033,14 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     for star in range(0,len(faint_star_markers)):
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
-    #mycircles = []
-    #for nth_roi in range(0,len(roi_ra)):
-    #    mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
-    #    mycircles[nth_roi].SetFillStyle(0)
-    #    mycircles[nth_roi].SetLineColor(2)
-    #    if nth_roi==0: continue
-    #    if nth_roi==1: continue
-    #    mycircles[nth_roi].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        if nth_roi==1: continue
+        mycircles[nth_roi].Draw("same")
     Hist_Skymap_Ratio.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Ratio.GetXaxis().SetTickLength(0)
     Hist_Skymap_Ratio_ImportantBins.GetXaxis().SetLabelOffset(999)
@@ -5101,14 +5102,14 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     for star in range(0,len(faint_star_markers)):
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
-    #mycircles = []
-    #for nth_roi in range(0,len(roi_ra)):
-    #    mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
-    #    mycircles[nth_roi].SetFillStyle(0)
-    #    mycircles[nth_roi].SetLineColor(2)
-    #    if nth_roi==0: continue
-    #    if nth_roi==1: continue
-    #    mycircles[nth_roi].Draw("same")
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        if nth_roi==1: continue
+        mycircles[nth_roi].Draw("same")
     Hist_Skymap_zoomin.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_zoomin.GetXaxis().SetTickLength(0)
     x1 = Hist_Skymap_zoomin.GetXaxis().GetXmin()
@@ -6147,6 +6148,9 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
                 NormalizeSkyMapHistograms(FilePath_List[len(FilePath_List)-1],e)
                 StackSkymapHistograms(e)
 
+    ErecS_lower_cut = energy_bin[energy_bin_cut_low]
+    ErecS_upper_cut = energy_bin[energy_bin_cut_up]
+
     source_name = sys.argv[1]
     MatrixDecompositionDemo(source_name)
     GetCRcounts(source_name)
@@ -6162,9 +6166,6 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
     #MakeRankResidualPlots('%s%s'%(source_list[0],PercentCrab))
 
     if not doMap: return
-
-    ErecS_lower_cut = energy_bin[energy_bin_cut_low]
-    ErecS_upper_cut = energy_bin[energy_bin_cut_up]
 
     global smooth_size_exposure
     smooth_size_exposure = 0.1
@@ -6195,7 +6196,7 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
 
     skymap_bin_size_x = Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(1)
     skymap_bin_size_y = Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(1)
-    event_rate = Hist_OnBkgd_Energy_CamCenter_Sum.Integral()/exposure_hours*(skymap_bin_size_x*skymap_bin_size_y)/(3.14*0.2*0.2)
+    event_rate = Hist_OnBkgd_Energy_CamCenter_Sum.Integral()/exposure_hours*(skymap_bin_size_x*skymap_bin_size_y)/(3.14*1.0*1.0)
     Hist_Exposure_Skymap = Hist_OnData_Skymap_Sum.Clone()
     for bx in range(1,Hist_Exposure_Skymap.GetNbinsX()+1):
         for by in range(1,Hist_Exposure_Skymap.GetNbinsY()+1):
@@ -6251,7 +6252,7 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
             Hist_Expo_Energy_Skymap[ebin].Scale(1./event_rate_smooth)
         Hist_IndexMap = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
         Hist_IndexMap_ZoomIn = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s_zoomin'%(source_name,PercentCrab),60,2)
-        MakeMWLSkymap(Hist_IndexMap_ZoomIn,[2.2],'RA','Dec','Skymap_MWL_Index_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+        MakeMWLSkymap(Hist_IndexMap_ZoomIn,[2.1],'RA','Dec','Skymap_MWL_Index_RaDec_MDM_%s%s'%(source_name,PercentCrab))
 
         Hist_IndexMap_Unsmooth = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_Syst_Energy_Skymap,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
         legends = []
@@ -6585,6 +6586,7 @@ SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,2)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,4)
