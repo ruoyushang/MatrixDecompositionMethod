@@ -2872,7 +2872,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     }
     for (int e=0;e<N_energy_bins;e++) 
     {
-        Smooth2DMap(&Hist_OnData_Expo_Skymap.at(e), 0.2);
+        double smooth_size = 0.2;
+        if (energy_bins[e]>1000.) smooth_size = 0.3;
+        if (energy_bins[e]>2000.) smooth_size = 0.4;
+        if (energy_bins[e]>4000.) smooth_size = 0.5;
+        Smooth2DMap(&Hist_OnData_Expo_Skymap.at(e), smooth_size);
     }
 
 
@@ -2977,7 +2981,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             double Expo_content = Hist_OnData_Expo_Skymap.at(energy).GetBinContent(bin_ra,bin_dec);
             if (Expo_content>0.)
             {
-                Expo_weight = Hist_OnData_CR_R2off.at(energy).GetBinContent(1)/Expo_content*(2.*Skymap_size/12.)/(3.14*1.0*1.0);
+                Expo_weight = Hist_OnData_CR_R2off.at(energy).GetBinContent(1)/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*1.0*1.0);
             }
             else
             {
@@ -3322,7 +3326,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             double Expo_content = Hist_OnData_Expo_Skymap.at(energy).GetBinContent(bin_ra,bin_dec);
             if (Expo_content>0.)
             {
-                Expo_weight = Hist_OnData_CR_R2off.at(energy).GetBinContent(1)/Expo_content*(2.*Skymap_size/12.)/(3.14*1.0*1.0);
+                Expo_weight = Hist_OnData_CR_R2off.at(energy).GetBinContent(1)/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*1.0*1.0);
             }
             else
             {
