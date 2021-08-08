@@ -205,8 +205,8 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name.Contains("Geminga"))
     {
-            Source_RA = 98.476;
-                Source_Dec = 17.770;
+            Source_RA = 98.117;
+                Source_Dec = 17.367;
     }
     if (source_name.Contains("PKS1441"))
     {
@@ -1071,6 +1071,8 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
     {
         double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
         double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
+        //double delta_RA = TelRAJ2000_tmp - 185.382;
+        //double delta_Dec = TelDecJ2000_tmp - 28.233;
         double delta_RA = TelRAJ2000_tmp - (185.360+184.616)/2.;
         double delta_Dec = TelDecJ2000_tmp - (30.191+30.130)/2.;
         double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
@@ -1828,6 +1830,52 @@ void SetEventDisplayTreeBranch(TTree* Data_tree)
     Data_tree->SetBranchAddress("MJD",&MJD);
 }
 
+void Smooth2DMap(TH2D* hist, double smooth_size)
+{
+
+    TH2D Hist_Unit = TH2D("Hist_Unit","",Skymap_nbins/2,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins/2,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
+    TH2D Hist_Smooth = TH2D("Hist_Smooth","",Skymap_nbins/2,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins/2,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
+    double bin_size = Hist_Unit.GetXaxis()->GetBinCenter(2)-Hist_Unit.GetXaxis()->GetBinCenter(1);
+    int nbin_smooth = int(2*smooth_size/bin_size) + 1;
+    for (int bx1=1;bx1<=Hist_Unit.GetNbinsX();bx1++)
+    {
+        for (int by1=1;by1<=Hist_Unit.GetNbinsY();by1++)
+        {
+            double bin_content = 0;
+            double bin_error = 0;
+            double bin_norm = 0;
+            double locationx1 = Hist_Unit.GetXaxis()->GetBinCenter(bx1);
+            double locationy1 = Hist_Unit.GetYaxis()->GetBinCenter(by1);
+            for (int bx2=bx1-nbin_smooth;bx2<=bx1+nbin_smooth;bx2++)
+            {
+                for (int by2=by1-nbin_smooth;by2<=by1+nbin_smooth;by2++)
+                {
+                    if (bx2<1) continue;
+                    if (by2<1) continue;
+                    if (bx2>Hist_Unit.GetNbinsX()) continue;
+                    if (by2>Hist_Unit.GetNbinsY()) continue;
+                    double locationx2 = Hist_Unit.GetXaxis()->GetBinCenter(bx2);
+                    double locationy2 = Hist_Unit.GetYaxis()->GetBinCenter(by2);
+                    double distance = pow(pow(locationx1-locationx2,2)+pow(locationy1-locationy2,2),0.5);
+                    bin_content += TMath::Gaus(distance,0,smooth_size)*hist->GetBinContent(bx2,by2);
+                    bin_norm += TMath::Gaus(distance,0,smooth_size);
+                }
+            }
+            Hist_Smooth.SetBinContent(bx1,by1,bin_content);
+            Hist_Unit.SetBinContent(bx1,by1,bin_norm);
+        }
+    }
+    Hist_Smooth.Divide(&Hist_Unit);
+    for (int bx1=1;bx1<=Hist_Unit.GetNbinsX();bx1++)
+    {
+        for (int by1=1;by1<=Hist_Unit.GetNbinsY();by1++)
+        {
+            hist->SetBinContent(bx1,by1,Hist_Smooth.GetBinContent(bx1,by1));
+        }
+    }
+
+}
+
 void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doRaster, int GammaModel)
 {
 
@@ -2276,7 +2324,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_Photon_Raw_Skymap.push_back(TH2D("Hist_Stage1_Photon_Raw_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_SR_Skymap.push_back(TH2D("Hist_Stage1_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_CR_Skymap.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_OnData_Expo_Skymap.push_back(TH2D("Hist_Stage1_OnData_Expo_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,12,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnData_Expo_Skymap.push_back(TH2D("Hist_Stage1_OnData_Expo_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins/2,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins/2,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnDark_SR_Skymap.push_back(TH2D("Hist_Stage1_OnDark_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_SR_Energy.push_back(TH1D("Hist_Stage1_OnData_SR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         Hist_OnData_CR_Energy.push_back(TH1D("Hist_Stage1_OnData_CR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
@@ -2822,6 +2870,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         }
         input_file->Close();
     }
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        Smooth2DMap(&Hist_OnData_Expo_Skymap.at(e), 0.2);
+    }
 
 
     std::cout << "Build templates from cosmic rays." << std::endl;
@@ -2919,15 +2971,19 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 R2_weight = Hist_OnData_CR_R2off.at(energy).GetBinContent(1)/Hist_OnData_CR_R2off.at(energy).GetBinContent(bin_R2off);
             }
             if (!AcceptanceCorrection) R2_weight = 1.;
-            double Expo_weight = 0.;
+            double Expo_weight = (2.*Skymap_size/12.)/(3.14*1.0*1.0);
             int bin_ra = Hist_OnData_Expo_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
             int bin_dec = Hist_OnData_Expo_Skymap.at(energy).GetYaxis()->FindBin(dec_sky);
-            if (Hist_OnData_Expo_Skymap.at(energy).GetBinContent(bin_ra,bin_dec)>10.)
+            double Expo_content = Hist_OnData_Expo_Skymap.at(energy).GetBinContent(bin_ra,bin_dec);
+            if (Expo_content>0.)
             {
-                Expo_weight = Hist_OnData_CR_R2off.at(energy).GetBinContent(1)/Hist_OnData_Expo_Skymap.at(energy).GetBinContent(bin_ra,bin_dec);
+                Expo_weight = Hist_OnData_CR_R2off.at(energy).GetBinContent(1)/Expo_content*(2.*Skymap_size/12.)/(3.14*1.0*1.0);
             }
-            //if (!AcceptanceCorrection) Expo_weight = 1.;
-            Expo_weight = 1.;
+            else
+            {
+                Expo_weight = 0.;
+            }
+            if (!AcceptanceCorrection) Expo_weight = 1.;
 
             if (FoV())
             {
@@ -3260,15 +3316,19 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 R2_weight = Hist_OnData_CR_R2off.at(energy).GetBinContent(1)/Hist_OnData_CR_R2off.at(energy).GetBinContent(bin_R2off);
             }
             if (!AcceptanceCorrection) R2_weight = 1.;
-            double Expo_weight = 0.;
+            double Expo_weight = (2.*Skymap_size/12.)/(3.14*1.0*1.0);
             int bin_ra = Hist_OnData_Expo_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
             int bin_dec = Hist_OnData_Expo_Skymap.at(energy).GetYaxis()->FindBin(dec_sky);
-            if (Hist_OnData_Expo_Skymap.at(energy).GetBinContent(bin_ra,bin_dec)>10.)
+            double Expo_content = Hist_OnData_Expo_Skymap.at(energy).GetBinContent(bin_ra,bin_dec);
+            if (Expo_content>0.)
             {
-                Expo_weight = Hist_OnData_CR_R2off.at(energy).GetBinContent(1)/Hist_OnData_Expo_Skymap.at(energy).GetBinContent(bin_ra,bin_dec);
+                Expo_weight = Hist_OnData_CR_R2off.at(energy).GetBinContent(1)/Expo_content*(2.*Skymap_size/12.)/(3.14*1.0*1.0);
             }
-            //if (!AcceptanceCorrection) Expo_weight = 1.;
-            Expo_weight = 1.;
+            else
+            {
+                Expo_weight = 0.;
+            }
+            if (!AcceptanceCorrection) Expo_weight = 1.;
 
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
