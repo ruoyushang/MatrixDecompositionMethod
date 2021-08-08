@@ -46,6 +46,7 @@ energy_bin_cut_up = 6
 #elev_range = [60,80]
 #elev_range = [25,55]
 elev_range = [40,50,60,70,80]
+#elev_range = [70,80]
 theta2_bins = [0,4]
 
 ONOFF_tag = 'ON'
@@ -703,8 +704,8 @@ print ('Get %s'%(root_file_tags[0]))
 
 selection_tag = root_file_tags[0]
 
-#folder_path = 'output_nominal'
-folder_path = 'output_nocameracorrect'
+folder_path = 'output_nominal'
+#folder_path = 'output_nocameracorrect'
 PercentCrab = ''
 
 selection_tag += '_%s'%(folder_path)
@@ -3780,10 +3781,19 @@ def StackSkymapHistograms(ebin):
     slice_center_x = roi_ra[2]
     slice_center_y = roi_dec[2]
     slice_radius = roi_radius[2]
+    first_bin_x = 0 
+    last_bin_x = -1
+    first_bin_y = 0 
+    last_bin_y = -1
     first_bin_x = Hist_OnData_Skymap.GetXaxis().FindBin(slice_center_x-slice_radius)
     last_bin_x = Hist_OnData_Skymap.GetXaxis().FindBin(slice_center_x+slice_radius)
     first_bin_y = Hist_OnData_Skymap.GetYaxis().FindBin(slice_center_y-slice_radius)
     last_bin_y = Hist_OnData_Skymap.GetYaxis().FindBin(slice_center_y+slice_radius)
+    #if 'OFF' in ONOFF_tag:
+    #    first_bin_x = 0 
+    #    last_bin_x = -1
+    #    first_bin_y = 0 
+    #    last_bin_y = -1
     Hist_OnData_Skymap_ProjX_Sum.Add(Hist_OnData_Skymap.ProjectionX("",first_bin_x,last_bin_x,"eo"))
     Hist_OnDark_Skymap_ProjX_Sum.Add(Hist_OnDark_Skymap.ProjectionX("",first_bin_x,last_bin_x,"eo"))
     Hist_OnBkgd_Skymap_ProjX_Sum.Add(Hist_OnBkgd_Skymap.ProjectionX("",first_bin_x,last_bin_x,"eo"))
@@ -6595,10 +6605,10 @@ Smoothing = True
 #set_palette('gray')
 
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
+SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
@@ -6607,4 +6617,5 @@ SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,4)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,5)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,5,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,5)
 

@@ -184,6 +184,21 @@ energy_bin += [int(pow(10,3.33))]
 energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 
+norm_syst_err_bkgd = []
+norm_syst_err_bkgd +=[0.121]
+norm_syst_err_bkgd +=[0.017]
+norm_syst_err_bkgd +=[0.019]
+norm_syst_err_bkgd +=[0.036]
+norm_syst_err_bkgd +=[0.080]
+norm_syst_err_bkgd +=[0.095]
+norm_syst_err_dark = []
+norm_syst_err_dark +=[0.126]
+norm_syst_err_dark +=[0.047]
+norm_syst_err_dark +=[0.059]
+norm_syst_err_dark +=[0.071]
+norm_syst_err_dark +=[0.071]
+norm_syst_err_dark +=[0.071]
+
 energy_dependent_stat = []
 energy_dependent_syst = []
 energy_dependent_syst_init = []
@@ -198,7 +213,7 @@ for elev in range(0,len(elev_bins)-1):
         for d in range(0,len(mjd_tag)):
             root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]
 
-def Make2DPlot(Hist2D,title_x,title_y,name,logz):
+def Make2DPlot(Hist2D,title_x,title_y,name,logz,min_z,max_z):
 
     canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
     pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
@@ -222,8 +237,8 @@ def Make2DPlot(Hist2D,title_x,title_y,name,logz):
     if logz: pad1.SetLogz()
     Hist2D.GetYaxis().SetTitle(title_y)
     Hist2D.GetXaxis().SetTitle(title_x)
-    Hist2D.SetMaximum(0.1)
-    Hist2D.SetMinimum(0.)
+    Hist2D.SetMaximum(max_z)
+    Hist2D.SetMinimum(min_z)
     Hist2D.Draw("COL4Z")
     Hist2D.Draw("TEXT45 same")
     canvas.SaveAs('output_plots/%s.png'%(name))
@@ -584,17 +599,19 @@ def GetHistogramsFromFile(FilePath,which_source):
             dark_bin_count = Hist_OnDark_SR_XYoff.GetBinContent(binx2,biny2)
             bkgd_bin_count = Hist_OnData_CR_XYoff.GetBinContent(binx2,biny2)
             if data_bin_count==0.: continue
-            relative_stat = pow(data_bin_count,0.5)/data_bin_count
+            relative_stat = pow(2.*data_bin_count,0.5)/data_bin_count
             relative_bias_dark = (data_bin_count-dark_bin_count)/data_bin_count
             relative_bias_bkgd = (data_bin_count-bkgd_bin_count)/data_bin_count
-            relative_bias_dark = pow(max(0.,relative_bias_dark*relative_bias_dark-relative_stat*relative_stat),0.5)
-            relative_bias_bkgd = pow(max(0.,relative_bias_bkgd*relative_bias_bkgd-relative_stat*relative_stat),0.5)
             old_content_stat = Hist_OnData_StatErr_XYoff.GetBinContent(binx+1,biny+1)
-            old_content_dark = Hist_OnDark_SystErr_XYoff.GetBinContent(binx+1,biny+1)
-            old_content_bkgd = Hist_OnBkgd_SystErr_XYoff.GetBinContent(binx+1,biny+1)
-            Hist_OnData_StatErr_XYoff.SetBinContent(binx+1,biny+1,old_content_stat+1./relative_stat)
-            Hist_OnDark_SystErr_XYoff.SetBinContent(binx+1,biny+1,old_content_dark+1./relative_stat*relative_bias_dark*relative_bias_dark)
-            Hist_OnBkgd_SystErr_XYoff.SetBinContent(binx+1,biny+1,old_content_bkgd+1./relative_stat*relative_bias_bkgd*relative_bias_bkgd)
+            old_content_weight = Hist_OnData_StatWeight_XYoff.GetBinContent(binx+1,biny+1)
+            old_content_dark = Hist_OnDark_InclErr_XYoff.GetBinContent(binx+1,biny+1)
+            old_content_bkgd = Hist_OnBkgd_InclErr_XYoff.GetBinContent(binx+1,biny+1)
+            old_content_bias = Hist_OnBkgd_Bias_XYoff.GetBinContent(binx+1,biny+1)
+            Hist_OnData_StatWeight_XYoff.SetBinContent(binx+1,biny+1,old_content_weight+1./relative_stat)
+            Hist_OnData_StatErr_XYoff.SetBinContent(binx+1,biny+1,old_content_stat+1./relative_stat*relative_stat*relative_stat)
+            Hist_OnDark_InclErr_XYoff.SetBinContent(binx+1,biny+1,old_content_dark+1./relative_stat*relative_bias_dark*relative_bias_dark)
+            Hist_OnBkgd_InclErr_XYoff.SetBinContent(binx+1,biny+1,old_content_bkgd+1./relative_stat*relative_bias_bkgd*relative_bias_bkgd)
+            Hist_OnBkgd_Bias_XYoff.SetBinContent(binx+1,biny+1,old_content_bias+1./relative_stat*relative_bias_bkgd)
     if energy_index>=energy_bin_cut_low and energy_index<=energy_bin_cut_up:
         Hist_SystErrDist_MDM.Fill((data_gamma_count[energy_index]-bkgd_gamma_count[energy_index])/data_gamma_count[energy_index])
         Hist_SystErrDist_Init.Fill((data_gamma_count[energy_index]-dark_gamma_count[energy_index])/data_gamma_count[energy_index])
@@ -636,14 +653,24 @@ def GetHistogramsFromFile(FilePath,which_source):
     Hist_GammaRegion_Contribution[which_source+1].Add(InputFile.Get(HistName))
 
 
+#XYoff_nbins = 12
+#XYoff_nbins = 6
+XYoff_nbins = 4
+#XYoff_nbins = 3
+#XYoff_nbins = 2
+#XYoff_nbins = 1
 Hist_SystErrDist_MDM = ROOT.TH1D("Hist_SystErrDist_MDM","",20,-0.2,0.2)
 Hist_SystErrDist_Init = ROOT.TH1D("Hist_SystErrDist_Init","",20,-0.2,0.2)
-Hist_OnData_SR_XYoff = ROOT.TH2D("Hist_OnData_SR_XYoff","",12,-3,3,12,-3,3)
-Hist_OnDark_SR_XYoff = ROOT.TH2D("Hist_OnDark_SR_XYoff","",12,-3,3,12,-3,3)
-Hist_OnData_CR_XYoff = ROOT.TH2D("Hist_OnData_CR_XYoff","",12,-3,3,12,-3,3)
-Hist_OnDark_SystErr_XYoff = ROOT.TH2D("Hist_OnDark_SystErr_XYoff","",12,-3,3,12,-3,3)
-Hist_OnBkgd_SystErr_XYoff = ROOT.TH2D("Hist_OnBkgd_SystErr_XYoff","",12,-3,3,12,-3,3)
-Hist_OnData_StatErr_XYoff = ROOT.TH2D("Hist_OnData_StatErr_XYoff","",12,-3,3,12,-3,3)
+Hist_OnData_SR_XYoff = ROOT.TH2D("Hist_OnData_SR_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
+Hist_OnDark_SR_XYoff = ROOT.TH2D("Hist_OnDark_SR_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
+Hist_OnData_CR_XYoff = ROOT.TH2D("Hist_OnData_CR_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
+Hist_OnDark_SystErr_XYoff = ROOT.TH2D("Hist_OnDark_SystErr_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
+Hist_OnBkgd_SystErr_XYoff = ROOT.TH2D("Hist_OnBkgd_SystErr_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
+Hist_OnDark_InclErr_XYoff = ROOT.TH2D("Hist_OnDark_InclErr_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
+Hist_OnBkgd_InclErr_XYoff = ROOT.TH2D("Hist_OnBkgd_InclErr_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
+Hist_OnBkgd_Bias_XYoff = ROOT.TH2D("Hist_OnBkgd_Bias_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
+Hist_OnData_StatErr_XYoff = ROOT.TH2D("Hist_OnData_StatErr_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
+Hist_OnData_StatWeight_XYoff = ROOT.TH2D("Hist_OnData_StatWeight_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
 
 optimiz_lower = -5.
 optimiz_upper = -3.
@@ -745,18 +772,34 @@ for e in range(0,len(energy_bin)-1):
     n_measurement = len(sample_list)*len(root_file_tags)
     for binx in range (0,Hist_OnBkgd_SystErr_XYoff.GetNbinsX()):
         for biny in range (0,Hist_OnBkgd_SystErr_XYoff.GetNbinsY()):
+            old_content_weight = Hist_OnData_StatWeight_XYoff.GetBinContent(binx+1,biny+1)
+            if old_content_weight==0.: continue
             old_content_stat = Hist_OnData_StatErr_XYoff.GetBinContent(binx+1,biny+1)
-            if old_content_stat==0.: continue
-            old_content_dark = Hist_OnDark_SystErr_XYoff.GetBinContent(binx+1,biny+1)
-            old_content_bkgd = Hist_OnBkgd_SystErr_XYoff.GetBinContent(binx+1,biny+1)
-            #old_content_dark = max(0.,old_content_dark-old_content_stat)
-            #old_content_bkgd = max(0.,old_content_bkgd-old_content_stat)
-            Hist_OnDark_SystErr_XYoff.SetBinContent(binx+1,biny+1,pow(old_content_dark/old_content_stat,0.5))
-            Hist_OnBkgd_SystErr_XYoff.SetBinContent(binx+1,biny+1,pow(old_content_bkgd/old_content_stat,0.5))
-    Make2DPlot(Hist_OnDark_SystErr_XYoff,'Xoff','Yoff','SystErr_XYoff_Dark_E%s%s'%(e,folder_path),False)
-    Make2DPlot(Hist_OnBkgd_SystErr_XYoff,'Xoff','Yoff','SystErr_XYoff_Bkgd_E%s%s'%(e,folder_path),False)
+            old_content_dark = Hist_OnDark_InclErr_XYoff.GetBinContent(binx+1,biny+1)
+            old_content_bkgd = Hist_OnBkgd_InclErr_XYoff.GetBinContent(binx+1,biny+1)
+            old_content_bias = Hist_OnBkgd_Bias_XYoff.GetBinContent(binx+1,biny+1)
+            Hist_OnDark_InclErr_XYoff.SetBinContent(binx+1,biny+1,pow(old_content_dark/old_content_weight,0.5))
+            Hist_OnBkgd_InclErr_XYoff.SetBinContent(binx+1,biny+1,pow(old_content_bkgd/old_content_weight,0.5))
+            Hist_OnBkgd_Bias_XYoff.SetBinContent(binx+1,biny+1,old_content_bias/old_content_weight)
+            #old_content_dark = max(0.,old_content_dark-old_content_stat-norm_syst_err_dark[e]*norm_syst_err_dark[e])
+            #old_content_bkgd = max(0.,old_content_bkgd-old_content_stat-norm_syst_err_bkgd[e]*norm_syst_err_bkgd[e])
+            old_content_dark = max(0.,old_content_dark-old_content_stat)
+            old_content_bkgd = max(0.,old_content_bkgd-old_content_stat)
+            Hist_OnDark_SystErr_XYoff.SetBinContent(binx+1,biny+1,pow(old_content_dark/old_content_weight,0.5))
+            Hist_OnBkgd_SystErr_XYoff.SetBinContent(binx+1,biny+1,pow(old_content_bkgd/old_content_weight,0.5))
+            Hist_OnData_StatErr_XYoff.SetBinContent(binx+1,biny+1,pow(old_content_stat/old_content_weight,0.5))
+    Make2DPlot(Hist_OnData_StatErr_XYoff,'Xoff','Yoff','StatErr_XYoff_Data_E%s%s'%(e,folder_path),False,0.,0.1)
+    Make2DPlot(Hist_OnDark_SystErr_XYoff,'Xoff','Yoff','SystErr_XYoff_Dark_E%s%s'%(e,folder_path),False,0.,0.1)
+    Make2DPlot(Hist_OnBkgd_SystErr_XYoff,'Xoff','Yoff','SystErr_XYoff_Bkgd_E%s%s'%(e,folder_path),False,0.,0.1)
+    Make2DPlot(Hist_OnDark_InclErr_XYoff,'Xoff','Yoff','InclErr_XYoff_Dark_E%s%s'%(e,folder_path),False,0.,0.1)
+    Make2DPlot(Hist_OnBkgd_InclErr_XYoff,'Xoff','Yoff','InclErr_XYoff_Bkgd_E%s%s'%(e,folder_path),False,0.,0.1)
+    Make2DPlot(Hist_OnBkgd_Bias_XYoff,'Xoff','Yoff','Bias_XYoff_Bkgd_E%s%s'%(e,folder_path),False,-0.05,0.05)
+    Hist_OnData_StatErr_XYoff.Reset()
     Hist_OnDark_SystErr_XYoff.Reset()
     Hist_OnBkgd_SystErr_XYoff.Reset()
+    Hist_OnDark_InclErr_XYoff.Reset()
+    Hist_OnBkgd_InclErr_XYoff.Reset()
+    Hist_OnBkgd_Bias_XYoff.Reset()
 
     for binx in range(1,Hist_Bkgd_Optimization[0].GetNbinsX()+1):
         total_weight = 0.
@@ -1226,8 +1269,8 @@ for e in range(0,len(energy_bin)-1):
         colors += [int(random_gen.Uniform(29.,49.))]
     MakeMultiplePlot(Hists,legends,colors,'log10 #beta','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationAlpha_E%s%s'%(e,folder_path),1e-3,0.1,False,False)
 
-    Make2DPlot(Hist_Bkgd_Optimization_beta[0],'C_{1}','C_{2}','OptimizationBeta_E%s%s'%(e,folder_path),False)
-    Make2DPlot(Hist_Bkgd_OptimizationChi2_beta[0],'C_{1}','C_{2}','OptimizationChi2Beta_E%s%s'%(e,folder_path),False)
+    Make2DPlot(Hist_Bkgd_Optimization_beta[0],'C_{1}','C_{2}','OptimizationBeta_E%s%s'%(e,folder_path),False,0.,0.1)
+    Make2DPlot(Hist_Bkgd_OptimizationChi2_beta[0],'C_{1}','C_{2}','OptimizationChi2Beta_E%s%s'%(e,folder_path),False,0.,0.1)
 
     Hists = []
     legends = []
