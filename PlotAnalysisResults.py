@@ -21,6 +21,10 @@ n_rebins = 2
 smooth_size_skymap = 0.1
 smooth_size_spectroscopy = 0.1
 smooth_size_exposure = 0.1
+#n_rebins = 4
+#smooth_size_skymap = 0.5
+#smooth_size_spectroscopy = 0.5
+#smooth_size_exposure = 0.5
 
 #method_tag = 'loose_mdm_default'
 #method_tag = 'loose_mdm_rank3'
@@ -45,7 +49,7 @@ energy_bin_cut_up = 6
 #elev_range = [40,70]
 #elev_range = [60,80]
 #elev_range = [25,55]
-elev_range = [40,50,60,70,80]
+elev_range = [40,50,60,70,80,90]
 #elev_range = [70,80]
 theta2_bins = [0,4]
 
@@ -351,6 +355,13 @@ if sys.argv[1]=='RBS0413_ON':
     sample_list = []
     sample_list += ['RBS0413V6_ON']
     sample_list += ['RBS0413V5_ON']
+    theta2_bins = [0,4]
+    
+if sys.argv[1]=='TriII_OFF':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['TriIIV6_OFF']
     theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0647_OFF':
@@ -704,8 +715,8 @@ print ('Get %s'%(root_file_tags[0]))
 
 selection_tag = root_file_tags[0]
 
-folder_path = 'output_nominal'
-#folder_path = 'output_nocameracorrect'
+#folder_path = 'output_nominal'
+folder_path = 'output_nocameracorrect'
 PercentCrab = ''
 
 selection_tag += '_%s'%(folder_path)
@@ -775,41 +786,41 @@ energy_syst += [0.036]
 energy_syst += [0.080]
 energy_syst += [0.095]
 
-#energy_fine_bin = []
-#energy_fine_bin += [pow(10,2.0)]
-#energy_fine_bin += [pow(10,2.2)]
-#energy_fine_bin += [pow(10,2.4)]
-#energy_fine_bin += [pow(10,2.6)]
-#energy_fine_bin += [pow(10,2.8)]
-#energy_fine_bin += [pow(10,3.0)]
-#energy_fine_bin += [pow(10,3.2)]
-#energy_fine_bin += [pow(10,3.4)]
-#energy_fine_bin += [pow(10,3.6)]
-#energy_fine_bin += [pow(10,3.8)]
-#energy_fine_bin += [pow(10,4.0)]
-
 energy_fine_bin = []
 energy_fine_bin += [pow(10,2.0)]
-energy_fine_bin += [pow(10,2.1)]
 energy_fine_bin += [pow(10,2.2)]
-energy_fine_bin += [pow(10,2.3)]
 energy_fine_bin += [pow(10,2.4)]
-energy_fine_bin += [pow(10,2.5)]
 energy_fine_bin += [pow(10,2.6)]
-energy_fine_bin += [pow(10,2.7)]
 energy_fine_bin += [pow(10,2.8)]
-energy_fine_bin += [pow(10,2.9)]
 energy_fine_bin += [pow(10,3.0)]
-energy_fine_bin += [pow(10,3.1)]
 energy_fine_bin += [pow(10,3.2)]
-energy_fine_bin += [pow(10,3.3)]
 energy_fine_bin += [pow(10,3.4)]
-energy_fine_bin += [pow(10,3.5)]
 energy_fine_bin += [pow(10,3.6)]
-energy_fine_bin += [pow(10,3.7)]
 energy_fine_bin += [pow(10,3.8)]
-energy_fine_bin += [pow(10,3.9)]
 energy_fine_bin += [pow(10,4.0)]
+
+#energy_fine_bin = []
+#energy_fine_bin += [pow(10,2.0)]
+#energy_fine_bin += [pow(10,2.1)]
+#energy_fine_bin += [pow(10,2.2)]
+#energy_fine_bin += [pow(10,2.3)]
+#energy_fine_bin += [pow(10,2.4)]
+#energy_fine_bin += [pow(10,2.5)]
+#energy_fine_bin += [pow(10,2.6)]
+#energy_fine_bin += [pow(10,2.7)]
+#energy_fine_bin += [pow(10,2.8)]
+#energy_fine_bin += [pow(10,2.9)]
+#energy_fine_bin += [pow(10,3.0)]
+#energy_fine_bin += [pow(10,3.1)]
+#energy_fine_bin += [pow(10,3.2)]
+#energy_fine_bin += [pow(10,3.3)]
+#energy_fine_bin += [pow(10,3.4)]
+#energy_fine_bin += [pow(10,3.5)]
+#energy_fine_bin += [pow(10,3.6)]
+#energy_fine_bin += [pow(10,3.7)]
+#energy_fine_bin += [pow(10,3.8)]
+#energy_fine_bin += [pow(10,3.9)]
+#energy_fine_bin += [pow(10,4.0)]
 
 elev_bins = [25,35,45,55,65,75,85]
 MJD_bins = [53613,55074,56535,57996,59457]
@@ -2822,7 +2833,14 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
 
 def PlotsStackedHistograms(tag):
 
-    if energy_bin[energy_bin_cut_low]>=2000.:
+    if energy_bin[energy_bin_cut_low]>=1000.:
+        Hist_OnData_Skymap_ProjX_Sum.Rebin(2)
+        Hist_OnDark_Skymap_ProjX_Sum.Rebin(2)
+        Hist_OnBkgd_Skymap_ProjX_Sum.Rebin(2)
+        Hist_OnData_Skymap_ProjY_Sum.Rebin(2)
+        Hist_OnDark_Skymap_ProjY_Sum.Rebin(2)
+        Hist_OnBkgd_Skymap_ProjY_Sum.Rebin(2)
+    if energy_bin[energy_bin_cut_low]>=4000.:
         Hist_OnData_Skymap_ProjX_Sum.Rebin(2)
         Hist_OnDark_Skymap_ProjX_Sum.Rebin(2)
         Hist_OnBkgd_Skymap_ProjX_Sum.Rebin(2)
@@ -3046,7 +3064,13 @@ def PlotsStackedHistograms(tag):
     title = 'MSCL'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,MSCL_plot_lower,MSCL_blind_cut,-1)
 
-    if energy_bin[energy_bin_cut_low]>=2000.:
+    if energy_bin[energy_bin_cut_low]>=1000.:
+        Hist_OnData_Theta2_Sum.Rebin(2)
+        Hist_OnBkgd_Theta2_Sum.Rebin(2)
+        Hist_OnRFoV_Theta2_Sum.Rebin(2)
+        Hist_OnDark_Theta2_Sum.Rebin(2)
+        Hist_SystErr_Theta2.Rebin(2)
+    if energy_bin[energy_bin_cut_low]>=4000.:
         Hist_OnData_Theta2_Sum.Rebin(2)
         Hist_OnBkgd_Theta2_Sum.Rebin(2)
         Hist_OnRFoV_Theta2_Sum.Rebin(2)
@@ -4213,7 +4237,8 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
             n_3sigma_connect_max = 0
             n_4sigma_connect_max = 0
             for ebin in range(0,len(energy_bin)-1):
-                acceptance = hist_expo_skymap[ebin].GetBinContent(binx+1,biny+1)
+                #acceptance = hist_expo_skymap[ebin].GetBinContent(binx+1,biny+1)
+                acceptance = 1.
                 data_count = hist_data_skymap[ebin].GetBinContent(binx+1,biny+1)
                 diff_count = hist_diff_skymap[ebin].GetBinContent(binx+1,biny+1)
                 syst_error = hist_syst_skymap[ebin].GetBinContent(binx+1,biny+1)
@@ -4225,12 +4250,12 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
                     n_2sigma_connect += 1
                 else:
                     n_2sigma_connect = 0
-                if z_score>2.5: 
+                if z_score>3.0: 
                     n_3sigma += 1
                     n_3sigma_connect += 1
                 else:
                     n_3sigma_connect = 0
-                if z_score>3.0: 
+                if z_score>4.0: 
                     n_4sigma += 1
                     n_4sigma_connect += 1
                 else:
@@ -4268,7 +4293,7 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
             #else:
             #    if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
             #if n_3sigma_connect_max<2: good_data = False
-            if n_2sigma_connect_max<3 and n_3sigma_connect_max<2: good_data = False
+            if n_2sigma_connect_max<3: good_data = False
             if abs(func_source[nth_bin-1].GetParameter(1))<5.*func_source[nth_bin-1].GetParError(1): good_fit = False
             #if good_fit and good_data:
             if good_data:
@@ -4296,10 +4321,13 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
 
     hist_index_skymap_reflect = reflectXaxis(hist_index_skymap)
     hist_index_err_skymap_reflect = reflectXaxis(hist_index_err_skymap)
-    hist_index_skymap_reflect.SetMinimum(min_index)
+    hist_index_skymap_reflect.SetMaximum(-2.)
+    hist_index_skymap_reflect.SetMinimum(-3.)
+    hist_index_err_skymap_reflect.SetMaximum(4.)
+    hist_index_err_skymap_reflect.SetMinimum(0.)
     hist_index_skymap_full_reflect = reflectXaxis(hist_index_skymap_full)
-    hist_index_skymap_full_reflect.SetMaximum(hist_index_skymap_reflect.GetMaximum())
-    hist_index_skymap_full_reflect.SetMinimum(min_index)
+    hist_index_skymap_full_reflect.SetMaximum(-2.)
+    hist_index_skymap_full_reflect.SetMinimum(-3.)
 
     hist_contour_reflect = []
     for ebin in range(0,len(hist_contour)):
@@ -4973,6 +5001,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     Hist_Exposure.GetYaxis().SetTitle(ytitle)
     Hist_Exposure.GetXaxis().SetTitle(xtitle)
     Hist_Exposure.Draw("COL4Z")
+    Hist_Contour.Draw("CONT3 same")
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
@@ -5005,11 +5034,11 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     Hist_Skymap_Ratio = Hist_SR.Clone()
     Hist_Skymap_Ratio.Add(Hist_Bkg,-1.)
     Hist_Skymap_Ratio.Divide(Hist_Exposure)
-    for bx in range(0,Hist_Skymap_Ratio.GetNbinsX()):
-        for by in range(0,Hist_Skymap_Ratio.GetNbinsY()):
-            #if Hist_Bkg.GetBinContent(bx+1,by+1)<1.5 and Hist_Skymap.GetBinContent(bx+1,by+1)<4.0:
-            if Hist_Exposure.GetBinContent(bx+1,by+1)<1.0:
-                Hist_Skymap_Ratio.SetBinContent(bx+1,by+1,0.)
+    #for bx in range(0,Hist_Skymap_Ratio.GetNbinsX()):
+    #    for by in range(0,Hist_Skymap_Ratio.GetNbinsY()):
+    #        #if Hist_Bkg.GetBinContent(bx+1,by+1)<1.5 and Hist_Skymap.GetBinContent(bx+1,by+1)<4.0:
+    #        if Hist_Exposure.GetBinContent(bx+1,by+1)<1.0:
+    #            Hist_Skymap_Ratio.SetBinContent(bx+1,by+1,0.)
 
     max_nbins = 60
     best_nbins = 5
@@ -6222,18 +6251,22 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
     skymap_bin_size_x = Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(1)
     skymap_bin_size_y = Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(1)
     event_rate = Hist_OnBkgd_Energy_CamCenter_Sum.Integral()/exposure_hours*(skymap_bin_size_x*skymap_bin_size_y)/(3.14*1.0*1.0)
-    Hist_Exposure_Skymap = Hist_OnData_Skymap_Sum.Clone()
-    for bx in range(1,Hist_Exposure_Skymap.GetNbinsX()+1):
-        for by in range(1,Hist_Exposure_Skymap.GetNbinsY()+1):
-            Hist_Exposure_Skymap.SetBinContent(bx,by,event_rate)
-    Hist_Exposure_Skymap_smooth = Smooth2DMap(Hist_Exposure_Skymap,smooth_size_skymap,False)
-    center_binx = int(Hist_Exposure_Skymap.GetNbinsX()/2.)
-    center_biny = int(Hist_Exposure_Skymap.GetNbinsY()/2.)
-    event_rate_smooth = Hist_Exposure_Skymap_smooth.GetBinContent(center_binx,center_biny)
+    Hist_UniformExposure_Skymap = Hist_OnData_Skymap_Sum.Clone()
+    Hist_UniformExposure_Skymap_Galactic = Hist_OnData_Skymap_Galactic_Sum.Clone()
+    for bx in range(1,Hist_UniformExposure_Skymap.GetNbinsX()+1):
+        for by in range(1,Hist_UniformExposure_Skymap.GetNbinsY()+1):
+            Hist_UniformExposure_Skymap.SetBinContent(bx,by,event_rate)
+            Hist_UniformExposure_Skymap_Galactic.SetBinContent(bx,by,event_rate)
+    Hist_UniformExposure_Skymap_smooth = Smooth2DMap(Hist_UniformExposure_Skymap,smooth_size_exposure,False)
+    Hist_UniformExposure_Skymap_Galactic_smooth = Smooth2DMap(Hist_UniformExposure_Skymap_Galactic,smooth_size_exposure,False)
     Hist_Exposure_Skymap_smooth = Hist_OnExpo_Skymap_smooth.Clone()
+    Hist_Exposure_Skymap_smooth.Reset()
+    Hist_Exposure_Skymap_smooth.Add(Hist_OnExpo_Skymap_smooth)
+    Hist_Exposure_Skymap_smooth.Divide(Hist_UniformExposure_Skymap_smooth)
     Hist_Exposure_Skymap_Galactic_smooth = Hist_OnExpo_Skymap_Galactic_smooth.Clone()
-    Hist_Exposure_Skymap_smooth.Scale(1./event_rate_smooth)
-    Hist_Exposure_Skymap_Galactic_smooth.Scale(1./event_rate_smooth)
+    Hist_Exposure_Skymap_Galactic_smooth.Reset()
+    Hist_Exposure_Skymap_Galactic_smooth.Add(Hist_OnExpo_Skymap_Galactic_smooth)
+    Hist_Exposure_Skymap_Galactic_smooth.Divide(Hist_UniformExposure_Skymap_Galactic_smooth)
 
     Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_MDM,Hist_OnBkgd_Skymap_Syst_RBM,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_RaDec_MDM_%s%s'%(source_name,PercentCrab))
     VariableSkymapBins(Syst_MDM,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_MDM,Hist_OnBkgd_Skymap_Syst_RBM,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_RaDec_OpimizeNbins15_%s%s'%(source_name,PercentCrab),15)
@@ -6274,10 +6307,9 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
             Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Syst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Zscore_Energy_Skymap_smooth[ebin] = GetSignificanceMap(Hist_Data_Energy_Skymap_smooth[ebin],Hist_Bkgd_Energy_Skymap_smooth[ebin],Hist_Syst_Energy_Skymap_smooth[ebin],Syst_MDM,False)
             Hist_Expo_Energy_Skymap[ebin] = Hist_Expo_Energy_Skymap_smooth[ebin].Clone()
-            Hist_Expo_Energy_Skymap[ebin].Scale(1./event_rate_smooth)
         Hist_IndexMap = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
         Hist_IndexMap_ZoomIn = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s_zoomin'%(source_name,PercentCrab),60,2)
-        MakeMWLSkymap(Hist_IndexMap_ZoomIn,[2.1],'RA','Dec','Skymap_MWL_Index_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+        MakeMWLSkymap(Hist_IndexMap_ZoomIn,[2.2],'RA','Dec','Skymap_MWL_Index_RaDec_MDM_%s%s'%(source_name,PercentCrab))
 
         Hist_IndexMap_Unsmooth = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_Syst_Energy_Skymap,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
         legends = []
@@ -6596,8 +6628,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-drawMap = False
-#drawMap = True
+#drawMap = False
+drawMap = True
 #Smoothing = False
 Smoothing = True
 
@@ -6617,5 +6649,4 @@ SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,4)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,5)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,5,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,5)
 

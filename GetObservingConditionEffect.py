@@ -248,6 +248,12 @@ def GetHistogramsFromFile(FilePath):
     global Hist_OnData_PerElev_Yoff
     global Hist_CRData_PerElev_Xoff
     global Hist_CRData_PerElev_Yoff
+    global Hist_OnData_PerAzim_MSCW
+    global Hist_OnData_PerAzim_MSCL
+    global Hist_OnData_PerAzim_Xoff
+    global Hist_OnData_PerAzim_Yoff
+    global Hist_CRData_PerAzim_Xoff
+    global Hist_CRData_PerAzim_Yoff
     global Hist_OnData_PerNSB_Xoff
     global Hist_OnData_PerNSB_Yoff
     global Hist_CRData_PerNSB_Xoff
@@ -277,6 +283,20 @@ def GetHistogramsFromFile(FilePath):
         Hist_CRData_PerElev_Xoff[index].Add(InputFile.Get(HistName))
         HistName = "Hist_CRData_ThisElev_Yoff_V%s_ErecS%sto%s"%(elev,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_CRData_PerElev_Yoff[index].Add(InputFile.Get(HistName))
+    for azim in range(0,len(azim_bins)-1):
+        index = (len(azim_bins)-1)*energy_index + azim
+        HistName = "Hist_OnData_ThisAzim_MSCW_V%s_ErecS%sto%s"%(azim,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_PerAzim_MSCW[index].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_ThisAzim_MSCL_V%s_ErecS%sto%s"%(azim,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_PerAzim_MSCL[index].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_ThisAzim_Xoff_V%s_ErecS%sto%s"%(azim,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_PerAzim_Xoff[index].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_ThisAzim_Yoff_V%s_ErecS%sto%s"%(azim,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_PerAzim_Yoff[index].Add(InputFile.Get(HistName))
+        HistName = "Hist_CRData_ThisAzim_Xoff_V%s_ErecS%sto%s"%(azim,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_CRData_PerAzim_Xoff[index].Add(InputFile.Get(HistName))
+        HistName = "Hist_CRData_ThisAzim_Yoff_V%s_ErecS%sto%s"%(azim,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_CRData_PerAzim_Yoff[index].Add(InputFile.Get(HistName))
     for nsb in range(0,len(nsb_bins)-1):
         index = (len(nsb_bins)-1)*energy_index + nsb
         HistName = "Hist_OnData_ThisNSB_Xoff_V%s_ErecS%sto%s"%(nsb,ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -298,12 +318,14 @@ def GetHistogramsFromFile(FilePath):
         HistName = "Hist_OnData_ThisYear_Yoff_V%s_ErecS%sto%s"%(year,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_OnData_PerYear_Yoff[index].Add(InputFile.Get(HistName))
 
-elev_bins = [45,50,55,60,65,70,75,80,85]
+elev_bins = [40,50,60,70,80,90]
+azim_bins = [0,45,135,225,315]
 MJD_bins = [53613,55074,56535,57996,59457]
-nsb_bins = [1,2,3,4,5,6,7,8]
+nsb_bins = [0,2,4,6,8]
 
 ref_bin_elev = len(elev_bins)-3
-ref_bin_nsb = len(nsb_bins)-4
+ref_bin_azim = 0
+ref_bin_nsb = 0
 
 variation_range = 1.0
 
@@ -323,6 +345,21 @@ for energy in range(0,len(energy_bin)-1):
         Hist_CRData_PerElev_Xoff += [ROOT.TH1D("Hist_OnData_PerElev_Xoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
         Hist_CRData_PerElev_Yoff += [ROOT.TH1D("Hist_OnData_PerElev_Yoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
 
+Hist_OnData_PerAzim_MSCW = []
+Hist_OnData_PerAzim_MSCL = []
+Hist_OnData_PerAzim_Xoff = []
+Hist_OnData_PerAzim_Yoff = []
+Hist_CRData_PerAzim_Xoff = []
+Hist_CRData_PerAzim_Yoff = []
+for energy in range(0,len(energy_bin)-1):
+    for azim in range(0,len(azim_bins)-1):
+        Hist_OnData_PerAzim_MSCW += [ROOT.TH1D("Hist_OnData_PerAzim_MSCW_E%s_Z%s"%(energy,azim),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+        Hist_OnData_PerAzim_MSCL += [ROOT.TH1D("Hist_OnData_PerAzim_MSCL_E%s_Z%s"%(energy,azim),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
+        Hist_OnData_PerAzim_Xoff += [ROOT.TH1D("Hist_OnData_PerAzim_Xoff_E%s_Z%s"%(energy,azim),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        Hist_OnData_PerAzim_Yoff += [ROOT.TH1D("Hist_OnData_PerAzim_Yoff_E%s_Z%s"%(energy,azim),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        Hist_CRData_PerAzim_Xoff += [ROOT.TH1D("Hist_OnData_PerAzim_Xoff_E%s_Z%s"%(energy,azim),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        Hist_CRData_PerAzim_Yoff += [ROOT.TH1D("Hist_OnData_PerAzim_Yoff_E%s_Z%s"%(energy,azim),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+
 Hist_OnData_PerNSB_Xoff = []
 Hist_OnData_PerNSB_Yoff = []
 Hist_CRData_PerNSB_Xoff = []
@@ -339,6 +376,11 @@ Hist_OnData_DiffRefElev_Xoff = []
 Hist_OnData_DiffRefElev_Yoff = []
 Hist_CRData_DiffRefElev_Xoff = []
 Hist_CRData_DiffRefElev_Yoff = []
+Hist_OnData_DiffAzim_Yoff = []
+Hist_OnData_DiffRefAzim_Xoff = []
+Hist_OnData_DiffRefAzim_Yoff = []
+Hist_CRData_DiffRefAzim_Xoff = []
+Hist_CRData_DiffRefAzim_Yoff = []
 Hist_OnData_DiffRefNSB_Xoff = []
 Hist_OnData_DiffRefNSB_Yoff = []
 Hist_CRData_DiffRefNSB_Xoff = []
@@ -367,7 +409,8 @@ FilePath_List = []
 #            ErecS_upper_cut = energy_bin[e+1]
 #            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
 
-FilePath = "output_nominal/ObservingEffect.root"
+#FilePath = "output_nominal/ObservingEffect.root"
+FilePath = "output_nocameracorrect/ObservingEffect.root"
 FilePath_List += [FilePath]
 print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
 for energy in range(0,len(energy_bin)-1):
@@ -462,6 +505,16 @@ for energy in range(0,len(energy_bin)-1):
         if norm>0.: Hist_CRData_PerElev_Xoff[index].Scale(1./norm)
         norm = Hist_CRData_PerElev_Yoff[index].Integral()
         if norm>0.: Hist_CRData_PerElev_Yoff[index].Scale(1./norm)
+    for azim in range(0,len(azim_bins)-1):
+        index = (len(azim_bins)-1)*energy + azim
+        norm = Hist_OnData_PerAzim_Xoff[index].Integral()
+        if norm>0.: Hist_OnData_PerAzim_Xoff[index].Scale(1./norm)
+        norm = Hist_OnData_PerAzim_Yoff[index].Integral()
+        if norm>0.: Hist_OnData_PerAzim_Yoff[index].Scale(1./norm)
+        norm = Hist_CRData_PerAzim_Xoff[index].Integral()
+        if norm>0.: Hist_CRData_PerAzim_Xoff[index].Scale(1./norm)
+        norm = Hist_CRData_PerAzim_Yoff[index].Integral()
+        if norm>0.: Hist_CRData_PerAzim_Yoff[index].Scale(1./norm)
     for nsb in range(0,len(nsb_bins)-1):
         index = (len(nsb_bins)-1)*energy + nsb
         norm = Hist_OnData_PerNSB_Xoff[index].Integral()
@@ -488,7 +541,7 @@ for energy in range(0,len(energy_bin)-1):
         Hist_OnData_DiffRefElev_Yoff += [ROOT.TH1D("Hist_OnData_DiffRefElev_Yoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
         ref_bin = ref_bin_elev 
         if ref_bin<0: continue
-        print ("ref_bin = %s"%(ref_bin))
+        print ("elev ref_bin = %s"%(ref_bin))
         ref_index = (len(elev_bins)-1)*energy + ref_bin
         Hist_OnData_DiffRefElev_Xoff[index].Add(Hist_OnData_PerElev_Xoff[ref_index])
         Hist_OnData_DiffRefElev_Xoff[index].Add(Hist_OnData_PerElev_Xoff[index],-1.)
@@ -496,13 +549,27 @@ for energy in range(0,len(energy_bin)-1):
         Hist_OnData_DiffRefElev_Yoff[index].Add(Hist_OnData_PerElev_Yoff[ref_index])
         Hist_OnData_DiffRefElev_Yoff[index].Add(Hist_OnData_PerElev_Yoff[index],-1.)
         Hist_OnData_DiffRefElev_Yoff[index].Divide(Hist_OnData_PerElev_Yoff[ref_index])
+    for azim in range(0,len(azim_bins)-1):
+        index = (len(azim_bins)-1)*energy + azim
+        Hist_OnData_DiffRefAzim_Xoff += [ROOT.TH1D("Hist_OnData_DiffRefAzim_Xoff_E%s_Z%s"%(energy,azim),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        Hist_OnData_DiffRefAzim_Yoff += [ROOT.TH1D("Hist_OnData_DiffRefAzim_Yoff_E%s_Z%s"%(energy,azim),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        ref_bin = ref_bin_azim 
+        if ref_bin<0: continue
+        print ("azim ref_bin = %s"%(ref_bin))
+        ref_index = (len(azim_bins)-1)*energy + ref_bin
+        Hist_OnData_DiffRefAzim_Xoff[index].Add(Hist_OnData_PerAzim_Xoff[ref_index])
+        Hist_OnData_DiffRefAzim_Xoff[index].Add(Hist_OnData_PerAzim_Xoff[index],-1.)
+        Hist_OnData_DiffRefAzim_Xoff[index].Divide(Hist_OnData_PerAzim_Xoff[ref_index])
+        Hist_OnData_DiffRefAzim_Yoff[index].Add(Hist_OnData_PerAzim_Yoff[ref_index])
+        Hist_OnData_DiffRefAzim_Yoff[index].Add(Hist_OnData_PerAzim_Yoff[index],-1.)
+        Hist_OnData_DiffRefAzim_Yoff[index].Divide(Hist_OnData_PerAzim_Yoff[ref_index])
     for nsb in range(0,len(nsb_bins)-1):
         index = (len(nsb_bins)-1)*energy + nsb
         Hist_OnData_DiffRefNSB_Xoff += [ROOT.TH1D("Hist_OnData_DiffRefNSB_Xoff_E%s_Z%s"%(energy,nsb),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
         Hist_OnData_DiffRefNSB_Yoff += [ROOT.TH1D("Hist_OnData_DiffRefNSB_Yoff_E%s_Z%s"%(energy,nsb),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
         ref_bin = ref_bin_nsb 
         if ref_bin<0: continue
-        print ("ref_bin = %s"%(ref_bin))
+        print ("nsb ref_bin = %s"%(ref_bin))
         ref_index = (len(nsb_bins)-1)*energy + ref_bin
         Hist_OnData_DiffRefNSB_Xoff[index].Add(Hist_OnData_PerNSB_Xoff[ref_index])
         Hist_OnData_DiffRefNSB_Xoff[index].Add(Hist_OnData_PerNSB_Xoff[index],-1.)
@@ -516,7 +583,7 @@ for energy in range(0,len(energy_bin)-1):
         Hist_CRData_DiffRefElev_Yoff += [ROOT.TH1D("Hist_CRData_DiffRefElev_Yoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
         ref_bin = ref_bin_elev
         if ref_bin<0: continue
-        print ("ref_bin = %s"%(ref_bin))
+        print ("elev ref_bin = %s"%(ref_bin))
         ref_index = (len(elev_bins)-1)*energy + ref_bin
         Hist_CRData_DiffRefElev_Xoff[index].Add(Hist_CRData_PerElev_Xoff[ref_index])
         Hist_CRData_DiffRefElev_Xoff[index].Add(Hist_CRData_PerElev_Xoff[index],-1.)
@@ -524,12 +591,27 @@ for energy in range(0,len(energy_bin)-1):
         Hist_CRData_DiffRefElev_Yoff[index].Add(Hist_CRData_PerElev_Yoff[ref_index])
         Hist_CRData_DiffRefElev_Yoff[index].Add(Hist_CRData_PerElev_Yoff[index],-1.)
         Hist_CRData_DiffRefElev_Yoff[index].Divide(Hist_CRData_PerElev_Yoff[ref_index])
+    for azim in range(0,len(azim_bins)-1):
+        index = (len(azim_bins)-1)*energy + azim
+        Hist_CRData_DiffRefAzim_Xoff += [ROOT.TH1D("Hist_CRData_DiffRefAzim_Xoff_E%s_Z%s"%(energy,azim),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        Hist_CRData_DiffRefAzim_Yoff += [ROOT.TH1D("Hist_CRData_DiffRefAzim_Yoff_E%s_Z%s"%(energy,azim),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        ref_bin = ref_bin_azim
+        if ref_bin<0: continue
+        print ("azim ref_bin = %s"%(ref_bin))
+        ref_index = (len(azim_bins)-1)*energy + ref_bin
+        Hist_CRData_DiffRefAzim_Xoff[index].Add(Hist_CRData_PerAzim_Xoff[ref_index])
+        Hist_CRData_DiffRefAzim_Xoff[index].Add(Hist_CRData_PerAzim_Xoff[index],-1.)
+        Hist_CRData_DiffRefAzim_Xoff[index].Divide(Hist_CRData_PerAzim_Xoff[ref_index])
+        Hist_CRData_DiffRefAzim_Yoff[index].Add(Hist_CRData_PerAzim_Yoff[ref_index])
+        Hist_CRData_DiffRefAzim_Yoff[index].Add(Hist_CRData_PerAzim_Yoff[index],-1.)
+        Hist_CRData_DiffRefAzim_Yoff[index].Divide(Hist_CRData_PerAzim_Yoff[ref_index])
     for nsb in range(0,len(nsb_bins)-1):
         index = (len(nsb_bins)-1)*energy + nsb
-        Hist_CRData_DiffRefNSB_Xoff += [ROOT.TH1D("Hist_CRData_DiffRefNSB_Xoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
-        Hist_CRData_DiffRefNSB_Yoff += [ROOT.TH1D("Hist_CRData_DiffRefNSB_Yoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        Hist_CRData_DiffRefNSB_Xoff += [ROOT.TH1D("Hist_CRData_DiffRefNSB_Xoff_E%s_Z%s"%(energy,nsb),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        Hist_CRData_DiffRefNSB_Yoff += [ROOT.TH1D("Hist_CRData_DiffRefNSB_Yoff_E%s_Z%s"%(energy,nsb),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
         ref_bin = ref_bin_nsb
         if ref_bin<0: continue
+        print ("nsb ref_bin = %s"%(ref_bin))
         ref_index = (len(nsb_bins)-1)*energy + ref_bin
         Hist_CRData_DiffRefNSB_Xoff[index].Add(Hist_CRData_PerNSB_Xoff[ref_index])
         Hist_CRData_DiffRefNSB_Xoff[index].Add(Hist_CRData_PerNSB_Xoff[index],-1.)
@@ -541,7 +623,7 @@ for energy in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
     colors = []
-    for elev in range(3,len(elev_bins)-1):
+    for elev in range(0,len(elev_bins)-1):
         index = (len(elev_bins)-1)*energy + elev
         ref_bin = ref_bin_elev
         if ref_bin<0: continue
@@ -554,7 +636,7 @@ for energy in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
     colors = []
-    for elev in range(3,len(elev_bins)-1):
+    for elev in range(0,len(elev_bins)-1):
         index = (len(elev_bins)-1)*energy + elev
         ref_bin = ref_bin_elev 
         if ref_bin<0: continue
@@ -568,7 +650,7 @@ for energy in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
     colors = []
-    for elev in range(3,len(elev_bins)-1):
+    for elev in range(0,len(elev_bins)-1):
         index = (len(elev_bins)-1)*energy + elev
         ref_bin = ref_bin_elev 
         if ref_bin<0: continue
@@ -581,7 +663,7 @@ for energy in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
     colors = []
-    for elev in range(3,len(elev_bins)-1):
+    for elev in range(0,len(elev_bins)-1):
         index = (len(elev_bins)-1)*energy + elev
         ref_bin = ref_bin_elev 
         if ref_bin<0: continue
@@ -595,7 +677,61 @@ for energy in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
     colors = []
-    for nsb in range(2,len(nsb_bins)-1):
+    for azim in range(0,len(azim_bins)-1):
+        index = (len(azim_bins)-1)*energy + azim
+        ref_bin = ref_bin_azim
+        if ref_bin<0: continue
+        if azim_bins[ref_bin]==azim_bins[azim]: continue
+        ref_index = (len(azim_bins)-1)*energy + ref_bin
+        Hists += [Hist_OnData_DiffRefAzim_Xoff[index]]
+        legends += ['%s-%s'%(azim_bins[ref_bin],azim_bins[azim])]
+        colors += [azim-2]
+    MakeComparisonPlot(Hists,legends,colors,'X off','(N_{%s}-N)/N_{%s}'%(azim_bins[ref_bin_azim],azim_bins[ref_bin_azim]),'DiffRefAzim_Xoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+    Hists = []
+    legends = []
+    colors = []
+    for azim in range(0,len(azim_bins)-1):
+        index = (len(azim_bins)-1)*energy + azim
+        ref_bin = ref_bin_azim 
+        if ref_bin<0: continue
+        if azim_bins[ref_bin]==azim_bins[azim]: continue
+        ref_index = (len(azim_bins)-1)*energy + ref_bin
+        Hists += [Hist_CRData_DiffRefAzim_Xoff[index]]
+        legends += ['%s-%s'%(azim_bins[ref_bin],azim_bins[azim])]
+        colors += [azim-2]
+    MakeComparisonPlot(Hists,legends,colors,'X off','(N_{%s}-N)/N_{%s}'%(azim_bins[ref_bin_azim],azim_bins[ref_bin_azim]),'CRDiffRefAzim_Xoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+
+    Hists = []
+    legends = []
+    colors = []
+    for azim in range(0,len(azim_bins)-1):
+        index = (len(azim_bins)-1)*energy + azim
+        ref_bin = ref_bin_azim 
+        if ref_bin<0: continue
+        if azim_bins[ref_bin]==azim_bins[azim]: continue
+        ref_index = (len(azim_bins)-1)*energy + ref_bin
+        Hists += [Hist_OnData_DiffRefAzim_Yoff[index]]
+        legends += ['%s-%s'%(azim_bins[ref_bin],azim_bins[azim])]
+        colors += [azim-2]
+    MakeComparisonPlot(Hists,legends,colors,'Y off','(N_{%s}-N)/N_{%s}'%(azim_bins[ref_bin_azim],azim_bins[ref_bin_azim]),'DiffRefAzim_Yoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+    Hists = []
+    legends = []
+    colors = []
+    for azim in range(0,len(azim_bins)-1):
+        index = (len(azim_bins)-1)*energy + azim
+        ref_bin = ref_bin_azim 
+        if ref_bin<0: continue
+        if azim_bins[ref_bin]==azim_bins[azim]: continue
+        ref_index = (len(azim_bins)-1)*energy + ref_bin
+        Hists += [Hist_CRData_DiffRefAzim_Yoff[index]]
+        legends += ['%s-%s'%(azim_bins[ref_bin],azim_bins[azim])]
+        colors += [azim-2]
+    MakeComparisonPlot(Hists,legends,colors,'Y off','(N_{%s}-N)/N_{%s}'%(azim_bins[ref_bin_azim],azim_bins[ref_bin_azim]),'CRDiffRefAzim_Yoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+
+    Hists = []
+    legends = []
+    colors = []
+    for nsb in range(0,len(nsb_bins)-1):
         index = (len(nsb_bins)-1)*energy + nsb
         ref_bin = ref_bin_nsb 
         if ref_bin<0: continue
@@ -608,7 +744,7 @@ for energy in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
     colors = []
-    for nsb in range(2,len(nsb_bins)-1):
+    for nsb in range(0,len(nsb_bins)-1):
         index = (len(nsb_bins)-1)*energy + nsb
         ref_bin = ref_bin_nsb 
         if ref_bin<0: continue
@@ -622,7 +758,7 @@ for energy in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
     colors = []
-    for nsb in range(2,len(nsb_bins)-1):
+    for nsb in range(0,len(nsb_bins)-1):
         index = (len(nsb_bins)-1)*energy + nsb
         ref_bin = ref_bin_nsb
         if ref_bin<0: continue
@@ -635,7 +771,7 @@ for energy in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
     colors = []
-    for nsb in range(2,len(nsb_bins)-1):
+    for nsb in range(0,len(nsb_bins)-1):
         index = (len(nsb_bins)-1)*energy + nsb
         ref_bin = ref_bin_nsb 
         if ref_bin<0: continue

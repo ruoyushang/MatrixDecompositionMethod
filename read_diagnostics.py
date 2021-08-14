@@ -394,29 +394,28 @@ range_dec = 3.0
 search_for_on_data = False
 
 V4 = False
-V5 = True
-V6 = False
+V5 = False
+V6 = True
 
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
 
-Search_Range_Elev = [20.,90.]
+Search_Range_Elev = [80.,90.]
+Search_Range_Azim = [310.,360.]
 Search_Range_PedVar_DC = [0.,10.]
 
-# 1ES 0414 Elev 55-60
-#Search_Center_RA = 64.0
-#Search_Center_Dec = -2.0
+Search_Range_RA = [30.,50.]
+Search_Range_Dec = [-90.,90.]
 
 # Ursa Major II
 #Search_Center_RA = 132.
 #Search_Center_Dec = 62.
 
-#RGBJ0710+591 Elev 60-65
-Search_Center_RA = 104.
-Search_Center_Dec = 58.
+#Search_Center_RA = 250.
+#Search_Center_Dec = 40.
 
-Search_Range_RA = [Search_Center_RA-4.,Search_Center_RA+4.]
-Search_Range_Dec = [Search_Center_Dec-4.,Search_Center_Dec+4.]
+#Search_Range_RA = [Search_Center_RA-10.,Search_Center_RA+10.]
+#Search_Range_Dec = [Search_Center_Dec-10.,Search_Center_Dec+10.]
 
 RunNumber = 0
 Elev = 0
@@ -492,6 +491,7 @@ for line in inputFile:
         #print 'this is a V2 line'
         V2 = True
     RunNumber = line.split(' ')[1-1]
+    if RunNumber=='': continue
     List_RunNumber += [int(RunNumber)]
     Elev = line.split(' ')[8-1]
     Azim = line.split(' ')[9-1]
@@ -590,7 +590,7 @@ if search_for_on_data:
             if int(Source_RunNumber[entry2])==int(RunNumber): DoNotUse = True
         if DoNotUse: continue
     
-        print 'RunNumber %s, L3_rate %s, Livetime %s, Elev %s, RA %s, Dec %s'%(RunNumber,L3_rate,Livetime,Elev,T1_RA,T1_Dec)
+        print ('RunNumber %s, L3_rate %s, Livetime %s, Elev %s, RA %s, Dec %s'%(RunNumber,L3_rate,Livetime,Elev,T1_RA,T1_Dec))
     
         List_Used += [RunNumber]
         List_Used_RA += [T1_RA]
@@ -685,6 +685,8 @@ else:
 
         if Elev<Search_Range_Elev[0]: continue
         if Elev>Search_Range_Elev[1]: continue
+        if Azim<Search_Range_Azim[0]: continue
+        if Azim>Search_Range_Azim[1]: continue
         if PedVar_DC<Search_Range_PedVar_DC[0]: continue
         if PedVar_DC>Search_Range_PedVar_DC[1]: continue
         already_used = False
@@ -814,12 +816,14 @@ else:
 
         
 for entry in range(0,len(List_Used)):
-    print List_Used[entry]
-print 'total %s runs.'%(len(List_Used))
+    print (List_Used[entry])
+print ('total %s runs.'%(len(List_Used)))
 
 plt.clf()
 fig, ax = plt.subplots()
-plt.hist(List_Used_RA, bins='auto')
+w = 4
+n = math.ceil((max(List_Used_RA) - min(List_Used_RA))/w)
+plt.hist(List_Used_RA, bins=n)
 ax.axis('on')
 ax.set_xlabel('RA')
 ax.set_ylabel('counts')
@@ -827,7 +831,9 @@ plt.savefig("output_plots/RunRA.png")
 
 plt.clf()
 fig, ax = plt.subplots()
-plt.hist(List_Used_Dec, bins='auto')
+w = 4
+n = math.ceil((max(List_Used_Dec) - min(List_Used_Dec))/w)
+plt.hist(List_Used_Dec, bins=n)
 ax.axis('on')
 ax.set_xlabel('Dec')
 ax.set_ylabel('counts')
@@ -840,7 +846,7 @@ plt.colorbar()
 for i in range(len(xbins)-1):
     for j in range(len(ybins)-1):
         if hist[i,j]>30:
-            print "counts %s, RA %s, Dec %s"%(hist[i,j],xbins[i],ybins[j])
+            print ("counts %s, RA %s, Dec %s"%(hist[i,j],xbins[i],ybins[j]))
             #ax.text(xbins[i]+3.,ybins[j]+3.,hist[i,j],color="black", ha="center", va="center", fontweight="bold")
 ax.axis('on')
 ax.set_xlabel('RA')
