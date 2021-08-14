@@ -308,6 +308,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 102.694;
                 Source_Dec = 25.050;
     }
+    if (source_name.Contains("TriII"))
+    {
+            Source_RA = 34.32861263958333;
+                Source_Dec = 36.0;
+    }
     if (source_name.Contains("1ES1440"))
     {
             Source_RA = 220.701;
@@ -1522,7 +1527,8 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
             double offset_NSB = 0.;
             double offset_Elev = 0.;
             double threshold_dNSB = 0.5;
-            double threshold_dElev = 1.0;
+            double threshold_dElev = 2.0;
+            double threshold_dAzim = 45.;
             double threshold_dMJD = 3.*365.;
             double threshold_dL3Rate = 0.3;
             double threshold_dTime = 15.*60.;
@@ -1567,9 +1573,13 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     }
                     if (already_used_run) continue;
 
+                    double delta_azimuth = abs(ON_pointing[on_run].second-OFF_pointing[off_run].second);
+                    if (delta_azimuth>180.) delta_azimuth = 360.-delta_azimuth;
+
                     found_match = true;
+                    //double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first+offset_Elev,2);
+                    double chi2 = pow(delta_azimuth,2);
                     //double chi2 = pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2);
-                    double chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first+offset_Elev,2);
                     //double chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run]-offset_NSB,2);
                     if (ON_NSB[on_run]==0.)
                     {
@@ -1580,6 +1590,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                         found_match = false;
                         continue;
                     }
+                    //if (pow(delta_azimuth,2)>threshold_dAzim*threshold_dAzim)
+                    //{
+                    //    found_match = false;
+                    //    continue;
+                    //}
                     if (pow(ON_NSB[on_run]-OFF_NSB[off_run]-offset_NSB,2)>threshold_dNSB*threshold_dNSB)
                     {
                         found_match = false;
@@ -1641,6 +1656,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     {
                         did_i_find_a_match.at(on_run) = false;
                         std::cout << "couldn't find a matched run for " << int(ON_runlist[on_run].second) << ", break." << std::endl;
+                        std::cout << "ON run elevation " << ON_pointing[on_run].first << ", azimuth " << ON_pointing[on_run].second << ", NSB " << ON_NSB[on_run] << std::endl; 
                         break;
                         std::cout << "couldn't find a matched run, relax all cuts." << std::endl;
                         threshold_dNSB += 10.;
@@ -1772,7 +1788,7 @@ bool ControlSelectionTheta2()
     //if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     //if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     double boundary = 0.5;
-    if (ErecS*1000.>2000.)
+    if (ErecS*1000.>=2000.)
     {
         boundary = 0.25;
     }
@@ -2249,10 +2265,12 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     TH1D Hist_EffArea = TH1D("Hist_EffArea","",N_energy_fine_bins,energy_fine_bins);
     TH1D Hist_Dark_NSB = TH1D("Hist_Dark_NSB","",20,4,14);
     TH2D Hist_Dark_ShowerDirection = TH2D("Hist_Dark_ShowerDirection","",180,0,360,90,0,90);
-    TH2D Hist_Dark_ElevNSB = TH2D("Hist_Dark_ElevNSB","",20,0,10,90,0,90);
+    TH2D Hist_Dark_ElevNSB = TH2D("Hist_Dark_ElevNSB","",20,0,10,18,0,90);
+    TH2D Hist_Dark_ElevAzim = TH2D("Hist_Dark_ElevAzim","",18,0,360,18,0,90);
     TH1D Hist_Data_NSB = TH1D("Hist_Data_NSB","",20,4,14);
     TH2D Hist_Data_ShowerDirection = TH2D("Hist_Data_ShowerDirection","",180,0,360,90,0,90);
-    TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,0,10,90,0,90);
+    TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,0,10,18,0,90);
+    TH2D Hist_Data_ElevAzim = TH2D("Hist_Data_ElevAzim","",18,0,360,18,0,90);
 
     vector<TH1D> Hist_OnData_Incl_CR_Zenith;
     vector<TH1D> Hist_OnDark_Incl_CR_Zenith;
@@ -2500,6 +2518,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 double NSB_thisrun = GetRunPedestalVar(int(Dark_runlist.at(run).at(nth_sample)[off_run].second));
                 Hist_Dark_NSB.Fill(NSB_thisrun);
                 double tele_elev_off = GetRunElevAzim(filename_dark,int(Dark_runlist.at(run).at(nth_sample)[off_run].second)).first;
+                double tele_azim_off = GetRunElevAzim(filename_dark,int(Dark_runlist.at(run).at(nth_sample)[off_run].second)).second;
 
                 for (int e=0;e<N_energy_bins;e++) 
                 {
@@ -2622,7 +2641,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
                     //if (R2off>4.) continue;
                     Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
-                    Hist_Dark_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
+                    Hist_Dark_ElevNSB.Fill(NSB_thisrun,tele_elev_off);
+                    Hist_Dark_ElevAzim.Fill(NSB_thisrun,tele_azim_off);
                     double run_weight = Dark_weight.at(run).at(nth_sample);
                     double weight = run_weight;
                     //if (theta2_dark<source_theta2_cut && SignalSelectionTheta2()) weight = run_weight*source_weight.at(energy);
@@ -2878,6 +2898,22 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         if (energy_bins[e]>4000.) smooth_size = 0.5;
         Smooth2DMap(&Hist_OnData_Expo_Skymap.at(e), smooth_size);
     }
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        for (int binx=0;binx<Hist_OnData_Expo_Skymap.at(e).GetNbinsX();binx++)
+        {
+            for (int biny=0;biny<Hist_OnData_Expo_Skymap.at(e).GetNbinsY();biny++)
+            {
+                double Expo_content = Hist_OnData_Expo_Skymap.at(e).GetBinContent(binx+1,biny+1);
+                if (Expo_content==0.) continue;
+                double Expo_weight = Hist_OnData_CR_R2off.at(e).GetBinContent(1)/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*1.0*1.0);
+                if (Expo_weight>10.)
+                {
+                    Hist_OnData_Expo_Skymap.at(e).SetBinContent(binx+1,biny+1,0.);
+                }
+            }
+        }
+    }
 
 
     std::cout << "Build templates from cosmic rays." << std::endl;
@@ -3079,6 +3115,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         double NSB_thisrun = GetRunPedestalVar(int(Data_runlist[run].second));
         Hist_Data_NSB.Fill(NSB_thisrun);
         double tele_elev = GetRunElevAzim(filename,int(Data_runlist[run].second)).first;
+        double tele_azim = GetRunElevAzim(filename,int(Data_runlist[run].second)).second;
 
         Data_tree->GetEntry(0);
         double time_0 = Time;
@@ -3335,7 +3372,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (!AcceptanceCorrection) Expo_weight = 1.;
 
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
-            Hist_Data_ElevNSB.Fill(NSB_thisrun,Shower_Ze);
+            Hist_Data_ElevNSB.Fill(NSB_thisrun,tele_elev);
+            Hist_Data_ElevAzim.Fill(NSB_thisrun,tele_azim);
             if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
                 Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW,weight);
@@ -3751,7 +3789,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     FaintStarTree.Write();
 
     Hist_Dark_ElevNSB.Write();
+    Hist_Dark_ElevAzim.Write();
     Hist_Data_ElevNSB.Write();
+    Hist_Data_ElevAzim.Write();
     Hist_EffArea.Write();
     for (int e=0;e<N_energy_bins;e++) 
     {

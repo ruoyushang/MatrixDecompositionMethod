@@ -15,6 +15,7 @@ double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
 
 bool EigenDecomposition = false;
+bool AcceptanceCorrection = false;
 
 double MSCW_plot_lower = -0.6;
 double MSCL_plot_lower = -0.6;
@@ -46,18 +47,20 @@ double camera_theta2_cut_upper = 1.;
 double source_theta2_cut = 0.09;
 
 int n_dark_samples = 1;
-//const int N_energy_fine_bins = 10;
-//double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.2),pow(10,2.4),pow(10,2.6),pow(10,2.8),pow(10,3.0),pow(10,3.2),pow(10,3.4),pow(10,3.6),pow(10,3.8),pow(10,4.0)};
-const int N_energy_fine_bins = 20;
-double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.1),pow(10,2.2),pow(10,2.3),pow(10,2.4),pow(10,2.5),pow(10,2.6),pow(10,2.7),pow(10,2.8),pow(10,2.9),pow(10,3.0),pow(10,3.1),pow(10,3.2),pow(10,3.3),pow(10,3.4),pow(10,3.5),pow(10,3.6),pow(10,3.7),pow(10,3.8),pow(10,3.9),pow(10,4.0)};
-const int N_elev_bins = 8;
-double elev_bins[N_elev_bins+1] = {45,50,55,60,65,70,75,80,85};
+const int N_energy_fine_bins = 10;
+double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.2),pow(10,2.4),pow(10,2.6),pow(10,2.8),pow(10,3.0),pow(10,3.2),pow(10,3.4),pow(10,3.6),pow(10,3.8),pow(10,4.0)};
+//const int N_energy_fine_bins = 20;
+//double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.1),pow(10,2.2),pow(10,2.3),pow(10,2.4),pow(10,2.5),pow(10,2.6),pow(10,2.7),pow(10,2.8),pow(10,2.9),pow(10,3.0),pow(10,3.1),pow(10,3.2),pow(10,3.3),pow(10,3.4),pow(10,3.5),pow(10,3.6),pow(10,3.7),pow(10,3.8),pow(10,3.9),pow(10,4.0)};
+const int N_elev_bins = 5;
+double elev_bins[N_elev_bins+1] = {40,50,60,70,80,90};
 //const int N_MJD_bins = 16; // Aug 31st of each year
 //double MJD_bins[N_MJD_bins+1] = {53613,53978,54343,54709,55074,55439,55804,56170,56535,56900,57265,57631,57996,58361,58726,59092,59457};
 const int N_MJD_bins = 4; // Aug 31st of every 4 years
 double MJD_bins[N_MJD_bins+1] = {53613,55074,56535,57996,59457};
-const int N_NSB_bins = 7;
-double NSB_bins[N_NSB_bins+1] = {1,2,3,4,5,6,7,8};
+const int N_NSB_bins = 5;
+double NSB_bins[N_NSB_bins+1] = {3,4,5,6,7,8};
+const int N_azim_bins = 5;
+double azim_bins[N_azim_bins+1] = {0,45,135,225,315,360};
 
 double MSCW_cut_blind = 1.0;
 double MSCL_cut_blind = 1.0;

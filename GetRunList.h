@@ -154,6 +154,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("1ES0647V6");
         }
+        if (source.find("TriIIV6") != std::string::npos)
+        {
+            list = GetRunListFromFile("TriIIV6");
+        }
         if (source.find("1ES1440V6") != std::string::npos)
         {
             list = GetRunListFromFile("1ES1440V6");
@@ -283,6 +287,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list_temp = GetRunListFromFile("Segue1V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("1ES0647V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("TriIIV6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("1ES1011V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());

@@ -3058,8 +3058,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
     TH1D Hist_ErecS_fine = TH1D("Hist_ErecS_fine","",N_energy_fine_bins,energy_fine_bins);
-    TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,0,10,90,0,90);
-    TH2D Hist_Dark_ElevNSB = TH2D("Hist_Dark_ElevNSB","",20,0,10,90,0,90);
+    TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,0,10,18,0,90);
+    TH2D Hist_Dark_ElevNSB = TH2D("Hist_Dark_ElevNSB","",20,0,10,18,0,90);
+    TH2D Hist_Data_ElevAzim = TH2D("Hist_Data_ElevAzim","",18,0,360,18,0,90);
+    TH2D Hist_Dark_ElevAzim = TH2D("Hist_Dark_ElevAzim","",18,0,360,18,0,90);
     TH1D Hist_EffArea = TH1D("Hist_EffArea","",N_energy_fine_bins,energy_fine_bins);
 
     SizeSecondMax_Cut = 600.;
@@ -3094,6 +3096,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     Hist_Data_ElevNSB.Add( (TH2D*)InputDataFile.Get(hist_name) );
     hist_name  = "Hist_Dark_ElevNSB";
     Hist_Dark_ElevNSB.Add( (TH2D*)InputDataFile.Get(hist_name) );
+    hist_name  = "Hist_Data_ElevAzim";
+    Hist_Data_ElevAzim.Add( (TH2D*)InputDataFile.Get(hist_name) );
+    hist_name  = "Hist_Dark_ElevAzim";
+    Hist_Dark_ElevAzim.Add( (TH2D*)InputDataFile.Get(hist_name) );
     hist_name  = "Hist_EffArea";
     Hist_EffArea.Add( (TH1D*)InputDataFile.Get(hist_name) );
     double NSB_mean_data = Hist_Data_ElevNSB.GetMean(1);
@@ -4239,6 +4245,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     NewInfoTree.Fill();
     NewInfoTree.Write();
 
+    Hist_Dark_ElevNSB.Write();
+    Hist_Dark_ElevAzim.Write();
+    Hist_Data_ElevNSB.Write();
+    Hist_Data_ElevAzim.Write();
     Hist_EffArea.Write();
     for (int e=0;e<N_energy_bins;e++)
     {
