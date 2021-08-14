@@ -127,7 +127,7 @@ for elev in range(0,len(elev_bins)-1):
         for d in range(0,len(mjd_tag)):
             root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]
 
-def Make2DPlot(hist,name):
+def Make2DPlot(hist,name,x_label,y_label):
 
     canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
     pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
@@ -145,8 +145,8 @@ def Make2DPlot(hist,name):
 
     pad3.cd()
     pad1.cd()
-    hist.GetYaxis().SetTitle('elev.')
-    hist.GetXaxis().SetTitle('azim.')
+    hist.GetYaxis().SetTitle(y_label)
+    hist.GetXaxis().SetTitle(x_label)
     hist.Draw("COL4Z")
     canvas.SaveAs('output_plots/%s.png'%(name))
 
@@ -197,7 +197,7 @@ def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,log
                 min_heigh = Hists[h].GetMinimum()
 
     gap = 0.1*(max_heigh-min_heigh)
-    if not y_max==0. and not y_min==0.:
+    if not y_max==0. or not y_min==0.:
         Hists[0].SetMaximum(y_max)
         Hists[0].SetMinimum(y_min)
         if normalized: Hists[0].DrawNormalized("E")
@@ -223,7 +223,7 @@ def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,log
     legend = ROOT.TLegend(0.5,0.1,0.9,0.9)
     legend.SetTextFont(42)
     legend.SetBorderSize(0)
-    legend.SetTextSize(0.1)
+    legend.SetTextSize(0.2)
     legend.SetFillColor(0)
     legend.SetFillStyle(0)
     legend.SetLineColor(0)
@@ -242,6 +242,7 @@ def MakeComparisonPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,log
 def GetHistogramsFromFile(FilePath):
     global total_exposure_hours
     global Hist_ElevAzim
+    global Hist_ElevNSB
     global Hist_OnData_PerElev_MSCW
     global Hist_OnData_PerElev_MSCL
     global Hist_OnData_PerElev_Xoff
@@ -258,8 +259,8 @@ def GetHistogramsFromFile(FilePath):
     global Hist_OnData_PerNSB_Yoff
     global Hist_CRData_PerNSB_Xoff
     global Hist_CRData_PerNSB_Yoff
-    global Hist_OnData_PerYear_MSCW
-    global Hist_OnData_PerYear_MSCL
+    global Hist_OnData_PerNSB_MSCW
+    global Hist_OnData_PerNSB_MSCL
     global Hist_OnData_PerYear_Xoff
     global Hist_OnData_PerYear_Yoff
     InputFile = ROOT.TFile(FilePath)
@@ -269,6 +270,9 @@ def GetHistogramsFromFile(FilePath):
     HistName = "Hist_ElevAzim"
     Hist_ElevAzim.Reset()
     Hist_ElevAzim.Add(InputFile.Get(HistName))
+    HistName = "Hist_ElevNSB"
+    Hist_ElevNSB.Reset()
+    Hist_ElevNSB.Add(InputFile.Get(HistName))
     for elev in range(0,len(elev_bins)-1):
         index = (len(elev_bins)-1)*energy_index + elev
         HistName = "Hist_OnData_ThisElev_MSCW_V%s_ErecS%sto%s"%(elev,ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -307,29 +311,35 @@ def GetHistogramsFromFile(FilePath):
         Hist_CRData_PerNSB_Xoff[index].Add(InputFile.Get(HistName))
         HistName = "Hist_CRData_ThisNSB_Yoff_V%s_ErecS%sto%s"%(nsb,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_CRData_PerNSB_Yoff[index].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_ThisNSB_MSCW_V%s_ErecS%sto%s"%(nsb,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_PerNSB_MSCW[index].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_ThisNSB_MSCL_V%s_ErecS%sto%s"%(nsb,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_PerNSB_MSCL[index].Add(InputFile.Get(HistName))
     for year in range(0,len(MJD_bins)-1):
         index = (len(MJD_bins)-1)*energy_index + year
-        HistName = "Hist_OnData_ThisYear_MSCW_V%s_ErecS%sto%s"%(year,ErecS_lower_cut_int,ErecS_upper_cut_int)
-        Hist_OnData_PerYear_MSCW[index].Add(InputFile.Get(HistName))
-        HistName = "Hist_OnData_ThisYear_MSCL_V%s_ErecS%sto%s"%(year,ErecS_lower_cut_int,ErecS_upper_cut_int)
-        Hist_OnData_PerYear_MSCL[index].Add(InputFile.Get(HistName))
         HistName = "Hist_OnData_ThisYear_Xoff_V%s_ErecS%sto%s"%(year,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_OnData_PerYear_Xoff[index].Add(InputFile.Get(HistName))
         HistName = "Hist_OnData_ThisYear_Yoff_V%s_ErecS%sto%s"%(year,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_OnData_PerYear_Yoff[index].Add(InputFile.Get(HistName))
 
 elev_bins = [40,50,60,70,80,90]
-azim_bins = [0,45,135,225,315]
+azim_bins = [0,45,135,225,315,360]
 MJD_bins = [53613,55074,56535,57996,59457]
-nsb_bins = [0,2,4,6,8]
+nsb_bins = [3,4,5,6,7,8]
 
 ref_bin_elev = len(elev_bins)-3
-ref_bin_azim = 0
-ref_bin_nsb = 0
+ref_bin_azim = 2
+ref_bin_nsb = 1
+
+lower_bin_elev = 2
+upper_bin_elev = len(elev_bins)-1
+lower_bin_azim = 0
+upper_bin_azim = len(azim_bins)-2
 
 variation_range = 1.0
 
 Hist_ElevAzim = ROOT.TH2D("Hist_ElevAzim","",18,0,90,18,0,360)
+Hist_ElevNSB = ROOT.TH2D("Hist_ElevNSB","",18,0,90,16,0,8)
 Hist_OnData_PerElev_MSCW = []
 Hist_OnData_PerElev_MSCL = []
 Hist_OnData_PerElev_Xoff = []
@@ -364,35 +374,39 @@ Hist_OnData_PerNSB_Xoff = []
 Hist_OnData_PerNSB_Yoff = []
 Hist_CRData_PerNSB_Xoff = []
 Hist_CRData_PerNSB_Yoff = []
+Hist_OnData_PerNSB_MSCW = []
+Hist_OnData_PerNSB_MSCL = []
 for energy in range(0,len(energy_bin)-1):
     for nsb in range(0,len(nsb_bins)-1):
         Hist_OnData_PerNSB_Xoff += [ROOT.TH1D("Hist_OnData_PerNSB_Xoff_E%s_Z%s"%(energy,nsb),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
         Hist_OnData_PerNSB_Yoff += [ROOT.TH1D("Hist_OnData_PerNSB_Yoff_E%s_Z%s"%(energy,nsb),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
         Hist_CRData_PerNSB_Xoff += [ROOT.TH1D("Hist_OnData_PerNSB_Xoff_E%s_Z%s"%(energy,nsb),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
         Hist_CRData_PerNSB_Yoff += [ROOT.TH1D("Hist_OnData_PerNSB_Yoff_E%s_Z%s"%(energy,nsb),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        Hist_OnData_PerNSB_MSCW += [ROOT.TH1D("Hist_OnData_PerNSB_MSCW_E%s_Y%s"%(energy,nsb),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+        Hist_OnData_PerNSB_MSCL += [ROOT.TH1D("Hist_OnData_PerNSB_MSCL_E%s_Y%s"%(energy,nsb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
 
 Hist_OnData_DiffElev_Yoff = []
 Hist_OnData_DiffRefElev_Xoff = []
 Hist_OnData_DiffRefElev_Yoff = []
 Hist_CRData_DiffRefElev_Xoff = []
 Hist_CRData_DiffRefElev_Yoff = []
+Hist_SRCR_DiffRefElev_Xoff = []
+Hist_SRCR_DiffRefElev_Yoff = []
 Hist_OnData_DiffAzim_Yoff = []
 Hist_OnData_DiffRefAzim_Xoff = []
 Hist_OnData_DiffRefAzim_Yoff = []
 Hist_CRData_DiffRefAzim_Xoff = []
 Hist_CRData_DiffRefAzim_Yoff = []
+Hist_SRCR_DiffRefAzim_Xoff = []
+Hist_SRCR_DiffRefAzim_Yoff = []
 Hist_OnData_DiffRefNSB_Xoff = []
 Hist_OnData_DiffRefNSB_Yoff = []
 Hist_CRData_DiffRefNSB_Xoff = []
 Hist_CRData_DiffRefNSB_Yoff = []
-Hist_OnData_PerYear_MSCW = []
-Hist_OnData_PerYear_MSCL = []
 Hist_OnData_PerYear_Xoff = []
 Hist_OnData_PerYear_Yoff = []
 for energy in range(0,len(energy_bin)-1):
     for year in range(0,len(MJD_bins)-1):
-        Hist_OnData_PerYear_MSCW += [ROOT.TH1D("Hist_OnData_PerYear_MSCW_E%s_Y%s"%(energy,year),"",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
-        Hist_OnData_PerYear_MSCL += [ROOT.TH1D("Hist_OnData_PerYear_MSCL_E%s_Y%s"%(energy,year),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)]
         Hist_OnData_PerYear_Xoff += [ROOT.TH1D("Hist_OnData_PerYear_Xoff_E%s_Y%s"%(energy,year),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
         Hist_OnData_PerYear_Yoff += [ROOT.TH1D("Hist_OnData_PerYear_Yoff_E%s_Y%s"%(energy,year),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
 
@@ -418,7 +432,8 @@ for energy in range(0,len(energy_bin)-1):
     ErecS_upper_cut = energy_bin[energy+1]
     GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
 
-Make2DPlot(Hist_ElevAzim,'ElevAzim')
+Make2DPlot(Hist_ElevAzim,'ElevAzim','elev.','azim.')
+Make2DPlot(Hist_ElevNSB,'ElevNSB','elev.','NSB')
 for energy in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
@@ -457,24 +472,6 @@ for energy in range(0,len(energy_bin)-1):
         colors += [elev+1]
     MakeComparisonPlot(Hists,legends,colors,'Y off','Normalized counts','PerElev_Yoff_E%s'%(energy),0,0,False,False,True)
     
-    Hists = []
-    legends = []
-    colors = []
-    for year in range(0,len(MJD_bins)-1):
-        index = (len(MJD_bins)-1)*energy + year
-        Hists += [Hist_OnData_PerYear_MSCW[index]]
-        legends += ['%s-%s'%(MJD_bins[year],MJD_bins[year+1])]
-        colors += [year+1]
-    MakeComparisonPlot(Hists,legends,colors,'MSCW','Normalized counts','PerYear_MSCW_E%s'%(energy),0,0,False,False,True)
-    Hists = []
-    legends = []
-    colors = []
-    for year in range(0,len(MJD_bins)-1):
-        index = (len(MJD_bins)-1)*energy + year
-        Hists += [Hist_OnData_PerYear_MSCL[index]]
-        legends += ['%s-%s'%(MJD_bins[year],MJD_bins[year+1])]
-        colors += [year+1]
-    MakeComparisonPlot(Hists,legends,colors,'MSCL','Normalized counts','PerYear_MSCL_E%s'%(energy),0,0,False,False,True)
     Hists = []
     legends = []
     colors = []
@@ -591,6 +588,22 @@ for energy in range(0,len(energy_bin)-1):
         Hist_CRData_DiffRefElev_Yoff[index].Add(Hist_CRData_PerElev_Yoff[ref_index])
         Hist_CRData_DiffRefElev_Yoff[index].Add(Hist_CRData_PerElev_Yoff[index],-1.)
         Hist_CRData_DiffRefElev_Yoff[index].Divide(Hist_CRData_PerElev_Yoff[ref_index])
+    for elev in range(0,len(elev_bins)-1):
+        index = (len(elev_bins)-1)*energy + elev
+        Hist_SRCR_DiffRefElev_Xoff += [ROOT.TH1D("Hist_SRCR_DiffRefElev_Xoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        Hist_SRCR_DiffRefElev_Yoff += [ROOT.TH1D("Hist_SRCR_DiffRefElev_Yoff_E%s_Z%s"%(energy,elev),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        ref_bin = ref_bin_elev
+        if ref_bin<0: continue
+        print ("elev ref_bin = %s"%(ref_bin))
+        ref_index = (len(elev_bins)-1)*energy + ref_bin
+        Hist_SRCR_DiffRefElev_Xoff[index].Add(Hist_OnData_PerElev_Xoff[index])
+        Hist_SRCR_DiffRefElev_Xoff[index].Divide(Hist_CRData_PerElev_Xoff[index])
+        Hist_SRCR_DiffRefElev_Xoff[index].Multiply(Hist_CRData_PerElev_Xoff[ref_index])
+        Hist_SRCR_DiffRefElev_Xoff[index].Divide(Hist_OnData_PerElev_Xoff[ref_index])
+        Hist_SRCR_DiffRefElev_Yoff[index].Add(Hist_OnData_PerElev_Yoff[index])
+        Hist_SRCR_DiffRefElev_Yoff[index].Divide(Hist_CRData_PerElev_Yoff[index])
+        Hist_SRCR_DiffRefElev_Yoff[index].Multiply(Hist_CRData_PerElev_Yoff[ref_index])
+        Hist_SRCR_DiffRefElev_Yoff[index].Divide(Hist_OnData_PerElev_Yoff[ref_index])
     for azim in range(0,len(azim_bins)-1):
         index = (len(azim_bins)-1)*energy + azim
         Hist_CRData_DiffRefAzim_Xoff += [ROOT.TH1D("Hist_CRData_DiffRefAzim_Xoff_E%s_Z%s"%(energy,azim),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
@@ -605,6 +618,22 @@ for energy in range(0,len(energy_bin)-1):
         Hist_CRData_DiffRefAzim_Yoff[index].Add(Hist_CRData_PerAzim_Yoff[ref_index])
         Hist_CRData_DiffRefAzim_Yoff[index].Add(Hist_CRData_PerAzim_Yoff[index],-1.)
         Hist_CRData_DiffRefAzim_Yoff[index].Divide(Hist_CRData_PerAzim_Yoff[ref_index])
+    for azim in range(0,len(azim_bins)-1):
+        index = (len(azim_bins)-1)*energy + azim
+        Hist_SRCR_DiffRefAzim_Xoff += [ROOT.TH1D("Hist_SRCR_DiffRefAzim_Xoff_E%s_Z%s"%(energy,azim),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        Hist_SRCR_DiffRefAzim_Yoff += [ROOT.TH1D("Hist_SRCR_DiffRefAzim_Yoff_E%s_Z%s"%(energy,azim),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
+        ref_bin = ref_bin_azim
+        if ref_bin<0: continue
+        print ("azim ref_bin = %s"%(ref_bin))
+        ref_index = (len(azim_bins)-1)*energy + ref_bin
+        Hist_SRCR_DiffRefAzim_Xoff[index].Add(Hist_OnData_PerAzim_Xoff[index])
+        Hist_SRCR_DiffRefAzim_Xoff[index].Divide(Hist_CRData_PerAzim_Xoff[index])
+        Hist_SRCR_DiffRefAzim_Xoff[index].Multiply(Hist_CRData_PerAzim_Xoff[ref_index])
+        Hist_SRCR_DiffRefAzim_Xoff[index].Divide(Hist_OnData_PerAzim_Xoff[ref_index])
+        Hist_SRCR_DiffRefAzim_Yoff[index].Add(Hist_OnData_PerAzim_Yoff[index])
+        Hist_SRCR_DiffRefAzim_Yoff[index].Divide(Hist_CRData_PerAzim_Yoff[index])
+        Hist_SRCR_DiffRefAzim_Yoff[index].Multiply(Hist_CRData_PerAzim_Yoff[ref_index])
+        Hist_SRCR_DiffRefAzim_Yoff[index].Divide(Hist_OnData_PerAzim_Yoff[ref_index])
     for nsb in range(0,len(nsb_bins)-1):
         index = (len(nsb_bins)-1)*energy + nsb
         Hist_CRData_DiffRefNSB_Xoff += [ROOT.TH1D("Hist_CRData_DiffRefNSB_Xoff_E%s_Z%s"%(energy,nsb),"",int(Skymap_nbins/12),-Skymap_size,Skymap_size)]
@@ -623,111 +652,181 @@ for energy in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
     colors = []
-    for elev in range(0,len(elev_bins)-1):
+    for elev in range(lower_bin_elev,upper_bin_elev):
         index = (len(elev_bins)-1)*energy + elev
         ref_bin = ref_bin_elev
         if ref_bin<0: continue
         if elev_bins[ref_bin]==elev_bins[elev]: continue
         ref_index = (len(elev_bins)-1)*energy + ref_bin
         Hists += [Hist_OnData_DiffRefElev_Xoff[index]]
-        legends += ['%s-%s'%(elev_bins[ref_bin],elev_bins[elev])]
+        legends += ['%s-%s v.s. %s-%s'%(elev_bins[ref_bin],elev_bins[ref_bin+1],elev_bins[elev],elev_bins[elev+1])]
         colors += [elev-2]
     MakeComparisonPlot(Hists,legends,colors,'X off','(N_{%s}-N)/N_{%s}'%(elev_bins[ref_bin_elev],elev_bins[ref_bin_elev]),'DiffRefElev_Xoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
     Hists = []
     legends = []
     colors = []
-    for elev in range(0,len(elev_bins)-1):
+    for elev in range(lower_bin_elev,upper_bin_elev):
         index = (len(elev_bins)-1)*energy + elev
         ref_bin = ref_bin_elev 
         if ref_bin<0: continue
         if elev_bins[ref_bin]==elev_bins[elev]: continue
         ref_index = (len(elev_bins)-1)*energy + ref_bin
         Hists += [Hist_CRData_DiffRefElev_Xoff[index]]
-        legends += ['%s-%s'%(elev_bins[ref_bin],elev_bins[elev])]
+        legends += ['%s-%s v.s. %s-%s'%(elev_bins[ref_bin],elev_bins[ref_bin+1],elev_bins[elev],elev_bins[elev+1])]
         colors += [elev-2]
     MakeComparisonPlot(Hists,legends,colors,'X off','(N_{%s}-N)/N_{%s}'%(elev_bins[ref_bin_elev],elev_bins[ref_bin_elev]),'CRDiffRefElev_Xoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+    Hists = []
+    legends = []
+    colors = []
+    for elev in range(lower_bin_elev,upper_bin_elev):
+        index = (len(elev_bins)-1)*energy + elev
+        ref_bin = ref_bin_elev 
+        if ref_bin<0: continue
+        if elev_bins[ref_bin]==elev_bins[elev]: continue
+        ref_index = (len(elev_bins)-1)*energy + ref_bin
+        Hists += [Hist_SRCR_DiffRefElev_Xoff[index]]
+        legends += ['%s-%s v.s. %s-%s'%(elev_bins[ref_bin],elev_bins[ref_bin+1],elev_bins[elev],elev_bins[elev+1])]
+        colors += [elev-2]
+    MakeComparisonPlot(Hists,legends,colors,'X off','N^{#gamma}_{%s}/N^{CR}_{%s} #times N^{CR}/N^{#gamma}'%(elev_bins[ref_bin_elev],elev_bins[ref_bin_elev]),'SRCRDiffRefElev_Xoff_E%s'%(energy),0.,2.0,False,False,False)
 
     Hists = []
     legends = []
     colors = []
-    for elev in range(0,len(elev_bins)-1):
+    for elev in range(lower_bin_elev,upper_bin_elev):
         index = (len(elev_bins)-1)*energy + elev
         ref_bin = ref_bin_elev 
         if ref_bin<0: continue
         if elev_bins[ref_bin]==elev_bins[elev]: continue
         ref_index = (len(elev_bins)-1)*energy + ref_bin
         Hists += [Hist_OnData_DiffRefElev_Yoff[index]]
-        legends += ['%s-%s'%(elev_bins[ref_bin],elev_bins[elev])]
+        legends += ['%s-%s v.s. %s-%s'%(elev_bins[ref_bin],elev_bins[ref_bin+1],elev_bins[elev],elev_bins[elev+1])]
         colors += [elev-2]
     MakeComparisonPlot(Hists,legends,colors,'Y off','(N_{%s}-N)/N_{%s}'%(elev_bins[ref_bin_elev],elev_bins[ref_bin_elev]),'DiffRefElev_Yoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
     Hists = []
     legends = []
     colors = []
-    for elev in range(0,len(elev_bins)-1):
+    for elev in range(lower_bin_elev,upper_bin_elev):
         index = (len(elev_bins)-1)*energy + elev
         ref_bin = ref_bin_elev 
         if ref_bin<0: continue
         if elev_bins[ref_bin]==elev_bins[elev]: continue
         ref_index = (len(elev_bins)-1)*energy + ref_bin
         Hists += [Hist_CRData_DiffRefElev_Yoff[index]]
-        legends += ['%s-%s'%(elev_bins[ref_bin],elev_bins[elev])]
+        legends += ['%s-%s v.s. %s-%s'%(elev_bins[ref_bin],elev_bins[ref_bin+1],elev_bins[elev],elev_bins[elev+1])]
         colors += [elev-2]
     MakeComparisonPlot(Hists,legends,colors,'Y off','(N_{%s}-N)/N_{%s}'%(elev_bins[ref_bin_elev],elev_bins[ref_bin_elev]),'CRDiffRefElev_Yoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+    Hists = []
+    legends = []
+    colors = []
+    for elev in range(lower_bin_elev,upper_bin_elev):
+        index = (len(elev_bins)-1)*energy + elev
+        ref_bin = ref_bin_elev 
+        if ref_bin<0: continue
+        if elev_bins[ref_bin]==elev_bins[elev]: continue
+        ref_index = (len(elev_bins)-1)*energy + ref_bin
+        Hists += [Hist_SRCR_DiffRefElev_Yoff[index]]
+        legends += ['%s-%s v.s. %s-%s'%(elev_bins[ref_bin],elev_bins[ref_bin+1],elev_bins[elev],elev_bins[elev+1])]
+        colors += [elev-2]
+    MakeComparisonPlot(Hists,legends,colors,'Y off','N^{#gamma}_{%s}/N^{CR}_{%s} #times N^{CR}/N^{#gamma}'%(elev_bins[ref_bin_elev],elev_bins[ref_bin_elev]),'SRCRDiffRefElev_Yoff_E%s'%(energy),0.,2.0,False,False,False)
 
     Hists = []
     legends = []
     colors = []
-    for azim in range(0,len(azim_bins)-1):
+    for azim in range(lower_bin_azim,upper_bin_azim):
         index = (len(azim_bins)-1)*energy + azim
         ref_bin = ref_bin_azim
         if ref_bin<0: continue
         if azim_bins[ref_bin]==azim_bins[azim]: continue
         ref_index = (len(azim_bins)-1)*energy + ref_bin
         Hists += [Hist_OnData_DiffRefAzim_Xoff[index]]
-        legends += ['%s-%s'%(azim_bins[ref_bin],azim_bins[azim])]
+        legends += ['%s-%s v.s. %s-%s'%(azim_bins[ref_bin],azim_bins[ref_bin+1],azim_bins[azim],azim_bins[azim+1])]
         colors += [azim-2]
     MakeComparisonPlot(Hists,legends,colors,'X off','(N_{%s}-N)/N_{%s}'%(azim_bins[ref_bin_azim],azim_bins[ref_bin_azim]),'DiffRefAzim_Xoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
     Hists = []
     legends = []
     colors = []
-    for azim in range(0,len(azim_bins)-1):
+    for azim in range(lower_bin_azim,upper_bin_azim):
         index = (len(azim_bins)-1)*energy + azim
         ref_bin = ref_bin_azim 
         if ref_bin<0: continue
         if azim_bins[ref_bin]==azim_bins[azim]: continue
         ref_index = (len(azim_bins)-1)*energy + ref_bin
         Hists += [Hist_CRData_DiffRefAzim_Xoff[index]]
-        legends += ['%s-%s'%(azim_bins[ref_bin],azim_bins[azim])]
+        legends += ['%s-%s v.s. %s-%s'%(azim_bins[ref_bin],azim_bins[ref_bin+1],azim_bins[azim],azim_bins[azim+1])]
         colors += [azim-2]
     MakeComparisonPlot(Hists,legends,colors,'X off','(N_{%s}-N)/N_{%s}'%(azim_bins[ref_bin_azim],azim_bins[ref_bin_azim]),'CRDiffRefAzim_Xoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+    Hists = []
+    legends = []
+    colors = []
+    for azim in range(lower_bin_azim,upper_bin_azim):
+        index = (len(azim_bins)-1)*energy + azim
+        ref_bin = ref_bin_azim 
+        if ref_bin<0: continue
+        if azim_bins[ref_bin]==azim_bins[azim]: continue
+        ref_index = (len(azim_bins)-1)*energy + ref_bin
+        Hists += [Hist_SRCR_DiffRefAzim_Xoff[index]]
+        legends += ['%s-%s v.s. %s-%s'%(azim_bins[ref_bin],azim_bins[ref_bin+1],azim_bins[azim],azim_bins[azim+1])]
+        colors += [azim-2]
+    MakeComparisonPlot(Hists,legends,colors,'X off','N^{#gamma}_{%s}/N^{CR}_{%s} #times N^{CR}/N^{#gamma}'%(azim_bins[ref_bin_azim],azim_bins[ref_bin_azim]),'SRCRDiffRefAzim_Xoff_E%s'%(energy),0.,2.0,False,False,False)
 
     Hists = []
     legends = []
     colors = []
-    for azim in range(0,len(azim_bins)-1):
+    for azim in range(lower_bin_azim,upper_bin_azim):
         index = (len(azim_bins)-1)*energy + azim
         ref_bin = ref_bin_azim 
         if ref_bin<0: continue
         if azim_bins[ref_bin]==azim_bins[azim]: continue
         ref_index = (len(azim_bins)-1)*energy + ref_bin
         Hists += [Hist_OnData_DiffRefAzim_Yoff[index]]
-        legends += ['%s-%s'%(azim_bins[ref_bin],azim_bins[azim])]
+        legends += ['%s-%s v.s. %s-%s'%(azim_bins[ref_bin],azim_bins[ref_bin+1],azim_bins[azim],azim_bins[azim+1])]
         colors += [azim-2]
     MakeComparisonPlot(Hists,legends,colors,'Y off','(N_{%s}-N)/N_{%s}'%(azim_bins[ref_bin_azim],azim_bins[ref_bin_azim]),'DiffRefAzim_Yoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
     Hists = []
     legends = []
     colors = []
-    for azim in range(0,len(azim_bins)-1):
+    for azim in range(lower_bin_azim,upper_bin_azim):
         index = (len(azim_bins)-1)*energy + azim
         ref_bin = ref_bin_azim 
         if ref_bin<0: continue
         if azim_bins[ref_bin]==azim_bins[azim]: continue
         ref_index = (len(azim_bins)-1)*energy + ref_bin
         Hists += [Hist_CRData_DiffRefAzim_Yoff[index]]
-        legends += ['%s-%s'%(azim_bins[ref_bin],azim_bins[azim])]
+        legends += ['%s-%s v.s. %s-%s'%(azim_bins[ref_bin],azim_bins[ref_bin+1],azim_bins[azim],azim_bins[azim+1])]
         colors += [azim-2]
     MakeComparisonPlot(Hists,legends,colors,'Y off','(N_{%s}-N)/N_{%s}'%(azim_bins[ref_bin_azim],azim_bins[ref_bin_azim]),'CRDiffRefAzim_Yoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+    Hists = []
+    legends = []
+    colors = []
+    for azim in range(lower_bin_azim,upper_bin_azim):
+        index = (len(azim_bins)-1)*energy + azim
+        ref_bin = ref_bin_azim 
+        if ref_bin<0: continue
+        if azim_bins[ref_bin]==azim_bins[azim]: continue
+        ref_index = (len(azim_bins)-1)*energy + ref_bin
+        Hists += [Hist_SRCR_DiffRefAzim_Yoff[index]]
+        legends += ['%s-%s v.s. %s-%s'%(azim_bins[ref_bin],azim_bins[ref_bin+1],azim_bins[azim],azim_bins[azim+1])]
+        colors += [azim-2]
+    MakeComparisonPlot(Hists,legends,colors,'Y off','N^{#gamma}_{%s}/N^{CR}_{%s} #times N^{CR}/N^{#gamma}'%(azim_bins[ref_bin_azim],azim_bins[ref_bin_azim]),'SRCRDiffRefAzim_Yoff_E%s'%(energy),0.,2.0,False,False,False)
 
+    Hists = []
+    legends = []
+    colors = []
+    for nsb in range(0,len(nsb_bins)-1):
+        index = (len(nsb_bins)-1)*energy + nsb
+        Hists += [Hist_OnData_PerNSB_MSCW[index]]
+        legends += ['%s-%s'%(nsb_bins[nsb],nsb_bins[nsb+1])]
+        colors += [nsb-2]
+    MakeComparisonPlot(Hists,legends,colors,'MSCW','Normalized counts','PerNSB_MSCW_E%s'%(energy),0,0,False,False,True)
+    Hists = []
+    legends = []
+    colors = []
+    for nsb in range(0,len(nsb_bins)-1):
+        index = (len(nsb_bins)-1)*energy + nsb
+        Hists += [Hist_OnData_PerNSB_MSCL[index]]
+        legends += ['%s-%s'%(nsb_bins[nsb],nsb_bins[nsb+1])]
+        colors += [nsb-2]
+    MakeComparisonPlot(Hists,legends,colors,'MSCL','Normalized counts','PerNSB_MSCL_E%s'%(energy),0,0,False,False,True)
     Hists = []
     legends = []
     colors = []
@@ -738,9 +837,9 @@ for energy in range(0,len(energy_bin)-1):
         if nsb_bins[ref_bin]==nsb_bins[nsb]: continue
         ref_index = (len(nsb_bins)-1)*energy + ref_bin
         Hists += [Hist_OnData_DiffRefNSB_Xoff[index]]
-        legends += ['%s-%s'%(nsb_bins[ref_bin],nsb_bins[nsb])]
+        legends += ['%s-%s v.s. %s-%s'%(nsb_bins[ref_bin],nsb_bins[ref_bin+1],nsb_bins[nsb],nsb_bins[nsb+1])]
         colors += [nsb-2]
-    MakeComparisonPlot(Hists,legends,colors,'X off','(N_{5}-N)/N','DiffRefNSB_Xoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+    MakeComparisonPlot(Hists,legends,colors,'X off','(N_{%s}-N)/N_{%s}'%(nsb_bins[ref_bin_nsb],nsb_bins[ref_bin_nsb]),'DiffRefNSB_Xoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
     Hists = []
     legends = []
     colors = []
@@ -751,9 +850,9 @@ for energy in range(0,len(energy_bin)-1):
         if nsb_bins[ref_bin]==nsb_bins[nsb]: continue
         ref_index = (len(nsb_bins)-1)*energy + ref_bin
         Hists += [Hist_CRData_DiffRefNSB_Xoff[index]]
-        legends += ['%s-%s'%(nsb_bins[ref_bin],nsb_bins[nsb])]
+        legends += ['%s-%s v.s. %s-%s'%(nsb_bins[ref_bin],nsb_bins[ref_bin+1],nsb_bins[nsb],nsb_bins[nsb+1])]
         colors += [nsb-2]
-    MakeComparisonPlot(Hists,legends,colors,'X off','(N_{5}-N)/N','CRDiffRefNSB_Xoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+    MakeComparisonPlot(Hists,legends,colors,'X off','(N_{%s}-N)/N_{%s}'%(nsb_bins[ref_bin_nsb],nsb_bins[ref_bin_nsb]),'CRDiffRefNSB_Xoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
 
     Hists = []
     legends = []
@@ -765,9 +864,9 @@ for energy in range(0,len(energy_bin)-1):
         if nsb_bins[ref_bin]==nsb_bins[nsb]: continue
         ref_index = (len(nsb_bins)-1)*energy + ref_bin
         Hists += [Hist_OnData_DiffRefNSB_Yoff[index]]
-        legends += ['%s-%s'%(nsb_bins[ref_bin],nsb_bins[nsb])]
+        legends += ['%s-%s v.s. %s-%s'%(nsb_bins[ref_bin],nsb_bins[ref_bin+1],nsb_bins[nsb],nsb_bins[nsb+1])]
         colors += [nsb-2]
-    MakeComparisonPlot(Hists,legends,colors,'Y off','(N_{5}-N)/N','DiffRefNSB_Yoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+    MakeComparisonPlot(Hists,legends,colors,'Y off','(N_{%s}-N)/N_{%s}'%(nsb_bins[ref_bin_nsb],nsb_bins[ref_bin_nsb]),'DiffRefNSB_Yoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
     Hists = []
     legends = []
     colors = []
@@ -778,7 +877,7 @@ for energy in range(0,len(energy_bin)-1):
         if nsb_bins[ref_bin]==nsb_bins[nsb]: continue
         ref_index = (len(nsb_bins)-1)*energy + ref_bin
         Hists += [Hist_CRData_DiffRefNSB_Yoff[index]]
-        legends += ['%s-%s'%(nsb_bins[ref_bin],nsb_bins[nsb])]
+        legends += ['%s-%s v.s. %s-%s'%(nsb_bins[ref_bin],nsb_bins[ref_bin+1],nsb_bins[nsb],nsb_bins[nsb+1])]
         colors += [nsb-2]
-    MakeComparisonPlot(Hists,legends,colors,'Y off','(N_{5}-N)/N','CRDiffRefNSB_Yoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
+    MakeComparisonPlot(Hists,legends,colors,'Y off','(N_{%s}-N)/N_{%s}'%(nsb_bins[ref_bin_nsb],nsb_bins[ref_bin_nsb]),'CRDiffRefNSB_Yoff_E%s'%(energy),-variation_range,variation_range,False,False,False)
 

@@ -653,9 +653,9 @@ def GetHistogramsFromFile(FilePath,which_source):
     Hist_GammaRegion_Contribution[which_source+1].Add(InputFile.Get(HistName))
 
 
-#XYoff_nbins = 12
+XYoff_nbins = 12
 #XYoff_nbins = 6
-XYoff_nbins = 4
+#XYoff_nbins = 4
 #XYoff_nbins = 3
 #XYoff_nbins = 2
 #XYoff_nbins = 1

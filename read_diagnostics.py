@@ -390,8 +390,8 @@ range_dec = 3.0
 #range_ra = 2.0
 #range_dec = 2.0
 
-#search_for_on_data = True
-search_for_on_data = False
+search_for_on_data = True
+#search_for_on_data = False
 
 V4 = False
 V5 = False
@@ -400,12 +400,12 @@ V6 = True
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
 
-Search_Range_Elev = [80.,90.]
-Search_Range_Azim = [310.,360.]
+Search_Range_Elev = [30.,90.]
+Search_Range_Azim = [0.,360.]
 Search_Range_PedVar_DC = [0.,10.]
 
-Search_Range_RA = [30.,50.]
-Search_Range_Dec = [-90.,90.]
+#Search_Range_RA = [216.-2,216.+2]
+#Search_Range_Dec = [22.-4,22.+4.]
 
 # Ursa Major II
 #Search_Center_RA = 132.
@@ -552,6 +552,9 @@ for line in inputFile:
 List_Used = []
 List_Used_RA = []
 List_Used_Dec = []
+List_Used_Elev = []
+List_Used_Azim = []
+List_Used_NSB = []
 
 if search_for_on_data:
 
@@ -595,6 +598,9 @@ if search_for_on_data:
         List_Used += [RunNumber]
         List_Used_RA += [T1_RA]
         List_Used_Dec += [T1_Dec]
+        List_Used_Elev += [Elev]
+        List_Used_Azim += [Azim]
+        List_Used_NSB += [PedVar_DC]
 
 else: 
 
@@ -698,6 +704,9 @@ else:
         List_Used += [RunNumber]
         List_Used_RA += [T1_RA]
         List_Used_Dec += [T1_Dec]
+        List_Used_Elev += [Elev]
+        List_Used_Azim += [Azim]
+        List_Used_NSB += [PedVar_DC]
     
     #n_matches = 2
     #for nth_sample in range(0,n_matches):
@@ -841,6 +850,36 @@ plt.savefig("output_plots/RunDec.png")
 
 plt.clf()
 fig, ax = plt.subplots()
+w = 4
+n = math.ceil((max(List_Used_Elev) - min(List_Used_Elev))/w)
+plt.hist(List_Used_Elev, bins=n)
+ax.axis('on')
+ax.set_xlabel('Elev')
+ax.set_ylabel('counts')
+plt.savefig("output_plots/RunElev.png")
+
+plt.clf()
+fig, ax = plt.subplots()
+w = 4
+n = math.ceil((max(List_Used_Azim) - min(List_Used_Azim))/w)
+plt.hist(List_Used_Azim, bins=n)
+ax.axis('on')
+ax.set_xlabel('Azim')
+ax.set_ylabel('counts')
+plt.savefig("output_plots/RunAzim.png")
+
+plt.clf()
+fig, ax = plt.subplots()
+w = 0.2
+n = math.ceil((max(List_Used_NSB) - min(List_Used_NSB))/w)
+plt.hist(List_Used_NSB, bins=n)
+ax.axis('on')
+ax.set_xlabel('NSB')
+ax.set_ylabel('counts')
+plt.savefig("output_plots/RunNSB.png")
+
+plt.clf()
+fig, ax = plt.subplots()
 hist, xbins, ybins, im = plt.hist2d(List_Used_RA, List_Used_Dec, range = [[0,360], [-90,90]], bins=(90, 45), cmap=plt.cm.Greys)
 plt.colorbar()
 for i in range(len(xbins)-1):
@@ -852,4 +891,17 @@ ax.axis('on')
 ax.set_xlabel('RA')
 ax.set_ylabel('Dec')
 plt.savefig("output_plots/RunRADec.png")
+
+plt.clf()
+fig, ax = plt.subplots()
+hist, xbins, ybins, im = plt.hist2d(List_Used_Elev, List_Used_Azim, range = [[0,90], [0,360]], bins=(18,18), cmap=plt.cm.Greys)
+plt.colorbar()
+for i in range(len(xbins)-1):
+    for j in range(len(ybins)-1):
+        if hist[i,j]>30:
+            print ("counts %s, Elev %s, Azim %s"%(hist[i,j],xbins[i],ybins[j]))
+ax.axis('on')
+ax.set_xlabel('Elev')
+ax.set_ylabel('Azim')
+plt.savefig("output_plots/RunElevAzim.png")
 

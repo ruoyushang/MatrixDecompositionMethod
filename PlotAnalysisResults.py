@@ -3813,11 +3813,11 @@ def StackSkymapHistograms(ebin):
     last_bin_x = Hist_OnData_Skymap.GetXaxis().FindBin(slice_center_x+slice_radius)
     first_bin_y = Hist_OnData_Skymap.GetYaxis().FindBin(slice_center_y-slice_radius)
     last_bin_y = Hist_OnData_Skymap.GetYaxis().FindBin(slice_center_y+slice_radius)
-    #if 'OFF' in ONOFF_tag:
-    #    first_bin_x = 0 
-    #    last_bin_x = -1
-    #    first_bin_y = 0 
-    #    last_bin_y = -1
+    if 'OFF' in ONOFF_tag:
+        first_bin_x = 0 
+        last_bin_x = -1
+        first_bin_y = 0 
+        last_bin_y = -1
     Hist_OnData_Skymap_ProjX_Sum.Add(Hist_OnData_Skymap.ProjectionX("",first_bin_x,last_bin_x,"eo"))
     Hist_OnDark_Skymap_ProjX_Sum.Add(Hist_OnDark_Skymap.ProjectionX("",first_bin_x,last_bin_x,"eo"))
     Hist_OnBkgd_Skymap_ProjX_Sum.Add(Hist_OnBkgd_Skymap.ProjectionX("",first_bin_x,last_bin_x,"eo"))
@@ -3930,11 +3930,11 @@ def CorrectLEE(z_score,n_tests,threshold_sigma):
     new_z_score = 0.
     if z_score>0.:
         p_value = 1.-st.norm.cdf(z_score)
-        p_value = min(p_value*n_tests,1.0)
+        p_value = min(p_value*n_tests,0.9999)
         new_z_score = st.norm.ppf(1.-p_value)
     else:
         p_value = st.norm.cdf(z_score)
-        p_value = min(p_value*n_tests,1.0)
+        p_value = min(p_value*n_tests,0.9999)
         new_z_score = st.norm.ppf(p_value)
     return min(new_z_score,1000.)
 
@@ -4508,7 +4508,7 @@ def VariableSkymapBins(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_input,
         Hist_Skymap = GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,syst_method,False)
         nbins_5sigma = Count5SigmaBins(Hist_Skymap,Hist_SR,threshold_sigma)
         max_sigma = max(abs(Hist_Skymap.GetMaximum()),abs(Hist_Skymap.GetMinimum()))
-        max_sigma = CorrectLEE(max_sigma,Hist_Skymap.GetNbinsX()*Hist_Skymap.GetNbinsY(),threshold_sigma)
+        max_sigma = CorrectLEE(max_sigma,Hist_Skymap.GetNbinsX()*Hist_Skymap.GetNbinsY(),1.0)
         list_maxsig += [max_sigma]
         skymap_bin_size_x = Hist_SR.GetXaxis().GetBinCenter(2)-Hist_SR.GetXaxis().GetBinCenter(1)
         skymap_bin_size_y = Hist_SR.GetYaxis().GetBinCenter(2)-Hist_SR.GetYaxis().GetBinCenter(1)
@@ -5012,13 +5012,21 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
         faint_star_markers[star].Draw("same")
         faint_star_labels[star].Draw("same")
     mycircles = []
-    for nth_roi in range(0,len(roi_ra)):
-        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
-        mycircles[nth_roi].SetFillStyle(0)
-        mycircles[nth_roi].SetLineColor(2)
-        if nth_roi==0: continue
-        if nth_roi==1: continue
-        mycircles[nth_roi].Draw("same")
+    #for nth_roi in range(0,len(roi_ra)):
+    #    mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+    #    mycircles[nth_roi].SetFillStyle(0)
+    #    mycircles[nth_roi].SetLineColor(2)
+    #    if nth_roi==0: continue
+    #    if nth_roi==1: continue
+    #    mycircles[nth_roi].Draw("same")
+    #mycircles += [ROOT.TEllipse(-1.*287.,6.6,0.5)]
+    #mycircles[0].SetFillStyle(0)
+    #mycircles[0].SetLineColor(2)
+    #mycircles[0].Draw("same")
+    mycircles += [ROOT.TEllipse(-1.*98.117,17.367,1.0)]
+    mycircles[0].SetFillStyle(0)
+    mycircles[0].SetLineColor(2)
+    mycircles[0].Draw("same")
     Hist_Exposure.GetXaxis().SetLabelOffset(999)
     Hist_Exposure.GetXaxis().SetTickLength(0)
     x1 = Hist_Exposure.GetXaxis().GetXmin()
@@ -6628,8 +6636,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-#drawMap = False
-drawMap = True
+drawMap = False
+#drawMap = True
 #Smoothing = False
 Smoothing = True
 
@@ -6637,9 +6645,9 @@ Smoothing = True
 #set_palette('gray')
 
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
+SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
