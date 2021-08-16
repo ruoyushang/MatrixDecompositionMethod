@@ -15,7 +15,7 @@ double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
 
 bool EigenDecomposition = false;
-bool AcceptanceCorrection = false;
+bool AcceptanceCorrection = true;
 
 double MSCW_plot_lower = -0.6;
 double MSCL_plot_lower = -0.6;
