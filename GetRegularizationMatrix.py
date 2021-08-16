@@ -39,7 +39,8 @@ ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
 
-folder_path = 'output_nominal'
+#folder_path = 'output_nominal'
+folder_path = 'output_nocameracorrect'
 method_tag = 'tight_mdm_default'
 
 lowrank_tag = '_svd'
