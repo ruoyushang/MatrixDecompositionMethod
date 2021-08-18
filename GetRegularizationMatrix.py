@@ -29,7 +29,7 @@ target_energy_index = 2
 N_bins_for_deconv = 16
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
-MSCW_blind_cut = 0.5
+MSCW_blind_cut = 0.6
 MSCL_blind_cut = 0.6
 MSCW_plot_lower = -0.6
 MSCL_plot_lower = -0.6
@@ -105,12 +105,16 @@ sample_name += ['RGBJ0710 V5']
 #elev_bins = [40,70]
 #elev_bins = [60,80]
 #elev_bins = [40,60]
-#elev_bins = [50,60,70,80]
-elev_bins = [70,80]
+elev_bins = [50,60,70,80]
+#elev_bins = [40,50,60]
+#elev_bins = [70,80]
 #elev_bins = [60,70]
 #elev_bins = [50,60]
 #elev_bins = [40,50]
 theta2_bins = [0,4]
+
+energy_bin_ref = 3
+stable_rank = 2
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
@@ -317,7 +321,7 @@ def GetHistogramsFromFile(FilePath):
             old_content = Hist2D_Regularization[energy_index].GetBinContent(binx+1,biny+1)
             new_content = pow(Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1),2)
             Hist2D_Regularization[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content)
-    if dark_gamma_count[energy_index]>1000. and dark_stable_rank[energy_index]==3 and energy_index==1: 
+    if dark_gamma_count[energy_index]>1000. and dark_stable_rank[energy_index]==stable_rank and energy_index==energy_bin_ref: 
         mtx_CDE = []
         mtx_CDE_bkgd = []
         for row in range(0,3):

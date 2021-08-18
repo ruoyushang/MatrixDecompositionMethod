@@ -17,14 +17,14 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
+n_rebins = 2
+smooth_size_skymap = 0.1
+smooth_size_spectroscopy = 0.1
+smooth_size_exposure = 0.1
 #n_rebins = 2
-#smooth_size_skymap = 0.1
-#smooth_size_spectroscopy = 0.1
-#smooth_size_exposure = 0.1
-n_rebins = 4
-smooth_size_skymap = 0.5
-smooth_size_spectroscopy = 0.5
-smooth_size_exposure = 0.5
+#smooth_size_skymap = 0.2
+#smooth_size_spectroscopy = 0.2
+#smooth_size_exposure = 0.2
 
 #method_tag = 'loose_mdm_default'
 #method_tag = 'loose_mdm_rank3'
@@ -504,6 +504,13 @@ if sys.argv[1]=='Crab_OFF':
     sample_list += ['CrabV4_OFF']
     theta2_bins = [0,4]
     
+if sys.argv[1]=='Crab_Offset_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_V6_ON']
+    theta2_bins = [0,4]
+
 if sys.argv[1]=='Mrk421_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
@@ -2377,9 +2384,11 @@ def MakeSpectrumInNonCrabUnit(hist_data,hist_bkgd,legends,title,name,syst):
         func_source[nth_roi].SetLineColor(nth_roi+1)
         func_source[nth_roi].Draw("E same")
 
-    #func_crab.SetLineColor(2)
-    #func_crab.Draw("same")
 
+    # Crab
+    if 'Crab' in name:
+        func_crab.SetLineColor(2)
+        func_crab.Draw("same")
     # MGRO J1908
     if 'MGRO_J1908' in name:
         func_1908 = ROOT.TF1("func_1908","[0]*pow(10,-12)*pow(x/1000.,[1])", 500, 10000)
@@ -4992,7 +5001,7 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     #    if nth_roi==0: continue
     #    if nth_roi==1: continue
     #    mycircles[nth_roi].Draw("same")
-    #mycircles += [ROOT.TEllipse(-1.*287.,6.6,0.5)]
+    #mycircles += [ROOT.TEllipse(-1.*286.786,6.498,0.5)]
     #mycircles[0].SetFillStyle(0)
     #mycircles[0].SetLineColor(2)
     #mycircles[0].Draw("same")
@@ -5000,6 +5009,11 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     mycircles[0].SetFillStyle(0)
     mycircles[0].SetLineColor(2)
     mycircles[0].Draw("same")
+    myline = ROOT.TLine(-1.*98.476,17.770,-1.*(98.476-0.01*138.),17.770-0.01*97.)
+    myline.SetLineStyle(1)
+    myline.SetLineColor(2)
+    myline.SetLineWidth(2)
+    myline.Draw("same")
     Hist_Exposure.GetXaxis().SetLabelOffset(999)
     Hist_Exposure.GetXaxis().SetTickLength(0)
     x1 = Hist_Exposure.GetXaxis().GetXmin()
@@ -6311,6 +6325,8 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
     Hist_Significance_Skymap_smooth_zoomin = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,Syst_MDM,True)
     MakeMWLSkymap(Hist_Significance_Skymap_smooth, [3,4,5],'RA','Dec','Skymap_MWL_RaDec_MDM_%s%s'%(source_name,PercentCrab))
     MakeMWLSkymap(Hist_Significance_Skymap_smooth_zoomin, [3,4,5],'RA','Dec','Skymap_MWL_RaDec_MDM_ZoomIn_%s%s'%(source_name,PercentCrab))
+    Hist_Significance_Skymap_Galactic_smooth_zoomin = GetSignificanceMap(Hist_OnData_Skymap_Galactic_smooth, Hist_OnBkgd_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth,Syst_MDM,True)
+    MakeMWLSkymap(Hist_Significance_Skymap_Galactic_smooth_zoomin, [3,4,5],'gal. l.','gal. b.','Skymap_MWL_Galactic_MDM_ZoomIn_%s%s'%(source_name,PercentCrab))
 
     if doSmooth:
         Hist_Data_Energy_Skymap_smooth = []
@@ -6663,22 +6679,23 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-#drawMap = False
-drawMap = True
+drawMap = False
+#drawMap = True
 #Smoothing = False
 Smoothing = True
 
 #set_palette('default')
 #set_palette('gray')
 
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
+SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,1)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,2)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,4)

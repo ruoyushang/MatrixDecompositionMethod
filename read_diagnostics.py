@@ -16,6 +16,9 @@ import numpy as np
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 
+def gaussian_2d(x, y, x0, y0, xsig, ysig):
+    return np.exp(-0.5*(((x-x0) / xsig)**2 + ((y-y0) / ysig)**2))
+
 def GetDistance(x1,y1,x2,y2):
     distance = pow((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2),0.5)
     return distance
@@ -110,8 +113,8 @@ range_dec = 3.0
 # Crab
 #target_ra = 83.6332083333
 #target_dec = 22.0144722222
-#range_ra = 1.0
-#range_dec = 1.0
+#range_ra = 3.0
+#range_dec = 3.0
 
 # Geminga
 #target_ra = 98.1166666667
@@ -394,7 +397,7 @@ search_for_on_data = True
 #search_for_on_data = False
 
 V4 = False
-V5 = False
+V5 = True
 V6 = True
 
 Search_Range_RA = [0.,360.]
@@ -550,6 +553,7 @@ for line in inputFile:
 
 
 List_Used = []
+List_Used_Exposure = []
 List_Used_RA = []
 List_Used_Dec = []
 List_Used_Elev = []
@@ -572,13 +576,12 @@ if search_for_on_data:
         L3_rate = List_L3_rate[entry]
         Livetime = List_Livetime[entry]
     
-        if V4:
-            if int(RunNumber)>=46642: continue
-        if V5:
-            if int(RunNumber)<46642: continue
-            if int(RunNumber)>=63373: continue
-        if V6:
-            if int(RunNumber)<63373: continue
+        if int(RunNumber)<46642:
+            if not V4: continue
+        if int(RunNumber)>=46642 and int(RunNumber)<63373:
+            if not V5: continue
+        if int(RunNumber)>=63373:
+            if not V6: continue
     
         if L3_rate<150.: continue
         #if L3_rate>450.: continue
@@ -587,6 +590,9 @@ if search_for_on_data:
     
         if abs(float(T1_RA)-target_ra)>range_ra: continue
         if abs(float(T1_Dec)-target_dec)>range_dec: continue
+        distance_to_source = pow(pow(float(T1_RA)-target_ra,2)+pow(float(T1_Dec)-target_dec,2),0.5)
+        #if distance_to_source<1.0: continue
+        #if distance_to_source>2.0: continue
 
         DoNotUse = False
         for entry2 in range(0,len(Source_RunNumber)):
@@ -596,6 +602,7 @@ if search_for_on_data:
         print ('RunNumber %s, L3_rate %s, Livetime %s, Elev %s, RA %s, Dec %s'%(RunNumber,L3_rate,Livetime,Elev,T1_RA,T1_Dec))
     
         List_Used += [RunNumber]
+        List_Used_Exposure += [Livetime/60.]
         List_Used_RA += [T1_RA]
         List_Used_Dec += [T1_Dec]
         List_Used_Elev += [Elev]
@@ -631,14 +638,13 @@ else:
         if L3_rate<150.: continue
         #if L3_rate>450.: continue
         if Livetime<15.: continue
-        if V4:
-            if int(RunNumber)<=36398: continue
-            if int(RunNumber)>=46642: continue
-        if V5:
-            if int(RunNumber)<46642: continue
-            if int(RunNumber)>=63373: continue
-        if V6:
-            if int(RunNumber)<63373: continue
+        if int(RunNumber)<46642:
+            if not V4: continue
+        if int(RunNumber)>=46642 and int(RunNumber)<63373:
+            if not V5: continue
+        if int(RunNumber)>=63373:
+            if not V6: continue
+
         if abs(float(T1_RA)-target_ra)<10. and abs(float(T1_Dec)-target_dec)<10.: continue
         if abs(float(T2_RA)-target_ra)<10. and abs(float(T2_Dec)-target_dec)<10.: continue
         if abs(float(T3_RA)-target_ra)<10. and abs(float(T3_Dec)-target_dec)<10.: continue
@@ -702,6 +708,7 @@ else:
                 already_used = True
         if already_used: continue
         List_Used += [RunNumber]
+        List_Used_Exposure += [Livetime/60.]
         List_Used_RA += [T1_RA]
         List_Used_Dec += [T1_Dec]
         List_Used_Elev += [Elev]
@@ -905,3 +912,60 @@ ax.set_xlabel('Elev')
 ax.set_ylabel('Azim')
 plt.savefig("output_plots/RunElevAzim.png")
 
+if search_for_on_data:
+
+    inputFile = open('TeVCat_RaDec_w_Names.txt')
+    other_stars = []
+    other_star_ra = []
+    other_star_dec = []
+    for line in inputFile:
+        gamma_source_name = line.split(',')[0]
+        gamma_source_ra = float(line.split(',')[1])
+        gamma_source_dec = float(line.split(',')[2])
+        distance = pow(gamma_source_ra-target_ra,2)+pow(gamma_source_dec-target_dec,2)
+        if distance>2.*2.: continue
+        near_a_source = False
+        for entry in range(0,len(other_stars)):
+            distance = pow(gamma_source_ra-other_star_ra[entry],2)+pow(gamma_source_dec-other_star_dec[entry],2)
+            if distance<0.3*0.3:
+                near_a_source = True
+        if not near_a_source and not '%' in gamma_source_name:
+            other_stars += [gamma_source_name]
+            other_star_ra += [gamma_source_ra]
+            other_star_dec += [gamma_source_dec]
+
+    delta = 0.02
+    x = np.arange(target_ra-3.0, target_ra+3.0, delta)
+    y = np.arange(target_dec-3.0, target_dec+3.0, delta)
+    X, Y = np.meshgrid(x, y)
+    Z = 0.*gaussian_2d(X, Y, 0., 0., 1., 1.)
+    for run in range(0,len(List_Used_RA)):
+        Z += List_Used_Exposure[run]*gaussian_2d(X, Y, List_Used_RA[run], List_Used_Dec[run], 1., 1.)
+
+    List_Proposed_RA = []
+    List_Proposed_Dec = []
+    List_Proposed_Exposure = []
+    List_Proposed_RA += [286.8]
+    List_Proposed_Dec += [7.0]
+    List_Proposed_Exposure += [15.]
+    List_Proposed_RA += [286.3]
+    List_Proposed_Dec += [6.5]
+    List_Proposed_Exposure += [15.]
+    List_Proposed_RA += [286.4]
+    List_Proposed_Dec += [6.9]
+    List_Proposed_Exposure += [15.]
+    for run in range(0,len(List_Proposed_RA)):
+        Z += List_Proposed_Exposure[run]*gaussian_2d(X, Y, List_Proposed_RA[run], List_Proposed_Dec[run], 1., 1.)
+    
+    # Create a contour plot with labels using default colors.  The
+    # inline argument to clabel will control whether the labels are draw
+    # over the line segments of the contour, removing the lines beneath
+    # the label
+    plt.clf()
+    CS = plt.contour(X, Y, Z)
+    plt.scatter(other_star_ra, other_star_dec, s=80, c='black', marker="+")
+    for star in range(0,len(other_stars)):
+        plt.text(other_star_ra[star],other_star_dec[star]+0.2,other_stars[star])
+    plt.clabel(CS, inline=1, fontsize=10)
+    #plt.title('Simplest default with labels')
+    plt.savefig("output_plots/ExposureMap.png")

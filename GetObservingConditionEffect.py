@@ -29,7 +29,7 @@ target_energy_index = 0
 N_bins_for_deconv = 16
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
-MSCW_blind_cut = 0.5
+MSCW_blind_cut = 0.6
 MSCL_blind_cut = 0.6
 MSCW_plot_lower = -0.6
 MSCL_plot_lower = -0.6
@@ -459,7 +459,7 @@ for energy in range(0,len(energy_bin)-1):
     for elev in range(0,len(elev_bins)-1):
         index = (len(elev_bins)-1)*energy + elev
         Hists += [Hist_OnData_PerElev_Xoff[index]]
-        legends += ['%s-%s'%(elev_bins[elev],elev_bins[elev+1])]
+        legends += ['%s-%s, RMS = %s'%(elev_bins[elev],elev_bins[elev+1],Hist_OnData_PerElev_Xoff[index].GetRMS())]
         colors += [elev+1]
     MakeComparisonPlot(Hists,legends,colors,'X off','Normalized counts','PerElev_Xoff_E%s'%(energy),0,0,False,False,True)
     Hists = []
@@ -468,7 +468,7 @@ for energy in range(0,len(energy_bin)-1):
     for elev in range(0,len(elev_bins)-1):
         index = (len(elev_bins)-1)*energy + elev
         Hists += [Hist_OnData_PerElev_Yoff[index]]
-        legends += ['%s-%s'%(elev_bins[elev],elev_bins[elev+1])]
+        legends += ['%s-%s, RMS = %s'%(elev_bins[elev],elev_bins[elev+1],Hist_OnData_PerElev_Yoff[index].GetRMS())]
         colors += [elev+1]
     MakeComparisonPlot(Hists,legends,colors,'Y off','Normalized counts','PerElev_Yoff_E%s'%(energy),0,0,False,False,True)
     
