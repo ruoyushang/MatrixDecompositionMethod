@@ -97,8 +97,6 @@ ComplexEigenSolver<MatrixXcd> eigensolver_init_transpose;
 VectorXcd vtr_eigenval_vvv;
 int binx_blind_global;
 int biny_blind_global;
-int binx_buffer_global;
-int biny_buffer_global;
 int VaryLeftOrRightVector;
 int VaryNthVector;
 int n_iterations = 100;
@@ -1408,10 +1406,6 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             //double weight = 1./pow(sigma_data*sigma_data+sigma_syst*sigma_syst,0.5);
             double weight = 1.;
             if (WeightingType==1 && entry_size>1) weight = 1./pow(sigma_data*sigma_data,0.5);
-            if (isBlind && idx_i>=binx_blind_global && idx_j<biny_blind_global)
-            {
-                if (idx_i<binx_buffer_global) weight = 0.*weight;
-            }
             vtr_Delta(idx_u) = weight*(mtx_data_input-mtx_init_comp)(idx_i,idx_j);
             for (int idx_k=0;idx_k<size_k;idx_k++)
             {
@@ -1494,26 +1488,26 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_n1 = 1-1;
             idx_k2 = 3-1;
             idx_n2 = 2-1;
-            if (TelElev_upper==80.)
+            if (TelElev_upper>=80.)
             {
-                ratio_1 = -0.7128339464307233;
-                ratio_2 = -0.7013328488071843;
-                variance_1 = 0.0366986;
-                variance_2 = 0.04156744;
+                ratio_1 = -0.7326926681231111;
+                ratio_2 = -0.6805596623945886;
+                variance_1 = 0.01929659;
+                variance_2 = 0.02415344;
             }
             else if (TelElev_upper==70.)
             {
-                ratio_1 = 0.7058843934614035;
-                ratio_2 = 0.7083270593925002;
-                variance_1 = 0.04132266;
-                variance_2 = 0.04427159;
+                ratio_1 = 0.6917748753246873;
+                ratio_2 = 0.72211323341254;
+                variance_1 = 0.02242051;
+                variance_2 = 0.03889055;
             }
             else
             {
-                ratio_1 = -0.7077641322338933;
-                ratio_2 = -0.7064488184739245;
-                variance_1 = 0.04711973;
-                variance_2 = 0.05161359;
+                ratio_1 = -0.7217626298883971;
+                ratio_2 = -0.6921406692982176;
+                variance_1 = 0.03086591;
+                variance_2 = 0.03830838;
             }
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_v2 = idx_k2*size_n + idx_n2;
@@ -1535,24 +1529,24 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_n2 = 1-1;
             if (TelElev_upper==80.)
             {
-                ratio_1 = 0.6779513997471464;
-                ratio_2 = 0.7351067266600713;
-                variance_1 = 0.0187869;
-                variance_2 = 0.00637321;
+                ratio_1 = 0.6121766597856741;
+                ratio_2 = 0.7907210236320109;
+                variance_1 = 0.01527097;
+                variance_2 = 0.00833751;
             }
             else if (TelElev_upper==70.)
             {
-                ratio_1 = 0.7045327815564411;
-                ratio_2 = 0.7096714449041498;
-                variance_1 = 0.02814277;
-                variance_2 = 0.00968906;
+                ratio_1 = 0.3766126695755359;
+                ratio_2 = 0.9263708205223156;
+                variance_1 = 0.02259953;
+                variance_2 = 0.01137383;
             }
             else
             {
-                ratio_1 = 0.5317319662286669;
-                ratio_2 = 0.8469126968528667;
-                variance_1 = 0.0270161;
-                variance_2 = 0.01133222;
+                ratio_1 = 0.4092223702827709;
+                ratio_2 = 0.9124346835035101;
+                variance_1 = 0.0505333;
+                variance_2 = 0.00965906;
             }
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_v2 = idx_k2*size_n + idx_n2;
@@ -1574,10 +1568,10 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_n1 = 2-1;
             idx_k2 = 1-1;
             idx_n2 = 2-1;
-            ratio_1 = -0.5769097633592606;
-            ratio_2 = 0.8168078874134126;
-            variance_1 = 0.06170505;
-            variance_2 = 0.01779413;
+            ratio_1 = -0.6257441665128513;
+            ratio_2 = 0.7800283572250031;
+            variance_1 = 0.04783807;
+            variance_2 = 0.01439889;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_v2 = idx_k2*size_n + idx_n2;
             idx_u1 = idx_v1;
@@ -3224,11 +3218,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
             int binx_lower = Hist_OffData_MSCLW.at(0).at(e).GetXaxis()->FindBin(MSCL_plot_lower);
             binx_blind_global = Hist_OffData_MSCLW.at(0).at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
-            binx_buffer_global = Hist_OffData_MSCLW.at(0).at(e).GetXaxis()->FindBin(MSCL_cut_buffer)-1;
             int binx_upper = Hist_OffData_MSCLW.at(0).at(e).GetXaxis()->FindBin(1.)-1;
             int biny_lower = Hist_OffData_MSCLW.at(0).at(e).GetYaxis()->FindBin(MSCW_plot_lower);
             biny_blind_global = Hist_OffData_MSCLW.at(0).at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
-            biny_buffer_global = Hist_OffData_MSCLW.at(0).at(e).GetYaxis()->FindBin(MSCW_cut_buffer)-1;
             int biny_upper = Hist_OffData_MSCLW.at(0).at(e).GetYaxis()->FindBin(1.)-1;
 
             TString hist_name;
@@ -3594,8 +3586,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         int binx_lower = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_plot_lower);
         binx_blind_global = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_blind)-1;
         biny_blind_global = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_blind)-1;
-        binx_buffer_global = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(MSCL_cut_buffer)-1;
-        biny_buffer_global = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_cut_buffer)-1;
         int binx_upper = Hist_OnData_MSCLW.at(e).GetXaxis()->FindBin(1.)-1;
         int biny_lower = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(MSCW_plot_lower);
         int biny_upper = Hist_OnData_MSCLW.at(e).GetYaxis()->FindBin(1.)-1;

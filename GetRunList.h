@@ -84,6 +84,9 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source.find("CrabV6") != std::string::npos) {
             list = GetRunListFromFile("CrabV6");
         }
+        if (source.find("Crab_Offset_V6") != std::string::npos) {
+            list = GetRunListFromFile("Crab_Offset_V6");
+        }
         if (source.find("SNR_G150p3Plus04p5_V6") != std::string::npos) {
             list = GetRunListFromFile("SNR_G150p3Plus04p5_V6");
         }

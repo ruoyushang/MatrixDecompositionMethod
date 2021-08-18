@@ -357,6 +357,8 @@ void ObservingEffect()
                 if (SizeSecondMax<SizeSecondMax_Cut) continue;
                 if (EmissionHeight<6.) continue;
                 if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+                MSCW = MSCW/MSCW_rescale[energy];
+                MSCL = MSCL/MSCL_rescale[energy];
                 if (MSCL<MSCL_cut_blind && MSCW<MSCW_cut_blind)
                 {
                     Hist_Source_Theta2.at(source).at(energy).Fill(theta2);
@@ -458,6 +460,8 @@ void ObservingEffect()
                 if (SizeSecondMax<SizeSecondMax_Cut) continue;
                 if (EmissionHeight<6.) continue;
                 if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+                MSCW = MSCW/MSCW_rescale[energy];
+                MSCL = MSCL/MSCL_rescale[energy];
                 double weight = 1.;
                 if (theta2<source_theta2_cut) weight = source_weight.at(energy);
                 if (MSCL<MSCL_cut_blind)

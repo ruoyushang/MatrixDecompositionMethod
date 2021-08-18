@@ -1788,10 +1788,6 @@ bool ControlSelectionTheta2()
     //if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     //if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     double boundary = 0.5;
-    if (ErecS*1000.>=2000.)
-    {
-        boundary = 0.25;
-    }
     if (MSCL>boundary*gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     if (MSCW>boundary*gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     return true;
@@ -1946,14 +1942,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     if (isON) 
     {
         source_theta2_cut = 0.;
-        if (TString(target).Contains("Crab"))
-        {
-            source_theta2_cut = 0.1*0.1;
-        }
-        if (TString(target).Contains("Mrk421"))
-        {
-            source_theta2_cut = 0.1*0.1;
-        }
         ONOFF_tag = "ON";
     }
     else
@@ -2607,6 +2595,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     if (EmissionHeight<6.) continue;
                     if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
                     //if (R2off>4.) continue;
+                    MSCW = MSCW/MSCW_rescale[energy];
+                    MSCL = MSCL/MSCL_rescale[energy];
                     double run_weight = Dark_weight.at(run).at(nth_sample);
                     double weight = run_weight;
                     if (DarkFoV())
@@ -2680,6 +2670,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     if (EmissionHeight<6.) continue;
                     if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
                     //if (R2off>4.) continue;
+                    MSCW = MSCW/MSCW_rescale[energy];
+                    MSCL = MSCL/MSCL_rescale[energy];
                     Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
                     Hist_Dark_ElevNSB.Fill(NSB_thisrun,tele_elev_off);
                     Hist_Dark_ElevAzim.Fill(NSB_thisrun,tele_azim_off);
@@ -2797,6 +2789,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (TString(target).Contains("Crab") && theta2<0.3) continue;
             //if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             //if (R2off>4.) continue;
+            MSCW = MSCW/MSCW_rescale[energy];
+            MSCL = MSCL/MSCL_rescale[energy];
             
             int bin_energy = Hist_CRDark_Energy.at(energy).FindBin(ErecS*1000.);
             int bin_xoff = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(Xoff);
@@ -2897,6 +2891,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (TString(target).Contains("Crab") && theta2<0.3) continue;
             //if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             //if (R2off>4.) continue;
+            MSCW = MSCW/MSCW_rescale[energy];
+            MSCL = MSCL/MSCL_rescale[energy];
             
             int bin_energy = Hist_CRDark_Energy.at(energy).FindBin(ErecS*1000.);
             int bin_xoff = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(Xoff);
@@ -3027,6 +3023,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (TString(target).Contains("Crab") && theta2<0.3) continue;
             //if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             //if (R2off>4.) continue;
+            MSCW = MSCW/MSCW_rescale[energy];
+            MSCL = MSCL/MSCL_rescale[energy];
 
             double norm_syst_err = Hist_NormSystErr.GetBinContent(energy+1); 
             int r2_bin = Hist_ShapeSystErr.at(energy).FindBin(R2off);
@@ -3328,6 +3326,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (SizeSecondMax<SizeSecondMax_Cut) continue;
             if (EmissionHeight<6.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+            MSCW = MSCW/MSCW_rescale[energy];
+            MSCL = MSCL/MSCL_rescale[energy];
             if (FoV())
             {
                 if (SignalSelectionTheta2())
@@ -3398,6 +3398,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (TString(target).Contains("Crab") && theta2<0.3) continue;
             //if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             //if (R2off>4.) continue;
+            MSCW = MSCW/MSCW_rescale[energy];
+            MSCL = MSCL/MSCL_rescale[energy];
             double weight = 1.;
             //if (theta2<source_theta2_cut && SignalSelectionTheta2()) weight = source_weight.at(energy);
             double R2_weight = 0.;
@@ -3599,6 +3601,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //        if (energy<0) continue;
     //        if (energy>=N_energy_bins) continue;
     //        if (!SelectNImages()) continue;
+    //        MSCW = MSCW/MSCW_rescale[energy];
+    //        MSCL = MSCL/MSCL_rescale[energy];
     //        Hist_GammaMC_MSCLW.at(energy).Fill(MSCL,MSCW);
     //        if (MCFoV() && FoV())
     //        {
@@ -3627,6 +3631,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //        if (energy<0) continue;
     //        if (energy>=N_energy_bins) continue;
     //        if (!SelectNImages()) continue;
+    //        MSCW = MSCW/MSCW_rescale[energy];
+    //        MSCL = MSCL/MSCL_rescale[energy];
 
     //        int binx_sky = Hist_Photon_Exp_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
     //        int biny_sky = Hist_Photon_Exp_Skymap.at(energy).GetYaxis()->FindBin(dec_sky);
@@ -3723,6 +3729,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //        if (SizeSecondMax<400.) continue;
     //        if (EmissionHeight<6.) continue;
     //        if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+    //        MSCW = MSCW/MSCW_rescale[energy];
+    //        MSCL = MSCL/MSCL_rescale[energy];
     //        if (theta2<0.3)
     //        {
     //            Hist_GammaDataON_MSCLW.at(energy).Fill(MSCL,MSCW);

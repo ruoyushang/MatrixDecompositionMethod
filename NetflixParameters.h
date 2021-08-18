@@ -21,10 +21,10 @@ double MSCW_plot_lower = -0.6;
 double MSCL_plot_lower = -0.6;
 
 char output_file_tag[50] = "tight";
-double MSCW_cut_moderate = 0.5;
+double MSCW_cut_moderate = 0.6;
 double MSCL_cut_moderate = 0.6;
-double MSCW_cut_buffer = 0.5;
-double MSCL_cut_buffer = 0.6;
+double MSCW_rescale[N_energy_bins] = {1.,1.,1.1,1.2,1.5,2.};
+double MSCL_rescale[N_energy_bins] = {1.,1.,1.1,1.2,1.5,2.};
 
 bool UseTruncatedONData = false;
 bool UseMinChi2 = false;
