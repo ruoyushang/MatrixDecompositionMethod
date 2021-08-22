@@ -397,7 +397,7 @@ search_for_on_data = True
 #search_for_on_data = False
 
 V4 = False
-V5 = True
+V5 = False
 V6 = True
 
 Search_Range_RA = [0.,360.]
@@ -934,28 +934,53 @@ if search_for_on_data:
             other_star_ra += [gamma_source_ra]
             other_star_dec += [gamma_source_dec]
 
-    delta = 0.02
-    x = np.arange(target_ra-3.0, target_ra+3.0, delta)
-    y = np.arange(target_dec-3.0, target_dec+3.0, delta)
-    X, Y = np.meshgrid(x, y)
-    Z = 0.*gaussian_2d(X, Y, 0., 0., 1., 1.)
-    for run in range(0,len(List_Used_RA)):
-        Z += List_Used_Exposure[run]*gaussian_2d(X, Y, List_Used_RA[run], List_Used_Dec[run], 1., 1.)
+    other_star_ra_flipped = []
+    for entry in range(0,len(other_star_ra)):
+        other_star_ra_flipped += [-1.*other_star_ra[entry]]
 
     List_Proposed_RA = []
     List_Proposed_Dec = []
     List_Proposed_Exposure = []
-    List_Proposed_RA += [286.8]
-    List_Proposed_Dec += [7.0]
-    List_Proposed_Exposure += [15.]
-    List_Proposed_RA += [286.3]
-    List_Proposed_Dec += [6.5]
-    List_Proposed_Exposure += [15.]
-    List_Proposed_RA += [286.4]
+    # winter
+    List_Proposed_RA += [286.6]
     List_Proposed_Dec += [6.9]
-    List_Proposed_Exposure += [15.]
-    for run in range(0,len(List_Proposed_RA)):
-        Z += List_Proposed_Exposure[run]*gaussian_2d(X, Y, List_Proposed_RA[run], List_Proposed_Dec[run], 1., 1.)
+    List_Proposed_Exposure += [10.]
+    #List_Proposed_RA += [286.6]
+    #List_Proposed_Dec += [6.2]
+    #List_Proposed_Exposure += [5.]
+    ## summer
+    #List_Proposed_RA += [286.6]
+    #List_Proposed_Dec += [6.9]
+    #List_Proposed_Exposure += [5.]
+    #List_Proposed_RA += [288.]
+    #List_Proposed_Dec += [6.2]
+    #List_Proposed_Exposure += [5.]
+    #List_Proposed_RA += [287.3]
+    #List_Proposed_Dec += [5.5]
+    #List_Proposed_Exposure += [0.]
+    #List_Proposed_RA += [287.3]
+    #List_Proposed_Dec += [6.9]
+    #List_Proposed_Exposure += [5.]
+    #List_Proposed_RA += [286.6]
+    #List_Proposed_Dec += [6.2]
+    #List_Proposed_Exposure += [5.]
+
+    List_Used_RA_Flipped = []
+    for entry in range(0,len(List_Used_RA)):
+        List_Used_RA_Flipped += [-1.*List_Used_RA[entry]]
+    List_Proposed_RA_Flipped = []
+    for entry in range(0,len(List_Proposed_RA)):
+        List_Proposed_RA_Flipped += [-1.*List_Proposed_RA[entry]]
+
+    delta = 0.02
+    x = np.arange(-target_ra-3.0, -target_ra+3.0, delta)
+    y = np.arange(target_dec-3.0, target_dec+3.0, delta)
+    X, Y = np.meshgrid(x, y)
+    Z = 0.*gaussian_2d(X, Y, 0., 0., 1., 1.)
+    for run in range(0,len(List_Used_RA_Flipped)):
+        Z += List_Used_Exposure[run]*gaussian_2d(X, Y, List_Used_RA_Flipped[run], List_Used_Dec[run], 1., 1.)
+    for run in range(0,len(List_Proposed_RA_Flipped)):
+        Z += List_Proposed_Exposure[run]*gaussian_2d(X, Y, List_Proposed_RA_Flipped[run], List_Proposed_Dec[run], 1., 1.)
     
     # Create a contour plot with labels using default colors.  The
     # inline argument to clabel will control whether the labels are draw
@@ -963,9 +988,27 @@ if search_for_on_data:
     # the label
     plt.clf()
     CS = plt.contour(X, Y, Z)
-    plt.scatter(other_star_ra, other_star_dec, s=80, c='black', marker="+")
+    plt.scatter(other_star_ra_flipped, other_star_dec, s=80, c='black', marker="+")
     for star in range(0,len(other_stars)):
-        plt.text(other_star_ra[star],other_star_dec[star]+0.2,other_stars[star])
+        plt.text(other_star_ra_flipped[star],other_star_dec[star]+0.2,other_stars[star])
     plt.clabel(CS, inline=1, fontsize=10)
     #plt.title('Simplest default with labels')
     plt.savefig("output_plots/ExposureMap.png")
+
+    plt.clf()
+    fig, ax = plt.subplots()
+    hist, xbins, ybins, im = plt.hist2d(List_Used_RA_Flipped, List_Used_Dec, weights=List_Used_Exposure, range=[[-target_ra-3.0,-target_ra+3.0],[target_dec-3.0, target_dec+3.0]], bins=(60,60), cmap=plt.cm.Greens)
+    plt.colorbar()
+    ax.axis('on')
+    ax.set_xlabel('RA')
+    ax.set_ylabel('Dec')
+    plt.scatter(other_star_ra_flipped, other_star_dec, s=80, c='black', marker="+")
+    plt.scatter(List_Proposed_RA_Flipped, List_Proposed_Dec, s=80, c='red', marker="o")
+    for star in range(0,len(other_stars)):
+        plt.text(-1.*other_star_ra[star],other_star_dec[star]+0.2,other_stars[star])
+    plt.clabel(CS, inline=1, fontsize=10)
+    plt.savefig("output_plots/PointingMap.png")
+    for i in range(len(xbins)-1):
+        for j in range(len(ybins)-1):
+            if hist[i,j]>5.:
+                print ("counts %s, RA %s, Dec %s"%(hist[i,j],xbins[i],ybins[j]))
