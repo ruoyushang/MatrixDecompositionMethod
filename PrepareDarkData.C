@@ -28,17 +28,17 @@
 #include "TBranch.h"
 #include "TRandom.h"
 
-#include "../../EventDisplay/VEvndispRunParameter.h"
-//#include "/home/rshang/EventDisplay/EVNDISP-480e/inc/VEvndispRunParameter.h"
+//#include "../../EventDisplay/VEvndispRunParameter.h"
+#include "/home/rshang/MatrixDecompositionMethod/EventDisplay/VEvndispRunParameter.h"
 
 #include "GetRunList.h"
 #include "NetflixParameters.h"
 
 #include <complex>
-#include "../../Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
-#include "../../Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
-//#include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
-//#include "/home/rshang/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
+//#include "../../Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
+//#include "../../Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
+#include "/home/rshang/MatrixDecompositionMethod/Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
+#include "/home/rshang/MatrixDecompositionMethod/Eigen/eigen-eigen-323c052e1731/Eigen/StdVector"
 using namespace Eigen;
 
 double TelElev_lower = 70.;
@@ -205,8 +205,8 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name.Contains("Geminga"))
     {
-            Source_RA = 98.117;
-                Source_Dec = 17.367;
+            Source_RA = 98.476;
+                Source_Dec = 17.770;
     }
     if (source_name.Contains("PKS1441"))
     {
@@ -1773,31 +1773,16 @@ bool SignalSelectionTheta2()
     if (MSCL<MSCL_plot_lower) return false;
     return true;
 }
-bool ValidationSelectionTheta2()
-{
-    if (SignalSelectionTheta2()) return false;
-    if (MSCW>MSCW_cut_blind && MSCL>MSCL_cut_blind) return false;
-    if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
-    if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
-    return true;
-}
 bool ControlSelectionTheta2()
 {
     if (SignalSelectionTheta2()) return false;
     if (MSCW<MSCW_cut_blind && MSCL<MSCL_cut_blind) return false;
+    if (MSCW<MSCW_cut_blind) return false;
     //if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     //if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     double boundary = 0.5;
     if (MSCL>boundary*gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     if (MSCW>boundary*gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
-    return true;
-}
-bool VRControlSelectionTheta2()
-{
-    if (SignalSelectionTheta2()) return false;
-    if (ValidationSelectionTheta2()) return false;
-    if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
-    if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     return true;
 }
 
@@ -2147,8 +2132,16 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_name.push_back("Crab");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.5);
+        if (TString(target).Contains("Offset"))
+        {
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(2.0);
+        } 
+        else
+        {
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.5);
+        }
     }
     else if (TString(target).Contains("Mrk421")) 
     {
@@ -2165,11 +2158,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         roi_dec.push_back(17.770);
         roi_radius_inner.push_back(0.);
         roi_radius_outer.push_back(1.5);
-        roi_name.push_back("deficit");
-        roi_ra.push_back(98.837);
-        roi_dec.push_back(16.087);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
     }
     else if (TString(target).Contains("Cygnus")) 
     {
@@ -2303,6 +2291,17 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnDark_Incl_CR_Zenith.push_back(TH1D("Hist_OnDark_Incl_CR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
     }
 
+    vector<TH1D> Hist_OnData_Correct_R2off;
+    for (int e=0;e<N_energy_bins;e++) 
+    {
+        char e_low[50];
+        sprintf(e_low, "%i", int(energy_bins[e]));
+        char e_up[50];
+        sprintf(e_up, "%i", int(energy_bins[e+1]));
+        Hist_OnData_Correct_R2off.push_back(TH1D("Hist_Stage1_OnData_Correct_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
+    }
+
+
     vector<TH2D> Hist_OnData_MSCLW;
     vector<TH1D> Hist_OnData_SR_Energy;
     vector<TH1D> Hist_OnData_CR_Energy;
@@ -2314,7 +2313,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<TH1D> Hist_OnData_SR_Yoff;
     vector<TH2D> Hist_OnData_SR_XYoff;
     vector<TH1D> Hist_OnData_CR_Yoff;
-    vector<TH1D> Hist_OnData_Correct_R2off;
     vector<TH1D> Hist_OnData_SR_R2off;
     vector<TH1D> Hist_OnDark_SR_R2off;
     vector<TH1D> Hist_OnData_CR_R2off;
@@ -2357,7 +2355,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_SR_Yoff.push_back(TH1D("Hist_Stage1_OnData_SR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_OnData_SR_XYoff.push_back(TH2D("Hist_Stage1_OnData_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
         Hist_OnData_CR_Yoff.push_back(TH1D("Hist_Stage1_OnData_CR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
-        Hist_OnData_Correct_R2off.push_back(TH1D("Hist_Stage1_OnData_Correct_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",9,0,9));
         Hist_OnData_SR_R2off.push_back(TH1D("Hist_Stage1_OnData_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",18,0,9));
         Hist_OnDark_SR_R2off.push_back(TH1D("Hist_Stage1_OnDark_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",18,0,9));
         Hist_OnData_CR_R2off.push_back(TH1D("Hist_Stage1_OnData_CR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",18,0,9));
@@ -2812,7 +2809,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
             if (ControlSelectionTheta2())
             {
-                Hist_OnData_Correct_R2off.at(energy).Fill(R2off,yoff_weight);
+                if (R2off<camera_theta2_cut_upper)
+                {
+                    Hist_OnData_Correct_R2off.at(energy).Fill(R2off,yoff_weight);
+                }
             }
 
         }
@@ -2917,11 +2917,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
             }
-            //R2_weight = 1.;
+            if (!AcceptanceCorrection) R2_weight = 1.;
 
             if (ControlSelectionTheta2())
             {
-                Hist_OnData_Expo_Skymap.at(energy).Fill(ra_sky,dec_sky,yoff_weight*R2_weight);
+                if (R2off<camera_theta2_cut_upper)
+                {
+                    Hist_OnData_Expo_Skymap.at(energy).Fill(ra_sky,dec_sky,yoff_weight*R2_weight);
+                }
             }
 
         }
@@ -2935,23 +2938,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         if (energy_bins[e]>4000.) smooth_size = 0.5;
         Smooth2DMap(&Hist_OnData_Expo_Skymap.at(e), smooth_size);
     }
-    for (int e=0;e<N_energy_bins;e++) 
-    {
-        for (int binx=0;binx<Hist_OnData_Expo_Skymap.at(e).GetNbinsX();binx++)
-        {
-            for (int biny=0;biny<Hist_OnData_Expo_Skymap.at(e).GetNbinsY();biny++)
-            {
-                double Expo_content = Hist_OnData_Expo_Skymap.at(e).GetBinContent(binx+1,biny+1);
-                if (Expo_content==0.) continue;
-                double Expo_weight = Hist_OnData_Correct_R2off.at(e).GetBinContent(1)/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*1.0*1.0);
-                if (Expo_weight>10.)
-                {
-                    Hist_OnData_Expo_Skymap.at(e).SetBinContent(binx+1,biny+1,0.);
-                }
-            }
-        }
-    }
-
 
     std::cout << "Build templates from cosmic rays." << std::endl;
     for (int run=0;run<Data_runlist.size();run++)
@@ -3054,19 +3040,20 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
             }
             if (!AcceptanceCorrection) R2_weight = 1.;
-            double Expo_weight = (2.*Skymap_size/12.)/(3.14*1.0*1.0);
+            double Expo_weight = (2.*Skymap_size/12.)/(3.14*0.25);
             int bin_ra = Hist_OnData_Expo_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
             int bin_dec = Hist_OnData_Expo_Skymap.at(energy).GetYaxis()->FindBin(dec_sky);
             double Expo_content = Hist_OnData_Expo_Skymap.at(energy).GetBinContent(bin_ra,bin_dec);
+            double Expo_norm =  Hist_OnData_Correct_R2off.at(energy).GetBinContent(1);
             if (Expo_content>0.)
             {
-                Expo_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*1.0*1.0);
+                Expo_weight = Expo_norm/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*0.25);
             }
             else
             {
                 Expo_weight = 0.;
             }
-            if (!AcceptanceCorrection) Expo_weight = 1.;
+            if (!ExposureCorrection) Expo_weight = 1.;
 
             if (FoV())
             {
@@ -3157,13 +3144,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         SetEventDisplayTreeBranch(Data_tree);
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
 
-        // Get effective area and livetime and determine the cosmic electron counts for this run.
-        //std::cout << "Get effective area and livetime..." << std::endl;
-        TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(input_file,Data_runlist[run].second);
         double NSB_thisrun = GetRunPedestalVar(int(Data_runlist[run].second));
         Hist_Data_NSB.Fill(NSB_thisrun);
         double tele_elev = GetRunElevAzim(filename,int(Data_runlist[run].second)).first;
         double tele_azim = GetRunElevAzim(filename,int(Data_runlist[run].second)).second;
+
+        // Get effective area and livetime and determine the cosmic electron counts for this run.
+        //std::cout << "Get effective area and livetime..." << std::endl;
+        TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(input_file,Data_runlist[run].second);
 
         Data_tree->GetEntry(0);
         double time_0 = Time;
@@ -3409,19 +3397,20 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
             }
             if (!AcceptanceCorrection) R2_weight = 1.;
-            double Expo_weight = (2.*Skymap_size/12.)/(3.14*1.0*1.0);
+            double Expo_weight = (2.*Skymap_size/12.)/(3.14*0.25);
             int bin_ra = Hist_OnData_Expo_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
             int bin_dec = Hist_OnData_Expo_Skymap.at(energy).GetYaxis()->FindBin(dec_sky);
             double Expo_content = Hist_OnData_Expo_Skymap.at(energy).GetBinContent(bin_ra,bin_dec);
+            double Expo_norm =  Hist_OnData_Correct_R2off.at(energy).GetBinContent(1);
             if (Expo_content>0.)
             {
-                Expo_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*1.0*1.0);
+                Expo_weight = Expo_norm/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*0.25);
             }
             else
             {
                 Expo_weight = 0.;
             }
-            if (!AcceptanceCorrection) Expo_weight = 1.;
+            if (!ExposureCorrection) Expo_weight = 1.;
 
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,tele_elev);
@@ -3479,7 +3468,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         }
         input_file->Close();
     }
-
 
     for (int e=0;e<N_energy_fine_bins;e++) 
     {
