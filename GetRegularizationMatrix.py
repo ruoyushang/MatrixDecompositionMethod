@@ -40,7 +40,7 @@ ErecS_upper_cut = 0
 total_exposure_hours = 0.
 
 #folder_path = 'output_nominal'
-folder_path = 'output_nocameracorrect'
+folder_path = 'output_nocorrect'
 method_tag = 'tight_mdm_default'
 
 lowrank_tag = '_svd'
@@ -105,7 +105,7 @@ sample_name += ['RGBJ0710 V5']
 #elev_bins = [40,70]
 #elev_bins = [60,80]
 #elev_bins = [40,60]
-elev_bins = [50,60,70,80]
+elev_bins = [50,60,70,80,90]
 #elev_bins = [40,50,60]
 #elev_bins = [70,80]
 #elev_bins = [60,70]
@@ -113,8 +113,8 @@ elev_bins = [50,60,70,80]
 #elev_bins = [40,50]
 theta2_bins = [0,4]
 
-energy_bin_ref = 3
-stable_rank = 2
+#energy_bin_ref = 1
+stable_rank = 3
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
@@ -321,7 +321,8 @@ def GetHistogramsFromFile(FilePath):
             old_content = Hist2D_Regularization[energy_index].GetBinContent(binx+1,biny+1)
             new_content = pow(Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1),2)
             Hist2D_Regularization[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content)
-    if dark_gamma_count[energy_index]>1000. and dark_stable_rank[energy_index]==stable_rank and energy_index==energy_bin_ref: 
+    #if dark_gamma_count[energy_index]>1000. and dark_stable_rank[energy_index]==stable_rank and energy_index==energy_bin_ref: 
+    if dark_gamma_count[energy_index]>1000. and dark_stable_rank[energy_index]==stable_rank: 
         mtx_CDE = []
         mtx_CDE_bkgd = []
         for row in range(0,3):
@@ -469,12 +470,14 @@ for row1 in range(0,3):
                 idx2 = row2*3+col2
                 list_var_pair = [[row1+1,col1+1]]
                 list_var_pair += [[row2+1,col2+1]]
-                #if idx1<idx2:
-                if row1==1 and col1==1:
+                if idx1<idx2:
+                #if row1==1 and col1==1:
                     print('=======================================================')
                     max_eigenvalue, chi2 = PrincipalComponentAnalysis(list_var_pair,0)
                     if math.isnan(max_eigenvalue): continue
-                    #if max_eigenvalue<1.4: continue
+                    chi2_ratio = min(chi2[0]/chi2[1],chi2[1]/chi2[0])
+                    #if chi2_ratio>0.8: continue
+                    #if max_eigenvalue<1.1: continue
                     MakeCorrelationPlot(list_var_pair)
                     good_var_pair += [list_var_pair]
                     good_eigenvalue += [max_eigenvalue]

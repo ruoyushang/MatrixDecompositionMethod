@@ -67,9 +67,7 @@ rank3_count = []
 rank4_count = []
 
 #folder_path = 'output_nominal'
-folder_path = 'output_nocameracorrect'
-#folder_path = 'output_elev_p5'
-#folder_path = 'output_nsb_m1'
+folder_path = 'output_nocorrect'
 method_tag = 'tight_mdm_default'
 #method_tag = 'tight_mdm_rank3'
 #method_tag = 'tight_mdm_rank5'
@@ -135,10 +133,10 @@ sample_name += ['H1426 V6']
 sample_list += ['RGBJ0710V5_OFF']
 sample_name += ['RGBJ0710 V5']
 
-#sample_list += ['CrabV5_OFF']
-#sample_name += ['Crab V5']
-#sample_list += ['CrabV6_OFF']
-#sample_name += ['Crab V6']
+sample_list += ['CrabV5_OFF']
+sample_name += ['Crab V5']
+sample_list += ['CrabV6_OFF']
+sample_name += ['Crab V6']
 ##sample_list += ['RBS0413V6_OFF']
 ##sample_name += ['RBS0413 V6']
 ##sample_list += ['NGC1275V6_OFF']
@@ -165,7 +163,7 @@ sample_name += ['RGBJ0710 V5']
 #elev_bins = [40,70]
 #elev_bins = [60,80]
 #elev_bins = [40,60]
-elev_bins = [50,60,70,80]
+elev_bins = [50,60,70,80,90]
 #elev_bins = [60,70,80]
 #elev_bins = [70,80]
 #elev_bins = [60,70]
@@ -186,6 +184,9 @@ energy_bin += [int(pow(10,4.0))]
 
 energy_dependent_stat = []
 energy_dependent_syst = []
+energy_dependent_syst_vbkg = []
+energy_dependent_syst_rfov = []
+energy_dependent_syst_comb = []
 energy_dependent_syst_init = []
 
 root_file_tags = []
@@ -197,6 +198,21 @@ for elev in range(0,len(elev_bins)-1):
         theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
         for d in range(0,len(mjd_tag)):
             root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]
+
+def SystematicErrorMeasurement(list_measurements, list_err_measurements):
+    syst_err = 0.
+    sample_weight = 0.
+    stat_err = 0.
+    for entry in range(0,len(list_measurements)):
+        if list_err_measurements[entry]==0.: continue
+        syst_err += pow(1./list_err_measurements[entry],2)*pow(list_measurements[entry],2)
+        sample_weight += pow(1./list_err_measurements[entry],2)
+        #syst_err += pow(list_measurements[entry],2)
+        #sample_weight += 1.
+        stat_err += pow(list_err_measurements[entry],2)/len(list_measurements)
+    if sample_weight>0.: syst_err = pow(syst_err/sample_weight,0.5)
+    stat_err = pow(stat_err,0.5)
+    return syst_err, stat_err
 
 def Make2DPlot(Hist2D,title_x,title_y,name,logz,min_z,max_z):
 
@@ -661,8 +677,12 @@ def GetHistogramsFromFile(FilePath,which_source):
             Hist_OnBkgd_Bias_XYoff.SetBinContent(binx+1,biny+1,old_content_bias+1./relative_stat*relative_bias_bkgd)
 
     if energy_index>=energy_bin_cut_low and energy_index<=energy_bin_cut_up:
-        Hist_SystErrDist_MDM.Fill((data_gamma_count[energy_index]-bkgd_gamma_count[energy_index])/data_gamma_count[energy_index])
-        Hist_SystErrDist_Init.Fill((data_gamma_count[energy_index]-dark_gamma_count[energy_index])/data_gamma_count[energy_index])
+        measured_error_mibe = (data_gamma_count[energy_index]-bkgd_gamma_count[energy_index])/data_gamma_count[energy_index]
+        measured_error_init = (data_gamma_count[energy_index]-dark_gamma_count[energy_index])/data_gamma_count[energy_index]
+        measured_error_weight = 1.
+        #measured_error_weight = 1./(pow(data_gamma_count[energy_index],0.5)/data_gamma_count[energy_index])
+        Hist_SystErrDist_MDM.Fill(measured_error_mibe,measured_error_weight)
+        Hist_SystErrDist_Init.Fill(measured_error_init,measured_error_weight)
     HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Bkgd_Optimization[0].Add(InputFile.Get(HistName),weight)
     Hist_Bkgd_Optimization[which_source+1].Add(InputFile.Get(HistName))
@@ -732,12 +752,13 @@ Hist_OnData_StatErr_XYoff = ROOT.TH2D("Hist_OnData_StatErr_XYoff","",XYoff_nbins
 Hist_OnData_StatWeight_XYoff = ROOT.TH2D("Hist_OnData_StatWeight_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
 
 Hist_NormSystErr = ROOT.TH1D("Hist_NormSystErr","",len(energy_bin)-1,array('d',energy_bin))
+Hist_NormRFoVSystErr = ROOT.TH1D("Hist_NormRFoVSystErr","",len(energy_bin)-1,array('d',energy_bin))
 Hist_ShapeSystErr = []
 for ebin in range(0,len(energy_bin)-1):
     Hist_ShapeSystErr += [ROOT.TH1D("Hist_ShapeSystErr_ErecS%sto%s"%(int(energy_bin[ebin]),int(energy_bin[ebin+1])),"",R2off_nbins,0,9)]
 
 optimiz_lower = -5.
-optimiz_upper = -3.
+optimiz_upper = -1.
 Hist_Bkgd_Optimization = []
 Hist_Bkgd_Optimization_beta = []
 Hist_Bkgd_OptimizationChi2_beta = []
@@ -947,6 +968,8 @@ for e in range(0,len(energy_bin)-1):
         Hist_Dark_Optimization[0].SetBinContent(binx,y_content)
 
     fig, ax = plt.subplots()
+    plt.rcParams["figure.figsize"] = (10,6)
+    ax = fig.add_subplot(111)
     colors = np.random.rand(len(Zenith_mean_data))
 
     AccuracyInit_source = []
@@ -961,16 +984,7 @@ for e in range(0,len(energy_bin)-1):
             AccuracyInit_source += [abs(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
             AccuracyInitSigned_source += [(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
             AccuracyInitErr_source += [1./pow(data_count[entry-1],0.5)]
-    AccuracyInit_mean = 0.
-    AccuracyInit_weight = 0.
-    AccuracyInit_mean_error = 0.
-    for entry in range(0,len(AccuracyInit_source)):
-        if AccuracyInitErr_source[entry]==0.: continue
-        AccuracyInit_mean += 1./AccuracyInitErr_source[entry]*pow(AccuracyInit_source[entry],2)
-        AccuracyInit_weight += 1./AccuracyInitErr_source[entry]
-        AccuracyInit_mean_error += pow(AccuracyInitErr_source[entry],2)/len(AccuracyInit_source)
-    if AccuracyInit_weight>0.: AccuracyInit_mean = pow(AccuracyInit_mean/AccuracyInit_weight,0.5)
-    AccuracyInit_mean_error = pow(AccuracyInit_mean_error,0.5)
+    AccuracyInit_mean, AccuracyInit_mean_error = SystematicErrorMeasurement(AccuracyInit_source,AccuracyInitErr_source)
 
     AccuracyStat_source = []
     AccuracyStatErr_source = []
@@ -1000,16 +1014,7 @@ for e in range(0,len(energy_bin)-1):
         else:
             AccuracyRank2_source += [abs(data_count[entry-1]-rank2_count[entry-1])/data_count[entry-1]]
             AccuracyRank2Err_source += [1./pow(data_count[entry-1],0.5)]
-    AccuracyRank2_mean = 0.
-    AccuracyRank2_weight = 0.
-    AccuracyRank2_mean_error = 0.
-    for entry in range(0,len(AccuracyRank2_source)):
-        if AccuracyRank2Err_source[entry]==0.: continue
-        AccuracyRank2_mean += 1./AccuracyRank2Err_source[entry]*pow(AccuracyRank2_source[entry],2)
-        AccuracyRank2_weight += 1./AccuracyRank2Err_source[entry]
-        AccuracyRank2_mean_error += pow(AccuracyRank2Err_source[entry],2)/len(AccuracyRank2_source)
-    if AccuracyRank2_weight>0.: AccuracyRank2_mean = pow(AccuracyRank2_mean/AccuracyRank2_weight,0.5)
-    AccuracyRank2_mean_error = pow(AccuracyRank2_mean_error,0.5)
+    AccuracyRank2_mean, AccuracyRank2_mean_error = SystematicErrorMeasurement(AccuracyRank2_source,AccuracyRank2Err_source)
 
     AccuracyBestPar9_source = []
     AccuracyBestPar9Err_source = []
@@ -1020,16 +1025,7 @@ for e in range(0,len(energy_bin)-1):
         else:
             AccuracyBestPar9_source += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)]
             AccuracyBestPar9Err_source += [1./pow(data_count[entry-1],0.5)]
-    AccuracyBestPar9_mean = 0.
-    AccuracyBestPar9_weight = 0.
-    AccuracyBestPar9_mean_error = 0.
-    for entry in range(0,len(AccuracyBestPar9_source)):
-        if AccuracyBestPar9Err_source[entry]==0.: continue
-        AccuracyBestPar9_mean += 1./AccuracyBestPar9Err_source[entry]*pow(AccuracyBestPar9_source[entry],2)
-        AccuracyBestPar9_weight += 1./AccuracyBestPar9Err_source[entry]
-        AccuracyBestPar9_mean_error += pow(AccuracyBestPar9Err_source[entry],2)/len(AccuracyBestPar9_source)
-    if AccuracyBestPar9_weight>0.: AccuracyBestPar9_mean = pow(AccuracyBestPar9_mean/AccuracyBestPar9_weight,0.5)
-    AccuracyBestPar9_mean_error = pow(AccuracyBestPar9_mean_error,0.5)
+    AccuracyBestPar9_mean, AccuracyBestPar9_mean_error = SystematicErrorMeasurement(AccuracyBestPar9_source,AccuracyBestPar9Err_source)
 
     AccuracyPar9_source = []
     AccuracyPar9Err_source = []
@@ -1040,16 +1036,7 @@ for e in range(0,len(energy_bin)-1):
         else:
             AccuracyPar9_source += [abs(data_count[entry-1]-par9_count[entry-1])/data_count[entry-1]]
             AccuracyPar9Err_source += [1./pow(data_count[entry-1],0.5)]
-    AccuracyPar9_mean = 0.
-    AccuracyPar9_weight = 0.
-    AccuracyPar9_mean_error = 0.
-    for entry in range(0,len(AccuracyPar9_source)):
-        if AccuracyPar9Err_source[entry]==0.: continue
-        AccuracyPar9_mean += 1./AccuracyPar9Err_source[entry]*pow(AccuracyPar9_source[entry],2)
-        AccuracyPar9_weight += 1./AccuracyPar9Err_source[entry]
-        AccuracyPar9_mean_error += pow(AccuracyPar9Err_source[entry],2)/len(AccuracyPar9_source)
-    if AccuracyPar9_weight>0.: AccuracyPar9_mean = pow(AccuracyPar9_mean/AccuracyPar9_weight,0.5)
-    AccuracyPar9_mean_error = pow(AccuracyPar9_mean_error,0.5)
+    AccuracyPar9_mean, AccuracyPar9_mean_error = SystematicErrorMeasurement(AccuracyPar9_source,AccuracyPar9Err_source)
 
     AccuracyWPar9_source = []
     AccuracyWPar9Err_source = []
@@ -1060,16 +1047,7 @@ for e in range(0,len(energy_bin)-1):
         else:
             AccuracyWPar9_source += [abs(data_count[entry-1]-wpar9_count[entry-1])/data_count[entry-1]]
             AccuracyWPar9Err_source += [1./pow(data_count[entry-1],0.5)]
-    AccuracyWPar9_mean = 0.
-    AccuracyWPar9_weight = 0.
-    AccuracyWPar9_mean_error = 0.
-    for entry in range(0,len(AccuracyWPar9_source)):
-        if AccuracyWPar9Err_source[entry]==0.: continue
-        AccuracyWPar9_mean += 1./AccuracyWPar9Err_source[entry]*pow(AccuracyWPar9_source[entry],2)
-        AccuracyWPar9_weight += 1./AccuracyWPar9Err_source[entry]
-        AccuracyWPar9_mean_error += pow(AccuracyWPar9Err_source[entry],2)/len(AccuracyWPar9_source)
-    if AccuracyWPar9_weight>0.: AccuracyWPar9_mean = pow(AccuracyWPar9_mean/AccuracyWPar9_weight,0.5)
-    AccuracyWPar9_mean_error = pow(AccuracyWPar9_mean_error,0.5)
+    AccuracyWPar9_mean, AccuracyWPar9_mean_error = SystematicErrorMeasurement(AccuracyWPar9_source,AccuracyWPar9Err_source)
 
     AccuracyBkgd_source = []
     AccuracyBkgdSigned_source = []
@@ -1083,16 +1061,7 @@ for e in range(0,len(energy_bin)-1):
             AccuracyBkgd_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
             AccuracyBkgdSigned_source += [(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
             AccuracyBkgdErr_source += [1./pow(data_count[entry-1],0.5)]
-    AccuracyBkgd_mean = 0.
-    AccuracyBkgd_weight = 0.
-    AccuracyBkgd_mean_error = 0.
-    for entry in range(0,len(AccuracyBkgd_source)):
-        if AccuracyBkgdErr_source[entry]==0.: continue
-        AccuracyBkgd_mean += 1./AccuracyBkgdErr_source[entry]*pow(AccuracyBkgd_source[entry],2)
-        AccuracyBkgd_weight += 1./AccuracyBkgdErr_source[entry]
-        AccuracyBkgd_mean_error += pow(AccuracyBkgdErr_source[entry],2)/len(AccuracyBkgd_source)
-    if AccuracyBkgd_weight>0.: AccuracyBkgd_mean = pow(AccuracyBkgd_mean/AccuracyBkgd_weight,0.5)
-    AccuracyBkgd_mean_error = pow(AccuracyBkgd_mean_error,0.5)
+    AccuracyBkgd_mean, AccuracyBkgd_mean_error = SystematicErrorMeasurement(AccuracyBkgd_source,AccuracyBkgdErr_source)
 
     ValidateBkgd_source = []
     ValidateBkgdErr_source = []
@@ -1103,16 +1072,7 @@ for e in range(0,len(energy_bin)-1):
         else:
             ValidateBkgd_source += [abs(validate_data_count[entry-1]-validate_bkgd_count[entry-1])/validate_data_count[entry-1]]
             ValidateBkgdErr_source += [1./pow(validate_data_count[entry-1],0.5)]
-    ValidateBkgd_mean = 0.
-    ValidateBkgd_weight = 0.
-    ValidateBkgd_mean_error = 0.
-    for entry in range(0,len(ValidateBkgd_source)):
-        if ValidateBkgdErr_source[entry]==0.: continue
-        ValidateBkgd_mean += 1./ValidateBkgdErr_source[entry]*pow(ValidateBkgd_source[entry],2)
-        ValidateBkgd_weight += 1./ValidateBkgdErr_source[entry]
-        ValidateBkgd_mean_error += pow(ValidateBkgdErr_source[entry],2)/len(ValidateBkgd_source)
-    if ValidateBkgd_weight>0.: ValidateBkgd_mean = pow(ValidateBkgd_mean/ValidateBkgd_weight,0.5)
-    ValidateBkgd_mean_error = pow(ValidateBkgd_mean_error,0.5)
+    ValidateBkgd_mean, ValidateBkgd_mean_error = SystematicErrorMeasurement(ValidateBkgd_source,ValidateBkgdErr_source)
 
     ValidateRFoV_source = []
     ValidateRFoVErr_source = []
@@ -1123,16 +1083,7 @@ for e in range(0,len(energy_bin)-1):
         else:
             ValidateRFoV_source += [abs(validate_data_count[entry-1]-validate_rfov_count[entry-1])/validate_data_count[entry-1]]
             ValidateRFoVErr_source += [1./pow(validate_data_count[entry-1],0.5)]
-    ValidateRFoV_mean = 0.
-    ValidateRFoV_weight = 0.
-    ValidateRFoV_mean_error = 0.
-    for entry in range(0,len(ValidateRFoV_source)):
-        if ValidateRFoVErr_source[entry]==0.: continue
-        ValidateRFoV_mean += 1./ValidateRFoVErr_source[entry]*pow(ValidateRFoV_source[entry],2)
-        ValidateRFoV_weight += 1./ValidateRFoVErr_source[entry]
-        ValidateRFoV_mean_error += pow(ValidateRFoVErr_source[entry],2)/len(ValidateRFoV_source)
-    if ValidateRFoV_weight>0.: ValidateRFoV_mean = pow(ValidateRFoV_mean/ValidateRFoV_weight,0.5)
-    ValidateRFoV_mean_error = pow(ValidateRFoV_mean_error,0.5)
+    ValidateRFoV_mean, ValidateRFoV_mean_error = SystematicErrorMeasurement(ValidateRFoV_source,ValidateRFoVErr_source)
 
     ValidateComb_source = []
     ValidateCombErr_source = []
@@ -1143,16 +1094,7 @@ for e in range(0,len(energy_bin)-1):
         else:
             ValidateComb_source += [abs(validate_data_count[entry-1]-validate_comb_count[entry-1])/validate_data_count[entry-1]]
             ValidateCombErr_source += [1./pow(validate_data_count[entry-1],0.5)]
-    ValidateComb_mean = 0.
-    ValidateComb_weight = 0.
-    ValidateComb_mean_error = 0.
-    for entry in range(0,len(ValidateComb_source)):
-        if ValidateCombErr_source[entry]==0.: continue
-        ValidateComb_mean += 1./ValidateCombErr_source[entry]*pow(ValidateComb_source[entry],2)
-        ValidateComb_weight += 1./ValidateCombErr_source[entry]
-        ValidateComb_mean_error += pow(ValidateCombErr_source[entry],2)/len(ValidateComb_source)
-    if ValidateComb_weight>0.: ValidateComb_mean = pow(ValidateComb_mean/ValidateComb_weight,0.5)
-    ValidateComb_mean_error = pow(ValidateComb_mean_error,0.5)
+    ValidateComb_mean, ValidateComb_mean_error = SystematicErrorMeasurement(ValidateComb_source,ValidateCombErr_source)
 
     AccuracyPar8_source = []
     AccuracyPar8Err_source = []
@@ -1163,16 +1105,7 @@ for e in range(0,len(energy_bin)-1):
         else:
             AccuracyPar8_source += [abs(data_count[entry-1]-par8_count[entry-1])/data_count[entry-1]]
             AccuracyPar8Err_source += [1./pow(data_count[entry-1],0.5)]
-    AccuracyPar8_mean = 0.
-    AccuracyPar8_weight = 0.
-    AccuracyPar8_mean_error = 0.
-    for entry in range(0,len(AccuracyPar8_source)):
-        if AccuracyPar8Err_source[entry]==0.: continue
-        AccuracyPar8_mean += 1./AccuracyPar8Err_source[entry]*pow(AccuracyPar8_source[entry],2)
-        AccuracyPar8_weight += 1./AccuracyPar8Err_source[entry]
-        AccuracyPar8_mean_error += pow(AccuracyPar8Err_source[entry],2)/len(AccuracyPar8_source)
-    if AccuracyPar8_weight>0.: AccuracyPar8_mean = pow(AccuracyPar8_mean/AccuracyPar8_weight,0.5)
-    AccuracyPar8_mean_error = pow(AccuracyPar8_mean_error,0.5)
+    AccuracyPar8_mean, AccuracyPar8_mean_error = SystematicErrorMeasurement(AccuracyPar8_source,AccuracyPar8Err_source)
 
     #plt.clf()
     #plt.xlabel("Zenith", fontsize=18)
@@ -1295,10 +1228,6 @@ for e in range(0,len(energy_bin)-1):
     plt.subplots_adjust(bottom=0.25)
     plt.savefig("output_plots/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
-    energy_dependent_stat += [Accuracy_mean_error]
-    energy_dependent_syst += [pow(max(0.,pow(AccuracyBkgd_mean,2)-pow(Accuracy_mean_error,2)),0.5)]
-    energy_dependent_syst_init += [pow(max(0.,pow(AccuracyInit_mean,2)-pow(Accuracy_mean_error,2)),0.5)]
-
     plt.clf()
     plt.rcParams["figure.figsize"] = (10,6)
     ax = fig.add_subplot(111)
@@ -1317,26 +1246,35 @@ for e in range(0,len(energy_bin)-1):
     plt.subplots_adjust(bottom=0.25)
     plt.savefig("output_plots/PerformanceSigned_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
-    #plt.clf()
-    #plt.rcParams["figure.figsize"] = (10,6)
-    #ax = fig.add_subplot(111)
-    #ind = np.arange(len(ValidateBkgd_source))
-    #width = 0.35
-    #rects1 = ax.bar(ind, ValidateBkgd_source, width, color='#089FFF', yerr=ValidateBkgdErr_source)
-    #rects2 = ax.bar(ind+width, ValidateRFoV_source, width, color='#FF9848', yerr=ValidateBkgdErr_source)
-    ##rects3 = ax.bar(ind+2*width, ValidateComb_source, width, color='green', yerr=ValidateBkgdErr_source)
-    #ax.set_xlim(-width,len(ind)+width)
-    #ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+    plt.clf()
+    plt.rcParams["figure.figsize"] = (10,6)
+    ax = fig.add_subplot(111)
+    ind = np.arange(len(ValidateBkgd_source))
+    width = 0.35
+    rects1 = ax.bar(ind, ValidateBkgd_source, width, color='#089FFF', yerr=ValidateBkgdErr_source)
+    rects2 = ax.bar(ind+width, ValidateRFoV_source, width, color='#FF9848', yerr=ValidateBkgdErr_source)
+    #rects3 = ax.bar(ind+2*width, ValidateComb_source, width, color='green', yerr=ValidateBkgdErr_source)
+    ax.set_xlim(-width,len(ind)+width)
+    ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
     #combined_mean = 1. / (1./ValidateBkgd_mean + 1./ValidateRFoV_mean)
-    #ax.set_title('$combined <\epsilon>=%0.3f \pm %0.3f$'%(combined_mean,ValidateBkgd_mean_error))
-    #xTickMarks = sample_name
-    #ax.set_xticks(ind+width)
-    #xtickNames = ax.set_xticklabels(xTickMarks)
-    #plt.setp(xtickNames, rotation=45, fontsize=10)
-    #ax.legend( (rects1[0], rects2[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean)), loc='best' )
-    ##ax.legend( (rects1[0], rects2[0], rects3[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean), 'combined $<\epsilon>=%0.3f$'%(ValidateComb_mean)), loc='best' )
-    #plt.subplots_adjust(bottom=0.15)
-    #plt.savefig("output_plots/PerformanceRFoV_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+    combined_mean = ValidateComb_mean
+    ax.set_title('$combined <\epsilon>=%0.3f \pm %0.3f$'%(combined_mean,ValidateBkgd_mean_error))
+    xTickMarks = sample_name
+    ax.set_xticks(ind+width)
+    xtickNames = ax.set_xticklabels(xTickMarks)
+    plt.setp(xtickNames, rotation=45, fontsize=10)
+    ax.legend( (rects1[0], rects2[0]), ('MIBE $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean)), loc='best' )
+    #ax.legend( (rects1[0], rects2[0], rects3[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean), 'combined $<\epsilon>=%0.3f$'%(ValidateComb_mean)), loc='best' )
+    plt.subplots_adjust(bottom=0.15)
+    plt.savefig("output_plots/PerformanceRFoV_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+
+    energy_dependent_stat += [Accuracy_mean_error]
+    energy_dependent_syst += [pow(max(0.,pow(AccuracyBkgd_mean,2)-pow(Accuracy_mean_error,2)),0.5)]
+    energy_dependent_syst_vbkg += [pow(max(0.,pow(ValidateBkgd_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
+    energy_dependent_syst_rfov += [pow(max(0.,pow(ValidateRFoV_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
+    energy_dependent_syst_comb += [pow(max(0.,pow(ValidateComb_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
+    energy_dependent_syst_init += [pow(max(0.,pow(AccuracyInit_mean,2)-pow(Accuracy_mean_error,2)),0.5)]
+
 
     RankCounts = []
     Rank = [1,2,3,4,5]
@@ -1596,12 +1534,15 @@ for e in range(0,len(energy_bin)-1):
     #MakeMultiplePlot(Hists,legends,colors,'number of entries included','#chi^{2} in CR','Chi2_Entry_E%s'%(e),0,0,False,False)
 
 my_table = PrettyTable()
-my_table.field_names = ["Syst. err MIBE", "Syst. err init.", "Stat. err"]
+my_table.field_names = ["Syst. err MIBE", "Syst. err init.", "Syst. err MIBE(2)", "Syst. err RFoV", "Syst. err MIBE(2)+RFoV", "Stat. err"]
 my_table.float_format["Syst. err MIBE"] = ".3"
 my_table.float_format["Syst. err init."] = ".3"
+my_table.float_format["Syst. err MIBE(2)"] = ".3"
+my_table.float_format["Syst. err RFoV"] = ".3"
+my_table.float_format["Syst. err MIBE(2)+RFoV"] = ".3"
 my_table.float_format["Stat. err"] = ".3"
 for entry in range(0,len(energy_dependent_syst)):
-    my_table.add_row([energy_dependent_syst[entry],energy_dependent_syst_init[entry],energy_dependent_stat[entry]])
+    my_table.add_row([energy_dependent_syst[entry],energy_dependent_syst_init[entry],energy_dependent_syst_vbkg[entry],energy_dependent_syst_rfov[entry],energy_dependent_syst_comb[entry],energy_dependent_stat[entry]])
 print(my_table)
 
 Hists = []
@@ -1617,9 +1558,11 @@ MakeMultipleFitPlot(Hists,legends,colors,'relative error','number of measurement
 
 for ebin in range(0,len(energy_bin)-1):
     Hist_NormSystErr.SetBinContent(ebin+1,energy_dependent_syst[ebin])
+    Hist_NormRFoVSystErr.SetBinContent(ebin+1,energy_dependent_syst_rfov[ebin])
 
 OutputFile = ROOT.TFile('output_plots/SystErrors.root','recreate')
 Hist_NormSystErr.Write()
+Hist_NormRFoVSystErr.Write()
 for ebin in range(0,len(energy_bin)-1):
     Hist_ShapeSystErr[ebin].Write()
 OutputFile.Close()

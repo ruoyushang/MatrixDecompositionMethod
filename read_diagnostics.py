@@ -51,10 +51,10 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 3.0
 
 # MGRO J1908
-target_ra = 286.975
-target_dec = 6.269
-range_ra = 3.0
-range_dec = 3.0
+#target_ra = 286.975
+#target_dec = 6.269
+#range_ra = 3.0
+#range_dec = 3.0
 
 # Draco dSph
 #target_ra = 260.059729167
@@ -67,6 +67,12 @@ range_dec = 3.0
 #target_dec = 67.6234172932
 #range_ra = 2.0
 #range_dec = 2.0
+
+# 1ES 0414+009
+target_ra = 64.221
+target_dec = 1.089
+range_ra = 2.0
+range_dec = 2.0
 
 # 3C 273
 #target_ra = 187.277915345
@@ -228,8 +234,8 @@ range_dec = 3.0
 # 1ES 0502+675
 #target_ra = 76.9841666667
 #target_dec = 67.6233333333
-#range_ra = 1.0
-#range_dec = 1.0
+#range_ra = 2.0
+#range_dec = 2.0
 
 # RX J0648.7+1516
 #target_ra = 102.19
@@ -912,6 +918,19 @@ ax.set_xlabel('Elev')
 ax.set_ylabel('Azim')
 plt.savefig("output_plots/RunElevAzim.png")
 
+plt.clf()
+fig, ax = plt.subplots()
+hist, xbins, ybins, im = plt.hist2d(List_Used_Elev, List_Used_NSB, range = [[0,90], [2,10]], bins=(18,16), cmap=plt.cm.Greys)
+plt.colorbar()
+for i in range(len(xbins)-1):
+    for j in range(len(ybins)-1):
+        if hist[i,j]>30:
+            print ("counts %s, Elev %s, NSB %s"%(hist[i,j],xbins[i],ybins[j]))
+ax.axis('on')
+ax.set_xlabel('Elev')
+ax.set_ylabel('NSB')
+plt.savefig("output_plots/RunElevNSB.png")
+
 if search_for_on_data:
 
     inputFile = open('TeVCat_RaDec_w_Names.txt')
@@ -942,9 +961,9 @@ if search_for_on_data:
     List_Proposed_Dec = []
     List_Proposed_Exposure = []
     # winter
-    List_Proposed_RA += [286.6]
-    List_Proposed_Dec += [6.9]
-    List_Proposed_Exposure += [10.]
+    #List_Proposed_RA += [286.6]
+    #List_Proposed_Dec += [6.9]
+    #List_Proposed_Exposure += [10.]
     #List_Proposed_RA += [286.6]
     #List_Proposed_Dec += [6.2]
     #List_Proposed_Exposure += [5.]

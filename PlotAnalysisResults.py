@@ -14,6 +14,7 @@ import scipy.stats as st
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from itertools import cycle
 
 fig, ax = plt.subplots()
 
@@ -733,9 +734,9 @@ print ('Get %s'%(root_file_tags[0]))
 
 selection_tag = root_file_tags[0]
 
-folder_path = 'output_nocorrect'
+#folder_path = 'output_nocorrect'
 #folder_path = 'output_nocalib'
-#folder_path = 'output_nominal'
+folder_path = 'output_nominal'
 PercentCrab = ''
 
 
@@ -1043,6 +1044,10 @@ def ResetStackedShowerHistograms():
         Hist_OnBkgd_RoI_Energy_Sum[nth_roi].Reset() 
         Hist_OnData_RoI_Theta2_Sum[nth_roi].Reset()
         Hist_OnBkgd_RoI_Theta2_Sum[nth_roi].Reset()
+        Hist_OnData_RoI_X_Sum[nth_roi].Reset()
+        Hist_OnBkgd_RoI_X_Sum[nth_roi].Reset()
+        Hist_OnData_RoI_Y_Sum[nth_roi].Reset()
+        Hist_OnBkgd_RoI_Y_Sum[nth_roi].Reset()
         Hist_OnData_RoI_MJD_Sum[nth_roi].Reset()
         Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Reset()
 
@@ -2336,6 +2341,9 @@ def flux_crab_func(x):
 def flux_j1908_func(x):
     # MGRO J1908
     return 4.23*pow(10,-12)*pow(x*1./1000.,-2.2)
+def flux_j1857_func(x):
+    # HESS J1857+026
+    return 5.37*pow(10,-12)*pow(x*1./1000.,-2.16)
 def flux_ic443_func(x):
     # IC 443 https://arxiv.org/pdf/0905.3291.pdf
     return 0.838*pow(10,-12)*pow(x*1./1000.,-2.99)
@@ -2348,7 +2356,7 @@ def flux_geminag_func(x):
 def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalibrate):
     
     #calibration = [1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]
-    calibration = [2.1969605653200165e-08, 6.565926023570191e-09, 1.3037822796812539e-09, 2.881627685288628e-10, 6.854924867924058e-11, 1.522629685376601e-11, 2.9762668908490835e-12, 6.201379500697687e-13, 1.8789805928245165e-13, 5.2701503021167145e-14]
+    calibration = [1.8684970339479395e-08, 6.203565781194739e-09, 1.202009977792164e-09, 2.6171236920783506e-10, 6.28925155621388e-11, 1.4356047194894067e-11, 2.8677368581377236e-12, 6.162937510733003e-13, 1.8856230290229421e-13, 5.341142051607241e-14]
 
     Hist_Flux = []
     for nth_roi in range(0,len(hist_data)):
@@ -2362,7 +2370,9 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
             Hist_Flux[nth_roi].Add(hist_bkgd[nth_roi],-1.)
             for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
                 deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
-                scale = 1./(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
+                scale = 0.
+                if Hist_EffArea_Sum.GetBinContent(binx+1)>0.:
+                    scale = 1./(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
                 Hist_Flux[nth_roi].SetBinContent(binx+1,Hist_Flux[nth_roi].GetBinContent(binx+1)*scale)
                 Hist_Flux[nth_roi].SetBinError(binx+1,Hist_Flux[nth_roi].GetBinError(binx+1)*scale)
 
@@ -2384,8 +2394,9 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
         roi_xdata += [xdata]
         roi_ydata += [ydata]
         roi_error += [error]
+    cycol = cycle('bgrcmk')
     for nth_roi in range(0,len(hist_data)):
-        ax.errorbar(roi_xdata[nth_roi], roi_ydata[nth_roi], roi_error[nth_roi], color='b', marker='s', ls='none', label='%s'%(legends[nth_roi]))
+        ax.errorbar(roi_xdata[nth_roi], roi_ydata[nth_roi], roi_error[nth_roi], color=next(cycol), marker='s', ls='none', label='%s'%(legends[nth_roi]))
         #popt, pcov = curve_fit(power_law_func, xdata, ydata)
         #ax.plot(xdata, power_law_func(xdata, *popt),'b-',label='fit: a=%0.1f, b=%0.1f'%tuple(popt))
 
@@ -2426,11 +2437,15 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
             vectorize_f = np.vectorize(flux_geminag_func)
             ydata = vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='extrapolation')
+        if 'J1857+026' in legends[nth_roi]:
+            vectorize_f = np.vectorize(flux_j1857_func)
+            ydata = vectorize_f(xdata)
+            ax.plot(xdata, ydata,'r-',label='From Aleksic et al. (2014)')
 
     ax.legend(loc='best')
     ax.set_xscale('log')
     ax.set_yscale('log')
-
+    return(ax)
 
 def MakeSignalToBkgdRatioPlot(Hist_data,Hist_bkgd,legends,colors,title,name):
 
@@ -3179,6 +3194,38 @@ def PlotsStackedHistograms(tag):
         legends = []
         colors = []
         stack_it = []
+        Hists += [Hist_OnData_RoI_X_Sum[nth_roi]]
+        legends += ['%s'%(roi_name[nth_roi])]
+        colors += [1]
+        stack_it += [False]
+        Hists += [Hist_OnBkgd_RoI_X_Sum[nth_roi]]
+        legends += ['predict. bkg.']
+        colors += [4]
+        stack_it += [True]
+        plotname = 'Stack_RoI%s_X_MDM_%s'%(nth_roi,tag)
+        title = 'rotated X axis'
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
+
+        Hists = []
+        legends = []
+        colors = []
+        stack_it = []
+        Hists += [Hist_OnData_RoI_Y_Sum[nth_roi]]
+        legends += ['%s'%(roi_name[nth_roi])]
+        colors += [1]
+        stack_it += [False]
+        Hists += [Hist_OnBkgd_RoI_Y_Sum[nth_roi]]
+        legends += ['predict. bkg.']
+        colors += [4]
+        stack_it += [True]
+        plotname = 'Stack_RoI%s_Y_MDM_%s'%(nth_roi,tag)
+        title = 'rotated Y axis'
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
+
+        Hists = []
+        legends = []
+        colors = []
+        stack_it = []
         Hists += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
         legends += ['obs. data (%s)'%(roi_name[nth_roi])]
         colors += [1]
@@ -3203,12 +3250,14 @@ def PlotsStackedHistograms(tag):
         radii += [roi_radius[nth_roi]]
         legends += ['%s'%(roi_name[nth_roi])]
     title = 'energy [GeV]'
-    plotname = 'Flux_Calibrate_%s'%(tag)
     MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,True)
-    #plotname = 'Flux_NoCalibrate_%s'%(tag)
-    #MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False)
+    plotname = 'Flux_Calibrate_%s'%(tag)
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
-    fig.clf()
+    ax.cla()
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False)
+    plotname = 'Flux_NoCalibrate_%s'%(tag)
+    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
+    ax.cla()
     #plotname = 'FluxE2_MDM_%s'%(tag)
     #MakeSpectrumInNonCrabUnitE2(Hist_data,Hist_bkgd,legends,title,plotname,-1)
     Hist_data = []
@@ -3616,6 +3665,18 @@ def NormalizeTheta2Histograms(FilePath):
         HistName = "Hist_OnData_CR_Skymap_RoI_Theta2_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_OnBkgd_RoI_Theta2[nth_roi].Reset()
         Hist_OnBkgd_RoI_Theta2[nth_roi].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_SR_Skymap_RoI_X_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_RoI_X[nth_roi].Reset()
+        Hist_OnData_RoI_X[nth_roi].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_CR_Skymap_RoI_X_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnBkgd_RoI_X[nth_roi].Reset()
+        Hist_OnBkgd_RoI_X[nth_roi].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_SR_Skymap_RoI_Y_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnData_RoI_Y[nth_roi].Reset()
+        Hist_OnData_RoI_Y[nth_roi].Add(InputFile.Get(HistName))
+        HistName = "Hist_OnData_CR_Skymap_RoI_Y_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_OnBkgd_RoI_Y[nth_roi].Reset()
+        Hist_OnBkgd_RoI_Y[nth_roi].Add(InputFile.Get(HistName))
 
 
     #if Hist2D_OnData.Integral()<1600.:
@@ -3650,14 +3711,6 @@ def StackEnergyHistograms():
         Hist_OnData_RoI_MJD_Sum[nth_roi].Add(Hist_OnData_RoI_MJD[nth_roi])
         Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Add(Hist_OnBkgd_RoI_MJD[nth_roi])
 
-def CorrectTheta2Histograms():
-
-    Hist_OnBkgd_Theta2_Sum.Scale(1.+Syst_Corr)
-
-    for nth_roi in range(0,len(roi_ra)):
-        Hist_OnBkgd_RoI_Theta2_Sum[nth_roi].Scale(1.+Syst_Corr)
-        Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Scale(1.+Syst_Corr)
-
 def StackTheta2Histograms():
 
     Hist_OnData_SR_XYoff_Sum.Add(Hist_OnData_SR_XYoff)
@@ -3674,6 +3727,10 @@ def StackTheta2Histograms():
     for nth_roi in range(0,len(roi_ra)):
         Hist_OnData_RoI_Theta2_Sum[nth_roi].Add(Hist_OnData_RoI_Theta2[nth_roi])
         Hist_OnBkgd_RoI_Theta2_Sum[nth_roi].Add(Hist_OnBkgd_RoI_Theta2[nth_roi])
+        Hist_OnData_RoI_X_Sum[nth_roi].Add(Hist_OnData_RoI_X[nth_roi])
+        Hist_OnBkgd_RoI_X_Sum[nth_roi].Add(Hist_OnBkgd_RoI_X[nth_roi])
+        Hist_OnData_RoI_Y_Sum[nth_roi].Add(Hist_OnData_RoI_Y[nth_roi])
+        Hist_OnBkgd_RoI_Y_Sum[nth_roi].Add(Hist_OnBkgd_RoI_Y[nth_roi])
 
 def NormalizeCameraFoVHistograms(FilePath):
 
@@ -6257,7 +6314,6 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
 
     Syst_MDM = energy_syst[energy_bin_cut_low]
     #CalculateSystError_v3()
-    #CorrectTheta2Histograms()
 
     #PlotsStackedHistograms('%s%s'%(source_list[0],PercentCrab))
     PlotsStackedHistograms('%s%s'%(source_list[0],selection_tag))
@@ -6622,6 +6678,14 @@ Hist_OnData_RoI_Theta2_Sum = []
 Hist_OnBkgd_RoI_Theta2_Sum = []
 Hist_OnData_RoI_Theta2 = []
 Hist_OnBkgd_RoI_Theta2 = []
+Hist_OnData_RoI_X_Sum = []
+Hist_OnBkgd_RoI_X_Sum = []
+Hist_OnData_RoI_X = []
+Hist_OnBkgd_RoI_X = []
+Hist_OnData_RoI_Y_Sum = []
+Hist_OnBkgd_RoI_Y_Sum = []
+Hist_OnData_RoI_Y = []
+Hist_OnBkgd_RoI_Y = []
 Hist_OnData_RoI_MJD = [] 
 Hist_OnBkgd_RoI_MJD = [] 
 Hist_OnData_RoI_MJD_Sum = [] 
@@ -6636,6 +6700,14 @@ for nth_roi in range(0,len(roi_ra)):
     Hist_OnBkgd_RoI_Theta2_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Theta2_Sum_%s"%(nth_roi),"",20,0,0.5)]
     Hist_OnData_RoI_Theta2 += [ROOT.TH1D("Hist_OnData_RoI_Theta2_%s"%(nth_roi),"",20,0,0.5)]
     Hist_OnBkgd_RoI_Theta2 += [ROOT.TH1D("Hist_OnBkgd_RoI_Theta2_%s"%(nth_roi),"",20,0,0.5)]
+    Hist_OnData_RoI_X_Sum += [ROOT.TH1D("Hist_OnData_RoI_X_Sum_%s"%(nth_roi),"",20,-2.,2.)]
+    Hist_OnBkgd_RoI_X_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_X_Sum_%s"%(nth_roi),"",20,-2.,2.)]
+    Hist_OnData_RoI_X += [ROOT.TH1D("Hist_OnData_RoI_X_%s"%(nth_roi),"",20,-2.,2.)]
+    Hist_OnBkgd_RoI_X += [ROOT.TH1D("Hist_OnBkgd_RoI_X_%s"%(nth_roi),"",20,-2.,2.)]
+    Hist_OnData_RoI_Y_Sum += [ROOT.TH1D("Hist_OnData_RoI_Y_Sum_%s"%(nth_roi),"",20,-2.,2.)]
+    Hist_OnBkgd_RoI_Y_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Y_Sum_%s"%(nth_roi),"",20,-2.,2.)]
+    Hist_OnData_RoI_Y += [ROOT.TH1D("Hist_OnData_RoI_Y_%s"%(nth_roi),"",20,-2.,2.)]
+    Hist_OnBkgd_RoI_Y += [ROOT.TH1D("Hist_OnBkgd_RoI_Y_%s"%(nth_roi),"",20,-2.,2.)]
     Hist_OnData_RoI_MJD += [ROOT.TH1D("Hist_OnData_RoI_MJD_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
     Hist_OnBkgd_RoI_MJD += [ROOT.TH1D("Hist_OnBkgd_RoI_MJD_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
     Hist_OnData_RoI_MJD_Sum += [ROOT.TH1D("Hist_OnData_RoI_MJD_Sum_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
@@ -6685,18 +6757,18 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-#drawMap = False
-drawMap = True
+drawMap = False
+#drawMap = True
 #Smoothing = False
 Smoothing = True
 
 #set_palette('default')
 #set_palette('gray')
 
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
+SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,6)
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
