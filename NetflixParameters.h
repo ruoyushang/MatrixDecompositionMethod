@@ -5,9 +5,7 @@ int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 //int N_bins_for_deconv = 8; // 8 should be the lowest bin number
 
 const int N_energy_bins = 6;
-double Log10_alpha[N_energy_bins] = {0.,0.,0.,0.,0.,0.};
-double Syst_LRR[N_energy_bins] = {0.013,0.011,0.023,0.029,0.061,0.210};
-double Syst_RFoV[N_energy_bins] = {0.007,0.016,0.028,0.050,0.125,0.420};
+double Log10_alpha[N_energy_bins] = {-5.,-3.,-3.,-3.8,-5.,-5.};
 int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
 int RankTruncation[N_energy_bins] = {3,3,2,2,1,1};
 double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.33),pow(10,2.66),pow(10,3.0),pow(10,3.33),pow(10,3.66),pow(10,4.0)};
@@ -18,8 +16,8 @@ bool EigenDecomposition = false;
 
 //bool AcceptanceCorrection = true;
 bool AcceptanceCorrection = false;
-bool ExposureCorrection = true;
-//bool ExposureCorrection = false;
+//bool ExposureCorrection = true;
+bool ExposureCorrection = false;
 
 double MSCW_plot_lower = -0.6;
 double MSCL_plot_lower = -0.6;
