@@ -3760,13 +3760,14 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 hist_dark_temp.Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
                 NormalizeDarkMatrix(&Hist_OnData_MSCLW.at(e),&hist_dark_temp,binx);
                 mtx_dark = fillMatrix(&hist_dark_temp);
-                mtx_data_bkgd = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,temp_alpha,temp_beta1,temp_beta2,std::make_pair(NumberOfEigenvectors_Stable,NumberOfEigenvectors_Stable),e).first;
+                //mtx_data_bkgd = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,temp_alpha,temp_beta1,temp_beta2,std::make_pair(NumberOfEigenvectors_Stable,NumberOfEigenvectors_Stable),e).first;
                 double data_count = CountGammaRegion(mtx_data);
-                double dark_count = CountGammaRegion(mtx_data_bkgd);
+                //double dark_count = CountGammaRegion(mtx_data_bkgd);
+                double dark_count = CountGammaRegion(mtx_dark);
                 Hist_Dark_Optimization.at(e).SetBinContent(binx,abs(1.-dark_count/data_count));
             }
 
-            int normalization_bins = 5;
+            int normalization_bins = 8;
             NormalizeDarkMatrix(&Hist_OnData_MSCLW.at(e),&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e),normalization_bins);
             mtx_dark = fillMatrix(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
             eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
@@ -3990,7 +3991,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnDark_SR_Energy_Tmp.at(e).Reset();
         double LRR_validation = Hist_OnData_CR_RoI_Energy.at(1).at(e).Integral();
         double RFoV_validation = Hist_OnRFoV_CR_RoI_Energy.at(1).at(e).Integral();
-        double comb_validation = (1./Hist_NormSystErr.GetBinContent(e+1)*LRR_validation+1./Hist_NormRFoVSystErr.GetBinContent(e+1)*RFoV_validation)/(1./Hist_NormSystErr.GetBinContent(e+1)+1./Hist_NormRFoVSystErr.GetBinContent(e+1));
+        double comb_validation = (LRR_validation+RFoV_validation)/2.;
         comb_validate_count.push_back(comb_validation);
 
         mtx_data = fillMatrix(&Hist_OnData_MSCLW.at(e));

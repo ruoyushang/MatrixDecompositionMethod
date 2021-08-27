@@ -2301,7 +2301,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
-        Hist_OnData_Correct_R2off.push_back(TH1D("Hist_Stage1_OnData_Correct_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
+        int R2off_bins = 36;
+        if (energy_bins[e]>=1000.) R2off_bins = 18;
+        if (energy_bins[e]>=2000.) R2off_bins = 9;
+        Hist_OnData_Correct_R2off.push_back(TH1D("Hist_Stage1_OnData_Correct_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",R2off_bins,0,9));
     }
 
 
@@ -2416,10 +2419,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
-        int XYoff_bins = 12;
-        //if (energy_bins[e]>2000.) XYoff_bins = 6;
-        Hist_SRDark_XYoff.push_back(TH2D("Hist_SRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
-        Hist_CRDark_XYoff.push_back(TH2D("Hist_CRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
+        int R2off_bins = 18;
+        int Yoff_bins = 6;
+        Hist_SRDark_XYoff.push_back(TH2D("Hist_SRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",R2off_bins,0,9,Yoff_bins,-3,3));
+        Hist_CRDark_XYoff.push_back(TH2D("Hist_CRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",R2off_bins,0,9,Yoff_bins,-3,3));
     }
     vector<TH1D> Hist_SRDark_R2off;
     vector<TH1D> Hist_CRDark_R2off;
@@ -2699,7 +2702,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     {
                         if (SignalSelectionTheta2())
                         {
-                            Hist_SRDark_XYoff.at(energy).Fill(Xoff,Yoff,weight);
+                            Hist_SRDark_XYoff.at(energy).Fill(R2off,Yoff,weight);
                             Hist_OnDark_SR_XYoff.at(energy).Fill(Xoff,Yoff,weight);
                             Hist_OnDark_SR_R2off.at(energy).Fill(R2off,weight);
                             Hist_SRDark_Energy.at(energy).Fill(ErecS*1000.,weight);
@@ -2712,7 +2715,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                         }
                         else if (ControlSelectionTheta2())
                         {
-                            Hist_CRDark_XYoff.at(energy).Fill(Xoff,Yoff,run_weight);
+                            Hist_CRDark_XYoff.at(energy).Fill(R2off,Yoff,run_weight);
                             Hist_CRDark_Energy.at(energy).Fill(ErecS*1000.,run_weight);
                             Hist_CRDark_R2off.at(energy).Fill(R2off,run_weight);
                         }
@@ -2809,19 +2812,19 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             MSCL = MSCL/MSCL_rescale[energy];
             
             int bin_energy = Hist_CRDark_Energy.at(energy).FindBin(ErecS*1000.);
-            int bin_xoff = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(Xoff);
+            int bin_r2off = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(R2off);
             int bin_yoff = Hist_CRDark_XYoff.at(energy).GetYaxis()->FindBin(Yoff);
             double data_cr_content_energy = Hist_SRDark_Energy.at(energy).GetBinContent(bin_energy);
             double dark_cr_content_energy = Hist_CRDark_Energy.at(energy).GetBinContent(bin_energy);
-            double data_cr_content_xyoff = Hist_SRDark_XYoff.at(energy).GetBinContent(bin_xoff,bin_yoff);
-            double dark_cr_content_xyoff = Hist_CRDark_XYoff.at(energy).GetBinContent(bin_xoff,bin_yoff);
+            double data_cr_content_xyoff = Hist_SRDark_XYoff.at(energy).GetBinContent(bin_r2off,bin_yoff);
+            double dark_cr_content_xyoff = Hist_CRDark_XYoff.at(energy).GetBinContent(bin_r2off,bin_yoff);
             double energy_weight = 1.;
             double yoff_weight = 1.;
-            if (data_cr_content_xyoff>10. && dark_cr_content_xyoff>10.)
+            if (dark_cr_content_xyoff>0.)
             {
                 yoff_weight = data_cr_content_xyoff/dark_cr_content_xyoff;
             }
-            if (data_cr_content_energy>10. && dark_cr_content_energy>10.)
+            if (dark_cr_content_energy>0.)
             {
                 energy_weight = data_cr_content_energy/dark_cr_content_energy;
             }
@@ -2914,19 +2917,19 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             MSCL = MSCL/MSCL_rescale[energy];
             
             int bin_energy = Hist_CRDark_Energy.at(energy).FindBin(ErecS*1000.);
-            int bin_xoff = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(Xoff);
+            int bin_r2off = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(R2off);
             int bin_yoff = Hist_CRDark_XYoff.at(energy).GetYaxis()->FindBin(Yoff);
             double data_cr_content_energy = Hist_SRDark_Energy.at(energy).GetBinContent(bin_energy);
             double dark_cr_content_energy = Hist_CRDark_Energy.at(energy).GetBinContent(bin_energy);
-            double data_cr_content_xyoff = Hist_SRDark_XYoff.at(energy).GetBinContent(bin_xoff,bin_yoff);
-            double dark_cr_content_xyoff = Hist_CRDark_XYoff.at(energy).GetBinContent(bin_xoff,bin_yoff);
+            double data_cr_content_xyoff = Hist_SRDark_XYoff.at(energy).GetBinContent(bin_r2off,bin_yoff);
+            double dark_cr_content_xyoff = Hist_CRDark_XYoff.at(energy).GetBinContent(bin_r2off,bin_yoff);
             double energy_weight = 1.;
             double yoff_weight = 1.;
-            if (data_cr_content_xyoff>10. && dark_cr_content_xyoff>10.)
+            if (dark_cr_content_xyoff>0.)
             {
                 yoff_weight = data_cr_content_xyoff/dark_cr_content_xyoff;
             }
-            if (data_cr_content_energy>10. && dark_cr_content_energy>10.)
+            if (dark_cr_content_energy>0.)
             {
                 energy_weight = data_cr_content_energy/dark_cr_content_energy;
             }
@@ -3036,19 +3039,19 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             double shape_syst_err = Hist_ShapeSystErr.at(energy).GetBinContent(r2_bin); 
             
             int bin_energy = Hist_CRDark_Energy.at(energy).FindBin(ErecS*1000.);
-            int bin_xoff = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(Xoff);
+            int bin_r2off = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(R2off);
             int bin_yoff = Hist_CRDark_XYoff.at(energy).GetYaxis()->FindBin(Yoff);
             double data_cr_content_energy = Hist_SRDark_Energy.at(energy).GetBinContent(bin_energy);
             double dark_cr_content_energy = Hist_CRDark_Energy.at(energy).GetBinContent(bin_energy);
-            double data_cr_content_xyoff = Hist_SRDark_XYoff.at(energy).GetBinContent(bin_xoff,bin_yoff);
-            double dark_cr_content_xyoff = Hist_CRDark_XYoff.at(energy).GetBinContent(bin_xoff,bin_yoff);
+            double data_cr_content_xyoff = Hist_SRDark_XYoff.at(energy).GetBinContent(bin_r2off,bin_yoff);
+            double dark_cr_content_xyoff = Hist_CRDark_XYoff.at(energy).GetBinContent(bin_r2off,bin_yoff);
             double energy_weight = 1.;
             double yoff_weight = 1.;
-            if (data_cr_content_xyoff>10. && dark_cr_content_xyoff>10.)
+            if (dark_cr_content_xyoff>0.)
             {
                 yoff_weight = data_cr_content_xyoff/dark_cr_content_xyoff;
             }
-            if (data_cr_content_energy>10. && dark_cr_content_energy>10.)
+            if (dark_cr_content_energy>0.)
             {
                 energy_weight = data_cr_content_energy/dark_cr_content_energy;
             }
@@ -3066,7 +3069,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             double Expo_norm =  Hist_OnData_Correct_R2off.at(energy).GetBinContent(1);
             if (Expo_content>0.)
             {
-                Expo_weight = Expo_norm/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*0.25);
+                double R2off_binsize = Hist_OnData_Correct_R2off.at(energy).GetBinCenter(2)-Hist_OnData_Correct_R2off.at(energy).GetBinCenter(1);
+                Expo_weight = Expo_norm/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*R2off_binsize);
             }
             else
             {
@@ -3457,7 +3461,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             double Expo_norm =  Hist_OnData_Correct_R2off.at(energy).GetBinContent(1);
             if (Expo_content>0.)
             {
-                Expo_weight = Expo_norm/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*0.25);
+                double R2off_binsize = Hist_OnData_Correct_R2off.at(energy).GetBinCenter(2)-Hist_OnData_Correct_R2off.at(energy).GetBinCenter(1);
+                Expo_weight = Expo_norm/Expo_content*pow(2.*Skymap_size/double(Skymap_nbins/2),2)/(3.14*R2off_binsize);
             }
             else
             {
