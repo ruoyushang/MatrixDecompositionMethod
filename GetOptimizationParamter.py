@@ -24,7 +24,7 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-energy_bin_cut_low = 1
+energy_bin_cut_low = 0
 energy_bin_cut_up = 2
 
 #N_bins_for_deconv = 20
@@ -164,7 +164,8 @@ sample_name += ['Crab V6']
 #elev_bins = [60,80]
 #elev_bins = [40,60]
 elev_bins = [50,60,70,80,90]
-#elev_bins = [60,70,80]
+#elev_bins = [60,70,80,90]
+#elev_bins = [80,90]
 #elev_bins = [70,80]
 #elev_bins = [60,70]
 #elev_bins = [50,60]
@@ -172,6 +173,7 @@ elev_bins = [50,60,70,80,90]
 lowrank_tag += 'elev_incl'
 
 theta2_bins = [0,4]
+#theta2_bins = [0,6]
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
@@ -181,9 +183,11 @@ energy_bin += [int(pow(10,3.0))]
 energy_bin += [int(pow(10,3.33))]
 energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
+energy_bin += [int(pow(10,4.4))]
 
 energy_dependent_stat = []
 energy_dependent_syst = []
+energy_dependent_stat_vali = []
 energy_dependent_syst_vbkg = []
 energy_dependent_syst_rfov = []
 energy_dependent_syst_comb = []
@@ -200,18 +204,26 @@ for elev in range(0,len(elev_bins)-1):
             root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]
 
 def SystematicErrorMeasurement(list_measurements, list_err_measurements):
+
     syst_err = 0.
-    sample_weight = 0.
     stat_err = 0.
+    sample_weight = 0.
     for entry in range(0,len(list_measurements)):
         if list_err_measurements[entry]==0.: continue
         syst_err += pow(1./list_err_measurements[entry],2)*pow(list_measurements[entry],2)
+        stat_err += pow(1./list_err_measurements[entry],2)*pow(list_err_measurements[entry],2)
         sample_weight += pow(1./list_err_measurements[entry],2)
-        #syst_err += pow(list_measurements[entry],2)
-        #sample_weight += 1.
-        stat_err += pow(list_err_measurements[entry],2)/len(list_measurements)
-    if sample_weight>0.: syst_err = pow(syst_err/sample_weight,0.5)
-    stat_err = pow(stat_err,0.5)
+    if sample_weight>0.: 
+        syst_err = pow(syst_err/sample_weight,0.5)
+        stat_err = pow(stat_err/sample_weight,0.5)
+
+    #sample_weight = 0.
+    #for entry in range(0,len(list_measurements)):
+    #    if list_err_measurements[entry]==0.: continue
+    #    stat_err += pow(1./list_err_measurements[entry],4)*pow(list_measurements[entry]/syst_err,2)*pow(list_err_measurements[entry],2)
+    #    sample_weight += pow(1./list_err_measurements[entry],4)
+    #stat_err = pow(stat_err/sample_weight,0.5)
+
     return syst_err, stat_err
 
 def Make2DPlot(Hist2D,title_x,title_y,name,logz,min_z,max_z):
@@ -677,12 +689,13 @@ def GetHistogramsFromFile(FilePath,which_source):
             Hist_OnBkgd_Bias_XYoff.SetBinContent(binx+1,biny+1,old_content_bias+1./relative_stat*relative_bias_bkgd)
 
     if energy_index>=energy_bin_cut_low and energy_index<=energy_bin_cut_up:
-        measured_error_mibe = (data_gamma_count[energy_index]-bkgd_gamma_count[energy_index])/data_gamma_count[energy_index]
-        measured_error_init = (data_gamma_count[energy_index]-dark_gamma_count[energy_index])/data_gamma_count[energy_index]
-        measured_error_weight = 1.
-        #measured_error_weight = 1./(pow(data_gamma_count[energy_index],0.5)/data_gamma_count[energy_index])
-        Hist_SystErrDist_MDM.Fill(measured_error_mibe,measured_error_weight)
-        Hist_SystErrDist_Init.Fill(measured_error_init,measured_error_weight)
+        if data_gamma_count[energy_index]>0.:
+            measured_error_mibe = (data_gamma_count[energy_index]-bkgd_gamma_count[energy_index])/data_gamma_count[energy_index]
+            measured_error_init = (data_gamma_count[energy_index]-dark_gamma_count[energy_index])/data_gamma_count[energy_index]
+            measured_error_weight = 1.
+            #measured_error_weight = 1./(pow(data_gamma_count[energy_index],0.5)/data_gamma_count[energy_index])
+            Hist_SystErrDist_MDM.Fill(measured_error_mibe,measured_error_weight)
+            Hist_SystErrDist_Init.Fill(measured_error_init,measured_error_weight)
     HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Bkgd_Optimization[0].Add(InputFile.Get(HistName),weight)
     Hist_Bkgd_Optimization[which_source+1].Add(InputFile.Get(HistName))
@@ -1268,12 +1281,13 @@ for e in range(0,len(energy_bin)-1):
     plt.subplots_adjust(bottom=0.15)
     plt.savefig("output_plots/PerformanceRFoV_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
-    energy_dependent_stat += [Accuracy_mean_error]
-    energy_dependent_syst += [pow(max(0.,pow(AccuracyBkgd_mean,2)-pow(Accuracy_mean_error,2)),0.5)]
+    energy_dependent_stat += [AccuracyBkgd_mean_error]
+    energy_dependent_stat_vali += [ValidateBkgd_mean_error]
+    energy_dependent_syst += [pow(max(0.,pow(AccuracyBkgd_mean,2)-pow(AccuracyBkgd_mean_error,2)),0.5)]
     energy_dependent_syst_vbkg += [pow(max(0.,pow(ValidateBkgd_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
     energy_dependent_syst_rfov += [pow(max(0.,pow(ValidateRFoV_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
     energy_dependent_syst_comb += [pow(max(0.,pow(ValidateComb_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
-    energy_dependent_syst_init += [pow(max(0.,pow(AccuracyInit_mean,2)-pow(Accuracy_mean_error,2)),0.5)]
+    energy_dependent_syst_init += [pow(max(0.,pow(AccuracyInit_mean,2)-pow(AccuracyInit_mean_error,2)),0.5)]
 
 
     RankCounts = []
@@ -1534,15 +1548,16 @@ for e in range(0,len(energy_bin)-1):
     #MakeMultiplePlot(Hists,legends,colors,'number of entries included','#chi^{2} in CR','Chi2_Entry_E%s'%(e),0,0,False,False)
 
 my_table = PrettyTable()
-my_table.field_names = ["Syst. err MIBE", "Syst. err init.", "Syst. err MIBE(2)", "Syst. err RFoV", "Syst. err MIBE(2)+RFoV", "Stat. err"]
+my_table.field_names = ["Syst. err MIBE", "Syst. err init.", "Stat. err", "Syst. err MIBE(2)", "Syst. err RFoV", "Syst. err MIBE(2)+RFoV", "Stat. err(2)"]
 my_table.float_format["Syst. err MIBE"] = ".3"
 my_table.float_format["Syst. err init."] = ".3"
 my_table.float_format["Syst. err MIBE(2)"] = ".3"
 my_table.float_format["Syst. err RFoV"] = ".3"
 my_table.float_format["Syst. err MIBE(2)+RFoV"] = ".3"
 my_table.float_format["Stat. err"] = ".3"
+my_table.float_format["Stat. err(2)"] = ".3"
 for entry in range(0,len(energy_dependent_syst)):
-    my_table.add_row([energy_dependent_syst[entry],energy_dependent_syst_init[entry],energy_dependent_syst_vbkg[entry],energy_dependent_syst_rfov[entry],energy_dependent_syst_comb[entry],energy_dependent_stat[entry]])
+    my_table.add_row([energy_dependent_syst[entry],energy_dependent_syst_init[entry],energy_dependent_stat[entry],energy_dependent_syst_vbkg[entry],energy_dependent_syst_rfov[entry],energy_dependent_syst_comb[entry],energy_dependent_stat_vali[entry]])
 print(my_table)
 
 Hists = []

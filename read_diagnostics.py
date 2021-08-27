@@ -399,8 +399,8 @@ range_dec = 2.0
 #range_ra = 2.0
 #range_dec = 2.0
 
-search_for_on_data = True
-#search_for_on_data = False
+#search_for_on_data = True
+search_for_on_data = False
 
 V4 = False
 V5 = False
@@ -409,7 +409,7 @@ V6 = True
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
 
-Search_Range_Elev = [30.,90.]
+Search_Range_Elev = [0.,40.]
 Search_Range_Azim = [0.,360.]
 Search_Range_PedVar_DC = [0.,10.]
 

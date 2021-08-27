@@ -51,19 +51,21 @@ lowrank_tag = '_svd'
 method_tag += lowrank_tag
 
 energy_bin_cut_low = 0
-energy_bin_cut_up = 6
+energy_bin_cut_up = 7
 
 #elev_range = [45,85]
 #elev_range = [40,70]
 #elev_range = [60,80]
 #elev_range = [25,55]
-elev_range = [40,50,60,70,80,90]
+elev_range = [30,40,50,60,70,80,90]
 #elev_range = [80,90]
 #elev_range = [70,80]
 #elev_range = [60,70]
 #elev_range = [50,60]
 #elev_range = [40,50]
+
 theta2_bins = [0,4]
+#theta2_bins = [0,6]
 
 ONOFF_tag = 'ON'
 sample_list = []
@@ -74,7 +76,6 @@ if sys.argv[1]=='SgrA_ON':
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['SgrAV6_ON']
-    theta2_bins = [0,4]
     elev_range = [25,55]
     
 if sys.argv[1]=='3C273_OFF':
@@ -83,27 +84,23 @@ if sys.argv[1]=='3C273_OFF':
     sample_list = []
     sample_list += ['3C273V6_OFF']
     sample_list += ['3C273V5_OFF']
-    theta2_bins = [0,4]
 if sys.argv[1]=='3C273_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['3C273V6_ON']
     sample_list += ['3C273V5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0414_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['1ES0414V5_OFF']
-    theta2_bins = [0,4]
 if sys.argv[1]=='1ES0414_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['1ES0414V5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0502_OFF':
     ONOFF_tag = 'OFF'
@@ -111,14 +108,12 @@ if sys.argv[1]=='1ES0502_OFF':
     sample_list = []
     sample_list += ['1ES0502V6_OFF']
     sample_list += ['1ES0502V5_OFF']
-    theta2_bins = [0,4]
 if sys.argv[1]=='1ES0502_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['1ES0502V6_ON']
     sample_list += ['1ES0502V5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='Draco_OFF':
     ONOFF_tag = 'OFF'
@@ -126,47 +121,40 @@ if sys.argv[1]=='Draco_OFF':
     sample_list = []
     sample_list += ['DracoV6_OFF']
     sample_list += ['DracoV5_OFF']
-    theta2_bins = [0,4]
 if sys.argv[1]=='Draco_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['DracoV6_ON']
     sample_list += ['DracoV5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='OJ287_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['OJ287V6_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='OJ287_Model1':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model1'
     sample_list = []
     sample_list += ['OJ287V6_Model01']
-    theta2_bins = [0,4]
 if sys.argv[1]=='OJ287_Model2':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model2'
     sample_list = []
     sample_list += ['OJ287V6_Model02']
-    theta2_bins = [0,4]
 if sys.argv[1]=='OJ287_Model3':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model3'
     sample_list = []
     sample_list += ['OJ287V6_Model03']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='OJ287_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['OJ287V6_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0229_OFF':
     ONOFF_tag = 'OFF'
@@ -174,7 +162,6 @@ if sys.argv[1]=='1ES0229_OFF':
     sample_list = []
     sample_list += ['1ES0229V6_OFF']
     sample_list += ['1ES0229V5_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0229_ON':
     ONOFF_tag = 'ON'
@@ -182,21 +169,18 @@ if sys.argv[1]=='1ES0229_ON':
     sample_list = []
     sample_list += ['1ES0229V6_ON']
     sample_list += ['1ES0229V5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='H1426_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['H1426V6_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='H1426_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['H1426V6_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='PKS1424_OFF':
     ONOFF_tag = 'OFF'
@@ -204,7 +188,6 @@ if sys.argv[1]=='PKS1424_OFF':
     sample_list = []
     sample_list += ['PKS1424V6_OFF']
     sample_list += ['PKS1424V5_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='PKS1424_ON':
     ONOFF_tag = 'ON'
@@ -212,20 +195,17 @@ if sys.argv[1]=='PKS1424_ON':
     sample_list = []
     sample_list += ['PKS1424V6_ON']
     sample_list += ['PKS1424V5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='3C264_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['3C264V6_ON']
-    theta2_bins = [0,4]
 if sys.argv[1]=='3C264_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['3C264V6_OFF']
-    theta2_bins = [0,4]
     # The VERITAS observations of 3C 264 were taken from February through May 2017, from February through April 2018, and from January through May 2019.
     
 if sys.argv[1]=='PG1553_OFF':
@@ -234,7 +214,6 @@ if sys.argv[1]=='PG1553_OFF':
     sample_list = []
     sample_list += ['PG1553V6_OFF']
     sample_list += ['PG1553V5_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='PG1553_ON':
     ONOFF_tag = 'ON'
@@ -242,7 +221,6 @@ if sys.argv[1]=='PG1553_ON':
     sample_list = []
     sample_list += ['PG1553V6_ON']
     sample_list += ['PG1553V5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='PG1553_Raster':
     ONOFF_tag = 'ON'
@@ -250,39 +228,33 @@ if sys.argv[1]=='PG1553_Raster':
     sample_list = []
     sample_list += ['PG1553V6_Raster']
     sample_list += ['PG1553V5_Raster']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES1011_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['1ES1011V6_ON']
-    theta2_bins = [0,4]
 if sys.argv[1]=='1ES1011_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['1ES1011V6_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES1011_Model1':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model1'
     sample_list = []
     sample_list += ['1ES1011V6_Model01']
-    theta2_bins = [0,4]
 if sys.argv[1]=='1ES1011_Model2':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model2'
     sample_list = []
     sample_list += ['1ES1011V6_Model02']
-    theta2_bins = [0,4]
 if sys.argv[1]=='1ES1011_Model3':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model3'
     sample_list = []
     sample_list += ['1ES1011V6_Model03']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0229_Model1':
     ONOFF_tag = 'OFF'
@@ -290,21 +262,18 @@ if sys.argv[1]=='1ES0229_Model1':
     sample_list = []
     sample_list += ['1ES0229V6_Model01']
     sample_list += ['1ES0229V5_Model01']
-    theta2_bins = [0,4]
 if sys.argv[1]=='1ES0229_Model2':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model2'
     sample_list = []
     sample_list += ['1ES0229V6_Model02']
     sample_list += ['1ES0229V5_Model02']
-    theta2_bins = [0,4]
 if sys.argv[1]=='1ES0229_Model3':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model3'
     sample_list = []
     sample_list += ['1ES0229V6_Model03']
     sample_list += ['1ES0229V5_Model03']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='Crab_Model1':
     ONOFF_tag = 'OFF'
@@ -313,7 +282,6 @@ if sys.argv[1]=='Crab_Model1':
     sample_list += ['CrabV6_Model01']
     sample_list += ['CrabV5_Model01']
     sample_list += ['CrabV4_Model01']
-    theta2_bins = [0,4]
 if sys.argv[1]=='Crab_Model2':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model2'
@@ -321,7 +289,6 @@ if sys.argv[1]=='Crab_Model2':
     sample_list += ['CrabV6_Model02']
     sample_list += ['CrabV5_Model02']
     sample_list += ['CrabV4_Model02']
-    theta2_bins = [0,4]
 if sys.argv[1]=='Crab_Model3':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model3'
@@ -329,7 +296,6 @@ if sys.argv[1]=='Crab_Model3':
     sample_list += ['CrabV6_Model03']
     sample_list += ['CrabV5_Model03']
     sample_list += ['CrabV4_Model03']
-    theta2_bins = [0,4]
 if sys.argv[1]=='Crab_Model4':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model4'
@@ -337,21 +303,18 @@ if sys.argv[1]=='Crab_Model4':
     sample_list += ['CrabV6_Model04']
     sample_list += ['CrabV5_Model04']
     sample_list += ['CrabV4_Model04']
-    theta2_bins = [0,4]
 if sys.argv[1]=='Coma_Model5':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model5'
     sample_list = []
     sample_list += ['ComaV6_Model05']
     #sample_list += ['ComaV4_Model05']
-    theta2_bins = [0,4]
 if sys.argv[1]=='Coma_Model6':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model6'
     sample_list = []
     sample_list += ['ComaV6_Model06']
     #sample_list += ['ComaV4_Model06']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='RBS0413_OFF':
     ONOFF_tag = 'OFF'
@@ -359,7 +322,6 @@ if sys.argv[1]=='RBS0413_OFF':
     sample_list = []
     sample_list += ['RBS0413V6_OFF']
     sample_list += ['RBS0413V5_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='RBS0413_ON':
     ONOFF_tag = 'ON'
@@ -367,42 +329,36 @@ if sys.argv[1]=='RBS0413_ON':
     sample_list = []
     sample_list += ['RBS0413V6_ON']
     sample_list += ['RBS0413V5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='TriII_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['TriIIV6_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0647_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['1ES0647V6_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='1ES0647_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['1ES0647V6_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='RGBJ0710_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['RGBJ0710V5_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='RGBJ0710_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['RGBJ0710V5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='Segue1_OFF':
     ONOFF_tag = 'OFF'
@@ -410,7 +366,6 @@ if sys.argv[1]=='Segue1_OFF':
     sample_list = []
     sample_list += ['Segue1V6_OFF']
     sample_list += ['Segue1V5_OFF']
-    theta2_bins = [0,4]
     # only V5 data published
     
 if sys.argv[1]=='Segue1_ON':
@@ -419,7 +374,6 @@ if sys.argv[1]=='Segue1_ON':
     sample_list = []
     sample_list += ['Segue1V6_ON']
     sample_list += ['Segue1V5_ON']
-    theta2_bins = [0,4]
     # only V5 data published
     
 if sys.argv[1]=='BLLac_OFF':
@@ -428,7 +382,6 @@ if sys.argv[1]=='BLLac_OFF':
     sample_list = []
     sample_list += ['BLLacV6_OFF']
     sample_list += ['BLLacV5_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='BLLac_ON':
     ONOFF_tag = 'ON'
@@ -436,42 +389,36 @@ if sys.argv[1]=='BLLac_ON':
     sample_list = []
     sample_list += ['BLLacV6_ON']
     sample_list += ['BLLacV5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='NGC1275_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['NGC1275V6_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='NGC1275_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['NGC1275V6_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='SNR_G150p3Plus04p5_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['SNR_G150p3Plus04p5_V6_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='SNR_G150p3Plus04p5_Jamie_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['SNR_G150p3Plus04p5_Jamie_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='CasA_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['CasAV6_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='M82_OFF':
     ONOFF_tag = 'OFF'
@@ -480,7 +427,6 @@ if sys.argv[1]=='M82_OFF':
     sample_list += ['M82V6_OFF']
     sample_list += ['M82V5_OFF']
     #sample_list += ['M82V4_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='M82_ON':
     ONOFF_tag = 'ON'
@@ -489,7 +435,6 @@ if sys.argv[1]=='M82_ON':
     sample_list += ['M82V6_ON']
     sample_list += ['M82V5_ON']
     #sample_list += ['M82V4_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='M87_ON':
     ONOFF_tag = 'ON'
@@ -497,7 +442,6 @@ if sys.argv[1]=='M87_ON':
     sample_list = []
     sample_list += ['M87V6_ON']
     sample_list += ['M87V5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='Crab_ON':
     ONOFF_tag = 'ON'
@@ -506,7 +450,6 @@ if sys.argv[1]=='Crab_ON':
     sample_list += ['CrabV6_ON']
     sample_list += ['CrabV5_ON']
     sample_list += ['CrabV4_ON']
-    theta2_bins = [0,4]
 if sys.argv[1]=='Crab_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
@@ -514,41 +457,35 @@ if sys.argv[1]=='Crab_OFF':
     sample_list += ['CrabV6_OFF']
     sample_list += ['CrabV5_OFF']
     sample_list += ['CrabV4_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='Crab_Offset_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['Crab_Offset_V6_ON']
-    theta2_bins = [0,4]
 
 if sys.argv[1]=='Mrk421_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['Mrk421V5_ON']
-    theta2_bins = [0,4]
 if sys.argv[1]=='Mrk421_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['Mrk421V5_OFF']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='2HWC_J1930_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['2HWC_J1930V6_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='2HWC_J1953_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['2HWC_J1953V6_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='WComae_ON':
     ONOFF_tag = 'ON'
@@ -557,7 +494,6 @@ if sys.argv[1]=='WComae_ON':
     sample_list += ['WComaeV6_ON']
     sample_list += ['WComaeV5_ON']
     #sample_list += ['WComaeV4_ON']
-    theta2_bins = [0,4]
     # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
     
 if sys.argv[1]=='IC443HotSpot_ON':
@@ -567,7 +503,6 @@ if sys.argv[1]=='IC443HotSpot_ON':
     sample_list += ['IC443HotSpotV6_ON']
     sample_list += ['IC443HotSpotV5_ON']
     sample_list += ['IC443HotSpotV4_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='Boomerang_ON':
     ONOFF_tag = 'ON'
@@ -576,7 +511,6 @@ if sys.argv[1]=='Boomerang_ON':
     sample_list += ['BoomerangV6_ON']
     sample_list += ['BoomerangV5_ON']
     sample_list += ['BoomerangV4_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='Tycho_ON':
     ONOFF_tag = 'ON'
@@ -585,21 +519,18 @@ if sys.argv[1]=='Tycho_ON':
     sample_list += ['TychoV6_ON']
     sample_list += ['TychoV5_ON']
     sample_list += ['TychoV4_ON']
-    theta2_bins = [0,4]
 
 if sys.argv[1]=='HESS_J1825_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['HESS_J1825_V6_ON']
-    theta2_bins = [0,4]
 
 if sys.argv[1]=='LHAASO_J2108_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['LHAASO_J2108_V6_ON']
-    theta2_bins = [0,4]
     # this is a Tevatron
 
 if sys.argv[1]=='MGRO_J1908_ON':
@@ -609,7 +540,6 @@ if sys.argv[1]=='MGRO_J1908_ON':
     sample_list += ['MGRO_J1908_V6_ON']
     sample_list += ['MGRO_J1908_V5_ON']
     #sample_list += ['MGRO_J1908_V4_ON']
-    theta2_bins = [0,4]
     # this is a Tevatron
     
 if sys.argv[1]=='SS433_ON':
@@ -619,7 +549,6 @@ if sys.argv[1]=='SS433_ON':
     sample_list += ['SS433_V6_ON']
     sample_list += ['SS433_V5_ON']
     sample_list += ['SS433_V4_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='SS433Half1_ON':
     ONOFF_tag = 'ON'
@@ -628,7 +557,6 @@ if sys.argv[1]=='SS433Half1_ON':
     sample_list += ['SS433Half1_V6_ON']
     sample_list += ['SS433Half1_V5_ON']
     sample_list += ['SS433Half1_V4_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='SS433Half2_ON':
     ONOFF_tag = 'ON'
@@ -637,7 +565,6 @@ if sys.argv[1]=='SS433Half2_ON':
     sample_list += ['SS433Half2_V6_ON']
     sample_list += ['SS433Half2_V5_ON']
     sample_list += ['SS433Half2_V4_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='MAGIC_J1857_ON':
     ONOFF_tag = 'ON'
@@ -646,7 +573,6 @@ if sys.argv[1]=='MAGIC_J1857_ON':
     sample_list += ['MAGIC_J1857_V6_ON']
     sample_list += ['MAGIC_J1857_V5_ON']
     #sample_list += ['MAGIC_J1857_V4_ON']
-    theta2_bins = [0,4]
     # this is a Tevatron, largely extended at 400 GeV
     
 if sys.argv[1]=='MGRO_J2031_ON':
@@ -656,7 +582,6 @@ if sys.argv[1]=='MGRO_J2031_ON':
     sample_list += ['MGRO_J2031_V6_ON']
     sample_list += ['MGRO_J2031_V5_ON']
     sample_list += ['MGRO_J2031_V4_ON']
-    theta2_bins = [0,4]
     # this is a Tevatron with time-variable morphology
     
 if sys.argv[1]=='Cygnus_ON':
@@ -665,7 +590,6 @@ if sys.argv[1]=='Cygnus_ON':
     sample_list = []
     sample_list += ['CygnusV6_ON']
     sample_list += ['CygnusV5_ON']
-    theta2_bins = [0,4]
     # this is a Tevatron
     
 if sys.argv[1]=='GammaCygni_ON':
@@ -675,7 +599,6 @@ if sys.argv[1]=='GammaCygni_ON':
     sample_list += ['GammaCygniV4_ON']
     sample_list += ['GammaCygniV5_ON']
     sample_list += ['GammaCygniV6_ON']
-    theta2_bins = [0,4]
     # this is a Tevatron
     
 if sys.argv[1]=='Geminga_ON':
@@ -684,7 +607,6 @@ if sys.argv[1]=='Geminga_ON':
     sample_list = []
     sample_list += ['GemingaV6_ON']
     sample_list += ['GemingaV5_ON']
-    theta2_bins = [0,4]
     
 if sys.argv[1]=='Coma_ON':
     ONOFF_tag = 'ON'
@@ -692,7 +614,6 @@ if sys.argv[1]=='Coma_ON':
     sample_list = []
     sample_list += ['ComaV6_ON']
     #sample_list += ['ComaV4_ON']
-    theta2_bins = [0,4]
 
 root_file_tags = []
 # all time
@@ -734,9 +655,9 @@ print ('Get %s'%(root_file_tags[0]))
 
 selection_tag = root_file_tags[0]
 
-#folder_path = 'output_nocorrect'
+folder_path = 'output_nocorrect'
 #folder_path = 'output_nocalib'
-folder_path = 'output_nominal'
+#folder_path = 'output_nominal'
 PercentCrab = ''
 
 
@@ -796,6 +717,7 @@ energy_bin += [int(pow(10,3.0))]
 energy_bin += [int(pow(10,3.33))]
 energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
+energy_bin += [int(pow(10,4.4))]
 
 energy_syst = []
 energy_syst += [0.121]
@@ -803,6 +725,7 @@ energy_syst += [0.017]
 energy_syst += [0.019]
 energy_syst += [0.036]
 energy_syst += [0.080]
+energy_syst += [0.095]
 energy_syst += [0.095]
 
 energy_fine_bin = []
@@ -817,29 +740,8 @@ energy_fine_bin += [pow(10,3.4)]
 energy_fine_bin += [pow(10,3.6)]
 energy_fine_bin += [pow(10,3.8)]
 energy_fine_bin += [pow(10,4.0)]
-
-#energy_fine_bin = []
-#energy_fine_bin += [pow(10,2.0)]
-#energy_fine_bin += [pow(10,2.1)]
-#energy_fine_bin += [pow(10,2.2)]
-#energy_fine_bin += [pow(10,2.3)]
-#energy_fine_bin += [pow(10,2.4)]
-#energy_fine_bin += [pow(10,2.5)]
-#energy_fine_bin += [pow(10,2.6)]
-#energy_fine_bin += [pow(10,2.7)]
-#energy_fine_bin += [pow(10,2.8)]
-#energy_fine_bin += [pow(10,2.9)]
-#energy_fine_bin += [pow(10,3.0)]
-#energy_fine_bin += [pow(10,3.1)]
-#energy_fine_bin += [pow(10,3.2)]
-#energy_fine_bin += [pow(10,3.3)]
-#energy_fine_bin += [pow(10,3.4)]
-#energy_fine_bin += [pow(10,3.5)]
-#energy_fine_bin += [pow(10,3.6)]
-#energy_fine_bin += [pow(10,3.7)]
-#energy_fine_bin += [pow(10,3.8)]
-#energy_fine_bin += [pow(10,3.9)]
-#energy_fine_bin += [pow(10,4.0)]
+energy_fine_bin += [pow(10,4.2)]
+energy_fine_bin += [pow(10,4.4)]
 
 elev_bins = [25,35,45,55,65,75,85]
 MJD_bins = [53613,55074,56535,57996,59457]
@@ -2353,21 +2255,16 @@ def flux_1es1218_func(x):
 def flux_geminag_func(x):
     return 3.5*pow(10,-12)*pow(x*1./1000.,-2.2)
 
-def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalibrate):
+def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalibrate,doBkgFlux):
     
-    #calibration = [1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]
-    calibration = [1.8684970339479395e-08, 6.203565781194739e-09, 1.202009977792164e-09, 2.6171236920783506e-10, 6.28925155621388e-11, 1.4356047194894067e-11, 2.8677368581377236e-12, 6.162937510733003e-13, 1.8856230290229421e-13, 5.341142051607241e-14]
+    #calibration = [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]
+    calibration = [1.470452641661792e-08, 5.2311502663450365e-09, 1.159719781110322e-09, 2.630363289266908e-10, 6.638461971443425e-11, 1.5964174853505304e-11, 3.351857085873978e-12, 7.27156325287719e-13, 2.2633165287553982e-13, 6.490340364957579e-14, 2.4718218421940913e-14, 7.744959199854498e-15]
 
     Hist_Flux = []
     for nth_roi in range(0,len(hist_data)):
         Hist_Flux += [ROOT.TH1D("Hist_Flux_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
-        if doCalibrate:
-            Hist_Flux[nth_roi].Add(hist_data[nth_roi])
-            Hist_Flux[nth_roi].Add(hist_bkgd[nth_roi],-1.)
-            Hist_Flux[nth_roi].Divide(hist_bkgd[nth_roi])
-        else:
-            Hist_Flux[nth_roi].Add(hist_data[nth_roi])
-            Hist_Flux[nth_roi].Add(hist_bkgd[nth_roi],-1.)
+        if doBkgFlux:
+            Hist_Flux[nth_roi].Add(hist_bkgd[nth_roi])
             for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
                 deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
                 scale = 0.
@@ -2375,6 +2272,21 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
                     scale = 1./(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
                 Hist_Flux[nth_roi].SetBinContent(binx+1,Hist_Flux[nth_roi].GetBinContent(binx+1)*scale)
                 Hist_Flux[nth_roi].SetBinError(binx+1,Hist_Flux[nth_roi].GetBinError(binx+1)*scale)
+        else:
+            if doCalibrate:
+                Hist_Flux[nth_roi].Add(hist_data[nth_roi])
+                Hist_Flux[nth_roi].Add(hist_bkgd[nth_roi],-1.)
+                Hist_Flux[nth_roi].Divide(hist_bkgd[nth_roi])
+            else:
+                Hist_Flux[nth_roi].Add(hist_data[nth_roi])
+                Hist_Flux[nth_roi].Add(hist_bkgd[nth_roi],-1.)
+                for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
+                    deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
+                    scale = 0.
+                    if Hist_EffArea_Sum.GetBinContent(binx+1)>0.:
+                        scale = 1./(Hist_EffArea_Sum.GetBinContent(binx+1)*10000.*deltaE)
+                    Hist_Flux[nth_roi].SetBinContent(binx+1,Hist_Flux[nth_roi].GetBinContent(binx+1)*scale)
+                    Hist_Flux[nth_roi].SetBinError(binx+1,Hist_Flux[nth_roi].GetBinError(binx+1)*scale)
 
     roi_xdata = []
     roi_ydata = []
@@ -2397,8 +2309,10 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
     cycol = cycle('bgrcmk')
     for nth_roi in range(0,len(hist_data)):
         ax.errorbar(roi_xdata[nth_roi], roi_ydata[nth_roi], roi_error[nth_roi], color=next(cycol), marker='s', ls='none', label='%s'%(legends[nth_roi]))
-        #popt, pcov = curve_fit(power_law_func, xdata, ydata)
-        #ax.plot(xdata, power_law_func(xdata, *popt),'b-',label='fit: a=%0.1f, b=%0.1f'%tuple(popt))
+        if doBkgFlux:
+            start = (40, -2.)
+            popt, pcov = curve_fit(power_law_func, np.array(xdata), np.array(ydata), p0=start, sigma=np.array(error))
+            ax.plot(np.array(xdata), power_law_func(np.array(xdata), *popt),'b-',label='fit: a=%0.1f, b=%0.1f'%tuple(popt))
 
     log_energy = np.linspace(log10(Hist_Flux[0].GetBinLowEdge(1)),log10(Hist_Flux[0].GetBinLowEdge(1+Hist_Flux[0].GetNbinsX())),50)
     xdata = pow(10.,log_energy)
@@ -2784,7 +2698,7 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
     if not 'MDM' in name: syst_err = 0.
     err_bkg = pow(err_bkg*err_bkg+(syst_err*predict_bkg)*(syst_err*predict_bkg),0.5)
     Sig = 1.*CalculateSignificance(data_SR-predict_bkg,predict_bkg,err_bkg)
-    lumilab2 = ROOT.TLatex(0.15,0.60,'Excess = %0.1f#pm%0.1f (%0.1f#sigma)'%(data_SR-predict_bkg,pow(err_SR*err_SR+err_bkg*err_bkg,0.5),Sig) )
+    lumilab2 = ROOT.TLatex(0.15,0.60,'Excess = %0.1f#pm%0.1f'%(data_SR-predict_bkg,pow(err_SR*err_SR+err_bkg*err_bkg,0.5)) )
     lumilab2.SetNDC()
     lumilab2.SetTextSize(0.15)
     lumilab2.Draw()
@@ -2851,13 +2765,6 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
 def PlotsStackedHistograms(tag):
 
     if energy_bin[energy_bin_cut_low]>=1000.:
-        Hist_OnData_Skymap_ProjX_Sum.Rebin(2)
-        Hist_OnDark_Skymap_ProjX_Sum.Rebin(2)
-        Hist_OnBkgd_Skymap_ProjX_Sum.Rebin(2)
-        Hist_OnData_Skymap_ProjY_Sum.Rebin(2)
-        Hist_OnDark_Skymap_ProjY_Sum.Rebin(2)
-        Hist_OnBkgd_Skymap_ProjY_Sum.Rebin(2)
-    if energy_bin[energy_bin_cut_low]>=4000.:
         Hist_OnData_Skymap_ProjX_Sum.Rebin(2)
         Hist_OnDark_Skymap_ProjX_Sum.Rebin(2)
         Hist_OnBkgd_Skymap_ProjX_Sum.Rebin(2)
@@ -3087,34 +2994,26 @@ def PlotsStackedHistograms(tag):
         Hist_OnRFoV_Theta2_Sum.Rebin(2)
         Hist_OnDark_Theta2_Sum.Rebin(2)
         Hist_SystErr_Theta2_Sum.Rebin(2)
-    if energy_bin[energy_bin_cut_low]>=4000.:
-        Hist_OnData_Theta2_Sum.Rebin(2)
-        Hist_OnBkgd_Theta2_Sum.Rebin(2)
-        Hist_OnRFoV_Theta2_Sum.Rebin(2)
-        Hist_OnDark_Theta2_Sum.Rebin(2)
-        Hist_SystErr_Theta2_Sum.Rebin(2)
 
     Hists = []
     legends = []
     colors = []
     stack_it = []
-    Hist_OnBkgd_Yoff_Raw_Sum.Divide(Hist_OnData_Yoff_Sum)
-    Hist_OnBkgd_Yoff_Sum.Divide(Hist_OnData_Yoff_Sum)
-    Hist_OnData_Yoff_Sum.Divide(Hist_OnData_Yoff_Sum)
     Hists += [Hist_OnData_Yoff_Sum]
     legends += ['obs. data']
     colors += [1]
     stack_it += [False]
-    Hists += [Hist_OnBkgd_Yoff_Raw_Sum]
-    legends += ['uncorrected']
-    colors += [2]
+    #Hists += [Hist_OnBkgd_Yoff_Raw_Sum]
+    #legends += ['uncorrected']
+    #colors += [2]
+    #stack_it += [True]
     Hists += [Hist_OnBkgd_Yoff_Sum]
-    legends += ['corrected']
+    legends += ['bkg. predict.']
     colors += [4]
     stack_it += [True]
     plotname = 'Stack_Yoff_MDM_%s'%(tag)
     title = 'Y off'
-    MakeComparisonPlot(Hists,legends,colors,title,'counts',plotname,0.5,1.5,False,False,False)
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
 
     Hists = []
     legends = []
@@ -3169,27 +3068,19 @@ def PlotsStackedHistograms(tag):
     title = 'squared angle from source location #theta^{2}'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
 
-    #if energy_bin[energy_bin_cut_low]>=300.:
-    #    for nth_roi in range(0,len(roi_ra)):
-    #        Hist_OnData_RoI_Theta2_Sum[nth_roi].Rebin(2)
-    #        Hist_OnBkgd_RoI_Theta2_Sum[nth_roi].Rebin(2)
-    for nth_roi in range(0,len(roi_ra)):
-        Hists = []
-        legends = []
-        colors = []
-        stack_it = []
-        Hists += [Hist_OnData_RoI_Theta2_Sum[nth_roi]]
-        legends += ['%s'%(roi_name[nth_roi])]
-        colors += [1]
-        stack_it += [False]
-        Hists += [Hist_OnBkgd_RoI_Theta2_Sum[nth_roi]]
-        legends += ['predict. bkg.']
-        colors += [4]
-        stack_it += [True]
-        plotname = 'Stack_RoI%s_Theta2_MDM_%s'%(nth_roi,tag)
-        title = 'squared angle from source location #theta^{2}'
-        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
-
+    if energy_bin[energy_bin_cut_low]>=2000.:
+        for nth_roi in range(0,len(roi_ra)):
+            Hist_OnData_RoI_X_Sum[nth_roi].Rebin(2)
+            Hist_OnBkgd_RoI_X_Sum[nth_roi].Rebin(2)
+            Hist_OnData_RoI_Y_Sum[nth_roi].Rebin(2)
+            Hist_OnBkgd_RoI_Y_Sum[nth_roi].Rebin(2)
+    if energy_bin[energy_bin_cut_low]>=4000.:
+        for nth_roi in range(0,len(roi_ra)):
+            Hist_OnData_RoI_X_Sum[nth_roi].Rebin(2)
+            Hist_OnBkgd_RoI_X_Sum[nth_roi].Rebin(2)
+            Hist_OnData_RoI_Y_Sum[nth_roi].Rebin(2)
+            Hist_OnBkgd_RoI_Y_Sum[nth_roi].Rebin(2)
+    for nth_roi in range(2,len(roi_ra)):
         Hists = []
         legends = []
         colors = []
@@ -3222,6 +3113,27 @@ def PlotsStackedHistograms(tag):
         title = 'rotated Y axis'
         MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
 
+    #if energy_bin[energy_bin_cut_low]>=300.:
+    #    for nth_roi in range(0,len(roi_ra)):
+    #        Hist_OnData_RoI_Theta2_Sum[nth_roi].Rebin(2)
+    #        Hist_OnBkgd_RoI_Theta2_Sum[nth_roi].Rebin(2)
+    for nth_roi in range(0,len(roi_ra)):
+        Hists = []
+        legends = []
+        colors = []
+        stack_it = []
+        Hists += [Hist_OnData_RoI_Theta2_Sum[nth_roi]]
+        legends += ['%s'%(roi_name[nth_roi])]
+        colors += [1]
+        stack_it += [False]
+        Hists += [Hist_OnBkgd_RoI_Theta2_Sum[nth_roi]]
+        legends += ['predict. bkg.']
+        colors += [4]
+        stack_it += [True]
+        plotname = 'Stack_RoI%s_Theta2_MDM_%s'%(nth_roi,tag)
+        title = 'squared angle from source location #theta^{2}'
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
+
         Hists = []
         legends = []
         colors = []
@@ -3250,11 +3162,11 @@ def PlotsStackedHistograms(tag):
         radii += [roi_radius[nth_roi]]
         legends += ['%s'%(roi_name[nth_roi])]
     title = 'energy [GeV]'
-    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,True)
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,True,False)
     plotname = 'Flux_Calibrate_%s'%(tag)
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
     ax.cla()
-    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False)
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False,False)
     plotname = 'Flux_NoCalibrate_%s'%(tag)
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
     ax.cla()
@@ -3267,8 +3179,10 @@ def PlotsStackedHistograms(tag):
     Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[1]]
     legends += ['background flux']
     title = 'energy [GeV]'
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False,True)
     plotname = 'FluxE27_MDM_%s'%(tag)
-    #MakeSpectrumInNonCrabUnit(Hist_data,Hist_bkgd,legends,title,plotname,False)
+    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
+    ax.cla()
     #MakeSpectrumBackgroundE27(Hist_data,Hist_bkgd,legends,title,plotname,-1)
 
     Hist_data_mjd = []
@@ -4927,7 +4841,8 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     legend.SetLineColor(0)
     legend.Clear()
     for star in range(0,len(other_star_names)):
-        legend.AddEntry(other_stars[star],'%s (%0.1f#sigma)'%(other_star_names[star],other_star_significance[star]))
+        #legend.AddEntry(other_stars[star],'%s (%0.1f#sigma)'%(other_star_names[star],other_star_significance[star]))
+        legend.AddEntry(other_stars[star],'%s'%(other_star_names[star]))
 
     Hist_Contour = Hist_Skymap.Clone()
     Hist_Contour.Reset()
@@ -4979,18 +4894,18 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
         if nth_roi==1: continue
         mycircles[nth_roi].Draw("same")
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.70,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.15)
-    lumilab1.Draw()
+    #lumilab1 = ROOT.TLatex(0.15,0.70,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.15)
+    #lumilab1.Draw()
     lumilab3 = ROOT.TLatex(0.15,0.50,'E >%0.1f GeV (%.1f hrs)'%(energy_bin[energy_bin_cut_low],exposure_hours) )
     lumilab3.SetNDC()
     lumilab3.SetTextSize(0.15)
     lumilab3.Draw()
-    lumilab4 = ROOT.TLatex(0.15,0.30,'MJD %s-%s'%(MJD_Start,MJD_End) )
-    lumilab4.SetNDC()
-    lumilab4.SetTextSize(0.15)
-    lumilab4.Draw()
+    #lumilab4 = ROOT.TLatex(0.15,0.30,'MJD %s-%s'%(MJD_Start,MJD_End) )
+    #lumilab4.SetNDC()
+    #lumilab4.SetTextSize(0.15)
+    #lumilab4.Draw()
     legend.Draw("SAME")
     canvas.SaveAs('output_plots/SkymapSig_%s_%s.png'%(name,selection_tag))
     OutputToTxtFile(Hist_Skymap,'output_plots/TxtSkymapSig_%s_%s.txt'%(name,selection_tag))
@@ -5064,15 +4979,15 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     #mycircles[0].SetFillStyle(0)
     #mycircles[0].SetLineColor(2)
     #mycircles[0].Draw("same")
-    mycircles += [ROOT.TEllipse(-1.*98.117,17.367,1.0)]
-    mycircles[0].SetFillStyle(0)
-    mycircles[0].SetLineColor(2)
-    mycircles[0].Draw("same")
-    myline = ROOT.TLine(-1.*98.476,17.770,-1.*(98.476-0.01*138.),17.770-0.01*97.)
-    myline.SetLineStyle(1)
-    myline.SetLineColor(2)
-    myline.SetLineWidth(2)
-    myline.Draw("same")
+    #mycircles += [ROOT.TEllipse(-1.*98.117,17.367,1.0)]
+    #mycircles[0].SetFillStyle(0)
+    #mycircles[0].SetLineColor(2)
+    #mycircles[0].Draw("same")
+    #myline = ROOT.TLine(-1.*98.476,17.770,-1.*(98.476-0.01*138.),17.770-0.01*97.)
+    #myline.SetLineStyle(1)
+    #myline.SetLineColor(2)
+    #myline.SetLineWidth(2)
+    #myline.Draw("same")
     Hist_Exposure.GetXaxis().SetLabelOffset(999)
     Hist_Exposure.GetXaxis().SetTickLength(0)
     x1 = Hist_Exposure.GetXaxis().GetXmin()
@@ -6700,14 +6615,14 @@ for nth_roi in range(0,len(roi_ra)):
     Hist_OnBkgd_RoI_Theta2_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Theta2_Sum_%s"%(nth_roi),"",20,0,0.5)]
     Hist_OnData_RoI_Theta2 += [ROOT.TH1D("Hist_OnData_RoI_Theta2_%s"%(nth_roi),"",20,0,0.5)]
     Hist_OnBkgd_RoI_Theta2 += [ROOT.TH1D("Hist_OnBkgd_RoI_Theta2_%s"%(nth_roi),"",20,0,0.5)]
-    Hist_OnData_RoI_X_Sum += [ROOT.TH1D("Hist_OnData_RoI_X_Sum_%s"%(nth_roi),"",20,-2.,2.)]
-    Hist_OnBkgd_RoI_X_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_X_Sum_%s"%(nth_roi),"",20,-2.,2.)]
-    Hist_OnData_RoI_X += [ROOT.TH1D("Hist_OnData_RoI_X_%s"%(nth_roi),"",20,-2.,2.)]
-    Hist_OnBkgd_RoI_X += [ROOT.TH1D("Hist_OnBkgd_RoI_X_%s"%(nth_roi),"",20,-2.,2.)]
-    Hist_OnData_RoI_Y_Sum += [ROOT.TH1D("Hist_OnData_RoI_Y_Sum_%s"%(nth_roi),"",20,-2.,2.)]
-    Hist_OnBkgd_RoI_Y_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Y_Sum_%s"%(nth_roi),"",20,-2.,2.)]
-    Hist_OnData_RoI_Y += [ROOT.TH1D("Hist_OnData_RoI_Y_%s"%(nth_roi),"",20,-2.,2.)]
-    Hist_OnBkgd_RoI_Y += [ROOT.TH1D("Hist_OnBkgd_RoI_Y_%s"%(nth_roi),"",20,-2.,2.)]
+    Hist_OnData_RoI_X_Sum += [ROOT.TH1D("Hist_OnData_RoI_X_Sum_%s"%(nth_roi),"",60,-3.,3.)]
+    Hist_OnBkgd_RoI_X_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_X_Sum_%s"%(nth_roi),"",60,-3.,3.)]
+    Hist_OnData_RoI_X += [ROOT.TH1D("Hist_OnData_RoI_X_%s"%(nth_roi),"",60,-3.,3.)]
+    Hist_OnBkgd_RoI_X += [ROOT.TH1D("Hist_OnBkgd_RoI_X_%s"%(nth_roi),"",60,-3.,3.)]
+    Hist_OnData_RoI_Y_Sum += [ROOT.TH1D("Hist_OnData_RoI_Y_Sum_%s"%(nth_roi),"",60,-3.,3.)]
+    Hist_OnBkgd_RoI_Y_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Y_Sum_%s"%(nth_roi),"",60,-3.,3.)]
+    Hist_OnData_RoI_Y += [ROOT.TH1D("Hist_OnData_RoI_Y_%s"%(nth_roi),"",60,-3.,3.)]
+    Hist_OnBkgd_RoI_Y += [ROOT.TH1D("Hist_OnBkgd_RoI_Y_%s"%(nth_roi),"",60,-3.,3.)]
     Hist_OnData_RoI_MJD += [ROOT.TH1D("Hist_OnData_RoI_MJD_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
     Hist_OnBkgd_RoI_MJD += [ROOT.TH1D("Hist_OnBkgd_RoI_MJD_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
     Hist_OnData_RoI_MJD_Sum += [ROOT.TH1D("Hist_OnData_RoI_MJD_Sum_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
@@ -6765,18 +6680,21 @@ Smoothing = True
 #set_palette('default')
 #set_palette('gray')
 
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,3)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,7)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,7)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,7)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,7)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,7)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,5,7)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,6,7)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,1)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,2)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,3)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,4)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,5)
 #SingleSourceAnalysis(sample_list,drawMap,Smoothing,5,6)
+#SingleSourceAnalysis(sample_list,drawMap,Smoothing,6,7)
 
+SingleSourceAnalysis(sample_list,drawMap,Smoothing,int(sys.argv[2]),int(sys.argv[3]))
+
+Hist_EffArea_Sum.Print("All")

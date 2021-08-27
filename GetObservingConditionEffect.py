@@ -116,6 +116,7 @@ energy_bin += [int(pow(10,3.0))]
 energy_bin += [int(pow(10,3.33))]
 energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
+energy_bin += [int(pow(10,4.4))]
 
 root_file_tags = []
 mjd_tag = []
@@ -424,7 +425,7 @@ FilePath_List = []
 #            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
 
 #FilePath = "output_nominal/ObservingEffect.root"
-FilePath = "output_nocameracorrect/ObservingEffect.root"
+FilePath = "output_nocorrect/ObservingEffect.root"
 FilePath_List += [FilePath]
 print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
 for energy in range(0,len(energy_bin)-1):
