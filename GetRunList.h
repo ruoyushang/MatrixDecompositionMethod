@@ -271,6 +271,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
         }
         if (source=="Everything")
         {
+            list_temp = GetRunListFromFile("LowElevationDarkV6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("PKS1424V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("PG1553V6");

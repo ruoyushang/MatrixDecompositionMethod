@@ -2019,235 +2019,241 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     roi_radius_inner.push_back(0.);
     roi_radius_outer.push_back(10.);
 
-    roi_name.push_back("Validation");
-    roi_ra.push_back(mean_tele_point_ra);
-    roi_dec.push_back(mean_tele_point_dec);
-    roi_radius_inner.push_back(0.);
-    roi_radius_outer.push_back(1.0);
-
-    if (TString(target).Contains("MGRO_J1908")) 
+    if (!isON) 
     {
-        roi_name.push_back("VHE region");
-        roi_ra.push_back(286.84);
-        roi_dec.push_back(6.22);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.5);
-
-        roi_name.push_back("PSR region");
-        roi_ra.push_back(286.97);
-        roi_dec.push_back(6.02);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.2);
-
-        roi_name.push_back("SNR region");
-        roi_ra.push_back(287.03);
-        roi_dec.push_back(6.42);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.2);
-
-        //roi_name.push_back("PSR J1907+0602");
-        //roi_ra.push_back(286.975);
-        //roi_dec.push_back(6.03777777778);
-        //roi_radius_inner.push_back(0.);
-        //roi_radius_outer.push_back(0.2);
-
-        //roi_name.push_back("G40.5-0.5");
-        //roi_ra.push_back(286.786);
-        //roi_dec.push_back(6.498);
-        //roi_radius_inner.push_back(0.);
-        //roi_radius_outer.push_back(0.2);
-
-        //roi_name.push_back("inner ring");
-        //roi_ra.push_back(287.058);
-        //roi_dec.push_back(6.291);
-        //roi_radius_inner.push_back(0.);
-        //roi_radius_outer.push_back(0.3);
-
-        //roi_name.push_back("outer ring");
-        //roi_ra.push_back(287.058);
-        //roi_dec.push_back(6.291);
-        //roi_radius_inner.push_back(0.3);
-        //roi_radius_outer.push_back(0.8);
-    }
-    else if (TString(target).Contains("SS433")) 
-    {
-        // Use RoI definition from here: https://veritas.sao.arizona.edu/wiki/index.php/SS433_Observations#EventDisplay_v4.80a_analysis_on_SS433_.28Payel.29
-        
-        roi_name.push_back("SS 433");
-        roi_ra.push_back(287.9565);
-        roi_dec.push_back(4.9827);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.15);
-
-        roi_name.push_back("SS 433 e1");
-        roi_ra.push_back(288.404);
-        roi_dec.push_back(4.930);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.13);
-
-        roi_name.push_back("SS 433 e1 max");
-        roi_ra.push_back(288.207);
-        roi_dec.push_back(4.951);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.13);
-
-        roi_name.push_back("SS 433 e2");
-        roi_ra.push_back(288.58);
-        roi_dec.push_back(4.91);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.32);
-
-        roi_name.push_back("SS 433 w1");
-        roi_ra.push_back(287.42);
-        roi_dec.push_back(5.04);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.14);
-    }
-    else if (TString(target).Contains("MAGIC_J1857")) 
-    {
-        roi_name.push_back("HESS J1857+026");
-        roi_ra.push_back(284.295833333);
-        roi_dec.push_back(2.66666666667);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
-
-        roi_name.push_back("HESS J1858+020");
-        roi_ra.push_back(284.583333333);
-        roi_dec.push_back(2.09);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
-    }
-    else if (TString(target).Contains("MGRO_J2031")) 
-    {
-        roi_name.push_back("MGRO J2031+41");
+        roi_name.push_back("Validation");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius_inner.push_back(0.);
         roi_radius_outer.push_back(1.0);
-        roi_name.push_back("PSR J2032+4127");
-        roi_ra.push_back(308.041666667);
-        roi_dec.push_back(41.4594444444);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(1.0);
-    }
-    else if (TString(target).Contains("Crab")) 
-    {
-        roi_name.push_back("Crab");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        if (TString(target).Contains("Offset"))
-        {
-            roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(2.0);
-        } 
-        else
-        {
-            roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.5);
-        }
-    }
-    else if (TString(target).Contains("Mrk421")) 
-    {
-        roi_name.push_back("Mrk421");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.5);
-    }
-    else if (TString(target).Contains("Geminga")) 
-    {
-        roi_name.push_back("Geminga Pulsar");
-        roi_ra.push_back(98.476);
-        roi_dec.push_back(17.770);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(1.5);
-    }
-    else if (TString(target).Contains("Cygnus")) 
-    {
-        roi_name.push_back("Cygnus");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.5);
-    }
-    else if (TString(target).Contains("IC443")) 
-    {
-        roi_name.push_back("IC 443");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.5);
-    }
-    else if (TString(target).Contains("1ES1218")) 
-    {
-        roi_name.push_back("W Comae");
-        roi_ra.push_back(185.382);
-        roi_dec.push_back(28.233);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
-
-        roi_name.push_back("1ES 1218+304");
-        roi_ra.push_back(185.360);
-        roi_dec.push_back(30.191);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
-
-        roi_name.push_back("1ES 1215+303");
-        roi_ra.push_back(184.616);
-        roi_dec.push_back(30.130);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
-    }
-    else if (TString(target).Contains("WComae")) 
-    {
-        roi_name.push_back("W Comae");
-        roi_ra.push_back(185.382);
-        roi_dec.push_back(28.233);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
-
-        roi_name.push_back("1ES 1218+304");
-        roi_ra.push_back(185.360);
-        roi_dec.push_back(30.191);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
-
-        roi_name.push_back("1ES 1215+303");
-        roi_ra.push_back(184.616);
-        roi_dec.push_back(30.130);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
-    }
-    else if (TString(target).Contains("Boomerang")) 
-    {
-        roi_name.push_back("Boomerang");
-        roi_ra.push_back(337.001);
-        roi_dec.push_back(60.978);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.5);
-
-        roi_name.push_back("Unknown");
-        roi_ra.push_back(340.278);
-        roi_dec.push_back(61.112);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
-    }
-    else if (TString(target).Contains("GammaCygni")) 
-    {
-        roi_name.push_back("Gamma Cygni");
-        roi_ra.push_back(304.967);
-        roi_dec.push_back(40.811);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.6);
     }
     else
     {
-        roi_name.push_back("Center");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.3);
+        if (TString(target).Contains("MGRO_J1908")) 
+        {
+            roi_name.push_back("VHE region");
+            roi_ra.push_back(286.84);
+            roi_dec.push_back(6.22);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.5);
+
+            roi_name.push_back("PSR region");
+            roi_ra.push_back(286.97);
+            roi_dec.push_back(6.02);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.2);
+
+            roi_name.push_back("SNR region");
+            roi_ra.push_back(287.03);
+            roi_dec.push_back(6.42);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.2);
+
+            //roi_name.push_back("PSR J1907+0602");
+            //roi_ra.push_back(286.975);
+            //roi_dec.push_back(6.03777777778);
+            //roi_radius_inner.push_back(0.);
+            //roi_radius_outer.push_back(0.2);
+
+            //roi_name.push_back("G40.5-0.5");
+            //roi_ra.push_back(286.786);
+            //roi_dec.push_back(6.498);
+            //roi_radius_inner.push_back(0.);
+            //roi_radius_outer.push_back(0.2);
+
+            //roi_name.push_back("inner ring");
+            //roi_ra.push_back(287.058);
+            //roi_dec.push_back(6.291);
+            //roi_radius_inner.push_back(0.);
+            //roi_radius_outer.push_back(0.3);
+
+            //roi_name.push_back("outer ring");
+            //roi_ra.push_back(287.058);
+            //roi_dec.push_back(6.291);
+            //roi_radius_inner.push_back(0.3);
+            //roi_radius_outer.push_back(0.8);
+        }
+        else if (TString(target).Contains("SS433")) 
+        {
+            // Use RoI definition from here: https://veritas.sao.arizona.edu/wiki/index.php/SS433_Observations#EventDisplay_v4.80a_analysis_on_SS433_.28Payel.29
+            
+            roi_name.push_back("SS 433");
+            roi_ra.push_back(287.9565);
+            roi_dec.push_back(4.9827);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.15);
+
+            roi_name.push_back("SS 433 e1");
+            roi_ra.push_back(288.404);
+            roi_dec.push_back(4.930);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.13);
+
+            roi_name.push_back("SS 433 e1 max");
+            roi_ra.push_back(288.207);
+            roi_dec.push_back(4.951);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.13);
+
+            roi_name.push_back("SS 433 e2");
+            roi_ra.push_back(288.58);
+            roi_dec.push_back(4.91);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.32);
+
+            roi_name.push_back("SS 433 w1");
+            roi_ra.push_back(287.42);
+            roi_dec.push_back(5.04);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.14);
+        }
+        else if (TString(target).Contains("MAGIC_J1857")) 
+        {
+            roi_name.push_back("HESS J1857+026");
+            roi_ra.push_back(284.295833333);
+            roi_dec.push_back(2.66666666667);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.3);
+
+            roi_name.push_back("HESS J1858+020");
+            roi_ra.push_back(284.583333333);
+            roi_dec.push_back(2.09);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.3);
+        }
+        else if (TString(target).Contains("MGRO_J2031")) 
+        {
+            roi_name.push_back("MGRO J2031+41");
+            roi_ra.push_back(mean_tele_point_ra);
+            roi_dec.push_back(mean_tele_point_dec);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(1.0);
+            roi_name.push_back("PSR J2032+4127");
+            roi_ra.push_back(308.041666667);
+            roi_dec.push_back(41.4594444444);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(1.0);
+        }
+        else if (TString(target).Contains("Crab")) 
+        {
+            roi_name.push_back("Crab");
+            roi_ra.push_back(mean_tele_point_ra);
+            roi_dec.push_back(mean_tele_point_dec);
+            if (TString(target).Contains("Offset"))
+            {
+                roi_radius_inner.push_back(0.);
+                roi_radius_outer.push_back(2.0);
+            } 
+            else
+            {
+                roi_radius_inner.push_back(0.);
+                roi_radius_outer.push_back(0.5);
+            }
+        }
+        else if (TString(target).Contains("Mrk421")) 
+        {
+            roi_name.push_back("Mrk421");
+            roi_ra.push_back(mean_tele_point_ra);
+            roi_dec.push_back(mean_tele_point_dec);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.5);
+        }
+        else if (TString(target).Contains("Geminga")) 
+        {
+            roi_name.push_back("Geminga Pulsar");
+            roi_ra.push_back(98.476);
+            roi_dec.push_back(17.770);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(1.5);
+        }
+        else if (TString(target).Contains("Cygnus")) 
+        {
+            roi_name.push_back("Cygnus");
+            roi_ra.push_back(mean_tele_point_ra);
+            roi_dec.push_back(mean_tele_point_dec);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.5);
+        }
+        else if (TString(target).Contains("IC443")) 
+        {
+            roi_name.push_back("IC 443");
+            roi_ra.push_back(mean_tele_point_ra);
+            roi_dec.push_back(mean_tele_point_dec);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.5);
+        }
+        else if (TString(target).Contains("1ES1218")) 
+        {
+            roi_name.push_back("W Comae");
+            roi_ra.push_back(185.382);
+            roi_dec.push_back(28.233);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.3);
+
+            roi_name.push_back("1ES 1218+304");
+            roi_ra.push_back(185.360);
+            roi_dec.push_back(30.191);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.3);
+
+            roi_name.push_back("1ES 1215+303");
+            roi_ra.push_back(184.616);
+            roi_dec.push_back(30.130);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.3);
+        }
+        else if (TString(target).Contains("WComae")) 
+        {
+            roi_name.push_back("W Comae");
+            roi_ra.push_back(185.382);
+            roi_dec.push_back(28.233);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.3);
+
+            roi_name.push_back("1ES 1218+304");
+            roi_ra.push_back(185.360);
+            roi_dec.push_back(30.191);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.3);
+
+            roi_name.push_back("1ES 1215+303");
+            roi_ra.push_back(184.616);
+            roi_dec.push_back(30.130);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.3);
+        }
+        else if (TString(target).Contains("Boomerang")) 
+        {
+            roi_name.push_back("Boomerang");
+            roi_ra.push_back(337.001);
+            roi_dec.push_back(60.978);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.5);
+
+            roi_name.push_back("Unknown");
+            roi_ra.push_back(340.278);
+            roi_dec.push_back(61.112);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.3);
+        }
+        else if (TString(target).Contains("GammaCygni")) 
+        {
+            roi_name.push_back("Gamma Cygni");
+            roi_ra.push_back(304.967);
+            roi_dec.push_back(40.811);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.6);
+        }
+        else
+        {
+            roi_name.push_back("Center");
+            roi_ra.push_back(mean_tele_point_ra);
+            roi_dec.push_back(mean_tele_point_dec);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.3);
+        }
     }
+
 
     //for (int star=0;star<FaintStars_Data.size();star++)
     //{
