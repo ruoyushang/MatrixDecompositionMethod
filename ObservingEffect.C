@@ -483,8 +483,10 @@ void ObservingEffect()
                     Hist_Source_Theta2_Weighted.at(source).at(energy).Fill(theta2,weight);
                     Hist_OnData_PerYear_Xoff.at(year).at(energy).Fill(Xoff,weight);
                     Hist_OnData_PerYear_Yoff.at(year).at(energy).Fill(Yoff,weight);
-                    //if ((tele_azim>90.-45. && tele_azim<90.+45.) || (tele_azim>270.-45. && tele_azim<270.+45.))
-                    if ((tele_azim<45.) || (tele_azim>180.-45. && tele_azim<180.+45.) || (tele_azim>315.))
+                    //if ((tele_azim>90.-45. && tele_azim<90.+45.) || (tele_azim>270.-45. && tele_azim<270.+45.)) // east & west
+                    //if ((tele_azim<45.) || (tele_azim>180.-45. && tele_azim<180.+45.) || (tele_azim>315.))  // north & south
+                    if ((tele_azim<45.) || (tele_azim>315.))  // north
+                    //if (tele_azim>180.-45. && tele_azim<180.+45.)  // south
                     {
                         Hist_OnData_PerElev_Xoff.at(elevation).at(energy).Fill(Xoff,weight);
                         Hist_OnData_PerElev_Yoff.at(elevation).at(energy).Fill(Yoff,weight);
@@ -502,8 +504,10 @@ void ObservingEffect()
                 }
                 if (ControlSelectionTheta2())
                 {
-                    //if ((tele_azim>90.-45. && tele_azim<90.+45.) || (tele_azim>270.-45. && tele_azim<270.+45.))
-                    if ((tele_azim<45.) || (tele_azim>180.-45. && tele_azim<180.+45.) || (tele_azim>315.))
+                    //if ((tele_azim>90.-45. && tele_azim<90.+45.) || (tele_azim>270.-45. && tele_azim<270.+45.)) // east & west
+                    //if ((tele_azim<45.) || (tele_azim>180.-45. && tele_azim<180.+45.) || (tele_azim>315.))  // north & south
+                    if ((tele_azim<45.) || (tele_azim>315.))  // north
+                    //if (tele_azim>180.-45. && tele_azim<180.+45.)  // south
                     {
                         Hist_CRData_PerElev_Xoff.at(elevation).at(energy).Fill(Xoff);
                         Hist_CRData_PerElev_Yoff.at(elevation).at(energy).Fill(Yoff);

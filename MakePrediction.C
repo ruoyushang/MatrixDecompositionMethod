@@ -115,8 +115,6 @@ double svd_threshold_scale = 1.0;
 
 vector<int> dark_stable_rank;
 vector<double> data_gamma_count;
-vector<double> data_control_count;
-vector<double> data_validate_count;
 vector<double> dark_sigma_rank0;
 vector<double> dark_sigma_rank1;
 vector<double> dark_sigma_rank2;
@@ -132,10 +130,9 @@ vector<double> bkgd_coeff_chi2;
 vector<double> par8_coeff_chi2;
 vector<double> par9_coeff_chi2;
 vector<double> wpar9_coeff_chi2;
-vector<double> bkgd_control_count;
-vector<double> bkgd_validate_count;
-vector<double> rfov_validate_count;
-vector<double> comb_validate_count;
+vector<vector<double>> data_validate_count;
+vector<vector<double>> bkgd_validate_count;
+vector<vector<double>> rfov_validate_count;
 vector<double> rank0_gamma_count;
 vector<double> rank1_gamma_count;
 vector<double> rank2_gamma_count;
@@ -3953,10 +3950,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             Hist_OnData_CR_Skymap_RoI_Y.at(nth_roi).at(e).Scale(scale_yoff);
             Hist_OnData_CR_RoI_MJD.at(nth_roi).at(e).Scale(scale_energy);
         }
-        data_control_count.push_back(Hist_OnData_SR_RoI_Energy.at(0).at(e).Integral());
-        data_validate_count.push_back(Hist_OnData_SR_RoI_Energy.at(1).at(e).Integral());
-        bkgd_control_count.push_back(Hist_OnData_CR_RoI_Energy.at(0).at(e).Integral());
-        bkgd_validate_count.push_back(Hist_OnData_CR_RoI_Energy.at(1).at(e).Integral());
         double scale_rfov = 0.;
         if (Hist_OnData_CR_RoI_Energy.at(0).at(e).Integral()>0.)
         {
@@ -3966,20 +3959,42 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnRFoV_CR_Skymap_Theta2.at(e).Scale(scale_yoff*scale_rfov);
         Hist_OnRFoV_CR_Skymap.at(e).Scale(scale_yoff*scale_rfov);
         Hist_OnRFoV_CR_Skymap_Galactic.at(e).Scale(scale_yoff*scale_rfov);
+        vector<double> this_energy_data_validate_count;
+        vector<double> this_energy_bkgd_validate_count;
+        vector<double> this_energy_rfov_validate_count;
         for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
         {
+            if (!isON)
+            {
+                scale_rfov = 0.;
+                if (nth_roi % 2 == 0)
+                {
+                    if (Hist_OnData_CR_RoI_Energy.at(nth_roi).at(e).Integral()>0.)
+                    {
+                        scale_rfov = Hist_OnData_SR_RoI_Energy.at(nth_roi).at(e).Integral()/Hist_OnData_CR_RoI_Energy.at(nth_roi).at(e).Integral();
+                    }
+                }
+                else
+                {
+                    if (Hist_OnData_CR_RoI_Energy.at(nth_roi-1).at(e).Integral()>0.)
+                    {
+                        scale_rfov = Hist_OnData_SR_RoI_Energy.at(nth_roi-1).at(e).Integral()/Hist_OnData_CR_RoI_Energy.at(nth_roi-1).at(e).Integral();
+                    }
+                }
+            }
             Hist_OnRFoV_CR_RoI_Energy.at(nth_roi).at(e).Scale(scale_energy*scale_rfov);
+            this_energy_data_validate_count.push_back(Hist_OnData_SR_RoI_Energy.at(nth_roi).at(e).Integral());
+            this_energy_bkgd_validate_count.push_back(Hist_OnData_CR_RoI_Energy.at(nth_roi).at(e).Integral());
+            this_energy_rfov_validate_count.push_back(Hist_OnRFoV_CR_RoI_Energy.at(nth_roi).at(e).Integral());
         }
-        rfov_validate_count.push_back(Hist_OnRFoV_CR_RoI_Energy.at(1).at(e).Integral());
+        data_validate_count.push_back(this_energy_data_validate_count);
+        bkgd_validate_count.push_back(this_energy_bkgd_validate_count);
+        rfov_validate_count.push_back(this_energy_rfov_validate_count);
         for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
             Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e).Reset();
         }
         Hist_OnDark_SR_Energy_Tmp.at(e).Reset();
-        double LRR_validation = Hist_OnData_CR_RoI_Energy.at(1).at(e).Integral();
-        double RFoV_validation = Hist_OnRFoV_CR_RoI_Energy.at(1).at(e).Integral();
-        double comb_validation = (LRR_validation+RFoV_validation)/2.;
-        comb_validate_count.push_back(comb_validation);
 
         mtx_data = fillMatrix(&Hist_OnData_MSCLW.at(e));
         mtx_dark = fillMatrix(&Hist_OnDark_MSCLW.at(e));
@@ -4277,8 +4292,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     NewInfoTree.Branch("Zenith_RMS_dark",&Zenith_RMS_dark,"Zenith_RMS_dark/D");
     NewInfoTree.Branch("max_chi2_diff2_position","std::vector<double>",&max_chi2_diff2_position);
     NewInfoTree.Branch("data_gamma_count","std::vector<double>",&data_gamma_count);
-    NewInfoTree.Branch("data_control_count","std::vector<double>",&data_control_count);
-    NewInfoTree.Branch("data_validate_count","std::vector<double>",&data_validate_count);
     NewInfoTree.Branch("dark_stable_rank","std::vector<int>",&dark_stable_rank);
     NewInfoTree.Branch("dark_sigma_rank0","std::vector<double>",&dark_sigma_rank0);
     NewInfoTree.Branch("dark_sigma_rank1","std::vector<double>",&dark_sigma_rank1);
@@ -4295,10 +4308,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     NewInfoTree.Branch("par8_coeff_chi2","std::vector<double>",&par8_coeff_chi2);
     NewInfoTree.Branch("par9_coeff_chi2","std::vector<double>",&par9_coeff_chi2);
     NewInfoTree.Branch("wpar9_coeff_chi2","std::vector<double>",&wpar9_coeff_chi2);
-    NewInfoTree.Branch("bkgd_control_count","std::vector<double>",&bkgd_control_count);
-    NewInfoTree.Branch("bkgd_validate_count","std::vector<double>",&bkgd_validate_count);
-    NewInfoTree.Branch("rfov_validate_count","std::vector<double>",&rfov_validate_count);
-    NewInfoTree.Branch("comb_validate_count","std::vector<double>",&comb_validate_count);
+    NewInfoTree.Branch("data_validate_count","std::vector<std::vector<double>>",&data_validate_count);
+    NewInfoTree.Branch("bkgd_validate_count","std::vector<std::vector<double>>",&bkgd_validate_count);
+    NewInfoTree.Branch("rfov_validate_count","std::vector<std::vector<double>>",&rfov_validate_count);
     NewInfoTree.Branch("rank0_gamma_count","std::vector<double>",&rank0_gamma_count);
     NewInfoTree.Branch("rank1_gamma_count","std::vector<double>",&rank1_gamma_count);
     NewInfoTree.Branch("rank2_gamma_count","std::vector<double>",&rank2_gamma_count);

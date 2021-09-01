@@ -2013,22 +2013,65 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     GetBrightStars();
     GetGammaSources();
 
-    roi_name.push_back("Control region");
-    roi_ra.push_back(mean_tele_point_ra);
-    roi_dec.push_back(mean_tele_point_dec);
-    roi_radius_inner.push_back(0.);
-    roi_radius_outer.push_back(10.);
-
     if (!isON) 
     {
-        roi_name.push_back("Validation");
+        roi_name.push_back("Control region r=0.5 deg");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius_inner.push_back(0.5);
+        roi_radius_outer.push_back(10.);
+
+        roi_name.push_back("Validation r=0.5 deg");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(0.5);
+
+        roi_name.push_back("Control region r=1.0 deg");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius_inner.push_back(1.);
+        roi_radius_outer.push_back(10.);
+
+        roi_name.push_back("Validation r=1.0 deg");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
         roi_radius_inner.push_back(0.);
         roi_radius_outer.push_back(1.0);
+
+        roi_name.push_back("Control region r=1.5 deg");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius_inner.push_back(1.5);
+        roi_radius_outer.push_back(10.);
+
+        roi_name.push_back("Validation r=1.5 deg");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(1.5);
+
+        roi_name.push_back("Control region r=2.0 deg");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius_inner.push_back(2.0);
+        roi_radius_outer.push_back(10.);
+
+        roi_name.push_back("Validation r=2.0 deg");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(2.0);
     }
     else
     {
+
+        roi_name.push_back("Control region");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius_inner.push_back(0.);
+        roi_radius_outer.push_back(10.);
+
         if (TString(target).Contains("MGRO_J1908")) 
         {
             roi_name.push_back("VHE region");
@@ -2136,16 +2179,24 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         }
         else if (TString(target).Contains("Crab")) 
         {
-            roi_name.push_back("Crab");
-            roi_ra.push_back(mean_tele_point_ra);
-            roi_dec.push_back(mean_tele_point_dec);
             if (TString(target).Contains("Offset"))
             {
+                roi_name.push_back("Crab r=0.5 deg");
+                roi_ra.push_back(mean_tele_point_ra);
+                roi_dec.push_back(mean_tele_point_dec);
                 roi_radius_inner.push_back(0.);
-                roi_radius_outer.push_back(2.0);
+                roi_radius_outer.push_back(0.5);
+                roi_name.push_back("Crab r=1.0 deg");
+                roi_ra.push_back(mean_tele_point_ra);
+                roi_dec.push_back(mean_tele_point_dec);
+                roi_radius_inner.push_back(0.);
+                roi_radius_outer.push_back(1.0);
             } 
             else
             {
+                roi_name.push_back("Crab");
+                roi_ra.push_back(mean_tele_point_ra);
+                roi_dec.push_back(mean_tele_point_dec);
                 roi_radius_inner.push_back(0.);
                 roi_radius_outer.push_back(0.5);
             }
@@ -3111,7 +3162,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_CR_Zenith.at(energy).Fill(Shower_Ze,yoff_weight);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
-                        if (nth_roi>0)
+                        if (nth_roi>0 || !isON)
                         {
                             if (RoIFoV(nth_roi)) 
                             {
@@ -3505,7 +3556,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_SR_Zenith.at(energy).Fill(Shower_Ze,weight);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
-                        if (nth_roi>0)
+                        if (nth_roi>0 || !isON)
                         {
                             if (RoIFoV(nth_roi)) 
                             {
@@ -3747,7 +3798,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //                Hist_OnData_SR_Energy.at(energy).Fill(ErecS*1000.,gamma_weight);
     //                for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
     //                {
-    //                    if (nth_roi>0)
+    //                    if (nth_roi>0 || !isON)
     //                    {
     //                        if (RoIFoV(nth_roi)) 
     //                        {
