@@ -57,12 +57,9 @@ energy_bin_cut_up = 7
 #elev_range = [40,70]
 #elev_range = [60,80]
 #elev_range = [25,55]
-elev_range = [30,40,50,60,70,80,90]
-#elev_range = [80,90]
-#elev_range = [70,80]
-#elev_range = [60,70]
-#elev_range = [50,60]
-#elev_range = [40,50]
+elev_range = [40,50,60,70,80,90]
+#elev_range = [70,80,90]
+#elev_range = [50,60,70]
 
 theta2_bins = [0,4]
 #theta2_bins = [0,6]
@@ -2255,10 +2252,10 @@ def flux_1es1218_func(x):
 def flux_geminag_func(x):
     return 3.5*pow(10,-12)*pow(x*1./1000.,-2.2)
 
-def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalibrate,doBkgFlux):
+def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalibrate,doBkgFlux,E_index):
     
     #calibration = [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]
-    calibration = [1.470452641661792e-08, 5.2311502663450365e-09, 1.159719781110322e-09, 2.630363289266908e-10, 6.638461971443425e-11, 1.5964174853505304e-11, 3.351857085873978e-12, 7.27156325287719e-13, 2.2633165287553982e-13, 6.490340364957579e-14, 2.4718218421940913e-14, 7.744959199854498e-15]
+    calibration = [1.4882882361333352e-08, 5.263239643322328e-09, 1.0802968196388149e-09, 2.1973457481820704e-10, 5.542403247199573e-11, 1.3479175864778823e-11, 2.9508548473821887e-12, 6.731610457903672e-13, 2.2028215887312284e-13, 6.718074395757896e-14, 2.5306409498975782e-14, 9.210048055230929e-15]
 
     Hist_Flux = []
     for nth_roi in range(0,len(hist_data)):
@@ -2306,6 +2303,12 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
         roi_xdata += [xdata]
         roi_ydata += [ydata]
         roi_error += [error]
+
+    for nth_roi in range(0,len(roi_ydata)):
+        for binx in range(0,len(roi_ydata[nth_roi])):
+            roi_ydata[nth_roi][binx] = pow(roi_xdata[nth_roi][binx],E_index)*roi_ydata[nth_roi][binx]
+            roi_error[nth_roi][binx] = pow(roi_xdata[nth_roi][binx],E_index)*roi_error[nth_roi][binx]
+
     cycol = cycle('bgrcmk')
     for nth_roi in range(0,len(hist_data)):
         ax.errorbar(roi_xdata[nth_roi], roi_ydata[nth_roi], roi_error[nth_roi], color=next(cycol), marker='s', ls='none', label='%s'%(legends[nth_roi]))
@@ -2321,13 +2324,13 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
             print ('background flux = %s'%(np.array(roi_ydata[nth_roi])))
         if 'Crab' in legends[nth_roi]:
             vectorize_f = np.vectorize(flux_crab_func)
-            ydata = vectorize_f(xdata)
+            ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='1508.06442')
             if doCalibrate:
-                xdata = []
+                xdata_array = []
                 for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
-                    xdata += [Hist_Flux[0].GetBinLowEdge(binx+1)]
-                ydata = vectorize_f(xdata)
+                    xdata_array += [Hist_Flux[0].GetBinLowEdge(binx+1)]
+                ydata = pow(np.array(xdata_array),E_index)*vectorize_f(xdata_array)
                 calibration = []
                 for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
                     if Hist_Flux[0].GetBinContent(binx+1)>0.:
@@ -2337,26 +2340,28 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
                 print ('calibration = %s'%(calibration))
         if 'VHE region' in legends[nth_roi]:
             vectorize_f = np.vectorize(flux_j1908_func)
-            ydata = vectorize_f(xdata)
+            ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='1404.7185')
         if 'IC 443' in legends[nth_roi]:
             vectorize_f = np.vectorize(flux_ic443_func)
-            ydata = vectorize_f(xdata)
+            ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='0905.3291')
         if '1ES 1218+304' in legends[nth_roi]:
             vectorize_f = np.vectorize(flux_1es1218_func)
-            ydata = vectorize_f(xdata)
+            ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='0810.0301')
         if 'Geminga Pulsar' in legends[nth_roi]:
             vectorize_f = np.vectorize(flux_geminag_func)
-            ydata = vectorize_f(xdata)
+            ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='extrapolation')
         if 'J1857+026' in legends[nth_roi]:
             vectorize_f = np.vectorize(flux_j1857_func)
-            ydata = vectorize_f(xdata)
+            ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='From Aleksic et al. (2014)')
 
     ax.legend(loc='best')
+    ax.set_xlabel('Energy [GeV]')
+    ax.set_ylabel('$TeV^{-1}cm^{-2}s^{-1}$')
     ax.set_xscale('log')
     ax.set_yscale('log')
     return(ax)
@@ -3080,7 +3085,7 @@ def PlotsStackedHistograms(tag):
             Hist_OnBkgd_RoI_X_Sum[nth_roi].Rebin(2)
             Hist_OnData_RoI_Y_Sum[nth_roi].Rebin(2)
             Hist_OnBkgd_RoI_Y_Sum[nth_roi].Rebin(2)
-    for nth_roi in range(2,len(roi_ra)):
+    for nth_roi in range(0,len(roi_ra)):
         Hists = []
         legends = []
         colors = []
@@ -3117,7 +3122,7 @@ def PlotsStackedHistograms(tag):
     #    for nth_roi in range(0,len(roi_ra)):
     #        Hist_OnData_RoI_Theta2_Sum[nth_roi].Rebin(2)
     #        Hist_OnBkgd_RoI_Theta2_Sum[nth_roi].Rebin(2)
-    for nth_roi in range(0,len(roi_ra)):
+    for nth_roi in range(1,len(roi_ra)):
         Hists = []
         legends = []
         colors = []
@@ -3154,19 +3159,18 @@ def PlotsStackedHistograms(tag):
     Hist_bkgd = []
     radii = []
     legends = []
-    #for nth_roi in range(0,len(roi_ra)):
-    for nth_roi in range(2,len(roi_ra)):
+    for nth_roi in range(1,len(roi_ra)):
         if 'b-mag' in roi_name[nth_roi]: continue
         Hist_data += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
         Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
         radii += [roi_radius[nth_roi]]
         legends += ['%s'%(roi_name[nth_roi])]
     title = 'energy [GeV]'
-    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,True,False)
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,True,False,0.)
     plotname = 'Flux_Calibrate_%s'%(tag)
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
     ax.cla()
-    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False,False)
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False,False,0.)
     plotname = 'Flux_NoCalibrate_%s'%(tag)
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
     ax.cla()
@@ -3179,7 +3183,7 @@ def PlotsStackedHistograms(tag):
     Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[1]]
     legends += ['background flux']
     title = 'energy [GeV]'
-    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False,True)
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False,True,0.)
     plotname = 'FluxE27_MDM_%s'%(tag)
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
     ax.cla()
@@ -4723,7 +4727,6 @@ def MakeMWLSkymap(Hist_Veritas_input,contour_level,xtitle,ytitle,name):
     #    mycircles[nth_roi].SetFillStyle(0)
     #    mycircles[nth_roi].SetLineColor(2)
     #    if nth_roi==0: continue
-    #    if nth_roi==1: continue
     #    mycircles[nth_roi].Draw("same")
     pad3.cd()
     lumilab3 = ROOT.TLatex(0.15,0.50,'E >%0.1f GeV (%.1f hrs)'%(energy_bin[energy_bin_cut_low],exposure_hours) )
@@ -4891,7 +4894,6 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
-        if nth_roi==1: continue
         mycircles[nth_roi].Draw("same")
     pad3.cd()
     #lumilab1 = ROOT.TLatex(0.15,0.70,'max. %0.1f#sigma (syst = %0.1f%%)'%(max_sig,syst_method*100.) )
@@ -4938,7 +4940,6 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
-        if nth_roi==1: continue
         mycircles[nth_roi].Draw("same")
     Hist_Skymap_Excess.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Excess.GetXaxis().SetTickLength(0)
@@ -4973,7 +4974,6 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     #    mycircles[nth_roi].SetFillStyle(0)
     #    mycircles[nth_roi].SetLineColor(2)
     #    if nth_roi==0: continue
-    #    if nth_roi==1: continue
     #    mycircles[nth_roi].Draw("same")
     #mycircles += [ROOT.TEllipse(-1.*286.786,6.498,0.5)]
     #mycircles[0].SetFillStyle(0)
@@ -5062,7 +5062,6 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
-        if nth_roi==1: continue
         mycircles[nth_roi].Draw("same")
     Hist_Skymap_Ratio.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_Ratio.GetXaxis().SetTickLength(0)
@@ -5119,19 +5118,18 @@ def Make2DSignificancePlot(syst_method,Hist_SR_input,Hist_Bkg_input,Hist_Syst_in
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
-    for star in range(0,len(bright_star_markers)):
-        bright_star_markers[star].Draw("same")
-        bright_star_labels[star].Draw("same")
-    for star in range(0,len(faint_star_markers)):
-        faint_star_markers[star].Draw("same")
-        faint_star_labels[star].Draw("same")
+    #for star in range(0,len(bright_star_markers)):
+    #    bright_star_markers[star].Draw("same")
+    #    bright_star_labels[star].Draw("same")
+    #for star in range(0,len(faint_star_markers)):
+    #    faint_star_markers[star].Draw("same")
+    #    faint_star_labels[star].Draw("same")
     mycircles = []
     for nth_roi in range(0,len(roi_ra)):
         mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
-        if nth_roi==1: continue
         mycircles[nth_roi].Draw("same")
     Hist_Skymap_zoomin.GetXaxis().SetLabelOffset(999)
     Hist_Skymap_zoomin.GetXaxis().SetTickLength(0)
@@ -5303,15 +5301,15 @@ def Make2DProjectionPlot(Hist_Data,xtitle,ytitle,name,doProj):
 def MatrixDecompositionDemo(name):
 
     canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
-    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.85,1,1)
     pad3.SetBottomMargin(0.0)
     pad3.SetTopMargin(0.03)
     pad3.SetBorderMode(1)
-    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.85)
     pad1.SetBottomMargin(0.15)
     pad1.SetRightMargin(0.15)
     pad1.SetLeftMargin(0.15)
-    pad1.SetTopMargin(0.0)
+    pad1.SetTopMargin(0.05)
     pad1.SetBorderMode(0)
     pad1.Draw()
     pad3.Draw()
@@ -5324,17 +5322,19 @@ def MatrixDecompositionDemo(name):
     line2.SetLineStyle(1)
     line2.SetLineColor(2)
     line2.SetLineWidth(2)
-    line3 = ROOT.TLine(MSCL_plot_lower,MSCW_chi2_upper,MSCL_chi2_upper,MSCW_chi2_upper)
+    space_x = 0.5*(MSCL_blind_cut-MSCL_plot_lower)
+    space_y = 0.5*(MSCW_blind_cut-MSCW_plot_lower)
+    line3 = ROOT.TLine(MSCL_plot_lower,MSCW_blind_cut+space_y,MSCL_blind_cut+space_x,MSCW_blind_cut+space_y)
     line3.SetLineStyle(10)
     line3.SetLineColor(2)
     line3.SetLineWidth(2)
-    line4 = ROOT.TLine(MSCL_chi2_upper,MSCW_plot_lower,MSCL_chi2_upper,MSCW_chi2_upper)
+    line4 = ROOT.TLine(MSCL_blind_cut+space_x,MSCW_plot_lower,MSCL_blind_cut+space_x,MSCW_blind_cut+space_y)
     line4.SetLineStyle(10)
     line4.SetLineColor(2)
     line4.SetLineWidth(2)
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5344,10 +5344,12 @@ def MatrixDecompositionDemo(name):
     Hist2D_OnData_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
+    #line3.Draw("same")
+    #line4.Draw("same")
     canvas.SaveAs('output_plots/OnData_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{OFF}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{OFF}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5357,6 +5359,8 @@ def MatrixDecompositionDemo(name):
     Hist2D_OnDark_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
+    #line3.Draw("same")
+    #line4.Draw("same")
     canvas.SaveAs('output_plots/OnDark_%s_%s.png'%(name,selection_tag))
 
     entry = 1
@@ -5409,7 +5413,7 @@ def MatrixDecompositionDemo(name):
     pad1.SetLogz(0)
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#delta H_{ij} coefficents' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#delta H_{ij} coefficents' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5424,7 +5428,7 @@ def MatrixDecompositionDemo(name):
     pad1.SetLogz(0)
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#delta H_{ij} coefficents' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#delta H_{ij} coefficents' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5440,7 +5444,7 @@ def MatrixDecompositionDemo(name):
 
     pad3.Clear()
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{k=1}^{1} #sigma_{k} u_{k} v_{k}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON} - #sum_{k=1}^{1} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5453,7 +5457,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank0_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#sigma_{1} u_{1} v_{1}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{1} u_{1} v_{1}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5466,7 +5470,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank0_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{k=1}^{2} #sigma_{k} u_{k} v_{k}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON} - #sum_{k=1}^{2} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5479,7 +5483,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank1_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#sigma_{2} u_{2} v_{2}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{2} u_{2} v_{2}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5492,7 +5496,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank1_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{k=1}^{3} #sigma_{k} u_{k} v_{k}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON} - #sum_{k=1}^{3} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5505,7 +5509,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank2_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#sigma_{3} u_{3} v_{3}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{3} u_{3} v_{3}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5518,7 +5522,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank2_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{k=1}^{4} #sigma_{k} u_{k} v_{k}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON} - #sum_{k=1}^{4} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5531,7 +5535,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank3_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#sigma_{4} u_{4} v_{4}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{4} u_{4} v_{4}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5544,7 +5548,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank3_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON} - #sum_{k=1}^{5} #sigma_{k} u_{k} v_{k}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON} - #sum_{k=1}^{5} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5557,7 +5561,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank4_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'#sigma_{5} u_{5} v_{5}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{5} u_{5} v_{5}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5593,7 +5597,7 @@ def MatrixDecompositionDemo(name):
                     sum_var += pow(n_data-n_bkgd-error_avg,2)
     error_var = sum_var/sum_bins
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON}-M^{OFF}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON}-M^{OFF}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5649,7 +5653,7 @@ def MatrixDecompositionDemo(name):
                     n_bkgd = Hist2D_OnBkgd_Sum.GetBinContent(binx+1,biny+1)
                     sum_var += pow(n_data-n_bkgd,2)
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'M^{ON}-#tilde{M}^{ON}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON}-#tilde{M}^{ON}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5680,7 +5684,7 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrXYoff_DataCR.Add(Hist_OnData_CR_XYoff_Sum,-1)
     Hist2D_ErrXYoff_DataCR.Divide(Hist_OnData_SR_XYoff_Sum)
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'P^{ON}-P^{OFF}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'P^{ON}-P^{OFF}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5692,7 +5696,7 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrXYoff_DarkSR.Draw("COL4Z")
     canvas.SaveAs('output_plots/ErrXYoff_DarkSR_%s_%s.png'%(name,selection_tag))
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.50,'P^{ON}-P^{CR}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'P^{ON}-P^{CR}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5993,7 +5997,7 @@ def SystematicAnalysis():
         pad1.Draw()
         pad3.Draw()
         pad3.cd()
-        lumilab1 = ROOT.TLatex(0.15,0.50,'#chi^{2} = #sum_{ij} (N^{nth}_{ij}-N^{20th}_{ij})^{2} / (#sum_{ij} N^{data}_{ij})^{2}' )
+        lumilab1 = ROOT.TLatex(0.15,0.20,'#chi^{2} = #sum_{ij} (N^{nth}_{ij}-N^{20th}_{ij})^{2} / (#sum_{ij} N^{data}_{ij})^{2}' )
         lumilab1.SetNDC()
         lumilab1.SetTextSize(0.3)
         lumilab1.Draw()
@@ -6130,7 +6134,7 @@ def GetCRcounts(name):
     colors += [2]
     MakeMultiplePlot(Hists,legends,colors,'log10 counts per bin','N bins','CR_Counts_%s'%(name),0,0,False,False)
 
-def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
+def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
 
     global ErecS_lower_cut
     global ErecS_upper_cut
@@ -6185,9 +6189,9 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
                 NormalizeSkyMapHistograms(FilePath_List[len(FilePath_List)-1],e)
                 StackSkymapHistograms(e)
 
-    slice_center_x = roi_ra[2]
-    slice_center_y = roi_dec[2]
-    slice_radius = roi_radius[2]
+    slice_center_x = roi_ra[1]
+    slice_center_y = roi_dec[1]
+    slice_radius = roi_radius[1]
     first_bin_x = 0 
     last_bin_x = -1
     first_bin_y = 0 
@@ -6305,6 +6309,16 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
     Hist_Significance_Skymap_Galactic_smooth_zoomin = GetSignificanceMap(Hist_OnData_Skymap_Galactic_smooth, Hist_OnBkgd_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth,Syst_MDM,True)
     MakeMWLSkymap(Hist_Significance_Skymap_Galactic_smooth_zoomin, [3,4,5],'gal. l.','gal. b.','Skymap_MWL_Galactic_MDM_ZoomIn_%s%s'%(source_name,PercentCrab))
 
+    print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+    init_x = source_ra
+    init_y = source_dec
+    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,Hist_Exposure_Skymap_smooth,2,init_x,init_y)
+    print ('Excess (2 sigma) center RA = %0.3f'%(excess_center_x))
+    print ('Excess (2 sigma) center Dec = %0.3f'%(excess_center_y))
+    print ('Excess (2 sigma) radius = %0.3f'%(excess_radius))
+
+    if not doSpectralMap: return
+
     if doSmooth:
         Hist_Data_Energy_Skymap_smooth = []
         Hist_Bkgd_Energy_Skymap_smooth = []
@@ -6338,14 +6352,6 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
         title = 'energy [GeV]'
         plotname = 'FluxCorrected_MDM_%s'%(source_name)
         MakeSpectrumFromFluxHist(Hist_RoI_Flux,legends,title,plotname)
-
-    print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    init_x = source_ra
-    init_y = source_dec
-    excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,Hist_Exposure_Skymap_smooth,2,init_x,init_y)
-    print ('Excess (2 sigma) center RA = %0.3f'%(excess_center_x))
-    print ('Excess (2 sigma) center Dec = %0.3f'%(excess_center_y))
-    print ('Excess (2 sigma) radius = %0.3f'%(excess_radius))
 
 def FindSourceIndex(source_name):
     for source in range(0,len(sample_list)):
@@ -6674,27 +6680,14 @@ GetGammaSourceInfo()
 
 drawMap = False
 #drawMap = True
+doMorphologySpectroscopy = False
+#doMorphologySpectroscopy = True
 #Smoothing = False
 Smoothing = True
 
 #set_palette('default')
 #set_palette('gray')
 
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,7)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,7)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,7)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,7)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,7)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,5,7)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,6,7)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,0,1)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,1,2)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,2,3)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,3,4)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,4,5)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,5,6)
-#SingleSourceAnalysis(sample_list,drawMap,Smoothing,6,7)
-
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,int(sys.argv[2]),int(sys.argv[3]))
+SingleSourceAnalysis(sample_list,drawMap,doMorphologySpectroscopy,Smoothing,int(sys.argv[2]),int(sys.argv[3]))
 
 Hist_EffArea_Sum.Print("All")

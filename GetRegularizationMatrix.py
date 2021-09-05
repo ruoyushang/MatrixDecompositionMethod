@@ -27,6 +27,8 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 target_energy_index = 2
 N_bins_for_deconv = 16
+#N_bins_for_deconv = 8
+#N_bins_for_deconv = 4
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.6
@@ -39,8 +41,9 @@ ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
 
-#folder_path = 'output_nominal'
 folder_path = 'output_nocorrect'
+#folder_path = 'output_8x8'
+#folder_path = 'output_4x4'
 method_tag = 'tight_mdm_default'
 
 lowrank_tag = '_svd'
@@ -105,9 +108,9 @@ sample_name += ['RGBJ0710 V5']
 #elev_bins = [40,70]
 #elev_bins = [60,80]
 #elev_bins = [40,60]
-#elev_bins = [50,60,70,80,90]
-#elev_bins = [40,50,60]
-elev_bins = [70,80,90]
+elev_bins = [50,60,70,80,90]
+#elev_bins = [70,80,90]
+#elev_bins = [50,60,70]
 #elev_bins = [60,70]
 #elev_bins = [50,60]
 #elev_bins = [40,50]
@@ -115,6 +118,7 @@ theta2_bins = [0,4]
 
 #energy_bin_ref = 1
 stable_rank = 3
+#stable_rank = 2
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
@@ -250,18 +254,13 @@ def MakeCorrelationPlot(list_var):
     x_var = mtx_var_norm.transpose()[0]
     y_var = mtx_var_norm.transpose()[1]
     plt.clf()
-    plt.xlabel("(%s,%s)"%(par1_row,par1_col), fontsize=18)
-    plt.ylabel("(%s,%s)"%(par2_row,par2_col), fontsize=18)
+    plt.xlabel("$t_{%s,%s}$ (arbitrary unit)"%(par1_row,par1_col), fontsize=16)
+    plt.ylabel("$t_{%s,%s}$ (arbitrary unit)"%(par2_row,par2_col), fontsize=16)
     plt.scatter(x_var,y_var)
-    #line_x = np.arange(-0.1, 0.1, 1e-4) # angular size
-    #line_y1 = line_x
-    #line_y2 = -1.*line_x
-    #plt.plot(line_x, line_y1, color='r')
-    #plt.plot(line_x, line_y2, color='r')
 
-    x_var = mtx_var_bkgd_norm.transpose()[0]
-    y_var = mtx_var_bkgd_norm.transpose()[1]
-    plt.scatter(x_var,y_var,color='r')
+    #x_var = mtx_var_bkgd_norm.transpose()[0]
+    #y_var = mtx_var_bkgd_norm.transpose()[1]
+    #plt.scatter(x_var,y_var,color='r')
     plt.savefig("output_plots/parameter_correlation_%s%s_%s%s_data.png"%(par1_row,par1_col,par2_row,par2_col))
 
 
@@ -463,12 +462,12 @@ for row in range(0,3):
 list_var_pair = []
 good_var_pair = []
 good_eigenvalue = []
-for row1 in range(0,3):
-    for col1 in range(0,3):
-        for row2 in range(0,3):
-            for col2 in range(0,3):
-                idx1 = row1*3+col1
-                idx2 = row2*3+col2
+for row1 in range(0,stable_rank):
+    for col1 in range(0,stable_rank):
+        for row2 in range(0,stable_rank):
+            for col2 in range(0,stable_rank):
+                idx1 = row1*stable_rank+col1
+                idx2 = row2*stable_rank+col2
                 list_var_pair = [[row1+1,col1+1]]
                 list_var_pair += [[row2+1,col2+1]]
                 if idx1<idx2:
@@ -478,7 +477,8 @@ for row1 in range(0,3):
                     if math.isnan(max_eigenvalue): continue
                     chi2_ratio = min(chi2[0]/chi2[1],chi2[1]/chi2[0])
                     #if chi2_ratio>0.8: continue
-                    if max_eigenvalue<5.0: continue
+                    #if max_eigenvalue<5.0: continue
+                    #if max_eigenvalue<2.0: continue
                     MakeCorrelationPlot(list_var_pair)
                     good_var_pair += [list_var_pair]
                     good_eigenvalue += [max_eigenvalue]
@@ -487,8 +487,8 @@ for entry in range(0,len(good_eigenvalue)):
 
 list_var = []
 list_rms = []
-for row in range(0,3):
-    for col in range(0,3):
+for row in range(0,stable_rank):
+    for col in range(0,stable_rank):
         idx = row*3+col
         tmp_list_var = [[row+1,col+1]]
         tmp_list_rms = PrincipalComponentAnalysis(tmp_list_var,1)

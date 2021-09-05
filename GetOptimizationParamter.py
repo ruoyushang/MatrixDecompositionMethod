@@ -23,14 +23,15 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
+ROOT.gROOT.LoadMacro("load_stl.h+") # access vectors and vector of vectors
 
 energy_bin_cut_low = 0
-energy_bin_cut_up = 2
+energy_bin_cut_up = 3
 
-#N_bins_for_deconv = 20
 N_bins_for_deconv = 16
-#N_bins_for_deconv = 12
 #N_bins_for_deconv = 8
+#N_bins_for_deconv = 4
+#N_bins_for_deconv = 2
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
@@ -68,6 +69,10 @@ rank4_count = []
 
 #folder_path = 'output_nominal'
 folder_path = 'output_nocorrect'
+#folder_path = 'output_8x8'
+#folder_path = 'output_4x4'
+#folder_path = 'output_2x2'
+
 method_tag = 'tight_mdm_default'
 #method_tag = 'tight_mdm_rank3'
 #method_tag = 'tight_mdm_rank5'
@@ -164,16 +169,15 @@ sample_name += ['Crab V6']
 #elev_bins = [60,80]
 #elev_bins = [40,60]
 elev_bins = [50,60,70,80,90]
-#elev_bins = [60,70,80,90]
-#elev_bins = [80,90]
-#elev_bins = [70,80]
-#elev_bins = [60,70]
-#elev_bins = [50,60]
-#elev_bins = [40,50]
+#elev_bins = [70,80,90]
+#elev_bins = [50,60,70]
+#elev_bins = [40,50,60]
 lowrank_tag += 'elev_incl'
 
 theta2_bins = [0,4]
 #theta2_bins = [0,6]
+
+number_of_roi = 4
 
 energy_bin = []
 energy_bin += [int(pow(10,2.0))]
@@ -185,13 +189,24 @@ energy_bin += [int(pow(10,3.66))]
 energy_bin += [int(pow(10,4.0))]
 energy_bin += [int(pow(10,4.4))]
 
+#energy_mibe_weight = [0.039,0.033,0.032,0.040,0.064,0.073,0.141]
+#energy_rfov_weight = [0.061,0.048,0.036,0.050,0.058,0.072,0.055]
+energy_mibe_weight = [1,1,1,1,1,1,1]
+energy_rfov_weight = [1,1,1,1,1,1,1]
+
+energy_dependent_singularvalue = []
+
 energy_dependent_stat = []
 energy_dependent_syst = []
+energy_dependent_syst_init = []
 energy_dependent_stat_vali = []
 energy_dependent_syst_vbkg = []
 energy_dependent_syst_rfov = []
 energy_dependent_syst_comb = []
-energy_dependent_syst_init = []
+energy_dependent_rank0 = []
+energy_dependent_rank1 = []
+energy_dependent_rank2 = []
+energy_dependent_rank3 = []
 
 root_file_tags = []
 mjd_tag = []
@@ -517,10 +532,10 @@ def GetHistogramsFromFile(FilePath,which_source):
     global rank2_count
     global rank3_count
     global rank4_count
-    data_validate_count = ROOT.std.vector("double")(10)
-    bkgd_validate_count = ROOT.std.vector("double")(10)
-    rfov_validate_count = ROOT.std.vector("double")(10)
-    comb_validate_count = ROOT.std.vector("double")(10)
+    #data_validate_count = ROOT.std.vector("double")(10)
+    #bkgd_validate_count = ROOT.std.vector("double")(10)
+    #rfov_validate_count = ROOT.std.vector("double")(10)
+    #comb_validate_count = ROOT.std.vector("double")(10)
     data_gamma_count = ROOT.std.vector("double")(10)
     bkgd_gamma_count = ROOT.std.vector("double")(10)
     par8_gamma_count = ROOT.std.vector("double")(10)
@@ -541,10 +556,10 @@ def GetHistogramsFromFile(FilePath,which_source):
     InfoTree = InputFile.Get("InfoTree")
     NewInfoTree = InputFile.Get("NewInfoTree")
     InfoTree.GetEntry(0)
-    NewInfoTree.SetBranchAddress('data_validate_count',ROOT.AddressOf(data_validate_count))
-    NewInfoTree.SetBranchAddress('bkgd_validate_count',ROOT.AddressOf(bkgd_validate_count))
-    NewInfoTree.SetBranchAddress('rfov_validate_count',ROOT.AddressOf(rfov_validate_count))
-    NewInfoTree.SetBranchAddress('comb_validate_count',ROOT.AddressOf(comb_validate_count))
+    #NewInfoTree.SetBranchAddress('data_validate_count',ROOT.AddressOf(data_validate_count))
+    #NewInfoTree.SetBranchAddress('bkgd_validate_count',ROOT.AddressOf(bkgd_validate_count))
+    #NewInfoTree.SetBranchAddress('rfov_validate_count',ROOT.AddressOf(rfov_validate_count))
+    #NewInfoTree.SetBranchAddress('comb_validate_count',ROOT.AddressOf(comb_validate_count))
     NewInfoTree.SetBranchAddress('data_gamma_count',ROOT.AddressOf(data_gamma_count))
     NewInfoTree.SetBranchAddress('bkgd_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
     NewInfoTree.SetBranchAddress('par8_gamma_count',ROOT.AddressOf(par8_gamma_count))
@@ -556,12 +571,17 @@ def GetHistogramsFromFile(FilePath,which_source):
     #NewInfoTree.SetBranchAddress('par9_coeff_chi2',ROOT.AddressOf(par9_coeff_chi2))
     #NewInfoTree.SetBranchAddress('wpar9_coeff_chi2',ROOT.AddressOf(wpar9_coeff_chi2))
     #NewInfoTree.SetBranchAddress('dark_coeff_chi2',ROOT.AddressOf(dark_coeff_chi2))
-    #NewInfoTree.SetBranchAddress('rank0_gamma_count',ROOT.AddressOf(rank0_gamma_count))
-    #NewInfoTree.SetBranchAddress('rank1_gamma_count',ROOT.AddressOf(rank1_gamma_count))
-    #NewInfoTree.SetBranchAddress('rank2_gamma_count',ROOT.AddressOf(rank2_gamma_count))
-    #NewInfoTree.SetBranchAddress('rank3_gamma_count',ROOT.AddressOf(rank3_gamma_count))
-    #NewInfoTree.SetBranchAddress('rank4_gamma_count',ROOT.AddressOf(rank4_gamma_count))
+    NewInfoTree.SetBranchAddress('rank0_gamma_count',ROOT.AddressOf(rank0_gamma_count))
+    NewInfoTree.SetBranchAddress('rank1_gamma_count',ROOT.AddressOf(rank1_gamma_count))
+    NewInfoTree.SetBranchAddress('rank2_gamma_count',ROOT.AddressOf(rank2_gamma_count))
+    NewInfoTree.SetBranchAddress('rank3_gamma_count',ROOT.AddressOf(rank3_gamma_count))
+    NewInfoTree.SetBranchAddress('rank4_gamma_count',ROOT.AddressOf(rank4_gamma_count))
     NewInfoTree.GetEntry(0)
+    data_validate_count = NewInfoTree.data_validate_count
+    bkgd_validate_count = NewInfoTree.bkgd_validate_count
+    rfov_validate_count = NewInfoTree.rfov_validate_count
+    #comb_validate_count = NewInfoTree.comb_validate_count
+    roi_name = InfoTree.roi_name
     exposure_hours = InfoTree.exposure_hours
     data_exposure[which_source] += exposure_hours
     ErecS_lower_cut_int = int(ErecS_lower_cut)
@@ -585,10 +605,13 @@ def GetHistogramsFromFile(FilePath,which_source):
     NSB_RMS_data[which_source] += NSB_RMS/2.
     NSB_mean_dark[which_source] += NSB_mean
     NSB_RMS_dark[which_source] += NSB_RMS/2.
-    validate_data_count[which_source]  += data_validate_count[energy_index]
-    validate_bkgd_count[which_source]  += bkgd_validate_count[energy_index]
-    validate_rfov_count[which_source]  += rfov_validate_count[energy_index]
-    validate_comb_count[which_source]  += comb_validate_count[energy_index]
+    for nth_roi in range(0,number_of_roi):
+        print ("nth_roi = %s"%(nth_roi))
+        validate_data_count[nth_roi][which_source]  += data_validate_count[energy_index][2*nth_roi+1]
+        validate_bkgd_count[nth_roi][which_source]  += bkgd_validate_count[energy_index][2*nth_roi+1]
+        validate_rfov_count[nth_roi][which_source]  += rfov_validate_count[energy_index][2*nth_roi+1]
+        #validate_comb_count[nth_roi][which_source]  += comb_validate_count[energy_index][2*nth_roi+1]
+        validate_comb_count[nth_roi][which_source] += (1./energy_mibe_weight[energy_index]*bkgd_validate_count[energy_index][2*nth_roi+1]+1./energy_rfov_weight[energy_index]*rfov_validate_count[energy_index][2*nth_roi+1])/(1./energy_mibe_weight[energy_index]+1./energy_rfov_weight[energy_index])
     data_count[which_source]  += data_gamma_count[energy_index]
     bkgd_count[which_source]  += bkgd_gamma_count[energy_index]
     par8_count[which_source]  += par8_gamma_count[energy_index]
@@ -808,10 +831,10 @@ for e in range(0,len(energy_bin)-1):
     NSB_mean_dark = [0.]*len(sample_list)
     Zenith_RMS_dark = [0.]*len(sample_list)
     NSB_RMS_dark = [0.]*len(sample_list)
-    validate_data_count = [0.]*len(sample_list)
-    validate_bkgd_count = [0.]*len(sample_list)
-    validate_rfov_count = [0.]*len(sample_list)
-    validate_comb_count = [0.]*len(sample_list)
+    validate_data_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
+    validate_bkgd_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
+    validate_rfov_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
+    validate_comb_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
     data_count = [0.]*len(sample_list)
     bkgd_count = [0.]*len(sample_list)
     par8_count = [0.]*len(sample_list)
@@ -989,7 +1012,7 @@ for e in range(0,len(energy_bin)-1):
     AccuracyInitSigned_source = []
     AccuracyInitErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]<100.:
+        if data_count[entry-1]<10.:
             AccuracyInit_source += [0.]
             AccuracyInitSigned_source += [0.]
             AccuracyInitErr_source += [0.]
@@ -1002,7 +1025,7 @@ for e in range(0,len(energy_bin)-1):
     AccuracyStat_source = []
     AccuracyStatErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]<100.:
+        if data_count[entry-1]<10.:
             AccuracyStat_source += [0.]
             AccuracyStatErr_source += [0.]
         else:
@@ -1018,10 +1041,32 @@ for e in range(0,len(energy_bin)-1):
     if AccuracyStat_weight>0.: AccuracyStat_mean = AccuracyStat_mean/AccuracyStat_weight
     AccuracyStat_mean_error = pow(AccuracyStat_mean_error,0.5)
 
+    AccuracyRank0_source = []
+    AccuracyRank0Err_source = []
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]<10.:
+            AccuracyRank0_source += [0.]
+            AccuracyRank0Err_source += [0.]
+        else:
+            AccuracyRank0_source += [abs(data_count[entry-1]-rank0_count[entry-1])/data_count[entry-1]]
+            AccuracyRank0Err_source += [1./pow(data_count[entry-1],0.5)]
+    AccuracyRank0_mean, AccuracyRank0_mean_error = SystematicErrorMeasurement(AccuracyRank0_source,AccuracyRank0Err_source)
+
+    AccuracyRank1_source = []
+    AccuracyRank1Err_source = []
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]<10.:
+            AccuracyRank1_source += [0.]
+            AccuracyRank1Err_source += [0.]
+        else:
+            AccuracyRank1_source += [abs(data_count[entry-1]-rank1_count[entry-1])/data_count[entry-1]]
+            AccuracyRank1Err_source += [1./pow(data_count[entry-1],0.5)]
+    AccuracyRank1_mean, AccuracyRank1_mean_error = SystematicErrorMeasurement(AccuracyRank1_source,AccuracyRank1Err_source)
+
     AccuracyRank2_source = []
     AccuracyRank2Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]<100.:
+        if data_count[entry-1]<10.:
             AccuracyRank2_source += [0.]
             AccuracyRank2Err_source += [0.]
         else:
@@ -1029,10 +1074,21 @@ for e in range(0,len(energy_bin)-1):
             AccuracyRank2Err_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyRank2_mean, AccuracyRank2_mean_error = SystematicErrorMeasurement(AccuracyRank2_source,AccuracyRank2Err_source)
 
+    AccuracyRank3_source = []
+    AccuracyRank3Err_source = []
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]<10.:
+            AccuracyRank3_source += [0.]
+            AccuracyRank3Err_source += [0.]
+        else:
+            AccuracyRank3_source += [abs(data_count[entry-1]-rank3_count[entry-1])/data_count[entry-1]]
+            AccuracyRank3Err_source += [1./pow(data_count[entry-1],0.5)]
+    AccuracyRank3_mean, AccuracyRank3_mean_error = SystematicErrorMeasurement(AccuracyRank3_source,AccuracyRank3Err_source)
+
     AccuracyBestPar9_source = []
     AccuracyBestPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]<100.:
+        if data_count[entry-1]<10.:
             AccuracyBestPar9_source += [0.]
             AccuracyBestPar9Err_source += [0.]
         else:
@@ -1043,7 +1099,7 @@ for e in range(0,len(energy_bin)-1):
     AccuracyPar9_source = []
     AccuracyPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]<100.:
+        if data_count[entry-1]<10.:
             AccuracyPar9_source += [0.]
             AccuracyPar9Err_source += [0.]
         else:
@@ -1054,7 +1110,7 @@ for e in range(0,len(energy_bin)-1):
     AccuracyWPar9_source = []
     AccuracyWPar9Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]<100.:
+        if data_count[entry-1]<10.:
             AccuracyWPar9_source += [0.]
             AccuracyWPar9Err_source += [0.]
         else:
@@ -1066,7 +1122,7 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBkgdSigned_source = []
     AccuracyBkgdErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]<100.:
+        if data_count[entry-1]<10.:
             AccuracyBkgd_source += [0.]
             AccuracyBkgdSigned_source += [0.]
             AccuracyBkgdErr_source += [0.]
@@ -1076,43 +1132,10 @@ for e in range(0,len(energy_bin)-1):
             AccuracyBkgdErr_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyBkgd_mean, AccuracyBkgd_mean_error = SystematicErrorMeasurement(AccuracyBkgd_source,AccuracyBkgdErr_source)
 
-    ValidateBkgd_source = []
-    ValidateBkgdErr_source = []
-    for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if validate_data_count[entry-1]<100.:
-            ValidateBkgd_source += [0.]
-            ValidateBkgdErr_source += [0.]
-        else:
-            ValidateBkgd_source += [abs(validate_data_count[entry-1]-validate_bkgd_count[entry-1])/validate_data_count[entry-1]]
-            ValidateBkgdErr_source += [1./pow(validate_data_count[entry-1],0.5)]
-    ValidateBkgd_mean, ValidateBkgd_mean_error = SystematicErrorMeasurement(ValidateBkgd_source,ValidateBkgdErr_source)
-
-    ValidateRFoV_source = []
-    ValidateRFoVErr_source = []
-    for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if validate_data_count[entry-1]<100.:
-            ValidateRFoV_source += [0.]
-            ValidateRFoVErr_source += [0.]
-        else:
-            ValidateRFoV_source += [abs(validate_data_count[entry-1]-validate_rfov_count[entry-1])/validate_data_count[entry-1]]
-            ValidateRFoVErr_source += [1./pow(validate_data_count[entry-1],0.5)]
-    ValidateRFoV_mean, ValidateRFoV_mean_error = SystematicErrorMeasurement(ValidateRFoV_source,ValidateRFoVErr_source)
-
-    ValidateComb_source = []
-    ValidateCombErr_source = []
-    for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if validate_data_count[entry-1]<100.:
-            ValidateComb_source += [0.]
-            ValidateCombErr_source += [0.]
-        else:
-            ValidateComb_source += [abs(validate_data_count[entry-1]-validate_comb_count[entry-1])/validate_data_count[entry-1]]
-            ValidateCombErr_source += [1./pow(validate_data_count[entry-1],0.5)]
-    ValidateComb_mean, ValidateComb_mean_error = SystematicErrorMeasurement(ValidateComb_source,ValidateCombErr_source)
-
     AccuracyPar8_source = []
     AccuracyPar8Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
-        if data_count[entry-1]<100.:
+        if data_count[entry-1]<10.:
             AccuracyPar8_source += [0.]
             AccuracyPar8Err_source += [0.]
         else:
@@ -1259,35 +1282,88 @@ for e in range(0,len(energy_bin)-1):
     plt.subplots_adjust(bottom=0.25)
     plt.savefig("output_plots/PerformanceSigned_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
-    plt.clf()
-    plt.rcParams["figure.figsize"] = (10,6)
-    ax = fig.add_subplot(111)
-    ind = np.arange(len(ValidateBkgd_source))
-    width = 0.35
-    rects1 = ax.bar(ind, ValidateBkgd_source, width, color='#089FFF', yerr=ValidateBkgdErr_source)
-    rects2 = ax.bar(ind+width, ValidateRFoV_source, width, color='#FF9848', yerr=ValidateBkgdErr_source)
-    #rects3 = ax.bar(ind+2*width, ValidateComb_source, width, color='green', yerr=ValidateBkgdErr_source)
-    ax.set_xlim(-width,len(ind)+width)
-    ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
-    #combined_mean = 1. / (1./ValidateBkgd_mean + 1./ValidateRFoV_mean)
-    combined_mean = ValidateComb_mean
-    ax.set_title('$combined <\epsilon>=%0.3f \pm %0.3f$'%(combined_mean,ValidateBkgd_mean_error))
-    xTickMarks = sample_name
-    ax.set_xticks(ind+width)
-    xtickNames = ax.set_xticklabels(xTickMarks)
-    plt.setp(xtickNames, rotation=45, fontsize=10)
-    ax.legend( (rects1[0], rects2[0]), ('MIBE $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean)), loc='best' )
-    #ax.legend( (rects1[0], rects2[0], rects3[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean), 'combined $<\epsilon>=%0.3f$'%(ValidateComb_mean)), loc='best' )
-    plt.subplots_adjust(bottom=0.15)
-    plt.savefig("output_plots/PerformanceRFoV_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
-
     energy_dependent_stat += [AccuracyBkgd_mean_error]
-    energy_dependent_stat_vali += [ValidateBkgd_mean_error]
     energy_dependent_syst += [pow(max(0.,pow(AccuracyBkgd_mean,2)-pow(AccuracyBkgd_mean_error,2)),0.5)]
-    energy_dependent_syst_vbkg += [pow(max(0.,pow(ValidateBkgd_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
-    energy_dependent_syst_rfov += [pow(max(0.,pow(ValidateRFoV_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
-    energy_dependent_syst_comb += [pow(max(0.,pow(ValidateComb_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
     energy_dependent_syst_init += [pow(max(0.,pow(AccuracyInit_mean,2)-pow(AccuracyInit_mean_error,2)),0.5)]
+    energy_dependent_rank0 += [AccuracyRank0_mean]
+    energy_dependent_rank1 += [AccuracyRank1_mean]
+    energy_dependent_rank2 += [AccuracyRank2_mean]
+    energy_dependent_rank3 += [AccuracyRank3_mean]
+
+
+    this_roi_energy_dependent_stat_vali = []
+    this_roi_energy_dependent_syst_vbkg = []
+    this_roi_energy_dependent_syst_rfov = []
+    this_roi_energy_dependent_syst_comb = []
+    for nth_roi in range(0,number_of_roi):
+
+        ValidateBkgd_source = []
+        ValidateBkgdErr_source = []
+        for entry in range(1,len(Hist_Bkgd_Optimization)):
+            if validate_data_count[nth_roi][entry-1]<10.:
+                ValidateBkgd_source += [0.]
+                ValidateBkgdErr_source += [0.]
+            else:
+                ValidateBkgd_source += [abs(validate_data_count[nth_roi][entry-1]-validate_bkgd_count[nth_roi][entry-1])/validate_data_count[nth_roi][entry-1]]
+                ValidateBkgdErr_source += [1./pow(validate_data_count[nth_roi][entry-1],0.5)]
+        ValidateBkgd_mean, ValidateBkgd_mean_error = SystematicErrorMeasurement(ValidateBkgd_source,ValidateBkgdErr_source)
+
+        ValidateRFoV_source = []
+        ValidateRFoVErr_source = []
+        for entry in range(1,len(Hist_Bkgd_Optimization)):
+            if validate_data_count[nth_roi][entry-1]<10.:
+                ValidateRFoV_source += [0.]
+                ValidateRFoVErr_source += [0.]
+            else:
+                ValidateRFoV_source += [abs(validate_data_count[nth_roi][entry-1]-validate_rfov_count[nth_roi][entry-1])/validate_data_count[nth_roi][entry-1]]
+                ValidateRFoVErr_source += [1./pow(validate_data_count[nth_roi][entry-1],0.5)]
+        ValidateRFoV_mean, ValidateRFoV_mean_error = SystematicErrorMeasurement(ValidateRFoV_source,ValidateRFoVErr_source)
+
+        ValidateComb_source = []
+        ValidateCombErr_source = []
+        for entry in range(1,len(Hist_Bkgd_Optimization)):
+            if validate_data_count[nth_roi][entry-1]<10.:
+                ValidateComb_source += [0.]
+                ValidateCombErr_source += [0.]
+            else:
+                ValidateComb_source += [abs(validate_data_count[nth_roi][entry-1]-validate_comb_count[nth_roi][entry-1])/validate_data_count[nth_roi][entry-1]]
+                ValidateCombErr_source += [1./pow(validate_data_count[nth_roi][entry-1],0.5)]
+        ValidateComb_mean, ValidateComb_mean_error = SystematicErrorMeasurement(ValidateComb_source,ValidateCombErr_source)
+
+        plt.clf()
+        plt.rcParams["figure.figsize"] = (10,6)
+        ax = fig.add_subplot(111)
+        ind = np.arange(len(ValidateBkgd_source))
+        width = 0.35
+        rects1 = ax.bar(ind, ValidateBkgd_source, width, color='#089FFF', yerr=ValidateBkgdErr_source)
+        rects2 = ax.bar(ind+width, ValidateRFoV_source, width, color='#FF9848', yerr=ValidateBkgdErr_source)
+        #rects3 = ax.bar(ind+2*width, ValidateComb_source, width, color='green', yerr=ValidateBkgdErr_source)
+        ax.set_xlim(-width,len(ind)+width)
+        ax.set_ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
+        #combined_mean = 1. / (1./ValidateBkgd_mean + 1./ValidateRFoV_mean)
+        combined_mean = ValidateComb_mean
+        ax.set_title('$combined <\epsilon>=%0.3f \pm %0.3f$'%(combined_mean,ValidateBkgd_mean_error))
+        xTickMarks = sample_name
+        ax.set_xticks(ind+width)
+        xtickNames = ax.set_xticklabels(xTickMarks)
+        plt.setp(xtickNames, rotation=45, fontsize=10)
+        ax.legend( (rects1[0], rects2[0]), ('MIBE $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean)), loc='best' )
+        #ax.legend( (rects1[0], rects2[0], rects3[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean), 'combined $<\epsilon>=%0.3f$'%(ValidateComb_mean)), loc='best' )
+        plt.subplots_adjust(bottom=0.15)
+        plt.savefig("output_plots/PerformanceRFoV_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+
+        this_roi_energy_dependent_stat_vali += [ValidateBkgd_mean_error]
+        this_roi_energy_dependent_syst_vbkg += [ValidateBkgd_mean]
+        this_roi_energy_dependent_syst_rfov += [ValidateRFoV_mean]
+        this_roi_energy_dependent_syst_comb += [ValidateComb_mean]
+        #this_roi_energy_dependent_syst_vbkg += [pow(max(0.,pow(ValidateBkgd_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
+        #this_roi_energy_dependent_syst_rfov += [pow(max(0.,pow(ValidateRFoV_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
+        #this_roi_energy_dependent_syst_comb += [pow(max(0.,pow(ValidateComb_mean,2)-pow(ValidateBkgd_mean_error,2)),0.5)]
+
+    energy_dependent_stat_vali += [this_roi_energy_dependent_stat_vali]
+    energy_dependent_syst_vbkg += [this_roi_energy_dependent_syst_vbkg]
+    energy_dependent_syst_rfov += [this_roi_energy_dependent_syst_rfov]
+    energy_dependent_syst_comb += [this_roi_energy_dependent_syst_comb]
 
 
     RankCounts = []
@@ -1368,6 +1444,9 @@ for e in range(0,len(energy_bin)-1):
         colors += [int(random_gen.Uniform(29.,49.))]
     MakeMultiplePlot(Hists,legends,colors,'entry','singular value','SingularValue_E%s%s'%(e,folder_path),0,0,False,True)
 
+    singularvalue_array = []
+    for binx in range(0,Hist_Data_Eigenvalues[0].GetNbinsX()):
+        singularvalue_array += [Hist_Data_Eigenvalues[0].GetBinContent(binx+1)]
     Hists = []
     legends = []
     colors = []
@@ -1383,6 +1462,7 @@ for e in range(0,len(energy_bin)-1):
         #colors += [entry+1]
         colors += [int(random_gen.Uniform(29.,49.))]
     MakeMultiplePlot(Hists,legends,colors,'Rank (r)','singular value','SingularValue_Mon_E%s%s'%(e,folder_path),0,0,False,True)
+    energy_dependent_singularvalue += [singularvalue_array]
 
     print ('Energy %s'%(energy_bin[e]))
     for entry in range(0,len(Hist_U_Proj)):
@@ -1548,17 +1628,65 @@ for e in range(0,len(energy_bin)-1):
     #MakeMultiplePlot(Hists,legends,colors,'number of entries included','#chi^{2} in CR','Chi2_Entry_E%s'%(e),0,0,False,False)
 
 my_table = PrettyTable()
-my_table.field_names = ["Syst. err MIBE", "Syst. err init.", "Stat. err", "Syst. err MIBE(2)", "Syst. err RFoV", "Syst. err MIBE(2)+RFoV", "Stat. err(2)"]
+my_table.field_names = ["Syst. err MIBE", "Syst. err init.", "Stat. err"]
 my_table.float_format["Syst. err MIBE"] = ".3"
 my_table.float_format["Syst. err init."] = ".3"
-my_table.float_format["Syst. err MIBE(2)"] = ".3"
-my_table.float_format["Syst. err RFoV"] = ".3"
-my_table.float_format["Syst. err MIBE(2)+RFoV"] = ".3"
 my_table.float_format["Stat. err"] = ".3"
-my_table.float_format["Stat. err(2)"] = ".3"
 for entry in range(0,len(energy_dependent_syst)):
-    my_table.add_row([energy_dependent_syst[entry],energy_dependent_syst_init[entry],energy_dependent_stat[entry],energy_dependent_syst_vbkg[entry],energy_dependent_syst_rfov[entry],energy_dependent_syst_comb[entry],energy_dependent_stat_vali[entry]])
+    my_table.add_row([energy_dependent_syst[entry],energy_dependent_syst_init[entry],energy_dependent_stat[entry]])
 print(my_table)
+
+for nth_roi in range(0,number_of_roi):
+    my_table = PrettyTable()
+    my_table.field_names = ["Syst. err MIBE(2)", "Syst. err RFoV", "Syst. err MIBE(2)+RFoV", "Stat. err(2)"]
+    my_table.float_format["Syst. err MIBE(2)"] = ".3"
+    my_table.float_format["Syst. err RFoV"] = ".3"
+    my_table.float_format["Syst. err MIBE(2)+RFoV"] = ".3"
+    my_table.float_format["Stat. err(2)"] = ".3"
+    for entry in range(0,len(energy_dependent_syst)):
+        my_table.add_row([energy_dependent_syst_vbkg[entry][nth_roi],energy_dependent_syst_rfov[entry][nth_roi],energy_dependent_syst_comb[entry][nth_roi],energy_dependent_stat_vali[entry][nth_roi]])
+    print(my_table)
+
+energy_dependent_stat_vali = np.array(energy_dependent_stat_vali)
+energy_dependent_syst_vbkg = np.array(energy_dependent_syst_vbkg)
+energy_dependent_syst_rfov = np.array(energy_dependent_syst_rfov)
+energy_dependent_syst_comb = np.array(energy_dependent_syst_comb)
+energy_array = np.array(energy_bin)
+for nth_roi in range(0,number_of_roi):
+    plt.clf()
+    fig, ax = plt.subplots()
+    plt.xlabel("energy [GeV]", fontsize=18)
+    plt.ylabel("systematic error", fontsize=18)
+    plt.xscale('log')
+    plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_vbkg[:,nth_roi], color='b', label='MIBE')
+    plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_vbkg[:,nth_roi]-energy_dependent_stat_vali[:,nth_roi], energy_dependent_syst_vbkg[:,nth_roi]+energy_dependent_stat_vali[:,nth_roi], alpha=0.1, color='b')
+    plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rfov[:,nth_roi], color='r', label='OFF region')
+    plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rfov[:,nth_roi]-energy_dependent_stat_vali[:,nth_roi], energy_dependent_syst_rfov[:,nth_roi]+energy_dependent_stat_vali[:,nth_roi], alpha=0.1, color='r')
+    ax.legend(loc='best')
+    plt.savefig("output_plots/MIBE_vs_RFoV_SystErr_RoI%s.png"%(nth_roi))
+
+plt.clf()
+fig, ax = plt.subplots()
+plt.xlabel("rank $n$", fontsize=18)
+plt.ylabel("singular value $\sigma_{n}$", fontsize=18)
+plt.yscale('log')
+for entry in range(0,len(energy_dependent_singularvalue)):
+    plt.plot(energy_dependent_singularvalue[entry],marker='.',label='%s-%s GeV'%(energy_bin[entry],energy_bin[entry+1]))
+ax.legend(loc='best')
+plt.savefig("output_plots/MatrixSingularValue.png")
+
+plt.clf()
+fig, ax = plt.subplots()
+plt.xlabel("Energy [GeV]", fontsize=18)
+plt.ylabel("relative error", fontsize=18)
+plt.yscale('log')
+plt.xscale('log')
+plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank0,marker='.',label='$n \leq 0$')
+plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank1,marker='.',label='$n \leq 1$')
+plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank2,marker='.',label='$n \leq 2$')
+plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank3,marker='.',label='$n \leq 3$')
+ax.legend(loc='best')
+plt.savefig("output_plots/RankErrors.png")
 
 Hists = []
 legends = []
@@ -1573,7 +1701,7 @@ MakeMultipleFitPlot(Hists,legends,colors,'relative error','number of measurement
 
 for ebin in range(0,len(energy_bin)-1):
     Hist_NormSystErr.SetBinContent(ebin+1,energy_dependent_syst[ebin])
-    Hist_NormRFoVSystErr.SetBinContent(ebin+1,energy_dependent_syst_rfov[ebin])
+    Hist_NormRFoVSystErr.SetBinContent(ebin+1,energy_dependent_syst_rfov[ebin][0])
 
 OutputFile = ROOT.TFile('output_plots/SystErrors.root','recreate')
 Hist_NormSystErr.Write()

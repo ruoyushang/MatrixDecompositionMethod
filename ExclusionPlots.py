@@ -11,13 +11,16 @@ log_energy = np.arange(2.15, 4.15, delta) # energy in GeV
 energy = pow(10.,log_energy)
 eff_area_const = 10000.*(12.6*100.*100.) #cm^2
 eff_area = np.piecewise(energy, [energy>=100,energy>=214,energy>=457,energy>=1000], [67.0798*10000.,19522.2*10000.,95972.3*10000.,126646*10000.])
-angular_size = 1.0
-time = 100. # exposure in hours
 bkg_rate = 1e-12*19.4*pow(energy/1000.,-3.5)*3600. # per hour per 2 degree FoV
 crab_rate = 1e-12*37.5*pow(energy/1000.,-2.5)*3600.
-geminga_rate = 1e-12*3.5*pow(energy/1000.,-2.2)*3600.
+time = 100. # exposure in hours
 
-N_CR = eff_area*bkg_rate*time*(angular_size*angular_size)/(2.*2.)
+angular_radius = 1.5
+geminga_rate = 1e-12*3.5*pow(energy/1000.,-2.2)*3600. #geminga
+#angular_radius = 1.0
+#geminga_rate = 1e-12*4.23*pow(energy/1000.,-2.2)*3600. #J1908
+
+N_CR = eff_area*bkg_rate*time*(angular_radius*angular_radius)/(2.*2.)
 Err_CR_Stat = pow(N_CR,0.5)
 
 crab_percent = 0.1
@@ -29,7 +32,7 @@ Err_CR_Stat = pow(N_CR,0.5)
 
 scale_index = 0.
 
-Relative_Syst = [0.022,0.015,0.025,0.029]
+Relative_Syst = [0.027,0.013,0.022,0.030]
 #Err_CR_Syst = N_CR*0.01
 Err_CR_Syst = N_CR*np.piecewise(energy, [energy>=100,energy>=214,energy>=457,energy>=1000], Relative_Syst)
 Limit = 5.0*pow(Err_CR_Syst*Err_CR_Syst+Err_CR_Stat*Err_CR_Stat,0.5)*pow(energy,scale_index)
@@ -37,7 +40,7 @@ Limit_Smooth = interp1d(energy, Limit, kind='cubic')
 Limit_Err = 1.0*pow(Err_CR_Stat*Err_CR_Stat,0.5)*pow(energy,scale_index)
 Limit_Err_Smooth = interp1d(energy, Limit_Err, kind='cubic')
 
-Relative_Syst = [0.043,0.030,0.039,0.049]
+Relative_Syst = [0.055,0.034,0.042,0.057]
 #Err_CR_Syst = N_CR*0.03
 Err_CR_Syst = N_CR*np.piecewise(energy, [energy>=100,energy>=214,energy>=457,energy>=1000], Relative_Syst)
 Limit_Init = 5.0*pow(Err_CR_Syst*Err_CR_Syst+Err_CR_Stat*Err_CR_Stat,0.5)*pow(energy,scale_index)

@@ -51,10 +51,10 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 3.0
 
 # MGRO J1908
-#target_ra = 286.975
-#target_dec = 6.269
-#range_ra = 3.0
-#range_dec = 3.0
+target_ra = 286.975
+target_dec = 6.269
+range_ra = 3.0
+range_dec = 3.0
 
 # Draco dSph
 #target_ra = 260.059729167
@@ -69,10 +69,10 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 2.0
 
 # 1ES 0414+009
-target_ra = 64.221
-target_dec = 1.089
-range_ra = 2.0
-range_dec = 2.0
+#target_ra = 64.221
+#target_dec = 1.089
+#range_ra = 2.0
+#range_dec = 2.0
 
 # 3C 273
 #target_ra = 187.277915345
@@ -399,8 +399,8 @@ range_dec = 2.0
 #range_ra = 2.0
 #range_dec = 2.0
 
-#search_for_on_data = True
-search_for_on_data = False
+search_for_on_data = True
+#search_for_on_data = False
 
 V4 = False
 V5 = False
@@ -409,7 +409,7 @@ V6 = True
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
 
-Search_Range_Elev = [0.,40.]
+Search_Range_Elev = [30.,90.]
 Search_Range_Azim = [0.,360.]
 Search_Range_PedVar_DC = [0.,10.]
 
@@ -443,6 +443,8 @@ FIR_Mean = 0.
 FIR_RMS = 0.
 L3_rate = 0.
 Livetime = 0.
+
+Total_Livetime = 0.
 
 List_RunNumber = []
 List_Elev = []
@@ -615,6 +617,8 @@ if search_for_on_data:
         List_Used_Azim += [Azim]
         List_Used_NSB += [PedVar_DC]
 
+        Total_Livetime += Livetime/60.
+
 else: 
 
     List_Produced = []
@@ -720,6 +724,8 @@ else:
         List_Used_Elev += [Elev]
         List_Used_Azim += [Azim]
         List_Used_NSB += [PedVar_DC]
+
+        Total_Livetime += Livetime/60.
     
     #n_matches = 2
     #for nth_sample in range(0,n_matches):
@@ -840,6 +846,7 @@ else:
 for entry in range(0,len(List_Used)):
     print (List_Used[entry])
 print ('total %s runs.'%(len(List_Used)))
+print ('total %s hours.'%(Total_Livetime))
 
 plt.clf()
 fig, ax = plt.subplots()
