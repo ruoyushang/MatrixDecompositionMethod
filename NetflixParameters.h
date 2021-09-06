@@ -1,8 +1,8 @@
 
-//int N_bins_for_deconv = 20; // 8 should be the lowest bin number
 int N_bins_for_deconv = 16; // 8 should be the lowest bin number
-//int N_bins_for_deconv = 12; // 8 should be the lowest bin number
 //int N_bins_for_deconv = 8; // 8 should be the lowest bin number
+//int N_bins_for_deconv = 4; // 8 should be the lowest bin number
+//int N_bins_for_deconv = 2; // 8 should be the lowest bin number
 
 const int N_energy_bins = 7;
 double Log10_alpha[N_energy_bins] = {-5.,-3.,-3.,-3.8,-5.,-5.,-5.};
@@ -13,6 +13,9 @@ double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.,1.,1.};
 
 bool EigenDecomposition = false;
+
+bool UseRegularization = true;
+//bool UseRegularization = false;
 
 //bool AcceptanceCorrection = true;
 bool AcceptanceCorrection = false;
@@ -34,7 +37,6 @@ bool UseMinChi2 = false;
 bool UsePerturbation = false;
 bool TruncateNoise = false;
 bool UseReplacedONData = false;
-bool UseRegularization = false;
 
 char output_file2_tag[50] = "mdm_default";
 int RegularizationType = 0;

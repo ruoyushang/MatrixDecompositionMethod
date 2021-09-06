@@ -1451,7 +1451,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     double coeff_1 = 0.;
     double coeff_2 = 0.;
     double eigenvalue = 1.;
-    if (RegularizationType==6)
+    if (RegularizationType==6 && UseRegularization)
     {
         //double temp_alpha = pow(10.,0.);
         //double temp_alpha = 0.;
@@ -3079,6 +3079,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<double>* Data_runlist_L3Rate_ptr = new std::vector<double>(10);
     vector<double>* Data_runlist_NSB_ptr = new std::vector<double>(10);
     vector<string>* roi_name_ptr = new std::vector<string>(10);
+    vector<double>* roi_radius_ptr = new std::vector<double>(10);
     TString regularization_name;
     regularization_name  = "../Regularization_svd.root";
     if (EigenDecomposition)
@@ -3162,6 +3163,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     InfoTree_ptr->SetBranchAddress("Data_runlist_L3Rate",&Data_runlist_L3Rate_ptr);
     InfoTree_ptr->SetBranchAddress("Data_runlist_NSB",&Data_runlist_NSB_ptr);
     InfoTree_ptr->SetBranchAddress("roi_name",&roi_name_ptr);
+    InfoTree_ptr->SetBranchAddress("roi_radius",&roi_radius_ptr);
     InfoTree_ptr->GetEntry(0);
 
     int FirstRun = 0;
@@ -3527,6 +3529,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         vector<TH1D> Hist_OnData_OneRoI_CR_Skymap_RoI_Y;
         vector<TH1D> Hist_OnData_OneRoI_SR_RoI_MJD;
         vector<TH1D> Hist_OnData_OneRoI_CR_RoI_MJD;
+        double roi_range = 2.*roi_radius_ptr->at(nth_roi);
         for (int e=0;e<N_energy_bins;e++) 
         {
             char e_low[50];
@@ -3564,10 +3567,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
             Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
             Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
-            Hist_OnData_OneRoI_SR_Skymap_RoI_X.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-3.,3.));
-            Hist_OnData_OneRoI_CR_Skymap_RoI_X.push_back(TH1D("Hist_OnData_CR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-3.,3.));
-            Hist_OnData_OneRoI_SR_Skymap_RoI_Y.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_Y_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-3.,3.));
-            Hist_OnData_OneRoI_CR_Skymap_RoI_Y.push_back(TH1D("Hist_OnData_CR_Skymap_RoI_Y_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-3.,3.));
+            Hist_OnData_OneRoI_SR_Skymap_RoI_X.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
+            Hist_OnData_OneRoI_CR_Skymap_RoI_X.push_back(TH1D("Hist_OnData_CR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
+            Hist_OnData_OneRoI_SR_Skymap_RoI_Y.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_Y_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
+            Hist_OnData_OneRoI_CR_Skymap_RoI_Y.push_back(TH1D("Hist_OnData_CR_Skymap_RoI_Y_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
             Hist_OnData_OneRoI_SR_RoI_MJD.push_back(TH1D("Hist_OnData_SR_RoI_MJD_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",800,56200-4000,56200+4000));
             Hist_OnData_OneRoI_CR_RoI_MJD.push_back(TH1D("Hist_OnData_CR_RoI_MJD_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",800,56200-4000,56200+4000));
         }
@@ -3758,11 +3761,12 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
             JacobiSVD<MatrixXd> svd_Moff(mtx_dark.real(), ComputeFullU | ComputeFullV);
             bool find_elbow = false;
-            for (int i=0;i<3;i++)
+            int max_rank = min(N_bins_for_deconv-1,3);
+            for (int i=0;i<max_rank;i++)
             {
                 if (find_elbow) continue;
-                std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(3) << std::endl;
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(3)<2.0)
+                std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank) << std::endl;
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<2.0)
                 {
                     find_elbow = true;
                 }
@@ -3770,7 +3774,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 NumberOfEigenvectors_Stable = i+1;
             }
             NumberOfEigenvectors_Stable = max(NumberOfEigenvectors_Stable,1);
-            NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,3);
+            NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,max_rank);
             std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
 
             for (int binx=1;binx<=Hist_Bkgd_Optimization_beta.at(e).GetNbinsX();binx++)

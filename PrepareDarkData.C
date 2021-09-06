@@ -1656,6 +1656,12 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     }
                     if (number_of_search>=2)
                     {
+                        std::cout << "couldn't find a matched run, relax elevation and NSB cuts." << std::endl;
+                        threshold_dNSB += 0.5;
+                        threshold_dElev += 2.;
+                    }
+                    if (number_of_search>=3)
+                    {
                         did_i_find_a_match.at(on_run) = false;
                         std::cout << "couldn't find a matched run for " << int(ON_runlist[on_run].second) << ", break." << std::endl;
                         std::cout << "ON run elevation " << ON_pointing[on_run].first << ", azimuth " << ON_pointing[on_run].second << ", NSB " << ON_NSB[on_run] << std::endl; 
@@ -1666,12 +1672,6 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                         threshold_dMJD += 10.0*365.;
                         threshold_dL3Rate += 0.3;
                         threshold_dTime += 5.0*60.;
-                    }
-                    if (number_of_search>=3)
-                    {
-                        did_i_find_a_match.at(on_run) = false;
-                        std::cout << "couldn't find a matched run for" << int(ON_runlist[on_run].second) << ", break." << std::endl;
-                        break;
                     }
                 }
             }
@@ -1783,7 +1783,7 @@ bool ControlSelectionTheta2()
     if (MSCL>MSCL_cut_blind) return false;
     //if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     //if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
-    double boundary = 0.5;
+    double boundary = 1.0;
     if (MSCL>boundary*gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     if (MSCW>boundary*gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     return true;
@@ -2092,29 +2092,24 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.2);
 
-            //roi_name.push_back("PSR J1907+0602");
-            //roi_ra.push_back(286.975);
-            //roi_dec.push_back(6.03777777778);
-            //roi_radius_inner.push_back(0.);
-            //roi_radius_outer.push_back(0.2);
+            roi_name.push_back("CO region");
+            roi_ra.push_back(286.6);
+            roi_dec.push_back(7.1);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.2);
 
-            //roi_name.push_back("G40.5-0.5");
-            //roi_ra.push_back(286.786);
-            //roi_dec.push_back(6.498);
-            //roi_radius_inner.push_back(0.);
-            //roi_radius_outer.push_back(0.2);
+            roi_name.push_back("G40.5-0.5");
+            roi_ra.push_back(286.786);
+            roi_dec.push_back(6.498);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.2);
 
-            //roi_name.push_back("inner ring");
-            //roi_ra.push_back(287.058);
-            //roi_dec.push_back(6.291);
-            //roi_radius_inner.push_back(0.);
-            //roi_radius_outer.push_back(0.3);
+            roi_name.push_back("Big region");
+            roi_ra.push_back(287.0);
+            roi_dec.push_back(6.5);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(1.2);
 
-            //roi_name.push_back("outer ring");
-            //roi_ra.push_back(287.058);
-            //roi_dec.push_back(6.291);
-            //roi_radius_inner.push_back(0.3);
-            //roi_radius_outer.push_back(0.8);
         }
         else if (TString(target).Contains("SS433")) 
         {
@@ -2522,6 +2517,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         vector<TH1D> Hist_OnData_OneRoI_CR_Skymap_RoI_Y;
         vector<TH1D> Hist_OnData_OneRoI_SR_RoI_MJD;
         vector<TH1D> Hist_OnData_OneRoI_CR_RoI_MJD;
+        double roi_range = 2.*roi_radius_outer.at(nth_roi);
         for (int e=0;e<N_energy_bins;e++) 
         {
             char e_low[50];
@@ -2537,10 +2533,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_OnData_OneRoI_CR_RoI_Energy.push_back(TH1D("Hist_Stage1_OnData_CR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
             Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_OnData_CR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
-            Hist_OnData_OneRoI_SR_Skymap_RoI_X.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-3.,3.));
-            Hist_OnData_OneRoI_CR_Skymap_RoI_X.push_back(TH1D("Hist_Stage1_OnData_CR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-3.,3.));
-            Hist_OnData_OneRoI_SR_Skymap_RoI_Y.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_RoI_Y_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-3.,3.));
-            Hist_OnData_OneRoI_CR_Skymap_RoI_Y.push_back(TH1D("Hist_Stage1_OnData_CR_Skymap_RoI_Y_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-3.,3.));
+            Hist_OnData_OneRoI_SR_Skymap_RoI_X.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
+            Hist_OnData_OneRoI_CR_Skymap_RoI_X.push_back(TH1D("Hist_Stage1_OnData_CR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
+            Hist_OnData_OneRoI_SR_Skymap_RoI_Y.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_RoI_Y_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
+            Hist_OnData_OneRoI_CR_Skymap_RoI_Y.push_back(TH1D("Hist_Stage1_OnData_CR_Skymap_RoI_Y_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
             Hist_OnData_OneRoI_SR_RoI_MJD.push_back(TH1D("Hist_Stage1_OnData_SR_RoI_MJD_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",800,56200-4000,56200+4000));
             Hist_OnData_OneRoI_CR_RoI_MJD.push_back(TH1D("Hist_Stage1_OnData_CR_RoI_MJD_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",800,56200-4000,56200+4000));
         }
