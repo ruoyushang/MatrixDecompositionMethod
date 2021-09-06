@@ -131,23 +131,19 @@ for elev in range(0,len(elev_bins)-1):
 def Make2DPlot(hist,name,x_label,y_label):
 
     canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
-    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
-    pad3.SetBottomMargin(0.0)
-    pad3.SetTopMargin(0.03)
-    pad3.SetBorderMode(1)
-    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,1)
     pad1.SetBottomMargin(0.15)
     pad1.SetRightMargin(0.15)
     pad1.SetLeftMargin(0.15)
-    pad1.SetTopMargin(0.0)
+    pad1.SetTopMargin(0.15)
     pad1.SetBorderMode(0)
     pad1.Draw()
-    pad3.Draw()
 
-    pad3.cd()
     pad1.cd()
     hist.GetYaxis().SetTitle(y_label)
     hist.GetXaxis().SetTitle(x_label)
+    hist.GetZaxis().SetTitle("number of runs")
+    hist.GetZaxis().SetTitleOffset(1.2)
     hist.Draw("COL4Z")
     canvas.SaveAs('output_plots/%s.png'%(name))
 

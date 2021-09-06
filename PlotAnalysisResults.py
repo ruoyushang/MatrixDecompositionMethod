@@ -3073,18 +3073,11 @@ def PlotsStackedHistograms(tag):
     title = 'squared angle from source location #theta^{2}'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
 
-    if energy_bin[energy_bin_cut_low]>=2000.:
-        for nth_roi in range(0,len(roi_ra)):
-            Hist_OnData_RoI_X_Sum[nth_roi].Rebin(2)
-            Hist_OnBkgd_RoI_X_Sum[nth_roi].Rebin(2)
-            Hist_OnData_RoI_Y_Sum[nth_roi].Rebin(2)
-            Hist_OnBkgd_RoI_Y_Sum[nth_roi].Rebin(2)
-    if energy_bin[energy_bin_cut_low]>=4000.:
-        for nth_roi in range(0,len(roi_ra)):
-            Hist_OnData_RoI_X_Sum[nth_roi].Rebin(2)
-            Hist_OnBkgd_RoI_X_Sum[nth_roi].Rebin(2)
-            Hist_OnData_RoI_Y_Sum[nth_roi].Rebin(2)
-            Hist_OnBkgd_RoI_Y_Sum[nth_roi].Rebin(2)
+    for nth_roi in range(0,len(roi_ra)):
+        Hist_OnData_RoI_X_Sum[nth_roi].Rebin(4)
+        Hist_OnBkgd_RoI_X_Sum[nth_roi].Rebin(4)
+        Hist_OnData_RoI_Y_Sum[nth_roi].Rebin(4)
+        Hist_OnBkgd_RoI_Y_Sum[nth_roi].Rebin(4)
     for nth_roi in range(0,len(roi_ra)):
         Hists = []
         legends = []
@@ -5457,7 +5450,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank0_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{1} u_{1} v_{1}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{1} u_{1} v_{1}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5483,7 +5476,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank1_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{2} u_{2} v_{2}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{2} u_{2} v_{2}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5509,7 +5502,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank2_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{3} u_{3} v_{3}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{3} u_{3} v_{3}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5535,7 +5528,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank3_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{4} u_{4} v_{4}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{4} u_{4} v_{4}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -5561,7 +5554,7 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Rank4_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{5} u_{5} v_{5}' )
+    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{5} u_{5} v_{5}^{T}' )
     lumilab1.SetNDC()
     lumilab1.SetTextSize(0.3)
     lumilab1.Draw()
@@ -6613,6 +6606,7 @@ Hist_OnData_RoI_MJD_Sum = []
 Hist_OnBkgd_RoI_MJD_Sum = [] 
 Hist_RoI_Flux = []
 for nth_roi in range(0,len(roi_ra)):
+    roi_range = roi_radius[nth_roi]
     Hist_OnData_RoI_Energy_Sum += [ROOT.TH1D("Hist_OnData_RoI_Energy_Sum_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
     Hist_OnBkgd_RoI_Energy_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Energy_Sum_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
     Hist_OnData_RoI_Energy += [ROOT.TH1D("Hist_OnData_RoI_Energy_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
@@ -6621,14 +6615,14 @@ for nth_roi in range(0,len(roi_ra)):
     Hist_OnBkgd_RoI_Theta2_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Theta2_Sum_%s"%(nth_roi),"",20,0,0.5)]
     Hist_OnData_RoI_Theta2 += [ROOT.TH1D("Hist_OnData_RoI_Theta2_%s"%(nth_roi),"",20,0,0.5)]
     Hist_OnBkgd_RoI_Theta2 += [ROOT.TH1D("Hist_OnBkgd_RoI_Theta2_%s"%(nth_roi),"",20,0,0.5)]
-    Hist_OnData_RoI_X_Sum += [ROOT.TH1D("Hist_OnData_RoI_X_Sum_%s"%(nth_roi),"",60,-3.,3.)]
-    Hist_OnBkgd_RoI_X_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_X_Sum_%s"%(nth_roi),"",60,-3.,3.)]
-    Hist_OnData_RoI_X += [ROOT.TH1D("Hist_OnData_RoI_X_%s"%(nth_roi),"",60,-3.,3.)]
-    Hist_OnBkgd_RoI_X += [ROOT.TH1D("Hist_OnBkgd_RoI_X_%s"%(nth_roi),"",60,-3.,3.)]
-    Hist_OnData_RoI_Y_Sum += [ROOT.TH1D("Hist_OnData_RoI_Y_Sum_%s"%(nth_roi),"",60,-3.,3.)]
-    Hist_OnBkgd_RoI_Y_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Y_Sum_%s"%(nth_roi),"",60,-3.,3.)]
-    Hist_OnData_RoI_Y += [ROOT.TH1D("Hist_OnData_RoI_Y_%s"%(nth_roi),"",60,-3.,3.)]
-    Hist_OnBkgd_RoI_Y += [ROOT.TH1D("Hist_OnBkgd_RoI_Y_%s"%(nth_roi),"",60,-3.,3.)]
+    Hist_OnData_RoI_X_Sum += [ROOT.TH1D("Hist_OnData_RoI_X_Sum_%s"%(nth_roi),"",60,-roi_range,roi_range)]
+    Hist_OnBkgd_RoI_X_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_X_Sum_%s"%(nth_roi),"",60,-roi_range,roi_range)]
+    Hist_OnData_RoI_X += [ROOT.TH1D("Hist_OnData_RoI_X_%s"%(nth_roi),"",60,-roi_range,roi_range)]
+    Hist_OnBkgd_RoI_X += [ROOT.TH1D("Hist_OnBkgd_RoI_X_%s"%(nth_roi),"",60,-roi_range,roi_range)]
+    Hist_OnData_RoI_Y_Sum += [ROOT.TH1D("Hist_OnData_RoI_Y_Sum_%s"%(nth_roi),"",60,-roi_range,roi_range)]
+    Hist_OnBkgd_RoI_Y_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Y_Sum_%s"%(nth_roi),"",60,-roi_range,roi_range)]
+    Hist_OnData_RoI_Y += [ROOT.TH1D("Hist_OnData_RoI_Y_%s"%(nth_roi),"",60,-roi_range,roi_range)]
+    Hist_OnBkgd_RoI_Y += [ROOT.TH1D("Hist_OnBkgd_RoI_Y_%s"%(nth_roi),"",60,-roi_range,roi_range)]
     Hist_OnData_RoI_MJD += [ROOT.TH1D("Hist_OnData_RoI_MJD_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
     Hist_OnBkgd_RoI_MJD += [ROOT.TH1D("Hist_OnBkgd_RoI_MJD_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
     Hist_OnData_RoI_MJD_Sum += [ROOT.TH1D("Hist_OnData_RoI_MJD_Sum_%s"%(nth_roi),"",800,56200-4000,56200+4000)]
@@ -6678,8 +6672,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-drawMap = False
-#drawMap = True
+#drawMap = False
+drawMap = True
 doMorphologySpectroscopy = False
 #doMorphologySpectroscopy = True
 #Smoothing = False

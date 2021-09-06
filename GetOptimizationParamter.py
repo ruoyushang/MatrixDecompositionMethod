@@ -18,6 +18,7 @@ import numpy as np
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from itertools import cycle
 
 ROOT.gStyle.SetOptStat(0)
 ROOT.TH1.SetDefaultSumw2()
@@ -52,6 +53,8 @@ validate_rfov_count = []
 validate_comb_count = []
 data_count = []
 bkgd_count = []
+bkgd_rank0_count = []
+bkgd_rank1_count = []
 par8_count = []
 par9_count = []
 wpar9_count = []
@@ -198,6 +201,8 @@ energy_dependent_singularvalue = []
 
 energy_dependent_stat = []
 energy_dependent_syst = []
+energy_dependent_syst_rank0 = []
+energy_dependent_syst_rank1 = []
 energy_dependent_syst_init = []
 energy_dependent_stat_vali = []
 energy_dependent_syst_vbkg = []
@@ -271,62 +276,7 @@ def Make2DPlot(Hist2D,title_x,title_y,name,logz,min_z,max_z):
     #Hist2D.Draw("TEXT45 same")
     canvas.SaveAs('output_plots/%s.png'%(name))
 
-def MakeMultipleFitPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,logy):
-    
-    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
-    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
-    pad3.SetBottomMargin(0.0)
-    pad3.SetTopMargin(0.03)
-    pad3.SetLeftMargin(0.2)
-    pad3.SetBorderMode(1)
-    pad2 = ROOT.TPad("pad2","pad2",0,0,1,0.8)
-    pad2.SetBottomMargin(0.2)
-    pad2.SetLeftMargin(0.2)
-    pad2.SetTopMargin(0.0)
-    pad2.SetBorderMode(0)
-    pad2.SetGrid()
-    pad2.Draw()
-    pad3.Draw()
-
-    pad2.cd()
-    if logy: pad2.SetLogy()
-
-    min_heigh = 0
-    max_heigh = 0
-    max_hist = 0
-    mean = []
-    rms = []
-    amp = []
-    for h in range(0,len(Hists)):
-        mean += [0]
-        rms += [0]
-        amp += [0]
-        if Hists[h]!=0:
-            Hists[h].GetXaxis().SetTitleOffset(0.8)
-            Hists[h].GetXaxis().SetTitleSize(0.06)
-            Hists[h].GetXaxis().SetLabelSize(0.06)
-            Hists[h].GetYaxis().SetLabelSize(0.06)
-            Hists[h].GetYaxis().SetTitleOffset(1.2)
-            Hists[h].GetYaxis().SetTitleSize(0.06)
-            Hists[h].GetXaxis().SetTitle(title_x)
-            Hists[h].GetYaxis().SetTitle(title_y)
-            if max_heigh < Hists[h].GetMaximum(): 
-                max_heigh = Hists[h].GetMaximum()
-                max_hist = h
-            if min_heigh > Hists[h].GetMinimum(): 
-                min_heigh = Hists[h].GetMinimum()
-
-    if not y_max==0. and not y_min==0.:
-        Hists[0].SetMaximum(y_max)
-        Hists[0].SetMinimum(y_min)
-    Hists[0].Draw("E")
-
-    for h in range(0,len(Hists)):
-        Hists[h].SetLineColor(colors[h])
-        Hists[h].SetLineWidth(4)
-        Hists[h].Draw("E same")
-    Hists[0].SetLineWidth(6)
-    Hists[0].Draw("E same")
+def MakeMultipleFitPlot(ax,Hists,legends,colors,title_x,title_y):
 
     func_gauss = []
     for h in range(0,len(Hists)):
@@ -338,32 +288,44 @@ def MakeMultipleFitPlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,lo
         print ("func_gauss[%s].GetNDF() = %s"%(h,func_gauss[h].GetNDF()))
         print ("chi2/NDF = %s"%(func_gauss[h].GetChisquare()/func_gauss[h].GetNDF()))
 
-    pad3.cd()
-    legend = ROOT.TLegend(0.2,0.1,0.9,0.9)
-    legend.SetTextFont(42)
-    legend.SetBorderSize(0)
-    legend.SetTextSize(0.1)
-    legend.SetFillColor(0)
-    legend.SetFillStyle(0)
-    legend.SetLineColor(0)
-    legend.SetNColumns(3)
-    legend.Clear()
-    for h in range(0,len(Hists)):
-        if Hists[h]!=0:
-            legend.AddEntry(Hists[h],'%s'%(legends[h]),"pl")
-    legend.Draw("SAME")
+    hist_xdata = []
+    hist_ydata = []
+    hist_error = []
+    for entry in range(0,len(Hists)):
+        xdata = []
+        ydata = []
+        error = []
+        for binx in range(0,Hists[entry].GetNbinsX()):
+            xdata += [Hists[entry].GetBinCenter(binx+1)]
+            ydata += [Hists[entry].GetBinContent(binx+1)]
+            error += [Hists[entry].GetBinError(binx+1)]
+        hist_xdata += [xdata]
+        hist_ydata += [ydata]
+        hist_error += [error]
 
-    min_y = 1.0
-    min_bin = 0
-    for binx in range(1,Hists[0].GetNbinsX()+1):
-        if Hists[0].GetBinContent(binx)<min_y:
-            min_y = Hists[0].GetBinContent(binx)
-            min_bin = binx
+    func_xdata = []
+    func_ydata = []
+    for entry in range(0,len(Hists)):
+        xdata = []
+        ydata = []
+        error = []
+        for binx in range(0,200):
+            xdata += [-0.2+0.4/200.*binx]
+            ydata += [func_gauss[entry].Eval(-0.2+0.4/200.*binx)]
+        func_xdata += [xdata]
+        func_ydata += [ydata]
+        hist_error += [error]
 
-    if logx: 
-        pad1.SetLogx()
+    cycol = cycle('brgcmk')
+    for entry in range(0,len(Hists)):
+        next_color = next(cycol)
+        ax.errorbar(hist_xdata[entry], hist_ydata[entry], hist_error[entry], color=next_color, marker='s', ls='none', label='%s'%(legends[entry]))
+        ax.plot(func_xdata[entry], func_ydata[entry], color=next_color)
 
-    c_both.SaveAs('output_plots/%s.png'%(name))
+    ax.legend(loc='best')
+    ax.set_xlabel(title_x)
+    ax.set_ylabel(title_y)
+    return(ax)
 
 def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,logy):
     
@@ -518,6 +480,8 @@ def GetHistogramsFromFile(FilePath,which_source):
     global validate_comb_count
     global data_count
     global bkgd_count
+    global bkgd_rank0_count
+    global bkgd_rank1_count
     global par8_count
     global par9_count
     global wpar9_count
@@ -538,6 +502,8 @@ def GetHistogramsFromFile(FilePath,which_source):
     #comb_validate_count = ROOT.std.vector("double")(10)
     data_gamma_count = ROOT.std.vector("double")(10)
     bkgd_gamma_count = ROOT.std.vector("double")(10)
+    bkgd_rank0_gamma_count = ROOT.std.vector("double")(10)
+    bkgd_rank1_gamma_count = ROOT.std.vector("double")(10)
     par8_gamma_count = ROOT.std.vector("double")(10)
     par9_gamma_count = ROOT.std.vector("double")(10)
     wpar9_gamma_count = ROOT.std.vector("double")(10)
@@ -562,6 +528,8 @@ def GetHistogramsFromFile(FilePath,which_source):
     #NewInfoTree.SetBranchAddress('comb_validate_count',ROOT.AddressOf(comb_validate_count))
     NewInfoTree.SetBranchAddress('data_gamma_count',ROOT.AddressOf(data_gamma_count))
     NewInfoTree.SetBranchAddress('bkgd_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
+    NewInfoTree.SetBranchAddress('bkgd_rank0_gamma_count',ROOT.AddressOf(bkgd_rank0_gamma_count))
+    NewInfoTree.SetBranchAddress('bkgd_rank1_gamma_count',ROOT.AddressOf(bkgd_rank1_gamma_count))
     NewInfoTree.SetBranchAddress('par8_gamma_count',ROOT.AddressOf(par8_gamma_count))
     NewInfoTree.SetBranchAddress('par9_gamma_count',ROOT.AddressOf(par9_gamma_count))
     NewInfoTree.SetBranchAddress('wpar9_gamma_count',ROOT.AddressOf(wpar9_gamma_count))
@@ -614,6 +582,8 @@ def GetHistogramsFromFile(FilePath,which_source):
         validate_comb_count[nth_roi][which_source] += (1./energy_mibe_weight[energy_index]*bkgd_validate_count[energy_index][2*nth_roi+1]+1./energy_rfov_weight[energy_index]*rfov_validate_count[energy_index][2*nth_roi+1])/(1./energy_mibe_weight[energy_index]+1./energy_rfov_weight[energy_index])
     data_count[which_source]  += data_gamma_count[energy_index]
     bkgd_count[which_source]  += bkgd_gamma_count[energy_index]
+    bkgd_rank0_count[which_source]  += bkgd_rank0_gamma_count[energy_index]
+    bkgd_rank1_count[which_source]  += bkgd_rank1_gamma_count[energy_index]
     par8_count[which_source]  += par8_gamma_count[energy_index]
     par9_count[which_source]  += par9_gamma_count[energy_index]
     wpar9_count[which_source]  += wpar9_gamma_count[energy_index]
@@ -837,6 +807,8 @@ for e in range(0,len(energy_bin)-1):
     validate_comb_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
     data_count = [0.]*len(sample_list)
     bkgd_count = [0.]*len(sample_list)
+    bkgd_rank0_count = [0.]*len(sample_list)
+    bkgd_rank1_count = [0.]*len(sample_list)
     par8_count = [0.]*len(sample_list)
     par9_count = [0.]*len(sample_list)
     wpar9_count = [0.]*len(sample_list)
@@ -1132,6 +1104,28 @@ for e in range(0,len(energy_bin)-1):
             AccuracyBkgdErr_source += [1./pow(data_count[entry-1],0.5)]
     AccuracyBkgd_mean, AccuracyBkgd_mean_error = SystematicErrorMeasurement(AccuracyBkgd_source,AccuracyBkgdErr_source)
 
+    AccuracyBkgdRank0_source = []
+    AccuracyBkgdRank0Err_source = []
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]<10.:
+            AccuracyBkgdRank0_source += [0.]
+            AccuracyBkgdRank0Err_source += [0.]
+        else:
+            AccuracyBkgdRank0_source += [abs(data_count[entry-1]-bkgd_rank0_count[entry-1])/data_count[entry-1]]
+            AccuracyBkgdRank0Err_source += [1./pow(data_count[entry-1],0.5)]
+    AccuracyBkgdRank0_mean, AccuracyBkgdRank0_mean_error = SystematicErrorMeasurement(AccuracyBkgdRank0_source,AccuracyBkgdRank0Err_source)
+
+    AccuracyBkgdRank1_source = []
+    AccuracyBkgdRank1Err_source = []
+    for entry in range(1,len(Hist_Bkgd_Optimization)):
+        if data_count[entry-1]<10.:
+            AccuracyBkgdRank1_source += [0.]
+            AccuracyBkgdRank1Err_source += [0.]
+        else:
+            AccuracyBkgdRank1_source += [abs(data_count[entry-1]-bkgd_rank1_count[entry-1])/data_count[entry-1]]
+            AccuracyBkgdRank1Err_source += [1./pow(data_count[entry-1],0.5)]
+    AccuracyBkgdRank1_mean, AccuracyBkgdRank1_mean_error = SystematicErrorMeasurement(AccuracyBkgdRank1_source,AccuracyBkgdRank1Err_source)
+
     AccuracyPar8_source = []
     AccuracyPar8Err_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
@@ -1284,6 +1278,8 @@ for e in range(0,len(energy_bin)-1):
 
     energy_dependent_stat += [AccuracyBkgd_mean_error]
     energy_dependent_syst += [pow(max(0.,pow(AccuracyBkgd_mean,2)-pow(AccuracyBkgd_mean_error,2)),0.5)]
+    energy_dependent_syst_rank0 += [pow(max(0.,pow(AccuracyBkgdRank0_mean,2)-pow(AccuracyBkgdRank0_mean_error,2)),0.5)]
+    energy_dependent_syst_rank1 += [pow(max(0.,pow(AccuracyBkgdRank1_mean,2)-pow(AccuracyBkgdRank1_mean_error,2)),0.5)]
     energy_dependent_syst_init += [pow(max(0.,pow(AccuracyInit_mean,2)-pow(AccuracyInit_mean_error,2)),0.5)]
     energy_dependent_rank0 += [AccuracyRank0_mean]
     energy_dependent_rank1 += [AccuracyRank1_mean]
@@ -1628,6 +1624,13 @@ for e in range(0,len(energy_bin)-1):
     #MakeMultiplePlot(Hists,legends,colors,'number of entries included','#chi^{2} in CR','Chi2_Entry_E%s'%(e),0,0,False,False)
 
 my_table = PrettyTable()
+my_table.field_names = ["field","exposure"]
+my_table.float_format["exposure"] = ".1"
+for entry in range(0,len(data_exposure)):
+    my_table.add_row([sample_name[entry],data_exposure[entry]])
+print(my_table)
+
+my_table = PrettyTable()
 my_table.field_names = ["Syst. err MIBE", "Syst. err init.", "Stat. err"]
 my_table.float_format["Syst. err MIBE"] = ".3"
 my_table.float_format["Syst. err init."] = ".3"
@@ -1665,6 +1668,24 @@ for nth_roi in range(0,number_of_roi):
     ax.legend(loc='best')
     plt.savefig("output_plots/MIBE_vs_RFoV_SystErr_RoI%s.png"%(nth_roi))
 
+energy_dependent_stat_array = np.array(energy_dependent_stat)
+energy_dependent_syst_array = np.array(energy_dependent_syst)
+energy_dependent_syst_rank0_array = np.array(energy_dependent_syst_rank0)
+energy_dependent_syst_rank1_array = np.array(energy_dependent_syst_rank1)
+plt.clf()
+fig, ax = plt.subplots()
+plt.xlabel("energy [GeV]", fontsize=18)
+plt.ylabel("systematic error", fontsize=18)
+plt.xscale('log')
+plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_array, color='b', label='min(3,N)')
+plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_array-energy_dependent_stat_array, energy_dependent_syst_array+energy_dependent_stat_array, alpha=0.1, color='b')
+plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank1_array, color='g', label='min(2,N)')
+plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank1_array-energy_dependent_stat_array, energy_dependent_syst_rank1_array+energy_dependent_stat_array, alpha=0.1, color='g')
+plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank0_array, color='r', label='min(1,N)')
+plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank0_array-energy_dependent_stat_array, energy_dependent_syst_rank0_array+energy_dependent_stat_array, alpha=0.1, color='r')
+ax.legend(loc='best')
+plt.savefig("output_plots/MIBE_vs_DiffRanks_SystErr.png")
+
 plt.clf()
 fig, ax = plt.subplots()
 plt.xlabel("rank $n$", fontsize=18)
@@ -1697,7 +1718,9 @@ colors += [1]
 Hists += [Hist_SystErrDist_Init]
 legends += ['Init.']
 colors += [2]
-MakeMultipleFitPlot(Hists,legends,colors,'relative error','number of measurements','SystErrDist_E%s%s'%(e,folder_path),0.,0.,False,False)
+ax.cla()
+MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error','number of measurements')
+fig.savefig("output_plots/SystErrDist.png")
 
 for ebin in range(0,len(energy_bin)-1):
     Hist_NormSystErr.SetBinContent(ebin+1,energy_dependent_syst[ebin])
