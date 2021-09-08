@@ -26,6 +26,9 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 ROOT.gROOT.LoadMacro("load_stl.h+") # access vectors and vector of vectors
 
+plt.rcParams["figure.figsize"] = (12,8)
+fig, ax = plt.subplots()
+
 energy_bin_cut_low = 0
 energy_bin_cut_up = 3
 
@@ -71,8 +74,8 @@ rank3_count = []
 rank4_count = []
 
 #folder_path = 'output_nominal'
-folder_path = 'output_nocorrect'
-#folder_path = 'output_8x8'
+#folder_path = 'output_nocorrect'
+folder_path = 'output_8x8'
 #folder_path = 'output_4x4'
 #folder_path = 'output_2x2'
 
@@ -327,116 +330,28 @@ def MakeMultipleFitPlot(ax,Hists,legends,colors,title_x,title_y):
     ax.set_ylabel(title_y)
     return(ax)
 
-def MakeMultiplePlot(Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,logy):
+def MakeMultiplePlot(ax,Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,logy):
     
-    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
-    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
-    pad3.SetBottomMargin(0.0)
-    pad3.SetTopMargin(0.03)
-    pad3.SetLeftMargin(0.2)
-    pad3.SetBorderMode(1)
-    pad2 = ROOT.TPad("pad2","pad2",0,0,1,0.8)
-    pad2.SetBottomMargin(0.2)
-    pad2.SetLeftMargin(0.2)
-    pad2.SetTopMargin(0.0)
-    pad2.SetBorderMode(0)
-    pad2.SetGrid()
-    pad2.Draw()
-    pad3.Draw()
+    hist_xdata = []
+    hist_ydata = []
+    for entry in range(0,len(Hists)):
+        xdata = []
+        ydata = []
+        for binx in range(0,Hists[entry].GetNbinsX()):
+            xdata += [Hists[entry].GetBinCenter(binx+1)]
+            ydata += [Hists[entry].GetBinContent(binx+1)]
+        hist_xdata += [xdata]
+        hist_ydata += [ydata]
 
-    pad2.cd()
-    if logy: pad2.SetLogy()
+    ax.plot(hist_xdata[0], hist_ydata[0], color='black', label='%s'%(legends[0]), alpha=1.0)
+    for entry in range(1,len(Hists)):
+        ax.plot(hist_xdata[entry], hist_ydata[entry], label='%s'%(legends[entry]), alpha=0.5)
 
-    min_heigh = 0
-    max_heigh = 0
-    max_hist = 0
-    mean = []
-    rms = []
-    amp = []
-    for h in range(0,len(Hists)):
-        mean += [0]
-        rms += [0]
-        amp += [0]
-        if Hists[h]!=0:
-            Hists[h].GetXaxis().SetTitleOffset(0.8)
-            Hists[h].GetXaxis().SetTitleSize(0.06)
-            Hists[h].GetXaxis().SetLabelSize(0.06)
-            Hists[h].GetYaxis().SetLabelSize(0.06)
-            Hists[h].GetYaxis().SetTitleOffset(1.2)
-            Hists[h].GetYaxis().SetTitleSize(0.06)
-            Hists[h].GetXaxis().SetTitle(title_x)
-            Hists[h].GetYaxis().SetTitle(title_y)
-            if max_heigh < Hists[h].GetMaximum(): 
-                max_heigh = Hists[h].GetMaximum()
-                max_hist = h
-            if min_heigh > Hists[h].GetMinimum(): 
-                min_heigh = Hists[h].GetMinimum()
+    ax.legend(loc='best')
+    ax.set_xlabel(title_x)
+    ax.set_ylabel(title_y)
+    return(ax)
 
-    #gap = 0.1*(max_heigh-min_heigh)
-    #    Hists[0].Draw("E")
-    #else:
-    #    if not logy:
-    #        Hists[max_hist].SetMaximum(max_heigh+gap)
-    #        Hists[max_hist].SetMinimum(min_heigh-gap)
-    #    Hists[max_hist].Draw("E")
-    if not y_max==0. and not y_min==0.:
-        Hists[0].SetMaximum(y_max)
-        Hists[0].SetMinimum(y_min)
-    #if not logy:
-    #    Hists[0].SetMaximum(1e-1)
-    #    #Hists[0].SetMinimum(5e-3)
-    Hists[0].Draw("E")
-
-    for h in range(0,len(Hists)):
-        #if colors[h]==1 or colors[h]==2: Hists[0].SetLineWidth(3)
-        #if Hists[h]!=0:
-        Hists[h].SetLineColor(colors[h])
-        Hists[h].SetLineWidth(4)
-        Hists[h].Draw("E same")
-    Hists[0].SetLineWidth(6)
-    Hists[0].Draw("E same")
-
-    if Hists[0].GetXaxis().GetLabelOffset()==999:
-        x1 = Hists[0].GetXaxis().GetXmin()
-        x2 = Hists[0].GetXaxis().GetXmax()
-        y1 = Hists[0].GetYaxis().GetXmin()
-        y2 = Hists[0].GetYaxis().GetXmax()
-        IncValues = ROOT.TF1( "IncValues", "x", 0, 256 )
-        raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 510, "+")
-        raLowerAxis.SetLabelSize(Hists[0].GetXaxis().GetLabelSize())
-        raLowerAxis.Draw()
-
-    pad3.cd()
-    legend = ROOT.TLegend(0.2,0.1,0.9,0.9)
-    legend.SetTextFont(42)
-    legend.SetBorderSize(0)
-    legend.SetTextSize(0.1)
-    legend.SetFillColor(0)
-    legend.SetFillStyle(0)
-    legend.SetLineColor(0)
-    legend.SetNColumns(3)
-    legend.Clear()
-    for h in range(0,len(Hists)):
-        if Hists[h]!=0:
-            legend.AddEntry(Hists[h],'%s'%(legends[h]),"pl")
-    legend.Draw("SAME")
-
-    min_y = 1.0
-    min_bin = 0
-    for binx in range(1,Hists[0].GetNbinsX()+1):
-        if Hists[0].GetBinContent(binx)<min_y:
-            min_y = Hists[0].GetBinContent(binx)
-            min_bin = binx
-
-    #lumilab1 = ROOT.TLatex(0.15,0.80,'log10 #alpha = %.1f'%(Hists[0].GetBinCenter(min_bin)) )
-    #lumilab1.SetNDC()
-    #lumilab1.SetTextSize(0.15)
-    #lumilab1.Draw()
-
-    if logx: 
-        pad1.SetLogx()
-
-    c_both.SaveAs('output_plots/%s.png'%(name))
 
 def Smooth2DMap(Hist_Old):
 
@@ -879,6 +794,7 @@ for e in range(0,len(energy_bin)-1):
         Hist_OnData_StatErr_R2off.SetBinContent(binx+1,pow(old_content_stat/old_content_weight,0.5))
     for binx in range (0,Hist_OnBkgd_SystErr_R2off.GetNbinsX()):
         Hist_ShapeSystErr[e].SetBinContent(binx+1,Hist_OnBkgd_SystErr_R2off.GetBinContent(binx+1))
+
     Hists = []
     legends = []
     colors = []
@@ -894,7 +810,9 @@ for e in range(0,len(energy_bin)-1):
     Hists += [Hist_OnBkgd_Bias_R2off]
     legends += ['bias']
     colors += [3]
-    MakeMultiplePlot(Hists,legends,colors,'#theta^{2} from camera center','relative uncertainty','Theta2Errors_E%s%s'%(e,folder_path),0.,0.1,False,False)
+    ax.cla()
+    MakeMultiplePlot(ax,Hists,legends,colors,'$\theta^{2}$ from camera center','relative uncertainty','Theta2Errors_E%s%s'%(e,folder_path),0.,0.1,False,False)
+    fig.savefig("output_plots/Theta2Errors_E%s%s.png"%(e,folder_path))
     Hist_OnData_StatErr_R2off.Reset()
     Hist_OnDark_SystErr_R2off.Reset()
     Hist_OnBkgd_SystErr_R2off.Reset()
@@ -975,8 +893,7 @@ for e in range(0,len(energy_bin)-1):
         if total_weight>0.: y_content = y_content/total_weight
         Hist_Dark_Optimization[0].SetBinContent(binx,y_content)
 
-    fig, ax = plt.subplots()
-    plt.rcParams["figure.figsize"] = (10,6)
+    plt.clf()
     ax = fig.add_subplot(111)
     colors = np.random.rand(len(Zenith_mean_data))
 
@@ -1189,7 +1106,6 @@ for e in range(0,len(energy_bin)-1):
 
 
     plt.clf()
-    plt.rcParams["figure.figsize"] = (10,6)
     ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyInit_source))
     width = 0.35
@@ -1206,7 +1122,6 @@ for e in range(0,len(energy_bin)-1):
     plt.savefig("output_plots/PerformanceInit_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     plt.clf()
-    plt.rcParams["figure.figsize"] = (10,6)
     ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyInitSigned_source))
     width = 0.35
@@ -1223,7 +1138,6 @@ for e in range(0,len(energy_bin)-1):
     plt.savefig("output_plots/PerformanceInitSigned_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     plt.clf()
-    plt.rcParams["figure.figsize"] = (10,6)
     ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyBestPar9_source))
     width = 0.35
@@ -1241,7 +1155,6 @@ for e in range(0,len(energy_bin)-1):
     plt.savefig("output_plots/PerformanceBest_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     plt.clf()
-    plt.rcParams["figure.figsize"] = (10,6)
     ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyBkgd_source))
     width = 0.35
@@ -1259,7 +1172,6 @@ for e in range(0,len(energy_bin)-1):
     plt.savefig("output_plots/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     plt.clf()
-    plt.rcParams["figure.figsize"] = (10,6)
     ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyBkgdSigned_source))
     width = 0.35
@@ -1327,7 +1239,6 @@ for e in range(0,len(energy_bin)-1):
         ValidateComb_mean, ValidateComb_mean_error = SystematicErrorMeasurement(ValidateComb_source,ValidateCombErr_source)
 
         plt.clf()
-        plt.rcParams["figure.figsize"] = (10,6)
         ax = fig.add_subplot(111)
         ind = np.arange(len(ValidateBkgd_source))
         width = 0.35
@@ -1362,23 +1273,23 @@ for e in range(0,len(energy_bin)-1):
     energy_dependent_syst_comb += [this_roi_energy_dependent_syst_comb]
 
 
-    RankCounts = []
-    Rank = [1,2,3,4,5]
-    plt.clf()
-    plt.xlabel("Rank (r)", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma bkg}-N^{(r)}_{\gamma bkg})/N_{\gamma bkg}$", fontsize=18)
-    plt.yscale('log')
-    plt.xlim(0,6)
-    for s in range(0,len(sample_list)):
-        if data_count[s]==0.: continue
-        RankCounts = []
-        RankCounts += [abs(data_count[s]-rank0_count[s])/data_count[s]]
-        RankCounts += [abs(data_count[s]-rank1_count[s])/data_count[s]]
-        RankCounts += [abs(data_count[s]-rank2_count[s])/data_count[s]]
-        RankCounts += [abs(data_count[s]-rank3_count[s])/data_count[s]]
-        RankCounts += [abs(data_count[s]-rank4_count[s])/data_count[s]]
-        plt.errorbar(Rank,RankCounts,fmt='o')
-    plt.savefig("output_plots/RankCounts_E%s%s.png"%(e,folder_path))
+    #RankCounts = []
+    #Rank = [1,2,3,4,5]
+    #plt.clf()
+    #plt.xlabel("Rank (r)", fontsize=18)
+    #plt.ylabel("$abs(N_{\gamma bkg}-N^{(r)}_{\gamma bkg})/N_{\gamma bkg}$", fontsize=18)
+    #plt.yscale('log')
+    #plt.xlim(0,6)
+    #for s in range(0,len(sample_list)):
+    #    if data_count[s]==0.: continue
+    #    RankCounts = []
+    #    RankCounts += [abs(data_count[s]-rank0_count[s])/data_count[s]]
+    #    RankCounts += [abs(data_count[s]-rank1_count[s])/data_count[s]]
+    #    RankCounts += [abs(data_count[s]-rank2_count[s])/data_count[s]]
+    #    RankCounts += [abs(data_count[s]-rank3_count[s])/data_count[s]]
+    #    RankCounts += [abs(data_count[s]-rank4_count[s])/data_count[s]]
+    #    plt.errorbar(Rank,RankCounts,fmt='o')
+    #plt.savefig("output_plots/RankCounts_E%s%s.png"%(e,folder_path))
 
     Hists = []
     legends = []
@@ -1389,76 +1300,88 @@ for e in range(0,len(energy_bin)-1):
     random_gen = ROOT.TRandom3()
     for entry in range(1,len(Hist_Bkgd_Optimization)):
         Hists += [Hist_Bkgd_Optimization[entry]]
-        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+        #legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+        legends += ['%s'%(sample_name[entry-1])]
         colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'log10 #beta','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationAlpha_E%s%s'%(e,folder_path),1e-3,0.1,False,False)
+    ax.cla()
+    MakeMultiplePlot(ax,Hists,legends,colors,'log10 c','relative error','OptimizationAlpha_E%s%s'%(e,folder_path),1e-3,0.1,False,False)
+    fig.savefig("output_plots/OptimizationAlpha_E%s%s.png"%(e,folder_path))
 
     Make2DPlot(Hist_Bkgd_Optimization_beta[0],'C_{1}','C_{2}','OptimizationBeta_E%s%s'%(e,folder_path),False,0.,0.1)
     Make2DPlot(Hist_Bkgd_OptimizationChi2_beta[0],'C_{1}','C_{2}','OptimizationChi2Beta_E%s%s'%(e,folder_path),False,0.,0.1)
 
-    Hists = []
-    legends = []
-    colors = []
-    Hists += [Hist_Dark_Optimization[0]]
-    legends += ['average']
-    colors += [1]
-    random_gen = ROOT.TRandom3()
-    for entry in range(1,len(Hist_Dark_Optimization)):
-        Hists += [Hist_Dark_Optimization[entry]]
-        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
-        colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'normalization bins','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationNormalization_E%s%s'%(e,folder_path),1e-3,0.1,False,False)
+    #Hists = []
+    #legends = []
+    #colors = []
+    #Hists += [Hist_Dark_Optimization[0]]
+    #legends += ['average']
+    #colors += [1]
+    #random_gen = ROOT.TRandom3()
+    #for entry in range(1,len(Hist_Dark_Optimization)):
+    #    Hists += [Hist_Dark_Optimization[entry]]
+    #    legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+    #    colors += [int(random_gen.Uniform(29.,49.))]
+    #ax.cla()
+    #MakeMultiplePlot(ax,Hists,legends,colors,'normalization bins','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationNormalization_E%s%s'%(e,folder_path),1e-3,0.1,False,False)
+    #fig.savefig("output_plots/OptimizationNormalization_E%s%s.png"%(e,folder_path))
 
-    Hists = []
-    legends = []
-    colors = []
-    Hists += [Hist_Bkgd_Chi2[0]]
-    legends += ['average']
-    colors += [1]
-    #Hist_Bkgd_Chi2[0].GetXaxis().SetLabelOffset(999)
-    random_gen = ROOT.TRandom3()
-    for entry in range(1,len(Hist_Bkgd_Chi2)):
-        Hists += [Hist_Bkgd_Chi2[entry]]
-        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
-        #colors += [entry+1]
-        colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'log10 #beta','#chi^{2} = #sum #deltaM_{ij}^{2} in CR','Chi2_E%s%s'%(e,folder_path),pow(10.,-6.5),pow(10.,-4.5),False,False)
+    #Hists = []
+    #legends = []
+    #colors = []
+    #Hists += [Hist_Bkgd_Chi2[0]]
+    #legends += ['average']
+    #colors += [1]
+    ##Hist_Bkgd_Chi2[0].GetXaxis().SetLabelOffset(999)
+    #random_gen = ROOT.TRandom3()
+    #for entry in range(1,len(Hist_Bkgd_Chi2)):
+    #    Hists += [Hist_Bkgd_Chi2[entry]]
+    #    legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+    #    #colors += [entry+1]
+    #    colors += [int(random_gen.Uniform(29.,49.))]
+    #ax.cla()
+    #MakeMultiplePlot(ax,Hists,legends,colors,'log10 #beta','#chi^{2} = #sum #deltaM_{ij}^{2} in CR','Chi2_E%s%s'%(e,folder_path),pow(10.,-6.5),pow(10.,-4.5),False,False)
+    #fig.savefig("output_plots/Chi2_E%s%s.png"%(e,folder_path))
 
-    Hists = []
-    legends = []
-    colors = []
-    Hist_VVV_Eigenvalues[0].SetMinimum(1e-3)
-    Hists += [Hist_VVV_Eigenvalues[0]]
-    legends += ['average']
-    colors += [1]
-    random_gen = ROOT.TRandom3()
-    for entry in range(1,len(Hist_VVV_Eigenvalues)):
-        Hist_VVV_Eigenvalues[entry].SetMinimum(1e-3)
-        Hists += [Hist_VVV_Eigenvalues[entry]]
-        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
-        #colors += [entry+1]
-        colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'entry','singular value','SingularValue_E%s%s'%(e,folder_path),0,0,False,True)
+    #Hists = []
+    #legends = []
+    #colors = []
+    #Hist_VVV_Eigenvalues[0].SetMinimum(1e-3)
+    #Hists += [Hist_VVV_Eigenvalues[0]]
+    #legends += ['average']
+    #colors += [1]
+    #random_gen = ROOT.TRandom3()
+    #for entry in range(1,len(Hist_VVV_Eigenvalues)):
+    #    Hist_VVV_Eigenvalues[entry].SetMinimum(1e-3)
+    #    Hists += [Hist_VVV_Eigenvalues[entry]]
+    #    legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+    #    #colors += [entry+1]
+    #    colors += [int(random_gen.Uniform(29.,49.))]
+    #ax.cla()
+    #MakeMultiplePlot(ax,Hists,legends,colors,'entry','singular value','SingularValue_E%s%s'%(e,folder_path),0,0,False,True)
+    #fig.savefig("output_plots/SingularValue_E%s%s.png"%(e,folder_path))
 
     singularvalue_array = []
     for binx in range(0,Hist_Data_Eigenvalues[0].GetNbinsX()):
         singularvalue_array += [Hist_Data_Eigenvalues[0].GetBinContent(binx+1)]
-    Hists = []
-    legends = []
-    colors = []
-    Hist_Data_Eigenvalues[0].SetMinimum(1e-3)
-    Hists += [Hist_Data_Eigenvalues[0]]
-    legends += ['average']
-    colors += [1]
-    random_gen = ROOT.TRandom3()
-    for entry in range(1,len(Hist_Data_Eigenvalues)):
-        Hist_Data_Eigenvalues[entry].SetMinimum(1e-3)
-        Hists += [Hist_Data_Eigenvalues[entry]]
-        legends += ['exposure %0.1f'%(data_exposure[entry-1])]
-        #colors += [entry+1]
-        colors += [int(random_gen.Uniform(29.,49.))]
-    MakeMultiplePlot(Hists,legends,colors,'Rank (r)','singular value','SingularValue_Mon_E%s%s'%(e,folder_path),0,0,False,True)
     energy_dependent_singularvalue += [singularvalue_array]
+
+    #Hists = []
+    #legends = []
+    #colors = []
+    #Hist_Data_Eigenvalues[0].SetMinimum(1e-3)
+    #Hists += [Hist_Data_Eigenvalues[0]]
+    #legends += ['average']
+    #colors += [1]
+    #random_gen = ROOT.TRandom3()
+    #for entry in range(1,len(Hist_Data_Eigenvalues)):
+    #    Hist_Data_Eigenvalues[entry].SetMinimum(1e-3)
+    #    Hists += [Hist_Data_Eigenvalues[entry]]
+    #    legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+    #    #colors += [entry+1]
+    #    colors += [int(random_gen.Uniform(29.,49.))]
+    #ax.cla()
+    #MakeMultiplePlot(ax,Hists,legends,colors,'Rank (r)','singular value','SingularValue_Mon_E%s%s'%(e,folder_path),0,0,False,True)
+    #fig.savefig("output_plots/SingularValue_Mon_E%s%s.png"%(e,folder_path))
 
     print ('Energy %s'%(energy_bin[e]))
     for entry in range(0,len(Hist_U_Proj)):
@@ -1597,32 +1520,6 @@ for e in range(0,len(energy_bin)-1):
     #plt.plot(line_x, line_y, color='r')
     #plt.savefig("output_plots/PlainVsWeightedFrobenius_Chi2_E%s_%s%s.png"%(e,method_tag,folder_path))
 
-    #Hists = []
-    #legends = []
-    #colors = []
-    #Hist_Bkgd_Optimization[0].GetXaxis().SetLabelOffset(999)
-    #Hists += [Hist_Bkgd_Optimization[0]]
-    #legends += ['average']
-    #colors += [1]
-    #for entry in range(1,len(Hist_Bkgd_Optimization)):
-    #    Hists += [Hist_Bkgd_Optimization[entry]]
-    #    legends += ['source %s'%(entry)]
-    #    colors += [entry+1]
-    #MakeMultiplePlot(Hists,legends,colors,'number of entries included','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationParameter_Entry_E%s'%(e),0,0,False,False)
-
-    #Hists = []
-    #legends = []
-    #colors = []
-    #Hist_Bkgd_Chi2[0].GetXaxis().SetLabelOffset(999)
-    #Hists += [Hist_Bkgd_Chi2[0]]
-    #legends += ['average']
-    #colors += [1]
-    #for entry in range(1,len(Hist_Bkgd_Chi2)):
-    #    Hists += [Hist_Bkgd_Chi2[entry]]
-    #    legends += ['source %s'%(entry)]
-    #    colors += [entry+1]
-    #MakeMultiplePlot(Hists,legends,colors,'number of entries included','#chi^{2} in CR','Chi2_Entry_E%s'%(e),0,0,False,False)
-
 my_table = PrettyTable()
 my_table.field_names = ["field","exposure"]
 my_table.float_format["exposure"] = ".1"
@@ -1669,20 +1566,23 @@ for nth_roi in range(0,number_of_roi):
     plt.savefig("output_plots/MIBE_vs_RFoV_SystErr_RoI%s.png"%(nth_roi))
 
 energy_dependent_stat_array = np.array(energy_dependent_stat)
+energy_dependent_init_array = np.array(energy_dependent_syst_init)
 energy_dependent_syst_array = np.array(energy_dependent_syst)
 energy_dependent_syst_rank0_array = np.array(energy_dependent_syst_rank0)
 energy_dependent_syst_rank1_array = np.array(energy_dependent_syst_rank1)
 plt.clf()
 fig, ax = plt.subplots()
 plt.xlabel("energy [GeV]", fontsize=18)
-plt.ylabel("systematic error", fontsize=18)
+plt.ylabel("$\sigma_{\\alpha}$", fontsize=18)
 plt.xscale('log')
-plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_array, color='b', label='min(3,N)')
+plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_array, color='b', label='m = d')
 plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_array-energy_dependent_stat_array, energy_dependent_syst_array+energy_dependent_stat_array, alpha=0.1, color='b')
-plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank1_array, color='g', label='min(2,N)')
+plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank1_array, color='g', label='m = min(2,d)')
 plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank1_array-energy_dependent_stat_array, energy_dependent_syst_rank1_array+energy_dependent_stat_array, alpha=0.1, color='g')
-plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank0_array, color='r', label='min(1,N)')
+plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank0_array, color='r', label='m = min(1,d)')
 plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank0_array-energy_dependent_stat_array, energy_dependent_syst_rank0_array+energy_dependent_stat_array, alpha=0.1, color='r')
+#plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_init_array, color='m', label='initial')
+#plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_init_array-energy_dependent_stat_array, energy_dependent_init_array+energy_dependent_stat_array, alpha=0.1, color='m')
 ax.legend(loc='best')
 plt.savefig("output_plots/MIBE_vs_DiffRanks_SystErr.png")
 

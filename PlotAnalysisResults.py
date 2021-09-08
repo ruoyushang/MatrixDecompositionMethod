@@ -652,8 +652,8 @@ print ('Get %s'%(root_file_tags[0]))
 
 selection_tag = root_file_tags[0]
 
-folder_path = 'output_nocorrect'
-#folder_path = 'output_nocalib'
+#folder_path = 'output_nocorrect'
+folder_path = 'output_8x8'
 #folder_path = 'output_nominal'
 PercentCrab = ''
 
