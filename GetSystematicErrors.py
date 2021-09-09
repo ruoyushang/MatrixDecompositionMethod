@@ -38,15 +38,6 @@ N_bins_for_deconv = 16
 #N_bins_for_deconv = 2
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
-total_exposure_hours = 0.
-Zenith_mean_data = []
-NSB_mean_data = []
-Zenith_RMS_data = []
-NSB_RMS_data = []
-Zenith_mean_dark = []
-NSB_mean_dark = []
-Zenith_RMS_dark = []
-NSB_RMS_dark = []
 Accuracy_source = []
 AccuracyErr_source = []
 data_exposure = []
@@ -62,11 +53,6 @@ par8_count = []
 par9_count = []
 wpar9_count = []
 dark_count = []
-#bkgd_chi2 = []
-#par8_chi2 = []
-#par9_chi2 = []
-#wpar9_chi2 = []
-#dark_chi2 = []
 rank0_count = []
 rank1_count = []
 rank2_count = []
@@ -74,17 +60,12 @@ rank3_count = []
 rank4_count = []
 
 #folder_path = 'output_nominal'
-#folder_path = 'output_nocorrect'
-folder_path = 'output_8x8'
+folder_path = 'output_nocorrect'
+#folder_path = 'output_8x8'
 #folder_path = 'output_4x4'
 #folder_path = 'output_2x2'
 
 method_tag = 'tight_mdm_default'
-#method_tag = 'tight_mdm_rank3'
-#method_tag = 'tight_mdm_rank5'
-#method_tag = 'tight_mdm_tikhonov'
-#method_tag = 'tight_mdm_cutoff'
-#method_tag = 'tight_mdm_cutoff_eigen'
 
 lowrank_tag = '_svd'
 method_tag += lowrank_tag
@@ -174,7 +155,7 @@ sample_name += ['Crab V6']
 #elev_bins = [40,70]
 #elev_bins = [60,80]
 #elev_bins = [40,60]
-elev_bins = [50,60,70,80,90]
+elev_bins = [40,50,60,70,80,90]
 #elev_bins = [70,80,90]
 #elev_bins = [50,60,70]
 #elev_bins = [40,50,60]
@@ -240,12 +221,6 @@ def SystematicErrorMeasurement(list_measurements, list_err_measurements):
         syst_err = pow(syst_err/sample_weight,0.5)
         stat_err = pow(stat_err/sample_weight,0.5)
 
-    #sample_weight = 0.
-    #for entry in range(0,len(list_measurements)):
-    #    if list_err_measurements[entry]==0.: continue
-    #    stat_err += pow(1./list_err_measurements[entry],4)*pow(list_measurements[entry]/syst_err,2)*pow(list_err_measurements[entry],2)
-    #    sample_weight += pow(1./list_err_measurements[entry],4)
-    #stat_err = pow(stat_err/sample_weight,0.5)
 
     return syst_err, stat_err
 
@@ -379,15 +354,6 @@ def Smooth2DMap(Hist_Old):
     return Hist_Smooth
 
 def GetHistogramsFromFile(FilePath,which_source):
-    global total_exposure_hours
-    global Zenith_mean_data
-    global NSB_mean_data
-    global Zenith_RMS_data
-    global NSB_RMS_data
-    global Zenith_mean_dark
-    global NSB_mean_dark
-    global Zenith_RMS_dark
-    global NSB_RMS_dark
     global data_exposure
     global validate_data_count
     global validate_bkgd_count
@@ -401,20 +367,11 @@ def GetHistogramsFromFile(FilePath,which_source):
     global par9_count
     global wpar9_count
     global dark_count
-    #global bkgd_chi2
-    #global par8_chi2
-    #global par9_chi2
-    #global wpar9_chi2
-    #global dark_chi2
     global rank0_count
     global rank1_count
     global rank2_count
     global rank3_count
     global rank4_count
-    #data_validate_count = ROOT.std.vector("double")(10)
-    #bkgd_validate_count = ROOT.std.vector("double")(10)
-    #rfov_validate_count = ROOT.std.vector("double")(10)
-    #comb_validate_count = ROOT.std.vector("double")(10)
     data_gamma_count = ROOT.std.vector("double")(10)
     bkgd_gamma_count = ROOT.std.vector("double")(10)
     bkgd_rank0_gamma_count = ROOT.std.vector("double")(10)
@@ -423,11 +380,6 @@ def GetHistogramsFromFile(FilePath,which_source):
     par9_gamma_count = ROOT.std.vector("double")(10)
     wpar9_gamma_count = ROOT.std.vector("double")(10)
     dark_gamma_count = ROOT.std.vector("double")(10)
-    #bkgd_coeff_chi2 = ROOT.std.vector("double")(10)
-    #par8_coeff_chi2 = ROOT.std.vector("double")(10)
-    #par9_coeff_chi2 = ROOT.std.vector("double")(10)
-    #wpar9_coeff_chi2 = ROOT.std.vector("double")(10)
-    #dark_coeff_chi2 = ROOT.std.vector("double")(10)
     rank0_gamma_count = ROOT.std.vector("double")(10)
     rank1_gamma_count = ROOT.std.vector("double")(10)
     rank2_gamma_count = ROOT.std.vector("double")(10)
@@ -437,10 +389,6 @@ def GetHistogramsFromFile(FilePath,which_source):
     InfoTree = InputFile.Get("InfoTree")
     NewInfoTree = InputFile.Get("NewInfoTree")
     InfoTree.GetEntry(0)
-    #NewInfoTree.SetBranchAddress('data_validate_count',ROOT.AddressOf(data_validate_count))
-    #NewInfoTree.SetBranchAddress('bkgd_validate_count',ROOT.AddressOf(bkgd_validate_count))
-    #NewInfoTree.SetBranchAddress('rfov_validate_count',ROOT.AddressOf(rfov_validate_count))
-    #NewInfoTree.SetBranchAddress('comb_validate_count',ROOT.AddressOf(comb_validate_count))
     NewInfoTree.SetBranchAddress('data_gamma_count',ROOT.AddressOf(data_gamma_count))
     NewInfoTree.SetBranchAddress('bkgd_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
     NewInfoTree.SetBranchAddress('bkgd_rank0_gamma_count',ROOT.AddressOf(bkgd_rank0_gamma_count))
@@ -449,11 +397,6 @@ def GetHistogramsFromFile(FilePath,which_source):
     NewInfoTree.SetBranchAddress('par9_gamma_count',ROOT.AddressOf(par9_gamma_count))
     NewInfoTree.SetBranchAddress('wpar9_gamma_count',ROOT.AddressOf(wpar9_gamma_count))
     NewInfoTree.SetBranchAddress('dark_gamma_count',ROOT.AddressOf(dark_gamma_count))
-    #NewInfoTree.SetBranchAddress('bkgd_coeff_chi2',ROOT.AddressOf(bkgd_coeff_chi2))
-    #NewInfoTree.SetBranchAddress('par8_coeff_chi2',ROOT.AddressOf(par8_coeff_chi2))
-    #NewInfoTree.SetBranchAddress('par9_coeff_chi2',ROOT.AddressOf(par9_coeff_chi2))
-    #NewInfoTree.SetBranchAddress('wpar9_coeff_chi2',ROOT.AddressOf(wpar9_coeff_chi2))
-    #NewInfoTree.SetBranchAddress('dark_coeff_chi2',ROOT.AddressOf(dark_coeff_chi2))
     NewInfoTree.SetBranchAddress('rank0_gamma_count',ROOT.AddressOf(rank0_gamma_count))
     NewInfoTree.SetBranchAddress('rank1_gamma_count',ROOT.AddressOf(rank1_gamma_count))
     NewInfoTree.SetBranchAddress('rank2_gamma_count',ROOT.AddressOf(rank2_gamma_count))
@@ -470,24 +413,6 @@ def GetHistogramsFromFile(FilePath,which_source):
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
     energy_index = energy_bin.index(ErecS_lower_cut)
-    if energy_index==0: 
-        total_exposure_hours += exposure_hours
-    Zenith_mean = NewInfoTree.Zenith_mean_data
-    Zenith_RMS = NewInfoTree.Zenith_RMS_data
-    Zenith_mean = NewInfoTree.Zenith_mean_data-NewInfoTree.Zenith_mean_dark
-    Zenith_RMS = NewInfoTree.Zenith_RMS_dark
-    Zenith_mean_data[which_source] += Zenith_mean
-    Zenith_RMS_data[which_source] += Zenith_RMS/2.
-    Zenith_mean_dark[which_source] += Zenith_mean
-    Zenith_RMS_dark[which_source] += Zenith_RMS/2.
-    NSB_mean = NewInfoTree.NSB_mean_data
-    NSB_RMS = NewInfoTree.NSB_RMS_data
-    NSB_mean = NewInfoTree.NSB_mean_data-NewInfoTree.NSB_mean_dark
-    NSB_RMS = NewInfoTree.NSB_RMS_dark
-    NSB_mean_data[which_source] += NSB_mean
-    NSB_RMS_data[which_source] += NSB_RMS/2.
-    NSB_mean_dark[which_source] += NSB_mean
-    NSB_RMS_dark[which_source] += NSB_RMS/2.
     for nth_roi in range(0,number_of_roi):
         print ("nth_roi = %s"%(nth_roi))
         validate_data_count[nth_roi][which_source]  += data_validate_count[energy_index][2*nth_roi+1]
@@ -503,20 +428,12 @@ def GetHistogramsFromFile(FilePath,which_source):
     par9_count[which_source]  += par9_gamma_count[energy_index]
     wpar9_count[which_source]  += wpar9_gamma_count[energy_index]
     dark_count[which_source]  += dark_gamma_count[energy_index]
-    #bkgd_chi2[which_source]  += bkgd_coeff_chi2[energy_index]
-    #par8_chi2[which_source]  += par8_coeff_chi2[energy_index]
-    #par9_chi2[which_source]  += par9_coeff_chi2[energy_index]
-    #wpar9_chi2[which_source]  += wpar9_coeff_chi2[energy_index]
-    #dark_chi2[which_source]  += dark_coeff_chi2[energy_index]
     rank0_count[which_source]  += rank0_gamma_count[energy_index]
     rank1_count[which_source]  += rank1_gamma_count[energy_index]
     rank2_count[which_source]  += rank2_gamma_count[energy_index]
     rank3_count[which_source]  += rank3_gamma_count[energy_index]
     rank4_count[which_source]  += rank4_gamma_count[energy_index]
     Hist_Bkgd_Optimization[which_source+1].Reset()
-    Hist_Bkgd_Optimization_beta[which_source+1].Reset()
-    Hist_Bkgd_OptimizationChi2_beta[which_source+1].Reset()
-    Hist_Dark_Optimization[which_source+1].Reset()
     weight = 1./float(len(sample_list))
     #weight = exposure_hours
     HistName = "Hist_OnData_SR_R2off_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -607,35 +524,10 @@ def GetHistogramsFromFile(FilePath,which_source):
     HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Bkgd_Optimization[0].Add(InputFile.Get(HistName),weight)
     Hist_Bkgd_Optimization[which_source+1].Add(InputFile.Get(HistName))
-    HistName = "Hist_Bkgd_Optimization_beta_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_Bkgd_Optimization_beta[0].Add(InputFile.Get(HistName),weight)
-    Hist_Bkgd_Optimization_beta[which_source+1].Add(InputFile.Get(HistName))
-    HistName = "Hist_Bkgd_OptimizationChi2_beta_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_Bkgd_OptimizationChi2_beta[0].Add(InputFile.Get(HistName),weight)
-    Hist_Bkgd_OptimizationChi2_beta[which_source+1].Add(InputFile.Get(HistName))
-    HistName = "Hist_Dark_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_Dark_Optimization[0].Add(InputFile.Get(HistName),weight)
-    Hist_Dark_Optimization[which_source+1].Add(InputFile.Get(HistName))
-    Hist_Bkgd_Chi2[which_source+1].Reset()
-    HistName = "Hist_Bkgd_Chi2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_Bkgd_Chi2[0].Add(InputFile.Get(HistName),weight)
-    Hist_Bkgd_Chi2[which_source+1].Add(InputFile.Get(HistName))
-    Hist_VVV_Eigenvalues[which_source+1].Reset()
-    HistName = "Hist_VVV_Eigenvalues_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_VVV_Eigenvalues[0].Add(InputFile.Get(HistName),weight)
-    Hist_VVV_Eigenvalues[which_source+1].Add(InputFile.Get(HistName))
     Hist_Data_Eigenvalues[which_source+1].Reset()
     HistName = "Hist_Data_Eigenvalues_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Data_Eigenvalues[0].Add(InputFile.Get(HistName),weight)
     Hist_Data_Eigenvalues[which_source+1].Add(InputFile.Get(HistName))
-    Hist_U_Proj[which_source+1].Reset()
-    HistName = "Hist_U_Proj_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_U_Proj[0].Add(InputFile.Get(HistName),weight)
-    Hist_U_Proj[which_source+1].Add(InputFile.Get(HistName))
-    Hist_V_Proj[which_source+1].Reset()
-    HistName = "Hist_V_Proj_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_V_Proj[0].Add(InputFile.Get(HistName),weight)
-    Hist_V_Proj[which_source+1].Add(InputFile.Get(HistName))
     Hist_GammaRegion_Contribution[which_source+1].Reset()
     HistName = "Hist_GammaRegion_Contribution_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_GammaRegion_Contribution[0].Add(InputFile.Get(HistName),weight)
@@ -672,44 +564,125 @@ Hist_OnBkgd_Bias_XYoff = ROOT.TH2D("Hist_OnBkgd_Bias_XYoff","",XYoff_nbins,-3,3,
 Hist_OnData_StatErr_XYoff = ROOT.TH2D("Hist_OnData_StatErr_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
 Hist_OnData_StatWeight_XYoff = ROOT.TH2D("Hist_OnData_StatWeight_XYoff","",XYoff_nbins,-3,3,XYoff_nbins,-3,3)
 
+Hist_NormStatErr = []
+Hist_NormSystErr = []
+Hist_NormSystInitErr = []
+Hist_ShapeSystErr = []
+for elev in range(0,len(elev_bins)-1):
+    elev_tag = 'TelElev%sto%s'%(elev_bins[elev],elev_bins[elev+1])
+    Hist_NormStatErr += [ROOT.TH1D("Hist_NormStatErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
+    Hist_NormSystErr += [ROOT.TH1D("Hist_NormSystErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
+    Hist_NormSystInitErr += [ROOT.TH1D("Hist_NormSystInitErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
+    Hist_ShapeSystErr_ThisElev = []
+    for ebin in range(0,len(energy_bin)-1):
+        Hist_ShapeSystErr_ThisElev += [ROOT.TH1D("Hist_ShapeSystErr_%s_ErecS%sto%s"%(elev_tag,int(energy_bin[ebin]),int(energy_bin[ebin+1])),"",R2off_nbins,0,9)]
+    Hist_ShapeSystErr += [Hist_ShapeSystErr_ThisElev]
+
 optimiz_lower = -5.
 optimiz_upper = -1.
 Hist_Bkgd_Optimization = []
-Hist_Bkgd_Optimization_beta = []
-Hist_Bkgd_OptimizationChi2_beta = []
-Hist_Dark_Optimization = []
 for e in range(0,len(sample_list)+1):
     Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",10,optimiz_lower,optimiz_upper)]
-    Hist_Bkgd_Optimization_beta += [ROOT.TH2D("Hist_Bkgd_Optimization_beta_%s"%(e),"",10,0.,1.,10,0.,1.)]
-    Hist_Bkgd_OptimizationChi2_beta += [ROOT.TH2D("Hist_Bkgd_OptimizationChi2_beta_%s"%(e),"",10,0.,1.,10,0.,1.)]
-    Hist_Dark_Optimization += [ROOT.TH1D("Hist_Dark_Optimization_%s"%(e),"",int(N_bins_for_deconv/2),0,N_bins_for_deconv/2)]
-Hist_Bkgd_Chi2 = []
-for e in range(0,len(sample_list)+1):
-    Hist_Bkgd_Chi2 += [ROOT.TH1D("Hist_Bkgd_Chi2_%s"%(e),"",10,optimiz_lower,optimiz_upper)]
-Hist_VVV_Eigenvalues = []
-for e in range(0,len(sample_list)+1):
-    Hist_VVV_Eigenvalues += [ROOT.TH1D("Hist_VVV_Eigenvalues_%s"%(e),"",N_bins_for_deconv*N_bins_for_deconv,0,N_bins_for_deconv*N_bins_for_deconv)]
 Hist_Data_Eigenvalues = []
 for e in range(0,len(sample_list)+1):
     Hist_Data_Eigenvalues += [ROOT.TH1D("Hist_Data_Eigenvalues_%s"%(e),"",N_bins_for_deconv,0,N_bins_for_deconv)]
-Hist_U_Proj = []
-Hist_V_Proj = []
 Hist_GammaRegion_Contribution = []
 for e in range(0,len(sample_list)+1):
-    Hist_U_Proj += [ROOT.TH2D("Hist_U_Proj_%s"%(e),"",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)]
-    Hist_V_Proj += [ROOT.TH2D("Hist_V_Proj_%s"%(e),"",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)]
     Hist_GammaRegion_Contribution += [ROOT.TH1D("Hist_GammaRegion_Contribution_%s"%(e),"",N_bins_for_deconv,0,N_bins_for_deconv)]
 
 for e in range(0,len(energy_bin)-1):
+    for elev in range(0,len(root_file_tags)):
+        FilePath_List = []
+        validate_data_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
+        validate_bkgd_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
+        validate_rfov_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
+        validate_comb_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
+        data_count = [0.]*len(sample_list)
+        bkgd_count = [0.]*len(sample_list)
+        bkgd_rank0_count = [0.]*len(sample_list)
+        bkgd_rank1_count = [0.]*len(sample_list)
+        par8_count = [0.]*len(sample_list)
+        par9_count = [0.]*len(sample_list)
+        wpar9_count = [0.]*len(sample_list)
+        rank0_count = [0.]*len(sample_list)
+        rank1_count = [0.]*len(sample_list)
+        rank2_count = [0.]*len(sample_list)
+        rank3_count = [0.]*len(sample_list)
+        rank4_count = [0.]*len(sample_list)
+        data_exposure = [0.]*len(sample_list)
+        dark_count = [0.]*len(sample_list)
+        for entry in range(0,len(Hist_GammaRegion_Contribution)):
+            Hist_GammaRegion_Contribution[entry].Reset()
+        for entry in range(0,len(Hist_Bkgd_Optimization)):
+            Hist_Bkgd_Optimization[entry].Reset()
+        for entry in range(0,len(Hist_Data_Eigenvalues)):
+            Hist_Data_Eigenvalues[entry].Reset()
+        Hist_OnData_StatErr_R2off.Reset()
+        Hist_OnDark_SystErr_R2off.Reset()
+        Hist_OnBkgd_SystErr_R2off.Reset()
+        Hist_OnDark_InclErr_R2off.Reset()
+        Hist_OnBkgd_InclErr_R2off.Reset()
+        Hist_OnBkgd_Bias_R2off.Reset()
+        Accuracy_source = []
+        AccuracyErr_source = []
+        for source in range(0,len(sample_list)):
+            source_name = sample_list[source]
+            FilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+".root"
+            FilePath_List += [FilePath]
+            print ('Trying to read file %s'%(FilePath_List[len(FilePath_List)-1]))
+            if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
+            print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
+            ErecS_lower_cut = energy_bin[e]
+            ErecS_upper_cut = energy_bin[e+1]
+            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source)
+        for binx in range (0,Hist_OnBkgd_SystErr_R2off.GetNbinsX()):
+            old_content_weight = Hist_OnData_StatWeight_R2off.GetBinContent(binx+1)
+            if old_content_weight==0.: continue
+            old_content_stat = Hist_OnData_StatErr_R2off.GetBinContent(binx+1)
+            old_content_dark = Hist_OnDark_InclErr_R2off.GetBinContent(binx+1)
+            old_content_bkgd = Hist_OnBkgd_InclErr_R2off.GetBinContent(binx+1)
+            old_content_bias = Hist_OnBkgd_Bias_R2off.GetBinContent(binx+1)
+            Hist_OnDark_InclErr_R2off.SetBinContent(binx+1,pow(old_content_dark/old_content_weight,0.5))
+            Hist_OnBkgd_InclErr_R2off.SetBinContent(binx+1,pow(old_content_bkgd/old_content_weight,0.5))
+            Hist_OnBkgd_Bias_R2off.SetBinContent(binx+1,old_content_bias/old_content_weight)
+            old_content_dark = max(0.,old_content_dark-old_content_stat)
+            old_content_bkgd = max(0.,old_content_bkgd-old_content_stat)
+            Hist_OnDark_SystErr_R2off.SetBinContent(binx+1,pow(old_content_dark/old_content_weight,0.5))
+            Hist_OnBkgd_SystErr_R2off.SetBinContent(binx+1,pow(old_content_bkgd/old_content_weight,0.5))
+            Hist_OnData_StatErr_R2off.SetBinContent(binx+1,pow(old_content_stat/old_content_weight,0.5))
+        for binx in range (0,Hist_OnBkgd_SystErr_R2off.GetNbinsX()):
+            Hist_ShapeSystErr[elev][e].SetBinContent(binx+1,Hist_OnBkgd_SystErr_R2off.GetBinContent(binx+1))
+        AccuracyBkgd_source = []
+        AccuracyBkgdSigned_source = []
+        AccuracyBkgdErr_source = []
+        for entry in range(1,len(Hist_Bkgd_Optimization)):
+            if data_count[entry-1]<10.:
+                AccuracyBkgd_source += [0.]
+                AccuracyBkgdSigned_source += [0.]
+                AccuracyBkgdErr_source += [0.]
+            else:
+                AccuracyBkgd_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
+                AccuracyBkgdSigned_source += [(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
+                AccuracyBkgdErr_source += [1./pow(data_count[entry-1],0.5)]
+        AccuracyBkgd_mean, AccuracyBkgd_mean_error = SystematicErrorMeasurement(AccuracyBkgd_source,AccuracyBkgdErr_source)
+        elev_dependent_syst = pow(max(0.,pow(AccuracyBkgd_mean,2)-pow(AccuracyBkgd_mean_error,2)),0.5)
+        Hist_NormSystErr[elev].SetBinContent(e+1,elev_dependent_syst)
+        Hist_NormStatErr[elev].SetBinContent(e+1,AccuracyBkgd_mean_error)
+        AccuracyInit_source = []
+        AccuracyInitErr_source = []
+        for entry in range(1,len(Hist_Bkgd_Optimization)):
+            if data_count[entry-1]<10.:
+                AccuracyInit_source += [0.]
+                AccuracyInitErr_source += [0.]
+            else:
+                AccuracyInit_source += [abs(data_count[entry-1]-dark_count[entry-1])/data_count[entry-1]]
+                AccuracyInitErr_source += [1./pow(data_count[entry-1],0.5)]
+        AccuracyInit_mean, AccuracyInit_mean_error = SystematicErrorMeasurement(AccuracyInit_source,AccuracyInitErr_source)
+        elev_dependent_syst = pow(max(0.,pow(AccuracyInit_mean,2)-pow(AccuracyInit_mean_error,2)),0.5)
+        Hist_NormSystInitErr[elev].SetBinContent(e+1,elev_dependent_syst)
+
+
     FilePath_List = []
-    Zenith_mean_data = [0.]*len(sample_list)
-    NSB_mean_data = [0.]*len(sample_list)
-    Zenith_RMS_data = [0.]*len(sample_list)
-    NSB_RMS_data = [0.]*len(sample_list)
-    Zenith_mean_dark = [0.]*len(sample_list)
-    NSB_mean_dark = [0.]*len(sample_list)
-    Zenith_RMS_dark = [0.]*len(sample_list)
-    NSB_RMS_dark = [0.]*len(sample_list)
     validate_data_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
     validate_bkgd_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
     validate_rfov_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
@@ -721,11 +694,6 @@ for e in range(0,len(energy_bin)-1):
     par8_count = [0.]*len(sample_list)
     par9_count = [0.]*len(sample_list)
     wpar9_count = [0.]*len(sample_list)
-    #bkgd_chi2 = [0.]*len(sample_list)
-    #par8_chi2 = [0.]*len(sample_list)
-    #par9_chi2 = [0.]*len(sample_list)
-    #wpar9_chi2 = [0.]*len(sample_list)
-    #dark_chi2 = [0.]*len(sample_list)
     rank0_count = [0.]*len(sample_list)
     rank1_count = [0.]*len(sample_list)
     rank2_count = [0.]*len(sample_list)
@@ -733,43 +701,31 @@ for e in range(0,len(energy_bin)-1):
     rank4_count = [0.]*len(sample_list)
     data_exposure = [0.]*len(sample_list)
     dark_count = [0.]*len(sample_list)
-    for entry in range(0,len(Hist_U_Proj)):
-        Hist_U_Proj[entry].Reset()
-        Hist_V_Proj[entry].Reset()
+    for entry in range(0,len(Hist_GammaRegion_Contribution)):
         Hist_GammaRegion_Contribution[entry].Reset()
     for entry in range(0,len(Hist_Bkgd_Optimization)):
         Hist_Bkgd_Optimization[entry].Reset()
-        Hist_Bkgd_Optimization_beta[entry].Reset()
-        Hist_Bkgd_OptimizationChi2_beta[entry].Reset()
-        Hist_Dark_Optimization[entry].Reset()
-    for entry in range(0,len(Hist_Bkgd_Chi2)):
-        Hist_Bkgd_Chi2[entry].Reset()
-    for entry in range(0,len(Hist_VVV_Eigenvalues)):
-        Hist_VVV_Eigenvalues[entry].Reset()
     for entry in range(0,len(Hist_Data_Eigenvalues)):
         Hist_Data_Eigenvalues[entry].Reset()
+    Hist_OnData_StatErr_R2off.Reset()
+    Hist_OnDark_SystErr_R2off.Reset()
+    Hist_OnBkgd_SystErr_R2off.Reset()
+    Hist_OnDark_InclErr_R2off.Reset()
+    Hist_OnBkgd_InclErr_R2off.Reset()
+    Hist_OnBkgd_Bias_R2off.Reset()
+    Accuracy_source = []
+    AccuracyErr_source = []
     for source in range(0,len(sample_list)):
-        source_name = sample_list[source]
-        nfiles_used = 0
         for elev in range(0,len(root_file_tags)):
+            source_name = sample_list[source]
             FilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+".root"
             FilePath_List += [FilePath]
             print ('Trying to read file %s'%(FilePath_List[len(FilePath_List)-1]))
             if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
             print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
-            nfiles_used += 1
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
             GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source)
-        if nfiles_used>0:
-            Zenith_mean_data[source] = Zenith_mean_data[source]/nfiles_used
-            NSB_mean_data[source] = NSB_mean_data[source]/nfiles_used
-            Zenith_RMS_data[source] = Zenith_RMS_data[source]/nfiles_used
-            NSB_RMS_data[source] = NSB_RMS_data[source]/nfiles_used
-            Zenith_mean_dark[source] = Zenith_mean_dark[source]/nfiles_used
-            NSB_mean_dark[source] = NSB_mean_dark[source]/nfiles_used
-            Zenith_RMS_dark[source] = Zenith_RMS_dark[source]/nfiles_used
-            NSB_RMS_dark[source] = NSB_RMS_dark[source]/nfiles_used
 
     for binx in range (0,Hist_OnBkgd_SystErr_R2off.GetNbinsX()):
         old_content_weight = Hist_OnData_StatWeight_R2off.GetBinContent(binx+1)
@@ -805,12 +761,6 @@ for e in range(0,len(energy_bin)-1):
     ax.cla()
     MakeMultiplePlot(ax,Hists,legends,colors,'$\theta^{2}$ from camera center','relative uncertainty','Theta2Errors_E%s%s'%(e,folder_path),0.,0.1,False,False)
     fig.savefig("output_plots/Theta2Errors_E%s%s.png"%(e,folder_path))
-    Hist_OnData_StatErr_R2off.Reset()
-    Hist_OnDark_SystErr_R2off.Reset()
-    Hist_OnBkgd_SystErr_R2off.Reset()
-    Hist_OnDark_InclErr_R2off.Reset()
-    Hist_OnBkgd_InclErr_R2off.Reset()
-    Hist_OnBkgd_Bias_R2off.Reset()
     for binx in range (0,Hist_OnBkgd_SystErr_XYoff.GetNbinsX()):
         for biny in range (0,Hist_OnBkgd_SystErr_XYoff.GetNbinsY()):
             old_content_weight = Hist_OnData_StatWeight_XYoff.GetBinContent(binx+1,biny+1)
@@ -851,43 +801,9 @@ for e in range(0,len(energy_bin)-1):
         if total_weight>0.: y_content = y_content/total_weight
         Hist_Bkgd_Optimization[0].SetBinContent(binx,y_content)
 
-    for binx in range(1,Hist_Bkgd_Optimization_beta[0].GetNbinsX()+1):
-        for biny in range(1,Hist_Bkgd_Optimization_beta[0].GetNbinsY()+1):
-            total_weight = 0.
-            y_content = 0.
-            for entry in range(1,len(Hist_Bkgd_Optimization_beta)):
-                weight = pow(data_count[entry-1],0.5)
-                #weight = 1.
-                total_weight += weight
-                y_content += weight*Hist_Bkgd_Optimization_beta[entry].GetBinContent(binx,biny)
-            if total_weight>0.: y_content = y_content/total_weight
-            Hist_Bkgd_Optimization_beta[0].SetBinContent(binx,biny,y_content)
-    for binx in range(1,Hist_Bkgd_OptimizationChi2_beta[0].GetNbinsX()+1):
-        for biny in range(1,Hist_Bkgd_OptimizationChi2_beta[0].GetNbinsY()+1):
-            total_weight = 0.
-            y_content = 0.
-            for entry in range(1,len(Hist_Bkgd_OptimizationChi2_beta)):
-                weight = pow(data_count[entry-1],0.5)
-                #weight = 1.
-                total_weight += weight
-                y_content += weight*Hist_Bkgd_OptimizationChi2_beta[entry].GetBinContent(binx,biny)
-            if total_weight>0.: y_content = y_content/total_weight
-            Hist_Bkgd_OptimizationChi2_beta[0].SetBinContent(binx,biny,y_content)
-
-    for binx in range(1,Hist_Dark_Optimization[0].GetNbinsX()+1):
-        total_weight = 0.
-        y_content = 0.
-        for entry in range(1,len(Hist_Dark_Optimization)):
-            weight = pow(data_count[entry-1],0.5)
-            #weight = 1.
-            total_weight += weight
-            y_content += weight*Hist_Dark_Optimization[entry].GetBinContent(binx)
-        if total_weight>0.: y_content = y_content/total_weight
-        Hist_Dark_Optimization[0].SetBinContent(binx,y_content)
 
     plt.clf()
     ax = fig.add_subplot(111)
-    colors = np.random.rand(len(Zenith_mean_data))
 
     AccuracyInit_source = []
     AccuracyInitSigned_source = []
@@ -1299,185 +1215,11 @@ for e in range(0,len(energy_bin)-1):
     MakeMultiplePlot(ax,Hists,legends,colors,'log10 c','relative error','OptimizationAlpha_E%s%s'%(e,folder_path),1e-3,0.1,False,False)
     fig.savefig("output_plots/OptimizationAlpha_E%s%s.png"%(e,folder_path))
 
-    Make2DPlot(Hist_Bkgd_Optimization_beta[0],'C_{1}','C_{2}','OptimizationBeta_E%s%s'%(e,folder_path),False,0.,0.1)
-    Make2DPlot(Hist_Bkgd_OptimizationChi2_beta[0],'C_{1}','C_{2}','OptimizationChi2Beta_E%s%s'%(e,folder_path),False,0.,0.1)
-
-    #Hists = []
-    #legends = []
-    #colors = []
-    #Hists += [Hist_Dark_Optimization[0]]
-    #legends += ['average']
-    #colors += [1]
-    #random_gen = ROOT.TRandom3()
-    #for entry in range(1,len(Hist_Dark_Optimization)):
-    #    Hists += [Hist_Dark_Optimization[entry]]
-    #    legends += ['exposure %0.1f'%(data_exposure[entry-1])]
-    #    colors += [int(random_gen.Uniform(29.,49.))]
-    #ax.cla()
-    #MakeMultiplePlot(ax,Hists,legends,colors,'normalization bins','abs(N_{#gamma bkg}-N_{model})/N_{#gamma bkg}','OptimizationNormalization_E%s%s'%(e,folder_path),1e-3,0.1,False,False)
-    #fig.savefig("output_plots/OptimizationNormalization_E%s%s.png"%(e,folder_path))
-
-    #Hists = []
-    #legends = []
-    #colors = []
-    #Hists += [Hist_Bkgd_Chi2[0]]
-    #legends += ['average']
-    #colors += [1]
-    ##Hist_Bkgd_Chi2[0].GetXaxis().SetLabelOffset(999)
-    #random_gen = ROOT.TRandom3()
-    #for entry in range(1,len(Hist_Bkgd_Chi2)):
-    #    Hists += [Hist_Bkgd_Chi2[entry]]
-    #    legends += ['exposure %0.1f'%(data_exposure[entry-1])]
-    #    #colors += [entry+1]
-    #    colors += [int(random_gen.Uniform(29.,49.))]
-    #ax.cla()
-    #MakeMultiplePlot(ax,Hists,legends,colors,'log10 #beta','#chi^{2} = #sum #deltaM_{ij}^{2} in CR','Chi2_E%s%s'%(e,folder_path),pow(10.,-6.5),pow(10.,-4.5),False,False)
-    #fig.savefig("output_plots/Chi2_E%s%s.png"%(e,folder_path))
-
-    #Hists = []
-    #legends = []
-    #colors = []
-    #Hist_VVV_Eigenvalues[0].SetMinimum(1e-3)
-    #Hists += [Hist_VVV_Eigenvalues[0]]
-    #legends += ['average']
-    #colors += [1]
-    #random_gen = ROOT.TRandom3()
-    #for entry in range(1,len(Hist_VVV_Eigenvalues)):
-    #    Hist_VVV_Eigenvalues[entry].SetMinimum(1e-3)
-    #    Hists += [Hist_VVV_Eigenvalues[entry]]
-    #    legends += ['exposure %0.1f'%(data_exposure[entry-1])]
-    #    #colors += [entry+1]
-    #    colors += [int(random_gen.Uniform(29.,49.))]
-    #ax.cla()
-    #MakeMultiplePlot(ax,Hists,legends,colors,'entry','singular value','SingularValue_E%s%s'%(e,folder_path),0,0,False,True)
-    #fig.savefig("output_plots/SingularValue_E%s%s.png"%(e,folder_path))
 
     singularvalue_array = []
     for binx in range(0,Hist_Data_Eigenvalues[0].GetNbinsX()):
         singularvalue_array += [Hist_Data_Eigenvalues[0].GetBinContent(binx+1)]
     energy_dependent_singularvalue += [singularvalue_array]
-
-    #Hists = []
-    #legends = []
-    #colors = []
-    #Hist_Data_Eigenvalues[0].SetMinimum(1e-3)
-    #Hists += [Hist_Data_Eigenvalues[0]]
-    #legends += ['average']
-    #colors += [1]
-    #random_gen = ROOT.TRandom3()
-    #for entry in range(1,len(Hist_Data_Eigenvalues)):
-    #    Hist_Data_Eigenvalues[entry].SetMinimum(1e-3)
-    #    Hists += [Hist_Data_Eigenvalues[entry]]
-    #    legends += ['exposure %0.1f'%(data_exposure[entry-1])]
-    #    #colors += [entry+1]
-    #    colors += [int(random_gen.Uniform(29.,49.))]
-    #ax.cla()
-    #MakeMultiplePlot(ax,Hists,legends,colors,'Rank (r)','singular value','SingularValue_Mon_E%s%s'%(e,folder_path),0,0,False,True)
-    #fig.savefig("output_plots/SingularValue_Mon_E%s%s.png"%(e,folder_path))
-
-    print ('Energy %s'%(energy_bin[e]))
-    for entry in range(0,len(Hist_U_Proj)):
-        source_name = 'Average'
-        if entry>0:
-            source_name = sample_name[entry-1]
-        print (source_name)
-        tab_U_proj = [['1',0.,0.,0.,0.],['2',0.,0.,0.,0.],['3',0.,0.,0.,0.]]
-        tab_V_proj = [['1',0.,0.,0.,0.],['2',0.,0.,0.,0.],['3',0.,0.,0.,0.]]
-        for row in range(0,Hist_U_Proj[entry].GetNbinsX()):
-            for col in range(0,Hist_U_Proj[entry].GetNbinsY()):
-                content_u = Hist_U_Proj[entry].GetBinContent(row+1,col+1)
-                content_v = Hist_V_Proj[entry].GetBinContent(row+1,col+1)
-                if row>=3: continue
-                if col<3:
-                    tab_U_proj[row][col+1] = pow(content_u,0.5)
-                    tab_V_proj[row][col+1] = pow(content_v,0.5)
-                else:
-                    tab_U_proj[row][3+1] += content_u
-                    tab_V_proj[row][3+1] += content_v
-        for row in range(0,Hist_U_Proj[entry].GetNbinsX()):
-            if row>=3: continue
-            tab_U_proj[row][3+1] = pow(tab_U_proj[row][3+1],0.5)
-            tab_V_proj[row][3+1] = pow(tab_V_proj[row][3+1],0.5)
-        tab_GammaRegion_Contribution = ['$\epsilon$ in gamma region',0.,0.,0.,0.]
-        for row in range(0,Hist_GammaRegion_Contribution[entry].GetNbinsX()):
-            if row<3:
-                tab_GammaRegion_Contribution[row+1] = pow(Hist_GammaRegion_Contribution[entry].GetBinContent(row+1),0.5)
-        tab_GammaRegion_Contribution[3+1] = pow(Hist_GammaRegion_Contribution[entry].GetBinContent(Hist_GammaRegion_Contribution[entry].GetNbinsX()),0.5)
-        my_table = PrettyTable()
-        my_table.field_names = ["Rank (r)", "$E^{U}_{r1}$", "$E^{U}_{r2}$", "$E^{U}_{r3}$", "$\sum_{4}^{16} E^{U}_{ri}$"]
-        for row in range(0,len(tab_U_proj)):
-            my_table.add_row(tab_U_proj[row])
-        print(my_table)
-        my_table = PrettyTable()
-        my_table.field_names = ["Rank (r)", "$E^{V}_{r1}$", "$E^{V}_{r2}$", "$E^{V}_{r3}$", "$\sum_{4}^{16} E^{V}_{ri}$"]
-        for row in range(0,len(tab_V_proj)):
-            my_table.add_row(tab_V_proj[row])
-        print(my_table)
-        sum_proj = 1./6.*(pow(tab_U_proj[0][4],2)+pow(tab_U_proj[1][4],2)+pow(tab_U_proj[2][4],2))
-        sum_proj += 1./6.*(pow(tab_V_proj[0][4],2)+pow(tab_V_proj[1][4],2)+pow(tab_V_proj[2][4],2))
-        print ('eta = %s, eta^{0.5} = %s'%(sum_proj,pow(sum_proj,0.5)))
-        my_table = PrettyTable()
-        my_table.field_names = ["k<=3", "n<=1", "n<=2", "n<=3", "n<=16"]
-        my_table.add_row(tab_GammaRegion_Contribution)
-        print(my_table)
-    eta_array = []
-    best_array = []
-    par9_array = []
-    par9_sig_array = []
-    my_table = PrettyTable()
-    my_table.field_names = ["source","data","sqrt data epsilon","best rank3 epsilon","best 9-par epsilon","initial epsilon","8(9)-par epsilon", "weighted 9-par epsilon", "low-rank epsilon","eta"]
-    my_table.float_format["sqrt data epsilon"] = ".2e"
-    my_table.float_format["best rank3 epsilon"] = ".2e"
-    my_table.float_format["best 9-par epsilon"] = ".2e"
-    my_table.float_format["initial epsilon"] = ".2e"
-    my_table.float_format["9-par epsilon"] = ".2e"
-    my_table.float_format["weighted 9-par epsilon"] = ".2e"
-    my_table.float_format["low-rank epsilon"] = ".2e"
-    my_table.float_format["eta"] = ".2e"
-    for entry in range(0,len(Hist_U_Proj)):
-        tab_U_proj = [['1',0.,0.,0.,0.],['2',0.,0.,0.,0.],['3',0.,0.,0.,0.]]
-        tab_V_proj = [['1',0.,0.,0.,0.],['2',0.,0.,0.,0.],['3',0.,0.,0.,0.]]
-        for row in range(0,Hist_U_Proj[entry].GetNbinsX()):
-            for col in range(0,Hist_U_Proj[entry].GetNbinsY()):
-                content_u = Hist_U_Proj[entry].GetBinContent(row+1,col+1)
-                content_v = Hist_V_Proj[entry].GetBinContent(row+1,col+1)
-                if row>=3: continue
-                if col<3:
-                    tab_U_proj[row][col+1] = pow(content_u,0.5)
-                    tab_V_proj[row][col+1] = pow(content_v,0.5)
-                else:
-                    tab_U_proj[row][3+1] += content_u
-                    tab_V_proj[row][3+1] += content_v
-        for row in range(0,Hist_U_Proj[entry].GetNbinsX()):
-            if row>=3: continue
-            tab_U_proj[row][3+1] = pow(tab_U_proj[row][3+1],0.5)
-            tab_V_proj[row][3+1] = pow(tab_V_proj[row][3+1],0.5)
-        sum_proj = 1./6.*(pow(tab_U_proj[0][4],2)+pow(tab_U_proj[1][4],2)+pow(tab_U_proj[2][4],2))
-        sum_proj += 1./6.*(pow(tab_V_proj[0][4],2)+pow(tab_V_proj[1][4],2)+pow(tab_V_proj[2][4],2))
-        if entry>0 and data_count[entry-1]>0.:
-            eta_array += [sum_proj]
-            best_array += [abs(1.-rank2_count[entry-1]/data_count[entry-1])]
-            par9_array += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)]
-            par9_sig_array += [pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5)/(pow(data_count[entry-1],0.5)/data_count[entry-1])]
-        source_name = 'Average'
-        if entry>0 and data_count[entry-1]>0.:
-            source_name = sample_name[entry-1]
-            my_table.add_row([source_name,data_count[entry-1],pow(data_count[entry-1],0.5)/data_count[entry-1],abs(1.-rank2_count[entry-1]/data_count[entry-1]),pow(Hist_GammaRegion_Contribution[entry].GetBinContent(2+1),0.5),abs(1.-dark_count[entry-1]/data_count[entry-1]),abs(1.-par9_count[entry-1]/data_count[entry-1]),abs(1.-wpar9_count[entry-1]/data_count[entry-1]),abs(1.-bkgd_count[entry-1]/data_count[entry-1]),sum_proj])
-        else:
-            my_table.add_row([source_name,1.,AccuracyStat_mean,AccuracyRank2_mean,AccuracyBestPar9_mean,AccuracyInit_mean,AccuracyPar9_mean,AccuracyWPar9_mean,Accuracy_mean,sum_proj])
-    print(my_table)
-
-    plt.clf()
-    plt.xlabel("$eta$", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma bkg}-N_{best-9-par})/N_{\gamma bkg}$", fontsize=18)
-    plt.scatter(eta_array,par9_array)
-    plt.savefig("output_plots/EtaVsBestPar9_E%s_%s%s.png"%(e,method_tag,folder_path))
-
-    plt.clf()
-    plt.xlabel("$eta$", fontsize=18)
-    plt.ylabel("$abs(N_{\gamma bkg}-N_{best-9-par})/ sqrt(N_{\gamma bkg})$", fontsize=18)
-    plt.scatter(eta_array,par9_sig_array)
-    plt.savefig("output_plots/EtaVsBestPar9Sig_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     par9_epsilon = []
     wpar9_epsilon = []
@@ -1614,4 +1356,23 @@ ax.cla()
 MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error','number of measurements')
 fig.savefig("output_plots/SystErrDist.png")
 
+for elev in range(0,len(elev_bins)-1):
+    for ebin in range(0,len(energy_bin)-1):
+        energy_dependent_syst[ebin] = Hist_NormSystErr[elev].GetBinContent(ebin+1)
+        energy_dependent_syst_init[ebin] = Hist_NormSystInitErr[elev].GetBinContent(ebin+1)
+        energy_dependent_stat[ebin] = Hist_NormStatErr[elev].GetBinContent(ebin+1)
+    my_table = PrettyTable()
+    my_table.field_names = ["Syst. err MIBE", "Syst. err init.", "Stat. err"]
+    my_table.float_format["Syst. err MIBE"] = ".3"
+    my_table.float_format["Syst. err init."] = ".3"
+    my_table.float_format["Stat. err"] = ".3"
+    for entry in range(0,len(energy_dependent_syst)):
+        my_table.add_row([energy_dependent_syst[entry],energy_dependent_syst_init[entry],energy_dependent_stat[entry]])
+    print(my_table)
 
+OutputFile = ROOT.TFile('output_plots/SystErrors.root','recreate')
+for elev in range(0,len(elev_bins)-1):
+    Hist_NormSystErr[elev].Write()
+    for ebin in range(0,len(energy_bin)-1):
+        Hist_ShapeSystErr[elev][ebin].Write()
+OutputFile.Close()

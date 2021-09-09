@@ -652,8 +652,8 @@ print ('Get %s'%(root_file_tags[0]))
 
 selection_tag = root_file_tags[0]
 
-#folder_path = 'output_nocorrect'
-folder_path = 'output_8x8'
+folder_path = 'output_nocorrect'
+#folder_path = 'output_8x8'
 #folder_path = 'output_nominal'
 PercentCrab = ''
 
@@ -707,14 +707,14 @@ Syst_Corr = 0.02
 Syst_Clos = 0.02
 
 energy_bin = []
-energy_bin += [int(pow(10,2.0))]
-energy_bin += [int(pow(10,2.33))]
-energy_bin += [int(pow(10,2.66))]
-energy_bin += [int(pow(10,3.0))]
-energy_bin += [int(pow(10,3.33))]
-energy_bin += [int(pow(10,3.66))]
-energy_bin += [int(pow(10,4.0))]
-energy_bin += [int(pow(10,4.4))]
+energy_bin += [100]
+energy_bin += [214]
+energy_bin += [457]
+energy_bin += [1000]
+energy_bin += [2140]
+energy_bin += [4570]
+energy_bin += [10000]
+energy_bin += [25000]
 
 energy_syst = []
 energy_syst += [0.121]
@@ -2238,8 +2238,11 @@ def flux_crab_func(x):
     # Crab https://arxiv.org/pdf/1508.06442.pdf
     return 37.5*pow(10,-12)*pow(x*1./1000.,-2.467-0.16*log(x/1000.))
 def flux_j1908_func(x):
-    # MGRO J1908
+    # MGRO J1908  TeV^{-1}cm^{-2}s^{-1}
     return 4.23*pow(10,-12)*pow(x*1./1000.,-2.2)
+def flux_hawc_j1908_func(x):
+    # MGRO J1908  TeV^{-1}cm^{-2}s^{-1}
+    return 0.95*pow(10,-13)*pow(x*1./10000.,-2.46-0.11*log(x/10000.))
 def flux_j1857_func(x):
     # HESS J1857+026
     return 5.37*pow(10,-12)*pow(x*1./1000.,-2.16)
@@ -2341,7 +2344,10 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
         if 'VHE region' in legends[nth_roi]:
             vectorize_f = np.vectorize(flux_j1908_func)
             ydata = pow(xdata,E_index)*vectorize_f(xdata)
-            ax.plot(xdata, ydata,'r-',label='1404.7185')
+            ax.plot(xdata, ydata,'r-',label='1404.7185 (VERITAS)')
+            vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
+            ydata_hawc = pow(xdata,E_index)*vectorize_f_hawc(xdata)
+            ax.plot(xdata, ydata_hawc,'m-',label='1909.08609 (HAWC)')
         if 'IC 443' in legends[nth_roi]:
             vectorize_f = np.vectorize(flux_ic443_func)
             ydata = pow(xdata,E_index)*vectorize_f(xdata)
@@ -6672,8 +6678,8 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-#drawMap = False
-drawMap = True
+drawMap = False
+#drawMap = True
 doMorphologySpectroscopy = False
 #doMorphologySpectroscopy = True
 #Smoothing = False
