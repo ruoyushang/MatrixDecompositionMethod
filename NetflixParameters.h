@@ -8,7 +8,7 @@ const int N_energy_bins = 7;
 double Log10_alpha[N_energy_bins] = {-5.,-3.,-3.,-3.8,-5.,-5.,-5.};
 int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
 int RankTruncation[N_energy_bins] = {3,3,2,2,1,1,1};
-double energy_bins[N_energy_bins+1] = {pow(10,2.0),pow(10,2.33),pow(10,2.66),pow(10,3.0),pow(10,3.33),pow(10,3.66),pow(10,4.0),pow(10,4.4)};
+double energy_bins[N_energy_bins+1] = {100.,214.,457.,1000.,2140.,4570.,10000.,25000.};
 double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.,1.,1.};
 

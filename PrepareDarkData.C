@@ -1887,28 +1887,39 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     TH1::SetDefaultSumw2();
 
     std::cout << "Get systematic error histograms" << std::endl;
-    TH1D Hist_NormSystErr = TH1D("Hist_NormSystErr_Temp","",N_energy_bins,energy_bins);
-    vector<TH1D> Hist_ShapeSystErr;
-    for (int e=0;e<N_energy_bins;e++) 
+    vector<TH1D> Hist_NormSystErr;
+    vector<vector<TH1D>> Hist_ShapeSystErr;
+    for (int elev=0;elev<N_elev_bins;elev++) 
     {
-        char e_low[50];
-        sprintf(e_low, "%i", int(energy_bins[e]));
-        char e_up[50];
-        sprintf(e_up, "%i", int(energy_bins[e+1]));
-        Hist_ShapeSystErr.push_back(TH1D("Hist_ShapeSystErr_Temp_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",9,0,9));
+        char elev_tag[50];
+        sprintf(elev_tag,"TelElev%ito%i",int(elev_bins[elev]),int(elev_bins[elev+1]));
+        Hist_NormSystErr.push_back(TH1D("Hist_NormSystErr_Temp_"+TString(elev_tag),"",N_energy_bins,energy_bins));
+        vector<TH1D> Hist_ShapeSystErr_ThisElev;
+        for (int e=0;e<N_energy_bins;e++) 
+        {
+            char e_tag[50];
+            sprintf(e_tag,"ErecS%ito%i",int(energy_bins[e]),int(energy_bins[e+1]));
+            Hist_ShapeSystErr_ThisElev.push_back(TH1D("Hist_ShapeSystErr_Temp_"+TString(elev_tag)+TString("_")+TString(e_tag),"",9,0,9));
+        }
+        Hist_ShapeSystErr.push_back(Hist_ShapeSystErr_ThisElev);
     }
     TFile InputSystFile(TString(SMI_AUX)+"/SystErrors.root");
     TString hist_name;
-    hist_name  = "Hist_NormSystErr";
-    Hist_NormSystErr.Add( (TH1D*)InputSystFile.Get(hist_name) );
-    for (int e=0;e<N_energy_bins;e++) 
+    for (int elev=0;elev<N_elev_bins;elev++) 
     {
-        char e_low[50];
-        sprintf(e_low, "%i", int(energy_bins[e]));
-        char e_up[50];
-        sprintf(e_up, "%i", int(energy_bins[e+1]));
-        hist_name  = "Hist_ShapeSystErr_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-        Hist_ShapeSystErr.at(e).Add( (TH1D*)InputSystFile.Get(hist_name) );
+        char elev_tag[50];
+        sprintf(elev_tag,"TelElev%ito%i",int(elev_bins[elev]),int(elev_bins[elev+1]));
+        hist_name  = "Hist_NormSystErr_"+TString(elev_tag);
+        Hist_NormSystErr.at(elev).Add( (TH1D*)InputSystFile.Get(hist_name) );
+        std::cout << "Get hist " << hist_name << std::endl;
+        Hist_NormSystErr.at(elev).Print("All");
+        for (int e=0;e<N_energy_bins;e++) 
+        {
+            char e_tag[50];
+            sprintf(e_tag,"ErecS%ito%i",int(energy_bins[e]),int(energy_bins[e+1]));
+            hist_name  = "Hist_ShapeSystErr_"+TString(elev_tag)+TString("_")+TString(e_tag);
+            Hist_ShapeSystErr.at(elev).at(e).Add( (TH1D*)InputSystFile.Get(hist_name) );
+        }
     }
 
 
@@ -2104,11 +2115,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.2);
 
-            roi_name.push_back("Big region");
-            roi_ra.push_back(287.0);
-            roi_dec.push_back(6.5);
+            roi_name.push_back("HAWC region");
+            roi_ra.push_back(286.91);
+            roi_dec.push_back(6.32);
             roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(1.2);
+            roi_radius_outer.push_back(1.34);
 
         }
         else if (TString(target).Contains("SS433")) 
@@ -3087,9 +3098,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             MSCW = MSCW/MSCW_rescale[energy];
             MSCL = MSCL/MSCL_rescale[energy];
 
-            double norm_syst_err = Hist_NormSystErr.GetBinContent(energy+1); 
-            int r2_bin = Hist_ShapeSystErr.at(energy).FindBin(R2off);
-            double shape_syst_err = Hist_ShapeSystErr.at(energy).GetBinContent(r2_bin); 
+            double norm_syst_err = Hist_NormSystErr.at(elevation).GetBinContent(energy+1); 
+            int r2_bin = Hist_ShapeSystErr.at(elevation).at(energy).FindBin(R2off);
+            double shape_syst_err = Hist_ShapeSystErr.at(elevation).at(energy).GetBinContent(r2_bin); 
             
             int bin_energy = Hist_CRDark_Energy.at(energy).FindBin(ErecS*1000.);
             int bin_r2off = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(R2off);

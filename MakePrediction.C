@@ -51,6 +51,8 @@ MatrixXcd mtx_data;
 MatrixXcd mtx_dark;
 MatrixXcd mtx_data_best;
 MatrixXcd mtx_data_bkgd;
+MatrixXcd mtx_data_bkgd_rank0;
+MatrixXcd mtx_data_bkgd_rank1;
 MatrixXcd mtx_data_par8;
 MatrixXcd mtx_data_par9;
 MatrixXcd mtx_data_wpar9;
@@ -121,6 +123,8 @@ vector<double> dark_sigma_rank2;
 vector<double> dark_gamma_count;
 vector<double> best_gamma_count;
 vector<double> bkgd_gamma_count;
+vector<double> bkgd_rank0_gamma_count;
+vector<double> bkgd_rank1_gamma_count;
 vector<double> par8_gamma_count;
 vector<double> par9_gamma_count;
 vector<double> wpar9_gamma_count;
@@ -147,6 +151,8 @@ void ResetMatrixDimension()
     mtx_data = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_dark = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_data_bkgd = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
+    mtx_data_bkgd_rank0 = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
+    mtx_data_bkgd_rank1 = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_gamma_raw = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_gamma = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
     mtx_coeff_data = MatrixXcd(N_bins_for_deconv,N_bins_for_deconv);
@@ -2964,33 +2970,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
     TH1::SetDefaultSumw2();
 
-    std::cout << "Get systematic error histograms" << std::endl;
-    TH1D Hist_NormSystErr = TH1D("Hist_NormSystErr_Temp","",N_energy_bins,energy_bins);
-    TH1D Hist_NormRFoVSystErr = TH1D("Hist_NormRFoVSystErr_Temp","",N_energy_bins,energy_bins);
-    vector<TH1D> Hist_ShapeSystErr;
-    for (int e=0;e<N_energy_bins;e++) 
-    {
-        char e_low[50];
-        sprintf(e_low, "%i", int(energy_bins[e]));
-        char e_up[50];
-        sprintf(e_up, "%i", int(energy_bins[e+1]));
-        Hist_ShapeSystErr.push_back(TH1D("Hist_ShapeSystErr_Temp_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",9,0,9));
-    }
-    TFile InputSystFile(TString(SMI_AUX)+"/SystErrors.root");
-    TString syst_hist_name;
-    syst_hist_name  = "Hist_NormSystErr";
-    Hist_NormSystErr.Add( (TH1D*)InputSystFile.Get(syst_hist_name) );
-    syst_hist_name  = "Hist_NormRFoVSystErr";
-    Hist_NormRFoVSystErr.Add( (TH1D*)InputSystFile.Get(syst_hist_name) );
-    for (int e=0;e<N_energy_bins;e++) 
-    {
-        char e_low[50];
-        sprintf(e_low, "%i", int(energy_bins[e]));
-        char e_up[50];
-        sprintf(e_up, "%i", int(energy_bins[e+1]));
-        syst_hist_name  = "Hist_ShapeSystErr_ErecS"+TString(e_low)+TString("to")+TString(e_up);
-        Hist_ShapeSystErr.at(e).Add( (TH1D*)InputSystFile.Get(syst_hist_name) );
-    }
 
     sprintf(target, "%s", target_data.c_str());
 
@@ -3266,6 +3245,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH2D> Hist_Gamma_MSCLW;
     vector<TH2D> Hist_OnData_MSCLW;
     vector<TH2D> Hist_OnBkgd_MSCLW;
+    vector<TH2D> Hist_OnBkgdRank0_MSCLW;
+    vector<TH2D> Hist_OnBkgdRank1_MSCLW;
     vector<TH2D> Hist_OnBest_MSCLW;
     vector<TH2D> Hist_OnPar8_MSCLW;
     vector<TH2D> Hist_OnPar9_MSCLW;
@@ -3338,6 +3319,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_Gamma_MSCLW.push_back(TH2D("Hist_Gamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnData_MSCLW.push_back(TH2D("Hist_OnData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnBkgd_MSCLW.push_back(TH2D("Hist_OnBkgd_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_OnBkgdRank0_MSCLW.push_back(TH2D("Hist_OnBkgdRank0_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
+        Hist_OnBkgdRank1_MSCLW.push_back(TH2D("Hist_OnBkgdRank1_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnBest_MSCLW.push_back(TH2D("Hist_OnBest_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnPar8_MSCLW.push_back(TH2D("Hist_OnPar8_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
         Hist_OnPar9_MSCLW.push_back(TH2D("Hist_OnPar9_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -3766,7 +3749,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             {
                 if (find_elbow) continue;
                 std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank) << std::endl;
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<2.0)
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<3.0)
                 {
                     find_elbow = true;
                 }
@@ -3882,6 +3865,16 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             mtx_data_bkgd = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,optimized_alpha,optimized_beta1,optimized_beta2,std::make_pair(NumberOfEigenvectors_Stable,NumberOfEigenvectors_Stable),e).first;
             fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
             Hist_OnBkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
+
+            NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,2);
+            mtx_data_bkgd_rank1 = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,optimized_alpha,optimized_beta1,optimized_beta2,std::make_pair(NumberOfEigenvectors_Stable,NumberOfEigenvectors_Stable),e).first;
+            fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd_rank1);
+            Hist_OnBkgdRank1_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
+
+            NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,1);
+            mtx_data_bkgd_rank0 = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,optimized_alpha,optimized_beta1,optimized_beta2,std::make_pair(NumberOfEigenvectors_Stable,NumberOfEigenvectors_Stable),e).first;
+            fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd_rank0);
+            Hist_OnBkgdRank0_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
 
             findDifferentialHistogram(&Hist_Bkgd_Chi2.at(e),&Hist_Bkgd_Chi2_Diff.at(e),true);
             findDifferentialHistogram(&Hist_Bkgd_Chi2_Diff.at(e),&Hist_Bkgd_Chi2_Diff2.at(e),false);
@@ -4003,6 +3996,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         mtx_data = fillMatrix(&Hist_OnData_MSCLW.at(e));
         mtx_dark = fillMatrix(&Hist_OnDark_MSCLW.at(e));
         mtx_data_bkgd = fillMatrix(&Hist_OnBkgd_MSCLW.at(e));
+        mtx_data_bkgd_rank0 = fillMatrix(&Hist_OnBkgdRank0_MSCLW.at(e));
+        mtx_data_bkgd_rank1 = fillMatrix(&Hist_OnBkgdRank1_MSCLW.at(e));
         mtx_data_best = fillMatrix(&Hist_OnBest_MSCLW.at(e));
         mtx_data_par8 = fillMatrix(&Hist_OnPar8_MSCLW.at(e));
         mtx_data_par9 = fillMatrix(&Hist_OnPar9_MSCLW.at(e));
@@ -4060,6 +4055,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         MatrixXcd mtx_bkgd_truncate = GetTruncatedMatrix(mtx_data_bkgd, NumberOfEigenvectors_Stable);
         double best_full_count = CountGammaRegion(mtx_data_best);
         double bkgd_full_count = CountGammaRegion(mtx_data_bkgd);
+        double bkgd_rank0_full_count = CountGammaRegion(mtx_data_bkgd_rank0);
+        double bkgd_rank1_full_count = CountGammaRegion(mtx_data_bkgd_rank1);
         double par8_full_count = CountGammaRegion(mtx_data_par8);
         double par9_full_count = CountGammaRegion(mtx_data_par9);
         double wpar9_full_count = CountGammaRegion(mtx_data_wpar9);
@@ -4076,6 +4073,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         dark_gamma_count.push_back(dark_full_count);
         best_gamma_count.push_back(best_full_count);
         bkgd_gamma_count.push_back(bkgd_full_count);
+        bkgd_rank0_gamma_count.push_back(bkgd_rank0_full_count);
+        bkgd_rank1_gamma_count.push_back(bkgd_rank1_full_count);
         par8_gamma_count.push_back(par8_full_count);
         par9_gamma_count.push_back(par9_full_count);
         wpar9_gamma_count.push_back(wpar9_full_count);
@@ -4303,6 +4302,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     NewInfoTree.Branch("dark_gamma_count","std::vector<double>",&dark_gamma_count);
     NewInfoTree.Branch("best_gamma_count","std::vector<double>",&best_gamma_count);
     NewInfoTree.Branch("bkgd_gamma_count","std::vector<double>",&bkgd_gamma_count);
+    NewInfoTree.Branch("bkgd_rank0_gamma_count","std::vector<double>",&bkgd_rank0_gamma_count);
+    NewInfoTree.Branch("bkgd_rank1_gamma_count","std::vector<double>",&bkgd_rank1_gamma_count);
     NewInfoTree.Branch("par8_gamma_count","std::vector<double>",&par8_gamma_count);
     NewInfoTree.Branch("par9_gamma_count","std::vector<double>",&par9_gamma_count);
     NewInfoTree.Branch("wpar9_gamma_count","std::vector<double>",&wpar9_gamma_count);
