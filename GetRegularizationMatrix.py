@@ -29,6 +29,11 @@ target_energy_index = 2
 N_bins_for_deconv = 16
 #N_bins_for_deconv = 8
 #N_bins_for_deconv = 4
+
+folder_path = 'output_16x16'
+#folder_path = 'output_8x8'
+#folder_path = 'output_4x4'
+
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 MSCW_blind_cut = 0.6
@@ -41,9 +46,6 @@ ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
 
-folder_path = 'output_nocorrect'
-#folder_path = 'output_8x8'
-#folder_path = 'output_4x4'
 method_tag = 'tight_mdm_default'
 
 lowrank_tag = '_svd'
@@ -105,20 +107,14 @@ sample_name += ['H1426 V6']
 sample_list += ['RGBJ0710V5_OFF']
 sample_name += ['RGBJ0710 V5']
     
-#elev_bins = [40,70]
-#elev_bins = [60,80]
-#elev_bins = [40,60]
-elev_bins = [50,60,70,80,90]
-#elev_bins = [70,80,90]
-#elev_bins = [50,60,70]
-#elev_bins = [60,70]
-#elev_bins = [50,60]
-#elev_bins = [40,50]
+elev_bins = [45,55,65,75,85]
+#elev_bins = [65,75,85]
+#elev_bins = [45,55,65]
 theta2_bins = [0,4]
 
 #energy_bin_ref = 1
-stable_rank = 3
-#stable_rank = 2
+#stable_rank = 3
+stable_rank = 2
 
 energy_bin = []
 energy_bin += [100]
@@ -251,16 +247,17 @@ def MakeCorrelationPlot(list_var):
             mtx_var_bkgd_norm[sample][var] = mtx_var_bkgd[sample][var]/mtx_var_rms[var]
 
 
+    plt.clf()
     x_var = mtx_var_norm.transpose()[0]
     y_var = mtx_var_norm.transpose()[1]
-    plt.clf()
     plt.xlabel("$t_{%s,%s}$ (arbitrary unit)"%(par1_row,par1_col), fontsize=16)
     plt.ylabel("$t_{%s,%s}$ (arbitrary unit)"%(par2_row,par2_col), fontsize=16)
     plt.scatter(x_var,y_var)
 
-    #x_var = mtx_var_bkgd_norm.transpose()[0]
-    #y_var = mtx_var_bkgd_norm.transpose()[1]
-    #plt.scatter(x_var,y_var,color='r')
+    x_var = mtx_var_bkgd_norm.transpose()[0]
+    y_var = mtx_var_bkgd_norm.transpose()[1]
+    plt.scatter(x_var,y_var,color='r')
+
     plt.savefig("output_plots/parameter_correlation_%s%s_%s%s_data.png"%(par1_row,par1_col,par2_row,par2_col))
 
 

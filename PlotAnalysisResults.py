@@ -53,11 +53,8 @@ method_tag += lowrank_tag
 energy_bin_cut_low = 0
 energy_bin_cut_up = 7
 
-#elev_range = [45,85]
-#elev_range = [40,70]
-#elev_range = [60,80]
-#elev_range = [25,55]
-elev_range = [40,50,60,70,80,90]
+#elev_range = [50,60]
+elev_range = [35,45,55,65,75,85]
 #elev_range = [70,80,90]
 #elev_range = [50,60,70]
 
@@ -652,9 +649,9 @@ print ('Get %s'%(root_file_tags[0]))
 
 selection_tag = root_file_tags[0]
 
-folder_path = 'output_nocorrect'
+folder_path = 'output_nominal'
+#folder_path = 'output_16x16'
 #folder_path = 'output_8x8'
-#folder_path = 'output_nominal'
 PercentCrab = ''
 
 
@@ -2257,8 +2254,9 @@ def flux_geminag_func(x):
 
 def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalibrate,doBkgFlux,E_index):
     
-    #calibration = [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]
-    calibration = [1.4882882361333352e-08, 5.263239643322328e-09, 1.0802968196388149e-09, 2.1973457481820704e-10, 5.542403247199573e-11, 1.3479175864778823e-11, 2.9508548473821887e-12, 6.731610457903672e-13, 2.2028215887312284e-13, 6.718074395757896e-14, 2.5306409498975782e-14, 9.210048055230929e-15]
+    calibration = [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]
+    #calibration = [1.3256428693759565e-08, 5.128150274749451e-09, 1.132469100866471e-09, 2.5402210594764984e-10, 7.044560661036885e-11, 1.927125372955154e-11, 3.7092073705842124e-12, 8.386413388009844e-13, 2.5551538678304e-13, 6.868888622214288e-14, 2.482277712145389e-14, 7.549884173404358e-15] # no correction
+    calibration = [1.403182629520122e-08, 5.579631316432461e-09, 1.2239874168155154e-09, 2.7772640296842295e-10, 7.658394202503177e-11, 2.1429467958702194e-11, 4.012471120241679e-12, 8.561140267210039e-13, 2.6168986962628274e-13, 7.054802774301757e-14, 2.5837016918616317e-14, 7.91525598598596e-15] # nominal
 
     Hist_Flux = []
     for nth_roi in range(0,len(hist_data)):
@@ -2325,7 +2323,7 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
     for nth_roi in range(0,len(hist_data)):
         if 'background flux' in legends[nth_roi]:
             print ('background flux = %s'%(np.array(roi_ydata[nth_roi])))
-        if 'Crab' in legends[nth_roi]:
+        if 'Crab' in legends[nth_roi] and E_index==0. and nth_roi==0:
             vectorize_f = np.vectorize(flux_crab_func)
             ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='1508.06442')
@@ -2367,7 +2365,7 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
 
     ax.legend(loc='best')
     ax.set_xlabel('Energy [GeV]')
-    ax.set_ylabel('$TeV^{-1}cm^{-2}s^{-1}$')
+    ax.set_ylabel('Flux [$\mathrm{TeV}^{-1}\mathrm{cm}^{-2}\mathrm{s}^{-1}$]')
     ax.set_xscale('log')
     ax.set_yscale('log')
     return(ax)
@@ -3160,6 +3158,7 @@ def PlotsStackedHistograms(tag):
     legends = []
     for nth_roi in range(1,len(roi_ra)):
         if 'b-mag' in roi_name[nth_roi]: continue
+        #if not ('LAT GeV region' in roi_name[nth_roi] or 'PSR region' in roi_name[nth_roi] or 'SNR region' in roi_name[nth_roi]): continue
         Hist_data += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
         Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
         radii += [roi_radius[nth_roi]]
@@ -3167,6 +3166,10 @@ def PlotsStackedHistograms(tag):
     title = 'energy [GeV]'
     MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,True,False,0.)
     plotname = 'Flux_Calibrate_%s'%(tag)
+    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
+    ax.cla()
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,True,False,2.)
+    plotname = 'FluxE2_Calibrate_%s'%(tag)
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
     ax.cla()
     MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False,False,0.)

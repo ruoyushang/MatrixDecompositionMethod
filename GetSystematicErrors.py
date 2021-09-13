@@ -30,12 +30,19 @@ plt.rcParams["figure.figsize"] = (12,8)
 fig, ax = plt.subplots()
 
 energy_bin_cut_low = 0
-energy_bin_cut_up = 3
+energy_bin_cut_up = 2
 
 N_bins_for_deconv = 16
 #N_bins_for_deconv = 8
 #N_bins_for_deconv = 4
 #N_bins_for_deconv = 2
+
+#folder_path = 'output_nominal'
+folder_path = 'output_16x16'
+#folder_path = 'output_8x8'
+#folder_path = 'output_4x4'
+#folder_path = 'output_2x2'
+
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 Accuracy_source = []
@@ -58,12 +65,6 @@ rank1_count = []
 rank2_count = []
 rank3_count = []
 rank4_count = []
-
-#folder_path = 'output_nominal'
-folder_path = 'output_nocorrect'
-#folder_path = 'output_8x8'
-#folder_path = 'output_4x4'
-#folder_path = 'output_2x2'
 
 method_tag = 'tight_mdm_default'
 
@@ -151,14 +152,8 @@ sample_name += ['Crab V6']
 #sample_list += ['CrabV5_ON']
 #sample_name += ['Crab V5']
     
-#elev_bins = [45,85]
-#elev_bins = [40,70]
-#elev_bins = [60,80]
-#elev_bins = [40,60]
-elev_bins = [40,50,60,70,80,90]
-#elev_bins = [70,80,90]
-#elev_bins = [50,60,70]
-#elev_bins = [40,50,60]
+elev_bins = [35,45,55,65,75,85]
+#elev_bins = [65,75,85]
 lowrank_tag += 'elev_incl'
 
 theta2_bins = [0,4]
@@ -305,26 +300,30 @@ def MakeMultipleFitPlot(ax,Hists,legends,colors,title_x,title_y):
     ax.set_ylabel(title_y)
     return(ax)
 
-def MakeMultiplePlot(ax,Hists,legends,colors,title_x,title_y,name,y_min,y_max,logx,logy):
+def MakeMultiplePlot(ax,Hists,legends,colors,title_x,title_y,name,x_min,x_max,logx,logy):
     
     hist_xdata = []
     hist_ydata = []
     for entry in range(0,len(Hists)):
         xdata = []
         ydata = []
+        xdata += [Hists[entry].GetBinLowEdge(1)]
+        ydata += [0.]
         for binx in range(0,Hists[entry].GetNbinsX()):
-            xdata += [Hists[entry].GetBinCenter(binx+1)]
+            xdata += [Hists[entry].GetBinLowEdge(binx+2)]
             ydata += [Hists[entry].GetBinContent(binx+1)]
         hist_xdata += [xdata]
         hist_ydata += [ydata]
 
-    ax.plot(hist_xdata[0], hist_ydata[0], color='black', label='%s'%(legends[0]), alpha=1.0)
+    ax.step(hist_xdata[0], hist_ydata[0], color='black', label='%s'%(legends[0]), alpha=1.0)
     for entry in range(1,len(Hists)):
-        ax.plot(hist_xdata[entry], hist_ydata[entry], label='%s'%(legends[entry]), alpha=0.5)
+        ax.step(hist_xdata[entry], hist_ydata[entry], label='%s'%(legends[entry]), alpha=0.5)
 
     ax.legend(loc='best')
     ax.set_xlabel(title_x)
     ax.set_ylabel(title_y)
+    if (x_min!=x_max):
+        ax.set_xlim(x_min,x_max)
     return(ax)
 
 
@@ -476,7 +475,7 @@ def GetHistogramsFromFile(FilePath,which_source):
         dark_bin_count = Hist_OnDark_SR_R2off.GetBinContent(binx2)
         bkgd_bin_count = Hist_OnData_CR_R2off.GetBinContent(binx2)
         if data_bin_count==0.: continue
-        relative_stat = pow(2.*data_bin_count,0.5)/data_bin_count
+        relative_stat = pow(1.*data_bin_count,0.5)/data_bin_count
         relative_bias_dark = (data_bin_count-dark_bin_count)/data_bin_count
         relative_bias_bkgd = (data_bin_count-bkgd_bin_count)/data_bin_count
         old_content_stat = Hist_OnData_StatErr_R2off.GetBinContent(binx+1)
@@ -617,6 +616,7 @@ for e in range(0,len(energy_bin)-1):
             Hist_Bkgd_Optimization[entry].Reset()
         for entry in range(0,len(Hist_Data_Eigenvalues)):
             Hist_Data_Eigenvalues[entry].Reset()
+        Hist_OnData_StatWeight_R2off.Reset()
         Hist_OnData_StatErr_R2off.Reset()
         Hist_OnDark_SystErr_R2off.Reset()
         Hist_OnBkgd_SystErr_R2off.Reset()
@@ -707,6 +707,7 @@ for e in range(0,len(energy_bin)-1):
         Hist_Bkgd_Optimization[entry].Reset()
     for entry in range(0,len(Hist_Data_Eigenvalues)):
         Hist_Data_Eigenvalues[entry].Reset()
+    Hist_OnData_StatWeight_R2off.Reset()
     Hist_OnData_StatErr_R2off.Reset()
     Hist_OnDark_SystErr_R2off.Reset()
     Hist_OnBkgd_SystErr_R2off.Reset()
@@ -747,19 +748,19 @@ for e in range(0,len(energy_bin)-1):
     legends = []
     colors = []
     Hists += [Hist_OnBkgd_InclErr_R2off]
-    legends += ['incl. err.']
+    legends += ['$\sigma_{\mathrm{stat}} \oplus \sigma_{\mathrm{shape}}$']
     colors += [1]
     Hists += [Hist_OnData_StatErr_R2off]
-    legends += ['stat. err.']
+    legends += ['$\sigma_{\mathrm{stat}}$']
     colors += [4]
     Hists += [Hist_OnBkgd_SystErr_R2off]
-    legends += ['syst. err.']
+    legends += ['$\sigma_{\mathrm{shape}}$']
     colors += [2]
-    Hists += [Hist_OnBkgd_Bias_R2off]
-    legends += ['bias']
-    colors += [3]
+    #Hists += [Hist_OnBkgd_Bias_R2off]
+    #legends += ['bias']
+    #colors += [3]
     ax.cla()
-    MakeMultiplePlot(ax,Hists,legends,colors,'$\theta^{2}$ from camera center','relative uncertainty','Theta2Errors_E%s%s'%(e,folder_path),0.,0.1,False,False)
+    MakeMultiplePlot(ax,Hists,legends,colors,'$\\theta^{2}$ from camera center','relative uncertainty','Theta2Errors_E%s%s'%(e,folder_path),0.,4.,False,False)
     fig.savefig("output_plots/Theta2Errors_E%s%s.png"%(e,folder_path))
     for binx in range (0,Hist_OnBkgd_SystErr_XYoff.GetNbinsX()):
         for biny in range (0,Hist_OnBkgd_SystErr_XYoff.GetNbinsY()):
@@ -1212,7 +1213,7 @@ for e in range(0,len(energy_bin)-1):
         legends += ['%s'%(sample_name[entry-1])]
         colors += [int(random_gen.Uniform(29.,49.))]
     ax.cla()
-    MakeMultiplePlot(ax,Hists,legends,colors,'log10 c','relative error','OptimizationAlpha_E%s%s'%(e,folder_path),1e-3,0.1,False,False)
+    MakeMultiplePlot(ax,Hists,legends,colors,'log10 c','relative error','OptimizationAlpha_E%s%s'%(e,folder_path),0.,0.,False,False)
     fig.savefig("output_plots/OptimizationAlpha_E%s%s.png"%(e,folder_path))
 
 
@@ -1221,22 +1222,22 @@ for e in range(0,len(energy_bin)-1):
         singularvalue_array += [Hist_Data_Eigenvalues[0].GetBinContent(binx+1)]
     energy_dependent_singularvalue += [singularvalue_array]
 
-    par9_epsilon = []
-    wpar9_epsilon = []
-    for entry in range(0,len(wpar9_count)):
-        if data_count[entry]==0.: continue
-        par9_epsilon += [abs(data_count[entry]-par9_count[entry])/data_count[entry]]
-        wpar9_epsilon += [abs(data_count[entry]-wpar9_count[entry])/data_count[entry]]
-    plt.clf()
-    plt.xlabel("$\epsilon$ (plain Frobenius norm)", fontsize=18)
-    plt.ylabel("$\epsilon$ (weighted Frobenius norm)", fontsize=18)
-    plt.xlim(0.,0.1)
-    plt.ylim(0.,0.1)
-    plt.scatter(par9_epsilon,wpar9_epsilon)
-    line_x = np.arange(0.0, 0.1, 1e-4) # angular size
-    line_y = line_x
-    plt.plot(line_x, line_y, color='r')
-    plt.savefig("output_plots/PlainVsWeightedFrobenius_Count_E%s_%s%s.png"%(e,method_tag,folder_path))
+    #par9_epsilon = []
+    #wpar9_epsilon = []
+    #for entry in range(0,len(wpar9_count)):
+    #    if data_count[entry]==0.: continue
+    #    par9_epsilon += [abs(data_count[entry]-par9_count[entry])/data_count[entry]]
+    #    wpar9_epsilon += [abs(data_count[entry]-wpar9_count[entry])/data_count[entry]]
+    #plt.clf()
+    #plt.xlabel("$\epsilon$ (plain Frobenius norm)", fontsize=18)
+    #plt.ylabel("$\epsilon$ (weighted Frobenius norm)", fontsize=18)
+    #plt.xlim(0.,0.1)
+    #plt.ylim(0.,0.1)
+    #plt.scatter(par9_epsilon,wpar9_epsilon)
+    #line_x = np.arange(0.0, 0.1, 1e-4) # angular size
+    #line_y = line_x
+    #plt.plot(line_x, line_y, color='r')
+    #plt.savefig("output_plots/PlainVsWeightedFrobenius_Count_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     #par9_epsilon = []
     #wpar9_epsilon = []
@@ -1347,7 +1348,7 @@ Hists = []
 legends = []
 colors = []
 Hists += [Hist_SystErrDist_MDM]
-legends += ['MIBE']
+legends += ['Refined']
 colors += [1]
 Hists += [Hist_SystErrDist_Init]
 legends += ['Init.']
@@ -1357,17 +1358,19 @@ MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error','number of measurem
 fig.savefig("output_plots/SystErrDist.png")
 
 for elev in range(0,len(elev_bins)-1):
+    energy_interval = []
     for ebin in range(0,len(energy_bin)-1):
+        energy_interval += ["%s-%s"%(energy_bin[ebin],energy_bin[ebin+1])]
         energy_dependent_syst[ebin] = Hist_NormSystErr[elev].GetBinContent(ebin+1)
         energy_dependent_syst_init[ebin] = Hist_NormSystInitErr[elev].GetBinContent(ebin+1)
         energy_dependent_stat[ebin] = Hist_NormStatErr[elev].GetBinContent(ebin+1)
     my_table = PrettyTable()
-    my_table.field_names = ["Syst. err MIBE", "Syst. err init.", "Stat. err"]
-    my_table.float_format["Syst. err MIBE"] = ".3"
+    my_table.field_names = ["energy","Syst. err init.", "Syst. err refined", "Stat. err"]
     my_table.float_format["Syst. err init."] = ".3"
+    my_table.float_format["Syst. err refined"] = ".3"
     my_table.float_format["Stat. err"] = ".3"
     for entry in range(0,len(energy_dependent_syst)):
-        my_table.add_row([energy_dependent_syst[entry],energy_dependent_syst_init[entry],energy_dependent_stat[entry]])
+        my_table.add_row([energy_interval[entry],energy_dependent_syst_init[entry],energy_dependent_syst[entry],energy_dependent_stat[entry]])
     print(my_table)
 
 OutputFile = ROOT.TFile('output_plots/SystErrors.root','recreate')

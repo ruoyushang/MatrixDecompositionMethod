@@ -36,6 +36,13 @@ N_bins_for_deconv = 16
 #N_bins_for_deconv = 8
 #N_bins_for_deconv = 4
 #N_bins_for_deconv = 2
+
+#folder_path = 'output_nominal'
+folder_path = 'output_16x16'
+#folder_path = 'output_8x8'
+#folder_path = 'output_4x4'
+#folder_path = 'output_2x2'
+
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 total_exposure_hours = 0.
@@ -72,12 +79,6 @@ rank1_count = []
 rank2_count = []
 rank3_count = []
 rank4_count = []
-
-#folder_path = 'output_nominal'
-#folder_path = 'output_nocorrect'
-folder_path = 'output_8x8'
-#folder_path = 'output_4x4'
-#folder_path = 'output_2x2'
 
 method_tag = 'tight_mdm_default'
 #method_tag = 'tight_mdm_rank3'
