@@ -1405,8 +1405,6 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             available_bins += 1;
             double sigma_syst = pow(mtx_best_residual(idx_i,idx_j).real(),0.5)*mtx_data_input(idx_i,idx_j).real();
             double sigma_data = max(1.,pow(mtx_data_input(idx_i,idx_j).real(),0.5));
-            //double weight = 1./pow(sigma_syst*sigma_syst,0.5);
-            //double weight = 1./pow(sigma_data*sigma_data+sigma_syst*sigma_syst,0.5);
             double weight = 1.;
             if (WeightingType==1 && entry_size>1) weight = 1./pow(sigma_data*sigma_data,0.5);
             vtr_Delta(idx_u) = weight*(mtx_data_input-mtx_init_comp)(idx_i,idx_j);
@@ -3488,6 +3486,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
     vector<vector<TH1D>> Hist_OnData_SR_RoI_Energy;
     vector<vector<TH1D>> Hist_OnData_CR_RoI_Energy;
+    vector<vector<TH1D>> Hist_NormSyst_RoI_Energy;
+    vector<vector<TH1D>> Hist_ShapeSyst_RoI_Energy;
     vector<vector<TH1D>> Hist_OnRFoV_CR_RoI_Energy;
     vector<vector<TH1D>> Hist_OnData_SR_Skymap_RoI_Theta2;
     vector<vector<TH1D>> Hist_OnData_CR_Skymap_RoI_Theta2;
@@ -3503,6 +3503,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(roi_tag, "%i", nth_roi);
         vector<TH1D> Hist_OnData_OneRoI_SR_RoI_Energy;
         vector<TH1D> Hist_OnData_OneRoI_CR_RoI_Energy;
+        vector<TH1D> Hist_OneNormSyst_RoI_Energy;
+        vector<TH1D> Hist_OneShapeSyst_RoI_Energy;
         vector<TH1D> Hist_OnRFoV_OneRoI_CR_RoI_Energy;
         vector<TH1D> Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2;
         vector<TH1D> Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2;
@@ -3529,10 +3531,14 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
             Hist_OnData_OneRoI_SR_RoI_Energy.push_back(TH1D("Hist_OnData_SR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnData_OneRoI_CR_RoI_Energy.push_back(TH1D("Hist_OnData_CR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+            Hist_OneNormSyst_RoI_Energy.push_back(TH1D("Hist_NormSyst_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+            Hist_OneShapeSyst_RoI_Energy.push_back(TH1D("Hist_ShapeSyst_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnRFoV_OneRoI_CR_RoI_Energy.push_back(TH1D("Hist_OnRFoV_CR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
         }
         Hist_OnData_SR_RoI_Energy.push_back(Hist_OnData_OneRoI_SR_RoI_Energy);
         Hist_OnData_CR_RoI_Energy.push_back(Hist_OnData_OneRoI_CR_RoI_Energy);
+        Hist_NormSyst_RoI_Energy.push_back(Hist_OneNormSyst_RoI_Energy);
+        Hist_ShapeSyst_RoI_Energy.push_back(Hist_OneShapeSyst_RoI_Energy);
         Hist_OnRFoV_CR_RoI_Energy.push_back(Hist_OnRFoV_OneRoI_CR_RoI_Energy);
         for (int e=0;e<N_energy_bins;e++) 
         {
@@ -3690,6 +3696,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             hist_name  = "Hist_Stage1_OnData_CR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
             Hist_OnData_CR_RoI_Energy.at(nth_roi).at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
             Hist_OnRFoV_CR_RoI_Energy.at(nth_roi).at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_Stage1_NormSyst_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_NormSyst_RoI_Energy.at(nth_roi).at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_Stage1_ShapeSyst_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
             hist_name  = "Hist_Stage1_OnData_CR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
             Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
             hist_name  = "Hist_Stage1_OnData_CR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -3866,6 +3876,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
             Hist_OnBkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
 
+            double NumberOfEigenvectors_Stable_tmp = NumberOfEigenvectors_Stable;
+
             NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,2);
             mtx_data_bkgd_rank1 = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,optimized_alpha,optimized_beta1,optimized_beta2,std::make_pair(NumberOfEigenvectors_Stable,NumberOfEigenvectors_Stable),e).first;
             fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd_rank1);
@@ -3875,6 +3887,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             mtx_data_bkgd_rank0 = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,optimized_alpha,optimized_beta1,optimized_beta2,std::make_pair(NumberOfEigenvectors_Stable,NumberOfEigenvectors_Stable),e).first;
             fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd_rank0);
             Hist_OnBkgdRank0_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
+
+            NumberOfEigenvectors_Stable = NumberOfEigenvectors_Stable_tmp;
 
             findDifferentialHistogram(&Hist_Bkgd_Chi2.at(e),&Hist_Bkgd_Chi2_Diff.at(e),true);
             findDifferentialHistogram(&Hist_Bkgd_Chi2_Diff.at(e),&Hist_Bkgd_Chi2_Diff2.at(e),false);
@@ -3942,6 +3956,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
         {
             Hist_OnData_CR_RoI_Energy.at(nth_roi).at(e).Scale(scale_energy);
+            Hist_NormSyst_RoI_Energy.at(nth_roi).at(e).Scale(scale_energy);
+            Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(e).Scale(scale_energy);
             Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(e).Scale(scale_yoff);
             Hist_OnData_CR_Skymap_RoI_X.at(nth_roi).at(e).Scale(scale_yoff);
             Hist_OnData_CR_Skymap_RoI_Y.at(nth_roi).at(e).Scale(scale_yoff);
@@ -4411,6 +4427,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         {
             Hist_OnData_SR_RoI_Energy.at(nth_roi).at(e).Write();
             Hist_OnData_CR_RoI_Energy.at(nth_roi).at(e).Write();
+            Hist_NormSyst_RoI_Energy.at(nth_roi).at(e).Write();
+            Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(e).Write();
             Hist_OnRFoV_CR_RoI_Energy.at(nth_roi).at(e).Write();
         }
         for (int e=0;e<N_energy_bins;e++) 

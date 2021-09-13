@@ -1919,6 +1919,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             sprintf(e_tag,"ErecS%ito%i",int(energy_bins[e]),int(energy_bins[e+1]));
             hist_name  = "Hist_ShapeSystErr_"+TString(elev_tag)+TString("_")+TString(e_tag);
             Hist_ShapeSystErr.at(elev).at(e).Add( (TH1D*)InputSystFile.Get(hist_name) );
+            std::cout << "Get hist " << hist_name << std::endl;
+            Hist_ShapeSystErr.at(elev).at(e).Print("All");
         }
     }
 
@@ -2103,12 +2105,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.2);
 
-            roi_name.push_back("CO region");
-            roi_ra.push_back(286.6);
-            roi_dec.push_back(7.1);
-            roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.2);
-
             roi_name.push_back("G40.5-0.5");
             roi_ra.push_back(286.786);
             roi_dec.push_back(6.498);
@@ -2120,6 +2116,24 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_dec.push_back(6.32);
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(1.34);
+
+            roi_name.push_back("CO region");
+            roi_ra.push_back(286.6);
+            roi_dec.push_back(7.1);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.2);
+
+            roi_name.push_back("LAT MeV region");
+            roi_ra.push_back(286.4);
+            roi_dec.push_back(6.3);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.2);
+
+            roi_name.push_back("LAT GeV region");
+            roi_ra.push_back(287.2);
+            roi_dec.push_back(6.4);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.2);
 
         }
         else if (TString(target).Contains("SS433")) 
@@ -2197,6 +2211,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 roi_dec.push_back(mean_tele_point_dec);
                 roi_radius_inner.push_back(0.);
                 roi_radius_outer.push_back(1.0);
+                roi_name.push_back("Crab r=1.5 deg");
+                roi_ra.push_back(mean_tele_point_ra);
+                roi_dec.push_back(mean_tele_point_dec);
+                roi_radius_inner.push_back(0.);
+                roi_radius_outer.push_back(1.5);
             } 
             else
             {
@@ -2506,6 +2525,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     vector<vector<TH1D>> Hist_OnData_SR_RoI_Energy;
     vector<vector<TH1D>> Hist_OnData_CR_RoI_Energy;
+    vector<vector<TH1D>> Hist_NormSyst_RoI_Energy;
+    vector<vector<TH1D>> Hist_ShapeSyst_RoI_Energy;
     vector<vector<TH1D>> Hist_OnData_SR_Skymap_RoI_Theta2;
     vector<vector<TH1D>> Hist_OnData_CR_Skymap_RoI_Theta2;
     vector<vector<TH1D>> Hist_OnData_SR_Skymap_RoI_X;
@@ -2520,6 +2541,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(roi_tag, "%i", nth_roi);
         vector<TH1D> Hist_OnData_OneRoI_SR_RoI_Energy;
         vector<TH1D> Hist_OnData_OneRoI_CR_RoI_Energy;
+        vector<TH1D> Hist_OneNormSyst_RoI_Energy;
+        vector<TH1D> Hist_OneShapeSyst_RoI_Energy;
         vector<TH1D> Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2;
         vector<TH1D> Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2;
         vector<TH1D> Hist_OnData_OneRoI_SR_Skymap_RoI_X;
@@ -2542,6 +2565,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
             Hist_OnData_OneRoI_SR_RoI_Energy.push_back(TH1D("Hist_Stage1_OnData_SR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnData_OneRoI_CR_RoI_Energy.push_back(TH1D("Hist_Stage1_OnData_CR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+            Hist_OneNormSyst_RoI_Energy.push_back(TH1D("Hist_Stage1_NormSyst_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
+            Hist_OneShapeSyst_RoI_Energy.push_back(TH1D("Hist_Stage1_ShapeSyst_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
             Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_OnData_CR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
             Hist_OnData_OneRoI_SR_Skymap_RoI_X.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
@@ -2553,6 +2578,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         }
         Hist_OnData_SR_RoI_Energy.push_back(Hist_OnData_OneRoI_SR_RoI_Energy);
         Hist_OnData_CR_RoI_Energy.push_back(Hist_OnData_OneRoI_CR_RoI_Energy);
+        Hist_NormSyst_RoI_Energy.push_back(Hist_OneNormSyst_RoI_Energy);
+        Hist_ShapeSyst_RoI_Energy.push_back(Hist_OneShapeSyst_RoI_Energy);
         Hist_OnData_SR_Skymap_RoI_Theta2.push_back(Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2);
         Hist_OnData_CR_Skymap_RoI_Theta2.push_back(Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2);
         Hist_OnData_SR_Skymap_RoI_X.push_back(Hist_OnData_OneRoI_SR_Skymap_RoI_X);
@@ -3003,6 +3030,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
             }
+            else
+            {
+                R2_weight = 0.;
+            }
+            if (R2_weight>10.)
+            {
+                R2_weight = 0.;
+            }
             if (!AcceptanceCorrection) R2_weight = 1.;
 
             if (ControlSelectionTheta2())
@@ -3125,6 +3160,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
             }
+            else
+            {
+                R2_weight = 0.;
+            }
+            if (R2_weight>10.)
+            {
+                R2_weight = 0.;
+            }
             if (!AcceptanceCorrection) R2_weight = 1.;
             double Expo_weight = (2.*Skymap_size/12.)/(3.14*0.25);
             int bin_ra = Hist_OnData_Expo_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
@@ -3174,6 +3217,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                             if (RoIFoV(nth_roi)) 
                             {
                                 Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight);
+                                Hist_NormSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight*norm_syst_err);
+                                Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight*shape_syst_err);
                                 Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,energy_weight*R2_weight*Expo_weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
@@ -3204,6 +3249,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                             if (!isRoI)
                             {
                                 Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight);
+                                Hist_NormSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight*norm_syst_err);
+                                Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight*shape_syst_err);
                                 Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,energy_weight*R2_weight*Expo_weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
@@ -3516,6 +3563,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off)>0.)
             {
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
+            }
+            else
+            {
+                R2_weight = 0.;
+            }
+            if (R2_weight>10.)
+            {
+                R2_weight = 0.;
             }
             if (!AcceptanceCorrection) R2_weight = 1.;
             double Expo_weight = (2.*Skymap_size/12.)/(3.14*0.25);
@@ -4047,6 +4102,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         {
             Hist_OnData_SR_RoI_Energy.at(nth_roi).at(e).Write();
             Hist_OnData_CR_RoI_Energy.at(nth_roi).at(e).Write();
+            Hist_NormSyst_RoI_Energy.at(nth_roi).at(e).Write();
+            Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(e).Write();
             Hist_OnData_SR_RoI_MJD.at(nth_roi).at(e).Write();
             Hist_OnData_CR_RoI_MJD.at(nth_roi).at(e).Write();
             Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(e).Write();
