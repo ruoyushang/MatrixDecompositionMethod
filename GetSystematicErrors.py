@@ -153,7 +153,7 @@ sample_name += ['Crab V6']
 #sample_name += ['Crab V5']
     
 elev_bins = [35,45,55,65,75,85]
-#elev_bins = [65,75,85]
+#elev_bins = [45,55,65,75,85]
 lowrank_tag += 'elev_incl'
 
 theta2_bins = [0,4]
@@ -163,13 +163,12 @@ number_of_roi = 4
 
 energy_bin = []
 energy_bin += [100]
-energy_bin += [214]
-energy_bin += [457]
-energy_bin += [1000]
-energy_bin += [2140]
-energy_bin += [4570]
+energy_bin += [251]
+energy_bin += [631]
+energy_bin += [1585]
+energy_bin += [3981]
 energy_bin += [10000]
-energy_bin += [25000]
+energy_bin += [25118]
 
 #energy_mibe_weight = [0.039,0.033,0.032,0.040,0.064,0.073,0.141]
 #energy_rfov_weight = [0.061,0.048,0.036,0.050,0.058,0.072,0.055]

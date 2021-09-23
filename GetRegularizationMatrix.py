@@ -25,7 +25,7 @@ ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
-target_energy_index = 2
+target_energy_index = 1
 N_bins_for_deconv = 16
 #N_bins_for_deconv = 8
 #N_bins_for_deconv = 4
@@ -113,18 +113,17 @@ elev_bins = [45,55,65,75,85]
 theta2_bins = [0,4]
 
 #energy_bin_ref = 1
-#stable_rank = 3
-stable_rank = 2
+stable_rank = 3
+#stable_rank = 2
 
 energy_bin = []
 energy_bin += [100]
-energy_bin += [214]
-energy_bin += [457]
-energy_bin += [1000]
-energy_bin += [2140]
-energy_bin += [4570]
+energy_bin += [251]
+energy_bin += [631]
+energy_bin += [1585]
+energy_bin += [3981]
 energy_bin += [10000]
-energy_bin += [25000]
+energy_bin += [25118]
 
 root_file_tags = []
 mjd_tag = []
@@ -319,7 +318,7 @@ def GetHistogramsFromFile(FilePath):
             new_content = pow(Hist2D_Coeff_Data.GetBinContent(binx+1,biny+1),2)
             Hist2D_Regularization[energy_index].SetBinContent(binx+1,biny+1,old_content+new_content)
     #if dark_gamma_count[energy_index]>100. and dark_stable_rank[energy_index]==stable_rank and energy_index==energy_bin_ref: 
-    if dark_gamma_count[energy_index]>100. and dark_stable_rank[energy_index]==stable_rank: 
+    if dark_gamma_count[energy_index]>1000. and dark_stable_rank[energy_index]==stable_rank: 
         mtx_CDE = []
         mtx_CDE_bkgd = []
         for row in range(0,3):

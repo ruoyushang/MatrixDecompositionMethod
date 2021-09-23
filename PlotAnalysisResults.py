@@ -51,7 +51,7 @@ lowrank_tag = '_svd'
 method_tag += lowrank_tag
 
 energy_bin_cut_low = 0
-energy_bin_cut_up = 7
+energy_bin_cut_up = 6
 
 #elev_range = [50,60]
 elev_range = [35,45,55,65,75,85]
@@ -705,13 +705,12 @@ Syst_Clos = 0.02
 
 energy_bin = []
 energy_bin += [100]
-energy_bin += [214]
-energy_bin += [457]
-energy_bin += [1000]
-energy_bin += [2140]
-energy_bin += [4570]
+energy_bin += [251]
+energy_bin += [631]
+energy_bin += [1585]
+energy_bin += [3981]
 energy_bin += [10000]
-energy_bin += [25000]
+energy_bin += [25118]
 
 energy_syst = []
 energy_syst += [0.121]
@@ -722,19 +721,28 @@ energy_syst += [0.080]
 energy_syst += [0.095]
 energy_syst += [0.095]
 
+#energy_fine_bin = []
+#energy_fine_bin += [pow(10,2.0)]
+#energy_fine_bin += [pow(10,2.2)]
+#energy_fine_bin += [pow(10,2.4)]
+#energy_fine_bin += [pow(10,2.6)]
+#energy_fine_bin += [pow(10,2.8)]
+#energy_fine_bin += [pow(10,3.0)]
+#energy_fine_bin += [pow(10,3.2)]
+#energy_fine_bin += [pow(10,3.4)]
+#energy_fine_bin += [pow(10,3.6)]
+#energy_fine_bin += [pow(10,3.8)]
+#energy_fine_bin += [pow(10,4.0)]
+#energy_fine_bin += [pow(10,4.2)]
+#energy_fine_bin += [pow(10,4.4)]
+
 energy_fine_bin = []
 energy_fine_bin += [pow(10,2.0)]
-energy_fine_bin += [pow(10,2.2)]
 energy_fine_bin += [pow(10,2.4)]
-energy_fine_bin += [pow(10,2.6)]
 energy_fine_bin += [pow(10,2.8)]
-energy_fine_bin += [pow(10,3.0)]
 energy_fine_bin += [pow(10,3.2)]
-energy_fine_bin += [pow(10,3.4)]
 energy_fine_bin += [pow(10,3.6)]
-energy_fine_bin += [pow(10,3.8)]
 energy_fine_bin += [pow(10,4.0)]
-energy_fine_bin += [pow(10,4.2)]
 energy_fine_bin += [pow(10,4.4)]
 
 elev_bins = [25,35,45,55,65,75,85]
@@ -1011,7 +1019,7 @@ def GetSourceInfo(file_list):
         InfoTree.SetBranchAddress('roi_name',ROOT.AddressOf(roi_name))
         InfoTree.SetBranchAddress('roi_ra',ROOT.AddressOf(roi_ra))
         InfoTree.SetBranchAddress('roi_dec',ROOT.AddressOf(roi_dec))
-        InfoTree.SetBranchAddress('roi_radius',ROOT.AddressOf(roi_radius))
+        InfoTree.SetBranchAddress('roi_radius_outer',ROOT.AddressOf(roi_radius))
         InfoTree.GetEntry(0)
         Hist_NSB.Reset()
         Hist_L3Rate.Reset()
@@ -2252,17 +2260,17 @@ def flux_1es1218_func(x):
 def flux_geminag_func(x):
     return 3.5*pow(10,-12)*pow(x*1./1000.,-2.2)
 
-def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalibrate,doBkgFlux,E_index):
+def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,hist_syst,radii,legends,title,doCalibrate,doBkgFlux,E_index):
     
-    calibration = [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]
-    #calibration = [1.3256428693759565e-08, 5.128150274749451e-09, 1.132469100866471e-09, 2.5402210594764984e-10, 7.044560661036885e-11, 1.927125372955154e-11, 3.7092073705842124e-12, 8.386413388009844e-13, 2.5551538678304e-13, 6.868888622214288e-14, 2.482277712145389e-14, 7.549884173404358e-15] # no correction
-    calibration = [1.403182629520122e-08, 5.579631316432461e-09, 1.2239874168155154e-09, 2.7772640296842295e-10, 7.658394202503177e-11, 2.1429467958702194e-11, 4.012471120241679e-12, 8.561140267210039e-13, 2.6168986962628274e-13, 7.054802774301757e-14, 2.5837016918616317e-14, 7.91525598598596e-15] # nominal
+    calibration = [1., 1., 1., 1., 1., 1.]
+    calibration = [1.299195550838382e-08, 1.023276473227794e-09, 7.33339851731449e-11, 3.6158845887166094e-12, 2.624835928079186e-13, 2.7803689660660495e-14]
 
     Hist_Flux = []
     for nth_roi in range(0,len(hist_data)):
         Hist_Flux += [ROOT.TH1D("Hist_Flux_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
         if doBkgFlux:
             Hist_Flux[nth_roi].Add(hist_bkgd[nth_roi])
+            Hist_Flux[nth_roi].Add(hist_syst[nth_roi])
             for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
                 deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
                 scale = 0.
@@ -2274,10 +2282,14 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
             if doCalibrate:
                 Hist_Flux[nth_roi].Add(hist_data[nth_roi])
                 Hist_Flux[nth_roi].Add(hist_bkgd[nth_roi],-1.)
+                Hist_Flux[nth_roi].Add(hist_syst[nth_roi],-1.)
                 Hist_Flux[nth_roi].Divide(hist_bkgd[nth_roi])
+                for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
+                    stat_err = Hist_Flux[nth_roi].GetBinError(binx+1)
             else:
                 Hist_Flux[nth_roi].Add(hist_data[nth_roi])
                 Hist_Flux[nth_roi].Add(hist_bkgd[nth_roi],-1.)
+                Hist_Flux[nth_roi].Add(hist_syst[nth_roi],-1.)
                 for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
                     deltaE = (energy_fine_bin[binx+1]-energy_fine_bin[binx])/1000.
                     scale = 0.
@@ -2312,11 +2324,12 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
 
     cycol = cycle('bgrcmk')
     for nth_roi in range(0,len(hist_data)):
-        ax.errorbar(roi_xdata[nth_roi], roi_ydata[nth_roi], roi_error[nth_roi], color=next(cycol), marker='s', ls='none', label='%s'%(legends[nth_roi]))
-        if doBkgFlux:
-            start = (40, -2.)
-            popt, pcov = curve_fit(power_law_func, np.array(xdata), np.array(ydata), p0=start, sigma=np.array(error))
-            ax.plot(np.array(xdata), power_law_func(np.array(xdata), *popt),'b-',label='fit: a=%0.1f, b=%0.1f'%tuple(popt))
+        next_color = next(cycol)
+        #ax.errorbar(roi_xdata[nth_roi], roi_ydata[nth_roi], roi_error[nth_roi], color=next_color, marker='s', ls='none', label='%s'%(legends[nth_roi]))
+        start = (40, -2.)
+        popt, pcov = curve_fit(power_law_func, np.array(roi_xdata[nth_roi]), np.array(roi_ydata[nth_roi]), p0=start, sigma=np.array(error))
+        ax.plot(np.array(roi_xdata[nth_roi]), power_law_func(np.array(roi_xdata[nth_roi]), *popt),color=next_color)
+        ax.errorbar(roi_xdata[nth_roi], roi_ydata[nth_roi], roi_error[nth_roi], color=next_color, marker='s', ls='none', label='%s, $\Gamma$ = %0.1f'%(legends[nth_roi],popt[1]))
 
     log_energy = np.linspace(log10(Hist_Flux[0].GetBinLowEdge(1)),log10(Hist_Flux[0].GetBinLowEdge(1+Hist_Flux[0].GetNbinsX())),50)
     xdata = pow(10.,log_energy)
@@ -2343,6 +2356,7 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
             vectorize_f = np.vectorize(flux_j1908_func)
             ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='1404.7185 (VERITAS)')
+        if 'HAWC region' in legends[nth_roi]:
             vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
             ydata_hawc = pow(xdata,E_index)*vectorize_f_hawc(xdata)
             ax.plot(xdata, ydata_hawc,'m-',label='1909.08609 (HAWC)')
@@ -2358,7 +2372,7 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,radii,legends,title,doCalib
             vectorize_f = np.vectorize(flux_geminag_func)
             ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='extrapolation')
-        if 'J1857+026' in legends[nth_roi]:
+        if 'J1856+0245' in legends[nth_roi]:
             vectorize_f = np.vectorize(flux_j1857_func)
             ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='From Aleksic et al. (2014)')
@@ -3154,25 +3168,43 @@ def PlotsStackedHistograms(tag):
 
     Hist_data = []
     Hist_bkgd = []
+    Hist_syst = []
     radii = []
     legends = []
     for nth_roi in range(1,len(roi_ra)):
-        if 'b-mag' in roi_name[nth_roi]: continue
-        #if not ('LAT GeV region' in roi_name[nth_roi] or 'PSR region' in roi_name[nth_roi] or 'SNR region' in roi_name[nth_roi]): continue
-        Hist_data += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
-        Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
-        radii += [roi_radius[nth_roi]]
-        legends += ['%s'%(roi_name[nth_roi])]
+        if 'J1908' in tag:
+            if 'b-mag' in roi_name[nth_roi]: continue
+            #if 'HAWC' in roi_name[nth_roi]: continue
+            #if 'VHE' in roi_name[nth_roi]: continue
+            if 'SNR' in roi_name[nth_roi]: continue
+            if 'G40.5' in roi_name[nth_roi]: continue
+            if 'PSR' in roi_name[nth_roi]: continue
+            if 'CO' in roi_name[nth_roi]: continue
+            if 'LAT MeV' in roi_name[nth_roi]: continue
+            if 'LAT GeV' in roi_name[nth_roi]: continue
+            if 'Ring' in roi_name[nth_roi]: continue
+            Hist_data += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
+            Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
+            Hist_syst += [Hist_SumSyst_RoI_Energy[nth_roi]]
+            radii += [roi_radius[nth_roi]]
+            legends += ['%s'%(roi_name[nth_roi])]
+        else:
+            if 'b-mag' in roi_name[nth_roi]: continue
+            Hist_data += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
+            Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
+            Hist_syst += [Hist_SumSyst_RoI_Energy[nth_roi]]
+            radii += [roi_radius[nth_roi]]
+            legends += ['%s'%(roi_name[nth_roi])]
     title = 'energy [GeV]'
-    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,True,False,0.)
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,Hist_syst,radii,legends,title,True,False,0.)
     plotname = 'Flux_Calibrate_%s'%(tag)
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
     ax.cla()
-    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,True,False,2.)
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,Hist_syst,radii,legends,title,True,False,2.)
     plotname = 'FluxE2_Calibrate_%s'%(tag)
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
     ax.cla()
-    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False,False,0.)
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,Hist_syst,radii,legends,title,False,False,0.)
     plotname = 'Flux_NoCalibrate_%s'%(tag)
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
     ax.cla()
@@ -3180,12 +3212,14 @@ def PlotsStackedHistograms(tag):
     #MakeSpectrumInNonCrabUnitE2(Hist_data,Hist_bkgd,legends,title,plotname,-1)
     Hist_data = []
     Hist_bkgd = []
+    Hist_syst = []
     legends = []
-    Hist_data += [Hist_OnData_RoI_Energy_Sum[1]]
-    Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[1]]
+    Hist_data += [Hist_OnData_RoI_Energy_Sum[0]]
+    Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[0]]
+    Hist_syst += [Hist_SumSyst_RoI_Energy[0]]
     legends += ['background flux']
     title = 'energy [GeV]'
-    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,radii,legends,title,False,True,0.)
+    MakeSpectrumInNonCrabUnit(ax,Hist_data,Hist_bkgd,Hist_syst,radii,legends,title,False,True,2.7)
     plotname = 'FluxE27_MDM_%s'%(tag)
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag))
     ax.cla()
@@ -3503,6 +3537,12 @@ def NormalizeEnergyHistograms(FilePath):
         HistName = "Hist_OnData_CR_RoI_Energy_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_OnBkgd_RoI_Energy[nth_roi].Reset()
         Hist_OnBkgd_RoI_Energy[nth_roi].Add(InputFile.Get(HistName))
+        HistName = "Hist_NormSyst_RoI_Energy_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_NormSyst_RoI_Energy[nth_roi].Reset()
+        Hist_NormSyst_RoI_Energy[nth_roi].Add(InputFile.Get(HistName))
+        HistName = "Hist_ShapeSyst_RoI_Energy_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        Hist_ShapeSyst_RoI_Energy[nth_roi].Reset()
+        Hist_ShapeSyst_RoI_Energy[nth_roi].Add(InputFile.Get(HistName))
         HistName = "Hist_OnData_SR_RoI_MJD_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
         Hist_OnData_RoI_MJD[nth_roi].Reset()
         Hist_OnData_RoI_MJD[nth_roi].Add(InputFile.Get(HistName))
@@ -3835,6 +3875,12 @@ def StackSkymapHistograms(ebin):
         old_err = Hist_SystErr_Theta2_Sum.GetBinError(binx+1)
         new_err = pow(old_err,2)+pow(Hist_NormSyst_Theta2.GetBinContent(binx+1),2)+pow(Hist_ShapeSyst_Theta2.GetBinContent(binx+1),2)
         Hist_SystErr_Theta2_Sum.SetBinError(binx+1,pow(new_err,0.5))
+
+    for nth_roi in range(0,len(roi_ra)):
+        for binx in range(0,Hist_SumSyst_RoI_Energy[nth_roi].GetNbinsX()):
+            old_err = Hist_SumSyst_RoI_Energy[nth_roi].GetBinError(binx+1)
+            new_err = pow(old_err,2)+pow(Hist_NormSyst_RoI_Energy[nth_roi].GetBinContent(binx+1),2)+pow(Hist_ShapeSyst_RoI_Energy[nth_roi].GetBinContent(binx+1),2)
+            Hist_SumSyst_RoI_Energy[nth_roi].SetBinError(binx+1,pow(new_err,0.5))
 
 def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
 
@@ -4190,7 +4236,7 @@ def MakeSpectrumIndexSkymap(hist_exposure,hist_data,hist_bkgd,hist_syst,hist_con
                 z_score = CalculateSignificance(diff_count,data_count-diff_count,syst_error)
                 if max_z_score<z_score: max_z_score = z_score
                 if min_z_score>z_score: min_z_score = z_score
-                if z_score>2.: 
+                if z_score>1.: 
                     n_2sigma += 1
                     n_2sigma_connect += 1
                 else:
@@ -5184,6 +5230,31 @@ def FindHistMaxBinXY(hist):
                 bin_y = hist.GetYaxis().GetBinCenter(by+1)
     return bin_x, bin_y
 
+def GetExtentionRMS(Hist_data, Hist_bkgd, Hist_exposure, roi_x, roi_y, roi_size):
+
+    Hist_Excess = Hist_data.Clone()
+    Hist_Excess.Add(Hist_bkgd,-1.)
+    Hist_Excess.Divide(Hist_exposure)
+
+    max_exposure = Hist_exposure.GetMaximum()
+    if max_exposure==0.:
+        return 0.
+
+    weighted_distance_sq = 0.
+    total_weight = 0.
+    for bx in range(0,Hist_Excess.GetNbinsX()):
+        for by in range(0,Hist_Excess.GetNbinsY()):
+            bin_x = Hist_Excess.GetXaxis().GetBinCenter(bx+1)
+            bin_y = Hist_Excess.GetYaxis().GetBinCenter(by+1)
+            distance_sq = pow(bin_x-roi_x,2)+pow(bin_y-roi_y,2)
+            if distance_sq>pow(roi_size,2): continue
+            weight = pow(Hist_Excess.GetBinContent(bx+1,by+1),2)
+            total_weight += weight
+            weighted_distance_sq += weight*distance_sq
+
+    if total_weight==0.: return 0.
+    return pow(weighted_distance_sq/total_weight,0.5)
+
 def GetExtention(Hist_data, Hist_bkgd, Hist_sig, Hist_exposure, highlight_threshold, init_x, init_y):
 
     Hist_Excess = Hist_data.Clone()
@@ -5671,44 +5742,44 @@ def MatrixDecompositionDemo(name):
     #line4.Draw("same")
     canvas.SaveAs('output_plots/ErrorBkgd_%s_%s.png'%(name,selection_tag))
 
-    norm_data_sr = Hist_OnData_SR_XYoff_Sum.Integral()
-    Hist_OnData_SR_XYoff_Sum.Scale(1./norm_data_sr)
-    norm_dark_sr = Hist_OnDark_SR_XYoff_Sum.Integral()
-    Hist_OnDark_SR_XYoff_Sum.Scale(1./norm_dark_sr)
-    norm_data_cr = Hist_OnData_CR_XYoff_Sum.Integral()
-    Hist_OnData_CR_XYoff_Sum.Scale(1./norm_data_cr)
-    Hist2D_ErrXYoff_DarkSR = ROOT.TH2D("Hist2D_ErrXYoff_DarkSR","",12,-3,3,12,-3,3)
-    Hist2D_ErrXYoff_DarkSR.Add(Hist_OnData_SR_XYoff_Sum)
-    Hist2D_ErrXYoff_DarkSR.Add(Hist_OnDark_SR_XYoff_Sum,-1)
-    Hist2D_ErrXYoff_DarkSR.Divide(Hist_OnData_SR_XYoff_Sum)
-    Hist2D_ErrXYoff_DataCR = ROOT.TH2D("Hist2D_ErrXYoff_DataCR","",12,-3,3,12,-3,3)
-    Hist2D_ErrXYoff_DataCR.Add(Hist_OnData_SR_XYoff_Sum)
-    Hist2D_ErrXYoff_DataCR.Add(Hist_OnData_CR_XYoff_Sum,-1)
-    Hist2D_ErrXYoff_DataCR.Divide(Hist_OnData_SR_XYoff_Sum)
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'P^{ON}-P^{OFF}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_ErrXYoff_DarkSR.SetMaximum(0.2);
-    Hist2D_ErrXYoff_DarkSR.SetMinimum(-0.2);
-    Hist2D_ErrXYoff_DarkSR.GetYaxis().SetTitle('Xoff')
-    Hist2D_ErrXYoff_DarkSR.GetXaxis().SetTitle('Yoff')
-    Hist2D_ErrXYoff_DarkSR.Draw("COL4Z")
-    canvas.SaveAs('output_plots/ErrXYoff_DarkSR_%s_%s.png'%(name,selection_tag))
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'P^{ON}-P^{CR}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_ErrXYoff_DataCR.SetMaximum(0.2);
-    Hist2D_ErrXYoff_DataCR.SetMinimum(-0.2);
-    Hist2D_ErrXYoff_DataCR.GetYaxis().SetTitle('Xoff')
-    Hist2D_ErrXYoff_DataCR.GetXaxis().SetTitle('Yoff')
-    Hist2D_ErrXYoff_DataCR.Draw("COL4Z")
-    canvas.SaveAs('output_plots/ErrXYoff_DataCR_%s_%s.png'%(name,selection_tag))
+    #norm_data_sr = Hist_OnData_SR_XYoff_Sum.Integral()
+    #Hist_OnData_SR_XYoff_Sum.Scale(1./norm_data_sr)
+    #norm_dark_sr = Hist_OnDark_SR_XYoff_Sum.Integral()
+    #Hist_OnDark_SR_XYoff_Sum.Scale(1./norm_dark_sr)
+    #norm_data_cr = Hist_OnData_CR_XYoff_Sum.Integral()
+    #Hist_OnData_CR_XYoff_Sum.Scale(1./norm_data_cr)
+    #Hist2D_ErrXYoff_DarkSR = ROOT.TH2D("Hist2D_ErrXYoff_DarkSR","",12,-3,3,12,-3,3)
+    #Hist2D_ErrXYoff_DarkSR.Add(Hist_OnData_SR_XYoff_Sum)
+    #Hist2D_ErrXYoff_DarkSR.Add(Hist_OnDark_SR_XYoff_Sum,-1)
+    #Hist2D_ErrXYoff_DarkSR.Divide(Hist_OnData_SR_XYoff_Sum)
+    #Hist2D_ErrXYoff_DataCR = ROOT.TH2D("Hist2D_ErrXYoff_DataCR","",12,-3,3,12,-3,3)
+    #Hist2D_ErrXYoff_DataCR.Add(Hist_OnData_SR_XYoff_Sum)
+    #Hist2D_ErrXYoff_DataCR.Add(Hist_OnData_CR_XYoff_Sum,-1)
+    #Hist2D_ErrXYoff_DataCR.Divide(Hist_OnData_SR_XYoff_Sum)
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.20,'P^{ON}-P^{OFF}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.3)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_ErrXYoff_DarkSR.SetMaximum(0.2);
+    #Hist2D_ErrXYoff_DarkSR.SetMinimum(-0.2);
+    #Hist2D_ErrXYoff_DarkSR.GetYaxis().SetTitle('Xoff')
+    #Hist2D_ErrXYoff_DarkSR.GetXaxis().SetTitle('Yoff')
+    #Hist2D_ErrXYoff_DarkSR.Draw("COL4Z")
+    #canvas.SaveAs('output_plots/ErrXYoff_DarkSR_%s_%s.png'%(name,selection_tag))
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.20,'P^{ON}-P^{CR}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.3)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_ErrXYoff_DataCR.SetMaximum(0.2);
+    #Hist2D_ErrXYoff_DataCR.SetMinimum(-0.2);
+    #Hist2D_ErrXYoff_DataCR.GetYaxis().SetTitle('Xoff')
+    #Hist2D_ErrXYoff_DataCR.GetXaxis().SetTitle('Yoff')
+    #Hist2D_ErrXYoff_DataCR.Draw("COL4Z")
+    #canvas.SaveAs('output_plots/ErrXYoff_DataCR_%s_%s.png'%(name,selection_tag))
 
 def MakeOneHistPlot(Hist,title_x,title_y,name,logy):
     
@@ -6339,21 +6410,29 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
             if energy_bin[ebin]>=2000.: smooth_size_exposure = 0.2
             Hist_Data_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Data_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Bkgd_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
-            Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_exposure,False)
+            Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_SumSyst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Zscore_Energy_Skymap_smooth[ebin] = GetSignificanceMap(Hist_Data_Energy_Skymap_smooth[ebin],Hist_Bkgd_Energy_Skymap_smooth[ebin],Hist_Syst_Energy_Skymap_smooth[ebin],Syst_MDM,False)
             Hist_Expo_Energy_Skymap[ebin] = Hist_Expo_Energy_Skymap_smooth[ebin].Clone()
-        Hist_IndexMap = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
-        Hist_IndexMap_ZoomIn = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s_zoomin'%(source_name,PercentCrab),60,2)
-        MakeMWLSkymap(Hist_IndexMap_ZoomIn,[2.2],'RA','Dec','Skymap_MWL_Index_RaDec_MDM_%s%s'%(source_name,PercentCrab))
+        #Hist_IndexMap = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
+        #Hist_IndexMap_ZoomIn = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s_zoomin'%(source_name,PercentCrab),60,2)
+        #MakeMWLSkymap(Hist_IndexMap_ZoomIn,[2.2],'RA','Dec','Skymap_MWL_Index_RaDec_MDM_%s%s'%(source_name,PercentCrab))
 
-        Hist_IndexMap_Unsmooth = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_SumSyst_Energy_Skymap,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
-        legends = []
+        #Hist_IndexMap_Unsmooth = MakeSpectrumIndexSkymap(Hist_Expo_Energy_Skymap,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_SumSyst_Energy_Skymap,Hist_Zscore_Energy_Skymap_smooth,'RA','Dec','%s%s'%(source_name,PercentCrab),60,1)
+        #legends = []
+        #for nth_roi in range(0,len(roi_ra)):
+        #    legends += ['%s'%(roi_name[nth_roi])]
+        #title = 'energy [GeV]'
+        #plotname = 'FluxCorrected_MDM_%s'%(source_name)
+        #MakeSpectrumFromFluxHist(Hist_RoI_Flux,legends,title,plotname)
+
         for nth_roi in range(0,len(roi_ra)):
-            legends += ['%s'%(roi_name[nth_roi])]
-        title = 'energy [GeV]'
-        plotname = 'FluxCorrected_MDM_%s'%(source_name)
-        MakeSpectrumFromFluxHist(Hist_RoI_Flux,legends,title,plotname)
+            print('=============================')
+            print('%s'%(roi_name[nth_roi]))
+            for ebin in range(0,len(energy_bin)-1):
+                print('energy %s-%s'%(energy_bin[ebin],energy_bin[ebin+1]))
+                extension_rms = GetExtentionRMS(Hist_Data_Energy_Skymap_smooth[ebin],Hist_Bkgd_Energy_Skymap_smooth[ebin],Hist_Expo_Energy_Skymap_smooth[ebin],roi_ra[nth_roi],roi_dec[nth_roi],2.*roi_radius[nth_roi])
+                print('RMS = %0.3f'%(extension_rms))
 
 def FindSourceIndex(source_name):
     for source in range(0,len(sample_list)):
@@ -6597,6 +6676,9 @@ Hist_OnData_RoI_Energy_Sum = []
 Hist_OnBkgd_RoI_Energy_Sum = [] 
 Hist_OnData_RoI_Energy = [] 
 Hist_OnBkgd_RoI_Energy = [] 
+Hist_SumSyst_RoI_Energy = [] 
+Hist_NormSyst_RoI_Energy = [] 
+Hist_ShapeSyst_RoI_Energy = [] 
 Hist_OnData_RoI_Theta2_Sum = []
 Hist_OnBkgd_RoI_Theta2_Sum = []
 Hist_OnData_RoI_Theta2 = []
@@ -6620,6 +6702,9 @@ for nth_roi in range(0,len(roi_ra)):
     Hist_OnBkgd_RoI_Energy_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Energy_Sum_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
     Hist_OnData_RoI_Energy += [ROOT.TH1D("Hist_OnData_RoI_Energy_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
     Hist_OnBkgd_RoI_Energy += [ROOT.TH1D("Hist_OnBkgd_RoI_Energy_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+    Hist_SumSyst_RoI_Energy += [ROOT.TH1D("Hist_SumSyst_RoI_Energy_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+    Hist_NormSyst_RoI_Energy += [ROOT.TH1D("Hist_NormSyst_RoI_Energy_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
+    Hist_ShapeSyst_RoI_Energy += [ROOT.TH1D("Hist_ShapeSyst_RoI_Energy_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
     Hist_OnData_RoI_Theta2_Sum += [ROOT.TH1D("Hist_OnData_RoI_Theta2_Sum_%s"%(nth_roi),"",20,0,0.5)]
     Hist_OnBkgd_RoI_Theta2_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Theta2_Sum_%s"%(nth_roi),"",20,0,0.5)]
     Hist_OnData_RoI_Theta2 += [ROOT.TH1D("Hist_OnData_RoI_Theta2_%s"%(nth_roi),"",20,0,0.5)]
@@ -6681,10 +6766,10 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-drawMap = False
-#drawMap = True
-doMorphologySpectroscopy = False
-#doMorphologySpectroscopy = True
+#drawMap = False
+drawMap = True
+#doMorphologySpectroscopy = False
+doMorphologySpectroscopy = True
 #Smoothing = False
 Smoothing = True
 
