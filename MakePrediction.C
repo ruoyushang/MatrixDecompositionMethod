@@ -3056,7 +3056,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<double>* Data_runlist_L3Rate_ptr = new std::vector<double>(10);
     vector<double>* Data_runlist_NSB_ptr = new std::vector<double>(10);
     vector<string>* roi_name_ptr = new std::vector<string>(10);
-    vector<double>* roi_radius_ptr = new std::vector<double>(10);
+    vector<double>* roi_radius_inner_ptr = new std::vector<double>(10);
+    vector<double>* roi_radius_outer_ptr = new std::vector<double>(10);
     TString regularization_name;
     regularization_name  = "../Regularization_svd.root";
     if (EigenDecomposition)
@@ -3140,7 +3141,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     InfoTree_ptr->SetBranchAddress("Data_runlist_L3Rate",&Data_runlist_L3Rate_ptr);
     InfoTree_ptr->SetBranchAddress("Data_runlist_NSB",&Data_runlist_NSB_ptr);
     InfoTree_ptr->SetBranchAddress("roi_name",&roi_name_ptr);
-    InfoTree_ptr->SetBranchAddress("roi_radius",&roi_radius_ptr);
+    InfoTree_ptr->SetBranchAddress("roi_radius_inner",&roi_radius_inner_ptr);
+    InfoTree_ptr->SetBranchAddress("roi_radius_outer",&roi_radius_outer_ptr);
     InfoTree_ptr->GetEntry(0);
 
     int FirstRun = 0;
@@ -3514,7 +3516,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         vector<TH1D> Hist_OnData_OneRoI_CR_Skymap_RoI_Y;
         vector<TH1D> Hist_OnData_OneRoI_SR_RoI_MJD;
         vector<TH1D> Hist_OnData_OneRoI_CR_RoI_MJD;
-        double roi_range = 2.*roi_radius_ptr->at(nth_roi);
+        double roi_range = 2.*roi_radius_outer_ptr->at(nth_roi);
         for (int e=0;e<N_energy_bins;e++) 
         {
             char e_low[50];

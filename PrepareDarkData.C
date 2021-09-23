@@ -2093,15 +2093,15 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.5);
 
-            roi_name.push_back("PSR region");
-            roi_ra.push_back(286.97);
-            roi_dec.push_back(6.02);
-            roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.2);
-
             roi_name.push_back("SNR region");
             roi_ra.push_back(287.03);
             roi_dec.push_back(6.42);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.2);
+
+            roi_name.push_back("PSR region");
+            roi_ra.push_back(286.97);
+            roi_dec.push_back(6.02);
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.2);
 
@@ -2115,7 +2115,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_ra.push_back(286.91);
             roi_dec.push_back(6.32);
             roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(1.34);
+            roi_radius_outer.push_back(3.0);
 
             roi_name.push_back("CO region");
             roi_ra.push_back(286.6);
@@ -2127,13 +2127,33 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_ra.push_back(286.4);
             roi_dec.push_back(6.3);
             roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.2);
+            roi_radius_outer.push_back(0.3);
 
             roi_name.push_back("LAT GeV region");
             roi_ra.push_back(287.2);
             roi_dec.push_back(6.4);
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.2);
+
+            double ring_center_ra = 286.91;
+            double ring_center_dec = 6.32;
+            roi_name.push_back("Ring 1");
+            roi_ra.push_back(ring_center_ra);
+            roi_dec.push_back(ring_center_dec);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.4);
+
+            roi_name.push_back("Ring 2");
+            roi_ra.push_back(ring_center_ra);
+            roi_dec.push_back(ring_center_dec);
+            roi_radius_inner.push_back(0.4);
+            roi_radius_outer.push_back(0.8);
+
+            roi_name.push_back("Ring 3");
+            roi_ra.push_back(ring_center_ra);
+            roi_dec.push_back(ring_center_dec);
+            roi_radius_inner.push_back(0.8);
+            roi_radius_outer.push_back(1.2);
 
         }
         else if (TString(target).Contains("SS433")) 
@@ -2172,9 +2192,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         }
         else if (TString(target).Contains("MAGIC_J1857")) 
         {
-            roi_name.push_back("HESS J1857+026");
-            roi_ra.push_back(284.295833333);
-            roi_dec.push_back(2.66666666667);
+            roi_name.push_back("PSR J1856+0245");
+            roi_ra.push_back(284.211666667);
+            roi_dec.push_back(2.76394444444);
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.3);
 
@@ -3197,17 +3217,17 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     {
                         Hist_OnData_CR_Energy_CamCenter.at(energy).Fill(ErecS*1000.,energy_weight);
                     }
-                    Hist_OnData_CR_Skymap_Theta2.at(energy).Fill(theta2,yoff_weight*R2_weight*Expo_weight);
-                    Hist_NormSyst_Skymap_Theta2.at(energy).Fill(theta2,yoff_weight*R2_weight*Expo_weight*norm_syst_err);
-                    Hist_ShapeSyst_Skymap_Theta2.at(energy).Fill(theta2,yoff_weight*R2_weight*Expo_weight*shape_syst_err);
+                    Hist_OnData_CR_Skymap_Theta2.at(energy).Fill(theta2,yoff_weight);
+                    Hist_NormSyst_Skymap_Theta2.at(energy).Fill(theta2,yoff_weight*norm_syst_err);
+                    Hist_ShapeSyst_Skymap_Theta2.at(energy).Fill(theta2,yoff_weight*shape_syst_err);
                     Hist_OnData_CR_Yoff.at(energy).Fill(Yoff,yoff_weight);
                     Hist_OnData_CR_XYoff.at(energy).Fill(Xoff,Yoff,yoff_weight);
                     Hist_OnData_CR_R2off.at(energy).Fill(R2off,yoff_weight);
                     Hist_OnData_CR_Yoff_Raw.at(energy).Fill(Yoff,1.);
-                    Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,yoff_weight*R2_weight*Expo_weight);
-                    Hist_NormSyst_Skymap.at(energy).Fill(ra_sky,dec_sky,yoff_weight*R2_weight*Expo_weight*norm_syst_err);
-                    Hist_ShapeSyst_Skymap.at(energy).Fill(ra_sky,dec_sky,yoff_weight*R2_weight*Expo_weight*shape_syst_err);
-                    Hist_OnData_CR_Skymap_Galactic.at(energy).Fill(evt_l_b.first,evt_l_b.second,yoff_weight*R2_weight*Expo_weight);
+                    Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,yoff_weight);
+                    Hist_NormSyst_Skymap.at(energy).Fill(ra_sky,dec_sky,yoff_weight*norm_syst_err);
+                    Hist_ShapeSyst_Skymap.at(energy).Fill(ra_sky,dec_sky,yoff_weight*shape_syst_err);
+                    Hist_OnData_CR_Skymap_Galactic.at(energy).Fill(evt_l_b.first,evt_l_b.second,yoff_weight);
                     Hist_OnData_CR_Energy.at(energy).Fill(ErecS*1000.,energy_weight);
                     Hist_OnData_CR_Zenith.at(energy).Fill(Shower_Ze,yoff_weight);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
@@ -3222,7 +3242,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                                 Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,energy_weight*R2_weight*Expo_weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                            Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,yoff_weight*R2_weight*Expo_weight);
+                            Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,yoff_weight);
                             proj_x_roi = 1.*(ra_sky-roi_ra.at(nth_roi))+0.*(dec_sky-roi_dec.at(nth_roi));
                             proj_y_roi = 0.*(ra_sky-roi_ra.at(nth_roi))+1.*(dec_sky-roi_dec.at(nth_roi));
                             if (roi_name.at(nth_roi)=="Geminga Pulsar")
@@ -3254,7 +3274,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                                 Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,energy_weight*R2_weight*Expo_weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                            Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,yoff_weight*R2_weight*Expo_weight);
+                            Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,yoff_weight);
                             proj_x_roi = 1.*(ra_sky-roi_ra.at(nth_roi))+0.*(dec_sky-roi_dec.at(nth_roi));
                             proj_y_roi = 0.*(ra_sky-roi_ra.at(nth_roi))+1.*(dec_sky-roi_dec.at(nth_roi));
                             if (roi_name.at(nth_roi)=="Geminga Pulsar")
@@ -3611,9 +3631,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_SR_Yoff.at(energy).Fill(Yoff,weight);
                     Hist_OnData_SR_XYoff.at(energy).Fill(Xoff,Yoff,weight);
                     Hist_OnData_SR_R2off.at(energy).Fill(R2off,weight);
-                    Hist_OnData_SR_Skymap_Theta2.at(energy).Fill(theta2,weight*R2_weight*Expo_weight);
-                    Hist_OnData_SR_Skymap.at(energy).Fill(ra_sky,dec_sky,weight*R2_weight*Expo_weight);
-                    Hist_OnData_SR_Skymap_Galactic.at(energy).Fill(evt_l_b.first,evt_l_b.second,weight*R2_weight*Expo_weight);
+                    Hist_OnData_SR_Skymap_Theta2.at(energy).Fill(theta2,weight);
+                    Hist_OnData_SR_Skymap.at(energy).Fill(ra_sky,dec_sky,weight);
+                    Hist_OnData_SR_Skymap_Galactic.at(energy).Fill(evt_l_b.first,evt_l_b.second,weight);
                     Hist_OnData_SR_Energy.at(energy).Fill(ErecS*1000.,weight);
                     Hist_OnData_SR_Zenith.at(energy).Fill(Shower_Ze,weight);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
@@ -3626,7 +3646,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                                 Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,weight*R2_weight*Expo_weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                            Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,weight*R2_weight*Expo_weight);
+                            Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,weight);
                             proj_x_roi = 1.*(ra_sky-roi_ra.at(nth_roi))+0.*(dec_sky-roi_dec.at(nth_roi));
                             proj_y_roi = 0.*(ra_sky-roi_ra.at(nth_roi))+1.*(dec_sky-roi_dec.at(nth_roi));
                             if (roi_name.at(nth_roi)=="Geminga Pulsar")
@@ -3656,7 +3676,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                                 Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,weight*R2_weight*Expo_weight);
                             }
                             theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                            Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,weight*R2_weight*Expo_weight);
+                            Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,weight);
                             proj_x_roi = 1.*(ra_sky-roi_ra.at(nth_roi))+0.*(dec_sky-roi_dec.at(nth_roi));
                             proj_y_roi = 0.*(ra_sky-roi_ra.at(nth_roi))+1.*(dec_sky-roi_dec.at(nth_roi));
                             if (roi_name.at(nth_roi)=="Geminga Pulsar")
@@ -4009,7 +4029,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     InfoTree.Branch("roi_name","std::vector<std::string>",&roi_name);
     InfoTree.Branch("roi_ra","std::vector<double>",&roi_ra);
     InfoTree.Branch("roi_dec","std::vector<double>",&roi_dec);
-    InfoTree.Branch("roi_radius","std::vector<double>",&roi_radius_outer);
+    InfoTree.Branch("roi_radius_inner","std::vector<double>",&roi_radius_inner);
+    InfoTree.Branch("roi_radius_outer","std::vector<double>",&roi_radius_outer);
     InfoTree.Branch("Skymap_size",&Skymap_size,"Skymap_size/D");
     InfoTree.Branch("Skymap_nbins",&Skymap_nbins,"Skymap_nbins/I");
     InfoTree.Fill();
