@@ -3856,15 +3856,6 @@ def StackSkymapHistograms(ebin):
             new_content = Hist_OnBkgd_Skymap_Galactic.GetBinContent(binx+1,biny+1)*Syst_MDM_single
             Hist_OnBkgd_Skymap_Galactic_Syst_MDM.SetBinContent(binx+1,biny+1,pow(old_content*old_content+new_content*new_content,0.5))
 
-    for ebin in range(0,len(energy_bin)-1):
-        Hist_Bkgd_Energy_Skymap[ebin].Add(Hist_ShapeSyst_Energy_Skymap[ebin])
-        for binx in range(0,Hist_SumSyst_Energy_Skymap[ebin].GetNbinsX()):
-            for biny in range(0,Hist_SumSyst_Energy_Skymap[ebin].GetNbinsY()):
-                old_content = Hist_SumSyst_Energy_Skymap[ebin].GetBinContent(binx+1,biny+1)
-                new_content_norm = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(binx+1,biny+1)
-                #new_content_norm = 0.
-                Hist_SumSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,pow(old_content*old_content+new_content_norm*new_content_norm+new_content_shape*new_content_shape,0.5))
-
     for binx in range(0,Hist_SystErr_MSCL.GetNbinsX()):
         old_err = Hist_SystErr_MSCL.GetBinError(binx+1)
         new_err = pow(old_err,2)+pow(Hist_OnBkgd_MSCL.GetBinContent(binx+1)*Syst_MDM_single,2)
@@ -4502,25 +4493,28 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,title_x,tit
     print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     init_x = source_ra
     init_y = source_dec
-    excess_center_x, excess_center_y, excess_radius = GetExtention(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_zscore_skymap_sum,2,init_x,init_y)
+    excess_center_x, excess_center_y, excess_radius, excess_center_x_err, excess_center_y_err, excess_radius_err, chisq = GetExtention(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,2,init_x,init_y)
     excess_radius = pow(max(0.,excess_radius*excess_radius-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
-    print ('Excess (2 sigma) center RA = %0.3f'%(excess_center_x))
-    print ('Excess (2 sigma) center Dec = %0.3f'%(excess_center_y))
-    print ('Excess (2 sigma) radius = %0.3f'%(excess_radius))
+    print ('Excess (2 sigma) center RA = %0.3f +/- %0.3f'%(excess_center_x,excess_center_x_err))
+    print ('Excess (2 sigma) center Dec = %0.3f +/- %0.3f'%(excess_center_y,excess_center_y_err))
+    print ('Excess (2 sigma) radius = %0.3f +/- %0.3f'%(excess_radius,excess_radius_err))
 
     energy_axis = []
     source_extent = []
     source_extent_err = []
+    fit_chisq = []
     for ebin in range(0,len(energy_bin)-1):
+        print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+        print ('Energy = %0.1f'%(energy_bin[ebin]))
         init_x = source_ra
         init_y = source_dec
-        excess_center_x, excess_center_y, excess_radius = GetExtention(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_zscore_skymap_sum,2,init_x,init_y)
+        excess_center_x, excess_center_y, excess_radius, excess_center_x_err, excess_center_y_err, excess_radius_err, chisq = GetExtention(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],2,init_x,init_y)
         excess_radius = pow(max(0.,excess_radius*excess_radius-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
-        print ('Energy = %0.1f'%(energy_bin[ebin]))
-        print ('Excess (2 sigma) radius = %0.3f'%(excess_radius))
+        print ('Excess (2 sigma) radius = %0.3f +/- %0.3f'%(excess_radius,excess_radius_err))
         energy_axis += [energy_bin[ebin]]
         source_extent += [excess_radius]
-        source_extent_err += [0.1*excess_radius]
+        source_extent_err += [excess_radius_err]
+        fit_chisq += [chisq]
     ax.cla()
     ax.errorbar(energy_axis, source_extent, source_extent_err, marker='s', ls='none')
     ax.set_xlabel('Energy [GeV]')
@@ -5165,25 +5159,44 @@ def GetExtentionRMS(Hist_data, Hist_bkgd, Hist_exposure, roi_x, roi_y, roi_size)
     if total_weight==0.: return 0.
     return pow(weighted_distance_sq/total_weight,0.5)
 
-def GetExtention(Hist_data_input, Hist_bkgd_input, Hist_sig, highlight_threshold, init_x, init_y):
+def gaussian_2d(x, y, x0, y0, rms, A):
+    return A * np.exp( -0.5*((x-x0)/rms)**2 -0.5*((y-y0)/rms)**2)
+def _gaussian_2d(M, *args):
+    # This is the callable that is passed to curve_fit. M is a (2,N) array
+    # where N is the total number of data points in Z, which will be ravelled
+    # to one dimension.
+    # https://scipython.com/blog/non-linear-least-squares-fitting-of-a-two-dimensional-data/
+    x, y = M
+    arr = np.zeros(x.shape)
+    for i in range(len(args)//4):
+       arr += gaussian_2d(x, y, *args[i*4:i*4+4])
+    return arr
 
+def GetExtention(Hist_data_input, Hist_bkgd_input, Hist_syst_input, highlight_threshold, init_x, init_y):
+
+    print ("Hist_data_input.Integral() = %s"%(Hist_data_input.Integral()))
+    print ("Hist_bkgd_input.Integral() = %s"%(Hist_bkgd_input.Integral()))
+    print ("Hist_syst_input.Integral() = %s"%(Hist_syst_input.Integral()))
     if Hist_data_input.Integral()==0.:
-        return 0., 0., 0.
+        return 0., 0., 0., 0., 0., 0., 0.
     Hist_Excess = Hist_data_input.Clone()
     Hist_Excess.Reset()
     Hist_Excess.Add(Hist_data_input)
     Hist_Excess.Add(Hist_bkgd_input,-1.)
     Hist_Excess.Divide(Hist_bkgd_input)
+    Hist_Syst = Hist_syst_input.Clone()
+    Hist_Syst.Divide(Hist_bkgd_input)
     for bx in range(0,Hist_Excess.GetNbinsX()):
         for by in range(0,Hist_Excess.GetNbinsY()):
             bin_x = Hist_Excess.GetXaxis().GetBinCenter(bx+1)
             bin_y = Hist_Excess.GetYaxis().GetBinCenter(by+1)
             distance = pow(pow(bin_x-init_x,2)+pow(bin_y-init_y,2),0.5)
-            if distance > 1.0:
-                Hist_Excess.SetBinContent(bx+1,by+1,0.)
-            if Hist_Excess.GetBinContent(bx+1,by+1)<0.: 
-                Hist_Excess.SetBinContent(bx+1,by+1,0.)
-            if not Hist_sig.GetBinContent(bx+1,by+1)>=highlight_threshold: 
+            excess_content = Hist_Excess.GetBinContent(bx+1,by+1)
+            stat_err = Hist_Excess.GetBinError(bx+1,by+1)
+            syst_err = Hist_Syst.GetBinContent(bx+1,by+1)
+            total_err = max(pow(stat_err*stat_err+syst_err*syst_err,0.5),1e-4)
+            zscore = excess_content/total_err
+            if not zscore>=highlight_threshold: 
                 Hist_Excess.SetBinContent(bx+1,by+1,0.)
     #xx, yy, zz = ROOT.Int(0), ROOT.Int(0), ROOT.Int(0)
     #maxbin = Hist_Excess.GetMaximumBin()
@@ -5218,8 +5231,16 @@ def GetExtention(Hist_data_input, Hist_bkgd_input, Hist_sig, highlight_threshold
         for by in range(0,Hist_Excess.GetNbinsY()):
             bin_delta_ra = Hist_Excess.GetXaxis().GetBinCenter(bx+1)-excess_center_x_init
             bin_delta_dec = Hist_Excess.GetYaxis().GetBinCenter(by+1)-excess_center_y_init
-            if pow(bin_delta_ra*bin_delta_ra+bin_delta_dec*bin_delta_dec,0.5)>(3.*excess_radius_init):
+            excess_content = Hist_Excess.GetBinContent(bx+1,by+1)
+            stat_err = Hist_Excess.GetBinError(bx+1,by+1)
+            syst_err = Hist_Syst.GetBinContent(bx+1,by+1)
+            total_err = max(pow(stat_err*stat_err+syst_err*syst_err,0.5),1e-4)
+            Hist_Excess.SetBinError(bx+1,by+1,total_err)
+            zscore = excess_content/total_err
+            if not zscore>=1.0: 
                 Hist_Excess.SetBinContent(bx+1,by+1,0.)
+            #if pow(bin_delta_ra*bin_delta_ra+bin_delta_dec*bin_delta_dec,0.5)>(3.*excess_radius_init):
+            #    Hist_Excess.SetBinContent(bx+1,by+1,0.)
 
     MapEdge_left = Hist_Excess.GetXaxis().GetBinLowEdge(1)
     MapEdge_right = Hist_Excess.GetXaxis().GetBinLowEdge(Hist_Excess.GetNbinsX()+1)
@@ -5228,23 +5249,41 @@ def GetExtention(Hist_data_input, Hist_bkgd_input, Hist_sig, highlight_threshold
     MapCenter_x = (MapEdge_right+MapEdge_left)/2.
     MapCenter_y = (MapEdge_upper+MapEdge_lower)/2.
     MapBinSize = Hist_Excess.GetXaxis().GetBinLowEdge(2)-Hist_Excess.GetXaxis().GetBinLowEdge(1)
-    Func_Gauss2D = ROOT.TF2("Func_Gauss2D","[0]*TMath::Gaus(x,[1],[3])*TMath::Gaus(y,[2],[3])",MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper)
-    excess_radius = excess_radius_init
-    excess_center_x = excess_center_x_init
-    excess_center_y = excess_center_y_init
-    amplitude = Hist_Excess.GetMaximum()
-    Func_Gauss2D.SetParameters(amplitude,excess_center_x,excess_center_y,excess_radius)
-    Hist_Excess.Fit("Func_Gauss2D","N")
-    amplitude = Func_Gauss2D.GetParameter(0)
-    amplitude_err = Func_Gauss2D.GetParError(0)
-    excess_center_x = Func_Gauss2D.GetParameter(1)
-    excess_center_x_err = Func_Gauss2D.GetParError(1)
-    excess_center_y = Func_Gauss2D.GetParameter(2)
-    excess_center_y_err = Func_Gauss2D.GetParError(2)
-    excess_radius = Func_Gauss2D.GetParameter(3)
-    excess_radius_err = Func_Gauss2D.GetParError(3)
 
-    return excess_center_x, excess_center_y, excess_radius
+    map_x, map_y = np.linspace(MapEdge_left, MapEdge_right, Hist_Excess.GetNbinsX()), np.linspace(MapEdge_lower, MapEdge_upper, Hist_Excess.GetNbinsY())
+    grid_x, grid_y = np.meshgrid(map_x, map_y)
+
+    # The function to be fit is grid_z.
+    grid_z = np.zeros(grid_x.shape)
+    grid_error = np.zeros(grid_x.shape)
+    for bx in range(0,Hist_Excess.GetNbinsX()):
+        for by in range(0,Hist_Excess.GetNbinsY()):
+            grid_z[bx,by] = Hist_Excess.GetBinContent(bx+1,by+1)
+            grid_error[bx,by] = Hist_Excess.GetBinError(bx+1,by+1)
+
+    # We need to ravel the meshgrids of X, Y points to a pair of 1-D arrays.
+    xydata = np.vstack((grid_x.ravel(), grid_y.ravel()))
+
+    A_init = Hist_Excess.Integral()
+    guess_prms = [(excess_center_x_init,excess_center_y_init,excess_radius_init,A_init)]
+    # Flatten the initial guess parameter list.
+    start = [p for prms in guess_prms for p in prms]
+
+    popt, pcov = curve_fit(_gaussian_2d, xydata, grid_z.ravel(), p0=start, sigma=grid_error.ravel())
+    perr = np.sqrt(np.diag(pcov))
+    model_fit = gaussian_2d(grid_x,grid_y, *popt)
+    residual = grid_z - model_fit
+    chisq = np.sum((residual/grid_error)**2)
+    dof = Hist_Excess.GetNbinsX()*Hist_Excess.GetNbinsY()-4
+
+    excess_center_x = popt[0]
+    excess_center_y = popt[1]
+    excess_radius = popt[2]
+    excess_center_x_err = perr[0]
+    excess_center_y_err = perr[1]
+    excess_radius_err = perr[2]
+
+    return excess_center_x, excess_center_y, excess_radius, excess_center_x_err, excess_center_y_err, excess_radius_err, chisq/dof
 
 def Make2DProjectionPlot(Hist_Data,xtitle,ytitle,name,doProj):
 
@@ -6152,6 +6191,11 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
                 NormalizeSkyMapHistograms(FilePath_List[len(FilePath_List)-1],e)
                 StackSkymapHistograms(e)
 
+    for ebin in range(0,len(energy_bin)-1):
+        Hist_Bkgd_Energy_Skymap[ebin].Add(Hist_ShapeSyst_Energy_Skymap[ebin])
+        Hist_SumSyst_Energy_Skymap[ebin].Add(Hist_NormSyst_Energy_Skymap[ebin])
+
+
     slice_center_x = roi_ra[1]
     slice_center_y = roi_dec[1]
     slice_radius = roi_radius[1]
@@ -6268,14 +6312,6 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
     #Hist_Significance_Skymap_smooth = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,False)
     #Hist_Significance_Skymap_smooth_zoomin = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,True)
     #Hist_Significance_Skymap_Galactic_smooth_zoomin = GetSignificanceMap(Hist_OnData_Skymap_Galactic_smooth, Hist_OnBkgd_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth,True)
-
-    #print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    #init_x = source_ra
-    #init_y = source_dec
-    #excess_center_x, excess_center_y, excess_radius = GetExtention(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth, Hist_Significance_Skymap_smooth,Hist_Exposure_Skymap_smooth,2,init_x,init_y)
-    #print ('Excess (2 sigma) center RA = %0.3f'%(excess_center_x))
-    #print ('Excess (2 sigma) center Dec = %0.3f'%(excess_center_y))
-    #print ('Excess (2 sigma) radius = %0.3f'%(excess_radius))
 
     if not doSpectralMap: return
 
