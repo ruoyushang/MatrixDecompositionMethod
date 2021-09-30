@@ -447,6 +447,7 @@ Livetime = 0.
 Total_Livetime = 0.
 
 List_RunNumber = []
+List_MJD = []
 List_Elev = []
 List_Azim = []
 List_PedVar_DC = []
@@ -482,8 +483,8 @@ Source_Livetime = []
 #        Source_Azim += [0.]
 #        Source_Livetime += [0.]
 
-#inputFile = open('diagnostics.txt')
-inputFile = open('diagnostics_20210705.txt')
+#inputFile = open('diagnostics_20210705.txt')
+inputFile = open('diagnostics_20210929.txt')
 for line in inputFile:
     if line.split(' ')[0]=="#": 
         #print 'this is a comment line'
@@ -504,8 +505,10 @@ for line in inputFile:
     RunNumber = line.split(' ')[1-1]
     if RunNumber=='': continue
     List_RunNumber += [int(RunNumber)]
+    MJD = line.split(' ')[5-1]
     Elev = line.split(' ')[8-1]
     Azim = line.split(' ')[9-1]
+    List_MJD += [int(float(MJD))]
     List_Elev += [float(Elev)]
     List_Azim += [float(Azim)]
     L3_rate = line.split(' ')[12-1]
@@ -573,6 +576,7 @@ if search_for_on_data:
     for entry in range(0,len(List_RunNumber)):
     
         RunNumber = List_RunNumber[entry]
+        MJD = List_MJD[entry]
         Elev = List_Elev[entry]
         Azim = List_Azim[entry]
         T1_RA = List_T1_RA[entry]
@@ -591,6 +595,8 @@ if search_for_on_data:
         if int(RunNumber)>=63373:
             if not V6: continue
     
+        if MJD<59480: continue
+
         if L3_rate<150.: continue
         #if L3_rate>450.: continue
         if Livetime<5.: continue
