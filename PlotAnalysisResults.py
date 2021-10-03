@@ -2002,16 +2002,15 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,hist_syst,radii,legends,tit
             roi_ydata[nth_roi][binx] = pow(roi_xdata[nth_roi][binx],E_index)*roi_ydata[nth_roi][binx]
             roi_error[nth_roi][binx] = pow(roi_xdata[nth_roi][binx],E_index)*roi_error[nth_roi][binx]
 
-    cycol = cycle('bgrcmk')
+    cycol = cycle('krgbcmy')
     for nth_roi in range(0,len(hist_data)):
         n_1sigma = 0
         for binx in range(0,len(roi_ydata[nth_roi])):
             if roi_error[nth_roi][binx]==0.: continue
             if roi_ydata[nth_roi][binx]/roi_error[nth_roi][binx]>1.:
                 n_1sigma += 1
-        if n_1sigma<3: continue
         next_color = next(cycol)
-        if 'Crab' in legends[nth_roi]:
+        if 'Crab' in legends[nth_roi] or n_1sigma<3:
             ax.errorbar(roi_xdata[nth_roi], roi_ydata[nth_roi], roi_error[nth_roi], color=next_color, marker='s', ls='none', label='%s'%(legends[nth_roi]))
         else:
             start = (roi_ydata[nth_roi][0]/pow(10,-12), -2.)
@@ -3440,7 +3439,7 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
             Shape_Err = Hist_Syst.GetBinContent(bx+1,by+1)
             Stat_Err = Hist_Bkg.GetBinError(bx+1,by+1)
             NBkg_Err = pow(pow(Stat_Err,2)+pow(Shape_Err,2),0.5)
-            Sig = 1.*CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
+            Sig = CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
             Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
             bx_center = Hist_Skymap.GetXaxis().GetBinCenter(bx+1)
             by_center = Hist_Skymap.GetYaxis().GetBinCenter(by+1)
@@ -5104,104 +5103,62 @@ def SystematicAnalysis():
         Hist2D_Converge.Draw("COL4Z")
         canvas.SaveAs('output_plots/Converge_%s.png'%(selection_tag))
 
-def MakeGaussComparisonPlot(Hists,legends,colors,title,name):
-    
-    c_both = ROOT.TCanvas("c_both","c both", 200, 10, 600, 600)
-    pad3 = ROOT.TPad("pad3","pad3",0,0.8,1,1)
-    pad3.SetBottomMargin(0.0)
-    pad3.SetTopMargin(0.03)
-    pad3.SetBorderMode(1)
-    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.8)
-    pad1.SetBottomMargin(0.15)
-    pad1.SetTopMargin(0.0)
-    pad1.SetBorderMode(0)
-    pad1.Draw()
-    pad3.Draw()
+def MakeIntegratedSignificance(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,roi_x,roi_y):
 
-    pad1.cd()
+    Hist_Theta2 = ROOT.TH1D("Hist_Theta2","",20,0,2.)
+    for br in range(0,Hist_Theta2.GetNbinsX()):
+        range_limit = Hist_Theta2.GetBinLowEdge(br+2)
+        total_data = 0.
+        total_bkgd = 0.
+        total_syst = 0.
+        total_stat = 0.
+        for bx in range(0,Hist_Data_input.GetNbinsX()):
+            for by in range(0,Hist_Data_input.GetNbinsY()):
+                cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
+                cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
+                distance_sq = pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2)
+                if distance_sq>pow(range_limit,2): continue
+                data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
+                bkgd_content = Hist_Bkgd_input.GetBinContent(bx+1,by+1)
+                bkgd_error = Hist_Bkgd_input.GetBinError(bx+1,by+1)
+                syst_content = Hist_Syst_input.GetBinContent(bx+1,by+1)
+                total_data += data_content
+                total_bkgd += bkgd_content
+                total_syst += syst_content
+                total_stat += bkgd_error*bkgd_error
+        total_stat = pow(total_stat,0.5)
+        zscore = CalculateSignificance(total_data-total_bkgd,total_bkgd,pow(total_stat*total_stat+total_syst*total_syst,0.5))
+        Hist_Theta2.SetBinContent(br+1,zscore)
 
-    max_heigh = 0
-    max_hist = 0
-    mean = []
-    rms = []
-    amp = []
-    for h in range(0,len(Hists)):
-        mean += [0]
-        rms += [0]
-        amp += [0]
-        if Hists[h]!=0:
-            Hists[h].GetXaxis().SetTitle(title)
-            #Hists[h].GetXaxis().SetRangeUser(0,8)
-            Hists[h].GetXaxis().SetRangeUser(-5,8)
-            if max_heigh < Hists[h].GetMaximum(): 
-                max_heigh = Hists[h].GetMaximum()
-                max_hist = h
+    zscore = []
+    theta2 = []
+    for binx in range(0,Hist_Theta2.GetNbinsX()):
+        center = Hist_Theta2.GetBinCenter(binx+1)
+        content = Hist_Theta2.GetBinContent(binx+1)
+        theta2 += [center]
+        zscore += [content]
 
-    #Hists[max_hist].SetMinimum(0)
-    #Hists[max_hist].SetMaximum(1)
-    Hists[max_hist].Draw("E")
+    return zscore, theta2
 
-    for h in range(0,len(Hists)):
-        if Hists[h]!=0:
-            Hists[h].SetLineColor(colors[h])
-            if h==0:
-                Hists[h].Draw("hist same")
-            else:
-                Hists[h].Draw("E same")
+def MakeSignificanceDistribution(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input):
 
-    pad3.cd()
-    legend = ROOT.TLegend(0.1,0.1,0.94,0.9)
-    legend.SetTextFont(42)
-    legend.SetBorderSize(0)
-    legend.SetTextSize(0.15)
-    legend.SetFillColor(0)
-    legend.SetFillStyle(0)
-    legend.SetLineColor(0)
-    legend.Clear()
-    for h in range(0,len(Hists)):
-        if Hists[h]!=0:
-            legend.AddEntry(Hists[h],'%s, mean = %.2f, RMS = %.2f'%(legends[h],Hists[h].GetMean(),Hists[h].GetRMS()),"pl")
-            #legend.AddEntry(Hists[h],'%s'%(legends[h]),"pl")
-    legend.Draw("SAME")
+    Hist_Zscore = GetSignificanceMap(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,False)
+    Hist_Zscore_Dist = ROOT.TH1D("Hist_Zscore_Dist","",65,-5,8)
+    for bx in range(0,Hist_Zscore.GetNbinsX()):
+        for by in range(0,Hist_Zscore.GetNbinsY()):
+            if Hist_Data_input.GetBinContent(bx+1,by+1)==0: continue
+            content = Hist_Zscore.GetBinContent(bx+1,by+1)
+            Hist_Zscore_Dist.Fill(content)
 
-    pad1.SetLogy()
+    zscore = []
+    count = []
+    for binx in range(0,Hist_Zscore_Dist.GetNbinsX()):
+        center = Hist_Zscore_Dist.GetBinCenter(binx+1)
+        content = Hist_Zscore_Dist.GetBinContent(binx+1)
+        zscore += [center]
+        count += [content]
 
-    c_both.SaveAs('output_plots/%s.png'%(name))
-
-def MakeSignificanceDistribution(Hist2D_Sig,Hist2D_SR,name):
-
-    func = ROOT.TF1("func","gaus", -5, 8)
-    func.SetParameters(10.,0.,1.0)
-    Hist_Sig = ROOT.TH1D("Hist_Sig_%s"%(name),"",65,-5,8)
-    for bx in range(0,Hist2D_Sig.GetNbinsX()):
-        for by in range(0,Hist2D_Sig.GetNbinsY()):
-            if Hist2D_SR.GetBinContent(bx+1,by+1)==0: continue
-            content = Hist2D_Sig.GetBinContent(bx+1,by+1)
-            Hist_Sig.Fill(content)
-    Hist_Model = ROOT.TH1D("Hist_Model_%s"%(name),"",65,-5,8)
-    Hist_Model.FillRandom("func",10000*int(Hist_Sig.GetEntries()))
-    Hist_Model.Scale(1./10000.)
-    Hist_Model.SetMinimum(0.5)
-    Hist_list = []
-    legend_list = []
-    color_list = []
-    Hist_list += [Hist_Model]
-    legend_list += ['Ref. Gaussian']
-    color_list += [2]
-    Hist_list += [Hist_Sig]
-    legend_list += ['Data']
-    color_list += [4]
-    MakeGaussComparisonPlot(Hist_list,legend_list,color_list,'significance','SigDist_%s'%(name))
-
-    OutputFilePath = "output_plots/SigDist.root"
-    OutputFile = ROOT.TFile(OutputFilePath,"update")
-    Hist_Model.Write()
-    Hist_Sig.Write()
-    OutputFile.Close()
-
-    file1 = open("output_plots/source_exposure.txt","a")
-    file1.write('%s, (%0.1f hours) \n'%(name,exposure_hours))
-    file1.close()
+    return count, zscore
 
 def GetCRcounts(name):
 
@@ -5291,8 +5248,10 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
         for binx in range(0,Hist_SumSyst_Energy_Skymap[ebin].GetNbinsX()):
             for biny in range(0,Hist_SumSyst_Energy_Skymap[ebin].GetNbinsY()):
                 norm_syst = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(binx+1,biny+1)
+                Hist_SumSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,norm_syst)
                 shape_syst = Hist_ShapeSyst_Energy_Skymap[ebin].GetBinContent(binx+1,biny+1)
-                Hist_SumSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,pow(norm_syst*norm_syst+shape_syst*shape_syst,0.5))
+                old_error = Hist_Bkgd_Energy_Skymap[ebin].GetBinError(binx+1,biny+1)
+                Hist_Bkgd_Energy_Skymap[ebin].SetBinError(binx+1,biny+1,pow(old_error*old_error+shape_syst*shape_syst,0.5))
 
 
     slice_center_x = roi_ra[1]
@@ -5349,73 +5308,21 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
 
     if not doMap: return
 
-    global smooth_size_exposure
-    smooth_size_exposure = 0.1
-    if ErecS_lower_cut>=1000.: smooth_size_exposure = 0.15
-    if ErecS_lower_cut>=2000.: smooth_size_exposure = 0.2
-
-    Hist_OnData_Skymap_smooth = Hist_OnData_Skymap_Sum
-    Hist_OnBkgd_Skymap_smooth = Hist_OnBkgd_Skymap_Sum
-    Hist_OnExpo_Skymap_smooth = Hist_OnBkgd_Skymap_Sum
-    Hist_OnBkgd_Skymap_Syst_MDM_smooth = Hist_OnBkgd_Skymap_Syst_Sum
-    Hist_OnBkgd_Skymap_Syst_RBM_smooth = Hist_OnBkgd_Skymap_Syst_RBM
-    Hist_OnData_Skymap_Galactic_smooth = Hist_OnData_Skymap_Galactic_Sum
-    Hist_OnBkgd_Skymap_Galactic_smooth = Hist_OnBkgd_Skymap_Galactic_Sum
-    Hist_OnExpo_Skymap_Galactic_smooth = Hist_OnBkgd_Skymap_Galactic_Sum
-    Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth = Hist_OnBkgd_Skymap_Galactic_Syst_MDM
-    Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth = Hist_OnBkgd_Skymap_Galactic_Syst_RBM
-    if doSmooth:
-        Hist_OnData_Skymap_smooth = Smooth2DMap(Hist_OnData_Skymap_Sum,smooth_size_skymap,False)
-        Hist_OnBkgd_Skymap_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Sum,smooth_size_skymap,False)
-        Hist_OnExpo_Skymap_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Sum,smooth_size_exposure,False)
-        Hist_OnBkgd_Skymap_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_Sum,smooth_size_skymap,False)
-        Hist_OnBkgd_Skymap_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Syst_RBM,smooth_size_skymap,False)
-        Hist_OnData_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnData_Skymap_Galactic_Sum,smooth_size_skymap,False)
-        Hist_OnBkgd_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Sum,smooth_size_skymap,False)
-        Hist_OnExpo_Skymap_Galactic_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Sum,smooth_size_exposure,False)
-        Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_MDM,smooth_size_skymap,False)
-        Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth = Smooth2DMap(Hist_OnBkgd_Skymap_Galactic_Syst_RBM,smooth_size_skymap,False)
-
-    skymap_bin_size_x = Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetXaxis().GetBinCenter(1)
-    skymap_bin_size_y = Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(2)-Hist_OnData_Skymap_Sum.GetYaxis().GetBinCenter(1)
-    event_rate = Hist_OnBkgd_Energy_CamCenter_Sum.Integral()/exposure_hours*(skymap_bin_size_x*skymap_bin_size_y)/(3.14*1.0*1.0)
-    Hist_UniformExposure_Skymap = Hist_OnData_Skymap_Sum.Clone()
-    Hist_UniformExposure_Skymap_Galactic = Hist_OnData_Skymap_Galactic_Sum.Clone()
-    for bx in range(1,Hist_UniformExposure_Skymap.GetNbinsX()+1):
-        for by in range(1,Hist_UniformExposure_Skymap.GetNbinsY()+1):
-            Hist_UniformExposure_Skymap.SetBinContent(bx,by,event_rate)
-            Hist_UniformExposure_Skymap_Galactic.SetBinContent(bx,by,event_rate)
-    Hist_UniformExposure_Skymap_smooth = Smooth2DMap(Hist_UniformExposure_Skymap,smooth_size_exposure,False)
-    Hist_UniformExposure_Skymap_Galactic_smooth = Smooth2DMap(Hist_UniformExposure_Skymap_Galactic,smooth_size_exposure,False)
-    Hist_Exposure_Skymap_smooth = Hist_OnExpo_Skymap_smooth.Clone()
-    Hist_Exposure_Skymap_smooth.Reset()
-    Hist_Exposure_Skymap_smooth.Add(Hist_OnExpo_Skymap_smooth)
-    Hist_Exposure_Skymap_smooth.Divide(Hist_UniformExposure_Skymap_smooth)
-    Hist_Exposure_Skymap_Galactic_smooth = Hist_OnExpo_Skymap_Galactic_smooth.Clone()
-    Hist_Exposure_Skymap_Galactic_smooth.Reset()
-    Hist_Exposure_Skymap_Galactic_smooth.Add(Hist_OnExpo_Skymap_Galactic_smooth)
-    Hist_Exposure_Skymap_Galactic_smooth.Divide(Hist_UniformExposure_Skymap_Galactic_smooth)
-
-    #Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_Sum,Hist_OnBkgd_Skymap_Syst_RBM,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_RaDec_MDM_%s%s'%(source_name,PercentCrab))
-    #VariableSkymapBins(Syst_MDM,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_Sum,Hist_OnBkgd_Skymap_Syst_RBM,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_RaDec_OpimizeNbins15_%s%s'%(source_name,PercentCrab),15)
-    #VariableSkymapBins(0.,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_Sum,Hist_OnBkgd_Skymap_Syst_RBM,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_RaDec_OpimizeNbins15_NoSyst_%s%s'%(source_name,PercentCrab),15)
-    #VariableSkymapBins(Syst_MDM,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_Sum,Hist_OnBkgd_Skymap_Syst_RBM,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_RaDec_OpimizeNbins5_%s%s'%(source_name,PercentCrab),5)
-    #VariableSkymapBins(0.,Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_Sum,Hist_OnBkgd_Skymap_Syst_RBM,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_RaDec_OpimizeNbins5_NoSyst_%s%s'%(source_name,PercentCrab),5)
-
-    Hist_Significance_Skymap = GetSignificanceMap(Hist_OnData_Skymap_Sum,Hist_OnBkgd_Skymap_Sum,Hist_OnBkgd_Skymap_Syst_Sum,False)
-    MakeSignificanceDistribution(Hist_Significance_Skymap,Hist_OnData_Skymap_Sum,'SigDist_MDM_%s%s'%(source_name,PercentCrab))
-
-    #Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_smooth,Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Syst_RBM_smooth,Hist_Exposure_Skymap_smooth,'RA','Dec','Skymap_Smooth_RaDec_MDM_%s%s'%(source_name,PercentCrab))
-    #Make2DSignificancePlot(Syst_MDM,Hist_OnData_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_RBM_smooth,Hist_Exposure_Skymap_Galactic_smooth,'gal. l.','gal. b.','Skymap_Smooth_Galactic_MDM_%s%s'%(source_name,PercentCrab))
-
-    #Hist_Significance_Skymap_smooth = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,False)
-    #Hist_Significance_Skymap_smooth_zoomin = GetSignificanceMap(Hist_OnData_Skymap_smooth, Hist_OnBkgd_Skymap_smooth,Hist_OnBkgd_Skymap_Syst_MDM_smooth,True)
-    #Hist_Significance_Skymap_Galactic_smooth_zoomin = GetSignificanceMap(Hist_OnData_Skymap_Galactic_smooth, Hist_OnBkgd_Skymap_Galactic_smooth,Hist_OnBkgd_Skymap_Galactic_Syst_MDM_smooth,True)
-
     if not doSpectralMap: return
 
     event_rate = Hist_OnBkgd_Energy_CamCenter_Sum.Integral()/exposure_hours*(smooth_size_spectroscopy*smooth_size_spectroscopy)/(3.14*1.0*1.0)
     if doSmooth:
+        Hist_Syst_Energy_Skymap_Sum = ROOT.TH2D("Hist_Syst_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+        Hist_Data_Energy_Skymap_Sum = ROOT.TH2D("Hist_Data_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+        Hist_Bkgd_Energy_Skymap_Sum = ROOT.TH2D("Hist_Bkgd_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+        for ebin in range(0,len(energy_bin)-1):
+            Hist_Data_Energy_Skymap_Sum.Add(Hist_Data_Energy_Skymap[ebin])
+            Hist_Bkgd_Energy_Skymap_Sum.Add(Hist_Bkgd_Energy_Skymap[ebin])
+            for bx in range(0,Hist_Syst_Energy_Skymap_Sum.GetNbinsX()):
+                for by in range(0,Hist_Syst_Energy_Skymap_Sum.GetNbinsY()):
+                    syst_new_content = Hist_SumSyst_Energy_Skymap[ebin].GetBinContent(bx+1,by+1)
+                    syst_old_content = Hist_Syst_Energy_Skymap_Sum.GetBinContent(bx+1,by+1)
+                    Hist_Syst_Energy_Skymap_Sum.SetBinContent(bx+1,by+1,pow(syst_new_content*syst_new_content+syst_old_content*syst_old_content,0.5))
         Hist_Data_Energy_Skymap_smooth = []
         Hist_Bkgd_Energy_Skymap_smooth = []
         Hist_Expo_Energy_Skymap_smooth = []
@@ -5434,8 +5341,9 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
 
         fig.clf()
         axbig = fig.add_subplot()
-        cycol = cycle('bgrcmk')
+        cycol = cycle('krgbcmy')
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+            if Hist_Data_Energy_Skymap[ebin].Integral()<100.: continue
             next_color = next(cycol)
             list_maxsig, list_binsize = VariableSkymapBins(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_SumSyst_Energy_Skymap[ebin])
             axbig.plot(list_binsize, list_maxsig,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
@@ -5446,13 +5354,38 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
         fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
         axbig.remove()
 
-        for nth_roi in range(0,len(roi_ra)):
-            print('=============================')
-            print('%s'%(roi_name[nth_roi]))
-            for ebin in range(0,len(energy_bin)-1):
-                print('energy %s-%s'%(energy_bin[ebin],energy_bin[ebin+1]))
-                extension_rms = GetExtentionRMS(Hist_Data_Energy_Skymap_smooth[ebin],Hist_Bkgd_Energy_Skymap_smooth[ebin],Hist_Expo_Energy_Skymap_smooth[ebin],roi_ra[nth_roi],roi_dec[nth_roi],2.*roi_radius[nth_roi])
-                print('RMS = %0.3f'%(extension_rms))
+        fig.clf()
+        axbig = fig.add_subplot()
+        cycol = cycle('krgbcmy')
+        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+            if Hist_Data_Energy_Skymap[ebin].Integral()<100.: continue
+            next_color = next(cycol)
+            count, zscore = MakeSignificanceDistribution(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_SumSyst_Energy_Skymap[ebin])
+            axbig.plot(zscore, count,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+        axbig.set_xlabel('significance z score')
+        axbig.set_ylabel('bin count')
+        axbig.legend(loc='best')
+        plotname = 'ZscoreDist_wSyst'
+        fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+        axbig.remove()
+
+        fig.clf()
+        axbig = fig.add_subplot()
+        cycol = cycle('krgbcmy')
+        next_color = next(cycol)
+        zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum,Hist_Syst_Energy_Skymap_Sum,roi_ra[0],roi_dec[0])
+        axbig.plot(theta2, zscore,color=next_color,label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
+        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+            next_color = next(cycol)
+            zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_SumSyst_Energy_Skymap[ebin],roi_ra[0],roi_dec[0])
+            axbig.plot(theta2, zscore,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+        axbig.set_ylabel('significance z score')
+        axbig.set_xlabel('radius of integration region [degree]')
+        axbig.legend(loc='best')
+        plotname = 'ZscoreVsTheta2'
+        fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+        axbig.remove()
+
 
 def FindSourceIndex(source_name):
     for source in range(0,len(sample_list)):
