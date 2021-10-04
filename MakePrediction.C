@@ -3448,9 +3448,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_up, "%i", int(energy_bins[e+1]));
         current_energy = energy_bins[e];
 
-        int XYoff_bins = 60;
-        //int XYoff_bins = 12;
-        //if (energy_bins[e]>2000.) XYoff_bins = 6;
+        int XYoff_bins = 30;
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
         MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
@@ -3493,6 +3491,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<vector<TH1D>> Hist_OnRFoV_CR_RoI_Energy;
     vector<vector<TH1D>> Hist_OnData_SR_Skymap_RoI_Theta2;
     vector<vector<TH1D>> Hist_OnData_CR_Skymap_RoI_Theta2;
+    vector<vector<TH1D>> Hist_NormSyst_Skymap_RoI_Theta2;
+    vector<vector<TH1D>> Hist_ShapeSyst_Skymap_RoI_Theta2;
     vector<vector<TH1D>> Hist_OnData_SR_Skymap_RoI_X;
     vector<vector<TH1D>> Hist_OnData_CR_Skymap_RoI_X;
     vector<vector<TH1D>> Hist_OnData_SR_Skymap_RoI_Y;
@@ -3510,6 +3510,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         vector<TH1D> Hist_OnRFoV_OneRoI_CR_RoI_Energy;
         vector<TH1D> Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2;
         vector<TH1D> Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2;
+        vector<TH1D> Hist_OneNormSyst_Skymap_RoI_Theta2;
+        vector<TH1D> Hist_OneShapeSyst_Skymap_RoI_Theta2;
         vector<TH1D> Hist_OnData_OneRoI_SR_Skymap_RoI_X;
         vector<TH1D> Hist_OnData_OneRoI_CR_Skymap_RoI_X;
         vector<TH1D> Hist_OnData_OneRoI_SR_Skymap_RoI_Y;
@@ -3558,6 +3560,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
             Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
             Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_CR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
+            Hist_OneNormSyst_Skymap_RoI_Theta2.push_back(TH1D("Hist_NormSyst_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
+            Hist_OneShapeSyst_Skymap_RoI_Theta2.push_back(TH1D("Hist_ShapeSyst_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
             Hist_OnData_OneRoI_SR_Skymap_RoI_X.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
             Hist_OnData_OneRoI_CR_Skymap_RoI_X.push_back(TH1D("Hist_OnData_CR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
             Hist_OnData_OneRoI_SR_Skymap_RoI_Y.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_Y_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
@@ -3567,6 +3571,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         }
         Hist_OnData_SR_Skymap_RoI_Theta2.push_back(Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2);
         Hist_OnData_CR_Skymap_RoI_Theta2.push_back(Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2);
+        Hist_NormSyst_Skymap_RoI_Theta2.push_back(Hist_OneNormSyst_Skymap_RoI_Theta2);
+        Hist_ShapeSyst_Skymap_RoI_Theta2.push_back(Hist_OneShapeSyst_Skymap_RoI_Theta2);
         Hist_OnData_SR_Skymap_RoI_X.push_back(Hist_OnData_OneRoI_SR_Skymap_RoI_X);
         Hist_OnData_CR_Skymap_RoI_X.push_back(Hist_OnData_OneRoI_CR_Skymap_RoI_X);
         Hist_OnData_SR_Skymap_RoI_Y.push_back(Hist_OnData_OneRoI_SR_Skymap_RoI_Y);
@@ -3704,6 +3710,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
             hist_name  = "Hist_Stage1_OnData_CR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
             Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_Stage1_NormSyst_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_NormSyst_Skymap_RoI_Theta2.at(nth_roi).at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
+            hist_name  = "Hist_Stage1_ShapeSyst_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+            Hist_ShapeSyst_Skymap_RoI_Theta2.at(nth_roi).at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
             hist_name  = "Hist_Stage1_OnData_CR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
             Hist_OnData_CR_Skymap_RoI_X.at(nth_roi).at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
             hist_name  = "Hist_Stage1_OnData_CR_Skymap_RoI_Y_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -3961,6 +3971,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             Hist_NormSyst_RoI_Energy.at(nth_roi).at(e).Scale(scale_energy);
             Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(e).Scale(scale_energy);
             Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(e).Scale(scale_yoff);
+            Hist_NormSyst_Skymap_RoI_Theta2.at(nth_roi).at(e).Scale(scale_yoff);
+            Hist_ShapeSyst_Skymap_RoI_Theta2.at(nth_roi).at(e).Scale(scale_yoff);
             Hist_OnData_CR_Skymap_RoI_X.at(nth_roi).at(e).Scale(scale_yoff);
             Hist_OnData_CR_Skymap_RoI_Y.at(nth_roi).at(e).Scale(scale_yoff);
             Hist_OnData_CR_RoI_MJD.at(nth_roi).at(e).Scale(scale_energy);
@@ -4439,6 +4451,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             Hist_OnData_CR_RoI_MJD.at(nth_roi).at(e).Write();
             Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(e).Write();
             Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(e).Write();
+            Hist_NormSyst_Skymap_RoI_Theta2.at(nth_roi).at(e).Write();
+            Hist_ShapeSyst_Skymap_RoI_Theta2.at(nth_roi).at(e).Write();
             Hist_OnData_SR_Skymap_RoI_X.at(nth_roi).at(e).Write();
             Hist_OnData_CR_Skymap_RoI_X.at(nth_roi).at(e).Write();
             Hist_OnData_SR_Skymap_RoI_Y.at(nth_roi).at(e).Write();

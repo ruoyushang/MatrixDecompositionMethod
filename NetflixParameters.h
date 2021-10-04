@@ -25,10 +25,10 @@ bool EigenDecomposition = false;
 bool UseRegularization = true;
 //bool UseRegularization = false;
 
-bool AcceptanceCorrection = true;
-bool ExposureCorrection = true;
-//bool AcceptanceCorrection = false;
-//bool ExposureCorrection = false;
+//bool AcceptanceCorrection = true;
+//bool ExposureCorrection = true;
+bool AcceptanceCorrection = false;
+bool ExposureCorrection = false;
 
 double MSCW_plot_lower = -0.6;
 double MSCL_plot_lower = -0.6;
