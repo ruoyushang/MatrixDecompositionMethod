@@ -702,6 +702,8 @@ Syst_Redu = 0.02
 Syst_Corr = 0.02
 Syst_Clos = 0.02
 
+integration_bin = [30,15,5,1]
+
 energy_bin = []
 energy_bin += [100]
 energy_bin += [251]
@@ -3298,15 +3300,15 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
             new_content = Hist_OnBkgd_Skymap_Syst_Norm.GetBinContent(binx+1,biny+1)
             Hist_NormSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,pow(old_content*old_content+new_content*new_content,0.5))
             #Hist_NormSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,old_content+new_content)
-    HistName = "Hist_ShapeSyst_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_OnBkgd_Skymap_Syst_Shape.Reset()
-    Hist_OnBkgd_Skymap_Syst_Shape.Add(InputFile.Get(HistName))
-    for binx in range(0,Hist_OnBkgd_Skymap_Syst_Shape.GetNbinsX()):
-        for biny in range(0,Hist_OnBkgd_Skymap_Syst_Shape.GetNbinsY()):
-            old_content = Hist_ShapeSyst_Energy_Skymap[ebin].GetBinContent(binx+1,biny+1)
-            new_content = Hist_OnBkgd_Skymap_Syst_Shape.GetBinContent(binx+1,biny+1)
-            Hist_ShapeSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,pow(old_content*old_content+new_content*new_content,0.5))
-            #Hist_ShapeSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,old_content+new_content)
+    for xy_bin in range(0,len(integration_bin)):
+        HistName = "Hist_ShapeSyst_Skymap_ErecS%sto%s_Bin%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int,xy_bin)
+        Hist_OnBkgd_Skymap_Syst_Shape.Reset()
+        Hist_OnBkgd_Skymap_Syst_Shape.Add(InputFile.Get(HistName))
+        for binx in range(0,Hist_OnBkgd_Skymap_Syst_Shape.GetNbinsX()):
+            for biny in range(0,Hist_OnBkgd_Skymap_Syst_Shape.GetNbinsY()):
+                old_content = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].GetBinContent(binx+1,biny+1)
+                new_content = Hist_OnBkgd_Skymap_Syst_Shape.GetBinContent(binx+1,biny+1)
+                Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].SetBinContent(binx+1,biny+1,pow(old_content*old_content+new_content*new_content,0.5))
     HistName = "Hist_OnData_CR_Skymap_Galactic_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Skymap_Galactic.Reset()
     Hist_OnBkgd_Skymap_Galactic.Add(InputFile.Get(HistName))
@@ -5121,7 +5123,19 @@ def MakeIntegratedSignificance(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,r
                 data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
                 bkgd_content = Hist_Bkgd_input.GetBinContent(bx+1,by+1)
                 bkgd_error = Hist_Bkgd_input.GetBinError(bx+1,by+1)
-                syst_content = Hist_Syst_input.GetBinContent(bx+1,by+1)
+                xy_bin_up = 0
+                bin_size_up = 0.
+                bin_size_low = 0.
+                for xy_bin in range(1,len(integration_bin)):
+                    current_bin_size = 6./integration_bin[xy_bin]
+                    if current_bin_size>range_limit*pow(3.14,0.5):
+                        xy_bin_up = xy_bin
+                        bin_size_up = 6./integration_bin[xy_bin]
+                        bin_size_low = 6./integration_bin[xy_bin-1]
+                        break
+                syst_up = Hist_Syst_input[xy_bin_up].GetBinContent(bx+1,by+1)
+                syst_low = Hist_Syst_input[xy_bin_up-1].GetBinContent(bx+1,by+1)
+                syst_content = syst_low + (syst_up-syst_low)/(bin_size_up-bin_size_low)*(range_limit*pow(3.14,0.5)-bin_size_low)
                 total_data += data_content
                 total_bkgd += bkgd_content
                 total_syst += syst_content
@@ -5244,14 +5258,26 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
                 StackSkymapHistograms(e)
 
     for ebin in range(0,len(energy_bin)-1):
-        #Hist_Bkgd_Energy_Skymap[ebin].Add(Hist_ShapeSyst_Energy_Skymap[ebin])
         for binx in range(0,Hist_SumSyst_Energy_Skymap[ebin].GetNbinsX()):
             for biny in range(0,Hist_SumSyst_Energy_Skymap[ebin].GetNbinsY()):
                 norm_syst = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(binx+1,biny+1)
-                Hist_SumSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,norm_syst)
-                shape_syst = Hist_ShapeSyst_Energy_Skymap[ebin].GetBinContent(binx+1,biny+1)
-                old_error = Hist_Bkgd_Energy_Skymap[ebin].GetBinError(binx+1,biny+1)
-                Hist_Bkgd_Energy_Skymap[ebin].SetBinError(binx+1,biny+1,pow(old_error*old_error+shape_syst*shape_syst,0.5))
+                xy_bin_up = 0
+                bin_size_up = 0.
+                bin_size_low = 0.
+                for xy_bin in range(1,len(integration_bin)):
+                    current_bin_size = 6./integration_bin[xy_bin]
+                    if current_bin_size>smooth_size_spectroscopy*pow(3.14,0.5):
+                        xy_bin_up = xy_bin
+                        bin_size_up = 6./integration_bin[xy_bin]
+                        bin_size_low = 6./integration_bin[xy_bin-1]
+                        break
+                shape_syst_up = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin_up].GetBinContent(binx+1,biny+1)
+                shape_syst_low = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin_up-1].GetBinContent(binx+1,biny+1)
+                shape_syst = shape_syst_low + (shape_syst_up-shape_syst_low)/(bin_size_up-bin_size_low)*(smooth_size_spectroscopy*pow(3.14,0.5)-bin_size_low)
+                Hist_SumSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,pow(norm_syst*norm_syst+shape_syst*shape_syst,0.5))
+                #Hist_SumSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,norm_syst)
+                #old_error = Hist_Bkgd_Energy_Skymap[ebin].GetBinError(binx+1,biny+1)
+                #Hist_Bkgd_Energy_Skymap[ebin].SetBinError(binx+1,biny+1,pow(old_error*old_error+shape_syst*shape_syst,0.5))
 
 
     slice_center_x = roi_ra[1]
@@ -5312,17 +5338,6 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
 
     event_rate = Hist_OnBkgd_Energy_CamCenter_Sum.Integral()/exposure_hours*(smooth_size_spectroscopy*smooth_size_spectroscopy)/(3.14*1.0*1.0)
     if doSmooth:
-        Hist_Syst_Energy_Skymap_Sum = ROOT.TH2D("Hist_Syst_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-        Hist_Data_Energy_Skymap_Sum = ROOT.TH2D("Hist_Data_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-        Hist_Bkgd_Energy_Skymap_Sum = ROOT.TH2D("Hist_Bkgd_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-        for ebin in range(0,len(energy_bin)-1):
-            Hist_Data_Energy_Skymap_Sum.Add(Hist_Data_Energy_Skymap[ebin])
-            Hist_Bkgd_Energy_Skymap_Sum.Add(Hist_Bkgd_Energy_Skymap[ebin])
-            for bx in range(0,Hist_Syst_Energy_Skymap_Sum.GetNbinsX()):
-                for by in range(0,Hist_Syst_Energy_Skymap_Sum.GetNbinsY()):
-                    syst_new_content = Hist_SumSyst_Energy_Skymap[ebin].GetBinContent(bx+1,by+1)
-                    syst_old_content = Hist_Syst_Energy_Skymap_Sum.GetBinContent(bx+1,by+1)
-                    Hist_Syst_Energy_Skymap_Sum.SetBinContent(bx+1,by+1,pow(syst_new_content*syst_new_content+syst_old_content*syst_old_content,0.5))
         Hist_Data_Energy_Skymap_smooth = []
         Hist_Bkgd_Energy_Skymap_smooth = []
         Hist_Expo_Energy_Skymap_smooth = []
@@ -5371,16 +5386,45 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
 
         fig.clf()
         axbig = fig.add_subplot()
+
+        Hist_Syst_Energy_Skymap_Sum = []
+        for xy_bin in range(0,len(integration_bin)):
+            Hist_Syst_Energy_Skymap_Sum += [ROOT.TH2D("Hist_Syst_Energy_Skymap_Sum_%s"%(xy_bin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+        Hist_Data_Energy_Skymap_Sum = ROOT.TH2D("Hist_Data_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+        Hist_Bkgd_Energy_Skymap_Sum = ROOT.TH2D("Hist_Bkgd_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+        for ebin in range(0,len(energy_bin)-1):
+            Hist_Data_Energy_Skymap_Sum.Add(Hist_Data_Energy_Skymap[ebin])
+            Hist_Bkgd_Energy_Skymap_Sum.Add(Hist_Bkgd_Energy_Skymap[ebin])
+            for xy_bin in range(0,len(integration_bin)):
+                for bx in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsX()):
+                    for by in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsY()):
+                        norm_syst = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(bx+1,by+1)
+                        shape_syst = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].GetBinContent(bx+1,by+1)
+                        syst_new_content = pow(norm_syst*norm_syst+shape_syst*shape_syst,0.5)
+                        syst_old_content = Hist_Syst_Energy_Skymap_Sum[xy_bin].GetBinContent(bx+1,by+1)
+                        Hist_Syst_Energy_Skymap_Sum[xy_bin].SetBinContent(bx+1,by+1,pow(syst_new_content*syst_new_content+syst_old_content*syst_old_content,0.5))
+
         cycol = cycle('krgbcmy')
         next_color = next(cycol)
         zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum,Hist_Syst_Energy_Skymap_Sum,roi_ra[0],roi_dec[0])
         axbig.plot(theta2, zscore,color=next_color,label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+            for xy_bin in range(0,len(integration_bin)):
+                Hist_Syst_Energy_Skymap_Sum[xy_bin].Reset()
+            for xy_bin in range(0,len(integration_bin)):
+                for bx in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsX()):
+                    for by in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsY()):
+                        norm_syst = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(bx+1,by+1)
+                        shape_syst = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].GetBinContent(bx+1,by+1)
+                        syst_new_content = pow(norm_syst*norm_syst+shape_syst*shape_syst,0.5)
+                        syst_old_content = Hist_Syst_Energy_Skymap_Sum[xy_bin].GetBinContent(bx+1,by+1)
+                        Hist_Syst_Energy_Skymap_Sum[xy_bin].SetBinContent(bx+1,by+1,pow(syst_new_content*syst_new_content+syst_old_content*syst_old_content,0.5))
             next_color = next(cycol)
-            zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_SumSyst_Energy_Skymap[ebin],roi_ra[0],roi_dec[0])
+            zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_Syst_Energy_Skymap_Sum,roi_ra[0],roi_dec[0])
             axbig.plot(theta2, zscore,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
         axbig.set_ylabel('significance z score')
         axbig.set_xlabel('radius of integration region [degree]')
+        plt.ylim(-3.0, 8.0)
         axbig.legend(loc='best')
         plotname = 'ZscoreVsTheta2'
         fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
@@ -5569,9 +5613,12 @@ Hist_Bkgd_Energy_Skymap = []
 for ebin in range(0,len(energy_bin)-1):
     Hist_SumSyst_Energy_Skymap += [ROOT.TH2D("Hist_SumSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_NormSyst_Energy_Skymap += [ROOT.TH2D("Hist_NormSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-    Hist_ShapeSyst_Energy_Skymap += [ROOT.TH2D("Hist_ShapeSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_Data_Energy_Skymap += [ROOT.TH2D("Hist_Data_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_Bkgd_Energy_Skymap += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+    Hist_ShapeSyst_Energy_Skymap_ThisBin = []
+    for xy_bin in range(0,len(integration_bin)):
+        Hist_ShapeSyst_Energy_Skymap_ThisBin += [ROOT.TH2D("Hist_ShapeSyst_Energy_Skymap_%s_%s"%(ebin,xy_bin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+    Hist_ShapeSyst_Energy_Skymap += [Hist_ShapeSyst_Energy_Skymap_ThisBin]
 
 Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnDark_Skymap = ROOT.TH2D("Hist_OnDark_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
