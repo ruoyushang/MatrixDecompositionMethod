@@ -1895,18 +1895,22 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_NormSystErr.push_back(TH1D("Hist_NormSystErr_Temp_"+TString(elev_tag),"",N_energy_bins,energy_bins));
     }
     vector<vector<TH2D>> Hist_ShapeSystErr;
+    vector<vector<TH1D>> Hist_ShapeSystErr_1D;
     for (int e=0;e<N_energy_bins;e++) 
     {
         char e_tag[50];
         sprintf(e_tag,"ErecS%ito%i",int(energy_bins[e]),int(energy_bins[e+1]));
         vector<TH2D> Hist_ShapeSystErr_ThisBin;
-        for (int xybin=0;xybin<N_XY_bins;xybin++) 
+        vector<TH1D> Hist_ShapeSystErr_1D_ThisBin;
+        for (int xybin=0;xybin<N_integration_radii;xybin++) 
         {
             char xybin_tag[50];
             sprintf(xybin_tag,"Bin%i",xybin);
-            Hist_ShapeSystErr_ThisBin.push_back(TH2D("Hist_ShapeSystErr_Temp_"+TString(e_tag)+TString("_")+TString(xybin_tag),"",XY_bins[xybin],-3,3,XY_bins[xybin],-3,3));
+            Hist_ShapeSystErr_ThisBin.push_back(TH2D("Hist_ShapeSystErr_Temp_"+TString(e_tag)+TString("_")+TString(xybin_tag),"",36,-3,3,36,-3,3));
+            Hist_ShapeSystErr_1D_ThisBin.push_back(TH1D("Hist_ShapeSystErr_1D_Temp_"+TString(e_tag)+TString("_")+TString(xybin_tag),"",20,0.,2.));
         }
         Hist_ShapeSystErr.push_back(Hist_ShapeSystErr_ThisBin);
+        Hist_ShapeSystErr_1D.push_back(Hist_ShapeSystErr_1D_ThisBin);
     }
 
     TFile InputSystFile(TString(SMI_AUX)+"/SystErrors.root");
@@ -1924,13 +1928,16 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     {
         char e_tag[50];
         sprintf(e_tag,"ErecS%ito%i",int(energy_bins[e]),int(energy_bins[e+1]));
-        for (int xybin=0;xybin<N_XY_bins;xybin++) 
+        for (int xybin=0;xybin<N_integration_radii;xybin++) 
         {
             char xybin_tag[50];
             sprintf(xybin_tag,"Bin%i",xybin);
             hist_name  = "Hist_ShapeSystErr_"+TString(e_tag)+TString("_")+TString(xybin_tag);
             std::cout << "Get hist " << hist_name << std::endl;
             Hist_ShapeSystErr.at(e).at(xybin).Add( (TH2D*)InputSystFile.Get(hist_name) );
+            hist_name  = "Hist_ShapeSystErr_1D_"+TString(e_tag)+TString("_")+TString(xybin_tag);
+            std::cout << "Get hist " << hist_name << std::endl;
+            Hist_ShapeSystErr_1D.at(e).at(xybin).Add( (TH1D*)InputSystFile.Get(hist_name) );
         }
     }
 
@@ -2458,7 +2465,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-        int XYoff_bins = 30;
+        int XYoff_bins = 36;
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
         MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
@@ -2485,7 +2492,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_NormSyst_Skymap.push_back(TH2D("Hist_Stage1_NormSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
 
         vector<TH2D> Hist_ShapeSyst_Skymap_ThisBin;
-        for (int xybin=0;xybin<N_XY_bins;xybin++) 
+        for (int xybin=0;xybin<N_integration_radii;xybin++) 
         {
             char xybin_tag[50];
             sprintf(xybin_tag,"Bin%i",xybin);
@@ -3180,12 +3187,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             MSCL = MSCL/MSCL_rescale[energy];
 
             double norm_syst_err = Hist_NormSystErr.at(elevation).GetBinContent(energy+1); 
-            double shape_syst_err[N_XY_bins] = {0.,0.,0.,0.};
-            for (int xybin=0;xybin<N_XY_bins;xybin++) 
+            double shape_syst_err[N_integration_radii] = {0.,0.,0.,0.};
+            for (int xybin=0;xybin<N_integration_radii;xybin++) 
             {
-                int xoff_bin = Hist_ShapeSystErr.at(energy).at(xybin).GetXaxis()->FindBin(Xoff);
-                int yoff_bin = Hist_ShapeSystErr.at(energy).at(xybin).GetYaxis()->FindBin(Yoff);
-                shape_syst_err[xybin] = Hist_ShapeSystErr.at(energy).at(xybin).GetBinContent(xoff_bin,yoff_bin);
+                //int xoff_bin = Hist_ShapeSystErr.at(energy).at(xybin).GetXaxis()->FindBin(Xoff);
+                //int yoff_bin = Hist_ShapeSystErr.at(energy).at(xybin).GetYaxis()->FindBin(Yoff);
+                //shape_syst_err[xybin] = Hist_ShapeSystErr.at(energy).at(xybin).GetBinContent(xoff_bin,yoff_bin);
+                int roff_bin = Hist_ShapeSystErr_1D.at(energy).at(xybin).GetXaxis()->FindBin(pow(R2off,0.5));
+                shape_syst_err[xybin] = Hist_ShapeSystErr_1D.at(energy).at(xybin).GetBinContent(roff_bin);
             }
             
             int bin_energy = Hist_CRDark_Energy.at(energy).FindBin(ErecS*1000.);
@@ -3257,7 +3266,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_CR_Yoff_Raw.at(energy).Fill(Yoff,1.);
                     Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,yoff_weight);
                     Hist_NormSyst_Skymap.at(energy).Fill(ra_sky,dec_sky,yoff_weight*norm_syst_err);
-                    for (int xybin=0;xybin<N_XY_bins;xybin++) 
+                    for (int xybin=0;xybin<N_integration_radii;xybin++) 
                     {
                         Hist_ShapeSyst_Skymap.at(energy).at(xybin).Fill(ra_sky,dec_sky,yoff_weight*shape_syst_err[xybin]);
                     }
@@ -3272,18 +3281,18 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                             {
                                 Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight);
                                 Hist_NormSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight*norm_syst_err);
-                                double roi_bin_size = roi_radius_outer.at(nth_roi)*pow(3.14,0.5);
+                                double roi_bin_size = roi_radius_outer.at(nth_roi);
                                 int xybin_up = 0;
                                 double bin_size_up = 0.;
                                 double bin_size_low = 0.;
-                                for (int xybin=1;xybin<N_XY_bins;xybin++) 
+                                for (int xybin=1;xybin<N_integration_radii;xybin++) 
                                 {
-                                    double current_bin_size = 6./double(XY_bins[xybin]);
+                                    double current_bin_size = integration_radii[xybin];
                                     if (current_bin_size>roi_bin_size)
                                     {
                                         xybin_up = xybin;
-                                        bin_size_up = 6./double(XY_bins[xybin]);
-                                        bin_size_low = 6./double(XY_bins[xybin-1]);
+                                        bin_size_up = integration_radii[xybin];
+                                        bin_size_low = integration_radii[xybin-1];
                                         break;
                                     }
                                 }
@@ -3322,18 +3331,18 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                             {
                                 Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight);
                                 Hist_NormSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight*norm_syst_err);
-                                double roi_bin_size = roi_radius_outer.at(nth_roi)*pow(3.14,0.5);
+                                double roi_bin_size = roi_radius_outer.at(nth_roi);
                                 int xybin_up = 0;
                                 double bin_size_up = 0.;
                                 double bin_size_low = 0.;
-                                for (int xybin=1;xybin<N_XY_bins;xybin++) 
+                                for (int xybin=1;xybin<N_integration_radii;xybin++) 
                                 {
-                                    double current_bin_size = 6./double(XY_bins[xybin]);
+                                    double current_bin_size = integration_radii[xybin];
                                     if (current_bin_size>roi_bin_size)
                                     {
                                         xybin_up = xybin;
-                                        bin_size_up = 6./double(XY_bins[xybin]);
-                                        bin_size_low = 6./double(XY_bins[xybin-1]);
+                                        bin_size_up = integration_radii[xybin];
+                                        bin_size_low = integration_radii[xybin-1];
                                         break;
                                     }
                                 }
@@ -4167,7 +4176,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_SR_Skymap.at(e).Write();
         Hist_OnData_CR_Skymap.at(e).Write();
         Hist_NormSyst_Skymap.at(e).Write();
-        for (int xybin=0;xybin<N_XY_bins;xybin++) 
+        for (int xybin=0;xybin<N_integration_radii;xybin++) 
         {
             Hist_ShapeSyst_Skymap.at(e).at(xybin).Write();
         }

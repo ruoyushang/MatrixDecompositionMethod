@@ -3448,7 +3448,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         sprintf(e_up, "%i", int(energy_bins[e+1]));
         current_energy = energy_bins[e];
 
-        int XYoff_bins = 30;
+        int XYoff_bins = 36;
 
         MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
         MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
@@ -3475,7 +3475,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_NormSyst_Skymap.push_back(TH2D("Hist_NormSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
 
         vector<TH2D> Hist_ShapeSyst_Skymap_ThisBin;
-        for (int xybin=0;xybin<N_XY_bins;xybin++) 
+        for (int xybin=0;xybin<N_integration_radii;xybin++) 
         {
             char xybin_tag[50];
             sprintf(xybin_tag,"Bin%i",xybin);
@@ -3670,7 +3670,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnRFoV_CR_Skymap.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_NormSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_NormSyst_Skymap.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
-        for (int xybin=0;xybin<N_XY_bins;xybin++) 
+        for (int xybin=0;xybin<N_integration_radii;xybin++) 
         {
             char xybin_tag[50];
             sprintf(xybin_tag,"Bin%i",xybin);
@@ -3976,7 +3976,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnDark_CR_Skymap_Theta2.at(e).Scale(scale_dark_yoff);
         Hist_OnData_CR_Skymap.at(e).Scale(scale_yoff);
         Hist_NormSyst_Skymap.at(e).Scale(scale_yoff);
-        for (int xybin=0;xybin<N_XY_bins;xybin++) 
+        for (int xybin=0;xybin<N_integration_radii;xybin++) 
         {
             Hist_ShapeSyst_Skymap.at(e).at(xybin).Scale(scale_yoff);
         }
@@ -4496,7 +4496,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_SR_Skymap.at(e).Write();
         Hist_OnData_CR_Skymap.at(e).Write();
         Hist_NormSyst_Skymap.at(e).Write();
-        for (int xybin=0;xybin<N_XY_bins;xybin++) 
+        for (int xybin=0;xybin<N_integration_radii;xybin++) 
         {
             Hist_ShapeSyst_Skymap.at(e).at(xybin).Write();
         }
