@@ -26,7 +26,7 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 ROOT.gROOT.LoadMacro("load_stl.h+") # access vectors and vector of vectors
 
-plt.rcParams["figure.figsize"] = (12,8)
+#plt.rcParams["figure.figsize"] = (12,8)
 fig, ax = plt.subplots()
 
 energy_bin_cut_low = 0
@@ -325,13 +325,15 @@ def MakeMultiplePlot(ax,Hists,legends,colors,title_x,title_y,name,x_min,x_max,lo
         ax.set_xlim(x_min,x_max)
     return(ax)
 
+def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
 
-def Smooth2DMap(Hist_Old):
-
-    smooth_size = 0.5
     Hist_Smooth = Hist_Old.Clone()
     bin_size = Hist_Old.GetXaxis().GetBinCenter(2)-Hist_Old.GetXaxis().GetBinCenter(1)
-    nbin_smooth = int(2*smooth_size/bin_size) + 1
+    nbin_smooth = max(int(smooth_size/bin_size),2)
+    if smooth_size>=2.0:
+        Hist_Smooth.Reset()
+        return Hist_Smooth
+    print ("nbin_smooth = %s"%(nbin_smooth))
     for bx1 in range(1,Hist_Old.GetNbinsX()+1):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
             bin_content = 0
@@ -343,15 +345,64 @@ def Smooth2DMap(Hist_Old):
                 for by2 in range(by1-nbin_smooth,by1+nbin_smooth):
                     if bx2>=1 and bx2<=Hist_Old.GetNbinsX():
                         if by2>=1 and by2<=Hist_Old.GetNbinsY():
-                            locationx2 = Hist_Old.GetXaxis().GetBinCenter(bx2)
-                            locationy2 = Hist_Old.GetYaxis().GetBinCenter(by2)
-                            distance = pow(pow(locationx1-locationx2,2)+pow(locationy1-locationy2,2),0.5)
-                            bin_content += ROOT.TMath.Gaus(distance,0,smooth_size)*Hist_Old.GetBinContent(bx2,by2)
-                            bin_norm += ROOT.TMath.Gaus(distance,0,smooth_size)
+                            scale = 0.
+                            #if smooth_size<0.5:
+                            #    locationx2 = Hist_Old.GetXaxis().GetBinCenter(bx2)
+                            #    locationy2 = Hist_Old.GetYaxis().GetBinCenter(by2)
+                            #    distance = pow(pow(locationx1-locationx2,2)+pow(locationy1-locationy2,2),0.5)
+                            #    scale = ROOT.TMath.Gaus(distance,0,smooth_size)
+                            #    bin_content += scale*Hist_Old.GetBinContent(bx2,by2)
+                            #else:
+                            #    bin_content += Hist_Old.GetBinContent(bx2,by2)
+                            bin_content += Hist_Old.GetBinContent(bx2,by2)
+                            if not addLinearly:
+                                #if smooth_size<0.5:
+                                #    bin_error += scale*pow(Hist_Old.GetBinError(bx2,by2),2)
+                                #else:
+                                #    bin_error += pow(Hist_Old.GetBinError(bx2,by2),2)
+                                bin_error += pow(Hist_Old.GetBinError(bx2,by2),2)
+                            else:
+                                #if smooth_size<0.5:
+                                #    bin_error += scale*Hist_Old.GetBinError(bx2,by2)
+                                #else:
+                                #    bin_error += Hist_Old.GetBinError(bx2,by2)
+                                bin_error += Hist_Old.GetBinError(bx2,by2)
             Hist_Smooth.SetBinContent(bx1,by1,bin_content)
+            if not addLinearly:
+                Hist_Smooth.SetBinError(bx1,by1,pow(bin_error,0.5))
+            else:
+                Hist_Smooth.SetBinError(bx1,by1,bin_error)
     return Hist_Smooth
 
-def GetHistogramsFromFile(FilePath,which_source):
+
+def Find1DShapeSystErr(hist_shape_syst):
+
+    hist_radius = ROOT.TH1D("hist_radius","",20,0.,2.0)
+    array_radius = []
+    array_syst = []
+    for binr in range(0,len(integration_radius)):
+        this_radius = []
+        this_syst = []
+        for binx in range(0,hist_radius.GetNbinsX()):
+            radius = hist_radius.GetBinCenter(binx+1)
+            this_radius += [radius]
+            n_phi = int(100*radius)
+            sum_syst = 0.
+            for biny in range(0,n_phi):
+                phi = float(biny)/float(n_phi)*2.*math.pi
+                cell_x = radius*math.cos(phi)
+                cell_y = radius*math.sin(phi)
+                bin_cell_x = hist_shape_syst[0].GetXaxis().FindBin(cell_x)
+                bin_cell_y = hist_shape_syst[0].GetYaxis().FindBin(cell_y)
+                syst_content = hist_shape_syst[binr].GetBinContent(bin_cell_x,bin_cell_y)
+                sum_syst += syst_content
+            this_syst += [sum_syst/float(n_phi)]
+        array_radius += [this_radius]
+        array_syst += [this_syst]
+
+    return array_radius, array_syst
+
+def GetHistogramsFromFile(FilePath,which_source,doShapeSyst):
     global data_exposure
     global validate_data_count
     global validate_bkgd_count
@@ -450,27 +501,32 @@ def GetHistogramsFromFile(FilePath,which_source):
     total_bkgd_count = Hist_OnData_CR_R2off.Integral()
     if total_bkgd_count>0.:
         Hist_OnData_CR_R2off.Scale(total_data_count/total_bkgd_count)
-    HistName = "Hist_OnData_SR_XYoff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    for entry in range(0,len(XYoff_nbins)):
-        Hist_OnData_SR_XYoff[entry].Reset()
-        Hist_OnData_SR_XYoff[entry].Add(InputFile.Get(HistName))
-    total_data_count = Hist_OnData_SR_XYoff[0].Integral()
-    HistName = "Hist_OnDark_SR_XYoff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    for entry in range(0,len(XYoff_nbins)):
-        Hist_OnDark_SR_XYoff[entry].Reset()
-        Hist_OnDark_SR_XYoff[entry].Add(InputFile.Get(HistName))
-    total_dark_count = Hist_OnDark_SR_XYoff[0].Integral()
-    if total_dark_count>0.:
-        for entry in range(0,len(XYoff_nbins)):
-            Hist_OnDark_SR_XYoff[entry].Scale(total_data_count/total_dark_count)
-    HistName = "Hist_OnData_CR_XYoff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    for entry in range(0,len(XYoff_nbins)):
-        Hist_OnData_CR_XYoff[entry].Reset()
-        Hist_OnData_CR_XYoff[entry].Add(InputFile.Get(HistName))
-    total_bkgd_count = Hist_OnData_CR_XYoff[0].Integral()
-    if total_bkgd_count>0.:
-        for entry in range(0,len(XYoff_nbins)):
-            Hist_OnData_CR_XYoff[entry].Scale(total_data_count/total_bkgd_count)
+    
+    if doShapeSyst:
+        HistName = "Hist_OnData_SR_XYoff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+        for entry in range(0,len(integration_radius)):
+            Hist_OnData_SR_XYoff[entry].Reset()
+            Hist_OnData_SR_XYoff[entry].Add(InputFile.Get(HistName))
+            Hist_OnData_SR_XYoff[entry] = Smooth2DMap(Hist_OnData_SR_XYoff[entry],integration_radius[entry],False)
+        total_data_count = Hist_OnData_SR_XYoff[0].Integral()
+        HistName = "Hist_OnDark_SR_XYoff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+        for entry in range(0,len(integration_radius)):
+            Hist_OnDark_SR_XYoff[entry].Reset()
+            Hist_OnDark_SR_XYoff[entry].Add(InputFile.Get(HistName))
+            Hist_OnDark_SR_XYoff[entry] = Smooth2DMap(Hist_OnDark_SR_XYoff[entry],integration_radius[entry],False)
+        total_dark_count = Hist_OnDark_SR_XYoff[0].Integral()
+        if total_dark_count>0.:
+            for entry in range(0,len(integration_radius)):
+                Hist_OnDark_SR_XYoff[entry].Scale(total_data_count/total_dark_count)
+        HistName = "Hist_OnData_CR_XYoff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+        for entry in range(0,len(integration_radius)):
+            Hist_OnData_CR_XYoff[entry].Reset()
+            Hist_OnData_CR_XYoff[entry].Add(InputFile.Get(HistName))
+            Hist_OnData_CR_XYoff[entry] = Smooth2DMap(Hist_OnData_CR_XYoff[entry],integration_radius[entry],False)
+        total_bkgd_count = Hist_OnData_CR_XYoff[0].Integral()
+        if total_bkgd_count>0.:
+            for entry in range(0,len(integration_radius)):
+                Hist_OnData_CR_XYoff[entry].Scale(total_data_count/total_bkgd_count)
 
     for binx in range (0,Hist_OnBkgd_SystErr_R2off.GetNbinsX()):
         binx_center = Hist_OnBkgd_SystErr_R2off.GetBinCenter(binx+1)
@@ -492,30 +548,34 @@ def GetHistogramsFromFile(FilePath,which_source):
         Hist_OnDark_InclErr_R2off.SetBinContent(binx+1,old_content_dark+1./relative_stat*relative_bias_dark*relative_bias_dark)
         Hist_OnBkgd_InclErr_R2off.SetBinContent(binx+1,old_content_bkgd+1./relative_stat*relative_bias_bkgd*relative_bias_bkgd)
         Hist_OnBkgd_Bias_R2off.SetBinContent(binx+1,old_content_bias+1./relative_stat*relative_bias_bkgd)
-    for entry in range(0,len(XYoff_nbins)):
-        for binx in range (0,Hist_OnBkgd_SystErr_XYoff[entry].GetNbinsX()):
-            for biny in range (0,Hist_OnBkgd_SystErr_XYoff[entry].GetNbinsY()):
-                binx_center = Hist_OnBkgd_SystErr_XYoff[entry].GetXaxis().GetBinCenter(binx+1)
-                biny_center = Hist_OnBkgd_SystErr_XYoff[entry].GetYaxis().GetBinCenter(biny+1)
-                binx2 = Hist_OnData_SR_XYoff[entry].GetXaxis().FindBin(binx_center)
-                biny2 = Hist_OnData_SR_XYoff[entry].GetYaxis().FindBin(biny_center)
-                data_bin_count = Hist_OnData_SR_XYoff[entry].GetBinContent(binx2,biny2)
-                dark_bin_count = Hist_OnDark_SR_XYoff[entry].GetBinContent(binx2,biny2)
-                bkgd_bin_count = Hist_OnData_CR_XYoff[entry].GetBinContent(binx2,biny2)
-                if data_bin_count==0.: continue
-                relative_stat = pow(2.*data_bin_count,0.5)/data_bin_count
-                relative_bias_dark = (data_bin_count-dark_bin_count)/data_bin_count
-                relative_bias_bkgd = (data_bin_count-bkgd_bin_count)/data_bin_count
-                old_content_stat = Hist_OnData_StatErr_XYoff[entry].GetBinContent(binx+1,biny+1)
-                old_content_weight = Hist_OnData_StatWeight_XYoff[entry].GetBinContent(binx+1,biny+1)
-                old_content_dark = Hist_OnDark_InclErr_XYoff[entry].GetBinContent(binx+1,biny+1)
-                old_content_bkgd = Hist_OnBkgd_InclErr_XYoff[entry].GetBinContent(binx+1,biny+1)
-                old_content_bias = Hist_OnBkgd_Bias_XYoff[entry].GetBinContent(binx+1,biny+1)
-                Hist_OnData_StatWeight_XYoff[entry].SetBinContent(binx+1,biny+1,old_content_weight+1./relative_stat)
-                Hist_OnData_StatErr_XYoff[entry].SetBinContent(binx+1,biny+1,old_content_stat+1./relative_stat*relative_stat*relative_stat)
-                Hist_OnDark_InclErr_XYoff[entry].SetBinContent(binx+1,biny+1,old_content_dark+1./relative_stat*relative_bias_dark*relative_bias_dark)
-                Hist_OnBkgd_InclErr_XYoff[entry].SetBinContent(binx+1,biny+1,old_content_bkgd+1./relative_stat*relative_bias_bkgd*relative_bias_bkgd)
-                Hist_OnBkgd_Bias_XYoff[entry].SetBinContent(binx+1,biny+1,old_content_bias+1./relative_stat*relative_bias_bkgd)
+
+    if doShapeSyst:
+        for entry in range(0,len(integration_radius)):
+            for binx in range (0,Hist_OnBkgd_SystErr_XYoff[entry].GetNbinsX()):
+                for biny in range (0,Hist_OnBkgd_SystErr_XYoff[entry].GetNbinsY()):
+                    binx_center = Hist_OnBkgd_SystErr_XYoff[entry].GetXaxis().GetBinCenter(binx+1)
+                    biny_center = Hist_OnBkgd_SystErr_XYoff[entry].GetYaxis().GetBinCenter(biny+1)
+                    binx2 = Hist_OnData_SR_XYoff[entry].GetXaxis().FindBin(binx_center)
+                    biny2 = Hist_OnData_SR_XYoff[entry].GetYaxis().FindBin(biny_center)
+                    data_bin_count = Hist_OnData_SR_XYoff[entry].GetBinContent(binx2,biny2)
+                    dark_bin_count = Hist_OnDark_SR_XYoff[entry].GetBinContent(binx2,biny2)
+                    bkgd_bin_count = Hist_OnData_CR_XYoff[entry].GetBinContent(binx2,biny2)
+                    data_bin_error = Hist_OnData_SR_XYoff[entry].GetBinError(binx2,biny2)
+                    bkgd_bin_error = Hist_OnData_CR_XYoff[entry].GetBinError(binx2,biny2)
+                    if data_bin_count==0.: continue
+                    relative_stat = pow(data_bin_error*data_bin_error+bkgd_bin_error*bkgd_bin_error,0.5)/data_bin_count
+                    relative_bias_dark = (data_bin_count-dark_bin_count)/data_bin_count
+                    relative_bias_bkgd = (data_bin_count-bkgd_bin_count)/data_bin_count
+                    old_content_stat = Hist_OnData_StatErr_XYoff[entry].GetBinContent(binx+1,biny+1)
+                    old_content_weight = Hist_OnData_StatWeight_XYoff[entry].GetBinContent(binx+1,biny+1)
+                    old_content_dark = Hist_OnDark_InclErr_XYoff[entry].GetBinContent(binx+1,biny+1)
+                    old_content_bkgd = Hist_OnBkgd_InclErr_XYoff[entry].GetBinContent(binx+1,biny+1)
+                    old_content_bias = Hist_OnBkgd_Bias_XYoff[entry].GetBinContent(binx+1,biny+1)
+                    Hist_OnData_StatWeight_XYoff[entry].SetBinContent(binx+1,biny+1,old_content_weight+1./relative_stat)
+                    Hist_OnData_StatErr_XYoff[entry].SetBinContent(binx+1,biny+1,old_content_stat+1./relative_stat*relative_stat*relative_stat)
+                    Hist_OnDark_InclErr_XYoff[entry].SetBinContent(binx+1,biny+1,old_content_dark+1./relative_stat*relative_bias_dark*relative_bias_dark)
+                    Hist_OnBkgd_InclErr_XYoff[entry].SetBinContent(binx+1,biny+1,old_content_bkgd+1./relative_stat*relative_bias_bkgd*relative_bias_bkgd)
+                    Hist_OnBkgd_Bias_XYoff[entry].SetBinContent(binx+1,biny+1,old_content_bias+1./relative_stat*relative_bias_bkgd)
 
     if energy_index>=energy_bin_cut_low and energy_index<=energy_bin_cut_up:
         if data_gamma_count[energy_index]>0.:
@@ -552,7 +612,9 @@ Hist_OnBkgd_Bias_R2off = ROOT.TH1D("Hist_OnBkgd_Bias_R2off","",R2off_nbins,0,9)
 Hist_OnData_StatErr_R2off = ROOT.TH1D("Hist_OnData_StatErr_R2off","",R2off_nbins,0,9)
 Hist_OnData_StatWeight_R2off = ROOT.TH1D("Hist_OnData_StatWeight_R2off","",R2off_nbins,0,9)
 
-XYoff_nbins = [30,15,5,1]
+XYoff_nbins = 36
+integration_radius = [0.1,0.5,1.0,1.5,2.0]
+#integration_radius = [0.1,0.5,1.0]
 Hist_OnData_SR_XYoff = []
 Hist_OnDark_SR_XYoff = []
 Hist_OnData_CR_XYoff = []
@@ -563,17 +625,17 @@ Hist_OnBkgd_InclErr_XYoff = []
 Hist_OnBkgd_Bias_XYoff = []
 Hist_OnData_StatErr_XYoff = []
 Hist_OnData_StatWeight_XYoff = []
-for entry in range(0,len(XYoff_nbins)):
-    Hist_OnData_SR_XYoff += [ROOT.TH2D("Hist_OnData_SR_XYoff_Bin%s"%(entry),"",XYoff_nbins[entry],-3,3,XYoff_nbins[entry],-3,3)]
-    Hist_OnDark_SR_XYoff += [ROOT.TH2D("Hist_OnDark_SR_XYoff_Bin%s"%(entry),"",XYoff_nbins[entry],-3,3,XYoff_nbins[entry],-3,3)]
-    Hist_OnData_CR_XYoff += [ROOT.TH2D("Hist_OnData_CR_XYoff_Bin%s"%(entry),"",XYoff_nbins[entry],-3,3,XYoff_nbins[entry],-3,3)]
-    Hist_OnDark_SystErr_XYoff += [ROOT.TH2D("Hist_OnDark_SystErr_XYoff_Bin%s"%(entry),"",XYoff_nbins[entry],-3,3,XYoff_nbins[entry],-3,3)]
-    Hist_OnBkgd_SystErr_XYoff += [ROOT.TH2D("Hist_OnBkgd_SystErr_XYoff_Bin%s"%(entry),"",XYoff_nbins[entry],-3,3,XYoff_nbins[entry],-3,3)]
-    Hist_OnDark_InclErr_XYoff += [ROOT.TH2D("Hist_OnDark_InclErr_XYoff_Bin%s"%(entry),"",XYoff_nbins[entry],-3,3,XYoff_nbins[entry],-3,3)]
-    Hist_OnBkgd_InclErr_XYoff += [ROOT.TH2D("Hist_OnBkgd_InclErr_XYoff_Bin%s"%(entry),"",XYoff_nbins[entry],-3,3,XYoff_nbins[entry],-3,3)]
-    Hist_OnBkgd_Bias_XYoff += [ROOT.TH2D("Hist_OnBkgd_Bias_XYoff_Bin%s"%(entry),"",XYoff_nbins[entry],-3,3,XYoff_nbins[entry],-3,3)]
-    Hist_OnData_StatErr_XYoff += [ROOT.TH2D("Hist_OnData_StatErr_XYoff_Bin%s"%(entry),"",XYoff_nbins[entry],-3,3,XYoff_nbins[entry],-3,3)]
-    Hist_OnData_StatWeight_XYoff += [ROOT.TH2D("Hist_OnData_StatWeight_XYoff_Bin%s"%(entry),"",XYoff_nbins[entry],-3,3,XYoff_nbins[entry],-3,3)]
+for entry in range(0,len(integration_radius)):
+    Hist_OnData_SR_XYoff += [ROOT.TH2D("Hist_OnData_SR_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
+    Hist_OnDark_SR_XYoff += [ROOT.TH2D("Hist_OnDark_SR_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
+    Hist_OnData_CR_XYoff += [ROOT.TH2D("Hist_OnData_CR_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
+    Hist_OnDark_SystErr_XYoff += [ROOT.TH2D("Hist_OnDark_SystErr_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
+    Hist_OnBkgd_SystErr_XYoff += [ROOT.TH2D("Hist_OnBkgd_SystErr_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
+    Hist_OnDark_InclErr_XYoff += [ROOT.TH2D("Hist_OnDark_InclErr_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
+    Hist_OnBkgd_InclErr_XYoff += [ROOT.TH2D("Hist_OnBkgd_InclErr_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
+    Hist_OnBkgd_Bias_XYoff += [ROOT.TH2D("Hist_OnBkgd_Bias_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
+    Hist_OnData_StatErr_XYoff += [ROOT.TH2D("Hist_OnData_StatErr_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
+    Hist_OnData_StatWeight_XYoff += [ROOT.TH2D("Hist_OnData_StatWeight_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
 
 Hist_NormStatErr = []
 Hist_NormSystErr = []
@@ -584,11 +646,15 @@ for elev in range(0,len(elev_bins)-1):
     Hist_NormSystErr += [ROOT.TH1D("Hist_NormSystErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
     Hist_NormSystInitErr += [ROOT.TH1D("Hist_NormSystInitErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
 Hist_ShapeSystErr = []
+Hist_ShapeSystErr_1D = []
 for ebin in range(0,len(energy_bin)-1):
+    Hist_ShapeSystErr_1D_ThisEnergy = []
     Hist_ShapeSystErr_ThisEnergy = []
-    for entry in range(0,len(XYoff_nbins)):
-        Hist_ShapeSystErr_ThisEnergy += [ROOT.TH2D("Hist_ShapeSystErr_ErecS%sto%s_Bin%s"%(int(energy_bin[ebin]),int(energy_bin[ebin+1]),entry),"",XYoff_nbins[entry],-3,3,XYoff_nbins[entry],-3,3)]
+    for entry in range(0,len(integration_radius)):
+        Hist_ShapeSystErr_ThisEnergy += [ROOT.TH2D("Hist_ShapeSystErr_ErecS%sto%s_Bin%s"%(int(energy_bin[ebin]),int(energy_bin[ebin+1]),entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
+        Hist_ShapeSystErr_1D_ThisEnergy += [ROOT.TH1D("Hist_ShapeSystErr_1D_ErecS%sto%s_Bin%s"%(int(energy_bin[ebin]),int(energy_bin[ebin+1]),entry),"",20,0.,2.0)]
     Hist_ShapeSystErr += [Hist_ShapeSystErr_ThisEnergy]
+    Hist_ShapeSystErr_1D += [Hist_ShapeSystErr_1D_ThisEnergy]
 
 optimiz_lower = -5.
 optimiz_upper = -1.
@@ -647,7 +713,7 @@ for e in range(0,len(energy_bin)-1):
             print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
-            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source)
+            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source,False)
         for binx in range (0,Hist_OnBkgd_SystErr_R2off.GetNbinsX()):
             old_content_weight = Hist_OnData_StatWeight_R2off.GetBinContent(binx+1)
             if old_content_weight==0.: continue
@@ -737,7 +803,7 @@ for e in range(0,len(energy_bin)-1):
             print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
-            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source)
+            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source,True)
 
     for binx in range (0,Hist_OnBkgd_SystErr_R2off.GetNbinsX()):
         old_content_weight = Hist_OnData_StatWeight_R2off.GetBinContent(binx+1)
@@ -773,7 +839,7 @@ for e in range(0,len(energy_bin)-1):
     ax.cla()
     MakeMultiplePlot(ax,Hists,legends,colors,'$\\theta^{2}$ from camera center','relative uncertainty','Theta2Errors_E%s%s_B%s'%(e,folder_path,R2off_nbins),0.,4.,False,False)
     fig.savefig("output_plots/Theta2Errors_E%s%s_B%s.png"%(e,folder_path,R2off_nbins))
-    for entry in range(0,len(XYoff_nbins)):
+    for entry in range(0,len(integration_radius)):
         for binx in range (0,Hist_OnBkgd_SystErr_XYoff[entry].GetNbinsX()):
             for biny in range (0,Hist_OnBkgd_SystErr_XYoff[entry].GetNbinsY()):
                 old_content_weight = Hist_OnData_StatWeight_XYoff[entry].GetBinContent(binx+1,biny+1)
@@ -1301,61 +1367,65 @@ energy_dependent_syst_rfov = np.array(energy_dependent_syst_rfov)
 energy_dependent_syst_comb = np.array(energy_dependent_syst_comb)
 energy_array = np.array(energy_bin)
 for nth_roi in range(0,number_of_roi):
-    plt.clf()
-    fig, ax = plt.subplots()
-    plt.xlabel("energy [GeV]", fontsize=18)
-    plt.ylabel("systematic error", fontsize=18)
-    plt.xscale('log')
-    plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_vbkg[:,nth_roi], color='b', label='MIBE')
-    plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_vbkg[:,nth_roi]-energy_dependent_stat_vali[:,nth_roi], energy_dependent_syst_vbkg[:,nth_roi]+energy_dependent_stat_vali[:,nth_roi], alpha=0.1, color='b')
-    plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rfov[:,nth_roi], color='r', label='OFF region')
-    plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rfov[:,nth_roi]-energy_dependent_stat_vali[:,nth_roi], energy_dependent_syst_rfov[:,nth_roi]+energy_dependent_stat_vali[:,nth_roi], alpha=0.1, color='r')
-    ax.legend(loc='best')
-    plt.savefig("output_plots/MIBE_vs_RFoV_SystErr_RoI%s.png"%(nth_roi))
+    fig.clf()
+    axbig = fig.add_subplot()
+    axbig.set_xlabel("energy [GeV]")
+    axbig.set_ylabel("systematic error")
+    axbig.set_xscale('log')
+    axbig.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_vbkg[:,nth_roi], color='b', label='MIBE')
+    axbig.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_vbkg[:,nth_roi]-energy_dependent_stat_vali[:,nth_roi], energy_dependent_syst_vbkg[:,nth_roi]+energy_dependent_stat_vali[:,nth_roi], alpha=0.1, color='b')
+    axbig.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rfov[:,nth_roi], color='r', label='OFF region')
+    axbig.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rfov[:,nth_roi]-energy_dependent_stat_vali[:,nth_roi], energy_dependent_syst_rfov[:,nth_roi]+energy_dependent_stat_vali[:,nth_roi], alpha=0.1, color='r')
+    axbig.legend(loc='best')
+    fig.savefig("output_plots/MIBE_vs_RFoV_SystErr_RoI%s.png"%(nth_roi))
+    axbig.remove()
 
 energy_dependent_stat_array = np.array(energy_dependent_stat)
 energy_dependent_init_array = np.array(energy_dependent_syst_init)
 energy_dependent_syst_array = np.array(energy_dependent_syst)
 energy_dependent_syst_rank0_array = np.array(energy_dependent_syst_rank0)
 energy_dependent_syst_rank1_array = np.array(energy_dependent_syst_rank1)
-plt.clf()
-fig, ax = plt.subplots()
-plt.xlabel("energy [GeV]", fontsize=18)
-plt.ylabel("$\sigma_{\\alpha}$", fontsize=18)
-plt.xscale('log')
-plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_array, color='b', label='m = d')
-plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_array-energy_dependent_stat_array, energy_dependent_syst_array+energy_dependent_stat_array, alpha=0.1, color='b')
-plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank1_array, color='g', label='m = min(2,d)')
-plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank1_array-energy_dependent_stat_array, energy_dependent_syst_rank1_array+energy_dependent_stat_array, alpha=0.1, color='g')
-plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank0_array, color='r', label='m = min(1,d)')
-plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank0_array-energy_dependent_stat_array, energy_dependent_syst_rank0_array+energy_dependent_stat_array, alpha=0.1, color='r')
-#plt.plot(energy_array[0:len(energy_bin)-1], energy_dependent_init_array, color='m', label='initial')
-#plt.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_init_array-energy_dependent_stat_array, energy_dependent_init_array+energy_dependent_stat_array, alpha=0.1, color='m')
-ax.legend(loc='best')
-plt.savefig("output_plots/MIBE_vs_DiffRanks_SystErr.png")
+fig.clf()
+axbig = fig.add_subplot()
+axbig.set_xlabel("energy [GeV]")
+axbig.set_ylabel("$\sigma_{\\alpha}$")
+axbig.set_xscale('log')
+axbig.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_array, color='b', label='m = d')
+axbig.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_array-energy_dependent_stat_array, energy_dependent_syst_array+energy_dependent_stat_array, alpha=0.1, color='b')
+axbig.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank1_array, color='g', label='m = min(2,d)')
+axbig.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank1_array-energy_dependent_stat_array, energy_dependent_syst_rank1_array+energy_dependent_stat_array, alpha=0.1, color='g')
+axbig.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank0_array, color='r', label='m = min(1,d)')
+axbig.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank0_array-energy_dependent_stat_array, energy_dependent_syst_rank0_array+energy_dependent_stat_array, alpha=0.1, color='r')
+#axbig.plot(energy_array[0:len(energy_bin)-1], energy_dependent_init_array, color='m', label='initial')
+#axbig.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_init_array-energy_dependent_stat_array, energy_dependent_init_array+energy_dependent_stat_array, alpha=0.1, color='m')
+axbig.legend(loc='best')
+fig.savefig("output_plots/MIBE_vs_DiffRanks_SystErr.png")
+axbig.remove()
 
-plt.clf()
-fig, ax = plt.subplots()
-plt.xlabel("rank $n$", fontsize=18)
-plt.ylabel("singular value $\sigma_{n}$", fontsize=18)
-plt.yscale('log')
+fig.clf()
+axbig = fig.add_subplot()
+axbig.set_xlabel("rank $n$", fontsize=18)
+axbig.set_ylabel("singular value $\sigma_{n}$", fontsize=18)
+axbig.set_yscale('log')
 for entry in range(0,len(energy_dependent_singularvalue)):
-    plt.plot(energy_dependent_singularvalue[entry],marker='.',label='%s-%s GeV'%(energy_bin[entry],energy_bin[entry+1]))
-ax.legend(loc='best')
-plt.savefig("output_plots/MatrixSingularValue.png")
+    axbig.plot(energy_dependent_singularvalue[entry],marker='.',label='%s-%s GeV'%(energy_bin[entry],energy_bin[entry+1]))
+axbig.legend(loc='best')
+fig.savefig("output_plots/MatrixSingularValue.png")
+axbig.remove()
 
-plt.clf()
-fig, ax = plt.subplots()
-plt.xlabel("Energy [GeV]", fontsize=18)
-plt.ylabel("relative error", fontsize=18)
-plt.yscale('log')
-plt.xscale('log')
-plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank0,marker='.',label='$n \leq 0$')
-plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank1,marker='.',label='$n \leq 1$')
-plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank2,marker='.',label='$n \leq 2$')
-plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank3,marker='.',label='$n \leq 3$')
-ax.legend(loc='best')
-plt.savefig("output_plots/RankErrors.png")
+fig.clf()
+axbig = fig.add_subplot()
+axbig.set_xlabel("Energy [GeV]", fontsize=18)
+axbig.set_ylabel("relative error", fontsize=18)
+axbig.set_yscale('log')
+axbig.set_xscale('log')
+axbig.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank0,marker='.',label='$n \leq 0$')
+axbig.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank1,marker='.',label='$n \leq 1$')
+axbig.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank2,marker='.',label='$n \leq 2$')
+axbig.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank3,marker='.',label='$n \leq 3$')
+axbig.legend(loc='best')
+fig.savefig("output_plots/RankErrors.png")
+axbig.remove()
 
 Hists = []
 legends = []
@@ -1386,10 +1456,28 @@ for elev in range(0,len(elev_bins)-1):
         my_table.add_row([energy_interval[entry],energy_dependent_syst_init[entry],energy_dependent_syst[entry],energy_dependent_stat[entry]])
     print(my_table)
 
+for ebin in range(0,len(energy_bin)-1):
+    location_radius, location_syst = Find1DShapeSystErr(Hist_ShapeSystErr[ebin])
+    for entry in range(0,len(integration_radius)):
+        for binx in range(0,Hist_ShapeSystErr_1D[ebin][entry].GetNbinsX()):
+             Hist_ShapeSystErr_1D[ebin][entry].SetBinContent(binx+1,location_syst[entry][binx])
+    fig.clf()
+    axbig = fig.add_subplot()
+    axbig.set_xlabel("angle from camera center [degree]")
+    axbig.set_ylabel("acceptance shape uncertainty")
+    cycol = cycle('krgbcmy')
+    for entry in range(0,len(integration_radius)):
+        next_color = next(cycol)
+        axbig.plot(location_radius[entry], location_syst[entry], color=next_color, label='int. radius = %0.1f'%(integration_radius[entry]))
+    axbig.legend(loc='best')
+    fig.savefig("output_plots/ShapeErr_vs_integration_radius_E%s.png"%(ebin))
+    axbig.remove()
+
 OutputFile = ROOT.TFile('output_plots/SystErrors.root','recreate')
 for elev in range(0,len(elev_bins)-1):
     Hist_NormSystErr[elev].Write()
 for ebin in range(0,len(energy_bin)-1):
-    for entry in range(0,len(XYoff_nbins)):
+    for entry in range(0,len(integration_radius)):
         Hist_ShapeSystErr[ebin][entry].Write()
+        Hist_ShapeSystErr_1D[ebin][entry].Write()
 OutputFile.Close()

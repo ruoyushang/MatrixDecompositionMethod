@@ -30,9 +30,9 @@ smooth_size_skymap = 0.1
 smooth_size_spectroscopy = 0.1
 smooth_size_exposure = 0.1
 #n_rebins = 4
-#smooth_size_skymap = 0.2
-#smooth_size_spectroscopy = 0.2
-#smooth_size_exposure = 0.2
+#smooth_size_skymap = 0.3
+#smooth_size_spectroscopy = 0.3
+#smooth_size_exposure = 0.3
 
 #method_tag = 'loose_mdm_default'
 #method_tag = 'loose_mdm_rank3'
@@ -702,7 +702,7 @@ Syst_Redu = 0.02
 Syst_Corr = 0.02
 Syst_Clos = 0.02
 
-integration_bin = [30,15,5,1]
+integration_radii = [0.1,0.5,1.0,1.5,2.0]
 
 energy_bin = []
 energy_bin += [100]
@@ -3300,7 +3300,7 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
             new_content = Hist_OnBkgd_Skymap_Syst_Norm.GetBinContent(binx+1,biny+1)
             Hist_NormSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,pow(old_content*old_content+new_content*new_content,0.5))
             #Hist_NormSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,old_content+new_content)
-    for xy_bin in range(0,len(integration_bin)):
+    for xy_bin in range(0,len(integration_radii)):
         HistName = "Hist_ShapeSyst_Skymap_ErecS%sto%s_Bin%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int,xy_bin)
         Hist_OnBkgd_Skymap_Syst_Shape.Reset()
         Hist_OnBkgd_Skymap_Syst_Shape.Add(InputFile.Get(HistName))
@@ -5123,19 +5123,19 @@ def MakeIntegratedSignificance(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,r
                 data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
                 bkgd_content = Hist_Bkgd_input.GetBinContent(bx+1,by+1)
                 bkgd_error = Hist_Bkgd_input.GetBinError(bx+1,by+1)
-                xy_bin_up = 0
-                bin_size_up = 0.
-                bin_size_low = 0.
-                for xy_bin in range(1,len(integration_bin)):
-                    current_bin_size = 6./integration_bin[xy_bin]
-                    if current_bin_size>range_limit*pow(3.14,0.5):
+                xy_bin_up = 1
+                bin_size_up = integration_radii[1]
+                bin_size_low = integration_radii[0]
+                for xy_bin in range(1,len(integration_radii)):
+                    current_bin_size = integration_radii[xy_bin]
+                    if current_bin_size>range_limit:
                         xy_bin_up = xy_bin
-                        bin_size_up = 6./integration_bin[xy_bin]
-                        bin_size_low = 6./integration_bin[xy_bin-1]
+                        bin_size_up = integration_radii[xy_bin]
+                        bin_size_low = integration_radii[xy_bin-1]
                         break
                 syst_up = Hist_Syst_input[xy_bin_up].GetBinContent(bx+1,by+1)
                 syst_low = Hist_Syst_input[xy_bin_up-1].GetBinContent(bx+1,by+1)
-                syst_content = syst_low + (syst_up-syst_low)/(bin_size_up-bin_size_low)*(range_limit*pow(3.14,0.5)-bin_size_low)
+                syst_content = syst_low + (syst_up-syst_low)/(bin_size_up-bin_size_low)*(range_limit-bin_size_low)
                 total_data += data_content
                 total_bkgd += bkgd_content
                 total_syst += syst_content
@@ -5261,23 +5261,20 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
         for binx in range(0,Hist_SumSyst_Energy_Skymap[ebin].GetNbinsX()):
             for biny in range(0,Hist_SumSyst_Energy_Skymap[ebin].GetNbinsY()):
                 norm_syst = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(binx+1,biny+1)
-                xy_bin_up = 0
-                bin_size_up = 0.
-                bin_size_low = 0.
-                for xy_bin in range(1,len(integration_bin)):
-                    current_bin_size = 6./integration_bin[xy_bin]
-                    if current_bin_size>smooth_size_spectroscopy*pow(3.14,0.5):
+                xy_bin_up = 1
+                bin_size_up = integration_radii[1]
+                bin_size_low = integration_radii[0]
+                for xy_bin in range(1,len(integration_radii)):
+                    current_bin_size = integration_radii[xy_bin]
+                    if current_bin_size>smooth_size_spectroscopy:
                         xy_bin_up = xy_bin
-                        bin_size_up = 6./integration_bin[xy_bin]
-                        bin_size_low = 6./integration_bin[xy_bin-1]
+                        bin_size_up = integration_radii[xy_bin]
+                        bin_size_low = integration_radii[xy_bin-1]
                         break
                 shape_syst_up = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin_up].GetBinContent(binx+1,biny+1)
                 shape_syst_low = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin_up-1].GetBinContent(binx+1,biny+1)
-                shape_syst = shape_syst_low + (shape_syst_up-shape_syst_low)/(bin_size_up-bin_size_low)*(smooth_size_spectroscopy*pow(3.14,0.5)-bin_size_low)
+                shape_syst = shape_syst_low + (shape_syst_up-shape_syst_low)/(bin_size_up-bin_size_low)*(smooth_size_spectroscopy-bin_size_low)
                 Hist_SumSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,pow(norm_syst*norm_syst+shape_syst*shape_syst,0.5))
-                #Hist_SumSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,norm_syst)
-                #old_error = Hist_Bkgd_Energy_Skymap[ebin].GetBinError(binx+1,biny+1)
-                #Hist_Bkgd_Energy_Skymap[ebin].SetBinError(binx+1,biny+1,pow(old_error*old_error+shape_syst*shape_syst,0.5))
 
 
     slice_center_x = roi_ra[1]
@@ -5388,14 +5385,14 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
         axbig = fig.add_subplot()
 
         Hist_Syst_Energy_Skymap_Sum = []
-        for xy_bin in range(0,len(integration_bin)):
+        for xy_bin in range(0,len(integration_radii)):
             Hist_Syst_Energy_Skymap_Sum += [ROOT.TH2D("Hist_Syst_Energy_Skymap_Sum_%s"%(xy_bin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
         Hist_Data_Energy_Skymap_Sum = ROOT.TH2D("Hist_Data_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
         Hist_Bkgd_Energy_Skymap_Sum = ROOT.TH2D("Hist_Bkgd_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
         for ebin in range(0,len(energy_bin)-1):
             Hist_Data_Energy_Skymap_Sum.Add(Hist_Data_Energy_Skymap[ebin])
             Hist_Bkgd_Energy_Skymap_Sum.Add(Hist_Bkgd_Energy_Skymap[ebin])
-            for xy_bin in range(0,len(integration_bin)):
+            for xy_bin in range(0,len(integration_radii)):
                 for bx in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsX()):
                     for by in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsY()):
                         norm_syst = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(bx+1,by+1)
@@ -5409,9 +5406,9 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
         zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum,Hist_Syst_Energy_Skymap_Sum,roi_ra[0],roi_dec[0])
         axbig.plot(theta2, zscore,color=next_color,label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-            for xy_bin in range(0,len(integration_bin)):
+            for xy_bin in range(0,len(integration_radii)):
                 Hist_Syst_Energy_Skymap_Sum[xy_bin].Reset()
-            for xy_bin in range(0,len(integration_bin)):
+            for xy_bin in range(0,len(integration_radii)):
                 for bx in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsX()):
                     for by in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsY()):
                         norm_syst = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(bx+1,by+1)
@@ -5424,7 +5421,7 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
             axbig.plot(theta2, zscore,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
         axbig.set_ylabel('significance z score')
         axbig.set_xlabel('radius of integration region [degree]')
-        plt.ylim(-3.0, 8.0)
+        plt.ylim(-5.0, 12.0)
         axbig.legend(loc='best')
         plotname = 'ZscoreVsTheta2'
         fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
@@ -5616,7 +5613,7 @@ for ebin in range(0,len(energy_bin)-1):
     Hist_Data_Energy_Skymap += [ROOT.TH2D("Hist_Data_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_Bkgd_Energy_Skymap += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_ShapeSyst_Energy_Skymap_ThisBin = []
-    for xy_bin in range(0,len(integration_bin)):
+    for xy_bin in range(0,len(integration_radii)):
         Hist_ShapeSyst_Energy_Skymap_ThisBin += [ROOT.TH2D("Hist_ShapeSyst_Energy_Skymap_%s_%s"%(ebin,xy_bin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_ShapeSyst_Energy_Skymap += [Hist_ShapeSyst_Energy_Skymap_ThisBin]
 
@@ -5781,17 +5778,17 @@ Smoothing = True
 #set_palette('gray')
 
 exclude_roi = []
-exclude_roi += ['HAWC region']
+#exclude_roi += ['HAWC region']
 exclude_roi += ['VHE region']
 exclude_roi += ['SNR region']
 exclude_roi += ['G40.5-0.5']
 exclude_roi += ['PSR region']
-#exclude_roi += ['CO region']
+exclude_roi += ['CO region']
 exclude_roi += ['LAT MeV region']
 exclude_roi += ['LAT GeV region']
-exclude_roi += ['Ring 1']
-exclude_roi += ['Ring 2']
-exclude_roi += ['Ring 3']
+#exclude_roi += ['Ring 1']
+#exclude_roi += ['Ring 2']
+#exclude_roi += ['Ring 3']
 
 calibration = [1., 1., 1., 1., 1., 1.]
 calibration = [1.299195550838382e-08, 1.023276473227794e-09, 7.33339851731449e-11, 3.6158845887166094e-12, 2.624835928079186e-13, 2.7803689660660495e-14]
