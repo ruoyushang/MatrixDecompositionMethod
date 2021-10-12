@@ -25,14 +25,18 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 np.set_printoptions(precision=2)
 
 
+#n_rebins = 1
+#smooth_size_skymap = 0.1
+#smooth_size_spectroscopy = 0.1
+#smooth_size_exposure = 0.1
 n_rebins = 2
 smooth_size_skymap = 0.1
 smooth_size_spectroscopy = 0.1
 smooth_size_exposure = 0.1
 #n_rebins = 4
-#smooth_size_skymap = 0.3
-#smooth_size_spectroscopy = 0.3
-#smooth_size_exposure = 0.3
+#smooth_size_skymap = 0.2
+#smooth_size_spectroscopy = 0.2
+#smooth_size_exposure = 0.2
 
 #method_tag = 'loose_mdm_default'
 #method_tag = 'loose_mdm_rank3'
@@ -648,8 +652,8 @@ print ('Get %s'%(root_file_tags[0]))
 
 selection_tag = root_file_tags[0]
 
-#folder_path = 'output_nominal'
-folder_path = 'output_16x16'
+folder_path = 'output_nominal'
+#folder_path = 'output_16x16'
 #folder_path = 'output_8x8'
 PercentCrab = ''
 
@@ -1925,9 +1929,12 @@ def power_law_func(x,a,b):
 def flux_crab_func(x):
     # Crab https://arxiv.org/pdf/1508.06442.pdf
     return 37.5*pow(10,-12)*pow(x*1./1000.,-2.467-0.16*log(x/1000.))
-def flux_j1908_func(x):
+def flux_veritas_j1908_func(x):
     # MGRO J1908  TeV^{-1}cm^{-2}s^{-1}
     return 4.23*pow(10,-12)*pow(x*1./1000.,-2.2)
+def flux_hess_j1908_func(x):
+    # MGRO J1908  TeV^{-1}cm^{-2}s^{-1}
+    return 4.14*pow(10,-12)*pow(x*1./1000.,-2.1)
 def flux_hawc_j1908_func(x):
     # MGRO J1908  TeV^{-1}cm^{-2}s^{-1}
     return 0.95*pow(10,-13)*pow(x*1./10000.,-2.46-0.11*log(x/10000.))
@@ -2046,13 +2053,19 @@ def MakeSpectrumInNonCrabUnit(ax,hist_data,hist_bkgd,hist_syst,radii,legends,tit
                         calibration += [0.]
                 print ('calibration = %s'%(calibration))
         if 'VHE region' in legends[nth_roi]:
-            vectorize_f = np.vectorize(flux_j1908_func)
+            vectorize_f = np.vectorize(flux_veritas_j1908_func)
             ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax.plot(xdata, ydata,'r-',label='1404.7185 (VERITAS)')
         if 'HAWC region' in legends[nth_roi]:
             vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
             ydata_hawc = pow(xdata,E_index)*vectorize_f_hawc(xdata)
-            ax.plot(xdata, ydata_hawc,'m-',label='1909.08609 (HAWC)')
+            ax.plot(xdata, ydata_hawc,'r-',label='1909.08609 (HAWC)')
+            vectorize_f = np.vectorize(flux_veritas_j1908_func)
+            ydata = pow(xdata,E_index)*vectorize_f(xdata)
+            ax.plot(xdata, ydata,'b-',label='1404.7185 (VERITAS)')
+            vectorize_f = np.vectorize(flux_hess_j1908_func)
+            ydata = pow(xdata,E_index)*vectorize_f(xdata)
+            ax.plot(xdata, ydata,'g-',label='0904.3409 (HESS)')
         if 'IC 443' in legends[nth_roi]:
             vectorize_f = np.vectorize(flux_ic443_func)
             ydata = pow(xdata,E_index)*vectorize_f(xdata)
@@ -3902,6 +3915,28 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,title_x,tit
         other_star_labels[star].Draw("same")
     canvas.SaveAs('output_plots/SkymapRate_%s_%s.png'%(name,selection_tag))
 
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        hist_zscore_skymap_reflect = reflectXaxis(hist_zscore_skymap[ebin])
+        hist_zscore_skymap_reflect.GetYaxis().SetTitle(title_y)
+        hist_zscore_skymap_reflect.GetXaxis().SetTitle(title_x)
+        hist_zscore_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
+        hist_zscore_skymap_reflect.GetXaxis().SetLabelOffset(999)
+        hist_zscore_skymap_reflect.GetXaxis().SetTickLength(0)
+        hist_zscore_skymap_reflect.Draw("COL4Z")
+        raLowerAxis.Draw()
+        mycircles = []
+        for nth_roi in range(0,len(roi_ra)):
+            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+            mycircles[nth_roi].SetFillStyle(0)
+            mycircles[nth_roi].SetLineColor(2)
+            if nth_roi==0: continue
+            if (roi_name[nth_roi] in exclude_roi): continue
+            mycircles[nth_roi].Draw("same")
+        for star in range(0,len(other_star_markers)):
+            other_star_markers[star].Draw("same")
+            other_star_labels[star].Draw("same")
+        canvas.SaveAs('output_plots/Skymap_%s_%s_E%s.png'%(name,selection_tag,ebin))
+
     Hist_MWL = hist_contour.Clone()
     #Hist_MWL = GetCOSkymap(Hist_MWL, isRaDec)
     #Hist_MWL = GetHawcSkymap(Hist_MWL, isRaDec)
@@ -3923,7 +3958,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,title_x,tit
     hist_MWL_reflect = reflectXaxis(Hist_MWL)
     hist_MWL_reflect.GetYaxis().SetTitle(title_y)
     hist_MWL_reflect.GetXaxis().SetTitle(title_x)
-    hist_MWL_reflect.GetZaxis().SetTitle('amplitude')
+    hist_MWL_reflect.GetZaxis().SetTitle('CO intensity (K km s^{-1} deg)')
     hist_MWL_reflect.GetZaxis().SetTitleOffset(title_offset)
     hist_MWL_reflect.Draw("COL4Z")
     hist_contour_reflect.SetLineColor(0)
@@ -4034,38 +4069,116 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,title_x,tit
     canvas.SaveAs('output_plots/SkymapChisq_%s_%s.png'%(name,selection_tag))
 
 
-    print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    init_x = source_ra
-    init_y = source_dec
-    excess_center_x, excess_center_y, excess_radius, chisq = GetExtention(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,2,init_x,init_y,"inclusive")
-    excess_center_x_err = max(abs(excess_center_x[0]-excess_center_x[1]),abs(excess_center_x[0]-excess_center_x[2]))
-    excess_center_y_err = max(abs(excess_center_y[0]-excess_center_y[1]),abs(excess_center_y[0]-excess_center_y[2]))
-    excess_radius_err = max(abs(excess_radius[0]-excess_radius[1]),abs(excess_radius[0]-excess_radius[2]))
-    print ('center RA = %0.3f +/- %0.3f'%(excess_center_x[0],excess_center_x_err))
-    print ('center Dec = %0.3f +/- %0.3f'%(excess_center_y[0],excess_center_y_err))
-    print ('radius = %0.3f +/- %0.3f'%(excess_radius[0],excess_radius_err))
-    print ('chisq / DoF = %0.3f'%(chisq))
+    #print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+    #init_x = source_ra
+    #init_y = source_dec
+    #excess_center_x, excess_center_y, excess_radius, excess_disk, chisq = GetExtention2D(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,2,init_x,init_y,"inclusive")
+    #excess_center_x_err = max(abs(excess_center_x[0]-excess_center_x[1]),abs(excess_center_x[0]-excess_center_x[2]))
+    #excess_center_y_err = max(abs(excess_center_y[0]-excess_center_y[1]),abs(excess_center_y[0]-excess_center_y[2]))
+    #excess_radius_err = max(abs(excess_radius[0]-excess_radius[1]),abs(excess_radius[0]-excess_radius[2]))
+    #print ('center RA = %0.3f +/- %0.3f'%(excess_center_x[0],excess_center_x_err))
+    #print ('center Dec = %0.3f +/- %0.3f'%(excess_center_y[0],excess_center_y_err))
+    #print ('radius = %0.3f +/- %0.3f'%(excess_radius[0],excess_radius_err))
+    #print ('chisq / DoF = %0.3f'%(chisq))
 
-    hawc_energy_axis = [500.,1700.,10000.,56000.]
-    hawc_source_extent = [33./3200.*180./3.14,27.2/3200.*180./3.14,22.4/3200.*180./3.14,24.4/3200.*180./3.14]
-    hawc_source_extent_err = [3./3200.*180./3.14,2./3200.*180./3.14,1.5/3200.*180./3.14,3./3200.*180./3.14]
+    #hawc_energy_axis = [500.,1700.,10000.,56000.]
+    #hawc_source_extent = [33./3200.*180./3.14,27.2/3200.*180./3.14,22.4/3200.*180./3.14,24.4/3200.*180./3.14]
+    #hawc_source_extent_err = [3./3200.*180./3.14,2./3200.*180./3.14,1.5/3200.*180./3.14,3./3200.*180./3.14]
+    #energy_axis = []
+    #source_extent = []
+    #source_extent_err = []
+    #fit_chisq = []
+    #for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+    #    print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+    #    print ('Energy = %0.1f'%(energy_bin[ebin]))
+    #    init_x = source_ra
+    #    init_y = source_dec
+    #    excess_center_x, excess_center_y, excess_radius, excess_disk, chisq = GetExtention2D(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],2,init_x,init_y,"E%s"%(ebin))
+    #    excess_radius_err = max(abs(excess_radius[0]-excess_radius[1]),abs(excess_radius[0]-excess_radius[2]))
+    #    print ('radius = %0.3f +/- %0.3f'%(excess_radius[0],excess_radius_err))
+    #    print ('chisq / DoF = %0.3f'%(chisq))
+    #    energy_axis += [energy_bin[ebin]]
+    #    source_extent += [excess_radius[0]]
+    #    source_extent_err += [excess_radius_err]
+    #    fit_chisq += [chisq]
+    #fig.clf()
+    #axbig = fig.add_subplot()
+    #axbig.errorbar(energy_axis, source_extent, source_extent_err, marker='s', ls='none', color='b',label='VERITAS')
+    ##axbig.errorbar(hawc_energy_axis, hawc_source_extent, hawc_source_extent_err, marker='s', ls='none', color='r',label='HAWC')
+    #axbig.set_xlabel('Energy [GeV]')
+    #axbig.set_ylabel('Angular extent [degree]')
+    #axbig.set_xscale('log')
+    #axbig.legend(loc='best')
+    #plt.ylim(0, 1.0)
+    #plotname = 'Energy_dep_2dfit_extent'
+    #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+    #axbig.remove()
+
     energy_axis = []
     source_extent = []
     source_extent_err = []
-    fit_chisq = []
+    fig.clf()
+    axbig = fig.add_subplot()
+    cycol = cycle('krgbcmy')
+    next_color = next(cycol)
+    #center_x, center_y = FindCenter(hist_data_skymap_sum,hist_bkgd_skymap_sum)
+    center_x, center_y = 286.975, 6.03777777778 #PSR J1907+0602
+    profile, profile_err, theta2 = FindExtension(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,center_x,center_y,extension_fitting_resolution)
+    start = (0.5, np.mean(profile)*len(theta2),0.)
+    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err))
+    extension_fit = gaussian_disk_2d_to_1D(np.array(theta2), *popt)
+    residual = np.array(profile) - extension_fit
+    chisq = np.sum((residual/np.array(profile_err))**2)
+    dof = len(theta2)-3
+    axbig.errorbar(theta2,profile,profile_err,color=next_color,marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
+    axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color=next_color)
+    axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), popt[0], popt[1]),color='r')
+    axbig.plot(np.array(theta2), disk_2d_to_1D(np.array(theta2), popt[2]),color='g')
+    extent = popt[0]
+    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err))
+    extent_up = popt[0]
+    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err))
+    extent_dw = popt[0]
+    extent_err = abs(extent_up-extent_dw)/2.
+    print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
+    axbig.set_ylabel('excess (arbitrary scaled)')
+    axbig.set_xlabel('angular distance from center [degree]')
+    axbig.legend(loc='best')
+    #axbig.set_yscale('log')
+    plotname = 'ProfileVsTheta2'
+    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+    axbig.remove()
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-        print ('Energy = %0.1f'%(energy_bin[ebin]))
-        init_x = source_ra
-        init_y = source_dec
-        excess_center_x, excess_center_y, excess_radius, chisq = GetExtention(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],2,init_x,init_y,"E%s"%(ebin))
-        excess_radius_err = max(abs(excess_radius[0]-excess_radius[1]),abs(excess_radius[0]-excess_radius[2]))
-        print ('radius = %0.3f +/- %0.3f'%(excess_radius[0],excess_radius_err))
-        print ('chisq / DoF = %0.3f'%(chisq))
+        fig.clf()
+        axbig = fig.add_subplot()
+        next_color = next(cycol)
+        profile, profile_err, theta2 = FindExtension(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],center_x,center_y,extension_fitting_resolution)
+        start = (0.5, np.mean(profile)*len(theta2),0.)
+        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err))
+        extension_fit = gaussian_disk_2d_to_1D(np.array(theta2), *popt)
+        residual = np.array(profile) - extension_fit
+        chisq = np.sum((residual/np.array(profile_err))**2)
+        dof = len(theta2)-3
+        axbig.errorbar(theta2,profile,profile_err,color=next_color,marker='s',ls='none',label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+        axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color=next_color)
+        extent = popt[0]
+        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err))
+        extent_up = popt[0]
+        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err))
+        extent_dw = popt[0]
+        extent_err = abs(extent_up-extent_dw)/2.
+        print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
         energy_axis += [energy_bin[ebin]]
-        source_extent += [excess_radius[0]]
-        source_extent_err += [excess_radius_err]
-        fit_chisq += [chisq]
+        source_extent += [extent]
+        source_extent_err += [extent_err]
+        axbig.set_ylabel('excess (arbitrary scaled)')
+        axbig.set_xlabel('angular distance from center [degree]')
+        axbig.legend(loc='best')
+        #axbig.set_yscale('log')
+        plotname = 'ProfileVsTheta2'
+        fig.savefig("output_plots/%s_%s_E%s.png"%(plotname,selection_tag,ebin),bbox_inches='tight')
+        axbig.remove()
+
     fig.clf()
     axbig = fig.add_subplot()
     axbig.errorbar(energy_axis, source_extent, source_extent_err, marker='s', ls='none', color='b',label='VERITAS')
@@ -4074,8 +4187,8 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,title_x,tit
     axbig.set_ylabel('Angular extent [degree]')
     axbig.set_xscale('log')
     axbig.legend(loc='best')
-    plt.ylim(0, 1.0)
-    plotname = 'Energy_dep_source_extent'
+    plt.ylim(0, 1.5)
+    plotname = 'Energy_dep_1dfit_extent'
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
     axbig.remove()
 
@@ -4147,8 +4260,14 @@ def GetExtentionRMS(Hist_data, Hist_bkgd, Hist_exposure, roi_x, roi_y, roi_size)
     if total_weight==0.: return 0.
     return pow(weighted_distance_sq/total_weight,0.5)
 
-def gaussian_2d(x, y, x0, y0, rms, A):
-    return A * np.exp( -0.5*((x-x0)/rms)**2 -0.5*((y-y0)/rms)**2)
+def disk_2d_to_1D(x, B):
+    return B * x
+def gaussian_2d_to_1D(x, rms, A):
+    return A * x * np.exp( -0.5*(x/rms)**2 )
+def gaussian_disk_2d_to_1D(x, rms, A, B):
+    return A * x * np.exp( -0.5*(x/rms)**2 ) + B * x
+def gaussian_2d(x, y, x0, y0, rms, A, B):
+    return A * np.exp( -0.5*((x-x0)/rms)**2 -0.5*((y-y0)/rms)**2) + B
 def _gaussian_2d(M, *args):
     # This is the callable that is passed to curve_fit. M is a (2,N) array
     # where N is the total number of data points in Z, which will be ravelled
@@ -4156,96 +4275,32 @@ def _gaussian_2d(M, *args):
     # https://scipython.com/blog/non-linear-least-squares-fitting-of-a-two-dimensional-data/
     x, y = M
     arr = np.zeros(x.shape)
-    for i in range(len(args)//4):
-       arr += gaussian_2d(x, y, *args[i*4:i*4+4])
+    n_param = 5
+    for i in range(len(args)//n_param):
+       arr += gaussian_2d(x, y, *args[i*n_param:i*n_param+n_param])
     return arr
 
-def GetExtention(Hist_data_input, Hist_bkgd_input, Hist_syst_input, highlight_threshold, init_x, init_y, tag):
+def GetExtention2D(Hist_data_input, Hist_bkgd_input, Hist_syst_input, highlight_threshold, init_x, init_y, tag):
+
+    excess_center_x_init = init_x
+    excess_center_y_init = init_y
+    excess_radius_init = 0.1
+
+    excess_center_x_all = [0.,0.,0.]
+    excess_center_y_all = [0.,0.,0.]
+    excess_radius_all = [0.,0.,0.]
+    excess_norm_all = [0.,0.,0.]
+    excess_disk_all = [0.,0.,0.]
 
     print ("Hist_data_input.Integral() = %s"%(Hist_data_input.Integral()))
     print ("Hist_bkgd_input.Integral() = %s"%(Hist_bkgd_input.Integral()))
     print ("Hist_syst_input.Integral() = %s"%(Hist_syst_input.Integral()))
     if Hist_data_input.Integral()==0.:
-        return [0., 0., 0.], [0., 0., 0.], [0., 0., 0.], 0.
+        return excess_center_x_all, excess_center_y_all, excess_radius_all, excess_disk_all, 0.
+
     Hist_Excess = Hist_data_input.Clone()
     Hist_Excess_up = Hist_data_input.Clone()
     Hist_Excess_dw = Hist_data_input.Clone()
-    Hist_Excess.Reset()
-    Hist_Excess.Add(Hist_data_input)
-    Hist_Excess.Add(Hist_bkgd_input,-1.)
-    Hist_Excess.Divide(Hist_bkgd_input)
-    Hist_Syst = Hist_syst_input.Clone()
-    Hist_Syst.Divide(Hist_bkgd_input)
-
-    #excess_center_x_init, excess_center_y_init = FindHistMaxBinXY(Hist_Excess)
-    total_mass = 0.
-    total_mass_distance_x = 0.
-    total_mass_distance_y = 0.
-    for bx in range(0,Hist_Excess.GetNbinsX()):
-        for by in range(0,Hist_Excess.GetNbinsY()):
-            bin_x = Hist_Excess.GetXaxis().GetBinCenter(bx+1)
-            bin_y = Hist_Excess.GetYaxis().GetBinCenter(by+1)
-            data_content = Hist_data_input.GetBinContent(bx+1,by+1)
-            data_error = Hist_data_input.GetBinError(bx+1,by+1)
-            bkgd_error = Hist_bkgd_input.GetBinError(bx+1,by+1)
-            syst_error = Hist_syst_input.GetBinContent(bx+1,by+1)
-            #total_error = max(1.,pow(data_error*data_error+bkgd_error*bkgd_error+syst_error*syst_error,0.5))
-            total_error = max(1.,data_error)
-            if data_content/total_error<3.: continue
-            excess_content = Hist_Excess.GetBinContent(bx+1,by+1)
-            stat_err = Hist_Excess.GetBinError(bx+1,by+1)
-            syst_err = Hist_Syst.GetBinContent(bx+1,by+1)
-            total_err = max(pow(stat_err*stat_err+syst_err*syst_err,0.5),1e-4)
-            zscore = excess_content/total_err
-            if zscore<1.0: continue
-            mass = zscore
-            mass_distance_x = mass*bin_x
-            mass_distance_y = mass*bin_y
-            total_mass += mass
-            total_mass_distance_x += mass_distance_x
-            total_mass_distance_y += mass_distance_y
-    if total_mass<=0.:
-        return [0., 0., 0.], [0., 0., 0.], [0., 0., 0.], 0.
-    if total_mass>0.: 
-        total_mass_distance_x = total_mass_distance_x/total_mass
-        total_mass_distance_y = total_mass_distance_y/total_mass
-    else: 
-        total_mass_distance_x = 0.
-        total_mass_distance_y = 0.
-    excess_center_x_init = total_mass_distance_x
-    excess_center_y_init = total_mass_distance_y
-    print ('max excess at %s, %s'%(excess_center_x_init,excess_center_y_init))
-
-    total_mass = 0.
-    total_mass_distance = 0.
-    for bx in range(0,Hist_Excess.GetNbinsX()):
-        for by in range(0,Hist_Excess.GetNbinsY()):
-            bin_x = Hist_Excess.GetXaxis().GetBinCenter(bx+1)
-            bin_y = Hist_Excess.GetYaxis().GetBinCenter(by+1)
-            data_content = Hist_data_input.GetBinContent(bx+1,by+1)
-            data_error = Hist_data_input.GetBinError(bx+1,by+1)
-            bkgd_error = Hist_bkgd_input.GetBinError(bx+1,by+1)
-            syst_error = Hist_syst_input.GetBinContent(bx+1,by+1)
-            #total_error = max(1.,pow(data_error*data_error+bkgd_error*bkgd_error+syst_error*syst_error,0.5))
-            total_error = max(1.,data_error)
-            if data_content/total_error<3.: continue
-            excess_content = Hist_Excess.GetBinContent(bx+1,by+1)
-            stat_err = Hist_Excess.GetBinError(bx+1,by+1)
-            syst_err = Hist_Syst.GetBinContent(bx+1,by+1)
-            total_err = max(pow(stat_err*stat_err+syst_err*syst_err,0.5),1e-4)
-            zscore = excess_content/total_err
-            mass = zscore
-            mass_distance = mass*(pow(bin_x-excess_center_x_init,2)+pow(bin_y-excess_center_y_init,2))
-            total_mass += mass
-            total_mass_distance += mass_distance
-    if total_mass<=0.:
-        return [0., 0., 0.], [0., 0., 0.], [0., 0., 0.], 0.
-    total_mass_distance = max(0.,total_mass_distance)
-    if total_mass>0.: total_mass_distance = pow(total_mass_distance/total_mass,0.5)
-    else: total_mass_distance = 0.
-    excess_radius_init = total_mass_distance
-    if excess_radius_init==0.: excess_radius_init = 0.5
-    print ('excess_radius_init = %s'%(excess_radius_init))
 
     Hist_Excess.Reset()
     Hist_Excess_up.Reset()
@@ -4261,36 +4316,28 @@ def GetExtention(Hist_data_input, Hist_bkgd_input, Hist_syst_input, highlight_th
     Hist_Excess_dw.Add(Hist_bkgd_input,-1.)
     Hist_Excess_dw.Add(Hist_syst_input,1.)
     Hist_Excess_dw.Divide(Hist_bkgd_input)
-    #Hist_Excess.Rebin2D(4,4)
-    #Hist_Excess_up.Rebin2D(4,4)
-    #Hist_Excess_dw.Rebin2D(4,4)
+
+    Hist_Syst = Hist_syst_input.Clone()
+    Hist_Syst.Divide(Hist_bkgd_input)
+
     for bx in range(0,Hist_Excess.GetNbinsX()):
         for by in range(0,Hist_Excess.GetNbinsY()):
-            bin_delta_ra = Hist_Excess.GetXaxis().GetBinCenter(bx+1)-excess_center_x_init
-            bin_delta_dec = Hist_Excess.GetYaxis().GetBinCenter(by+1)-excess_center_y_init
-            data_content = Hist_data_input.GetBinContent(bx+1,by+1)
-            data_error = Hist_data_input.GetBinError(bx+1,by+1)
+            bkgd_content = Hist_bkgd_input.GetBinContent(bx+1,by+1)
             bkgd_error = Hist_bkgd_input.GetBinError(bx+1,by+1)
-            syst_error = Hist_syst_input.GetBinContent(bx+1,by+1)
-            #total_error = max(1.,pow(data_error*data_error+bkgd_error*bkgd_error+syst_error*syst_error,0.5))
-            total_error = max(1.,data_error)
-            excess_content = Hist_Excess.GetBinContent(bx+1,by+1)
-            excess_up_content = Hist_Excess_up.GetBinContent(bx+1,by+1)
-            excess_dw_content = Hist_Excess_dw.GetBinContent(bx+1,by+1)
-            stat_err_ratio = Hist_Excess.GetBinError(bx+1,by+1)
-            syst_err_ratio = Hist_Syst.GetBinContent(bx+1,by+1)
-            total_err_ratio = max(pow(stat_err_ratio*stat_err_ratio+syst_err_ratio*syst_err_ratio,0.5),1e-4)
-            Hist_Excess.SetBinError(bx+1,by+1,total_err_ratio)
-            Hist_Excess_up.SetBinError(bx+1,by+1,total_err_ratio)
-            Hist_Excess_dw.SetBinError(bx+1,by+1,total_err_ratio)
-            if pow(bin_delta_ra*bin_delta_ra+bin_delta_dec*bin_delta_dec,0.5)>(1.5*excess_radius_init):
+            if bkgd_error==0.:
                 Hist_Excess.SetBinContent(bx+1,by+1,0.)
+                Hist_Syst.SetBinContent(bx+1,by+1,0.)
+                Hist_Excess.SetBinError(bx+1,by+1,0.)
                 Hist_Excess_up.SetBinContent(bx+1,by+1,0.)
                 Hist_Excess_dw.SetBinContent(bx+1,by+1,0.)
-            if data_content/total_error<3.:
+                continue
+            if bkgd_content/bkgd_error<5.:
                 Hist_Excess.SetBinContent(bx+1,by+1,0.)
+                Hist_Syst.SetBinContent(bx+1,by+1,0.)
+                Hist_Excess.SetBinError(bx+1,by+1,0.)
                 Hist_Excess_up.SetBinContent(bx+1,by+1,0.)
                 Hist_Excess_dw.SetBinContent(bx+1,by+1,0.)
+                continue
 
     MapEdge_left = Hist_Excess.GetXaxis().GetBinLowEdge(1)
     MapEdge_right = Hist_Excess.GetXaxis().GetBinLowEdge(Hist_Excess.GetNbinsX()+1)
@@ -4313,34 +4360,39 @@ def GetExtention(Hist_data_input, Hist_bkgd_input, Hist_syst_input, highlight_th
             grid_z[bx,by] = Hist_Excess.GetBinContent(bx+1,by+1)
             grid_z_up[bx,by] = Hist_Excess_up.GetBinContent(bx+1,by+1)
             grid_z_dw[bx,by] = Hist_Excess_dw.GetBinContent(bx+1,by+1)
-            grid_error[bx,by] = Hist_Excess.GetBinError(bx+1,by+1)
+            stat_err = Hist_Excess.GetBinError(bx+1,by+1)
+            syst_err = Hist_Syst.GetBinContent(bx+1,by+1)
+            grid_error[bx,by] = max(0.01,pow(stat_err*stat_err+syst_err*syst_err,0.5))
 
     # We need to ravel the meshgrids of X, Y points to a pair of 1-D arrays.
     xydata = np.vstack((grid_x.ravel(), grid_y.ravel()))
 
     A_init = Hist_Excess.Integral()
-    guess_prms = [(excess_center_x_init,excess_center_y_init,excess_radius_init,A_init)]
+    guess_prms = [(excess_center_x_init,excess_center_y_init,excess_radius_init,A_init,0.)]
     # Flatten the initial guess parameter list.
     start = [p for prms in guess_prms for p in prms]
 
-    peak_location_range = 0.3*excess_radius_init
-    popt, pcov = curve_fit(_gaussian_2d, xydata, grid_z.ravel(), p0=start, sigma=grid_error.ravel(),bounds=((excess_center_x_init-peak_location_range, excess_center_y_init-peak_location_range, 0, 0), (excess_center_x_init+peak_location_range, excess_center_y_init+peak_location_range, np.inf, np.inf)))
+    peak_location_range = 1.*excess_radius_init
+    popt, pcov = curve_fit(_gaussian_2d, xydata, grid_z.ravel(), p0=start, sigma=grid_error.ravel(),bounds=((excess_center_x_init-peak_location_range, excess_center_y_init-peak_location_range, 0.1, 0, 0), (excess_center_x_init+peak_location_range, excess_center_y_init+peak_location_range, 2.0, A_init, A_init)))
     perr = np.sqrt(np.diag(pcov))
     model_fit = gaussian_2d(grid_x,grid_y, *popt)
     residual = grid_z - model_fit
     chisq = np.sum((residual/grid_error)**2)
-    dof = Hist_Excess.GetNbinsX()*Hist_Excess.GetNbinsY()-4
+    dof = Hist_Excess.GetNbinsX()*Hist_Excess.GetNbinsY()-3
     excess_center_x = popt[0]
     excess_center_y = popt[1]
     excess_radius = popt[2]
     excess_norm = popt[3]
+    excess_disk = popt[4]
     excess_radius = pow(max(0.,excess_radius*excess_radius-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
     excess_center_x_err = perr[0]
     excess_center_y_err = perr[1]
     excess_radius_err = perr[2]
     excess_norm_err = perr[3]
+    excess_disk_err = perr[4]
     print ('excess_radius = %0.3f'%(excess_radius))
     print ('excess_norm = %0.3f'%(excess_norm))
+    print ('excess_disk = %0.3f'%(excess_disk))
 
     ax.cla()
     ax.set_xlabel('RA')
@@ -4357,20 +4409,22 @@ def GetExtention(Hist_data_input, Hist_bkgd_input, Hist_syst_input, highlight_th
     #plotname = 'Fit_source_extent_%s'%(tag)
     #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
 
-    popt, pcov = curve_fit(_gaussian_2d, xydata, grid_z_up.ravel(), p0=start, sigma=grid_error.ravel(), bounds=((excess_center_x_init-peak_location_range, excess_center_y_init-peak_location_range, 0, 0), (excess_center_x_init+peak_location_range, excess_center_y_init+peak_location_range, np.inf, np.inf)))
+    popt, pcov = curve_fit(_gaussian_2d, xydata, grid_z_up.ravel(), p0=start, sigma=grid_error.ravel(), bounds=((excess_center_x_init-peak_location_range, excess_center_y_init-peak_location_range, 0.1, 0, 0), (excess_center_x_init+peak_location_range, excess_center_y_init+peak_location_range, 2.0, A_init, A_init)))
     excess_center_x_up = popt[0]
     excess_center_y_up = popt[1]
     excess_radius_up = popt[2]
     excess_norm_up = popt[3]
+    excess_disk_up = popt[4]
     excess_radius_up = pow(max(0.,excess_radius_up*excess_radius_up-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
     print ('excess_radius_up = %0.3f'%(excess_radius_up))
     print ('excess_norm_up = %0.3f'%(excess_norm_up))
 
-    popt, pcov = curve_fit(_gaussian_2d, xydata, grid_z_dw.ravel(), p0=start, sigma=grid_error.ravel(), bounds=((excess_center_x_init-peak_location_range, excess_center_y_init-peak_location_range, 0, 0), (excess_center_x_init+peak_location_range, excess_center_y_init+peak_location_range, np.inf, np.inf)))
+    popt, pcov = curve_fit(_gaussian_2d, xydata, grid_z_dw.ravel(), p0=start, sigma=grid_error.ravel(), bounds=((excess_center_x_init-peak_location_range, excess_center_y_init-peak_location_range, 0.1, 0, 0), (excess_center_x_init+peak_location_range, excess_center_y_init+peak_location_range, 2.0, A_init, A_init)))
     excess_center_x_dw = popt[0]
     excess_center_y_dw = popt[1]
     excess_radius_dw = popt[2]
     excess_norm_dw = popt[3]
+    excess_disk_dw = popt[4]
     excess_radius_dw = pow(max(0.,excess_radius_dw*excess_radius_dw-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
     print ('excess_radius_dw = %0.3f'%(excess_radius_dw))
     print ('excess_norm_dw = %0.3f'%(excess_norm_dw))
@@ -4378,8 +4432,10 @@ def GetExtention(Hist_data_input, Hist_bkgd_input, Hist_syst_input, highlight_th
     excess_center_x_all = [excess_center_x,excess_center_x_up,excess_center_x_dw]
     excess_center_y_all = [excess_center_y,excess_center_y_up,excess_center_y_dw]
     excess_radius_all = [excess_radius,excess_radius_up,excess_radius_dw]
+    excess_norm_all = [excess_norm,excess_norm_up,excess_norm_dw]
+    excess_disk_all = [excess_disk,excess_disk_up,excess_disk_dw]
 
-    return excess_center_x_all, excess_center_y_all, excess_radius_all, chisq/dof
+    return excess_center_x_all, excess_center_y_all, excess_radius_all, excess_disk_all, chisq/dof
 
 def Make2DProjectionPlot(Hist_Data,xtitle,ytitle,name,doProj):
 
@@ -5105,11 +5161,112 @@ def SystematicAnalysis():
         Hist2D_Converge.Draw("COL4Z")
         canvas.SaveAs('output_plots/Converge_%s.png'%(selection_tag))
 
+def FindCenter(Hist_Data_input,Hist_Bkgd_input):
+
+    Hist_Excess = Hist_Data_input.Clone()
+    Hist_Excess.Reset()
+    Hist_Excess.Add(Hist_Data_input)
+    Hist_Excess.Add(Hist_Bkgd_input,-1.)
+
+    total_mass = 0.
+    total_mass_distance_x = 0.
+    total_mass_distance_y = 0.
+    for bx in range(0,Hist_Excess.GetNbinsX()):
+        for by in range(0,Hist_Excess.GetNbinsY()):
+            bin_x = Hist_Excess.GetXaxis().GetBinCenter(bx+1)
+            bin_y = Hist_Excess.GetYaxis().GetBinCenter(by+1)
+            excess_content = Hist_Excess.GetBinContent(bx+1,by+1)
+            mass = excess_content
+            mass_distance_x = mass*bin_x
+            mass_distance_y = mass*bin_y
+            total_mass += mass
+            total_mass_distance_x += mass_distance_x
+            total_mass_distance_y += mass_distance_y
+    if total_mass>0.: 
+        total_mass_distance_x = total_mass_distance_x/total_mass
+        total_mass_distance_y = total_mass_distance_y/total_mass
+    else: 
+        total_mass_distance_x = 0.
+        total_mass_distance_y = 0.
+    excess_center_x_init = total_mass_distance_x
+    excess_center_y_init = total_mass_distance_y
+    print ('max excess at %s, %s'%(excess_center_x_init,excess_center_y_init))
+
+    return excess_center_x_init, excess_center_y_init
+
+def FindExtension(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,roi_x,roi_y,resolution):
+
+    n_bins = 10
+    #theta2_limit = 0.5
+    theta2_limit = 2.0
+    Hist_Profile_Theta2 = ROOT.TH1D("Hist_Profile_Theta2","",n_bins,0,theta2_limit)
+    Hist_Data_Theta2 = ROOT.TH1D("Hist_Data_Theta2","",n_bins,0,theta2_limit)
+    Hist_Bkgd_Theta2 = ROOT.TH1D("Hist_Bkgd_Theta2","",n_bins,0,theta2_limit)
+    Hist_Data = Hist_Data_input.Clone()
+    Hist_Bkgd = Hist_Bkgd_input.Clone()
+    Hist_Syst = Hist_Syst_input.Clone()
+    Hist_Data.Divide(Hist_Bkgd_input)
+    Hist_Bkgd.Divide(Hist_Bkgd_input)
+    Hist_Syst.Divide(Hist_Bkgd_input)
+    for br in range(0,Hist_Profile_Theta2.GetNbinsX()):
+        range_limit = Hist_Profile_Theta2.GetBinLowEdge(br+2)
+        range_limit_previous = Hist_Profile_Theta2.GetBinLowEdge(br+1)
+        slice_data = 0.
+        slice_data_err = 0.
+        slice_bkgd = 0.
+        slice_bkgd_err = 0.
+        slice_syst_err = 0.
+        for bx in range(0,Hist_Data_input.GetNbinsX()):
+            for by in range(0,Hist_Data_input.GetNbinsY()):
+                cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
+                cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
+                distance_sq = pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2)
+                data_content = Hist_Data.GetBinContent(bx+1,by+1)
+                data_error = Hist_Data.GetBinError(bx+1,by+1)
+                bkgd_content = Hist_Bkgd.GetBinContent(bx+1,by+1)
+                bkgd_error = Hist_Bkgd.GetBinError(bx+1,by+1)
+                syst_error = Hist_Syst.GetBinContent(bx+1,by+1)
+                if distance_sq>=pow(range_limit_previous,2) and distance_sq<pow(range_limit,2):
+                    slice_data += data_content
+                    slice_data_err += data_error*data_error
+                    slice_bkgd += bkgd_content
+                    slice_bkgd_err += bkgd_error*bkgd_error
+                    slice_syst_err += syst_error
+        slice_data_err = pow(slice_data_err,0.5)
+        slice_bkgd_err = pow(slice_bkgd_err+slice_syst_err*slice_syst_err,0.5)
+        Hist_Data_Theta2.SetBinContent(br+1,slice_data)
+        Hist_Data_Theta2.SetBinError(br+1,slice_data_err)
+        Hist_Bkgd_Theta2.SetBinContent(br+1,slice_bkgd)
+        Hist_Bkgd_Theta2.SetBinError(br+1,slice_bkgd_err)
+
+    Hist_Profile_Theta2.Reset()
+    Hist_Profile_Theta2.Add(Hist_Data_Theta2)
+    Hist_Profile_Theta2.Add(Hist_Bkgd_Theta2,-1.)
+
+
+    profile = []
+    profile_err = []
+    theta2 = []
+    for binx in range(0,Hist_Profile_Theta2.GetNbinsX()):
+        center = Hist_Profile_Theta2.GetBinCenter(binx+1)
+        bkgd_content = Hist_Bkgd_Theta2.GetBinContent(binx+1)
+        bkgd_error = Hist_Bkgd_Theta2.GetBinError(binx+1)
+        profile_content = Hist_Profile_Theta2.GetBinContent(binx+1)
+        profile_error = Hist_Profile_Theta2.GetBinError(binx+1)
+        #if bkgd_error==0.: continue
+        #if bkgd_error/bkgd_content>0.1: continue
+        theta2 += [center]
+        profile += [profile_content]
+        profile_err += [profile_error]
+
+    return profile, profile_err, theta2
+
 def MakeIntegratedSignificance(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,roi_x,roi_y):
 
-    Hist_Theta2 = ROOT.TH1D("Hist_Theta2","",20,0,2.)
-    for br in range(0,Hist_Theta2.GetNbinsX()):
-        range_limit = Hist_Theta2.GetBinLowEdge(br+2)
+    Hist_Zscore_Theta2 = ROOT.TH1D("Hist_Zscore_Theta2","",20,0,2.)
+    for br in range(0,Hist_Zscore_Theta2.GetNbinsX()):
+        range_limit = Hist_Zscore_Theta2.GetBinLowEdge(br+2)
+        range_limit_previous = Hist_Zscore_Theta2.GetBinLowEdge(br+1)
         total_data = 0.
         total_bkgd = 0.
         total_syst = 0.
@@ -5119,10 +5276,10 @@ def MakeIntegratedSignificance(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,r
                 cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
                 cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
                 distance_sq = pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2)
-                if distance_sq>pow(range_limit,2): continue
                 data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
                 bkgd_content = Hist_Bkgd_input.GetBinContent(bx+1,by+1)
                 bkgd_error = Hist_Bkgd_input.GetBinError(bx+1,by+1)
+                if distance_sq>pow(range_limit,2): continue
                 xy_bin_up = 1
                 bin_size_up = integration_radii[1]
                 bin_size_low = integration_radii[0]
@@ -5142,13 +5299,13 @@ def MakeIntegratedSignificance(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,r
                 total_stat += bkgd_error*bkgd_error
         total_stat = pow(total_stat,0.5)
         zscore = CalculateSignificance(total_data-total_bkgd,total_bkgd,pow(total_stat*total_stat+total_syst*total_syst,0.5))
-        Hist_Theta2.SetBinContent(br+1,zscore)
+        Hist_Zscore_Theta2.SetBinContent(br+1,zscore)
 
     zscore = []
     theta2 = []
-    for binx in range(0,Hist_Theta2.GetNbinsX()):
-        center = Hist_Theta2.GetBinCenter(binx+1)
-        content = Hist_Theta2.GetBinContent(binx+1)
+    for binx in range(0,Hist_Zscore_Theta2.GetNbinsX()):
+        center = Hist_Zscore_Theta2.GetBinCenter(binx+1)
+        content = Hist_Zscore_Theta2.GetBinContent(binx+1)
         theta2 += [center]
         zscore += [content]
 
@@ -5381,9 +5538,6 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
         fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
         axbig.remove()
 
-        fig.clf()
-        axbig = fig.add_subplot()
-
         Hist_Syst_Energy_Skymap_Sum = []
         for xy_bin in range(0,len(integration_radii)):
             Hist_Syst_Energy_Skymap_Sum += [ROOT.TH2D("Hist_Syst_Energy_Skymap_Sum_%s"%(xy_bin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
@@ -5401,10 +5555,12 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
                         syst_old_content = Hist_Syst_Energy_Skymap_Sum[xy_bin].GetBinContent(bx+1,by+1)
                         Hist_Syst_Energy_Skymap_Sum[xy_bin].SetBinContent(bx+1,by+1,pow(syst_new_content*syst_new_content+syst_old_content*syst_old_content,0.5))
 
+        fig.clf()
+        axbig = fig.add_subplot()
         cycol = cycle('krgbcmy')
         next_color = next(cycol)
         zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum,Hist_Syst_Energy_Skymap_Sum,roi_ra[0],roi_dec[0])
-        axbig.plot(theta2, zscore,color=next_color,label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
+        axbig.plot(theta2,zscore,color=next_color,label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
             for xy_bin in range(0,len(integration_radii)):
                 Hist_Syst_Energy_Skymap_Sum[xy_bin].Reset()
@@ -5418,7 +5574,7 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
                         Hist_Syst_Energy_Skymap_Sum[xy_bin].SetBinContent(bx+1,by+1,pow(syst_new_content*syst_new_content+syst_old_content*syst_old_content,0.5))
             next_color = next(cycol)
             zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_Syst_Energy_Skymap_Sum,roi_ra[0],roi_dec[0])
-            axbig.plot(theta2, zscore,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+            axbig.plot(theta2,zscore,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
         axbig.set_ylabel('significance z score')
         axbig.set_xlabel('radius of integration region [degree]')
         plt.ylim(-5.0, 12.0)
@@ -5426,6 +5582,73 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
         plotname = 'ZscoreVsTheta2'
         fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
         axbig.remove()
+
+        #energy_axis = []
+        #source_extent = []
+        #source_extent_err = []
+        #fig.clf()
+        #axbig = fig.add_subplot()
+        #cycol = cycle('krgbcmy')
+        #next_color = next(cycol)
+        #center_x, center_y = FindCenter(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum)
+        #profile, profile_err, theta2 = FindExtension(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum,Hist_Syst_Energy_Skymap_Sum[len(integration_radii)-1],center_x,center_y,extension_fitting_resolution)
+        #start = (0.5, np.mean(profile)*len(theta2))
+        #popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err))
+        #extension_fit = gaussian_2d_to_1D(np.array(theta2), *popt)
+        #residual = np.array(profile) - extension_fit
+        #chisq = np.sum((residual/np.array(profile_err))**2)
+        #dof = len(theta2)-2
+        #axbig.errorbar(theta2,profile,profile_err,color=next_color,ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
+        #axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), *popt),color=next_color)
+        #extent = popt[0]
+        #popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err))
+        #extent_up = popt[0]
+        #popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err))
+        #extent_dw = popt[0]
+        #extent_err = abs(extent_up-extent_dw)/2.
+        #print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
+        #for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        #    next_color = next(cycol)
+        #    profile, profile_err, theta2 = FindExtension(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_NormSyst_Energy_Skymap[ebin],center_x,center_y,extension_fitting_resolution)
+        #    start = (0.5, np.mean(profile)*len(theta2))
+        #    popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err))
+        #    extension_fit = gaussian_2d_to_1D(np.array(theta2), *popt)
+        #    residual = np.array(profile) - extension_fit
+        #    chisq = np.sum((residual/np.array(profile_err))**2)
+        #    dof = len(theta2)-2
+        #    #axbig.errorbar(theta2,profile,profile_err,color=next_color,ls='none',label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+        #    #axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), *popt),color=next_color)
+        #    extent = popt[0]
+        #    popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err))
+        #    extent_up = popt[0]
+        #    popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err))
+        #    extent_dw = popt[0]
+        #    extent_err = abs(extent_up-extent_dw)/2.
+        #    print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
+        #    energy_axis += [energy_bin[ebin]]
+        #    source_extent += [extent]
+        #    source_extent_err += [extent_err]
+        #axbig.set_ylabel('excess (arbitrary scaled)')
+        #axbig.set_xlabel('angular distance from center [degree]')
+        #axbig.legend(loc='best')
+        ##axbig.set_yscale('log')
+        #plotname = 'ProfileVsTheta2'
+        #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+        #axbig.remove()
+
+        #fig.clf()
+        #axbig = fig.add_subplot()
+        #axbig.errorbar(energy_axis, source_extent, source_extent_err, marker='s', ls='none', color='b',label='VERITAS')
+        ##axbig.errorbar(hawc_energy_axis, hawc_source_extent, hawc_source_extent_err, marker='s', ls='none', color='r',label='HAWC')
+        #axbig.set_xlabel('Energy [GeV]')
+        #axbig.set_ylabel('Angular extent [degree]')
+        #axbig.set_xscale('log')
+        #axbig.legend(loc='best')
+        #plt.ylim(0, 1.5)
+        #plotname = 'Energy_dep_source_extent'
+        #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+        #axbig.remove()
+
 
 
 def FindSourceIndex(source_name):
@@ -5774,6 +5997,8 @@ doMorphologySpectroscopy = True
 #Smoothing = False
 Smoothing = True
 
+extension_fitting_resolution = 0.2
+
 #set_palette('default')
 #set_palette('gray')
 
@@ -5786,9 +6011,9 @@ exclude_roi += ['PSR region']
 exclude_roi += ['CO region']
 exclude_roi += ['LAT MeV region']
 exclude_roi += ['LAT GeV region']
-#exclude_roi += ['Ring 1']
-#exclude_roi += ['Ring 2']
-#exclude_roi += ['Ring 3']
+exclude_roi += ['Ring 1']
+exclude_roi += ['Ring 2']
+exclude_roi += ['Ring 3']
 
 calibration = [1., 1., 1., 1., 1., 1.]
 calibration = [1.299195550838382e-08, 1.023276473227794e-09, 7.33339851731449e-11, 3.6158845887166094e-12, 2.624835928079186e-13, 2.7803689660660495e-14]
@@ -5796,3 +6021,5 @@ calibration = [1.299195550838382e-08, 1.023276473227794e-09, 7.33339851731449e-1
 SingleSourceAnalysis(sample_list,drawMap,doMorphologySpectroscopy,Smoothing,int(sys.argv[2]),int(sys.argv[3]))
 
 Hist_EffArea_Sum.Print("All")
+
+print ('exposure_hours = %0.1f hours'%(exposure_hours))
