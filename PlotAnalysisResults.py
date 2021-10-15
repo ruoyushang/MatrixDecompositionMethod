@@ -3522,13 +3522,19 @@ def GetSkyViewMap(map_file, hist_map, isRaDec):
             l, b = ConvertRaDecToGalactic(l,b)
         binx = hist_map.GetXaxis().FindBin(l)
         biny = hist_map.GetYaxis().FindBin(b)
+        if binx<1: continue
+        if binx>=hist_map.GetNbinsX()-1: continue
+        if biny<1: continue
+        if biny>=hist_map.GetNbinsY()-1: continue
         old_sig = hist_map.GetBinContent(binx+1,biny+1)
-        hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
+        #hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
+        hist_map.SetBinContent(binx+1,biny+1,sig+old_sig)
 
-    map_resolution = 0.1
-    hist_map_new = FillSkymapHoles(hist_map, map_resolution)
+    #map_resolution = 0.1
+    #hist_map_new = FillSkymapHoles(hist_map, map_resolution)
+    #return hist_map_new
 
-    return hist_map_new
+    return hist_map
 
 def GetGalacticCoordMap(map_file, hist_map, isRaDec):
 
@@ -3677,54 +3683,59 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,title_x,tit
     bright_star_markers = []
     faint_star_labels = []
     faint_star_markers = []
+    other_star_labels_gal = []
+    other_star_markers_gal = []
+    other_star_names_gal = []
+    bright_star_labels_gal = []
+    bright_star_markers_gal = []
+    faint_star_labels_gal = []
+    faint_star_markers_gal = []
     star_range = 2.0/zoomin_scale
-    if title_x=="RA":
-        for star in range(0,len(other_stars)):
-            if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
-            other_star_markers += [ROOT.TMarker(-other_star_coord[star][0],other_star_coord[star][1],2)]
-            other_star_labels += [ROOT.TLatex(-other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
-            other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
-            other_star_labels[len(other_star_labels)-1].SetTextSize(0.03)
-            other_star_names += [other_stars[star]]
-        for star in range(0,len(bright_star_ra)):
-            bright_star_markers += [ROOT.TMarker(-bright_star_ra[star],bright_star_dec[star],30)]
-            bright_star_markers[len(bright_star_markers)-1].SetMarkerColor(2)
-            bright_star_markers[len(bright_star_markers)-1].SetMarkerSize(1.5)
-            bright_star_labels += [ROOT.TLatex(-bright_star_ra[star]-0.15,bright_star_dec[star]+0.15,'b-mag %s'%(bright_star_brightness[star]))]
-            bright_star_labels[len(bright_star_labels)-1].SetTextColor(2)
-            bright_star_labels[len(bright_star_labels)-1].SetTextSize(0.02)
-        for star in range(0,len(faint_star_ra)):
-            faint_star_markers += [ROOT.TMarker(-faint_star_ra[star],faint_star_dec[star],30)]
-            faint_star_markers[len(faint_star_markers)-1].SetMarkerColor(3)
-            faint_star_markers[len(faint_star_markers)-1].SetMarkerSize(1.5)
-            faint_star_labels += [ROOT.TLatex(-faint_star_ra[star]-0.15,faint_star_dec[star]+0.15,'b-mag %s'%(faint_star_brightness[star]))]
-            faint_star_labels[len(faint_star_labels)-1].SetTextColor(3)
-            faint_star_labels[len(faint_star_labels)-1].SetTextSize(0.02)
-    else:
-        for star in range(0,len(other_stars)):
-            gal_l, gal_b = ConvertRaDecToGalactic(other_star_coord[star][0],other_star_coord[star][1])
-            if pow(source_l-gal_l,2)+pow(source_b-gal_b,2)>star_range*star_range: continue
-            other_star_markers += [ROOT.TMarker(-gal_l,gal_b,2)]
-            other_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,other_stars[star])]
-            other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
-            other_star_labels[len(other_star_labels)-1].SetTextSize(0.03)
-            other_star_names += [other_stars[star]]
-        for star in range(0,len(bright_star_ra)):
-            gal_l, gal_b = ConvertRaDecToGalactic(bright_star_ra[star],bright_star_dec[star])
-            bright_star_markers += [ROOT.TMarker(-gal_l,gal_b,30)]
-            bright_star_markers[len(bright_star_markers)-1].SetMarkerColor(2)
-            bright_star_markers[len(bright_star_markers)-1].SetMarkerSize(1.5)
-            bright_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,'b-mag %s'%(bright_star_brightness[star]))]
-            bright_star_labels[len(bright_star_labels)-1].SetTextColor(2)
-            bright_star_labels[len(bright_star_labels)-1].SetTextSize(0.02)
-        for star in range(0,len(faint_star_ra)):
-            gal_l, gal_b = ConvertRaDecToGalactic(faint_star_ra[star],faint_star_dec[star])
-            faint_star_markers += [ROOT.TMarker(-gal_l,gal_b,30)]
-            faint_star_markers[len(faint_star_markers)-1].SetMarkerColor(3)
-            faint_star_markers[len(faint_star_markers)-1].SetMarkerSize(1.5)
-            faint_star_labels += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,'b-mag %s'%(faint_star_brightness[star]))]
-            faint_star_labels[len(faint_star_labels)-1].SetTextColor(3)
-            faint_star_labels[len(faint_star_labels)-1].SetTextSize(0.02)
+    for star in range(0,len(other_stars)):
+        if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
+        other_star_markers += [ROOT.TMarker(-other_star_coord[star][0],other_star_coord[star][1],2)]
+        other_star_labels += [ROOT.TLatex(-other_star_coord[star][0]-0.15,other_star_coord[star][1]+0.15,other_stars[star])]
+        other_star_markers[len(other_star_markers)-1].SetMarkerSize(1.5)
+        other_star_labels[len(other_star_labels)-1].SetTextSize(0.03)
+        other_star_names += [other_stars[star]]
+    for star in range(0,len(bright_star_ra)):
+        bright_star_markers += [ROOT.TMarker(-bright_star_ra[star],bright_star_dec[star],30)]
+        bright_star_markers[len(bright_star_markers)-1].SetMarkerColor(2)
+        bright_star_markers[len(bright_star_markers)-1].SetMarkerSize(1.5)
+        bright_star_labels += [ROOT.TLatex(-bright_star_ra[star]-0.15,bright_star_dec[star]+0.15,'b-mag %s'%(bright_star_brightness[star]))]
+        bright_star_labels[len(bright_star_labels)-1].SetTextColor(2)
+        bright_star_labels[len(bright_star_labels)-1].SetTextSize(0.02)
+    for star in range(0,len(faint_star_ra)):
+        faint_star_markers += [ROOT.TMarker(-faint_star_ra[star],faint_star_dec[star],30)]
+        faint_star_markers[len(faint_star_markers)-1].SetMarkerColor(3)
+        faint_star_markers[len(faint_star_markers)-1].SetMarkerSize(1.5)
+        faint_star_labels += [ROOT.TLatex(-faint_star_ra[star]-0.15,faint_star_dec[star]+0.15,'b-mag %s'%(faint_star_brightness[star]))]
+        faint_star_labels[len(faint_star_labels)-1].SetTextColor(3)
+        faint_star_labels[len(faint_star_labels)-1].SetTextSize(0.02)
+    for star in range(0,len(other_stars)):
+        gal_l, gal_b = ConvertRaDecToGalactic(other_star_coord[star][0],other_star_coord[star][1])
+        if pow(source_l-gal_l,2)+pow(source_b-gal_b,2)>star_range*star_range: continue
+        other_star_markers_gal += [ROOT.TMarker(-gal_l,gal_b,2)]
+        other_star_labels_gal += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,other_stars[star])]
+        other_star_markers_gal[len(other_star_markers_gal)-1].SetMarkerSize(1.5)
+        other_star_labels_gal[len(other_star_labels_gal)-1].SetTextSize(0.03)
+        other_star_names_gal += [other_stars[star]]
+    for star in range(0,len(bright_star_ra)):
+        gal_l, gal_b = ConvertRaDecToGalactic(bright_star_ra[star],bright_star_dec[star])
+        bright_star_markers_gal += [ROOT.TMarker(-gal_l,gal_b,30)]
+        bright_star_markers_gal[len(bright_star_markers_gal)-1].SetMarkerColor(2)
+        bright_star_markers_gal[len(bright_star_markers_gal)-1].SetMarkerSize(1.5)
+        bright_star_labels_gal += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,'b-mag %s'%(bright_star_brightness[star]))]
+        bright_star_labels_gal[len(bright_star_labels_gal)-1].SetTextColor(2)
+        bright_star_labels_gal[len(bright_star_labels_gal)-1].SetTextSize(0.02)
+    for star in range(0,len(faint_star_ra)):
+        gal_l, gal_b = ConvertRaDecToGalactic(faint_star_ra[star],faint_star_dec[star])
+        faint_star_markers_gal += [ROOT.TMarker(-gal_l,gal_b,30)]
+        faint_star_markers_gal[len(faint_star_markers_gal)-1].SetMarkerColor(3)
+        faint_star_markers_gal[len(faint_star_markers_gal)-1].SetMarkerSize(1.5)
+        faint_star_labels_gal += [ROOT.TLatex(-gal_l-0.15,gal_b+0.15,'b-mag %s'%(faint_star_brightness[star]))]
+        faint_star_labels_gal[len(faint_star_labels_gal)-1].SetTextColor(3)
+        faint_star_labels_gal[len(faint_star_labels_gal)-1].SetTextSize(0.02)
 
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].SetMarkerSize(1.5*zoomin_scale)
@@ -3937,7 +3948,6 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,title_x,tit
             other_star_labels[star].Draw("same")
         canvas.SaveAs('output_plots/Skymap_%s_%s_E%s.png'%(name,selection_tag,ebin))
 
-    Hist_MWL = hist_contour.Clone()
     #Hist_MWL = GetCOSkymap(Hist_MWL, isRaDec)
     #Hist_MWL = GetHawcSkymap(Hist_MWL, isRaDec)
     #MWL_label = 'HAWC significance map'
@@ -3949,35 +3959,76 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,title_x,tit
     #MWL_label = 'ROSAT X-ray Band 7'
     #Hist_MWL = GetSkyViewMap("MWL_maps/skv23774123153055_fermi5_J1908.txt", Hist_MWL, isRaDec)
     #MWL_label = 'Fermi 5'
-    Hist_MWL = GetSkyViewMap("MWL_maps/skv23774832380255_CO_J1908.txt", Hist_MWL, isRaDec)
-    MWL_label = 'CO Galactic Plane Survey'
+    #Hist_MWL = GetSkyViewMap("MWL_maps/skv23774832380255_CO_J1908.txt", Hist_MWL, isRaDec)
+    #MWL_label = 'CO Galactic Plane Survey'
     #Hist_MWL = GetSkyViewMap("MWL_maps/skv25103829773371_Effelsberg_Bonn_HI_J1908.txt", Hist_MWL, isRaDec)
     #MWL_label = 'Effelsberg-Bonn HI Survey'
-    #Hist_MWL = GetGalacticCoordMap("MWL_maps/FGN_04100+0000_2x2_12CO_v1.00_image.txt", Hist_MWL, isRaDec)
-    #MWL_label = 'FUGIN project'
-    hist_MWL_reflect = reflectXaxis(Hist_MWL)
-    hist_MWL_reflect.GetYaxis().SetTitle(title_y)
-    hist_MWL_reflect.GetXaxis().SetTitle(title_x)
-    hist_MWL_reflect.GetZaxis().SetTitle('CO intensity (K km s^{-1} deg)')
-    hist_MWL_reflect.GetZaxis().SetTitleOffset(title_offset)
-    hist_MWL_reflect.Draw("COL4Z")
-    hist_contour_reflect.SetLineColor(0)
-    hist_contour_reflect.Draw("CONT3 same")
-    hist_MWL_reflect.GetXaxis().SetLabelOffset(999)
-    hist_MWL_reflect.GetXaxis().SetTickLength(0)
-    raLowerAxis.Draw()
-    mycircles = []
-    for nth_roi in range(0,len(roi_ra)):
-        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
-        mycircles[nth_roi].SetFillStyle(0)
-        mycircles[nth_roi].SetLineColor(2)
-        if nth_roi==0: continue
-        if (roi_name[nth_roi] in exclude_roi): continue
-        mycircles[nth_roi].Draw("same")
-    for star in range(0,len(other_star_markers)):
-        other_star_markers[star].Draw("same")
-        other_star_labels[star].Draw("same")
-    canvas.SaveAs('output_plots/SkymapMWL_%s_%s.png'%(name,selection_tag))
+    MWL_map_list = []
+    MWL_map_list += ['MWL_maps/FGN_04100+0000_2x2_12CO_v1.00_cube_47_51_column_density.txt']
+    MWL_map_list += ['MWL_maps/FGN_04100+0000_2x2_12CO_v1.00_cube_52_56_column_density.txt']
+    MWL_map_list += ['MWL_maps/FGN_04100+0000_2x2_12CO_v1.00_cube_57_61_column_density.txt']
+    MWL_map_list += ['MWL_maps/FGN_04100+0000_2x2_12CO_v1.00_cube_62_67_column_density.txt']
+    for mwl_map in range(0,len(MWL_map_list)):
+        Hist_MWL = hist_contour.Clone()
+        Hist_MWL = GetGalacticCoordMap(MWL_map_list[mwl_map], Hist_MWL, isRaDec)
+        MWL_label = 'FUGIN project'
+        hist_MWL_reflect = reflectXaxis(Hist_MWL)
+        hist_MWL_reflect.GetYaxis().SetTitle(title_y)
+        hist_MWL_reflect.GetXaxis().SetTitle(title_x)
+        #hist_MWL_reflect.GetZaxis().SetTitle('CO intensity (K km s^{-1} deg)')
+        hist_MWL_reflect.GetZaxis().SetTitle('CO column density (1/cm^{2})')
+        hist_MWL_reflect.GetZaxis().SetTitleOffset(title_offset+0.1)
+        hist_MWL_reflect.Draw("COL4Z")
+        hist_contour_reflect.SetLineColor(0)
+        hist_contour_reflect.Draw("CONT3 same")
+        hist_MWL_reflect.GetXaxis().SetLabelOffset(999)
+        hist_MWL_reflect.GetXaxis().SetTickLength(0)
+        raLowerAxis.Draw()
+        mycircles = []
+        for nth_roi in range(0,len(roi_ra)):
+            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+            mycircles[nth_roi].SetFillStyle(0)
+            mycircles[nth_roi].SetLineColor(2)
+            if nth_roi==0: continue
+            if (roi_name[nth_roi] in exclude_roi): continue
+            mycircles[nth_roi].Draw("same")
+        for star in range(0,len(other_star_markers)):
+            other_star_markers[star].Draw("same")
+            other_star_labels[star].Draw("same")
+        canvas.SaveAs('output_plots/SkymapMWL_%s_%s_%s.png'%(name,mwl_map,selection_tag))
+
+        Hist_MWL_Gal = ROOT.TH2D("Hist_MWL_Gal","",int(Skymap_nbins/zoomin_scale),source_l-Skymap_size/zoomin_scale,source_l+Skymap_size/zoomin_scale,int(Skymap_nbins/zoomin_scale),source_b-Skymap_size/zoomin_scale,source_b+Skymap_size/zoomin_scale)
+        Hist_MWL_Gal = GetGalacticCoordMap(MWL_map_list[mwl_map], Hist_MWL_Gal, False)
+        MWL_label = 'FUGIN project'
+        hist_MWL_Gal_reflect = reflectXaxis(Hist_MWL_Gal)
+        hist_MWL_Gal_reflect.GetYaxis().SetTitle('gal. b')
+        hist_MWL_Gal_reflect.GetXaxis().SetTitle('gal. l')
+        hist_MWL_Gal_reflect.GetZaxis().SetTitle('CO column density (1/cm^{2})')
+        hist_MWL_Gal_reflect.GetZaxis().SetTitleOffset(title_offset+0.1)
+        hist_MWL_Gal_reflect.Draw("COL4Z")
+        hist_MWL_Gal_reflect.GetXaxis().SetLabelOffset(999)
+        hist_MWL_Gal_reflect.GetXaxis().SetTickLength(0)
+        x1 = hist_MWL_Gal_reflect.GetXaxis().GetXmin()
+        x2 = hist_MWL_Gal_reflect.GetXaxis().GetXmax()
+        y1 = hist_MWL_Gal_reflect.GetYaxis().GetXmin()
+        y2 = hist_MWL_Gal_reflect.GetYaxis().GetXmax()
+        IncValues_gal = ROOT.TF1( "IncValues_gal", "-x", -x2, -x1 )
+        raLowerAxis_gal = ROOT.TGaxis( x1, y1, x2, y1,"IncValues_gal", 505, "+")
+        raLowerAxis_gal.SetLabelSize(hist_MWL_Gal_reflect.GetXaxis().GetLabelSize())
+        raLowerAxis_gal.Draw()
+        mycircles = []
+        for nth_roi in range(0,len(roi_ra)):
+            roi_l, roi_b = ConvertRaDecToGalactic(roi_ra[nth_roi],roi_dec[nth_roi])
+            mycircles += [ROOT.TEllipse(-1.*roi_l,roi_b,roi_radius[nth_roi])]
+            mycircles[nth_roi].SetFillStyle(0)
+            mycircles[nth_roi].SetLineColor(2)
+            if nth_roi==0: continue
+            if (roi_name[nth_roi] in exclude_roi): continue
+            mycircles[nth_roi].Draw("same")
+        for star in range(0,len(other_star_markers_gal)):
+            other_star_markers_gal[star].Draw("same")
+            other_star_labels_gal[star].Draw("same")
+        canvas.SaveAs('output_plots/SkymapMWL_Gal_%s_%s_%s.png'%(name,mwl_map,selection_tag))
 
 
 
@@ -4119,25 +4170,26 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,title_x,tit
     source_extent_err = []
     fig.clf()
     axbig = fig.add_subplot()
-    cycol = cycle('krgbcmy')
-    next_color = next(cycol)
     #center_x, center_y = FindCenter(hist_data_skymap_sum,hist_bkgd_skymap_sum)
     center_x, center_y = 286.975, 6.03777777778 #PSR J1907+0602
-    profile, profile_err, theta2 = FindExtension(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,center_x,center_y,extension_fitting_resolution)
+    #center_x, center_y = 286.786, 6.498 #SNR G40.5-0.5
+    profile, profile_err, theta2 = FindExtension(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,center_x,center_y,MapSize_y/zoomin_scale)
     start = (0.5, np.mean(profile)*len(theta2),0.)
-    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err))
+    fit_bound = ((0.,0.,0.),(np.inf,np.inf,np.inf))
+    #fit_bound = ((0.,0.,0.),(np.inf,np.inf,0.001))
+    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err), bounds=fit_bound)
     extension_fit = gaussian_disk_2d_to_1D(np.array(theta2), *popt)
     residual = np.array(profile) - extension_fit
     chisq = np.sum((residual/np.array(profile_err))**2)
     dof = len(theta2)-3
-    axbig.errorbar(theta2,profile,profile_err,color=next_color,marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
-    axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color=next_color)
+    axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
+    axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color='k')
     axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), popt[0], popt[1]),color='r')
     axbig.plot(np.array(theta2), disk_2d_to_1D(np.array(theta2), popt[2]),color='g')
     extent = popt[0]
-    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err))
+    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
     extent_up = popt[0]
-    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err))
+    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
     extent_dw = popt[0]
     extent_err = abs(extent_up-extent_dw)/2.
     print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
@@ -4151,20 +4203,21 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,title_x,tit
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         fig.clf()
         axbig = fig.add_subplot()
-        next_color = next(cycol)
-        profile, profile_err, theta2 = FindExtension(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],center_x,center_y,extension_fitting_resolution)
+        profile, profile_err, theta2 = FindExtension(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],center_x,center_y,MapSize_y/zoomin_scale)
         start = (0.5, np.mean(profile)*len(theta2),0.)
-        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err))
+        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err), bounds=fit_bound)
         extension_fit = gaussian_disk_2d_to_1D(np.array(theta2), *popt)
         residual = np.array(profile) - extension_fit
         chisq = np.sum((residual/np.array(profile_err))**2)
         dof = len(theta2)-3
-        axbig.errorbar(theta2,profile,profile_err,color=next_color,marker='s',ls='none',label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
-        axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color=next_color)
+        axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+        axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color='k')
+        axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), popt[0], popt[1]),color='r')
+        axbig.plot(np.array(theta2), disk_2d_to_1D(np.array(theta2), popt[2]),color='g')
         extent = popt[0]
-        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err))
+        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
         extent_up = popt[0]
-        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err))
+        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
         extent_dw = popt[0]
         extent_err = abs(extent_up-extent_dw)/2.
         print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
@@ -5194,11 +5247,11 @@ def FindCenter(Hist_Data_input,Hist_Bkgd_input):
 
     return excess_center_x_init, excess_center_y_init
 
-def FindExtension(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,roi_x,roi_y,resolution):
+def FindExtension(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,roi_x,roi_y,integration_range):
 
     n_bins = 10
     #theta2_limit = 0.5
-    theta2_limit = 2.0
+    theta2_limit = 1.5
     Hist_Profile_Theta2 = ROOT.TH1D("Hist_Profile_Theta2","",n_bins,0,theta2_limit)
     Hist_Data_Theta2 = ROOT.TH1D("Hist_Data_Theta2","",n_bins,0,theta2_limit)
     Hist_Bkgd_Theta2 = ROOT.TH1D("Hist_Bkgd_Theta2","",n_bins,0,theta2_limit)
@@ -5253,6 +5306,7 @@ def FindExtension(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,roi_x,roi_y,re
         bkgd_error = Hist_Bkgd_Theta2.GetBinError(binx+1)
         profile_content = Hist_Profile_Theta2.GetBinContent(binx+1)
         profile_error = Hist_Profile_Theta2.GetBinError(binx+1)
+        if center>integration_range: continue
         #if bkgd_error==0.: continue
         #if bkgd_error/bkgd_content>0.1: continue
         theta2 += [center]
@@ -5506,7 +5560,7 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
             Hist_Bkgd_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_SumSyst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
-        Hist_IndexMap = MakeSpectrumIndexSkymap(event_rate,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),1)
+        Hist_IndexMap = MakeSpectrumIndexSkymap(event_rate,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),2)
 
         fig.clf()
         axbig = fig.add_subplot()
@@ -5591,7 +5645,7 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
         #cycol = cycle('krgbcmy')
         #next_color = next(cycol)
         #center_x, center_y = FindCenter(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum)
-        #profile, profile_err, theta2 = FindExtension(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum,Hist_Syst_Energy_Skymap_Sum[len(integration_radii)-1],center_x,center_y,extension_fitting_resolution)
+        #profile, profile_err, theta2 = FindExtension(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum,Hist_Syst_Energy_Skymap_Sum[len(integration_radii)-1],center_x,center_y,MapSize_y/zoomin_scale)
         #start = (0.5, np.mean(profile)*len(theta2))
         #popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err))
         #extension_fit = gaussian_2d_to_1D(np.array(theta2), *popt)
@@ -5609,7 +5663,7 @@ def SingleSourceAnalysis(source_list,doMap,doSpectralMap,doSmooth,e_low,e_up):
         #print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
         #for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         #    next_color = next(cycol)
-        #    profile, profile_err, theta2 = FindExtension(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_NormSyst_Energy_Skymap[ebin],center_x,center_y,extension_fitting_resolution)
+        #    profile, profile_err, theta2 = FindExtension(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_NormSyst_Energy_Skymap[ebin],center_x,center_y,MapSize_y/zoomin_scale)
         #    start = (0.5, np.mean(profile)*len(theta2))
         #    popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err))
         #    extension_fit = gaussian_2d_to_1D(np.array(theta2), *popt)
@@ -5997,18 +6051,17 @@ doMorphologySpectroscopy = True
 #Smoothing = False
 Smoothing = True
 
-extension_fitting_resolution = 0.2
 
 #set_palette('default')
 #set_palette('gray')
 
 exclude_roi = []
-#exclude_roi += ['HAWC region']
+exclude_roi += ['HAWC region']
 exclude_roi += ['VHE region']
 exclude_roi += ['SNR region']
 exclude_roi += ['G40.5-0.5']
 exclude_roi += ['PSR region']
-exclude_roi += ['CO region']
+#exclude_roi += ['CO region']
 exclude_roi += ['LAT MeV region']
 exclude_roi += ['LAT GeV region']
 exclude_roi += ['Ring 1']
