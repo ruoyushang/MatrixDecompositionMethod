@@ -110,13 +110,12 @@ theta2_bins = [0,9]
 
 energy_bin = []
 energy_bin += [100]
-energy_bin += [214]
-energy_bin += [457]
-energy_bin += [1000]
-energy_bin += [2140]
-energy_bin += [4570]
+energy_bin += [251]
+energy_bin += [631]
+energy_bin += [1585]
+energy_bin += [3981]
 energy_bin += [10000]
-energy_bin += [25000]
+energy_bin += [25118]
 
 root_file_tags = []
 mjd_tag = []
@@ -420,8 +419,7 @@ FilePath_List = []
 #            ErecS_upper_cut = energy_bin[e+1]
 #            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
 
-#FilePath = "output_nominal/ObservingEffect.root"
-FilePath = "output_nocorrect/ObservingEffect.root"
+FilePath = "output_nominal/ObservingEffect.root"
 FilePath_List += [FilePath]
 print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
 for energy in range(0,len(energy_bin)-1):
