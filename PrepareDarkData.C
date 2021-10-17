@@ -462,9 +462,10 @@ pair<double,double> GetSourceRaDec(TString source_name)
     return std::make_pair(Source_RA,Source_Dec);
 }
 
-TObject* getEffAreaHistogram( TFile* fAnasumDataFile, int runnumber)
+TObject* getEffAreaHistogram( TFile* fAnasumDataFile, int runnumber, double offset)
 {
   double iSlizeY = -9999;
+  //iSlizeY = offset;
   string dirname = "energyHistograms";
   string hisname = "herecEffectiveArea_on";
   if( !fAnasumDataFile )
@@ -2687,7 +2688,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 filename_dark = TString(SMI_INPUT+"/"+string(run_number)+".anasum.root");
 
                 TFile*  dark_input_file = TFile::Open(filename_dark.c_str());
-                TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(dark_input_file,Dark_runlist.at(run).at(nth_sample)[off_run].second);
+                TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(dark_input_file,Dark_runlist.at(run).at(nth_sample)[off_run].second, 0.5);
                 TString root_file = "run_"+string(run_number)+"/stereo/data_on";
                 TTree* Dark_tree = (TTree*) dark_input_file->Get(root_file);
                 SetEventDisplayTreeBranch(Dark_tree);
@@ -3087,9 +3088,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 R2_weight = 0.;
             }
-            if (R2_weight>10.)
+            if (R2_weight>3.)
             {
-                R2_weight = 0.;
+                R2_weight = 1.;
             }
             if (!AcceptanceCorrection) R2_weight = 1.;
 
@@ -3187,7 +3188,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             MSCL = MSCL/MSCL_rescale[energy];
 
             double norm_syst_err = Hist_NormSystErr.at(elevation).GetBinContent(energy+1); 
-            double shape_syst_err[N_integration_radii] = {0.,0.,0.,0.};
+            double shape_syst_err[N_integration_radii] = {0.,0.,0.,0.,0.};
             for (int xybin=0;xybin<N_integration_radii;xybin++) 
             {
                 //int xoff_bin = Hist_ShapeSystErr.at(energy).at(xybin).GetXaxis()->FindBin(Xoff);
@@ -3224,9 +3225,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 R2_weight = 0.;
             }
-            if (R2_weight>10.)
+            if (R2_weight>3.)
             {
-                R2_weight = 0.;
+                R2_weight = 1.;
             }
             if (!AcceptanceCorrection) R2_weight = 1.;
             double Expo_weight = (2.*Skymap_size/12.)/(3.14*0.25);
@@ -3243,9 +3244,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 Expo_weight = 0.;
             }
-            if (Expo_weight>10.)
+            if (Expo_weight>3.)
             {
-                Expo_weight = 0.;
+                Expo_weight = 1.;
             }
             if (!ExposureCorrection) Expo_weight = 1.;
 
@@ -3282,9 +3283,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                                 Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight);
                                 Hist_NormSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight*norm_syst_err);
                                 double roi_bin_size = roi_radius_outer.at(nth_roi);
-                                int xybin_up = 0;
-                                double bin_size_up = 0.;
-                                double bin_size_low = 0.;
+                                int xybin_up = N_integration_radii-1;
+                                double bin_size_up = integration_radii[xybin_up];
+                                double bin_size_low = integration_radii[xybin_up-1];
+                                double shape_syst_err_intpl = shape_syst_err[xybin_up-1];
                                 for (int xybin=1;xybin<N_integration_radii;xybin++) 
                                 {
                                     double current_bin_size = integration_radii[xybin];
@@ -3293,10 +3295,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                                         xybin_up = xybin;
                                         bin_size_up = integration_radii[xybin];
                                         bin_size_low = integration_radii[xybin-1];
+                                        shape_syst_err_intpl = shape_syst_err[xybin_up-1] + (shape_syst_err[xybin_up]-shape_syst_err[xybin_up-1])/(bin_size_up-bin_size_low)*(roi_bin_size-bin_size_low);
                                         break;
                                     }
                                 }
-                                double shape_syst_err_intpl = shape_syst_err[xybin_up-1] + (shape_syst_err[xybin_up]-shape_syst_err[xybin_up-1])/(bin_size_up-bin_size_low)*(roi_bin_size-bin_size_low);
                                 Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight*shape_syst_err_intpl);
                                 Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,energy_weight*R2_weight*Expo_weight);
                             }
@@ -3332,9 +3334,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                                 Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight);
                                 Hist_NormSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight*norm_syst_err);
                                 double roi_bin_size = roi_radius_outer.at(nth_roi);
-                                int xybin_up = 0;
-                                double bin_size_up = 0.;
-                                double bin_size_low = 0.;
+                                int xybin_up = N_integration_radii-1;
+                                double bin_size_up = integration_radii[xybin_up];
+                                double bin_size_low = integration_radii[xybin_up-1];
+                                double shape_syst_err_intpl = shape_syst_err[xybin_up-1];
                                 for (int xybin=1;xybin<N_integration_radii;xybin++) 
                                 {
                                     double current_bin_size = integration_radii[xybin];
@@ -3343,10 +3346,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                                         xybin_up = xybin;
                                         bin_size_up = integration_radii[xybin];
                                         bin_size_low = integration_radii[xybin-1];
+                                        shape_syst_err_intpl = shape_syst_err[xybin_up-1] + (shape_syst_err[xybin_up]-shape_syst_err[xybin_up-1])/(bin_size_up-bin_size_low)*(roi_bin_size-bin_size_low);
                                         break;
                                     }
                                 }
-                                double shape_syst_err_intpl = shape_syst_err[xybin_up-1] + (shape_syst_err[xybin_up]-shape_syst_err[xybin_up-1])/(bin_size_up-bin_size_low)*(roi_bin_size-bin_size_low);
                                 Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,energy_weight*R2_weight*Expo_weight*shape_syst_err_intpl);
                                 Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,energy_weight*R2_weight*Expo_weight);
                             }
@@ -3418,7 +3421,12 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
         // Get effective area and livetime and determine the cosmic electron counts for this run.
         //std::cout << "Get effective area and livetime..." << std::endl;
-        TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(input_file,Data_runlist[run].second);
+        double wobble_angle = 0.5;
+        if (TString(target).Contains("Offset"))
+        {
+            wobble_angle = 1.0;
+        }
+        TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(input_file,Data_runlist[run].second, wobble_angle);
 
         Data_tree->GetEntry(0);
         double time_0 = Time;
@@ -3667,9 +3675,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 R2_weight = 0.;
             }
-            if (R2_weight>10.)
+            if (R2_weight>3.)
             {
-                R2_weight = 0.;
+                R2_weight = 1.;
             }
             if (!AcceptanceCorrection) R2_weight = 1.;
             double Expo_weight = (2.*Skymap_size/12.)/(3.14*0.25);
@@ -3686,9 +3694,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 Expo_weight = 0.;
             }
-            if (Expo_weight>10.)
+            if (Expo_weight>3.)
             {
-                Expo_weight = 0.;
+                Expo_weight = 1.;
             }
             if (!ExposureCorrection) Expo_weight = 1.;
 
