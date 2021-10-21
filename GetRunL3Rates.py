@@ -53,7 +53,7 @@ Source_Azim = []
 Source_Livetime = []
 
 #inputFile = open('diagnostics.txt')
-inputFile = open('diagnostics_20210308.txt')
+inputFile = open('diagnostics_20211012.txt')
 for line in inputFile:
     if line.split(' ')[0]=="#": 
         #print 'this is a comment line'
@@ -122,5 +122,5 @@ for line in inputFile:
         List_FIR_Mean += [0.]
         List_FIR_RMS += [0.]
 
-    print '%s %s'%(RunNumber,L3_rate)
+    print ('%s %s'%(RunNumber,L3_rate))
 

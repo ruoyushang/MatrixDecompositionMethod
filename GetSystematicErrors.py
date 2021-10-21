@@ -37,6 +37,8 @@ N_bins_for_deconv = 16
 #N_bins_for_deconv = 4
 #N_bins_for_deconv = 2
 
+ComputeSystErr = True
+
 #folder_path = 'output_nominal'
 folder_path = 'output_16x16'
 #folder_path = 'output_8x8'
@@ -333,7 +335,7 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
     if smooth_size>=2.0:
         Hist_Smooth.Reset()
         return Hist_Smooth
-    print ("nbin_smooth = %s"%(nbin_smooth))
+    print ("Energy %s, nbin_smooth = %s"%(ErecS_lower_cut,nbin_smooth))
     for bx1 in range(1,Hist_Old.GetNbinsX()+1):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
             bin_content = 0
@@ -803,7 +805,7 @@ for e in range(0,len(energy_bin)-1):
             print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
-            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source,True)
+            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source,ComputeSystErr)
 
     for binx in range (0,Hist_OnBkgd_SystErr_R2off.GetNbinsX()):
         old_content_weight = Hist_OnData_StatWeight_R2off.GetBinContent(binx+1)
