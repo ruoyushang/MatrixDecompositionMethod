@@ -590,7 +590,7 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20210705.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics_20211012.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -1395,7 +1395,11 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
     vector<double> new_list_pointing;
     for (int run=0;run<Data_runlist.size();run++)
     {
-        if (RunTypeCategory(Data_runlist[run].second,true)!=0) continue;
+        if (RunTypeCategory(Data_runlist[run].second,true)!=0) 
+        {
+            std::cout << int(Data_runlist[run].second) << " category rejected." << std::endl;
+            continue;
+        }
         char run_number[50];
         char Data_observation[50];
         sprintf(run_number, "%i", int(Data_runlist[run].second));
@@ -1404,18 +1408,18 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
         string filename;
         filename = TString(SMI_INPUT+"/"+string(run_number)+".anasum.root");
 
-        if (!PointingSelection(filename,int(Data_runlist[run].second),Elev_cut_lower,Elev_cut_upper,Azim_cut_lower,Azim_cut_upper)) continue;
+        if (!PointingSelection(filename,int(Data_runlist[run].second),Elev_cut_lower,Elev_cut_upper,Azim_cut_lower,Azim_cut_upper))
+        {
+            std::cout << int(Data_runlist[run].second) << " pointing rejected." << std::endl;
+            continue;
+        }
         if (!MJDSelection(filename,int(Data_runlist[run].second),MJD_start_cut,MJD_end_cut)) continue;
         double L3_rate = GetRunL3Rate(Data_runlist[run].second);
-        if (L3_rate<150.) continue;
-        //if (TString(Data_runlist[run].first).Contains("H1426"))
-        //{
-        //    if (L3_rate<300.) continue;
-        //}
-        //if (TString(Data_runlist[run].first).Contains("NGC1275"))
-        //{
-        //    if (L3_rate<400.) continue;
-        //}
+        if (L3_rate<150.)
+        {
+            std::cout << int(Data_runlist[run].second) << " L3 rate rejected." << std::endl;
+            continue;
+        }
 
         new_list.push_back(std::make_pair(Data_runlist[run].first,Data_runlist[run].second));
         new_list_pointing.push_back(GetRunElevAzim(filename,int(Data_runlist[run].second)).first);
