@@ -2137,11 +2137,17 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_ra.push_back(286.91);
             roi_dec.push_back(6.32);
             roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(2.);
+            roi_radius_outer.push_back(1.5);
 
-            roi_name.push_back("CO region");
-            roi_ra.push_back(286.65);
-            roi_dec.push_back(7.05);
+            roi_name.push_back("CO region north");
+            roi_ra.push_back(286.786);
+            roi_dec.push_back(7.1);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.2);
+
+            roi_name.push_back("CO region west");
+            roi_ra.push_back(286.2);
+            roi_dec.push_back(6.4);
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.2);
 
@@ -2265,7 +2271,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 roi_ra.push_back(mean_tele_point_ra);
                 roi_dec.push_back(mean_tele_point_dec);
                 roi_radius_inner.push_back(0.);
-                roi_radius_outer.push_back(0.5);
+                roi_radius_outer.push_back(0.3);
             }
         }
         else if (TString(target).Contains("Mrk421")) 
@@ -2425,10 +2431,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
-        int R2off_bins = 36;
-        if (energy_bins[e]>=1000.) R2off_bins = 18;
-        if (energy_bins[e]>=2000.) R2off_bins = 9;
-        Hist_OnData_Correct_R2off.push_back(TH1D("Hist_Stage1_OnData_Correct_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",R2off_bins,0,9));
+        int R2off_bins = 6;
+        //if (energy_bins[e]>=2000.) R2off_bins = 3;
+        Hist_OnData_Correct_R2off.push_back(TH1D("Hist_Stage1_OnData_Correct_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",R2off_bins,0,3));
     }
 
 
@@ -2982,7 +2987,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 if (R2off<camera_theta2_cut_upper)
                 {
-                    Hist_OnData_Correct_R2off.at(energy).Fill(R2off,yoff_weight);
+                    Hist_OnData_Correct_R2off.at(energy).Fill(pow(R2off,0.5),yoff_weight);
                 }
             }
 
@@ -3083,7 +3088,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 energy_weight = data_cr_content_energy/dark_cr_content_energy;
             }
             double R2_weight = 0.;
-            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(R2off);
+            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(pow(R2off,0.5));
             if (Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off)>0.)
             {
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
@@ -3220,7 +3225,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 energy_weight = data_cr_content_energy/dark_cr_content_energy;
             }
             double R2_weight = 0.;
-            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(R2off);
+            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(pow(R2off,0.5));
             if (Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off)>0.)
             {
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
@@ -3670,7 +3675,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             double weight = 1.;
             //if (theta2<source_theta2_cut && SignalSelectionTheta2()) weight = source_weight.at(energy);
             double R2_weight = 0.;
-            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(R2off);
+            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(pow(R2off,0.5));
             if (Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off)>0.)
             {
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
