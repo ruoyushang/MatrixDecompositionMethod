@@ -2034,7 +2034,7 @@ def MakeSpectrumInNonCrabUnit(ax_local,hist_data,hist_bkgd,hist_syst,radii,legen
         next_color = next(cycol)
         if doUpperLimit:
             ax_local.fill_between(roi_xdata[nth_roi], roi_zeros[nth_roi], roi_error[nth_roi], alpha=0.2, color='r')
-        if 'Crab' in legends[nth_roi] or n_1sigma<4:
+        if 'Crab' in legends[nth_roi] or n_1sigma<4 or doUpperLimit:
             ax_local.errorbar(roi_xdata[nth_roi], roi_ydata[nth_roi], roi_error[nth_roi], color=next_color, marker='s', ls='none', label='%s'%(legends[nth_roi]))
         else:
             start = (roi_ydata[nth_roi][0]/pow(10,-12), -2.)
@@ -2572,6 +2572,31 @@ def PlotsStackedHistograms(tag):
     plotname = 'Stack_Yoff_MDM_%s'%(tag)
     title = 'Y off'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
+
+    xdata = []
+    ydata = []
+    ydata_err = []
+    ybkgd = []
+    ybkgd_err = []
+    for binx in range(0,Hist_OnData_Theta2_Sum.GetNbinsX()):
+        if Hist_OnData_Theta2_Sum.GetBinCenter(binx+1)>4.: continue
+        xdata += [Hist_OnData_Theta2_Sum.GetBinCenter(binx+1)]
+        ydata += [Hist_OnData_Theta2_Sum.GetBinContent(binx+1)]
+        ydata_err += [Hist_OnData_Theta2_Sum.GetBinError(binx+1)]
+        ybkgd += [Hist_OnBkgd_Theta2_Sum.GetBinContent(binx+1)]
+        bkgd_err = Hist_OnBkgd_Theta2_Sum.GetBinError(binx+1)
+        syst_err = Hist_SystErr_Theta2_Sum.GetBinError(binx+1)
+        ybkgd_err += [pow(bkgd_err*bkgd_err+syst_err*syst_err,0.5)]
+    fig.clf()
+    axbig = fig.add_subplot()
+    axbig.errorbar(xdata,ydata,ydata_err,color='k',marker='s',ls='none',label='data')
+    axbig.errorbar(xdata,ybkgd,ybkgd_err,color='r',marker='s',ls='none',label='background')
+    axbig.legend(loc='best')
+    axbig.set_xlabel('squared angle from source location $\\theta^{2}$')
+    axbig.set_ylabel('event count')
+    plotname = 'Stack_Theta2_%s'%(tag)
+    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+    axbig.remove()
 
     Hists = []
     legends = []
@@ -3450,6 +3475,8 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
     nbin_smooth = int(2*smooth_size/bin_size) + 1
     for bx1 in range(1,Hist_Old.GetNbinsX()+1):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
+            old_content = Hist_Old.GetBinContent(bx1,by1)
+            old_error = Hist_Old.GetBinError(bx1,by1)
             bin_content = 0
             bin_error = 0
             bin_norm = 0
@@ -3469,10 +3496,18 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
                             else:
                                 bin_error += ROOT.TMath.Gaus(distance,0,smooth_size)*Hist_Old.GetBinError(bx2,by2)
             Hist_Smooth.SetBinContent(bx1,by1,bin_content)
+            #if old_content>0.:
+            #    bin_error = old_error*bin_content/old_content
+            #Hist_Smooth.SetBinError(bx1,by1,bin_error)
             if not addLinearly:
                 Hist_Smooth.SetBinError(bx1,by1,pow(bin_error,0.5))
             else:
                 Hist_Smooth.SetBinError(bx1,by1,bin_error)
+
+    old_integral = Hist_Old.Integral()
+    new_integral = Hist_Smooth.Integral()
+    if new_integral>0.: Hist_Smooth.Scale(old_integral/new_integral)
+
     return Hist_Smooth
 
 def CorrectLEE(z_score,n_tests,threshold_sigma):
@@ -3726,7 +3761,7 @@ def VariableSkymapBins(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input):
     return list_maxsig, list_binsize
 
 
-def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,hist_expo,title_x,title_y,name,zoomin_scale):
+def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hist_syst,hist_expo,title_x,title_y,name,zoomin_scale):
 
     global calibration
 
@@ -3821,6 +3856,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,hist_expo,t
     MapSize_y = (MapEdge_upper-MapEdge_lower)/2.
 
     hist_zscore_skymap = []
+    hist_data_skymap_unsmooth = []
     hist_data_skymap = []
     hist_flux_skymap = []
     hist_syst_skymap = []
@@ -3830,6 +3866,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,hist_expo,t
         hist_flux_skymap += [ROOT.TH2D("hist_flux_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_zscore_skymap += [ROOT.TH2D("hist_zscore_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_data_skymap += [ROOT.TH2D("hist_data_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_data_skymap_unsmooth += [ROOT.TH2D("hist_data_skymap_unsmooth_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_syst_skymap += [ROOT.TH2D("hist_syst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_bkgd_skymap += [ROOT.TH2D("hist_bkgd_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_expo_skymap += [ROOT.TH2D("hist_expo_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
@@ -3849,6 +3886,12 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,hist_expo,t
                 new_error = hist_data[ebin].GetBinError(bx+1,by+1)
                 old_error = hist_data_skymap[ebin].GetBinError(bx2,by2)
                 hist_data_skymap[ebin].SetBinError(bx2,by2,pow(new_error*new_error+old_error*old_error,0.5))
+                new_content = hist_data_unsmooth[ebin].GetBinContent(bx+1,by+1)
+                old_content = hist_data_skymap_unsmooth[ebin].GetBinContent(bx2,by2)
+                hist_data_skymap_unsmooth[ebin].SetBinContent(bx2,by2,old_content+new_content)
+                new_error = hist_data_unsmooth[ebin].GetBinError(bx+1,by+1)
+                old_error = hist_data_skymap_unsmooth[ebin].GetBinError(bx2,by2)
+                hist_data_skymap_unsmooth[ebin].SetBinError(bx2,by2,pow(new_error*new_error+old_error*old_error,0.5))
                 new_content = hist_bkgd[ebin].GetBinContent(bx+1,by+1)
                 old_content = hist_bkgd_skymap[ebin].GetBinContent(bx2,by2)
                 hist_bkgd_skymap[ebin].SetBinContent(bx2,by2,old_content+new_content)
@@ -3883,6 +3926,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,hist_expo,t
     list_edata = []
     list_fdata = []
     list_error = []
+    list_zeros = []
     legends = []
     for nth_roi in range(1,len(roi_ra)):
         if (roi_name[nth_roi] in exclude_roi): continue
@@ -3890,8 +3934,8 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,hist_expo,t
         edata = []
         fdata = []
         error = []
+        zeros = []
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-            #correction = calibration[ebin]*pow(roi_radius[nth_roi],2)/(0.3*0.3)
             correction = calibration[ebin]*pow(smooth_size_spectroscopy,2)/(0.3*0.3)
             print ('correction = %s'%(correction))
             flux_sum = 0.
@@ -3907,7 +3951,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,hist_expo,t
                     if expo_cell==0.: continue
                     data_cell = hist_data_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
                     bkgd_cell = hist_bkgd_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
-                    data_err_cell = hist_data_skymap[ebin].GetBinError(bx+1,by+1)/expo_cell*correction
+                    data_err_cell = hist_data_skymap_unsmooth[ebin].GetBinError(bx+1,by+1)/expo_cell*correction
                     bkgd_err_cell = hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)/expo_cell*correction
                     syst_err_cell = hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
                     flux_sum += (data_cell-bkgd_cell)
@@ -3916,9 +3960,11 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,hist_expo,t
             edata += [energy_bin[ebin]]
             fdata += [flux_sum]
             error += [pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)]
+            zeros += [0.]
         list_edata += [edata]
         list_fdata += [fdata]
         list_error += [error]
+        list_zeros += [zeros]
 
     cycol = cycle('krgbcmy')
     fig.clf()
@@ -3930,7 +3976,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,hist_expo,t
             if list_fdata[nth_roi][binx]/list_error[nth_roi][binx]>1.:
                 n_1sigma += 1
         next_color = next(cycol)
-        if 'Crab' in legends[nth_roi] or n_1sigma<4:
+        if 'Crab' in legends[nth_roi] or n_1sigma<4 or doUpperLimit:
             axbig.errorbar(list_edata[nth_roi],list_fdata[nth_roi],list_error[nth_roi],color=next_color,marker='s',ls='none',label='%s'%(legends[nth_roi]))
         else:
             start = (list_fdata[nth_roi][0]/pow(10,-12), -2.)
@@ -3941,6 +3987,8 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data,hist_bkgd,hist_syst,hist_expo,t
             chisq = np.sum((residual/np.array(list_error[nth_roi]))**2)
             dof = len(list_edata[nth_roi])-2
             axbig.errorbar(list_edata[nth_roi],list_fdata[nth_roi],list_error[nth_roi],color=next_color,marker='s',ls='none',label='%s, $\Gamma$ = %0.1f, $\chi^{2}/dof = %0.1f$'%(legends[nth_roi],popt[1],chisq/dof))
+        if doUpperLimit:
+            axbig.fill_between(list_edata[nth_roi], list_zeros[nth_roi], list_error[nth_roi], alpha=0.2, color='r')
 
     log_energy = np.linspace(log10(list_edata[0][0]),log10(list_edata[0][len(list_edata[0])-1]),50)
     xdata = pow(10.,log_energy)
@@ -5461,7 +5509,10 @@ def FindCenter(Hist_Data_input,Hist_Bkgd_input):
             bin_x = Hist_Excess.GetXaxis().GetBinCenter(bx+1)
             bin_y = Hist_Excess.GetYaxis().GetBinCenter(by+1)
             excess_content = Hist_Excess.GetBinContent(bx+1,by+1)
-            mass = excess_content
+            excess_error = Hist_Excess.GetBinError(bx+1,by+1)
+            if excess_error==0.: continue;
+            if excess_content<=0.: continue;
+            mass = excess_content/excess_error
             mass_distance_x = mass*bin_x
             mass_distance_y = mass*bin_y
             total_mass += mass
@@ -5543,6 +5594,7 @@ def FindExtension(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,Hist_Expo_inpu
         bkgd_content = Hist_Bkgd_Theta2.GetBinContent(binx+1)
         bkgd_error = Hist_Bkgd_Theta2.GetBinError(binx+1)
         profile_content = Hist_Profile_Theta2.GetBinContent(binx+1)
+        profile_content = max(0.,profile_content)
         profile_error = Hist_Profile_Theta2.GetBinError(binx+1)
         if center>integration_range: continue
         #if bkgd_error/bkgd_content>0.1: continue
@@ -5795,11 +5847,7 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
             Hist_Bkgd_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],2.*smooth_size_spectroscopy,False)
             Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_SumSyst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
-            bkgd_norm = Hist_Bkgd_Energy_Skymap_smooth[ebin].Integral()
-            expo_norm = Hist_Expo_Energy_Skymap_smooth[ebin].Integral()
-            if expo_norm==0.: continue
-            Hist_Expo_Energy_Skymap_smooth[ebin].Scale(bkgd_norm/expo_norm)
-        Hist_IndexMap = MakeSpectrumIndexSkymap(event_rate,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Expo_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
+        Hist_IndexMap = MakeSpectrumIndexSkymap(event_rate,Hist_Data_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Expo_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
 
         fig.clf()
         axbig = fig.add_subplot()
