@@ -57,7 +57,15 @@ method_tag += lowrank_tag
 energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
+#elev_range = [35,40,45,50,55,60,65,70,75,80,85]
+#elev_range = [80,85]
+#elev_range = [75,80]
+#elev_range = [70,75]
+#elev_range = [65,70]
+#elev_range = [40,45]
+
 elev_range = [35,45,55,65,75,85]
+#elev_range = [55,65,75,85]
 #elev_range = [65,75,85]
 #elev_range = [75,85]
 #elev_range = [65,75]
@@ -67,6 +75,14 @@ elev_range = [35,45,55,65,75,85]
 
 theta2_bins = [0,4]
 #theta2_bins = [0,6]
+
+# all time
+mjd_tag = []
+mjd_tag += ['']
+#mjd_tag += ['_MJD53613to55074']
+#mjd_tag += ['_MJD55074to56535']
+#mjd_tag += ['_MJD56535to57996']
+#mjd_tag += ['_MJD57996to59457']
 
 ONOFF_tag = 'ON'
 sample_list = []
@@ -450,14 +466,14 @@ if sys.argv[1]=='Crab_ON':
     sample_list = []
     sample_list += ['CrabV6_ON']
     sample_list += ['CrabV5_ON']
-    sample_list += ['CrabV4_ON']
+    #sample_list += ['CrabV4_ON']
 if sys.argv[1]=='Crab_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['CrabV6_OFF']
     sample_list += ['CrabV5_OFF']
-    sample_list += ['CrabV4_OFF']
+    #sample_list += ['CrabV4_OFF']
     
 if sys.argv[1]=='Crab_Offset_ON':
     ONOFF_tag = 'ON'
@@ -597,7 +613,7 @@ if sys.argv[1]=='GammaCygni_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
-    sample_list += ['GammaCygniV4_ON']
+    #sample_list += ['GammaCygniV4_ON']
     sample_list += ['GammaCygniV5_ON']
     sample_list += ['GammaCygniV6_ON']
     # this is a Tevatron
@@ -617,13 +633,6 @@ if sys.argv[1]=='Coma_ON':
     #sample_list += ['ComaV4_ON']
 
 root_file_tags = []
-# all time
-mjd_tag = []
-mjd_tag += ['']
-#mjd_tag += ['_MJD53613to55074']
-#mjd_tag += ['_MJD55074to56535']
-#mjd_tag += ['_MJD56535to57996']
-#mjd_tag += ['_MJD57996to59457']
 
 for elev in range(0,len(elev_range)-1):
     elev_tag = '_TelElev%sto%s'%(elev_range[elev],elev_range[elev+1])
@@ -700,7 +709,8 @@ Data_runlist_L3Rate_all = ROOT.std.vector("double")(10)
 roi_name = ROOT.std.vector("string")(10)
 roi_ra = ROOT.std.vector("double")(10)
 roi_dec = ROOT.std.vector("double")(10)
-roi_radius = ROOT.std.vector("double")(10)
+roi_radius_inner = ROOT.std.vector("double")(10)
+roi_radius_outer = ROOT.std.vector("double")(10)
 max_chi2_diff2_position = ROOT.std.vector("double")(10)
 max_chi2_diff2_position_this_energy = 0.
 
@@ -1007,7 +1017,8 @@ def GetSourceInfo(file_list):
     global roi_name
     global roi_ra
     global roi_dec
-    global roi_radius
+    global roi_radius_inner
+    global roi_radius_outer
     global max_chi2_diff2_position
 
     n_good_matches = 0
@@ -1028,7 +1039,8 @@ def GetSourceInfo(file_list):
         InfoTree.SetBranchAddress('roi_name',ROOT.AddressOf(roi_name))
         InfoTree.SetBranchAddress('roi_ra',ROOT.AddressOf(roi_ra))
         InfoTree.SetBranchAddress('roi_dec',ROOT.AddressOf(roi_dec))
-        InfoTree.SetBranchAddress('roi_radius_outer',ROOT.AddressOf(roi_radius))
+        InfoTree.SetBranchAddress('roi_radius_inner',ROOT.AddressOf(roi_radius_inner))
+        InfoTree.SetBranchAddress('roi_radius_outer',ROOT.AddressOf(roi_radius_outer))
         InfoTree.GetEntry(0)
         Hist_NSB.Reset()
         Hist_L3Rate.Reset()
@@ -1933,6 +1945,10 @@ def power_law_func(x,a,b):
 def flux_crab_func(x):
     # Crab https://arxiv.org/pdf/1508.06442.pdf
     return 37.5*pow(10,-12)*pow(x*1./1000.,-2.467-0.16*log(x/1000.))
+def flux_veritas_j2019_407_func(x):
+    # VER J2019+407  TeV^{-1}cm^{-2}s^{-1}
+    return 1.5*pow(10,-12)*pow(x*1./1000.,-2.37)
+    #return 5.01*pow(10,-13)*pow(x*1./1500.,-2.79)
 def flux_veritas_j1908_func(x):
     # MGRO J1908  TeV^{-1}cm^{-2}s^{-1}
     return 4.23*pow(10,-12)*pow(x*1./1000.,-2.2)
@@ -2009,8 +2025,8 @@ def MakeSpectrumInNonCrabUnit(ax_local,hist_data,hist_bkgd,hist_syst,radii,legen
             xdata += [Hist_Flux[nth_roi].GetBinLowEdge(binx+1)]
             zeros += [0.]
             if doCalibrate:
-                ydata += [Hist_Flux[nth_roi].GetBinContent(binx+1)*calibration[binx]*pow(radii[nth_roi],2)/(0.3*0.3)]
-                error += [Hist_Flux[nth_roi].GetBinError(binx+1)*calibration[binx]*pow(radii[nth_roi],2)/(0.3*0.3)]
+                ydata += [Hist_Flux[nth_roi].GetBinContent(binx+1)*calibration[binx]*pow(radii[nth_roi],2)/(0.4*0.4)]
+                error += [Hist_Flux[nth_roi].GetBinError(binx+1)*calibration[binx]*pow(radii[nth_roi],2)/(0.4*0.4)]
             else:
                 ydata += [Hist_Flux[nth_roi].GetBinContent(binx+1)]
                 error += [Hist_Flux[nth_roi].GetBinError(binx+1)]
@@ -2059,14 +2075,14 @@ def MakeSpectrumInNonCrabUnit(ax_local,hist_data,hist_bkgd,hist_syst,radii,legen
                 xdata_array = []
                 for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
                     xdata_array += [Hist_Flux[0].GetBinLowEdge(binx+1)]
-                ydata = pow(np.array(xdata_array),E_index)*vectorize_f(xdata_array)
-                calibration_new = []
-                for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
-                    if Hist_Flux[0].GetBinContent(binx+1)>0.:
-                        calibration_new += [ydata[binx]/Hist_Flux[0].GetBinContent(binx+1)]
-                    else:
-                        calibration_new += [0.]
-                print ('calibration_new = %s'%(calibration_new))
+                #ydata = pow(np.array(xdata_array),E_index)*vectorize_f(xdata_array)
+                #calibration_new = []
+                #for binx in range(0,Hist_Flux[nth_roi].GetNbinsX()):
+                #    if Hist_Flux[0].GetBinContent(binx+1)>0.:
+                #        calibration_new += [ydata[binx]/Hist_Flux[0].GetBinContent(binx+1)]
+                #    else:
+                #        calibration_new += [0.]
+                #print ('calibration_new = %s'%(calibration_new))
         if 'VHE region' in legends[nth_roi]:
             vectorize_f = np.vectorize(flux_veritas_j1908_func)
             ydata = pow(xdata,E_index)*vectorize_f(xdata)
@@ -2097,6 +2113,10 @@ def MakeSpectrumInNonCrabUnit(ax_local,hist_data,hist_bkgd,hist_syst,radii,legen
             vectorize_f = np.vectorize(flux_j1857_func)
             ydata = pow(xdata,E_index)*vectorize_f(xdata)
             ax_local.plot(xdata, ydata,'r-',label='From Aleksic et al. (2014)')
+        if 'J2019+407' in legends[nth_roi]:
+            vectorize_f = np.vectorize(flux_veritas_j2019_407_func)
+            ydata = pow(xdata,E_index)*vectorize_f(xdata)
+            ax_local.plot(xdata, ydata,'r-',label='From Weinstein et al. (2012)')
 
     ax_local.legend(loc='best')
     ax_local.set_xlabel('Energy [GeV]')
@@ -2256,14 +2276,18 @@ def MakeChi2Plot(Hists,legends,colors,stack_it,title,name,doSum,range_lower,rang
     if not 'MDM' in name: syst_err = 0.
     err_bkg = pow(err_bkg*err_bkg+(syst_err*predict_bkg)*(syst_err*predict_bkg),0.5)
     Sig = 1.*CalculateSignificance(data_SR-predict_bkg,predict_bkg,err_bkg)
-    #lumilab2 = ROOT.TLatex(0.15,0.60,'Excess = %0.1f#pm%0.1f'%(data_SR-predict_bkg,pow(err_SR*err_SR+err_bkg*err_bkg,0.5)) )
-    #lumilab2.SetNDC()
-    #lumilab2.SetTextSize(0.15)
-    #lumilab2.Draw()
-    #lumilab3 = ROOT.TLatex(0.15,0.40,'Bkg = %0.1f#pm%0.1f'%(predict_bkg,err_bkg) )
-    #lumilab3.SetNDC()
-    #lumilab3.SetTextSize(0.15)
-    #lumilab3.Draw()
+    lumilab2 = ROOT.TLatex(0.5,0.60,'Excess = %0.1f#pm%0.1f'%(data_SR-predict_bkg,pow(err_SR*err_SR+err_bkg*err_bkg,0.5)) )
+    lumilab2.SetNDC()
+    lumilab2.SetTextSize(0.15)
+    lumilab2.Draw()
+    lumilab1 = ROOT.TLatex(0.5,0.40,'Data = %0.1f#pm%0.1f'%(data_SR,err_SR) )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.15)
+    lumilab1.Draw()
+    lumilab3 = ROOT.TLatex(0.5,0.20,'Bkg = %0.1f#pm%0.1f'%(predict_bkg,err_bkg) )
+    lumilab3.SetNDC()
+    lumilab3.SetTextSize(0.15)
+    lumilab3.Draw()
     sbratio = 0
     sbratio_err = 0
     if not predict_bkg==0: 
@@ -2740,21 +2764,21 @@ def PlotsStackedHistograms(tag):
         Hist_data += [Hist_OnData_RoI_Energy_Sum[nth_roi]]
         Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[nth_roi]]
         Hist_syst += [Hist_SumSyst_RoI_Energy[nth_roi]]
-        radii += [roi_radius[nth_roi]]
+        radii += [roi_radius_outer[nth_roi]]
         legends += ['%s'%(roi_name[nth_roi])]
     title = 'energy [GeV]'
-    fig.clf()
-    axbig = fig.add_subplot()
-    MakeSpectrumInNonCrabUnit(axbig,Hist_data,Hist_bkgd,Hist_syst,radii,legends,title,True,False,0.)
-    plotname = 'Flux_Calibrate_%s'%(tag)
-    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-    axbig.remove()
-    fig.clf()
-    axbig = fig.add_subplot()
-    MakeSpectrumInNonCrabUnit(axbig,Hist_data,Hist_bkgd,Hist_syst,radii,legends,title,True,False,2.)
-    plotname = 'FluxE2_Calibrate_%s'%(tag)
-    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-    axbig.remove()
+    #fig.clf()
+    #axbig = fig.add_subplot()
+    #MakeSpectrumInNonCrabUnit(axbig,Hist_data,Hist_bkgd,Hist_syst,radii,legends,title,True,False,0.)
+    #plotname = 'Flux_Calibrate_%s'%(tag)
+    #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+    #axbig.remove()
+    #fig.clf()
+    #axbig = fig.add_subplot()
+    #MakeSpectrumInNonCrabUnit(axbig,Hist_data,Hist_bkgd,Hist_syst,radii,legends,title,True,False,2.)
+    #plotname = 'FluxE2_Calibrate_%s'%(tag)
+    #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+    #axbig.remove()
     fig.clf()
     axbig = fig.add_subplot()
     MakeSpectrumInNonCrabUnit(axbig,Hist_data,Hist_bkgd,Hist_syst,radii,legends,title,False,False,0.)
@@ -2792,21 +2816,21 @@ def PlotsStackedHistograms(tag):
     fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
     axbig.remove()
 
-    Hist_data = []
-    Hist_bkgd = []
-    Hist_syst = []
-    legends = []
-    Hist_data += [Hist_OnData_RoI_Energy_Sum[0]]
-    Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[0]]
-    Hist_syst += [Hist_SumSyst_RoI_Energy[0]]
-    legends += ['background flux']
-    title = 'energy [GeV]'
-    fig.clf()
-    axbig = fig.add_subplot()
-    MakeSpectrumInNonCrabUnit(axbig,Hist_data,Hist_bkgd,Hist_syst,radii,legends,title,False,True,2.7)
-    plotname = 'FluxE27_MDM_%s'%(tag)
-    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-    axbig.remove()
+    #Hist_data = []
+    #Hist_bkgd = []
+    #Hist_syst = []
+    #legends = []
+    #Hist_data += [Hist_OnData_RoI_Energy_Sum[0]]
+    #Hist_bkgd += [Hist_OnBkgd_RoI_Energy_Sum[0]]
+    #Hist_syst += [Hist_SumSyst_RoI_Energy[0]]
+    #legends += ['background flux']
+    #title = 'energy [GeV]'
+    #fig.clf()
+    #axbig = fig.add_subplot()
+    #MakeSpectrumInNonCrabUnit(axbig,Hist_data,Hist_bkgd,Hist_syst,radii,legends,title,False,True,2.7)
+    #plotname = 'FluxE27_MDM_%s'%(tag)
+    #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+    #axbig.remove()
 
     #Hist_data_energy = []
     #Hist_bkgd_energy = []
@@ -3504,10 +3528,6 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
             else:
                 Hist_Smooth.SetBinError(bx1,by1,bin_error)
 
-    old_integral = Hist_Old.Integral()
-    new_integral = Hist_Smooth.Integral()
-    if new_integral>0.: Hist_Smooth.Scale(old_integral/new_integral)
-
     return Hist_Smooth
 
 def CorrectLEE(z_score,n_tests,threshold_sigma):
@@ -3761,9 +3781,10 @@ def VariableSkymapBins(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input):
     return list_maxsig, list_binsize
 
 
-def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hist_syst,hist_expo,title_x,title_y,name,zoomin_scale):
+def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_bkgd,hist_syst,hist_expo,title_x,title_y,name,zoomin_scale):
 
     global calibration
+    calibration_radius = 0.3
 
     isRaDec = False
     if 'RaDec' in name: isRaDec = True
@@ -3832,6 +3853,12 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].SetMarkerSize(1.5*zoomin_scale)
         other_star_labels[star].SetTextSize(0.03)
+    for star in range(0,len(bright_star_markers)):
+        bright_star_markers[star].SetMarkerSize(1.5*zoomin_scale)
+        bright_star_labels[star].SetTextSize(0.03)
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].SetMarkerSize(1.5*zoomin_scale)
+        faint_star_labels[star].SetTextSize(0.03)
 
     canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 650, 600)
     pad1 = ROOT.TPad("pad1","pad1",0,0,1,1)
@@ -3905,6 +3932,11 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
                 old_error = hist_expo_skymap[ebin].GetBinError(bx2,by2)
                 hist_expo_skymap[ebin].SetBinError(bx2,by2,pow(new_error*new_error+old_error*old_error,0.5))
     for ebin in range(0,len(energy_bin)-1):
+        size_smooth = hist_data_skymap[ebin].Integral()
+        size_unsmooth = hist_data_skymap_unsmooth[ebin].Integral()
+        if size_unsmooth==0.: continue
+        hist_data_skymap_unsmooth[ebin].Scale(size_smooth/size_unsmooth)
+    for ebin in range(0,len(energy_bin)-1):
         hist_zscore_skymap[ebin] = GetSignificanceMap(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],False)
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
@@ -3913,7 +3945,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
                 if data_content==0.: continue
                 if bkgd_content==0.: continue
                 expo_content = hist_expo_skymap[ebin].GetBinContent(bx+1,by+1)
-                correction = calibration[ebin]*pow(smooth_size_spectroscopy,2)/(0.3*0.3)
+                correction = calibration[ebin]*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)
                 hist_flux_skymap[ebin].SetBinContent(bx+1,by+1,(data_content-bkgd_content)/expo_content*correction)
                 stat_data_err = hist_data_skymap[ebin].GetBinError(bx+1,by+1)/expo_content*correction
                 stat_bkgd_err = hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)/expo_content*correction
@@ -3923,7 +3955,10 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
                 hist_flux_skymap[ebin].SetBinError(bx+1,by+1,pow(stat_err*stat_err+syst_err*syst_err,0.5))
 
     
+    energy_index = 2
     list_edata = []
+    list_rate = []
+    list_rate_err = []
     list_fdata = []
     list_error = []
     list_zeros = []
@@ -3932,12 +3967,16 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
         if (roi_name[nth_roi] in exclude_roi): continue
         legends += ['%s'%(roi_name[nth_roi])]
         edata = []
+        rate = []
+        rate_err = []
         fdata = []
         error = []
         zeros = []
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-            correction = calibration[ebin]*pow(smooth_size_spectroscopy,2)/(0.3*0.3)
+            correction = calibration[ebin]*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)
             print ('correction = %s'%(correction))
+            rate_sum = 0.
+            rate_err_sum = 0.
             flux_sum = 0.
             stat_err_sum = 0.
             syst_err_sum = 0.
@@ -3946,25 +3985,96 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
                     bin_ra = hist_data_skymap[0].GetXaxis().GetBinCenter(bx+1)
                     bin_dec = hist_data_skymap[0].GetYaxis().GetBinCenter(by+1)
                     distance = pow(pow(bin_ra-roi_ra[nth_roi],2) + pow(bin_dec-roi_dec[nth_roi],2),0.5)
-                    if distance>roi_radius[nth_roi]: continue
+                    radius_inner = roi_radius_inner[nth_roi]
+                    radius_outer = roi_radius_outer[nth_roi]
+                    if sys.argv[1]=='Crab_ON':
+                        radius_inner = 0.
+                        radius_outer = calibration_radius
+                    if distance<radius_inner: continue
+                    if distance>radius_outer: continue
                     expo_cell = hist_expo_skymap[ebin].GetBinContent(bx+1,by+1)
                     if expo_cell==0.: continue
-                    data_cell = hist_data_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
-                    bkgd_cell = hist_bkgd_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
-                    data_err_cell = hist_data_skymap_unsmooth[ebin].GetBinError(bx+1,by+1)/expo_cell*correction
-                    bkgd_err_cell = hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)/expo_cell*correction
-                    syst_err_cell = hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
+
+                    #smooth_scale = hist_data_skymap_unsmooth[ebin].Integral()/hist_data_skymap[ebin].Integral()
+                    smooth_scale = 1.
+                    data_cell = hist_data_skymap[ebin].GetBinContent(bx+1,by+1)/exposure_in_hours*smooth_scale
+                    bkgd_cell = hist_bkgd_skymap[ebin].GetBinContent(bx+1,by+1)/exposure_in_hours*smooth_scale
+                    data_err_cell = hist_data_skymap_unsmooth[ebin].GetBinError(bx+1,by+1)/exposure_in_hours*smooth_scale
+                    bkgd_err_cell = hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)/exposure_in_hours*smooth_scale
+                    rate_sum += (data_cell-bkgd_cell)
+                    rate_err_sum += data_err_cell*data_err_cell+bkgd_err_cell*bkgd_err_cell
+
+                    data_cell = pow(energy_bin[ebin],energy_index)*hist_data_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
+                    bkgd_cell = pow(energy_bin[ebin],energy_index)*hist_bkgd_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
+                    data_err_cell = pow(energy_bin[ebin],energy_index)*hist_data_skymap_unsmooth[ebin].GetBinError(bx+1,by+1)/expo_cell*correction
+                    bkgd_err_cell = pow(energy_bin[ebin],energy_index)*hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)/expo_cell*correction
+                    syst_err_cell = pow(energy_bin[ebin],energy_index)*hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
                     flux_sum += (data_cell-bkgd_cell)
                     stat_err_sum += data_err_cell*data_err_cell+bkgd_err_cell*bkgd_err_cell
                     syst_err_sum += syst_err_cell
             edata += [energy_bin[ebin]]
+            rate += [rate_sum]
+            rate_err += [pow(rate_err_sum,0.5)]
             fdata += [flux_sum]
             error += [pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)]
             zeros += [0.]
         list_edata += [edata]
+        list_rate += [rate]
+        list_rate_err += [rate_err]
         list_fdata += [fdata]
         list_error += [error]
         list_zeros += [zeros]
+
+    if len(list_edata[0])==len(ref_rate):
+        cycol = cycle('krgbcmy')
+        fig.clf()
+        axbig = fig.add_subplot()
+        axbig.errorbar(list_edata[0],ref_rate,ref_rate_err,color='r',marker='s',ls='none',label='reference')
+        for nth_roi in range(0,len(list_rate)):
+            print ('ref_rate = %s'%(list_rate[nth_roi]))
+            print ('ref_rate_err = %s'%(list_rate_err[nth_roi]))
+            next_color = next(cycol)
+            axbig.errorbar(list_edata[nth_roi],list_rate[nth_roi],list_rate_err[nth_roi],color=next_color,marker='s',ls='none',label='%s'%(legends[nth_roi]))
+        axbig.legend(loc='best')
+        axbig.set_xlabel('Energy [GeV]')
+        axbig.set_ylabel('event rate per hour')
+        axbig.set_xscale('log')
+        axbig.set_yscale('log')
+        plotname = 'EventRateFromMap'
+        fig.savefig("output_plots/%s_%s_%s.png"%(plotname,name,selection_tag),bbox_inches='tight')
+        axbig.remove()
+
+        fig.clf()
+        axbig = fig.add_subplot()
+        for nth_roi in range(0,len(list_rate)):
+            ratio = np.array(list_rate[nth_roi])/np.array(ref_rate)
+            ratio_err = np.array(list_rate_err[nth_roi])/np.array(ref_rate)
+            axbig.errorbar(list_edata[nth_roi],ratio,ratio_err,color='k',marker='s',ls='none',label='%s'%(legends[nth_roi]))
+        axbig.legend(loc='best')
+        axbig.set_xlabel('Energy [GeV]')
+        axbig.set_ylabel('event rate per hour')
+        axbig.set_xscale('log')
+        plt.ylim(0, 2.0)
+        plotname = 'EventRateRatioFromMap'
+        fig.savefig("output_plots/%s_%s_%s.png"%(plotname,name,selection_tag),bbox_inches='tight')
+        axbig.remove()
+
+        fig.clf()
+        axbig = fig.add_subplot()
+        for nth_roi in range(0,len(list_fdata)):
+            vectorize_f = np.vectorize(flux_crab_func)
+            ref_flux = pow(np.array(list_edata[nth_roi]),energy_index)*vectorize_f(np.array(list_edata[nth_roi]))
+            ratio = np.array(list_fdata[nth_roi])/ref_flux
+            ratio_err = np.array(list_error[nth_roi])/ref_flux
+            axbig.errorbar(list_edata[nth_roi],ratio,ratio_err,color='k',marker='s',ls='none',label='%s'%(legends[nth_roi]))
+        axbig.legend(loc='best')
+        axbig.set_xlabel('Energy [GeV]')
+        axbig.set_ylabel('event rate per hour')
+        axbig.set_xscale('log')
+        plt.ylim(0, 2.0)
+        plotname = 'EventFluxRatioFromMap'
+        fig.savefig("output_plots/%s_%s_%s.png"%(plotname,name,selection_tag),bbox_inches='tight')
+        axbig.remove()
 
     cycol = cycle('krgbcmy')
     fig.clf()
@@ -3986,66 +4096,71 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
             residual = np.array(list_fdata[nth_roi]) - flux_fit
             chisq = np.sum((residual/np.array(list_error[nth_roi]))**2)
             dof = len(list_edata[nth_roi])-2
-            axbig.errorbar(list_edata[nth_roi],list_fdata[nth_roi],list_error[nth_roi],color=next_color,marker='s',ls='none',label='%s, $\Gamma$ = %0.1f, $\chi^{2}/dof = %0.1f$'%(legends[nth_roi],popt[1],chisq/dof))
+            axbig.errorbar(list_edata[nth_roi],list_fdata[nth_roi],list_error[nth_roi],color=next_color,marker='s',ls='none',label='%s, $\Gamma$ = %0.1f, $\chi^{2}/dof = %0.1f$'%(legends[nth_roi],popt[1]-energy_index,chisq/dof))
         if doUpperLimit:
             axbig.fill_between(list_edata[nth_roi], list_zeros[nth_roi], list_error[nth_roi], alpha=0.2, color='r')
 
-    log_energy = np.linspace(log10(list_edata[0][0]),log10(list_edata[0][len(list_edata[0])-1]),50)
-    xdata = pow(10.,log_energy)
-    for nth_roi in range(0,len(list_fdata)):
-        if 'Crab' in legends[nth_roi] and nth_roi==0:
-            vectorize_f = np.vectorize(flux_crab_func)
-            ydata = vectorize_f(xdata)
-            axbig.plot(xdata, ydata,'r-',label='1508.06442')
-            xdata_array = []
-            for binx in range(0,len(list_fdata[nth_roi])):
-                xdata_array += [list_edata[nth_roi][binx]]
-            ydata = vectorize_f(xdata_array)
-            calibration_new = []
-            for binx in range(0,len(list_fdata[nth_roi])):
-                if list_fdata[nth_roi][binx]>0.:
-                    calibration_new += [ydata[binx]/list_fdata[nth_roi][binx]]
-                else:
-                    calibration_new += [0.]
-            print ('calibration_new = %s'%(calibration_new))
-        if 'VHE region' in legends[nth_roi]:
-            vectorize_f = np.vectorize(flux_veritas_j1908_func)
-            ydata = vectorize_f(xdata)
-            axbig.plot(xdata, ydata,'r-',label='1404.7185 (VERITAS)')
-        if 'HAWC region' in legends[nth_roi]:
-            vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
-            ydata_hawc = vectorize_f_hawc(xdata)
-            axbig.plot(xdata, ydata_hawc,'r-',label='1909.08609 (HAWC)')
-            vectorize_f = np.vectorize(flux_veritas_j1908_func)
-            ydata = vectorize_f(xdata)
-            axbig.plot(xdata, ydata,'b-',label='1404.7185 (VERITAS)')
-            vectorize_f = np.vectorize(flux_hess_j1908_func)
-            ydata = vectorize_f(xdata)
-            axbig.plot(xdata, ydata,'g-',label='0904.3409 (HESS)')
-        if 'IC 443' in legends[nth_roi]:
-            vectorize_f = np.vectorize(flux_ic443_func)
-            ydata = vectorize_f(xdata)
-            axbig.plot(xdata, ydata,'r-',label='0905.3291')
-        if '1ES 1218+304' in legends[nth_roi]:
-            vectorize_f = np.vectorize(flux_1es1218_func)
-            ydata = vectorize_f(xdata)
-            axbig.plot(xdata, ydata,'r-',label='0810.0301')
-        if 'Geminga Pulsar' in legends[nth_roi]:
-            vectorize_f = np.vectorize(flux_geminga_func)
-            ydata = vectorize_f(xdata)
-            axbig.plot(xdata, ydata,'r-',label='HAWC extrapolation')
-        if 'J1856+0245' in legends[nth_roi]:
-            vectorize_f = np.vectorize(flux_j1857_func)
-            ydata = vectorize_f(xdata)
-            axbig.plot(xdata, ydata,'r-',label='From Aleksic et al. (2014)')
+    if doReferenceFlux:
+        log_energy = np.linspace(log10(list_edata[0][0]),log10(list_edata[0][len(list_edata[0])-1]),50)
+        xdata = pow(10.,log_energy)
+        for nth_roi in range(0,len(list_fdata)):
+            if 'Crab' in legends[nth_roi] and nth_roi==0:
+                vectorize_f = np.vectorize(flux_crab_func)
+                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                axbig.plot(xdata, ydata,'r-',label='1508.06442')
+                xdata_array = []
+                for binx in range(0,len(list_fdata[nth_roi])):
+                    xdata_array += [list_edata[nth_roi][binx]]
+                ydata = pow(np.array(xdata_array),energy_index)*vectorize_f(xdata_array)
+                calibration_new = []
+                for binx in range(0,len(list_fdata[nth_roi])):
+                    if list_fdata[nth_roi][binx]>0.:
+                        calibration_new += [ydata[binx]/list_fdata[nth_roi][binx]]
+                    else:
+                        calibration_new += [0.]
+                print ('calibration = %s'%(calibration_new))
+            if 'VHE region' in legends[nth_roi]:
+                vectorize_f = np.vectorize(flux_veritas_j1908_func)
+                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                axbig.plot(xdata, ydata,'r-',label='1404.7185 (VERITAS)')
+            if 'HAWC region' in legends[nth_roi]:
+                vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
+                ydata_hawc = pow(xdata,energy_index)*vectorize_f_hawc(xdata)
+                axbig.plot(xdata, ydata_hawc,'r-',label='1909.08609 (HAWC)')
+                vectorize_f = np.vectorize(flux_veritas_j1908_func)
+                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                axbig.plot(xdata, ydata,'b-',label='1404.7185 (VERITAS)')
+                vectorize_f = np.vectorize(flux_hess_j1908_func)
+                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                axbig.plot(xdata, ydata,'g-',label='0904.3409 (HESS)')
+            if 'IC 443' in legends[nth_roi]:
+                vectorize_f = np.vectorize(flux_ic443_func)
+                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                axbig.plot(xdata, ydata,'r-',label='0905.3291')
+            if '1ES 1218+304' in legends[nth_roi]:
+                vectorize_f = np.vectorize(flux_1es1218_func)
+                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                axbig.plot(xdata, ydata,'r-',label='0810.0301')
+            if 'Geminga Pulsar' in legends[nth_roi]:
+                vectorize_f = np.vectorize(flux_geminga_func)
+                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                axbig.plot(xdata, ydata,'r-',label='HAWC extrapolation')
+            if 'J1856+0245' in legends[nth_roi]:
+                vectorize_f = np.vectorize(flux_j1857_func)
+                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                axbig.plot(xdata, ydata,'r-',label='From Aleksic et al. (2014)')
+            if 'J2019+407' in legends[nth_roi]:
+                vectorize_f = np.vectorize(flux_veritas_j2019_407_func)
+                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                axbig.plot(xdata, ydata,'r-',label='From Weinstein et al. (2012)')
 
     axbig.legend(loc='best')
     axbig.set_xlabel('Energy [GeV]')
-    axbig.set_ylabel('Flux [$\mathrm{TeV}^{-1}\mathrm{cm}^{-2}\mathrm{s}^{-1}$]')
+    axbig.set_ylabel('$E^{%s}$ Flux [$\mathrm{TeV}^{%s}\mathrm{cm}^{-2}\mathrm{s}^{-1}$]'%(energy_index,-1+energy_index))
     axbig.set_xscale('log')
     axbig.set_yscale('log')
     plotname = 'FluxFromMap'
-    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+    fig.savefig("output_plots/%s_%s_%s.png"%(plotname,name,selection_tag),bbox_inches='tight')
     axbig.remove()
 
     # energy inclusive histograms
@@ -4054,6 +4169,8 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     hist_expo_skymap_sum = ROOT.TH2D("hist_expo_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_syst_skymap_sum = ROOT.TH2D("hist_syst_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_rate_skymap_sum = ROOT.TH2D("hist_rate_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_flux_skymap_sum = ROOT.TH2D("hist_flux_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_molecular_cloud_expect_skymap = ROOT.TH2D("hist_molecular_cloud_expect_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     for ebin in range(0,len(energy_bin)-1):
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
@@ -4081,8 +4198,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     hist_zscore_skymap_sum = GetSignificanceMap(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,False)
     hist_rate_skymap_sum.Add(hist_data_skymap_sum)
     hist_rate_skymap_sum.Add(hist_bkgd_skymap_sum,-1.)
-    hist_rate_skymap_sum.Divide(hist_expo_skymap_sum)
-    hist_rate_skymap_sum.Scale(event_rate)
+    hist_rate_skymap_sum.Scale(1./exposure_in_hours)
     bin_count = 0.
     avg_bkgd = 0.
     for bx in range(0,hist_data_skymap[0].GetNbinsX()):
@@ -4100,8 +4216,35 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
             zscore = hist_zscore_skymap_sum.GetBinContent(bx+1,by+1)
             if bkgd_content<0.2*avg_bkgd:
                 hist_rate_skymap_sum.SetBinContent(bx+1,by+1,0.)
-            if zscore<2.0:
+            if zscore<3.0:
                 hist_rate_skymap_sum.SetBinContent(bx+1,by+1,0.)
+
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        delta_e = energy_bin[ebin+1]-energy_bin[ebin]
+        for bx in range(0,hist_data_skymap[0].GetNbinsX()):
+            for by in range(0,hist_data_skymap[0].GetNbinsY()):
+                flux_content = hist_flux_skymap[ebin].GetBinContent(bx+1,by+1)
+                flux_error = hist_flux_skymap[ebin].GetBinError(bx+1,by+1)
+                if flux_error==0.: continue
+                if flux_content/flux_error<2.0: continue
+                old_content = hist_flux_skymap_sum.GetBinContent(bx+1,by+1)
+                hist_flux_skymap_sum.SetBinContent(bx+1,by+1,old_content+delta_e/1000.*flux_content)
+
+    d_SN = 7.9 #kpc
+    t_SN = 11.*1000. # age of PSR J1907+0631 in year
+    E_spindown_rate = 5.e35 #erg/s
+    E_SN = E_spindown_rate*t_SN*365.*24.*60.*60./1e51 #erg
+    angular_diameter_SN = 0.43
+    Gamma_CR = 2.2
+    f_Gamma = 0.43
+    t_init = 1000. #years
+    theta_ECR_ESN = 3.14/5.*(1.-pow(t_init/t_SN,0.4))
+    for bx in range(0,hist_data_skymap[0].GetNbinsX()):
+        for by in range(0,hist_data_skymap[0].GetNbinsY()):
+            flux_integral = hist_flux_skymap_sum.GetBinContent(bx+1,by+1)
+            predict_density = flux_integral/f_Gamma*1.e10*pow(energy_bin[energy_bin_cut_low]/1000.,Gamma_CR-1)/(theta_ECR_ESN*E_SN)*pow(d_SN,2)
+            predict_column_density = predict_density*angular_diameter_SN*3.14/180.*d_SN*3.086e18
+            hist_molecular_cloud_expect_skymap.SetBinContent(bx+1,by+1,predict_column_density)
 
     hist_contour = hist_zscore_skymap_sum.Clone()
     hist_zscore_skymap_reflect = reflectXaxis(hist_zscore_skymap_sum)
@@ -4135,7 +4278,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     raLowerAxis.Draw()
     mycircles = []
     for nth_roi in range(0,len(roi_ra)):
-        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
@@ -4144,6 +4287,9 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     canvas.SaveAs('output_plots/SkymapZscore_%s_%s.png'%(name,selection_tag))
     hist_rel_syst_skymap_sum = hist_syst_skymap_sum.Clone()
     hist_rel_syst_skymap_sum.Divide(hist_bkgd_skymap_sum)
@@ -4165,7 +4311,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     raLowerAxis.Draw()
     mycircles = []
     for nth_roi in range(0,len(roi_ra)):
-        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
@@ -4174,7 +4320,60 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     canvas.SaveAs('output_plots/SkymapRate_%s_%s.png'%(name,selection_tag))
+    hist_flux_skymap_sum_reflect = reflectXaxis(hist_flux_skymap_sum)
+    hist_flux_skymap_sum_reflect.GetYaxis().SetTitle(title_y)
+    hist_flux_skymap_sum_reflect.GetXaxis().SetTitle(title_x)
+    hist_flux_skymap_sum_reflect.GetZaxis().SetTitle('Flux (cm^{-2} s^{-1})')
+    hist_flux_skymap_sum_reflect.GetZaxis().SetTitleOffset(title_offset)
+    hist_flux_skymap_sum_reflect.Draw("COL4Z")
+    hist_contour_reflect.Draw("CONT3 same")
+    hist_flux_skymap_sum_reflect.GetXaxis().SetLabelOffset(999)
+    hist_flux_skymap_sum_reflect.GetXaxis().SetTickLength(0)
+    raLowerAxis.Draw()
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        if (roi_name[nth_roi] in exclude_roi): continue
+        mycircles[nth_roi].Draw("same")
+    for star in range(0,len(other_star_markers)):
+        other_star_markers[star].Draw("same")
+        other_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
+    canvas.SaveAs('output_plots/SkymapFlux_%s_%s.png'%(name,selection_tag))
+    hist_molecular_cloud_expect_skymap_reflect = reflectXaxis(hist_molecular_cloud_expect_skymap)
+    hist_molecular_cloud_expect_skymap_reflect.GetYaxis().SetTitle(title_y)
+    hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetTitle(title_x)
+    hist_molecular_cloud_expect_skymap_reflect.GetZaxis().SetTitle('estimated CO column density (1/cm^{2})')
+    hist_molecular_cloud_expect_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
+    hist_molecular_cloud_expect_skymap_reflect.Draw("COL4Z")
+    hist_contour_reflect.Draw("CONT3 same")
+    hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetLabelOffset(999)
+    hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetTickLength(0)
+    raLowerAxis.Draw()
+    mycircles = []
+    for nth_roi in range(0,len(roi_ra)):
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
+        mycircles[nth_roi].SetFillStyle(0)
+        mycircles[nth_roi].SetLineColor(2)
+        if nth_roi==0: continue
+        if (roi_name[nth_roi] in exclude_roi): continue
+        mycircles[nth_roi].Draw("same")
+    for star in range(0,len(other_star_markers)):
+        other_star_markers[star].Draw("same")
+        other_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
+    canvas.SaveAs('output_plots/SkymapMolecularCloudExpect_%s_%s.png'%(name,selection_tag))
 
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         hist_zscore_skymap_reflect = reflectXaxis(hist_zscore_skymap[ebin])
@@ -4187,7 +4386,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
         raLowerAxis.Draw()
         mycircles = []
         for nth_roi in range(0,len(roi_ra)):
-            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
             mycircles[nth_roi].SetFillStyle(0)
             mycircles[nth_roi].SetLineColor(2)
             if nth_roi==0: continue
@@ -4196,6 +4395,9 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
         for star in range(0,len(other_star_markers)):
             other_star_markers[star].Draw("same")
             other_star_labels[star].Draw("same")
+        for star in range(0,len(faint_star_markers)):
+            faint_star_markers[star].Draw("same")
+            faint_star_labels[star].Draw("same")
         canvas.SaveAs('output_plots/Skymap_%s_%s_E%s.png'%(name,selection_tag,ebin))
 
     if doMWLMap:
@@ -4222,14 +4424,8 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
         #MWL_map_title += ['cnts/s/cm^{2}/sr']
         #MWL_map_list += ['MWL_maps/skv790080564098_fermi_band5.txt']
         #MWL_map_title += ['cnts/s/cm^{2}/sr']
-        #MWL_map_list += ['MWL_maps/FGN_04100+0000_2x2_12CO_v1.00_cube_47_51_column_density.txt']
-        #MWL_map_title += ['CO column density (1/cm^{2})']
-        MWL_map_list += ['MWL_maps/FGN_04100+0000_2x2_12CO_v1.00_cube_52_56_column_density.txt']
+        MWL_map_list += ['MWL_maps/FGN_04000+0000_2x2_12CO_v1.00_cube_47_67_column_density.txt']
         MWL_map_title += ['CO column density (1/cm^{2})']
-        #MWL_map_list += ['MWL_maps/FGN_04100+0000_2x2_12CO_v1.00_cube_57_61_column_density.txt']
-        #MWL_map_title += ['CO column density (1/cm^{2})']
-        #MWL_map_list += ['MWL_maps/FGN_04100+0000_2x2_12CO_v1.00_cube_62_67_column_density.txt']
-        #MWL_map_title += ['CO column density (1/cm^{2})']
         for mwl_map in range(0,len(MWL_map_list)):
             Hist_MWL = hist_contour.Clone()
             #Hist_MWL = GetSkyViewMap(MWL_map_list[mwl_map], Hist_MWL, isRaDec)
@@ -4252,7 +4448,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
             raLowerAxis.Draw()
             mycircles = []
             for nth_roi in range(0,len(roi_ra)):
-                mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+                mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
                 mycircles[nth_roi].SetFillStyle(0)
                 mycircles[nth_roi].SetLineColor(2)
                 if nth_roi==0: continue
@@ -4261,17 +4457,20 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
             for star in range(0,len(other_star_markers)):
                 other_star_markers[star].Draw("same")
                 other_star_labels[star].Draw("same")
+            for star in range(0,len(faint_star_markers)):
+                faint_star_markers[star].Draw("same")
+                faint_star_labels[star].Draw("same")
             canvas.SaveAs('output_plots/SkymapMWL_%s_%s_%s.png'%(name,mwl_map,selection_tag))
 
-            hist_emissivity = hist_rate_skymap_sum_reflect.Clone()
-            hist_emissivity.Divide(hist_MWL_reflect)
-            hist_emissivity.Draw("COL4Z")
-            hist_contour_reflect.SetLineColor(0)
-            hist_contour_reflect.Draw("CONT3 same")
-            hist_emissivity.GetXaxis().SetLabelOffset(999)
-            hist_emissivity.GetXaxis().SetTickLength(0)
-            raLowerAxis.Draw()
-            canvas.SaveAs('output_plots/SkymapEmissivity_%s_%s_%s.png'%(name,mwl_map,selection_tag))
+            #hist_emissivity = hist_rate_skymap_sum_reflect.Clone()
+            #hist_emissivity.Divide(hist_MWL_reflect)
+            #hist_emissivity.Draw("COL4Z")
+            #hist_contour_reflect.SetLineColor(0)
+            #hist_contour_reflect.Draw("CONT3 same")
+            #hist_emissivity.GetXaxis().SetLabelOffset(999)
+            #hist_emissivity.GetXaxis().SetTickLength(0)
+            #raLowerAxis.Draw()
+            #canvas.SaveAs('output_plots/SkymapEmissivity_%s_%s_%s.png'%(name,mwl_map,selection_tag))
 
             Hist_MWL_Gal = ROOT.TH2D("Hist_MWL_Gal","",int(Skymap_nbins/zoomin_scale),source_l-Skymap_size/zoomin_scale,source_l+Skymap_size/zoomin_scale,int(Skymap_nbins/zoomin_scale),source_b-Skymap_size/zoomin_scale,source_b+Skymap_size/zoomin_scale)
             Hist_MWL_Gal = GetSkyViewMap(MWL_map_list[mwl_map], Hist_MWL_Gal, isRaDec)
@@ -4296,7 +4495,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
             mycircles = []
             for nth_roi in range(0,len(roi_ra)):
                 roi_l, roi_b = ConvertRaDecToGalactic(roi_ra[nth_roi],roi_dec[nth_roi])
-                mycircles += [ROOT.TEllipse(-1.*roi_l,roi_b,roi_radius[nth_roi])]
+                mycircles += [ROOT.TEllipse(-1.*roi_l,roi_b,roi_radius_outer[nth_roi])]
                 mycircles[nth_roi].SetFillStyle(0)
                 mycircles[nth_roi].SetLineColor(2)
                 if nth_roi==0: continue
@@ -4361,7 +4560,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     raLowerAxis.Draw()
     mycircles = []
     for nth_roi in range(0,len(roi_ra)):
-        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
@@ -4370,6 +4569,9 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     canvas.SaveAs('output_plots/SkymapIndex_%s_%s.png'%(name,selection_tag))
     hist_chisq_skymap_reflect = reflectXaxis(hist_chisq_skymap)
     hist_chisq_skymap_reflect.GetYaxis().SetTitle(title_y)
@@ -4385,7 +4587,7 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     raLowerAxis.Draw()
     mycircles = []
     for nth_roi in range(0,len(roi_ra)):
-        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius[nth_roi])]
+        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
         mycircles[nth_roi].SetFillStyle(0)
         mycircles[nth_roi].SetLineColor(2)
         if nth_roi==0: continue
@@ -4394,6 +4596,9 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
         other_star_labels[star].Draw("same")
+    for star in range(0,len(faint_star_markers)):
+        faint_star_markers[star].Draw("same")
+        faint_star_labels[star].Draw("same")
     canvas.SaveAs('output_plots/SkymapChisq_%s_%s.png'%(name,selection_tag))
 
 
@@ -4442,53 +4647,27 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
     #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
     #axbig.remove()
 
-    energy_axis = []
-    source_extent = []
-    source_extent_err = []
-    fig.clf()
-    axbig = fig.add_subplot()
-    center_x, center_y = FindCenter(hist_data_skymap_sum,hist_bkgd_skymap_sum)
-    #center_x, center_y = 286.975, 6.03777777778 #PSR J1907+0602
-    #center_x, center_y = 286.786, 6.498 #SNR G40.5-0.5
-    #center_x, center_y = 98.476, 17.770 #Geminga Pulsar
-    profile, profile_err, theta2 = FindExtension(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,hist_expo_skymap_sum,center_x,center_y,MapSize_y/zoomin_scale)
-    mean_amplitude = max(1.,np.mean(profile)*len(theta2))
-    start = (0.5, mean_amplitude, 0.)
-    fit_bound = ((0.,0.,0.),(2.0,100.*mean_amplitude,100.*mean_amplitude))
-    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err), bounds=fit_bound)
-    extension_fit = gaussian_disk_2d_to_1D(np.array(theta2), *popt)
-    residual = np.array(profile) - extension_fit
-    chisq = np.sum((residual/np.array(profile_err))**2)
-    dof = len(theta2)-3
-    axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
-    axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color='k')
-    axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), popt[0], popt[1]),color='r')
-    axbig.plot(np.array(theta2), disk_2d_to_1D(np.array(theta2), popt[2]),color='g')
-    extent = popt[0]
-    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
-    extent_up = popt[0]
-    popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
-    extent_dw = popt[0]
-    extent_err = abs(extent_up-extent_dw)/2.
-    print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
-    axbig.set_ylabel('excess (arbitrary scaled)')
-    axbig.set_xlabel('angular distance from center [degree]')
-    axbig.legend(loc='best')
-    #axbig.set_yscale('log')
-    plotname = 'ProfileVsTheta2'
-    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-    axbig.remove()
-    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+    if doExtentFit:
+        energy_axis = []
+        source_extent = []
+        source_extent_err = []
         fig.clf()
         axbig = fig.add_subplot()
-        profile, profile_err, theta2 = FindExtension(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],hist_expo_skymap[ebin],center_x,center_y,MapSize_y/zoomin_scale)
-        start = (0.5, np.mean(profile)*len(theta2),0.)
+        center_x, center_y = FindCenter(hist_data_skymap_sum,hist_bkgd_skymap_sum)
+        center_x, center_y = source_ra, source_dec
+        #center_x, center_y = 286.975, 6.03777777778 #PSR J1907+0602
+        #center_x, center_y = 286.786, 6.498 #SNR G40.5-0.5
+        #center_x, center_y = 98.476, 17.770 #Geminga Pulsar
+        profile, profile_err, theta2 = FindExtension(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,hist_expo_skymap_sum,center_x,center_y,MapSize_y/zoomin_scale)
+        mean_amplitude = max(1.,np.mean(profile)*len(theta2))
+        start = (0.5, mean_amplitude, 0.)
+        fit_bound = ((0.,0.,0.),(2.0,100.*mean_amplitude,100.*mean_amplitude))
         popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err), bounds=fit_bound)
         extension_fit = gaussian_disk_2d_to_1D(np.array(theta2), *popt)
         residual = np.array(profile) - extension_fit
         chisq = np.sum((residual/np.array(profile_err))**2)
         dof = len(theta2)-3
-        axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+        axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
         axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color='k')
         axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), popt[0], popt[1]),color='r')
         axbig.plot(np.array(theta2), disk_2d_to_1D(np.array(theta2), popt[2]),color='g')
@@ -4499,29 +4678,57 @@ def MakeSpectrumIndexSkymap(event_rate,hist_data_unsmooth,hist_data,hist_bkgd,hi
         extent_dw = popt[0]
         extent_err = abs(extent_up-extent_dw)/2.
         print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
-        energy_axis += [energy_bin[ebin]]
-        source_extent += [extent]
-        source_extent_err += [extent_err]
         axbig.set_ylabel('excess (arbitrary scaled)')
         axbig.set_xlabel('angular distance from center [degree]')
         axbig.legend(loc='best')
         #axbig.set_yscale('log')
         plotname = 'ProfileVsTheta2'
-        fig.savefig("output_plots/%s_%s_E%s.png"%(plotname,selection_tag,ebin),bbox_inches='tight')
+        fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
         axbig.remove()
+        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+            fig.clf()
+            axbig = fig.add_subplot()
+            profile, profile_err, theta2 = FindExtension(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],hist_expo_skymap[ebin],center_x,center_y,MapSize_y/zoomin_scale)
+            start = (0.5, np.mean(profile)*len(theta2),0.)
+            popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err), bounds=fit_bound)
+            extension_fit = gaussian_disk_2d_to_1D(np.array(theta2), *popt)
+            residual = np.array(profile) - extension_fit
+            chisq = np.sum((residual/np.array(profile_err))**2)
+            dof = len(theta2)-3
+            axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+            axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color='k')
+            axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), popt[0], popt[1]),color='r')
+            axbig.plot(np.array(theta2), disk_2d_to_1D(np.array(theta2), popt[2]),color='g')
+            extent = popt[0]
+            popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
+            extent_up = popt[0]
+            popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
+            extent_dw = popt[0]
+            extent_err = abs(extent_up-extent_dw)/2.
+            print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
+            energy_axis += [energy_bin[ebin]]
+            source_extent += [extent]
+            source_extent_err += [extent_err]
+            axbig.set_ylabel('excess (arbitrary scaled)')
+            axbig.set_xlabel('angular distance from center [degree]')
+            axbig.legend(loc='best')
+            #axbig.set_yscale('log')
+            plotname = 'ProfileVsTheta2'
+            fig.savefig("output_plots/%s_%s_E%s.png"%(plotname,selection_tag,ebin),bbox_inches='tight')
+            axbig.remove()
 
-    fig.clf()
-    axbig = fig.add_subplot()
-    axbig.errorbar(energy_axis, source_extent, source_extent_err, marker='s', ls='none', color='b',label='VERITAS')
-    #axbig.errorbar(hawc_energy_axis, hawc_source_extent, hawc_source_extent_err, marker='s', ls='none', color='r',label='HAWC')
-    axbig.set_xlabel('Energy [GeV]')
-    axbig.set_ylabel('Angular extent [degree]')
-    axbig.set_xscale('log')
-    axbig.legend(loc='best')
-    plt.ylim(0, 1.5)
-    plotname = 'Energy_dep_1dfit_extent'
-    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-    axbig.remove()
+        fig.clf()
+        axbig = fig.add_subplot()
+        axbig.errorbar(energy_axis, source_extent, source_extent_err, marker='s', ls='none', color='b',label='VERITAS')
+        #axbig.errorbar(hawc_energy_axis, hawc_source_extent, hawc_source_extent_err, marker='s', ls='none', color='r',label='HAWC')
+        axbig.set_xlabel('Energy [GeV]')
+        axbig.set_ylabel('Angular extent [degree]')
+        axbig.set_xscale('log')
+        axbig.legend(loc='best')
+        plt.ylim(0, 1.5)
+        plotname = 'Energy_dep_1dfit_extent'
+        fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+        axbig.remove()
 
 
     return hist_index_skymap
@@ -5779,7 +5986,7 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
 
     slice_center_x = roi_ra[1]
     slice_center_y = roi_dec[1]
-    slice_radius = roi_radius[1]
+    slice_radius = roi_radius_outer[1]
     first_bin_x = 0 
     last_bin_x = -1
     first_bin_y = 0 
@@ -5845,9 +6052,13 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
         for ebin in range(0,len(energy_bin)-1):
             Hist_Data_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Data_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Bkgd_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
-            Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],2.*smooth_size_spectroscopy,False)
             Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_SumSyst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
-        Hist_IndexMap = MakeSpectrumIndexSkymap(event_rate,Hist_Data_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Expo_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
+            Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],2.*smooth_size_spectroscopy,False)
+            old_size = Hist_Bkgd_Energy_Skymap_smooth[ebin].Integral()
+            new_size = Hist_Expo_Energy_Skymap_smooth[ebin].Integral()
+            if new_size==0.: continue
+            Hist_Expo_Energy_Skymap_smooth[ebin].Scale(old_size/new_size)
+        Hist_IndexMap = MakeSpectrumIndexSkymap(exposure_hours,Hist_Data_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Expo_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
 
         fig.clf()
         axbig = fig.add_subplot()
@@ -6259,7 +6470,7 @@ Hist_OnData_RoI_MJD_Sum = []
 Hist_OnBkgd_RoI_MJD_Sum = [] 
 Hist_RoI_Flux = []
 for nth_roi in range(0,len(roi_ra)):
-    roi_range = roi_radius[nth_roi]
+    roi_range = roi_radius_outer[nth_roi]
     Hist_OnData_RoI_Energy_Sum += [ROOT.TH1D("Hist_OnData_RoI_Energy_Sum_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
     Hist_OnBkgd_RoI_Energy_Sum += [ROOT.TH1D("Hist_OnBkgd_RoI_Energy_Sum_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
     Hist_OnData_RoI_Energy += [ROOT.TH1D("Hist_OnData_RoI_Energy_%s"%(nth_roi),"",len(energy_fine_bin)-1,array('d',energy_fine_bin))]
@@ -6331,22 +6542,20 @@ GetGammaSourceInfo()
 
 #SystematicAnalysis()
 
-#drawMap = False
 drawMap = True
-doMWLMap = False
-#doMWLMap = True
-#Smoothing = False
+doMWLMap = True
 Smoothing = True
-doUpperLimit = True
-#doUpperLimit = False
+doUpperLimit = False
+doReferenceFlux = True
+doExtentFit = False
 
-skymap_zoomin_scale = 1
+skymap_zoomin_scale = 2
 
 #set_palette('default')
 #set_palette('gray')
 
 exclude_roi = []
-#exclude_roi += ['HAWC region']
+exclude_roi += ['HAWC region']
 exclude_roi += ['VHE region']
 exclude_roi += ['SNR region']
 exclude_roi += ['G40.5-0.5']
@@ -6355,9 +6564,12 @@ exclude_roi += ['CO region north']
 exclude_roi += ['CO region west']
 exclude_roi += ['LAT MeV region']
 exclude_roi += ['LAT GeV region']
-exclude_roi += ['Ring 1']
-exclude_roi += ['Ring 2']
-exclude_roi += ['Ring 3']
+#exclude_roi += ['Ring 1']
+#exclude_roi += ['Ring 2']
+#exclude_roi += ['Ring 3']
+
+exclude_roi += ['Crab r=1.0 deg']
+exclude_roi += ['Crab r=1.5 deg']
 
 exclude_roi += ['Control region r=0.5 deg']
 exclude_roi += ['Control region r=1.0 deg']
@@ -6370,8 +6582,12 @@ exclude_roi += ['Validation r=1.5 deg']
 
 
 calibration = [1., 1., 1., 1., 1., 1.]
-#calibration = [4.454882422463422e-09, 3.760663428921474e-10, 2.7933975246925037e-11, 1.6440202200056685e-12, 1.0903372510415646e-13, 1.1135070518167954e-14]
-calibration = [1.3508521436402016e-09, 1.2071020037151874e-10, 9.04314769939639e-12, 5.122889189535914e-13, 3.441690593491267e-14, 3.3703129687831813e-15]
+ref_rate = [1., 1., 1., 1., 1., 1.]
+ref_rate_err = [1., 1., 1., 1., 1., 1.]
+
+ref_rate = [702.2448591922329, 2246.546133692713, 977.6787207754875, 294.2921398330392, 66.35948282437877, 12.220268018731097]
+ref_rate_err = [10.929050837655796, 16.508095735614887, 9.513287072538157, 4.961704801424875, 2.350505652582555, 1.0461801623218911]
+calibration = [1.3898587327896399e-09, 1.2684922062869973e-10, 6.633249328312588e-12, 3.6680587207035727e-13, 2.917815359088374e-14, 3.754016015703141e-15]
 
 SingleSourceAnalysis(sample_list,drawMap,Smoothing,int(sys.argv[2]),int(sys.argv[3]))
 

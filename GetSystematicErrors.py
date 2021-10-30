@@ -37,7 +37,7 @@ N_bins_for_deconv = 16
 #N_bins_for_deconv = 4
 #N_bins_for_deconv = 2
 
-ComputeSystErr = True
+ComputeShapeSystErr = False
 
 #folder_path = 'output_nominal'
 folder_path = 'output_16x16'
@@ -805,7 +805,7 @@ for e in range(0,len(energy_bin)-1):
             print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
             ErecS_lower_cut = energy_bin[e]
             ErecS_upper_cut = energy_bin[e+1]
-            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source,ComputeSystErr)
+            GetHistogramsFromFile(FilePath_List[len(FilePath_List)-1],source,ComputeShapeSystErr)
 
     for binx in range (0,Hist_OnBkgd_SystErr_R2off.GetNbinsX()):
         old_content_weight = Hist_OnData_StatWeight_R2off.GetBinContent(binx+1)
