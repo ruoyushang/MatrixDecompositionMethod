@@ -389,8 +389,8 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name.Contains("GammaCygni"))
     {
-            Source_RA = 305.02;
-                Source_Dec = 40.7572222222;
+            Source_RA = 305.557091;
+                Source_Dec = 40.256679166666665;
     }
     if (source_name.Contains("G079"))
     {
@@ -764,7 +764,7 @@ double GetRunL3Rate(int run_number)
     return L3_rate;
 }
 
-double GetRunUsableTime(int run_number)
+double GetRunUsableTime(string file_name,int run_number)
 {
     string line;
     char delimiter = ' ';
@@ -832,6 +832,24 @@ double GetRunUsableTime(int run_number)
     }
     else std::cout << "Unable to open file usable_time_allruns.txt" << std::endl; 
 
+    if (usable_time==0.)
+    {
+        char run_number_char[50];
+        sprintf(run_number_char, "%i", run_number);
+        TFile*  input_file = TFile::Open(file_name.c_str());
+        TTree* pointing_tree = nullptr;
+        pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number_char)+"/stereo/pointingDataReduced"));
+        pointing_tree->SetBranchStatus("*",0);
+        pointing_tree->SetBranchStatus("Time",1);
+        pointing_tree->SetBranchAddress("Time",&Time);
+        double total_entries = (double)pointing_tree->GetEntries();
+        pointing_tree->GetEntry(0);
+        int time_start = Time;
+        pointing_tree->GetEntry(total_entries-1);
+        int time_end = Time;
+        input_file->Close();
+        usable_time = time_end-time_start;
+    }
     return usable_time;
 }
 
@@ -1055,19 +1073,6 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
         double delta_RA = TelRAJ2000_tmp - 287.188333333;
         double delta_Dec = TelDecJ2000_tmp - 6.16233333333;
-        double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
-        if (distance>2.0)
-        {
-            input_file->Close();
-            return false;
-        }
-    }
-    else if (TString(target).Contains("GammaCygni"))
-    {
-        double TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
-        double TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
-        double delta_RA = TelRAJ2000_tmp - 304.967;
-        double delta_Dec = TelDecJ2000_tmp - 40.811;
         double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
         if (distance>2.0)
         {
@@ -1410,10 +1415,14 @@ vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, 
 
         if (!PointingSelection(filename,int(Data_runlist[run].second),Elev_cut_lower,Elev_cut_upper,Azim_cut_lower,Azim_cut_upper))
         {
-            std::cout << int(Data_runlist[run].second) << " pointing rejected." << std::endl;
+            //std::cout << int(Data_runlist[run].second) << " pointing rejected." << std::endl;
             continue;
         }
-        if (!MJDSelection(filename,int(Data_runlist[run].second),MJD_start_cut,MJD_end_cut)) continue;
+        if (!MJDSelection(filename,int(Data_runlist[run].second),MJD_start_cut,MJD_end_cut)) 
+        {
+            std::cout << int(Data_runlist[run].second) << " MJD rejected." << std::endl;
+            continue;
+        }
         double L3_rate = GetRunL3Rate(Data_runlist[run].second);
         if (L3_rate<150.)
         {
@@ -1460,7 +1469,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         else ON_pointing_radec.push_back(GetRunRaDec(ON_filename,int(ON_runlist[on_run].second)));
         double NSB_thisrun = GetRunPedestalVar(int(ON_runlist[on_run].second));
         ON_NSB.push_back(NSB_thisrun);
-        double exposure_thisrun = GetRunUsableTime(ON_runlist[on_run].second);
+        double exposure_thisrun = GetRunUsableTime(ON_filename,ON_runlist[on_run].second);
         ON_time.push_back(exposure_thisrun);
         ON_MJD.push_back(GetRunMJD(ON_filename,int(ON_runlist[on_run].second)));
         ON_L3Rate.push_back(GetRunL3Rate(ON_runlist[on_run].second));
@@ -1492,7 +1501,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         else OFF_pointing_radec.push_back(GetRunRaDec(OFF_filename,int(OFF_runlist[off_run].second)));
         double NSB_thisrun = GetRunPedestalVar(int(OFF_runlist[off_run].second));
         OFF_NSB.push_back(NSB_thisrun);
-        double exposure_thisrun = GetRunUsableTime(OFF_runlist[off_run].second);
+        double exposure_thisrun = GetRunUsableTime(OFF_filename,OFF_runlist[off_run].second);
         OFF_time.push_back(exposure_thisrun);
         OFF_MJD.push_back(GetRunMJD(OFF_filename,int(OFF_runlist[off_run].second)));
         OFF_L3Rate.push_back(GetRunL3Rate(OFF_runlist[off_run].second));
@@ -1501,6 +1510,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
 
     std::cout << "Select matched runs" << std::endl;
     vector<vector<vector<pair<string,int>>>> new_list;
+    did_i_find_a_match.clear();
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
         vector<vector<pair<string,int>>> the_samples;
@@ -1513,7 +1523,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         }
         new_list.push_back(the_samples);
         Dark_count.push_back(Dark_count_thisrun);
-        did_i_find_a_match.push_back(true);
+        did_i_find_a_match.push_back(false);
     }
     vector<pair<double,double>> ON_pointing_radec_new;
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
@@ -1529,6 +1539,11 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         double dL3Rate_chi2 = 0.;
         for (int on_run=0;on_run<ON_runlist.size();on_run++)
         {
+            std::cout << "finding matches for " << on_run << "/" << ON_runlist.size() << " runs..." << std::endl;
+            std::cout << "ON_count[on_run] = " << ON_count[on_run] << std::endl;
+            std::cout << "ON_time[on_run] = " << ON_time[on_run] << std::endl;
+            std::cout << "ON_L3Rate[on_run] = " << ON_L3Rate[on_run] << std::endl;
+            std::cout << "ON_NSB[on_run] = " << ON_NSB[on_run] << std::endl;
             int number_of_search = 0;
             double accumulated_count = 0.;
             double offset_NSB = 0.;
@@ -1639,6 +1654,7 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                 if (best_chi2<1e10) 
                 {
                     std::cout << on_run << "/" << ON_runlist.size() << ", found a match " << best_match.first << " " << best_match.second << std::endl;
+                    did_i_find_a_match.at(on_run) = true;
                     new_list.at(on_run).at(nth_sample).push_back(best_match);
                     ON_pointing_radec_new.push_back(ON_pointing_radec[on_run]);
                     n_good_matches += 1;
@@ -1667,7 +1683,6 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     }
                     if (number_of_search>=3)
                     {
-                        did_i_find_a_match.at(on_run) = false;
                         std::cout << "couldn't find a matched run for " << int(ON_runlist[on_run].second) << ", break." << std::endl;
                         std::cout << "ON run elevation " << ON_pointing[on_run].first << ", azimuth " << ON_pointing[on_run].second << ", NSB " << ON_NSB[on_run] << std::endl; 
                         break;
@@ -2249,17 +2264,17 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         {
             if (TString(target).Contains("Offset"))
             {
-                roi_name.push_back("Crab r=0.5 deg");
+                roi_name.push_back("Crab int. r=0.5 deg");
                 roi_ra.push_back(mean_tele_point_ra);
                 roi_dec.push_back(mean_tele_point_dec);
                 roi_radius_inner.push_back(0.);
                 roi_radius_outer.push_back(0.5);
-                roi_name.push_back("Crab r=1.0 deg");
+                roi_name.push_back("Crab int. r=1.0 deg");
                 roi_ra.push_back(mean_tele_point_ra);
                 roi_dec.push_back(mean_tele_point_dec);
                 roi_radius_inner.push_back(0.);
                 roi_radius_outer.push_back(1.0);
-                roi_name.push_back("Crab r=1.5 deg");
+                roi_name.push_back("Crab int. r=1.5 deg");
                 roi_ra.push_back(mean_tele_point_ra);
                 roi_dec.push_back(mean_tele_point_dec);
                 roi_radius_inner.push_back(0.);
@@ -2288,7 +2303,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_ra.push_back(98.476);
             roi_dec.push_back(17.770);
             roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(1.5);
+            roi_radius_outer.push_back(1.2);
         }
         else if (TString(target).Contains("Cygnus")) 
         {
@@ -2362,11 +2377,17 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         }
         else if (TString(target).Contains("GammaCygni")) 
         {
-            roi_name.push_back("Gamma Cygni");
-            roi_ra.push_back(304.967);
-            roi_dec.push_back(40.811);
+            roi_name.push_back("PSR J2021+4026");
+            roi_ra.push_back(305.377066667);
+            roi_dec.push_back(40.4481944444);
             roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.6);
+            roi_radius_outer.push_back(0.24);
+
+            roi_name.push_back("VER J2019+407");
+            roi_ra.push_back(304.95);
+            roi_dec.push_back(40.9);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.24);
         }
         else
         {
@@ -2431,9 +2452,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
-        int R2off_bins = 6;
-        //if (energy_bins[e]>=2000.) R2off_bins = 3;
-        Hist_OnData_Correct_R2off.push_back(TH1D("Hist_Stage1_OnData_Correct_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",R2off_bins,0,3));
+        int R2off_bins = 18;
+        if (energy_bins[e]>=650.) R2off_bins = 9;
+        if (energy_bins[e]>=4000.) R2off_bins = 1;
+        Hist_OnData_Correct_R2off.push_back(TH1D("Hist_Stage1_OnData_Correct_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",R2off_bins,0,9));
     }
 
 
@@ -2898,7 +2920,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         string filename;
         filename = TString(SMI_INPUT+"/"+string(run_number)+".anasum.root");
 
-        //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
+        std::cout << "Get telescope pointing RA and Dec for run " << run_number << std::endl;
         pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
         if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[run].second));
         run_tele_point_ra = tele_point_ra_dec.first;
@@ -2908,7 +2930,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
         SetEventDisplayTreeBranch(Data_tree);
+        std::cout << "Get time cuts for run " << run_number << std::endl;
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
+        std::cout << "Get elev. and azim. for run " << run_number << std::endl;
         double tele_elev = GetRunElevAzim(filename,int(Data_runlist[run].second)).first;
 
         Data_tree->GetEntry(0);
@@ -2916,7 +2940,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Data_tree->GetEntry(Data_tree->GetEntries()-1);
         double time_1 = Time;
         exposure_hours += (time_1-time_0)/3600.;
-        double exposure_thisrun = GetRunUsableTime(Data_runlist[run].second)/3600.;
+        std::cout << "Get usable time for run " << run_number << std::endl;
+        double exposure_thisrun = GetRunUsableTime(filename,Data_runlist[run].second)/3600.;
         exposure_hours_usable += exposure_thisrun;
         Data_runlist_exposure.push_back(exposure_thisrun);
 
@@ -2987,7 +3012,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 if (R2off<camera_theta2_cut_upper)
                 {
-                    Hist_OnData_Correct_R2off.at(energy).Fill(pow(R2off,0.5),yoff_weight);
+                    Hist_OnData_Correct_R2off.at(energy).Fill(R2off,yoff_weight);
                 }
             }
 
@@ -3023,7 +3048,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         double time_0 = Time;
         Data_tree->GetEntry(Data_tree->GetEntries()-1);
         double time_1 = Time;
-        double exposure_thisrun = GetRunUsableTime(Data_runlist[run].second)/3600.;
+        double exposure_thisrun = GetRunUsableTime(filename,Data_runlist[run].second)/3600.;
 
         for (int entry=0;entry<Data_tree->GetEntries();entry++) 
         {
@@ -3088,7 +3113,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 energy_weight = data_cr_content_energy/dark_cr_content_energy;
             }
             double R2_weight = 0.;
-            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(pow(R2off,0.5));
+            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(R2off);
             if (Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off)>0.)
             {
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
@@ -3225,7 +3250,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 energy_weight = data_cr_content_energy/dark_cr_content_energy;
             }
             double R2_weight = 0.;
-            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(pow(R2off,0.5));
+            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(R2off);
             if (Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off)>0.)
             {
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
@@ -3392,6 +3417,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
 
     std::cout << "Prepare ON run samples..." << std::endl;
+    int final_runs = 0;
     for (int run=0;run<Data_runlist.size();run++)
     {
         if (!did_i_find_a_match.at(run)) 
@@ -3402,6 +3428,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         else
         {
             std::cout << "Prepare run ..." << int(Data_runlist[run].second) << std::endl;
+            final_runs += 1;
         }
 
         char run_number[50];
@@ -3441,7 +3468,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         double time_0 = Time;
         Data_tree->GetEntry(Data_tree->GetEntries()-1);
         double time_1 = Time;
-        double exposure_thisrun = GetRunUsableTime(Data_runlist[run].second)/3600.;
+        double exposure_thisrun = GetRunUsableTime(filename,Data_runlist[run].second)/3600.;
 
         for (int e=0;e<N_energy_fine_bins;e++) 
         {
@@ -3675,7 +3702,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             double weight = 1.;
             //if (theta2<source_theta2_cut && SignalSelectionTheta2()) weight = source_weight.at(energy);
             double R2_weight = 0.;
-            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(pow(R2off,0.5));
+            int bin_R2off = Hist_OnData_Correct_R2off.at(energy).FindBin(R2off);
             if (Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off)>0.)
             {
                 R2_weight = Hist_OnData_Correct_R2off.at(energy).GetBinContent(1)/Hist_OnData_Correct_R2off.at(energy).GetBinContent(bin_R2off);
@@ -4239,5 +4266,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     
     OutputFile.Close();
 
+    std::cout << "initial runs = " << Data_runlist_init.size() << std::endl;
+    std::cout << "selected runs = " << Data_runlist.size() << std::endl;
+    std::cout << "final runs = " << final_runs << std::endl;
     std::cout << "Done." << std::endl;
 }
