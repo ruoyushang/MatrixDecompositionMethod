@@ -589,6 +589,12 @@ double GetShowerDepth(double shower_height, double elevation)
     double shower_depth = pow(pow(earth_radius+atm_depth,2)-pow(earth_radius*sin(zenith_rad),2),0.5)-earth_radius*cos(zenith_rad)-shower_height;
     return shower_depth;
 }
+double RescaleMSCW(double MSCW_input, double R2off_input, double MSCW_shift)
+{
+    //double MSCW_new = MSCW_input/(1.+MSCW_rescale[energy]*min(R2off_input,1.0));
+    double MSCW_new = MSCW_input-MSCW_shift*min(R2off_input,1.0);
+    return MSCW_new;
+}
 bool SelectNImages()
 {
     if (NImages<2) return false;
@@ -2533,8 +2539,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<TH1D> Hist_NormSyst_Skymap_Theta2;
     vector<TH1D> Hist_ShapeSyst_Skymap_Theta2;
     vector<TH1D> Hist_OnData_SR_Yoff;
+    vector<TH1D> Hist_OnData_SR_Xoff;
     vector<TH2D> Hist_OnData_SR_XYoff;
     vector<TH1D> Hist_OnData_CR_Yoff;
+    vector<TH1D> Hist_OnData_CR_Xoff;
     vector<TH1D> Hist_OnData_SR_R2off;
     vector<TH1D> Hist_OnDark_SR_R2off;
     vector<TH1D> Hist_OnData_CR_R2off;
@@ -2583,11 +2591,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_NormSyst_Skymap_Theta2.push_back(TH1D("Hist_Stage1_NormSyst_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_ShapeSyst_Skymap_Theta2.push_back(TH1D("Hist_Stage1_ShapeSyst_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnData_SR_Yoff.push_back(TH1D("Hist_Stage1_OnData_SR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
+        Hist_OnData_SR_Xoff.push_back(TH1D("Hist_Stage1_OnData_SR_Xoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_OnData_SR_XYoff.push_back(TH2D("Hist_Stage1_OnData_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
         Hist_OnData_CR_Yoff.push_back(TH1D("Hist_Stage1_OnData_CR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
-        Hist_OnData_SR_R2off.push_back(TH1D("Hist_Stage1_OnData_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",18,0,9));
-        Hist_OnDark_SR_R2off.push_back(TH1D("Hist_Stage1_OnDark_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",18,0,9));
-        Hist_OnData_CR_R2off.push_back(TH1D("Hist_Stage1_OnData_CR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",18,0,9));
+        Hist_OnData_CR_Xoff.push_back(TH1D("Hist_Stage1_OnData_CR_Xoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
+        Hist_OnData_SR_R2off.push_back(TH1D("Hist_Stage1_OnData_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
+        Hist_OnDark_SR_R2off.push_back(TH1D("Hist_Stage1_OnDark_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
+        Hist_OnData_CR_R2off.push_back(TH1D("Hist_Stage1_OnData_CR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
         Hist_OnData_CR_XYoff.push_back(TH2D("Hist_Stage1_OnData_CR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
         Hist_OnDark_SR_XYoff.push_back(TH2D("Hist_Stage1_OnDark_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
         Hist_OnData_CR_Yoff_Raw.push_back(TH1D("Hist_Stage1_OnData_CR_Yoff_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
@@ -2871,11 +2881,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     //if (EmissionHeight<6.) continue;
                     double shower_depth = GetShowerDepth(EmissionHeight,tele_elev_off);
                     //if (shower_depth>4.) continue;
-                    //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+                    if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
                     //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)<100) continue;
                     //if (R2off>4.) continue;
-                    MSCW = MSCW/MSCW_rescale[energy];
-                    MSCL = MSCL/MSCL_rescale[energy];
+                    MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+                    MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
                     double run_weight = Dark_weight.at(run).at(nth_sample);
                     double weight = run_weight;
                     if (DarkFoV())
@@ -2949,11 +2959,11 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     //if (EmissionHeight<6.) continue;
                     double shower_depth = GetShowerDepth(EmissionHeight,tele_elev_off);
                     //if (shower_depth>4.) continue;
-                    //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+                    if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
                     //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)<100) continue;
                     //if (R2off>4.) continue;
-                    MSCW = MSCW/MSCW_rescale[energy];
-                    MSCL = MSCL/MSCL_rescale[energy];
+                    MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+                    MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
                     Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
                     Hist_Dark_ElevNSB.Fill(NSB_thisrun,tele_elev_off);
                     Hist_Dark_ElevAzim.Fill(NSB_thisrun,tele_azim_off);
@@ -3072,13 +3082,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (EmissionHeight<6.) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
-            //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+            if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
             //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)<100) continue;
             //if (TString(target).Contains("Crab") && theta2<0.3) continue;
             //if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             //if (R2off>4.) continue;
-            MSCW = MSCW/MSCW_rescale[energy];
-            MSCL = MSCL/MSCL_rescale[energy];
+            MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+            MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
             
             int bin_energy = Hist_CRDark_Energy.at(energy).FindBin(ErecS*1000.);
             int bin_r2off = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(R2off);
@@ -3180,13 +3190,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (EmissionHeight<6.) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
-            //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+            if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
             //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)<100) continue;
             //if (TString(target).Contains("Crab") && theta2<0.3) continue;
             //if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             //if (R2off>4.) continue;
-            MSCW = MSCW/MSCW_rescale[energy];
-            MSCL = MSCL/MSCL_rescale[energy];
+            MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+            MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
             
             int bin_energy = Hist_CRDark_Energy.at(energy).FindBin(ErecS*1000.);
             int bin_r2off = Hist_CRDark_XYoff.at(energy).GetXaxis()->FindBin(R2off);
@@ -3309,13 +3319,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (EmissionHeight<6.) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
-            //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+            if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
             //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)<100) continue;
             //if (TString(target).Contains("Crab") && theta2<0.3) continue;
             //if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             //if (R2off>4.) continue;
-            MSCW = MSCW/MSCW_rescale[energy];
-            MSCL = MSCL/MSCL_rescale[energy];
+            MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+            MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
 
             double norm_syst_err = Hist_NormSystErr.at(elevation).GetBinContent(energy+1); 
             double shape_syst_err[N_integration_radii] = {0.,0.,0.,0.,0.};
@@ -3392,6 +3402,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_NormSyst_Skymap_Theta2.at(energy).Fill(theta2,yoff_weight*norm_syst_err);
                     Hist_ShapeSyst_Skymap_Theta2.at(energy).Fill(theta2,yoff_weight*shape_syst_err[0]);
                     Hist_OnData_CR_Yoff.at(energy).Fill(Yoff,yoff_weight);
+                    Hist_OnData_CR_Xoff.at(energy).Fill(Xoff,yoff_weight);
                     Hist_OnData_CR_XYoff.at(energy).Fill(Xoff,Yoff,yoff_weight);
                     Hist_OnData_CR_R2off.at(energy).Fill(R2off,yoff_weight);
                     Hist_OnData_CR_Yoff_Raw.at(energy).Fill(Yoff,1.);
@@ -3725,10 +3736,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (EmissionHeight<6.) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
-            //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+            if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
             //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)<100) continue;
-            MSCW = MSCW/MSCW_rescale[energy];
-            MSCL = MSCL/MSCL_rescale[energy];
+            MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+            MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
             if (FoV())
             {
                 if (SignalSelectionTheta2())
@@ -3797,13 +3808,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             //if (EmissionHeight<6.) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
-            //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
+            if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
             //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)<100) continue;
             //if (TString(target).Contains("Crab") && theta2<0.3) continue;
             //if (TString(target).Contains("Mrk421") && theta2<0.3) continue;
             //if (R2off>4.) continue;
-            MSCW = MSCW/MSCW_rescale[energy];
-            MSCL = MSCL/MSCL_rescale[energy];
+            MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+            MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
             double weight = 1.;
             //if (theta2<source_theta2_cut && SignalSelectionTheta2()) weight = source_weight.at(energy);
             double R2_weight = 0.;
@@ -3847,6 +3858,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
                 Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW,weight);
+                if (SourceFoV())
+                {
+                    Hist_OnData_Point_MSCLW.at(energy).Fill(MSCL,MSCW,weight);
+                }
+                else if (SourceRingFoV())
+                {
+                    Hist_OnData_Ring_MSCLW.at(energy).Fill(MSCL,MSCW,weight);
+                }
             }
             if (!SignalSelectionTheta2())
             {
@@ -3864,6 +3883,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                         Hist_OnData_SR_Energy_CamCenter.at(energy).Fill(ErecS*1000.,weight);
                     }
                     Hist_OnData_SR_Yoff.at(energy).Fill(Yoff,weight);
+                    Hist_OnData_SR_Xoff.at(energy).Fill(Xoff,weight);
                     Hist_OnData_SR_XYoff.at(energy).Fill(Xoff,Yoff,weight);
                     Hist_OnData_SR_R2off.at(energy).Fill(R2off,weight);
                     Hist_OnData_SR_Skymap_Theta2.at(energy).Fill(theta2,weight);
@@ -3876,14 +3896,12 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                         Hist_OnData_SR_Height.at(energy).Fill(EmissionHeight,weight);
                         Hist_OnData_SR_Depth.at(energy).Fill(shower_depth,weight);
                         Hist_OnData_SR_Rcore.at(energy).Fill(pow(Xcore*Xcore+Ycore*Ycore,0.5),weight);
-                        Hist_OnData_Point_MSCLW.at(energy).Fill(MSCL,MSCW,weight);
                     }
                     else if (SourceRingFoV())
                     {
                         Hist_OnData_CR_Height.at(energy).Fill(EmissionHeight,weight);
                         Hist_OnData_CR_Depth.at(energy).Fill(shower_depth,weight);
                         Hist_OnData_CR_Rcore.at(energy).Fill(pow(Xcore*Xcore+Ycore*Ycore,0.5),weight);
-                        Hist_OnData_Ring_MSCLW.at(energy).Fill(MSCL,MSCW,weight);
                     }
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
@@ -4069,8 +4087,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //        if (energy<0) continue;
     //        if (energy>=N_energy_bins) continue;
     //        if (!SelectNImages()) continue;
-    //        MSCW = MSCW/MSCW_rescale[energy];
-    //        MSCL = MSCL/MSCL_rescale[energy];
+    //        MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+    //        MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
     //        Hist_GammaMC_MSCLW.at(energy).Fill(MSCL,MSCW);
     //        if (MCFoV() && FoV())
     //        {
@@ -4099,8 +4117,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //        if (energy<0) continue;
     //        if (energy>=N_energy_bins) continue;
     //        if (!SelectNImages()) continue;
-    //        MSCW = MSCW/MSCW_rescale[energy];
-    //        MSCL = MSCL/MSCL_rescale[energy];
+    //        MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+    //        MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
 
     //        int binx_sky = Hist_Photon_Exp_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
     //        int biny_sky = Hist_Photon_Exp_Skymap.at(energy).GetYaxis()->FindBin(dec_sky);
@@ -4197,8 +4215,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //        if (SizeSecondMax<400.) continue;
     //        if (EmissionHeight<6.) continue;
     //        if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-    //        MSCW = MSCW/MSCW_rescale[energy];
-    //        MSCL = MSCL/MSCL_rescale[energy];
+    //        MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+    //        MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
     //        if (theta2<0.3)
     //        {
     //            Hist_GammaDataON_MSCLW.at(energy).Fill(MSCL,MSCW);
@@ -4337,8 +4355,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_NormSyst_Skymap_Theta2.at(e).Write();
         Hist_ShapeSyst_Skymap_Theta2.at(e).Write();
         Hist_OnData_SR_Yoff.at(e).Write();
+        Hist_OnData_SR_Xoff.at(e).Write();
         Hist_OnData_SR_XYoff.at(e).Write();
         Hist_OnData_CR_Yoff.at(e).Write();
+        Hist_OnData_CR_Xoff.at(e).Write();
         Hist_OnData_SR_R2off.at(e).Write();
         Hist_OnDark_SR_R2off.at(e).Write();
         Hist_OnData_CR_R2off.at(e).Write();
