@@ -29,55 +29,50 @@ np.set_printoptions(precision=2)
 #smooth_size_spectroscopy = 0.1
 n_rebins = 2
 smooth_size_spectroscopy = 0.1
+#n_rebins = 2
+#smooth_size_spectroscopy = 0.2
 #n_rebins = 4
 #smooth_size_spectroscopy = 0.2
 
-#method_tag = 'loose_mdm_default'
-#method_tag = 'loose_mdm_rank3'
-#method_tag = 'loose_mdm_rank5'
-#method_tag = 'loose_mdm_cutoff'
-#method_tag = 'loose_mdm_tikhonov'
 method_tag = 'tight_mdm_default'
-#method_tag = 'tight_mdm_rank3'
-#method_tag = 'tight_mdm_rank5'
-#method_tag = 'tight_mdm_cutoff'
-#method_tag = 'tight_mdm_tikhonov'
-#method_tag = 'tight_mdm_cutoff_eigen'
 
 lowrank_tag = '_svd'
 #lowrank_tag = '_eigen'
 method_tag += lowrank_tag
 
+#folder_path = 'output_tight'
+#folder_path = 'output_medium'
+folder_path = 'output_loose'
+
 energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
-#elev_range = [35,40,45,50,55,60,65,70,75,80,85]
-#elev_range = [80,85]
-#elev_range = [75,80]
-#elev_range = [70,75]
-#elev_range = [65,70]
-#elev_range = [40,45]
+#theta2_bins = [0,1]
+theta2_bins = [0,4]
+#theta2_bins = [0,6]
 
 elev_range = [35,45,55,65,75,85]
 #elev_range = [55,65,75,85]
 #elev_range = [65,75,85]
 #elev_range = [45,55,65]
+#elev_range = [35,45,55]
 #elev_range = [75,85]
 #elev_range = [65,75]
 #elev_range = [55,65]
 #elev_range = [45,55]
 #elev_range = [35,45]
 
-theta2_bins = [0,4]
-#theta2_bins = [0,6]
-
 # all time
 mjd_tag = []
 mjd_tag += ['']
-#mjd_tag += ['_MJD53613to55074']
-#mjd_tag += ['_MJD55074to56535']
-#mjd_tag += ['_MJD56535to57996']
-#mjd_tag += ['_MJD57996to59457']
+#mjd_tag += ['_MJD53613to54343'] #V4 2005-2007 Aug 31
+#mjd_tag += ['_MJD54343to55074'] #V4 2007-2009 Aug 31
+#mjd_tag += ['_MJD55074to55804'] #V5 2009-2011 Aug 31
+#mjd_tag += ['_MJD55804to56535'] #V5+V6 2011-2013 Aug 31
+#mjd_tag += ['_MJD56535to57265'] #V6 2013-2015 Aug 31
+#mjd_tag += ['_MJD57265to57996'] #V6 2015-2017 Aug 31
+#mjd_tag += ['_MJD57996to58726'] #V6 2017-2019 Aug 31
+#mjd_tag += ['_MJD58726to59457'] #V6 2019-2021 Aug 31
 
 ONOFF_tag = 'ON'
 sample_list = []
@@ -660,9 +655,6 @@ print ('Get %s'%(root_file_tags[0]))
 
 selection_tag = root_file_tags[0]
 
-#folder_path = 'output_nominal'
-#folder_path = 'output_16x16'
-folder_path = 'output_8x8'
 PercentCrab = ''
 
 
@@ -883,6 +875,8 @@ def ResetStackedShowerHistograms():
 
     Hist_EffArea_Sum.Reset()
 
+    Hist2D_OnData_Point_Sum.Reset()
+    Hist2D_OnData_Ring_Sum.Reset()
     Hist2D_OnData_Sum.Reset()
     Hist2D_OnBkgd_Sum.Reset()
     Hist2D_OnGamma_Sum.Reset()
@@ -924,7 +918,9 @@ def ResetStackedShowerHistograms():
     Hist_OnData_SR_XYoff_Sum.Reset()
     Hist_OnDark_SR_XYoff_Sum.Reset()
     Hist_OnData_CR_XYoff_Sum.Reset()
+    Hist_OnData_R2off_Sum.Reset()
     Hist_OnData_Yoff_Sum.Reset()
+    Hist_OnBkgd_R2off_Sum.Reset()
     Hist_OnBkgd_Yoff_Sum.Reset()
     Hist_OnBkgd_Yoff_Raw_Sum.Reset()
     Hist_OnData_Theta2_Sum.Reset()
@@ -937,6 +933,12 @@ def ResetStackedShowerHistograms():
     Hist_OnDark_Energy_Sum.Reset()
     Hist_OnData_Zenith_Sum.Reset()
     Hist_OnBkgd_Zenith_Sum.Reset()
+    Hist_OnData_Height_Sum.Reset()
+    Hist_OnBkgd_Height_Sum.Reset()
+    Hist_OnData_Depth_Sum.Reset()
+    Hist_OnBkgd_Depth_Sum.Reset()
+    Hist_OnData_Rcore_Sum.Reset()
+    Hist_OnBkgd_Rcore_Sum.Reset()
     Hist_OnData_Energy_CamCenter_Sum.Reset()
     Hist_OnBkgd_Energy_CamCenter_Sum.Reset()
 
@@ -1138,6 +1140,14 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist2D_OnData.Add(InputFile.Get(HistName))
     #HistTemp = MergeHistogram(Hist2D_OnData,InputFile.Get(HistName))
     #Hist2D_OnData.Add(HistTemp)
+    HistName = "Hist_OnData_Point_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    print ('Getting histogram %s'%(HistName))
+    Hist2D_OnData_Point.Reset()
+    Hist2D_OnData_Point.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_Ring_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    print ('Getting histogram %s'%(HistName))
+    Hist2D_OnData_Ring.Reset()
+    Hist2D_OnData_Ring.Add(InputFile.Get(HistName))
 
     HistName = "Hist_OnDark_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     print ('Getting histogram %s'%(HistName))
@@ -1453,6 +1463,8 @@ def GetShowerHistogramsFromFile(FilePath):
 
 def StackShowerHistograms():
 
+    Hist2D_OnData_Point_Sum.Add(Hist2D_OnData_Point)
+    Hist2D_OnData_Ring_Sum.Add(Hist2D_OnData_Ring)
     Hist2D_OnData_Sum.Add(Hist2D_OnData)
     Hist2D_OnDark_Sum.Add(Hist2D_OnDark)
     Hist2D_OnBkgd_Sum.Add(Hist2D_OnBkgd)
@@ -2595,16 +2607,28 @@ def PlotsStackedHistograms(tag):
     legends += ['obs. data']
     colors += [1]
     stack_it += [False]
-    #Hists += [Hist_OnBkgd_Yoff_Raw_Sum]
-    #legends += ['uncorrected']
-    #colors += [2]
-    #stack_it += [True]
     Hists += [Hist_OnBkgd_Yoff_Sum]
     legends += ['bkg. predict.']
     colors += [4]
     stack_it += [True]
     plotname = 'Stack_Yoff_MDM_%s'%(tag)
     title = 'Y off'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_R2off_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_R2off_Sum]
+    legends += ['bkg. predict.']
+    colors += [4]
+    stack_it += [True]
+    plotname = 'Stack_R2off_MDM_%s'%(tag)
+    title = 'R2 off'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,1.,-1)
 
     xdata = []
@@ -2762,6 +2786,24 @@ def PlotsStackedHistograms(tag):
         stack_it += [True]
         plotname = 'Stack_RoI%s_Energy_MDM_%s'%(nth_roi,tag)
         title = 'energy [GeV]'
+        MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
+
+        Hist_OnData_RoI_MJD_Sum[nth_roi].Rebin(40)
+        Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Rebin(40)
+        Hists = []
+        legends = []
+        colors = []
+        stack_it = []
+        Hists += [Hist_OnData_RoI_MJD_Sum[nth_roi]]
+        legends += ['obs. data (%s)'%(roi_name[nth_roi])]
+        colors += [1]
+        stack_it += [False]
+        Hists += [Hist_OnBkgd_RoI_MJD_Sum[nth_roi]]
+        legends += ['predict. bkg.']
+        colors += [4]
+        stack_it += [True]
+        plotname = 'Stack_RoI%s_MJD_MDM_%s'%(nth_roi,tag)
+        title = 'MJD'
         MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
     Hist_data = []
@@ -2955,6 +2997,54 @@ def PlotsStackedHistograms(tag):
     title = 'Zenith [degree]'
     MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_Height_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_Height_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    plotname = 'Stack_Height_MDM_%s'%(tag)
+    title = 'Height [km]'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_Depth_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_Depth_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    plotname = 'Stack_Depth_MDM_%s'%(tag)
+    title = 'Depth [km]'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
+
+    Hists = []
+    legends = []
+    colors = []
+    stack_it = []
+    Hists += [Hist_OnData_Rcore_Sum]
+    legends += ['obs. data']
+    colors += [1]
+    stack_it += [False]
+    Hists += [Hist_OnBkgd_Rcore_Sum]
+    legends += ['predict. bkg.']
+    colors += [4]
+    stack_it += [True]
+    plotname = 'Stack_Rcore_MDM_%s'%(tag)
+    title = 'R core [m]'
+    MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
+
 
     #for nth_sample in range(0,n_control_samples):
 
@@ -3131,6 +3221,24 @@ def NormalizeEnergyHistograms(FilePath):
     HistName = "Hist_OnData_CR_Zenith_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Zenith.Reset()
     Hist_OnBkgd_Zenith.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_SR_Height_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnData_Height.Reset()
+    Hist_OnData_Height.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_CR_Height_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnBkgd_Height.Reset()
+    Hist_OnBkgd_Height.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_SR_Depth_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnData_Depth.Reset()
+    Hist_OnData_Depth.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_CR_Depth_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnBkgd_Depth.Reset()
+    Hist_OnBkgd_Depth.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_SR_Rcore_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnData_Rcore.Reset()
+    Hist_OnData_Rcore.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_CR_Rcore_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnBkgd_Rcore.Reset()
+    Hist_OnBkgd_Rcore.Add(InputFile.Get(HistName))
 
     for nth_roi in range(0,len(roi_ra)):
         HistName = "Hist_OnData_SR_RoI_Energy_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -3195,6 +3303,12 @@ def NormalizeTheta2Histograms(FilePath):
     HistName = "Hist_OnData_SR_Yoff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnData_Yoff.Reset()
     Hist_OnData_Yoff.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_SR_R2off_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnData_R2off.Reset()
+    Hist_OnData_R2off.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_CR_R2off_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_OnBkgd_R2off.Reset()
+    Hist_OnBkgd_R2off.Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_CR_Yoff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Yoff.Reset()
     Hist_OnBkgd_Yoff.Add(InputFile.Get(HistName))
@@ -3272,6 +3386,12 @@ def StackEnergyHistograms():
     Hist_OnDark_Energy_Sum.Add(Hist_OnDark_Energy)
     Hist_OnData_Zenith_Sum.Add(Hist_OnData_Zenith)
     Hist_OnBkgd_Zenith_Sum.Add(Hist_OnBkgd_Zenith)
+    Hist_OnData_Height_Sum.Add(Hist_OnData_Height)
+    Hist_OnBkgd_Height_Sum.Add(Hist_OnBkgd_Height)
+    Hist_OnData_Depth_Sum.Add(Hist_OnData_Depth)
+    Hist_OnBkgd_Depth_Sum.Add(Hist_OnBkgd_Depth)
+    Hist_OnData_Rcore_Sum.Add(Hist_OnData_Rcore)
+    Hist_OnBkgd_Rcore_Sum.Add(Hist_OnBkgd_Rcore)
 
     for nth_roi in range(0,len(roi_ra)):
         Hist_OnData_RoI_Energy_Sum[nth_roi].Add(Hist_OnData_RoI_Energy[nth_roi])
@@ -3284,7 +3404,9 @@ def StackTheta2Histograms():
     Hist_OnData_SR_XYoff_Sum.Add(Hist_OnData_SR_XYoff)
     Hist_OnDark_SR_XYoff_Sum.Add(Hist_OnDark_SR_XYoff)
     Hist_OnData_CR_XYoff_Sum.Add(Hist_OnData_CR_XYoff)
+    Hist_OnData_R2off_Sum.Add(Hist_OnData_R2off)
     Hist_OnData_Yoff_Sum.Add(Hist_OnData_Yoff)
+    Hist_OnBkgd_R2off_Sum.Add(Hist_OnBkgd_R2off)
     Hist_OnBkgd_Yoff_Sum.Add(Hist_OnBkgd_Yoff)
     Hist_OnBkgd_Yoff_Raw_Sum.Add(Hist_OnBkgd_Yoff_Raw)
     Hist_OnData_Theta2_Sum.Add(Hist_OnData_Theta2)
@@ -3402,6 +3524,8 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
 
+    HistName = "Hist_OnData_ISR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_Expo_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_SR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnData_Skymap.Reset()
     Hist_OnData_Skymap.Add(InputFile.Get(HistName))
@@ -3416,6 +3540,7 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
     Hist_OnBkgd_Skymap.Reset()
     Hist_OnBkgd_Skymap.Add(InputFile.Get(HistName))
     Hist_Bkgd_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
+    Hist_Expo_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
     HistName = "Hist_NormSyst_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Skymap_Syst_Norm.Reset()
     Hist_OnBkgd_Skymap_Syst_Norm.Add(InputFile.Get(HistName))
@@ -3649,8 +3774,8 @@ def GetSkyViewMap(map_file, hist_map, isRaDec):
         if biny<1: continue
         if biny>=hist_map.GetNbinsY()-1: continue
         old_sig = hist_map.GetBinContent(binx+1,biny+1)
-        #hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
-        hist_map.SetBinContent(binx+1,biny+1,sig+old_sig)
+        hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
+        #hist_map.SetBinContent(binx+1,biny+1,sig+old_sig)
 
     map_resolution = 0.1
     hist_map_new = FillSkymapHoles(hist_map, map_resolution)
@@ -3794,7 +3919,7 @@ def VariableSkymapBins(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input):
 def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_bkgd,hist_syst,hist_expo,title_x,title_y,name,zoomin_scale):
 
     global calibration
-    calibration_radius = 0.3
+    global calibration_radius
 
     isRaDec = False
     if 'RaDec' in name: isRaDec = True
@@ -4054,21 +4179,24 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         fig.savefig("output_plots/%s_%s_%s.png"%(plotname,name,selection_tag),bbox_inches='tight')
         axbig.remove()
 
+        cycol = cycle('krgbcmy')
         fig.clf()
         axbig = fig.add_subplot()
         for nth_roi in range(0,len(list_rate)):
             ratio = np.array(list_rate[nth_roi])/np.array(ref_rate)
             ratio_err = np.array(list_rate_err[nth_roi])/np.array(ref_rate)
-            axbig.errorbar(list_edata[nth_roi],ratio,ratio_err,color='k',marker='s',ls='none',label='%s'%(legends[nth_roi]))
+            next_color = next(cycol)
+            axbig.errorbar(list_edata[nth_roi],ratio,ratio_err,color=next_color,marker='s',ls='none',label='%s'%(legends[nth_roi]))
         axbig.legend(loc='best')
         axbig.set_xlabel('Energy [GeV]')
-        axbig.set_ylabel('event rate per hour')
+        axbig.set_ylabel('ratio of event rates')
         axbig.set_xscale('log')
         plt.ylim(0, 2.0)
         plotname = 'EventRateRatioFromMap'
         fig.savefig("output_plots/%s_%s_%s.png"%(plotname,name,selection_tag),bbox_inches='tight')
         axbig.remove()
 
+        cycol = cycle('krgbcmy')
         fig.clf()
         axbig = fig.add_subplot()
         for nth_roi in range(0,len(list_fdata)):
@@ -4076,10 +4204,11 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             ref_flux = pow(np.array(list_edata[nth_roi]),energy_index)*vectorize_f(np.array(list_edata[nth_roi]))
             ratio = np.array(list_fdata[nth_roi])/ref_flux
             ratio_err = np.array(list_error[nth_roi])/ref_flux
-            axbig.errorbar(list_edata[nth_roi],ratio,ratio_err,color='k',marker='s',ls='none',label='%s'%(legends[nth_roi]))
+            next_color = next(cycol)
+            axbig.errorbar(list_edata[nth_roi],ratio,ratio_err,color=next_color,marker='s',ls='none',label='%s'%(legends[nth_roi]))
         axbig.legend(loc='best')
         axbig.set_xlabel('Energy [GeV]')
-        axbig.set_ylabel('event rate per hour')
+        axbig.set_ylabel('ratio of calibrated fluxes')
         axbig.set_xscale('log')
         plt.ylim(0, 2.0)
         plotname = 'EventFluxRatioFromMap'
@@ -4237,8 +4366,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             if zscore<3.0:
                 hist_rate_skymap_sum.SetBinContent(bx+1,by+1,0.)
 
+    flux_index = 2.2
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        delta_e = energy_bin[ebin+1]-energy_bin[ebin]
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
                 flux_content = hist_flux_skymap[ebin].GetBinContent(bx+1,by+1)
@@ -4246,7 +4375,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 if flux_error==0.: continue
                 if flux_content/flux_error<2.0: continue
                 old_content = hist_flux_skymap_sum.GetBinContent(bx+1,by+1)
-                hist_flux_skymap_sum.SetBinContent(bx+1,by+1,old_content+delta_e/1000.*flux_content)
+                hist_flux_skymap_sum.SetBinContent(bx+1,by+1,old_content+flux_content/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
 
 
     hist_contour = hist_zscore_skymap_sum.Clone()
@@ -4395,15 +4524,29 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         #MWL_map_title += ['cnts/s/cm^{2}/sr']
         #MWL_map_file += ['MWL_maps/skv790080564098_fermi_band5.txt']
         #MWL_map_title += ['cnts/s/cm^{2}/sr']
+
+        Hist_MWL = hist_contour.Clone()
+
         if sys.argv[1]=='MGRO_J1908_ON':
 
-            d_SN = 7.9 #kpc
-            t_SN = 11.*1000. # age of PSR J1907+0631 in year
-            E_spindown_rate = 5.e35 #erg/s
-            #E_SN = E_spindown_rate*t_SN*365.*24.*60.*60./1e51 #erg
-            E_SN = 1.
             RA_SN = 286.786
             Dec_SN= 6.498
+            d_SN = 7.9 #kpc
+            t_SN = 11.*1000. # age of PSR J1907+0631 in year
+            E_SN = 1.
+            angular_diameter_SN = 0.43 # Yang et al. 2006, ChJAA, 6, 210.
+            deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
+            #vel_sh = 0.5*angular_diameter_SN*deg_to_cm/(t_SN*365.*24.*60.*60.) # shock velocity
+            t_free_expansion = 2.1*100.*pow(1./4.,1./3.)
+            vel_sh = 1e9*pow(t_SN/t_free_expansion,-3./5.)
+            print ('shock velocity = %0.2f km/s'%(vel_sh/(100.*1000.)))
+
+            diffusion_ism = 3.*1e28*pow(energy_bin[energy_bin_cut_low],1./3.) # cm2/s arXiv:1011.0037
+            hydrogen_to_solar_mass = 8.4144035*1e-58
+            skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
+            vol_SNR = 4.*3.14/3.*pow(0.5*angular_diameter_SN*deg_to_cm,3)
+            thickness_SNR = vel_sh*0.5*angular_diameter_SN*deg_to_cm/diffusion_ism
+            vol_ISM = 4.*3.14*pow(diffusion_ism/vel_sh,3)*exp(-thickness_SNR)*(pow(thickness_SNR,2)+2.*thickness_SNR+2)
             #Gamma_CR = 2.1
             #f_Gamma = 0.9
             Gamma_CR = 2.2
@@ -4412,189 +4555,221 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             #f_Gamma = 0.19
             t_init = 1000. #years
             theta_ECR_ESN = 3.14/5.*(1.-pow(t_init/t_SN,0.4))
-            hydrogen_to_solar_mass = 8.4144035*1e-58
-            skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*3.14/180.*d_SN*1000.*3.086e18,2)
-            diffusion_ism = 3.*1e28*pow(energy_bin[energy_bin_cut_low],1./3.) # cm2/s arXiv:1011.0037
-            diffusion_radius = pow(2.*diffusion_ism*(t_SN-t_init)*365.*24.*60.*60.,0.5)/(3.14/180.*d_SN*1000.*3.086e18)
+            #diffusion_radius = (diffusion_ism/vel_sh)/deg_to_cm
+            diffusion_radius = 2.*pow(diffusion_ism*(t_SN)/2.*365.*24.*60.*60.,0.5)/deg_to_cm
             print ('diffusion_radius = %0.2f deg'%(diffusion_radius))
-            #angular_diameter_SN = 0.43 # Yang et al. 2006, ChJAA, 6, 210.
-            angular_diameter_SN = 2.*diffusion_radius
 
-            MWL_map_file = 'MWL_maps/FGN_04000+0000_2x2_12CO_v1.00_cube_53_78_0th_moment.txt'
-            #MWL_map_file = 'MWL_maps/FGN_04000+0000_2x2_12CO_v1.00_cube_72_75_0th_moment.txt'
+            #MWL_map_file = 'MWL_maps/FGN_04000+0000_2x2_12CO_v1.00_cube_53_78_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+            ##MWL_map_file = 'MWL_maps/FGN_04000+0000_2x2_12CO_v1.00_cube_72_75_0th_moment.txt'
+            #MWL_map_title = 'H_{2} column density (1/cm^{2})'
+            #Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
+            #Hist_MWL.Scale(2.*1e20) # H2 column density
+            ##MWL_label = 'FUGIN project'
+
+            MWL_map_file = 'MWL_maps/skv23774832380255_CO_J1908.txt' # CO intensity (K km s^{-1} deg)
             MWL_map_title = 'H_{2} column density (1/cm^{2})'
-            Hist_MWL = hist_contour.Clone()
-            Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
+            Hist_MWL = GetSkyViewMap(MWL_map_file, Hist_MWL, isRaDec)
             Hist_MWL.Scale(2.*1e20) # H2 column density
-            #Hist_MWL = GetSkyViewMap(MWL_map_file, Hist_MWL, isRaDec)
-            #MWL_label = '1-3 GeV Band 4'
-            #MWL_label = 'Fermi 3-300 GeV Band 5'
-            #MWL_label = 'FUGIN project'
-            hist_MWL_reflect = reflectXaxis(Hist_MWL)
-            hist_MWL_reflect.GetYaxis().SetTitle(title_y)
-            hist_MWL_reflect.GetXaxis().SetTitle(title_x)
-            hist_MWL_reflect.GetZaxis().SetTitle(MWL_map_title)
-            hist_MWL_reflect.GetZaxis().SetTitleOffset(title_offset+0.1)
-            hist_MWL_reflect.Draw("COL4Z")
-            hist_contour_reflect.SetLineColor(0)
-            hist_contour_reflect.Draw("CONT3 same")
-            hist_MWL_reflect.GetXaxis().SetLabelOffset(999)
-            hist_MWL_reflect.GetXaxis().SetTickLength(0)
-            raLowerAxis.Draw()
-            mycircles = []
-            for nth_roi in range(0,len(roi_ra)):
-                mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
-                mycircles[nth_roi].SetFillStyle(0)
-                mycircles[nth_roi].SetLineColor(2)
-                if nth_roi==0: continue
-                if (roi_name[nth_roi] in exclude_roi): continue
-                mycircles[nth_roi].Draw("same")
-            for star in range(0,len(other_star_markers)):
-                other_star_markers[star].Draw("same")
-                other_star_labels[star].Draw("same")
-            #for star in range(0,len(faint_star_markers)):
-            #    faint_star_markers[star].Draw("same")
-            #    faint_star_labels[star].Draw("same")
-            canvas.SaveAs('output_plots/SkymapMWL_%s_%s.png'%(name,selection_tag))
-            hist_MWL_mass_reflect = hist_MWL_reflect.Clone()
-            hist_MWL_mass_reflect.Scale(skymap_bin_area/3.14*2.8*hydrogen_to_solar_mass) # in solar mass
-            MWL_map_title = 'H_{2} mass'
-            hist_MWL_mass_reflect.GetZaxis().SetTitle(MWL_map_title)
-            hist_MWL_mass_reflect.Draw("COL4Z")
-            hist_contour_reflect.SetLineColor(0)
-            hist_contour_reflect.Draw("CONT3 same")
-            hist_MWL_mass_reflect.GetXaxis().SetLabelOffset(999)
-            hist_MWL_mass_reflect.GetXaxis().SetTickLength(0)
-            raLowerAxis.Draw()
-            mycircles = []
-            for nth_roi in range(0,len(roi_ra)):
-                mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
-                mycircles[nth_roi].SetFillStyle(0)
-                mycircles[nth_roi].SetLineColor(2)
-                if nth_roi==0: continue
-                if (roi_name[nth_roi] in exclude_roi): continue
-                mycircles[nth_roi].Draw("same")
-            for star in range(0,len(other_star_markers)):
-                other_star_markers[star].Draw("same")
-                other_star_labels[star].Draw("same")
-            #for star in range(0,len(faint_star_markers)):
-            #    faint_star_markers[star].Draw("same")
-            #    faint_star_labels[star].Draw("same")
-            canvas.SaveAs('output_plots/SkymapMWL_mass_%s_%s.png'%(name,selection_tag))
-            hist_MWL_density_reflect = hist_MWL_reflect.Clone()
-            hist_MWL_density_reflect.Scale(1./(angular_diameter_SN*3.14/180.*d_SN*1000.*3.086e18)) 
-            MWL_map_title = 'H_{2} density 1/cm^{3}'
-            hist_MWL_density_reflect.GetZaxis().SetTitle(MWL_map_title)
-            hist_MWL_density_reflect.Draw("COL4Z")
-            hist_contour_reflect.SetLineColor(0)
-            hist_contour_reflect.Draw("CONT3 same")
-            hist_MWL_density_reflect.GetXaxis().SetLabelOffset(999)
-            hist_MWL_density_reflect.GetXaxis().SetTickLength(0)
-            raLowerAxis.Draw()
-            mycircles = []
-            for nth_roi in range(0,len(roi_ra)):
-                mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
-                mycircles[nth_roi].SetFillStyle(0)
-                mycircles[nth_roi].SetLineColor(2)
-                if nth_roi==0: continue
-                if (roi_name[nth_roi] in exclude_roi): continue
-                mycircles[nth_roi].Draw("same")
-            for star in range(0,len(other_star_markers)):
-                other_star_markers[star].Draw("same")
-                other_star_labels[star].Draw("same")
-            #for star in range(0,len(faint_star_markers)):
-            #    faint_star_markers[star].Draw("same")
-            #    faint_star_labels[star].Draw("same")
-            canvas.SaveAs('output_plots/SkymapMWL_density_%s_%s.png'%(name,selection_tag))
 
-            for bx in range(0,hist_data_skymap[0].GetNbinsX()):
-                for by in range(0,hist_data_skymap[0].GetNbinsY()):
-                    bin_ra = hist_data_skymap[0].GetXaxis().GetBinCenter(bx+1)
-                    bin_dec = hist_data_skymap[0].GetYaxis().GetBinCenter(by+1)
-                    distance = pow(pow(bin_ra-RA_SN,2)+pow(bin_dec-Dec_SN,2),0.5)
-                    flux_integral = hist_flux_skymap_sum.GetBinContent(bx+1,by+1)
-                    A_par = flux_integral/(f_Gamma*1e-10*pow(energy_bin[energy_bin_cut_low]/1000.,1-Gamma_CR))
+        elif sys.argv[1]=='IC443HotSpot_ON':
 
-                    #if distance>0.5*angular_diameter_SN: continue
-                    #solid_angle_ratio = pow(smooth_size_spectroscopy,2)/pow(0.5*angular_diameter_SN,2)
-                    #MC_density = A_par/(theta_ECR_ESN*E_SN*solid_angle_ratio*pow(d_SN,-2))
-                    #MC_column_density = MC_density*angular_diameter_SN*3.14/180.*d_SN*1000.*3.086e18
-                    #MC_mass = MC_column_density*skymap_bin_area/3.14*2.8*hydrogen_to_solar_mass
+            d_SN = 1.9 #kpc
+            t_SN = 3.*1000. # year
+            E_SN = 1.
+            RA_SN = 94.213
+            Dec_SN= 22.503
+            angular_diameter_SN = 45./60.
+            deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
+            #vel_sh = 0.5*angular_diameter_SN*deg_to_cm/(t_SN*365.*24.*60.*60.) # shock velocity
+            t_free_expansion = 2.1*100.*pow(1./4.,1./3.)
+            vel_sh = 1e9*pow(t_SN/t_free_expansion,-3./5.)
+            print ('shock velocity = %0.2f km/s'%(vel_sh/(100.*1000.)))
 
-                    attenuation = 1.
-                    if distance>2.0*diffusion_radius: continue
-                    attenuation = exp(-pow(distance,2)/(4.*diffusion_radius*diffusion_radius))
-                    diffusion_radius_cm = diffusion_radius*3.14/180.*d_SN*1000.*3.086e18
-                    SN_volume = 4.*3.14/3.*pow(diffusion_radius_cm,3)
-                    MC_mass = A_par/(theta_ECR_ESN*E_SN*attenuation*pow(d_SN,-2))*SN_volume
-                    MC_column_density = MC_mass/skymap_bin_area
-                    MC_density = MC_column_density/(angular_diameter_SN*3.14/180.*d_SN*1000.*3.086e18)
+            diffusion_ism = 3.*1e28*pow(energy_bin[energy_bin_cut_low],1./3.) # cm2/s arXiv:1011.0037
+            hydrogen_to_solar_mass = 8.4144035*1e-58
+            skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
+            vol_SNR = 4.*3.14/3.*pow(0.5*angular_diameter_SN*deg_to_cm,3)
+            thickness_SNR = vel_sh*0.5*angular_diameter_SN*deg_to_cm/diffusion_ism
+            vol_ISM = 4.*3.14*pow(diffusion_ism/vel_sh,3)*exp(-thickness_SNR)*(pow(thickness_SNR,2)+2.*thickness_SNR+2)
+            #Gamma_CR = 2.1
+            #f_Gamma = 0.9
+            Gamma_CR = 2.2
+            f_Gamma = 0.43
+            #Gamma_CR = 2.3
+            #f_Gamma = 0.19
+            t_init = 1000. #years
+            theta_ECR_ESN = 3.14/5.*(1.-pow(t_init/t_SN,0.4))
+            #diffusion_radius = (diffusion_ism/vel_sh)/deg_to_cm
+            diffusion_radius = 2.*pow(diffusion_ism*(t_SN)/2.*365.*24.*60.*60.,0.5)/deg_to_cm
+            print ('diffusion_radius = %0.2f deg'%(diffusion_radius))
 
-                    #hist_molecular_cloud_expect_skymap.SetBinContent(bx+1,by+1,MC_mass*2.8*hydrogen_to_solar_mass)
-                    hist_molecular_cloud_expect_skymap.SetBinContent(bx+1,by+1,MC_density)
+            MWL_map_file = 'MWL_maps/skv2603498623747_IC443.txt' # CO intensity (K km s^{-1} deg)
+            Hist_MWL = GetSkyViewMap(MWL_map_file, Hist_MWL, isRaDec)
+            #MWL_map_file = 'MWL_maps/DHT22_GemOB1_mom_m31_p16_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+            #Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
+            MWL_map_title = 'H_{2} column density (1/cm^{2})'
+            Hist_MWL.Scale(2.*1e20) # H2 column density
 
-            hist_molecular_cloud_expect_skymap_reflect = reflectXaxis(hist_molecular_cloud_expect_skymap)
-            hist_molecular_cloud_expect_skymap_reflect.GetYaxis().SetTitle(title_y)
-            hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetTitle(title_x)
-            hist_molecular_cloud_expect_skymap_reflect.GetZaxis().SetTitle('minimal H_{2} density (1/cm^{3})')
-            hist_molecular_cloud_expect_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
-            #hist_molecular_cloud_expect_skymap_reflect.SetMaximum(Hist_MWL.GetMaximum())
-            #hist_molecular_cloud_expect_skymap_reflect.SetMinimum(0.)
-            hist_molecular_cloud_expect_skymap_reflect.Draw("COL4Z")
-            hist_contour_reflect.Draw("CONT3 same")
-            hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetLabelOffset(999)
-            hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetTickLength(0)
-            raLowerAxis.Draw()
-            mycircles = []
-            for nth_roi in range(0,len(roi_ra)):
-                mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
-                mycircles[nth_roi].SetFillStyle(0)
-                mycircles[nth_roi].SetLineColor(2)
-                if nth_roi==0: continue
-                if (roi_name[nth_roi] in exclude_roi): continue
-                mycircles[nth_roi].Draw("same")
-            for star in range(0,len(other_star_markers)):
-                other_star_markers[star].Draw("same")
-                other_star_labels[star].Draw("same")
-            #for star in range(0,len(faint_star_markers)):
-            #    faint_star_markers[star].Draw("same")
-            #    faint_star_labels[star].Draw("same")
-            canvas.SaveAs('output_plots/SkymapMolecularCloudExpect_%s_%s.png'%(name,selection_tag))
+        hist_MWL_reflect = reflectXaxis(Hist_MWL)
+        hist_MWL_reflect.GetYaxis().SetTitle(title_y)
+        hist_MWL_reflect.GetXaxis().SetTitle(title_x)
+        hist_MWL_reflect.GetZaxis().SetTitle(MWL_map_title)
+        hist_MWL_reflect.GetZaxis().SetTitleOffset(title_offset+0.1)
+        hist_MWL_reflect.Draw("COL4Z")
+        hist_contour_reflect.Draw("CONT3 same")
+        hist_MWL_reflect.GetXaxis().SetLabelOffset(999)
+        hist_MWL_reflect.GetXaxis().SetTickLength(0)
+        raLowerAxis.Draw()
+        mycircles = []
+        for nth_roi in range(0,len(roi_ra)):
+            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
+            mycircles[nth_roi].SetFillStyle(0)
+            mycircles[nth_roi].SetLineColor(2)
+            if nth_roi==0: continue
+            if (roi_name[nth_roi] in exclude_roi): continue
+            mycircles[nth_roi].Draw("same")
+        for star in range(0,len(other_star_markers)):
+            other_star_markers[star].Draw("same")
+            other_star_labels[star].Draw("same")
+        #for star in range(0,len(faint_star_markers)):
+        #    faint_star_markers[star].Draw("same")
+        #    faint_star_labels[star].Draw("same")
+        canvas.SaveAs('output_plots/SkymapMWL_%s_%s.png'%(name,selection_tag))
+        hist_MWL_mass_reflect = hist_MWL_reflect.Clone()
+        hist_MWL_mass_reflect.Scale(skymap_bin_area/3.14*2.8*hydrogen_to_solar_mass) # in solar mass
+        MWL_map_title = 'H_{2} mass'
+        hist_MWL_mass_reflect.GetZaxis().SetTitle(MWL_map_title)
+        hist_MWL_mass_reflect.Draw("COL4Z")
+        hist_contour_reflect.Draw("CONT3 same")
+        hist_MWL_mass_reflect.GetXaxis().SetLabelOffset(999)
+        hist_MWL_mass_reflect.GetXaxis().SetTickLength(0)
+        raLowerAxis.Draw()
+        mycircles = []
+        for nth_roi in range(0,len(roi_ra)):
+            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
+            mycircles[nth_roi].SetFillStyle(0)
+            mycircles[nth_roi].SetLineColor(2)
+            if nth_roi==0: continue
+            if (roi_name[nth_roi] in exclude_roi): continue
+            mycircles[nth_roi].Draw("same")
+        for star in range(0,len(other_star_markers)):
+            other_star_markers[star].Draw("same")
+            other_star_labels[star].Draw("same")
+        #for star in range(0,len(faint_star_markers)):
+        #    faint_star_markers[star].Draw("same")
+        #    faint_star_labels[star].Draw("same")
+        canvas.SaveAs('output_plots/SkymapMWL_mass_%s_%s.png'%(name,selection_tag))
+        hist_MWL_density = Hist_MWL.Clone()
+        hist_MWL_density.Scale(1./(2.*diffusion_radius*deg_to_cm)) 
+        hist_MWL_density_reflect = reflectXaxis(hist_MWL_density)
+        MWL_map_title = 'H_{2} density 1/cm^{3}'
+        hist_MWL_density_reflect.GetZaxis().SetTitle(MWL_map_title)
+        hist_MWL_density_reflect.Draw("COL4Z")
+        hist_contour_reflect.Draw("CONT3 same")
+        hist_MWL_density_reflect.GetXaxis().SetLabelOffset(999)
+        hist_MWL_density_reflect.GetXaxis().SetTickLength(0)
+        raLowerAxis.Draw()
+        mycircles = []
+        for nth_roi in range(0,len(roi_ra)):
+            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
+            mycircles[nth_roi].SetFillStyle(0)
+            mycircles[nth_roi].SetLineColor(2)
+            if nth_roi==0: continue
+            if (roi_name[nth_roi] in exclude_roi): continue
+            mycircles[nth_roi].Draw("same")
+        for star in range(0,len(other_star_markers)):
+            other_star_markers[star].Draw("same")
+            other_star_labels[star].Draw("same")
+        #for star in range(0,len(faint_star_markers)):
+        #    faint_star_markers[star].Draw("same")
+        #    faint_star_labels[star].Draw("same")
+        canvas.SaveAs('output_plots/SkymapMWL_density_%s_%s.png'%(name,selection_tag))
 
-            hist_MWL_happiness_reflect = hist_MWL_density_reflect.Clone()
-            hist_MWL_happiness_reflect.Reset()
-            for bx in range(0,hist_data_skymap[0].GetNbinsX()):
-                for by in range(0,hist_data_skymap[0].GetNbinsY()):
-                    reality = hist_MWL_density_reflect.GetBinContent(bx+1,by+1)
-                    expectation = hist_molecular_cloud_expect_skymap_reflect.GetBinContent(bx+1,by+1)
-                    if reality==0.: continue
-                    if expectation==0.: continue
-                    happiness = reality-expectation
-                    hist_MWL_happiness_reflect.SetBinContent(bx+1,by+1,happiness)
-            hist_MWL_happiness_reflect.GetYaxis().SetTitle(title_y)
-            hist_MWL_happiness_reflect.GetXaxis().SetTitle(title_x)
-            hist_MWL_happiness_reflect.GetZaxis().SetTitle('happiness density (1/cm^{3})')
-            hist_MWL_happiness_reflect.GetZaxis().SetTitleOffset(title_offset)
-            hist_MWL_happiness_reflect.Draw("COL4Z")
-            hist_contour_reflect.Draw("CONT3 same")
-            hist_MWL_happiness_reflect.GetXaxis().SetLabelOffset(999)
-            hist_MWL_happiness_reflect.GetXaxis().SetTickLength(0)
-            raLowerAxis.Draw()
-            mycircles = []
-            for nth_roi in range(0,len(roi_ra)):
-                mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
-                mycircles[nth_roi].SetFillStyle(0)
-                mycircles[nth_roi].SetLineColor(2)
-                if nth_roi==0: continue
-                if (roi_name[nth_roi] in exclude_roi): continue
-                mycircles[nth_roi].Draw("same")
-            for star in range(0,len(other_star_markers)):
-                other_star_markers[star].Draw("same")
-                other_star_labels[star].Draw("same")
-            #for star in range(0,len(faint_star_markers)):
-            #    faint_star_markers[star].Draw("same")
-            #    faint_star_labels[star].Draw("same")
-            canvas.SaveAs('output_plots/SkymapHappiness_%s_%s.png'%(name,selection_tag))
+        for bx in range(0,hist_data_skymap[0].GetNbinsX()):
+            for by in range(0,hist_data_skymap[0].GetNbinsY()):
+                bin_ra = hist_data_skymap[0].GetXaxis().GetBinCenter(bx+1)
+                bin_dec = hist_data_skymap[0].GetYaxis().GetBinCenter(by+1)
+                distance = pow(pow(bin_ra-RA_SN,2)+pow(bin_dec-Dec_SN,2),0.5)
+                MC_density = hist_MWL_density.GetBinContent(bx+1,by+1)
+                MC_column_density = MC_density*(2.*diffusion_radius*deg_to_cm)
+                MC_mass = MC_column_density*skymap_bin_area
+
+                #ECR_density_in_SNR = theta_ECR_ESN*E_SN/(vol_SNR+vol_ISM)
+                #ECR_density_local = ECR_density_in_SNR
+                #if distance>0.5*angular_diameter_SN+1.*diffusion_radius: continue
+                #if distance>0.5*angular_diameter_SN:
+                #    ECR_density_local = ECR_density_in_SNR*exp(-(distance-0.5*angular_diameter_SN)/diffusion_radius)
+                #A_par = MC_mass*ECR_density_local
+                #flux_integral = A_par*(f_Gamma*1e-10*pow(energy_bin[energy_bin_cut_low]/1000.,1-Gamma_CR))
+
+                vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
+                ECR_density_in_SNR = theta_ECR_ESN*E_SN/vol_diff
+                ECR_density_local = ECR_density_in_SNR*exp(-pow(distance/diffusion_radius,2))
+                A_par = MC_mass*ECR_density_local*pow(d_SN,-2)
+                flux_integral = A_par*(f_Gamma*1e-10*pow(energy_bin[energy_bin_cut_low]/1000.,1-Gamma_CR))
+                
+                hist_molecular_cloud_expect_skymap.SetBinContent(bx+1,by+1,flux_integral)
+
+        hist_molecular_cloud_expect_skymap_reflect = reflectXaxis(hist_molecular_cloud_expect_skymap)
+        hist_molecular_cloud_expect_skymap_reflect.GetYaxis().SetTitle(title_y)
+        hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetTitle(title_x)
+        hist_molecular_cloud_expect_skymap_reflect.GetZaxis().SetTitle('maximal flux (cm^{-2} s^{-1})')
+        hist_molecular_cloud_expect_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
+        hist_molecular_cloud_expect_skymap_reflect.Draw("COL4Z")
+        hist_contour_reflect.Draw("CONT3 same")
+        hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetLabelOffset(999)
+        hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetTickLength(0)
+        raLowerAxis.Draw()
+        mycircles = []
+        for nth_roi in range(0,len(roi_ra)):
+            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
+            mycircles[nth_roi].SetFillStyle(0)
+            mycircles[nth_roi].SetLineColor(2)
+            if nth_roi==0: continue
+            if (roi_name[nth_roi] in exclude_roi): continue
+            mycircles[nth_roi].Draw("same")
+        for star in range(0,len(other_star_markers)):
+            other_star_markers[star].Draw("same")
+            other_star_labels[star].Draw("same")
+        #for star in range(0,len(faint_star_markers)):
+        #    faint_star_markers[star].Draw("same")
+        #    faint_star_labels[star].Draw("same")
+        canvas.SaveAs('output_plots/SkymapMolecularCloudExpect_%s_%s.png'%(name,selection_tag))
+
+        hist_MWL_happiness_reflect = hist_MWL_density_reflect.Clone()
+        hist_MWL_happiness_reflect.Reset()
+        for bx in range(0,hist_data_skymap[0].GetNbinsX()):
+            for by in range(0,hist_data_skymap[0].GetNbinsY()):
+                reality = hist_flux_skymap_sum.GetBinContent(bx+1,by+1)
+                expectation = hist_molecular_cloud_expect_skymap_reflect.GetBinContent(bx+1,by+1)
+                if reality==0.: continue
+                if expectation==0.: continue
+                happiness = reality-expectation
+                hist_MWL_happiness_reflect.SetBinContent(bx+1,by+1,-1.*happiness)
+        hist_MWL_happiness_reflect.GetYaxis().SetTitle(title_y)
+        hist_MWL_happiness_reflect.GetXaxis().SetTitle(title_x)
+        hist_MWL_happiness_reflect.GetZaxis().SetTitle('residual flux (cm^{-2} s^{-1})')
+        hist_MWL_happiness_reflect.GetZaxis().SetTitleOffset(title_offset)
+        hist_MWL_happiness_reflect.Draw("COL4Z")
+        hist_contour_reflect.Draw("CONT3 same")
+        hist_MWL_happiness_reflect.GetXaxis().SetLabelOffset(999)
+        hist_MWL_happiness_reflect.GetXaxis().SetTickLength(0)
+        raLowerAxis.Draw()
+        mycircles = []
+        for nth_roi in range(0,len(roi_ra)):
+            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
+            mycircles[nth_roi].SetFillStyle(0)
+            mycircles[nth_roi].SetLineColor(2)
+            if nth_roi==0: continue
+            if (roi_name[nth_roi] in exclude_roi): continue
+            mycircles[nth_roi].Draw("same")
+        for star in range(0,len(other_star_markers)):
+            other_star_markers[star].Draw("same")
+            other_star_labels[star].Draw("same")
+        #for star in range(0,len(faint_star_markers)):
+        #    faint_star_markers[star].Draw("same")
+        #    faint_star_labels[star].Draw("same")
+        canvas.SaveAs('output_plots/SkymapHappiness_%s_%s.png'%(name,selection_tag))
 
 
 
@@ -4741,45 +4916,31 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         energy_axis = []
         source_extent = []
         source_extent_err = []
-        fig.clf()
-        axbig = fig.add_subplot()
-        center_x, center_y = FindCenter(hist_data_skymap_sum,hist_bkgd_skymap_sum)
+        #center_x, center_y = FindCenter(hist_data_skymap_sum,hist_bkgd_skymap_sum)
         center_x, center_y = source_ra, source_dec
-        #center_x, center_y = 286.975, 6.03777777778 #PSR J1907+0602
-        #center_x, center_y = 286.786, 6.498 #SNR G40.5-0.5
-        #center_x, center_y = 98.476, 17.770 #Geminga Pulsar
-        profile, profile_err, theta2 = FindExtension(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,hist_expo_skymap_sum,center_x,center_y,MapSize_y/zoomin_scale)
-        mean_amplitude = max(1.,np.mean(profile)*len(theta2))
-        start = (0.5, mean_amplitude, 0.)
-        fit_bound = ((0.,0.,0.),(2.0,100.*mean_amplitude,100.*mean_amplitude))
-        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err), bounds=fit_bound)
-        extension_fit = gaussian_disk_2d_to_1D(np.array(theta2), *popt)
-        residual = np.array(profile) - extension_fit
-        chisq = np.sum((residual/np.array(profile_err))**2)
-        dof = len(theta2)-3
-        axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
-        axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color='k')
-        axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), popt[0], popt[1]),color='r')
-        axbig.plot(np.array(theta2), disk_2d_to_1D(np.array(theta2), popt[2]),color='g')
-        extent = popt[0]
-        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
-        extent_up = popt[0]
-        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
-        extent_dw = popt[0]
-        extent_err = abs(extent_up-extent_dw)/2.
-        print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
-        axbig.set_ylabel('excess (arbitrary scaled)')
-        axbig.set_xlabel('angular distance from center [degree]')
-        axbig.legend(loc='best')
-        #axbig.set_yscale('log')
-        plotname = 'ProfileVsTheta2'
-        fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-        axbig.remove()
+        if sys.argv[1]=='MGRO_J1908_ON':
+            center_x, center_y = 286.975, 6.03777777778 #PSR J1907+0602
+            #center_x, center_y = 286.786, 6.498 #SNR G40.5-0.5
+        if sys.argv[1]=='Geminga_ON':
+            center_x, center_y = 98.476, 17.770 #Geminga Pulsar
+        profile_list = []
+        profile_err_list = []
+        theta2_list = []
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
             fig.clf()
             axbig = fig.add_subplot()
-            profile, profile_err, theta2 = FindExtension(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],hist_expo_skymap[ebin],center_x,center_y,MapSize_y/zoomin_scale)
-            start = (0.5, np.mean(profile)*len(theta2),0.)
+            profile, profile_err, theta2 = FindExtension(calibration[ebin],hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],hist_expo_skymap[ebin],center_x,center_y,MapSize_y/zoomin_scale)
+            for binx in range(0,len(profile)):
+                profile[binx] = profile[binx]*pow(energy_bin[ebin],2)
+                profile_err[binx] = profile_err[binx]*pow(energy_bin[ebin],2)
+            profile_list += [profile]
+            profile_err_list += [profile_err]
+            theta2_list += [theta2]
+            mean_amplitude = np.mean(profile)
+            start = (0.5, mean_amplitude, 0.)
+            fit_bound = ((0.0,0.,0.),(2.0,len(theta2)*mean_amplitude,1e-3*mean_amplitude))
+            #if sys.argv[1]=='MGRO_J1908_ON':
+            #    fit_bound = ((0.0,0.,0.),(2.0,len(theta2)*mean_amplitude,1.5*mean_amplitude))
             popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err), bounds=fit_bound)
             extension_fit = gaussian_disk_2d_to_1D(np.array(theta2), *popt)
             residual = np.array(profile) - extension_fit
@@ -4788,24 +4949,64 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
             axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color='k')
             axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), popt[0], popt[1]),color='r')
-            axbig.plot(np.array(theta2), disk_2d_to_1D(np.array(theta2), popt[2]),color='g')
-            extent = popt[0]
+            #axbig.plot(np.array(theta2), disk_2d_to_1D(np.array(theta2), popt[2]),color='g')
+            extent = pow(max(0.,popt[0]*popt[0]-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
             popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
-            extent_up = popt[0]
+            extent_up = pow(max(0.,popt[0]*popt[0]-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
             popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
-            extent_dw = popt[0]
+            extent_dw = pow(max(0.,popt[0]*popt[0]-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
             extent_err = abs(extent_up-extent_dw)/2.
             print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
             energy_axis += [energy_bin[ebin]]
             source_extent += [extent]
             source_extent_err += [extent_err]
-            axbig.set_ylabel('excess (arbitrary scaled)')
+            axbig.set_ylabel('surface brightness [$\mathrm{TeV}^{-1}\mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
             axbig.set_xlabel('angular distance from center [degree]')
             axbig.legend(loc='best')
             #axbig.set_yscale('log')
             plotname = 'ProfileVsTheta2'
             fig.savefig("output_plots/%s_%s_E%s.png"%(plotname,selection_tag,ebin),bbox_inches='tight')
             axbig.remove()
+        fig.clf()
+        axbig = fig.add_subplot()
+        profile_sum = [0. for binx in range(len(profile_list[0]))]
+        profile_err_sum = [0. for binx in range(len(profile_list[0]))]
+        theta2_sum = [0. for binx in range(len(profile_list[0]))]
+        for ebin in range(0,len(profile_list)):
+            for binx in range(0,len(profile_list[0])):
+                theta2_sum[binx] = theta2_list[ebin][binx]
+                profile_sum[binx] += profile_list[ebin][binx]
+                profile_err_sum[binx] += pow(profile_err_list[ebin][binx],2)
+        for binx in range(0,len(profile_list[0])):
+            profile_err_sum[binx] = pow(profile_err_sum[binx],0.5)
+        mean_amplitude = np.mean(profile_sum)
+        start = (0.5, mean_amplitude, 0.)
+        fit_bound = ((0.0,0.,0.),(2.0,len(theta2_sum)*mean_amplitude,1e-3*mean_amplitude))
+        #if sys.argv[1]=='MGRO_J1908_ON':
+        #    fit_bound = ((0.0,0.,0.),(2.0,len(theta2_sum)*mean_amplitude,1.5*mean_amplitude))
+        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2_sum), np.array(profile_sum), p0=start, sigma=np.array(profile_err_sum), bounds=fit_bound)
+        extension_fit = gaussian_disk_2d_to_1D(np.array(theta2_sum), *popt)
+        residual = np.array(profile_sum) - extension_fit
+        chisq = np.sum((residual/np.array(profile_err_sum))**2)
+        dof = len(theta2_sum)-3
+        axbig.errorbar(theta2_sum,profile_sum,profile_err_sum,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
+        axbig.plot(np.array(theta2_sum), gaussian_disk_2d_to_1D(np.array(theta2_sum), *popt),color='k')
+        axbig.plot(np.array(theta2_sum), gaussian_2d_to_1D(np.array(theta2_sum), popt[0], popt[1]),color='r')
+        #axbig.plot(np.array(theta2_sum), disk_2d_to_1D(np.array(theta2_sum), popt[2]),color='g')
+        extent = pow(max(0.,popt[0]*popt[0]-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
+        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2_sum), np.array(profile_sum)+np.array(profile_err_sum), p0=start, sigma=np.array(profile_err_sum),bounds=fit_bound)
+        extent_up = pow(max(0.,popt[0]*popt[0]-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
+        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2_sum), np.array(profile_sum)-np.array(profile_err_sum), p0=start, sigma=np.array(profile_err_sum),bounds=fit_bound)
+        extent_dw = pow(max(0.,popt[0]*popt[0]-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
+        extent_err = abs(extent_up-extent_dw)/2.
+        print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
+        axbig.set_ylabel('surface brightness [$\mathrm{TeV}^{-1}\mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
+        axbig.set_xlabel('angular distance from center [degree]')
+        axbig.legend(loc='best')
+        #axbig.set_yscale('log')
+        plotname = 'ProfileVsTheta2'
+        fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+        axbig.remove()
 
         fig.clf()
         axbig = fig.add_subplot()
@@ -4889,13 +5090,11 @@ def GetExtentionRMS(Hist_data, Hist_bkgd, Hist_exposure, roi_x, roi_y, roi_size)
     return pow(weighted_distance_sq/total_weight,0.5)
 
 def disk_2d_to_1D(x, B):
-    return B * x
+    return B
 def gaussian_2d_to_1D(x, rms, A):
-    return A * x * np.exp( -0.5*(x/rms)**2 )
+    return A * np.exp( -0.5*(x/rms)**2 )
 def gaussian_disk_2d_to_1D(x, rms, A, B):
-    return A * x * np.exp( -0.5*(x/rms)**2 ) + B * x
-    #return A * x * np.exp( -0.5*(x/rms)**2 ) + B * 0.
-    #return A * x * np.exp( -0.5*(x/rms)**2 )*1.0/(rms*(0.06*rms+x)) + B*0.
+    return A * np.exp( -0.5*(x/rms)**2 ) + B
 def gaussian_2d(x, y, x0, y0, rms, A, B):
     return A * np.exp( -0.5*((x-x0)/rms)**2 -0.5*((y-y0)/rms)**2) + B
 def _gaussian_2d(M, *args):
@@ -5463,9 +5662,25 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrBkgd.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
-    #line3.Draw("same")
-    #line4.Draw("same")
     canvas.SaveAs('output_plots/ErrorBkgd_%s_%s.png'%(name,selection_tag))
+
+    Hist2D_ErrRing = ROOT.TH2D("Hist2D_ErrRing","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+    Hist2D_ErrRing.Add(Hist2D_OnData_Point_Sum)
+    Hist2D_ErrRing.Add(Hist2D_OnData_Ring_Sum,-1)
+    pad3.cd()
+    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON}-M^{Ring}' )
+    lumilab1.SetNDC()
+    lumilab1.SetTextSize(0.3)
+    lumilab1.Draw()
+    pad1.cd()
+    Hist2D_ErrRing.SetMaximum(Hist2D_ErrDark.GetMaximum());
+    Hist2D_ErrRing.SetMinimum(Hist2D_ErrDark.GetMinimum());
+    Hist2D_ErrRing.GetYaxis().SetTitle('MSCW')
+    Hist2D_ErrRing.GetXaxis().SetTitle('MSCL')
+    Hist2D_ErrRing.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
+    canvas.SaveAs('output_plots/ErrorRing_%s_%s.png'%(name,selection_tag))
 
     #norm_data_sr = Hist_OnData_SR_XYoff_Sum.Integral()
     #Hist_OnData_SR_XYoff_Sum.Scale(1./norm_data_sr)
@@ -5827,12 +6042,19 @@ def FindCenter(Hist_Data_input,Hist_Bkgd_input):
 
     return excess_center_x_init, excess_center_y_init
 
-def FindExtension(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,Hist_Expo_input,roi_x,roi_y,integration_range):
+def FindExtension(calibration_const,Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,Hist_Expo_input,roi_x,roi_y,integration_range):
+
+    global calibration_radius
 
     n_bins = 10
-    #theta2_limit = 0.5
-    theta2_limit = 1.5
-    #theta2_limit = 2.0
+    theta2_limit = 1.0
+    if sys.argv[1]=='MGRO_J1908_ON':
+        n_bins = 10
+        theta2_limit = 1.5
+    if sys.argv[1]=='Geminga_ON':
+        n_bins = 5
+        theta2_limit = 2.0
+
     Hist_Profile_Theta2 = ROOT.TH1D("Hist_Profile_Theta2","",n_bins,0,theta2_limit)
     Hist_Data_Theta2 = ROOT.TH1D("Hist_Data_Theta2","",n_bins,0,theta2_limit)
     Hist_Bkgd_Theta2 = ROOT.TH1D("Hist_Bkgd_Theta2","",n_bins,0,theta2_limit)
@@ -5855,11 +6077,12 @@ def FindExtension(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,Hist_Expo_inpu
                 cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
                 cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
                 distance_sq = pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2)
-                data_content = Hist_Data.GetBinContent(bx+1,by+1)
-                data_error = Hist_Data.GetBinError(bx+1,by+1)
-                bkgd_content = Hist_Bkgd.GetBinContent(bx+1,by+1)
-                bkgd_error = Hist_Bkgd.GetBinError(bx+1,by+1)
-                syst_error = Hist_Syst.GetBinContent(bx+1,by+1)
+                correction = calibration_const*smooth_size_spectroscopy*smooth_size_spectroscopy/(calibration_radius*calibration_radius)
+                data_content = Hist_Data.GetBinContent(bx+1,by+1)*correction
+                data_error = Hist_Data.GetBinError(bx+1,by+1)*correction
+                bkgd_content = Hist_Bkgd.GetBinContent(bx+1,by+1)*correction
+                bkgd_error = Hist_Bkgd.GetBinError(bx+1,by+1)*correction
+                syst_error = Hist_Syst.GetBinContent(bx+1,by+1)*correction
                 total_error = pow(data_error*data_error+bkgd_error*bkgd_error+syst_error*syst_error,0.5)
                 #if total_error==0.: continue
                 #if (data_content-bkgd_content)/total_error<1.: continue
@@ -5888,13 +6111,14 @@ def FindExtension(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,Hist_Expo_inpu
     theta2 = []
     for binx in range(0,Hist_Profile_Theta2.GetNbinsX()):
         center = Hist_Profile_Theta2.GetBinCenter(binx+1)
-        bkgd_content = Hist_Bkgd_Theta2.GetBinContent(binx+1)
-        bkgd_error = Hist_Bkgd_Theta2.GetBinError(binx+1)
-        profile_content = Hist_Profile_Theta2.GetBinContent(binx+1)
+        range_limit = Hist_Profile_Theta2.GetBinLowEdge(binx+2)
+        range_limit_previous = Hist_Profile_Theta2.GetBinLowEdge(binx+1)
+        #solid_angle = 3.14*(range_limit*range_limit-range_limit_previous*range_limit_previous)
+        solid_angle = 2.*3.14*center*(range_limit-range_limit_previous)
+        profile_content = Hist_Profile_Theta2.GetBinContent(binx+1)/solid_angle
         profile_content = max(0.,profile_content)
-        profile_error = Hist_Profile_Theta2.GetBinError(binx+1)
+        profile_error = Hist_Profile_Theta2.GetBinError(binx+1)/solid_angle
         if center>integration_range: continue
-        #if bkgd_error/bkgd_content>0.1: continue
         theta2 += [center]
         profile += [profile_content]
         profile_err += [profile_error]
@@ -6143,11 +6367,11 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
             Hist_Data_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Data_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Bkgd_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
             Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_SumSyst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
-            Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],2.*smooth_size_spectroscopy,False)
-            old_size = Hist_Bkgd_Energy_Skymap_smooth[ebin].Integral()
-            new_size = Hist_Expo_Energy_Skymap_smooth[ebin].Integral()
-            if new_size==0.: continue
-            Hist_Expo_Energy_Skymap_smooth[ebin].Scale(old_size/new_size)
+            Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Expo_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
+            #old_size = Hist_Bkgd_Energy_Skymap_smooth[ebin].Integral()
+            #new_size = Hist_Expo_Energy_Skymap_smooth[ebin].Integral()
+            #if new_size==0.: continue
+            #Hist_Expo_Energy_Skymap_smooth[ebin].Scale(old_size/new_size)
         Hist_IndexMap = MakeSpectrumIndexSkymap(exposure_hours,Hist_Data_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Expo_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
 
         fig.clf()
@@ -6331,10 +6555,14 @@ MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW
 MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
 print ('plot range: MSCL = %s, MSCW = %s'%(MSCL_plot_upper,MSCW_plot_upper))
 
+Hist2D_OnData_Point_Sum = ROOT.TH2D("Hist2D_OnData_Point_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_OnData_Ring_Sum = ROOT.TH2D("Hist2D_OnData_Ring_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnData_Sum = ROOT.TH2D("Hist2D_OnData_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnBkgd_Sum = ROOT.TH2D("Hist2D_OnBkgd_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnGamma_Sum = ROOT.TH2D("Hist2D_OnGamma_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnDark_Sum = ROOT.TH2D("Hist2D_OnDark_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_OnData_Point = ROOT.TH2D("Hist2D_OnData_Point","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
+Hist2D_OnData_Ring = ROOT.TH2D("Hist2D_OnData_Ring","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnData = ROOT.TH2D("Hist2D_OnData","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnBkgd = ROOT.TH2D("Hist2D_OnBkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnGamma = ROOT.TH2D("Hist2D_OnGamma","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -6436,10 +6664,14 @@ Hist_OnDark_SR_XYoff_Sum = ROOT.TH2D("Hist_OnDark_SR_XYoff_Sum","",12,-3,3,12,-3
 Hist_OnDark_SR_XYoff = ROOT.TH2D("Hist_OnDark_SR_XYoff","",12,-3,3,12,-3,3)
 Hist_OnData_CR_XYoff_Sum = ROOT.TH2D("Hist_OnData_CR_XYoff_Sum","",12,-3,3,12,-3,3)
 Hist_OnData_CR_XYoff = ROOT.TH2D("Hist_OnData_CR_XYoff","",12,-3,3,12,-3,3)
+Hist_OnData_R2off_Sum = ROOT.TH1D("Hist_OnData_R2off_Sum","",36,0,9)
 Hist_OnData_Yoff_Sum = ROOT.TH1D("Hist_OnData_Yoff_Sum","",30,-3,3)
+Hist_OnBkgd_R2off_Sum = ROOT.TH1D("Hist_OnBkgd_R2off_Sum","",36,0,9)
 Hist_OnBkgd_Yoff_Sum = ROOT.TH1D("Hist_OnBkgd_Yoff_Sum","",30,-3,3)
 Hist_OnBkgd_Yoff_Raw_Sum = ROOT.TH1D("Hist_OnBkgd_Yoff_Raw_Sum","",30,-3,3)
+Hist_OnData_R2off = ROOT.TH1D("Hist_OnData_R2off","",36,0,9)
 Hist_OnData_Yoff = ROOT.TH1D("Hist_OnData_Yoff","",30,-3,3)
+Hist_OnBkgd_R2off = ROOT.TH1D("Hist_OnBkgd_R2off","",36,0,9)
 Hist_OnBkgd_Yoff = ROOT.TH1D("Hist_OnBkgd_Yoff","",30,-3,3)
 Hist_OnBkgd_Yoff_Raw = ROOT.TH1D("Hist_OnBkgd_Yoff_Raw","",30,-3,3)
 Hist_OnData_Theta2_Sum = ROOT.TH1D("Hist_OnData_Theta2_Sum","",50,0,10)
@@ -6466,15 +6698,29 @@ Hist_OnData_Zenith_Sum = ROOT.TH1D("Hist_OnData_Zenith_Sum","",45,0,90)
 Hist_OnBkgd_Zenith_Sum = ROOT.TH1D("Hist_OnBkgd_Zenith_Sum","",45,0,90)
 Hist_OnData_Zenith = ROOT.TH1D("Hist_OnData_Zenith","",45,0,90)
 Hist_OnBkgd_Zenith = ROOT.TH1D("Hist_OnBkgd_Zenith","",45,0,90)
+Hist_OnData_Height_Sum = ROOT.TH1D("Hist_OnData_Height_Sum","",25,0,25.)
+Hist_OnBkgd_Height_Sum = ROOT.TH1D("Hist_OnBkgd_Height_Sum","",25,0,25.)
+Hist_OnData_Height = ROOT.TH1D("Hist_OnData_Height","",25,0,25.)
+Hist_OnBkgd_Height = ROOT.TH1D("Hist_OnBkgd_Height","",25,0,25.)
+Hist_OnData_Depth_Sum = ROOT.TH1D("Hist_OnData_Depth_Sum","",25,0,25.)
+Hist_OnBkgd_Depth_Sum = ROOT.TH1D("Hist_OnBkgd_Depth_Sum","",25,0,25.)
+Hist_OnData_Depth = ROOT.TH1D("Hist_OnData_Depth","",25,0,25.)
+Hist_OnBkgd_Depth = ROOT.TH1D("Hist_OnBkgd_Depth","",25,0,25.)
+Hist_OnData_Rcore_Sum = ROOT.TH1D("Hist_OnData_Rcore_Sum","",25,0,500.)
+Hist_OnBkgd_Rcore_Sum = ROOT.TH1D("Hist_OnBkgd_Rcore_Sum","",25,0,500.)
+Hist_OnData_Rcore = ROOT.TH1D("Hist_OnData_Rcore","",25,0,500.)
+Hist_OnBkgd_Rcore = ROOT.TH1D("Hist_OnBkgd_Rcore","",25,0,500.)
 
 Hist_SumSyst_Energy_Skymap = []
 Hist_NormSyst_Energy_Skymap = []
 Hist_ShapeSyst_Energy_Skymap = []
+Hist_Expo_Energy_Skymap = []
 Hist_Data_Energy_Skymap = []
 Hist_Bkgd_Energy_Skymap = []
 for ebin in range(0,len(energy_bin)-1):
     Hist_SumSyst_Energy_Skymap += [ROOT.TH2D("Hist_SumSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_NormSyst_Energy_Skymap += [ROOT.TH2D("Hist_NormSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+    Hist_Expo_Energy_Skymap += [ROOT.TH2D("Hist_Expo_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_Data_Energy_Skymap += [ROOT.TH2D("Hist_Data_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_Bkgd_Energy_Skymap += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_ShapeSyst_Energy_Skymap_ThisBin = []
@@ -6637,7 +6883,7 @@ doMWLMap = True
 Smoothing = True
 doUpperLimit = False
 doReferenceFlux = True
-doExtentFit = False
+doExtentFit = True
 
 skymap_zoomin_scale = 2
 
@@ -6649,7 +6895,7 @@ exclude_roi += ['HAWC region']
 exclude_roi += ['VHE region']
 exclude_roi += ['SNR region']
 exclude_roi += ['G40.5-0.5']
-exclude_roi += ['PSR region']
+#exclude_roi += ['PSR region']
 #exclude_roi += ['CO region north']
 #exclude_roi += ['CO region west']
 exclude_roi += ['LAT MeV region']
@@ -6658,8 +6904,10 @@ exclude_roi += ['Ring 1']
 exclude_roi += ['Ring 2']
 exclude_roi += ['Ring 3']
 
-exclude_roi += ['Crab r=1.0 deg']
-exclude_roi += ['Crab r=1.5 deg']
+exclude_roi += ['Crab int. r=0.3 deg']
+#exclude_roi += ['Crab int. r=0.5 deg']
+exclude_roi += ['Crab int. r=1.0 deg']
+exclude_roi += ['Crab int. r=1.5 deg']
 
 exclude_roi += ['Control region r=0.5 deg']
 exclude_roi += ['Control region r=1.0 deg']
@@ -6672,19 +6920,14 @@ exclude_roi += ['Validation r=1.5 deg']
 
 exclude_roi += ['Unknown']
 
+calibration_radius = 0.25
 calibration = [1., 1., 1., 1., 1., 1.]
 ref_rate = [1., 1., 1., 1., 1., 1.]
 ref_rate_err = [1., 1., 1., 1., 1., 1.]
 
-# elev 55-85
-ref_rate = [914.3305170314422, 2180.614915121929, 939.8288236076534, 279.2700527920977, 59.410765023197655, 10.14270760591532]
-ref_rate_err = [6.712818676773545, 8.659704101665211, 5.019401763733949, 2.608271817863244, 1.2014629100642065, 0.5256656160721176]
-calibration = [1.3581329091130414e-09, 1.1654695583040758e-10, 6.307808975497333e-12, 3.5011606167385394e-13, 2.9365617721106373e-14, 4.297351927203786e-15]
-
-# elev 45-65
-#ref_rate = [85.29453526769686, 1549.6836109051712, 1179.7365884601793, 369.14106638010173, 83.37009697650733, 17.083579340464578]
-#ref_rate_err = [4.374349088843047, 17.038137757299356, 12.922785646223186, 6.625047867309528, 3.079894651977629, 1.438546584554788]
-#calibration = [1.3245023150203375e-09, 1.7002930752684366e-10, 1.0874384220689813e-11, 5.172552929684763e-13, 3.3484269904358353e-14, 3.1480105301377927e-15]
+ref_rate = [730.7725119889511, 1690.6690074120604, 706.4923992076749, 189.2533839818766, 35.95236348545754, 6.31419438424774]
+ref_rate_err = [5.809639785944925, 7.618612212616151, 4.497789021545655, 2.253965966854269, 0.9735194169798651, 0.4062479328579627]
+calibration = [1.9298390274249317e-08, 2.9848907353802587e-09, 2.993072468264559e-10, 3.5904565451304144e-11, 4.419621595643962e-12, 4.530059734968605e-13]
 
 SingleSourceAnalysis(sample_list,drawMap,Smoothing,int(sys.argv[2]),int(sys.argv[3]))
 
