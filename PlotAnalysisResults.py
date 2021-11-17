@@ -4366,7 +4366,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             if zscore<3.0:
                 hist_rate_skymap_sum.SetBinContent(bx+1,by+1,0.)
 
-    flux_index = 2.2
+    flux_index = 2.75
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
@@ -4535,29 +4535,32 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             t_SN = 11.*1000. # age of PSR J1907+0631 in year
             E_SN = 1.
             angular_diameter_SN = 0.43 # Yang et al. 2006, ChJAA, 6, 210.
-            deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
-            #vel_sh = 0.5*angular_diameter_SN*deg_to_cm/(t_SN*365.*24.*60.*60.) # shock velocity
-            t_free_expansion = 2.1*100.*pow(1./4.,1./3.)
-            vel_sh = 1e9*pow(t_SN/t_free_expansion,-3./5.)
-            print ('shock velocity = %0.2f km/s'%(vel_sh/(100.*1000.)))
 
-            diffusion_ism = 3.*1e28*pow(energy_bin[energy_bin_cut_low],1./3.) # cm2/s arXiv:1011.0037
+            deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
+            D0 = 1e28*pow(1./10.,0.5)
+            diffusion_ism = D0*pow(energy_bin[energy_bin_cut_low],0.5) # cm2/s
+            R_SN = 0.5*angular_diameter_SN*deg_to_cm
+            t_Sedov = 200. # year
+            vel_sh = 0.4*R_SN/(t_SN*365.*24.*60.*60.)
+            E_max = 100.*1000. #100 TeV
+            t_esc = min(t_Sedov*pow(energy_bin[energy_bin_cut_low]/E_max,-0.5),1e5) # year
+            vol_SNR = 4.*3.14/3.*pow(0.5*angular_diameter_SN*deg_to_cm,3)
             hydrogen_to_solar_mass = 8.4144035*1e-58
             skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
-            vol_SNR = 4.*3.14/3.*pow(0.5*angular_diameter_SN*deg_to_cm,3)
-            thickness_SNR = vel_sh*0.5*angular_diameter_SN*deg_to_cm/diffusion_ism
-            vol_ISM = 4.*3.14*pow(diffusion_ism/vel_sh,3)*exp(-thickness_SNR)*(pow(thickness_SNR,2)+2.*thickness_SNR+2)
             #Gamma_CR = 2.1
             #f_Gamma = 0.9
             Gamma_CR = 2.2
             f_Gamma = 0.43
             #Gamma_CR = 2.3
             #f_Gamma = 0.19
-            t_init = 1000. #years
-            theta_ECR_ESN = 3.14/5.*(1.-pow(t_init/t_SN,0.4))
-            #diffusion_radius = (diffusion_ism/vel_sh)/deg_to_cm
-            diffusion_radius = 2.*pow(diffusion_ism*(t_SN)/2.*365.*24.*60.*60.,0.5)/deg_to_cm
+            theta_ECR_ESN = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
+            diffusion_radius = pow(2.*diffusion_ism*(t_SN-t_esc)*365.*24.*60.*60.,0.5)/deg_to_cm
+            escape_radius = 2.5*R_SN*(pow(t_esc/t_Sedov,0.4)-0.6)/deg_to_cm
+            print ('t_esc = %0.2f year'%(t_esc))
+            print ('shock velocity = %0.2f km/s'%(vel_sh/(100.*1000.)))
+            print ('E_max = %0.2f TeV'%(E_max/1000.))
             print ('diffusion_radius = %0.2f deg'%(diffusion_radius))
+            print ('escape_radius = %0.2f deg'%(escape_radius))
 
             #MWL_map_file = 'MWL_maps/FGN_04000+0000_2x2_12CO_v1.00_cube_53_78_0th_moment.txt' # CO intensity (K km s^{-1} deg)
             ##MWL_map_file = 'MWL_maps/FGN_04000+0000_2x2_12CO_v1.00_cube_72_75_0th_moment.txt'
@@ -4574,34 +4577,37 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         elif sys.argv[1]=='IC443HotSpot_ON':
 
             d_SN = 1.9 #kpc
-            t_SN = 3.*1000. # year
+            t_SN = 17.*1000. # year
             E_SN = 1.
             RA_SN = 94.213
             Dec_SN= 22.503
             angular_diameter_SN = 45./60.
-            deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
-            #vel_sh = 0.5*angular_diameter_SN*deg_to_cm/(t_SN*365.*24.*60.*60.) # shock velocity
-            t_free_expansion = 2.1*100.*pow(1./4.,1./3.)
-            vel_sh = 1e9*pow(t_SN/t_free_expansion,-3./5.)
-            print ('shock velocity = %0.2f km/s'%(vel_sh/(100.*1000.)))
 
-            diffusion_ism = 3.*1e28*pow(energy_bin[energy_bin_cut_low],1./3.) # cm2/s arXiv:1011.0037
+            deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
+            D0 = 1e28*pow(1./10.,0.5)
+            diffusion_ism = D0*pow(energy_bin[energy_bin_cut_low],0.5) # cm2/s
+            R_SN = 0.5*angular_diameter_SN*deg_to_cm
+            t_Sedov = 200. # year
+            vel_sh = 0.4*R_SN/(t_SN*365.*24.*60.*60.)
+            E_max = 100.*1000. #100 TeV
+            t_esc = min(t_Sedov*pow(energy_bin[energy_bin_cut_low]/E_max,-0.5),1e5) # year
+            vol_SNR = 4.*3.14/3.*pow(0.5*angular_diameter_SN*deg_to_cm,3)
             hydrogen_to_solar_mass = 8.4144035*1e-58
             skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
-            vol_SNR = 4.*3.14/3.*pow(0.5*angular_diameter_SN*deg_to_cm,3)
-            thickness_SNR = vel_sh*0.5*angular_diameter_SN*deg_to_cm/diffusion_ism
-            vol_ISM = 4.*3.14*pow(diffusion_ism/vel_sh,3)*exp(-thickness_SNR)*(pow(thickness_SNR,2)+2.*thickness_SNR+2)
             #Gamma_CR = 2.1
             #f_Gamma = 0.9
             Gamma_CR = 2.2
             f_Gamma = 0.43
             #Gamma_CR = 2.3
             #f_Gamma = 0.19
-            t_init = 1000. #years
-            theta_ECR_ESN = 3.14/5.*(1.-pow(t_init/t_SN,0.4))
-            #diffusion_radius = (diffusion_ism/vel_sh)/deg_to_cm
-            diffusion_radius = 2.*pow(diffusion_ism*(t_SN)/2.*365.*24.*60.*60.,0.5)/deg_to_cm
+            theta_ECR_ESN = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
+            diffusion_radius = pow(2.*diffusion_ism*(t_SN-t_esc)*365.*24.*60.*60.,0.5)/deg_to_cm
+            escape_radius = 2.5*R_SN*(pow(t_esc/t_Sedov,0.4)-0.6)/deg_to_cm
+            print ('t_esc = %0.2f year'%(t_esc))
+            print ('shock velocity = %0.2f km/s'%(vel_sh/(100.*1000.)))
+            print ('E_max = %0.2f TeV'%(E_max/1000.))
             print ('diffusion_radius = %0.2f deg'%(diffusion_radius))
+            print ('escape_radius = %0.2f deg'%(escape_radius))
 
             MWL_map_file = 'MWL_maps/skv2603498623747_IC443.txt' # CO intensity (K km s^{-1} deg)
             Hist_MWL = GetSkyViewMap(MWL_map_file, Hist_MWL, isRaDec)
@@ -4702,9 +4708,10 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 #A_par = MC_mass*ECR_density_local
                 #flux_integral = A_par*(f_Gamma*1e-10*pow(energy_bin[energy_bin_cut_low]/1000.,1-Gamma_CR))
 
-                vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
+                if distance>2.*diffusion_radius: continue
+                vol_diff = 4./3.*3.14*pow(diffusion_radius*deg_to_cm,3)
                 ECR_density_in_SNR = theta_ECR_ESN*E_SN/vol_diff
-                ECR_density_local = ECR_density_in_SNR*exp(-pow(distance/diffusion_radius,2))
+                ECR_density_local = ECR_density_in_SNR*exp(-(pow(distance,2)+pow(escape_radius,2))/(2.*pow(diffusion_radius,2)))
                 A_par = MC_mass*ECR_density_local*pow(d_SN,-2)
                 flux_integral = A_par*(f_Gamma*1e-10*pow(energy_bin[energy_bin_cut_low]/1000.,1-Gamma_CR))
                 
@@ -4740,16 +4747,18 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         hist_MWL_happiness_reflect.Reset()
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
-                reality = hist_flux_skymap_sum.GetBinContent(bx+1,by+1)
+                reality = hist_flux_skymap_sum_reflect.GetBinContent(bx+1,by+1)
                 expectation = hist_molecular_cloud_expect_skymap_reflect.GetBinContent(bx+1,by+1)
                 if reality==0.: continue
                 if expectation==0.: continue
                 happiness = reality-expectation
-                hist_MWL_happiness_reflect.SetBinContent(bx+1,by+1,-1.*happiness)
+                hist_MWL_happiness_reflect.SetBinContent(bx+1,by+1,-1.*happiness/expectation)
         hist_MWL_happiness_reflect.GetYaxis().SetTitle(title_y)
         hist_MWL_happiness_reflect.GetXaxis().SetTitle(title_x)
         hist_MWL_happiness_reflect.GetZaxis().SetTitle('residual flux (cm^{-2} s^{-1})')
         hist_MWL_happiness_reflect.GetZaxis().SetTitleOffset(title_offset)
+        #hist_MWL_happiness_reflect.SetMaximum(5.)
+        #hist_MWL_happiness_reflect.SetMinimum(-5.)
         hist_MWL_happiness_reflect.Draw("COL4Z")
         hist_contour_reflect.Draw("CONT3 same")
         hist_MWL_happiness_reflect.GetXaxis().SetLabelOffset(999)
@@ -6899,7 +6908,7 @@ exclude_roi += ['G40.5-0.5']
 #exclude_roi += ['CO region north']
 #exclude_roi += ['CO region west']
 exclude_roi += ['LAT MeV region']
-exclude_roi += ['LAT GeV region']
+#exclude_roi += ['LAT GeV region']
 exclude_roi += ['Ring 1']
 exclude_roi += ['Ring 2']
 exclude_roi += ['Ring 3']
