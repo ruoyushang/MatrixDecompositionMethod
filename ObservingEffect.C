@@ -285,7 +285,7 @@ void ObservingEffect()
     {
         vector<pair<string,int>> Data_runlist_init = GetRunList(source_list[source]);
         vector<pair<string,int>> Data_runlist;
-        if (!TString(target).Contains("Proton")) Data_runlist = SelectONRunList(Data_runlist_init,TelElev_lower,TelElev_upper,0,360,0,0);
+        if (!TString(target).Contains("Proton")) Data_runlist = SelectONRunList(Data_runlist_init,TelElev_lower,TelElev_upper,0,0);
         else Data_runlist = Data_runlist_init;
 
         std::cout << "Prepare ON run samples... " << source_list[source] << std::endl;
@@ -355,10 +355,10 @@ void ObservingEffect()
                 if (!SelectNImages()) continue;
                 if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
                 if (SizeSecondMax<SizeSecondMax_Cut) continue;
-                if (EmissionHeight<6.) continue;
+                //if (EmissionHeight<6.) continue;
                 if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-                MSCW = MSCW/MSCW_rescale[energy];
-                MSCL = MSCL/MSCL_rescale[energy];
+                MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+                MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
                 if (MSCL<MSCL_cut_blind && MSCW<MSCW_cut_blind)
                 {
                     Hist_Source_Theta2.at(source).at(energy).Fill(theta2);
@@ -458,10 +458,10 @@ void ObservingEffect()
                 if (!SelectNImages()) continue;
                 if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
                 if (SizeSecondMax<SizeSecondMax_Cut) continue;
-                if (EmissionHeight<6.) continue;
+                //if (EmissionHeight<6.) continue;
                 if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
-                MSCW = MSCW/MSCW_rescale[energy];
-                MSCL = MSCL/MSCL_rescale[energy];
+                MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
+                MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
                 double weight = 1.;
                 if (theta2<source_theta2_cut) weight = source_weight.at(energy);
                 if (MSCL<MSCL_cut_blind)
@@ -485,8 +485,9 @@ void ObservingEffect()
                     Hist_OnData_PerYear_Yoff.at(year).at(energy).Fill(Yoff,weight);
                     //if ((tele_azim>90.-45. && tele_azim<90.+45.) || (tele_azim>270.-45. && tele_azim<270.+45.)) // east & west
                     //if ((tele_azim<45.) || (tele_azim>180.-45. && tele_azim<180.+45.) || (tele_azim>315.))  // north & south
-                    if ((tele_azim<45.) || (tele_azim>315.))  // north
+                    //if ((tele_azim<45.) || (tele_azim>315.))  // north
                     //if (tele_azim>180.-45. && tele_azim<180.+45.)  // south
+                    if (true)
                     {
                         Hist_OnData_PerElev_Xoff.at(elevation).at(energy).Fill(Xoff,weight);
                         Hist_OnData_PerElev_Yoff.at(elevation).at(energy).Fill(Yoff,weight);
@@ -506,8 +507,9 @@ void ObservingEffect()
                 {
                     //if ((tele_azim>90.-45. && tele_azim<90.+45.) || (tele_azim>270.-45. && tele_azim<270.+45.)) // east & west
                     //if ((tele_azim<45.) || (tele_azim>180.-45. && tele_azim<180.+45.) || (tele_azim>315.))  // north & south
-                    if ((tele_azim<45.) || (tele_azim>315.))  // north
+                    //if ((tele_azim<45.) || (tele_azim>315.))  // north
                     //if (tele_azim>180.-45. && tele_azim<180.+45.)  // south
+                    if (true)
                     {
                         Hist_CRData_PerElev_Xoff.at(elevation).at(energy).Fill(Xoff);
                         Hist_CRData_PerElev_Yoff.at(elevation).at(energy).Fill(Yoff);
