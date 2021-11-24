@@ -54,7 +54,7 @@ theta2_bins = [0,4]
 elev_range = [35,45,55,65,75,85]
 #elev_range = [55,65,75,85]
 #elev_range = [65,75,85]
-#elev_range = [45,55,65]
+#elev_range = [35,45,55,65]
 #elev_range = [35,45,55]
 #elev_range = [75,85]
 #elev_range = [65,75]
@@ -3806,6 +3806,20 @@ def FillSkymapHoles(hist_map, map_resolution):
             hist_map_new.SetBinContent(bx1,by1,min_distance_content)
     return hist_map_new
 
+def ConvertRaDecToGalacticMap(hist_map_radec,hist_map_galactic):
+
+    hist_map_galactic.Reset()
+    for bx1 in range(1,hist_map_galactic.GetNbinsX()+1):
+        for by1 in range(1,hist_map_galactic.GetNbinsY()+1):
+            locationx1 = hist_map_galactic.GetXaxis().GetBinCenter(bx1)
+            locationy1 = hist_map_galactic.GetYaxis().GetBinCenter(by1)
+            locationx2, locationy2 = ConvertGalacticToRaDec(locationx1,locationy1)
+            bx2 = hist_map_radec.GetXaxis().FindBin(locationx2)
+            by2 = hist_map_radec.GetYaxis().FindBin(locationy2)
+            content = hist_map_radec.GetBinContent(bx2,by2)
+            hist_map_galactic.SetBinContent(bx1,by1,content)
+    return hist_map_galactic
+
 def GetSkyViewMap(map_file, hist_map, isRaDec):
 
     hist_map.Reset()
@@ -4130,13 +4144,17 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 if bkgd_content==0.: continue
                 expo_content = hist_expo_skymap[ebin].GetBinContent(bx+1,by+1)
                 correction = calibration[ebin]*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)
-                hist_flux_skymap[ebin].SetBinContent(bx+1,by+1,(data_content-bkgd_content)/expo_content*correction)
                 stat_data_err = hist_data_skymap[ebin].GetBinError(bx+1,by+1)/expo_content*correction
                 stat_bkgd_err = hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)/expo_content*correction
                 stat_err = pow(stat_data_err*stat_data_err+stat_bkgd_err*stat_bkgd_err,0.5)
                 syst_err = hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)/expo_content*correction
                 syst_err = max(syst_err,1e-4*correction)
-                hist_flux_skymap[ebin].SetBinError(bx+1,by+1,pow(stat_err*stat_err+syst_err*syst_err,0.5))
+                flux_content = (data_content-bkgd_content)/expo_content*correction
+                flux_err = pow(stat_err*stat_err+syst_err*syst_err,0.5)
+                #if flux_err==0: continue
+                #if flux_content/flux_err<2.0: continue
+                hist_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content)
+                hist_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err)
 
     
     energy_index = 0
@@ -4421,10 +4439,14 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
                 flux_content = hist_flux_skymap[ebin].GetBinContent(bx+1,by+1)
                 flux_error = hist_flux_skymap[ebin].GetBinError(bx+1,by+1)
-                if flux_error==0.: continue
-                if flux_content/flux_error<2.0: continue
+                #if flux_error==0.: continue
+                #if flux_content/flux_error<3.0: continue
                 old_content = hist_flux_skymap_sum.GetBinContent(bx+1,by+1)
                 hist_flux_skymap_sum.SetBinContent(bx+1,by+1,old_content+flux_content/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
+    for bx in range(0,hist_flux_skymap_sum.GetNbinsX()):
+        for by in range(0,hist_flux_skymap_sum.GetNbinsY()):
+            zscore = hist_zscore_skymap_sum.GetBinContent(bx+1,by+1)
+            if zscore<3.: hist_flux_skymap_sum.SetBinContent(bx+1,by+1,0.)
 
 
     hist_contour = hist_zscore_skymap_sum.Clone()
@@ -4526,6 +4548,31 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     #    faint_star_labels[star].Draw("same")
     canvas.SaveAs('output_plots/SkymapFlux_%s_%s.png'%(name,selection_tag))
 
+    hist_zscore_skymap_galactic = ROOT.TH2D("hist_zscore_skymap_galactic","",int(Skymap_nbins/zoomin_scale),source_l-MapSize_x/zoomin_scale,source_l+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),source_b-MapSize_y/zoomin_scale,source_b+MapSize_y/zoomin_scale)
+    ConvertRaDecToGalacticMap(hist_zscore_skymap_sum,hist_zscore_skymap_galactic)
+    hist_zscore_skymap_galactic_reflect = reflectXaxis(hist_zscore_skymap_galactic)
+    hist_zscore_skymap_galactic_reflect.GetYaxis().SetTitle('gal. latitude')
+    hist_zscore_skymap_galactic_reflect.GetXaxis().SetTitle('gal. longitude')
+    hist_zscore_skymap_galactic_reflect.GetZaxis().SetTitle('Significance')
+    hist_zscore_skymap_galactic_reflect.GetZaxis().SetTitleOffset(title_offset)
+    hist_zscore_skymap_galactic_reflect.SetMaximum(5)
+    hist_zscore_skymap_galactic_reflect.SetMinimum(-5)
+    hist_zscore_skymap_galactic_reflect.Draw("COL4Z")
+    hist_zscore_skymap_galactic_reflect.GetXaxis().SetLabelOffset(999)
+    hist_zscore_skymap_galactic_reflect.GetXaxis().SetTickLength(0)
+    x1 = hist_zscore_skymap_galactic_reflect.GetXaxis().GetXmin()
+    x2 = hist_zscore_skymap_galactic_reflect.GetXaxis().GetXmax()
+    y1 = hist_zscore_skymap_galactic_reflect.GetYaxis().GetXmin()
+    y2 = hist_zscore_skymap_galactic_reflect.GetYaxis().GetXmax()
+    IncValues_galactic = ROOT.TF1( "IncValues_galactic", "-x", -x2, -x1 )
+    galLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues_galactic", 505, "+")
+    galLowerAxis.SetLabelSize(hist_zscore_skymap_galactic_reflect.GetXaxis().GetLabelSize())
+    galLowerAxis.Draw()
+    for star in range(0,len(other_star_markers_gal)):
+        other_star_markers_gal[star].Draw("same")
+        other_star_labels_gal[star].Draw("same")
+    canvas.SaveAs('output_plots/SkymapZscoreGal_%s_%s.png'%(name,selection_tag))
+
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         hist_zscore_skymap_reflect = reflectXaxis(hist_zscore_skymap[ebin])
         hist_zscore_skymap_reflect.GetYaxis().SetTitle(title_y)
@@ -4576,48 +4623,29 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
 
         Hist_MWL = hist_contour.Clone()
 
+        RA_SN = 286.786
+        Dec_SN= 6.498
+        d_SN = 7.9 #kpc
+        #t_SN = 20.*1000. # lower limit by Downes et al. (1980)
+        t_SN = 11.*1000. # age of PSR J1907+0631 in year
+        E_SN = 1.
+        angular_diameter_SN = 0.43 # Yang et al. 2006, ChJAA, 6, 210.
+
+        t_Sedov = 200. # year
+        #vel_init = 4420*1e5 # cm/s, averaged from 5 young SNRs A&A 453, 387–395 (2006) 
+        vel_init = 1e9 # cm/s 
+        B_SNR = 100. # micro G
+        B_ISM = 3. # micro G
+
         if sys.argv[1]=='MGRO_J1908_ON':
 
             RA_SN = 286.786
             Dec_SN= 6.498
             d_SN = 7.9 #kpc
+            #t_SN = 20.*1000. # lower limit by Downes et al. (1980)
             t_SN = 11.*1000. # age of PSR J1907+0631 in year
             E_SN = 1.
             angular_diameter_SN = 0.43 # Yang et al. 2006, ChJAA, 6, 210.
-
-            t_Sedov = 200. # year
-            vel_init = 1e9 # cm/s
-            B_SNR = 3. # micro G
-
-            deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
-            R_SN = 0.5*angular_diameter_SN*deg_to_cm
-            E_max = 1e6*vel_init*vel_init*t_Sedov*365.*24.*60.*60./(3.4*1e28)*B_SNR # GeV
-            # E_pion = k*E_proton, k = 0.17 from https://www.mpi-hd.mpg.de/personalhomes/frieger/HEA9.pdf
-            E_min = (1./0.17)*2.*energy_bin[energy_bin_cut_low]
-            t_esc = t_Sedov*pow(E_min/E_max,-1./2.48)
-            diffusion_ism = 1e28*pow(E_min/10.,0.5)*pow(B_SNR/3.,-0.5) # cm2/s
-            hydrogen_to_solar_mass = 8.4144035*1e-58
-            skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
-            Gamma_CR = 2.1
-            f_Gamma = 0.9
-            #Gamma_CR = 2.2
-            #f_Gamma = 0.43
-            #Gamma_CR = 2.3
-            #f_Gamma = 0.19
-            theta_ECR_ESN = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
-            diffusion_radius = pow(4.*diffusion_ism*(t_SN-t_esc)*365.*24.*60.*60.,0.5)/deg_to_cm
-            print ('t_SN = %0.2f year'%(t_SN))
-            print ('R_SN = %0.2f deg'%(R_SN/deg_to_cm))
-            print ('t_esc = %0.2f year'%(t_esc))
-            print ('E_min = %0.2f TeV'%(E_min/1000.))
-            print ('E_max = %0.2f TeV'%(E_max/1000.))
-            print ('diffusion_radius = %0.2f deg'%(diffusion_radius))
-            #alpha = 1.0
-            #D0_lower = 3.*1e27*pow(t_SN/1000.,-1./5.)*pow(E_min/1e3,-alpha)
-            #print ('alpha = 1, D0 lower limit = %0.2f x10^{28} cm2/s'%(D0_lower/1e28))
-            #alpha = 0.5
-            #D0_lower = 3.*1e27*pow(t_SN/1000.,-1./5.)*pow(E_min/1e3,-alpha)
-            #print ('alpha = 0.5, D0 lower limit = %0.2f x10^{28} cm2/s'%(D0_lower/1e28))
 
             #MWL_map_file = 'MWL_maps/FGN_04000+0000_2x2_12CO_v1.00_cube_53_78_0th_moment.txt' # CO intensity (K km s^{-1} deg)
             ##MWL_map_file = 'MWL_maps/FGN_04000+0000_2x2_12CO_v1.00_cube_72_75_0th_moment.txt'
@@ -4631,6 +4659,25 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             Hist_MWL = GetSkyViewMap(MWL_map_file, Hist_MWL, isRaDec)
             Hist_MWL.Scale(2.*1e20) # H2 column density
 
+        elif sys.argv[1]=='GammaCygni_ON':
+
+            RA_SN = 305.208
+            Dec_SN= 40.43
+            d_SN = 1.7 #kpc
+            t_SN = 7.*1000. # age of PSR J1907+0631 in year
+            E_SN = 1.
+            angular_diameter_SN = 1.0 # Yang et al. 2006, ChJAA, 6, 210.
+
+            #MWL_map_file = 'MWL_maps/skv4052116888244_gammaCygni.txt' # CO intensity (K km s^{-1} deg)
+            #MWL_map_title = 'H_{2} column density (1/cm^{2})'
+            #Hist_MWL = GetSkyViewMap(MWL_map_file, Hist_MWL, isRaDec)
+            #Hist_MWL.Scale(2.*1e20) # H2 column density
+
+            MWL_map_file = 'MWL_maps/CGPS_1420MHz.txt' # CO intensity (K km s^{-1} deg)
+            MWL_map_title = 'H_{2} column density (1/cm^{2})'
+            Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
+            Hist_MWL.Scale(1.823*1e18*(9254.-8059.)/1000.) # optical thin
+
         elif sys.argv[1]=='IC443HotSpot_ON':
 
             d_SN = 1.9 #kpc
@@ -4640,41 +4687,52 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             Dec_SN= 22.503
             angular_diameter_SN = 45./60.
 
-            t_Sedov = 200. # year
-            vel_init = 1e9 # cm/s
-            B_SNR = 3. # micro G
-
-            deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
-            R_SN = 0.5*angular_diameter_SN*deg_to_cm
-            E_max = 1e6*vel_init*vel_init*t_Sedov*365.*24.*60.*60./(3.4*1e28)*B_SNR # GeV
-            # E_pion = k*E_proton, k = 0.17 from https://www.mpi-hd.mpg.de/personalhomes/frieger/HEA9.pdf
-            E_min = (1./0.17)*2.*energy_bin[energy_bin_cut_low]
-            diffusion_ism = 1e28*pow(E_min/10.,0.5)*pow(B_SNR/3.,-0.5) # cm2/s
-            hydrogen_to_solar_mass = 8.4144035*1e-58
-            skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
-            Gamma_CR = 2.1
-            f_Gamma = 0.9
-            #Gamma_CR = 2.2
-            #f_Gamma = 0.43
-            #Gamma_CR = 2.3
-            #f_Gamma = 0.19
-            theta_ECR_ESN = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
-            diffusion_radius = pow(4.*diffusion_ism*(t_SN)*365.*24.*60.*60.,0.5)/deg_to_cm
-            print ('t_SN = %0.2f year'%(t_SN))
-            print ('R_SN = %0.2f deg'%(R_SN/deg_to_cm))
-            print ('E_min = %0.2f TeV'%(E_min/1000.))
-            print ('E_max = %0.2f TeV'%(E_max/1000.))
-            print ('diffusion_radius = %0.2f deg'%(diffusion_radius))
-            alpha = 1.0
-            D0_lower = 3.*1e27*pow(t_SN/1000.,-1./5.)*pow(E_min/1000.,-alpha)
-            print ('D0 lower limit = %0.2f x10^{28} cm2/s'%(D0_lower/1e28))
-
             MWL_map_file = 'MWL_maps/skv2603498623747_IC443.txt' # CO intensity (K km s^{-1} deg)
             Hist_MWL = GetSkyViewMap(MWL_map_file, Hist_MWL, isRaDec)
             #MWL_map_file = 'MWL_maps/DHT22_GemOB1_mom_m31_p16_0th_moment.txt' # CO intensity (K km s^{-1} deg)
             #Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
             MWL_map_title = 'H_{2} column density (1/cm^{2})'
             Hist_MWL.Scale(2.*1e20) # H2 column density
+
+        deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
+        R_SN = 0.5*angular_diameter_SN*deg_to_cm
+        E_max = 1e6*vel_init*vel_init*t_Sedov*365.*24.*60.*60./(3.4*1e28)*B_SNR # GeV, Bohm limit
+        # E_pion = k*E_proton, k = 0.17 from https://www.mpi-hd.mpg.de/personalhomes/frieger/HEA9.pdf
+        E_vis = (1./0.17)*2.*energy_bin[energy_bin_cut_low]  # visible CR energy threshold
+        t_esc = t_Sedov*pow(E_vis/E_max,-1./2.48)
+        R_esc = 2.5*vel_init*t_Sedov*365.*24.*60.*60.*(pow(t_esc/t_Sedov,0.4)-0.6)
+        A_esc = 4.*3.14*R_esc*R_esc
+        E_min = pow(t_SN/t_Sedov,-2.48)*E_max
+        diffusion_ism = 1e28*pow(E_vis/10.,0.5)*pow(B_ISM/3.,-0.5) # cm2/s
+        hydrogen_to_solar_mass = 8.4144035*1e-58
+        skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
+        Gamma_CR = 2.1
+        f_Gamma = 0.9
+        #Gamma_CR = 2.2
+        #f_Gamma = 0.43
+        #Gamma_CR = 2.3
+        #f_Gamma = 0.19
+        total_energy_in_CR = 1./(Gamma_CR-2.)*(pow(1.,-Gamma_CR+2.)-pow(E_max,-Gamma_CR+2.))
+        visible_energy_in_CR = 1./(Gamma_CR-2.)*(pow(E_vis,-Gamma_CR+2.)-pow(E_max,-Gamma_CR+2.))
+        visible_energy_frac = visible_energy_in_CR/total_energy_in_CR
+        theta_ECR_ESN = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
+        diffusion_radius = max(smooth_size_spectroscopy,0.5*angular_diameter_SN)
+        if t_SN>t_esc:
+            diffusion_radius = pow(4.*diffusion_ism*(t_SN-t_esc)*365.*24.*60.*60.,0.5)/deg_to_cm
+        print ('visible_energy_frac = %0.5f'%(visible_energy_frac))
+        print ('t_SN = %0.2f year'%(t_SN))
+        print ('R_SN = %0.2f deg'%(R_SN/deg_to_cm))
+        print ('t_esc = %0.2f year'%(t_esc))
+        print ('E_vis = %0.2f TeV'%(E_vis/1000.))
+        print ('E_min = %0.2f TeV'%(E_min/1000.))
+        print ('E_max = %0.2f TeV'%(E_max/1000.))
+        print ('diffusion_radius = %0.2f deg'%(diffusion_radius))
+        #alpha = 1.0
+        #D0_lower = 3.*1e27*pow(t_SN/1000.,-1./5.)*pow(E_min/1e3,-alpha)
+        #print ('alpha = 1, D0 lower limit = %0.2f x10^{28} cm2/s'%(D0_lower/1e28))
+        #alpha = 0.5
+        #D0_lower = 3.*1e27*pow(t_SN/1000.,-1./5.)*pow(E_min/1e3,-alpha)
+        #print ('alpha = 0.5, D0 lower limit = %0.2f x10^{28} cm2/s'%(D0_lower/1e28))
 
         hist_MWL_reflect = reflectXaxis(Hist_MWL)
         hist_MWL_reflect.GetYaxis().SetTitle(title_y)
@@ -4726,7 +4784,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         #    faint_star_labels[star].Draw("same")
         canvas.SaveAs('output_plots/SkymapMWL_mass_%s_%s.png'%(name,selection_tag))
         hist_MWL_density = Hist_MWL.Clone()
-        hist_MWL_density.Scale(1./(2.*diffusion_radius*deg_to_cm)) 
+        hist_MWL_density.Scale(1./(1.*diffusion_radius*deg_to_cm)) 
         hist_MWL_density_reflect = reflectXaxis(hist_MWL_density)
         MWL_map_title = 'H_{2} density 1/cm^{3}'
         hist_MWL_density_reflect.GetZaxis().SetTitle(MWL_map_title)
@@ -4757,7 +4815,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 bin_dec = hist_data_skymap[0].GetYaxis().GetBinCenter(by+1)
                 distance = pow(pow(bin_ra-RA_SN,2)+pow(bin_dec-Dec_SN,2),0.5)
                 MC_density = hist_MWL_density.GetBinContent(bx+1,by+1)
-                MC_column_density = MC_density*(2.*diffusion_radius*deg_to_cm)
+                MC_column_density = MC_density*(1.*diffusion_radius*deg_to_cm)
                 MC_mass = MC_column_density*skymap_bin_area
 
                 #ECR_density_in_SNR = theta_ECR_ESN*E_SN/(vol_SNR+vol_ISM)
@@ -4769,7 +4827,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 #flux_integral = A_par*(f_Gamma*1e-10*pow(energy_bin[energy_bin_cut_low]/1000.,1-Gamma_CR))
 
                 #if distance>2.*diffusion_radius: continue
-                #vol_diff = (distance*Area_esc_avg*pow(3.14/4.,0.5)*diffusion_radius*deg_to_cm)/R_esc_avg
+                #vol_diff = (distance*A_esc*pow(3.14/4.,0.5)*diffusion_radius*deg_to_cm)/R_esc_avg
                 #ECR_density_in_SNR = theta_ECR_ESN*E_SN/vol_diff
                 #attenuation = exp(-(pow(distance,2)+pow(R_esc_avg,2))/pow(diffusion_radius,2))*math.sinh(2.*distance*R_esc_avg/pow(diffusion_radius,2))
                 #ECR_density_local = ECR_density_in_SNR*attenuation
@@ -4777,12 +4835,14 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 #flux_integral = A_par*(f_Gamma*1e-10*pow(energy_bin[energy_bin_cut_low]/1000.,1-Gamma_CR))
                 
                 if distance>2.*diffusion_radius: continue
-                vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
-                ECR_density_in_SNR = theta_ECR_ESN*E_SN/vol_diff
-                attenuation = exp(-pow(distance/diffusion_radius,2))
+                #vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
+                #attenuation = exp(-pow(distance/diffusion_radius,2))
+                vol_diff = (distance*deg_to_cm*A_esc*pow(3.14/4.,0.5)*diffusion_radius*deg_to_cm)/R_esc
+                attenuation = exp(-(pow(distance,2)+pow(R_esc/deg_to_cm,2))/pow(diffusion_radius,2))*math.sinh(2.*distance*R_esc/deg_to_cm/pow(diffusion_radius,2))
+                ECR_density_in_SNR = theta_ECR_ESN*visible_energy_frac*E_SN/vol_diff
                 ECR_density_local = ECR_density_in_SNR*attenuation
                 A_par = MC_mass*ECR_density_local*pow(d_SN,-2)
-                flux_integral = A_par*(f_Gamma*1e-10*pow(energy_bin[energy_bin_cut_low]/1000.,1-2.75))
+                flux_integral = A_par*(f_Gamma*1e-10*pow(energy_bin[energy_bin_cut_low]/1000.,1-Gamma_CR))
                 
                 hist_molecular_cloud_expect_skymap.SetBinContent(bx+1,by+1,flux_integral)
 
@@ -4820,14 +4880,15 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 expectation = hist_molecular_cloud_expect_skymap_reflect.GetBinContent(bx+1,by+1)
                 if reality==0.: continue
                 if expectation==0.: continue
-                happiness = reality-expectation
+                happiness = (reality-expectation)/expectation
                 hist_MWL_happiness_reflect.SetBinContent(bx+1,by+1,happiness)
         hist_MWL_happiness_reflect.GetYaxis().SetTitle(title_y)
         hist_MWL_happiness_reflect.GetXaxis().SetTitle(title_x)
-        hist_MWL_happiness_reflect.GetZaxis().SetTitle('leptonic flux (cm^{-2} s^{-1})')
+        #hist_MWL_happiness_reflect.GetZaxis().SetTitle('leptonic flux (cm^{-2} s^{-1})')
+        hist_MWL_happiness_reflect.GetZaxis().SetTitle('leptonic flux significance')
         hist_MWL_happiness_reflect.GetZaxis().SetTitleOffset(title_offset)
-        #hist_MWL_happiness_reflect.SetMaximum(1.)
-        #hist_MWL_happiness_reflect.SetMinimum(-1.)
+        hist_MWL_happiness_reflect.SetMaximum(5.)
+        hist_MWL_happiness_reflect.SetMinimum(-5.)
         hist_MWL_happiness_reflect.Draw("COL4Z")
         hist_contour_reflect.Draw("CONT3 same")
         hist_MWL_happiness_reflect.GetXaxis().SetLabelOffset(999)
@@ -5007,15 +5068,19 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             t_PSR = 19.5 #kyr
         if sys.argv[1]=='Geminga_ON':
             center_x, center_y = 98.476, 17.770 #Geminga Pulsar
+        if sys.argv[1]=='GammaCygni_ON':
+            center_x, center_y = 305.208, 40.43 # SNR G78.2+2.1
+            #center_x, center_y = 305.020, 40.757 # VER J2019+407
         profile_list = []
         profile_err_list = []
         theta2_list = []
+        profile_lep_list = []
+        profile_had_list = []
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
             print ('==========================================')
             fig.clf()
             axbig = fig.add_subplot()
             profile, profile_err, theta2 = FindExtension(calibration[ebin],hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],hist_expo_skymap[ebin],center_x,center_y,MapSize_y/zoomin_scale)
-            hadronic_brightness = FindHadronicSurfaceBrightness(hist_molecular_cloud_expect_skymap,energy_bin[energy_bin_cut_low],energy_bin[ebin],energy_bin[ebin+1],center_x,center_y,theta2[len(theta2)-1])
             for binx in range(0,len(profile)):
                 profile[binx] = profile[binx]*pow(energy_bin[ebin]/1000.,2)
                 profile_err[binx] = profile_err[binx]*pow(energy_bin[ebin]/1000.,2)
@@ -5038,7 +5103,9 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             axbig.plot(np.array(theta2), gaussian_disk_2d_to_1D(np.array(theta2), *popt),color='k')
             axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), popt[0], popt[1]),color='r',label='leptonic model')
             axbig.axhline(y=popt[2], color='g', linestyle='-',label='hadronic model')
-            axbig.axhline(y=hadronic_brightness, color='b', linestyle='-',label='hadronic upper limit')
+            profile_lep_list += [[gaussian_2d_to_1D(theta2[binx], popt[0], popt[1]) for binx in range(len(theta2))]]
+            profile_had_list += [[popt[2] for binx in range(len(theta2))]]
+            print ('fitted hadronic surface_brightness = %0.2f TeV/cm2/s/deg2'%(popt[2]/1e-12))
             extent = pow(max(0.,popt[0]*popt[0]-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
             popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err),bounds=fit_bound)
             extent_up = pow(max(0.,popt[0]*popt[0]-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
@@ -5064,35 +5131,27 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         profile_sum = [0. for binx in range(len(profile_list[0]))]
         profile_err_sum = [0. for binx in range(len(profile_list[0]))]
         theta2_sum = [0. for binx in range(len(profile_list[0]))]
+        profile_lep_sum = [0. for binx in range(len(profile_list[0]))]
+        profile_had_sum = [0. for binx in range(len(profile_list[0]))]
+        profile_all_sum = [0. for binx in range(len(profile_list[0]))]
         for ebin in range(0,len(profile_list)):
             for binx in range(0,len(profile_list[0])):
                 theta2_sum[binx] = theta2_list[ebin][binx]
                 profile_sum[binx] += profile_list[ebin][binx]
                 profile_err_sum[binx] += pow(profile_err_list[ebin][binx],2)
+                profile_lep_sum[binx] += profile_lep_list[ebin][binx]
+                profile_had_sum[binx] += profile_had_list[ebin][binx]
+                profile_all_sum[binx] += (profile_had_list[ebin][binx]+profile_lep_list[ebin][binx])
         for binx in range(0,len(profile_list[0])):
             profile_err_sum[binx] = pow(profile_err_sum[binx],0.5)
-        mean_amplitude = np.mean(profile_sum)
-        start = (0.5, mean_amplitude, 0.)
-        fit_bound = ((0.0,0.,0.),(10.0,len(theta2_sum)*mean_amplitude,1e-3*mean_amplitude))
-        if sys.argv[1]=='MGRO_J1908_ON':
-            fit_bound = ((0.0,0.,0.),(10.0,len(theta2_sum)*mean_amplitude,1.5*mean_amplitude))
-        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2_sum), np.array(profile_sum), p0=start, sigma=np.array(profile_err_sum), bounds=fit_bound)
-        extension_fit = gaussian_disk_2d_to_1D(np.array(theta2_sum), *popt)
-        residual = np.array(profile_sum) - extension_fit
-        chisq = np.sum((residual/np.array(profile_err_sum))**2)
-        dof = len(theta2_sum)-3
         axbig.errorbar(theta2_sum,profile_sum,profile_err_sum,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
-        axbig.plot(np.array(theta2_sum), gaussian_disk_2d_to_1D(np.array(theta2_sum), *popt),color='k')
-        axbig.plot(np.array(theta2_sum), gaussian_2d_to_1D(np.array(theta2_sum), popt[0], popt[1]),color='r')
-        axbig.axhline(y=popt[2], color='g', linestyle='-')
-        extent = pow(max(0.,popt[0]*popt[0]-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
-        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2_sum), np.array(profile_sum)+np.array(profile_err_sum), p0=start, sigma=np.array(profile_err_sum),bounds=fit_bound)
-        extent_up = pow(max(0.,popt[0]*popt[0]-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
-        popt, pcov = curve_fit(gaussian_disk_2d_to_1D, np.array(theta2_sum), np.array(profile_sum)-np.array(profile_err_sum), p0=start, sigma=np.array(profile_err_sum),bounds=fit_bound)
-        extent_dw = pow(max(0.,popt[0]*popt[0]-smooth_size_spectroscopy*smooth_size_spectroscopy),0.5)
-        extent_err = abs(extent_up-extent_dw)/2.
-        print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
-        D_ism, D_ism_err = EstimateDiffusionCoefficient(energy_bin[energy_bin_cut_low],extent,extent_err,3.,d_PSR)
+        axbig.plot(theta2_sum, profile_all_sum, color='k', label='data')
+        axbig.plot(theta2_sum, profile_lep_sum, color='r', label='leptonic model')
+        axbig.plot(theta2_sum, profile_had_sum, color='g', label='hadronic model')
+        if doMWLMap:
+            profile_CO, profile_CO_err = FindHadronicSurfaceBrightness(hist_molecular_cloud_expect_skymap,energy_bin[energy_bin_cut_low],center_x,center_y,theta2_sum[len(theta2_sum)-1])
+            axbig.plot(theta2_sum,profile_CO,color='b',label='hadronic (CO)')
+            #axbig.errorbar(theta2_sum,profile_CO,profile_CO_err,color='b',marker='s',ls='none',label='hadronic (CO)')
         axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
         axbig.set_xlabel('angular distance from center [degree]')
         axbig.legend(loc='best')
@@ -6151,7 +6210,18 @@ def FindCenter(Hist_Data_input,Hist_Bkgd_input):
 
     return excess_center_x_init, excess_center_y_init
 
-def FindHadronicSurfaceBrightness(Hist_input,energy_ref,energy_lower,energy_upper,roi_x,roi_y,integration_range):
+def FindHadronicSurfaceBrightness(Hist_input,energy_ref,roi_x,roi_y,integration_range):
+
+    n_bins = 10
+    theta2_limit = 1.5
+    if sys.argv[1]=='MGRO_J1908_ON':
+        n_bins = 10
+        theta2_limit = 1.5
+    if sys.argv[1]=='Geminga_ON':
+        n_bins = 5
+        theta2_limit = 2.0
+
+    Hist_Profile_Theta2 = ROOT.TH1D("Hist_Profile_Theta2","",n_bins,0,theta2_limit)
 
     Gamma_CR = 2.1
     f_Gamma = 0.9
@@ -6161,6 +6231,7 @@ def FindHadronicSurfaceBrightness(Hist_input,energy_ref,energy_lower,energy_uppe
     #f_Gamma = 0.19
     total_flux = 0.
     total_area = 0.
+
     for bx in range(0,Hist_input.GetNbinsX()):
         for by in range(0,Hist_input.GetNbinsY()):
             delta_x = Hist_input.GetXaxis().GetBinCenter(2)-Hist_input.GetXaxis().GetBinCenter(1)
@@ -6170,21 +6241,48 @@ def FindHadronicSurfaceBrightness(Hist_input,energy_ref,energy_lower,energy_uppe
             distance_sq = pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2)
             if distance_sq>=pow(integration_range,2): continue
             data_content = Hist_input.GetBinContent(bx+1,by+1)
-            A_par = data_content/(f_Gamma*1e-10*pow(energy_ref/1000.,1-2.75))
-            flux_integral = A_par*(f_Gamma*1e-10*(pow(energy_lower/1000.,1-2.75)-pow(energy_upper/1000.,1-2.75)))
-            flux_integral_per_energy = flux_integral*(2.75-1)/(energy_lower/1000.-pow(energy_upper/1000.,1-2.75)/pow(energy_lower/1000.,-2.75))
-            total_flux += flux_integral_per_energy
+            A_par = data_content/(f_Gamma*1e-10*pow(energy_ref/1000.,1-Gamma_CR))
+            total_flux += A_par/(Gamma_CR-2)*(f_Gamma*1e-10*pow(energy_ref/1000.,2-Gamma_CR)) # TeV/cm2/s
             total_area += delta_x*delta_y
-    surface_brightness = total_flux/total_area*pow(energy_lower/1000.,2)
+    surface_brightness = total_flux/total_area # TeV/cm2/s/deg2
     print ('CO map hadronic surface_brightness = %0.2f TeV/cm2/s/deg2'%(surface_brightness/1e-12))
-    return surface_brightness
+
+    for br in range(0,Hist_Profile_Theta2.GetNbinsX()):
+        range_limit = Hist_Profile_Theta2.GetBinLowEdge(br+2)
+        range_limit_previous = Hist_Profile_Theta2.GetBinLowEdge(br+1)
+        slice_data = 0.
+        for bx in range(0,Hist_input.GetNbinsX()):
+            for by in range(0,Hist_input.GetNbinsY()):
+                cell_x = Hist_input.GetXaxis().GetBinCenter(bx+1)
+                cell_y = Hist_input.GetYaxis().GetBinCenter(by+1)
+                distance_sq = pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2)
+                data_content = Hist_input.GetBinContent(bx+1,by+1)
+                A_par = data_content/(f_Gamma*1e-10*pow(energy_ref/1000.,1-Gamma_CR))
+                if distance_sq>=pow(range_limit_previous,2) and distance_sq<pow(range_limit,2):
+                    slice_data += A_par/(Gamma_CR-2)*(f_Gamma*1e-10*pow(energy_ref/1000.,2-Gamma_CR)) # TeV/cm2/s
+        Hist_Profile_Theta2.SetBinContent(br+1,slice_data)
+
+    profile = []
+    profile_err = []
+    for binx in range(0,Hist_Profile_Theta2.GetNbinsX()):
+        center = Hist_Profile_Theta2.GetBinCenter(binx+1)
+        range_limit = Hist_Profile_Theta2.GetBinLowEdge(binx+2)
+        range_limit_previous = Hist_Profile_Theta2.GetBinLowEdge(binx+1)
+        solid_angle = 2.*3.14*center*(range_limit-range_limit_previous)
+        profile_content = Hist_Profile_Theta2.GetBinContent(binx+1)/solid_angle
+        profile_content = max(0.,profile_content)
+        if center>integration_range: continue
+        profile += [profile_content]
+        profile_err += [profile_content]
+
+    return profile, profile_err
 
 def FindExtension(calibration_const,Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,Hist_Expo_input,roi_x,roi_y,integration_range):
 
     global calibration_radius
 
     n_bins = 10
-    theta2_limit = 1.0
+    theta2_limit = 1.5
     if sys.argv[1]=='MGRO_J1908_ON':
         n_bins = 10
         theta2_limit = 1.5
@@ -6222,7 +6320,7 @@ def FindExtension(calibration_const,Hist_Data_input,Hist_Bkgd_input,Hist_Syst_in
                 syst_error = Hist_Syst.GetBinContent(bx+1,by+1)*correction
                 total_error = pow(data_error*data_error+bkgd_error*bkgd_error+syst_error*syst_error,0.5)
                 #if total_error==0.: continue
-                #if (data_content-bkgd_content)/total_error<1.: continue
+                #if (data_content-bkgd_content)/total_error<2.: continue
                 if distance_sq>=pow(range_limit_previous,2) and distance_sq<pow(range_limit,2):
                     slice_data += data_content
                     slice_data_err += data_error*data_error
@@ -7062,9 +7160,9 @@ calibration = [1., 1., 1., 1., 1., 1.]
 ref_rate = [1., 1., 1., 1., 1., 1.]
 ref_rate_err = [1., 1., 1., 1., 1., 1.]
 
-ref_rate = [730.7725119889511, 1690.6690074120604, 706.4923992076749, 189.2533839818766, 35.95236348545754, 6.31419438424774]
-ref_rate_err = [5.809639785944925, 7.618612212616151, 4.497789021545655, 2.253965966854269, 0.9735194169798651, 0.4062479328579627]
-calibration = [1.9298390274249317e-08, 2.9848907353802587e-09, 2.993072468264559e-10, 3.5904565451304144e-11, 4.419621595643962e-12, 4.530059734968605e-13]
+ref_rate = [45.22654248763829, 817.5534855109867, 807.4094245295635, 258.22163163239907, 54.18710411731964, 8.846775595651803]
+ref_rate_err = [2.4996653879391553, 9.86773110448764, 9.161501194667895, 4.790992130002874, 2.1073161634064816, 0.8422544884101056]
+calibration = [1.7171573302771546e-08, 3.815540141778941e-09, 5.205686613199803e-10, 6.111128565697704e-11, 6.175722680747704e-12, 5.443641190302156e-13]
 
 SingleSourceAnalysis(sample_list,drawMap,Smoothing,int(sys.argv[2]),int(sys.argv[3]))
 
