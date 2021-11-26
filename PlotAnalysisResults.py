@@ -3573,6 +3573,11 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
 
+    HistName = "Hist_Data_Skymap"
+    Hist_Data_Skymap.Add(InputFile.Get(HistName))
+    HistName = "Hist_Data_Elev_Skymap"
+    Hist_Data_Elev_Skymap.Add(InputFile.Get(HistName))
+
     HistName = "Hist_OnData_ISR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Expo_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_SR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -3978,6 +3983,30 @@ def VariableSkymapBins(Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input):
 
     return list_maxsig, list_binsize
 
+def GetFluxCalibration(map_x,map_y,energy):
+
+    #return 1.
+
+    binx = Hist_Data_Skymap.GetXaxis().FindBin(map_x)
+    biny = Hist_Data_Skymap.GetYaxis().FindBin(map_y)
+    data_count = Hist_Data_Skymap.GetBinContent(binx,biny)
+    data_elev = Hist_Data_Elev_Skymap.GetBinContent(binx,biny)
+    if data_count==0.: return 0.
+    avg_elev = data_elev/data_count
+    
+    flux_calibration = [1.7171573302771546e-08, 3.815540141778941e-09, 5.205686613199803e-10, 6.111128565697704e-11, 6.175722680747704e-12, 5.443641190302156e-13]
+    if avg_elev<=85. and avg_elev>75.:
+        flux_calibration = [1.9413653803248676e-08, 2.7464690992122925e-09, 2.7981441480033045e-10, 3.520061054384868e-11, 4.548655110081946e-12, 5.062068405150681e-13]
+    if avg_elev<=75. and avg_elev>65.:
+        flux_calibration = [1.9133689705902314e-08, 3.082285407364343e-09, 2.964766364727553e-10, 3.562896218755959e-11, 4.378192847729884e-12, 4.572492536481412e-13]
+    if avg_elev<=65. and avg_elev>55.:
+        flux_calibration = [1.7279939155245718e-08, 3.6410112342847124e-09, 3.534807082349527e-10, 3.919442925684047e-11, 3.970877418135267e-12, 4.059436864498014e-13]
+    if avg_elev<=55. and avg_elev>45.:
+        flux_calibration = [1.2606197631102357e-08, 4.133066091008688e-09, 5.030995497968186e-10, 5.356716604133012e-11, 5.445013931688359e-12, 5.000813050788504e-13]
+    if avg_elev<=45. and avg_elev>35.:
+        flux_calibration = [0.0, 3.702522635452742e-09, 7.491659180926614e-10, 8.528563094699989e-11, 8.443899660101269e-12, 6.754731409010254e-13]
+
+    return calibration[energy]
 
 def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_bkgd,hist_syst,hist_expo,title_x,title_y,name,zoomin_scale):
 
@@ -4143,7 +4172,10 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 if data_content==0.: continue
                 if bkgd_content==0.: continue
                 expo_content = hist_expo_skymap[ebin].GetBinContent(bx+1,by+1)
-                correction = calibration[ebin]*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)
+                map_x = hist_data_skymap[ebin].GetXaxis().GetBinCenter(bx+1)
+                map_y = hist_data_skymap[ebin].GetYaxis().GetBinCenter(by+1)
+                flux_calibration = GetFluxCalibration(map_x,map_y,ebin)
+                correction = flux_calibration*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)
                 stat_data_err = hist_data_skymap[ebin].GetBinError(bx+1,by+1)/expo_content*correction
                 stat_bkgd_err = hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)/expo_content*correction
                 stat_err = pow(stat_data_err*stat_data_err+stat_bkgd_err*stat_bkgd_err,0.5)
@@ -4175,8 +4207,6 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         error = []
         zeros = []
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-            correction = calibration[ebin]*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)
-            print ('correction = %s'%(correction))
             rate_sum = 0.
             rate_err_sum = 0.
             flux_sum = 0.
@@ -4184,6 +4214,10 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             syst_err_sum = 0.
             for bx in range(0,hist_data_skymap[0].GetNbinsX()):
                 for by in range(0,hist_data_skymap[0].GetNbinsY()):
+                    map_x = hist_data_skymap[ebin].GetXaxis().GetBinCenter(bx+1)
+                    map_y = hist_data_skymap[ebin].GetYaxis().GetBinCenter(by+1)
+                    flux_calibration = GetFluxCalibration(map_x,map_y,ebin)
+                    correction = flux_calibration*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)
                     bin_ra = hist_data_skymap[0].GetXaxis().GetBinCenter(bx+1)
                     bin_dec = hist_data_skymap[0].GetYaxis().GetBinCenter(by+1)
                     distance = pow(pow(bin_ra-roi_ra[nth_roi],2) + pow(bin_dec-roi_dec[nth_roi],2),0.5)
@@ -4497,6 +4531,11 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     hist_rel_syst_skymap_sum_reflect.GetXaxis().SetTickLength(0)
     raLowerAxis.Draw()
     canvas.SaveAs('output_plots/SkymapRelSyst_%s_%s.png'%(name,selection_tag))
+    hist_elev_skymap = Hist_Data_Elev_Skymap.Clone()
+    hist_elev_skymap.Divide(Hist_Data_Skymap)
+    hist_elev_skymap_reflect = reflectXaxis(hist_elev_skymap)
+    hist_elev_skymap_reflect.Draw("COL4Z")
+    canvas.SaveAs('output_plots/SkymapElev_%s_%s.png'%(name,selection_tag))
     hist_rate_skymap_sum_reflect = reflectXaxis(hist_rate_skymap_sum)
     hist_rate_skymap_sum_reflect.GetYaxis().SetTitle(title_y)
     hist_rate_skymap_sum_reflect.GetXaxis().SetTitle(title_x)
@@ -4888,7 +4927,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         hist_MWL_happiness_reflect.GetZaxis().SetTitle('leptonic flux significance')
         hist_MWL_happiness_reflect.GetZaxis().SetTitleOffset(title_offset)
         hist_MWL_happiness_reflect.SetMaximum(5.)
-        hist_MWL_happiness_reflect.SetMinimum(-5.)
+        hist_MWL_happiness_reflect.SetMinimum(-2.)
         hist_MWL_happiness_reflect.Draw("COL4Z")
         hist_contour_reflect.Draw("CONT3 same")
         hist_MWL_happiness_reflect.GetXaxis().SetLabelOffset(999)
@@ -5069,8 +5108,9 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         if sys.argv[1]=='Geminga_ON':
             center_x, center_y = 98.476, 17.770 #Geminga Pulsar
         if sys.argv[1]=='GammaCygni_ON':
-            center_x, center_y = 305.208, 40.43 # SNR G78.2+2.1
+            #center_x, center_y = 305.208, 40.43 # SNR G78.2+2.1
             #center_x, center_y = 305.020, 40.757 # VER J2019+407
+            center_x, center_y = 305.377, 40.448 # PSR J2021+4026
         profile_list = []
         profile_err_list = []
         theta2_list = []
@@ -5080,7 +5120,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             print ('==========================================')
             fig.clf()
             axbig = fig.add_subplot()
-            profile, profile_err, theta2 = FindExtension(calibration[ebin],hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],hist_expo_skymap[ebin],center_x,center_y,MapSize_y/zoomin_scale)
+            profile, profile_err, theta2 = FindExtension(ebin,hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],hist_expo_skymap[ebin],center_x,center_y,MapSize_y/zoomin_scale)
             for binx in range(0,len(profile)):
                 profile[binx] = profile[binx]*pow(energy_bin[ebin]/1000.,2)
                 profile_err[binx] = profile_err[binx]*pow(energy_bin[ebin]/1000.,2)
@@ -5145,12 +5185,13 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         for binx in range(0,len(profile_list[0])):
             profile_err_sum[binx] = pow(profile_err_sum[binx],0.5)
         axbig.errorbar(theta2_sum,profile_sum,profile_err_sum,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
-        axbig.plot(theta2_sum, profile_all_sum, color='k', label='data')
-        axbig.plot(theta2_sum, profile_lep_sum, color='r', label='leptonic model')
-        axbig.plot(theta2_sum, profile_had_sum, color='g', label='hadronic model')
+        if sys.argv[1]=='MGRO_J1908_ON':
+            axbig.plot(theta2_sum, profile_all_sum, color='k')
+            axbig.plot(theta2_sum, profile_lep_sum, color='r', label='leptonic model')
+            axbig.plot(theta2_sum, profile_had_sum, color='g', label='hadronic model')
         if doMWLMap:
             profile_CO, profile_CO_err = FindHadronicSurfaceBrightness(hist_molecular_cloud_expect_skymap,energy_bin[energy_bin_cut_low],center_x,center_y,theta2_sum[len(theta2_sum)-1])
-            axbig.plot(theta2_sum,profile_CO,color='b',label='hadronic (CO)')
+            axbig.plot(theta2_sum,profile_CO,color='b',label='hadronic (radio)')
             #axbig.errorbar(theta2_sum,profile_CO,profile_CO_err,color='b',marker='s',ls='none',label='hadronic (CO)')
         axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
         axbig.set_xlabel('angular distance from center [degree]')
@@ -6277,7 +6318,7 @@ def FindHadronicSurfaceBrightness(Hist_input,energy_ref,roi_x,roi_y,integration_
 
     return profile, profile_err
 
-def FindExtension(calibration_const,Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,Hist_Expo_input,roi_x,roi_y,integration_range):
+def FindExtension(ebin,Hist_Data_input,Hist_Bkgd_input,Hist_Syst_input,Hist_Expo_input,roi_x,roi_y,integration_range):
 
     global calibration_radius
 
@@ -6312,7 +6353,10 @@ def FindExtension(calibration_const,Hist_Data_input,Hist_Bkgd_input,Hist_Syst_in
                 cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
                 cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
                 distance_sq = pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2)
-                correction = calibration_const*smooth_size_spectroscopy*smooth_size_spectroscopy/(calibration_radius*calibration_radius)
+                map_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
+                map_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
+                flux_calibration = GetFluxCalibration(map_x,map_y,ebin)
+                correction = flux_calibration*smooth_size_spectroscopy*smooth_size_spectroscopy/(calibration_radius*calibration_radius)
                 data_content = Hist_Data.GetBinContent(bx+1,by+1)*correction
                 data_error = Hist_Data.GetBinError(bx+1,by+1)*correction
                 bkgd_content = Hist_Bkgd.GetBinContent(bx+1,by+1)*correction
@@ -6946,6 +6990,9 @@ Hist_OnBkgd_Rcore_Sum = ROOT.TH1D("Hist_OnBkgd_Rcore_Sum","",25,0,500.)
 Hist_OnData_Rcore = ROOT.TH1D("Hist_OnData_Rcore","",25,0,500.)
 Hist_OnBkgd_Rcore = ROOT.TH1D("Hist_OnBkgd_Rcore","",25,0,500.)
 
+Hist_Data_Skymap = ROOT.TH2D("Hist_Data_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_Data_Elev_Skymap = ROOT.TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+
 Hist_SumSyst_Energy_Skymap = []
 Hist_NormSyst_Energy_Skymap = []
 Hist_ShapeSyst_Energy_Skymap = []
@@ -7126,7 +7173,7 @@ skymap_zoomin_scale = 2
 #set_palette('gray')
 
 exclude_roi = []
-exclude_roi += ['HAWC region']
+#exclude_roi += ['HAWC region']
 exclude_roi += ['VHE region']
 exclude_roi += ['SNR region']
 exclude_roi += ['G40.5-0.5']
