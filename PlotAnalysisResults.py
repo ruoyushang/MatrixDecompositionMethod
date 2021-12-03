@@ -4024,15 +4024,15 @@ def GetFluxCalibration(map_x,map_y,energy):
     
     flux_calibration = [1.7171573302771546e-08, 3.815540141778941e-09, 5.205686613199803e-10, 6.111128565697704e-11, 6.175722680747704e-12, 5.443641190302156e-13]
     if avg_elev<=85. and avg_elev>75.:
-        flux_calibration = [1.9413653803248676e-08, 2.7464690992122925e-09, 2.7981441480033045e-10, 3.520061054384868e-11, 4.548655110081946e-12, 5.062068405150681e-13]
+        flux_calibration = [1.9413653803248676e-08, 2.760325371203787e-09, 2.8044793308346884e-10, 3.505332585551125e-11, 4.497520830138521e-12, 4.976735473987472e-13]
     if avg_elev<=75. and avg_elev>65.:
-        flux_calibration = [1.9133689705902314e-08, 3.082285407364343e-09, 2.964766364727553e-10, 3.562896218755959e-11, 4.378192847729884e-12, 4.572492536481412e-13]
+        flux_calibration = [1.9133689705902314e-08, 3.1023492095665645e-09, 2.973567642921832e-10, 3.475260227708444e-11, 4.29199255217973e-12, 4.755091032731551e-13]
     if avg_elev<=65. and avg_elev>55.:
-        flux_calibration = [1.7279939155245718e-08, 3.6410112342847124e-09, 3.534807082349527e-10, 3.919442925684047e-11, 3.970877418135267e-12, 4.059436864498014e-13]
+        flux_calibration = [1.7279939155245718e-08, 3.6534948259437844e-09, 3.567792370581176e-10, 3.88879764909144e-11, 3.899670710155111e-12, 3.7822770981186636e-13]
     if avg_elev<=55. and avg_elev>45.:
-        flux_calibration = [1.2606197631102357e-08, 4.133066091008688e-09, 5.030995497968186e-10, 5.356716604133012e-11, 5.445013931688359e-12, 5.000813050788504e-13]
+        flux_calibration = [1.2606197631102357e-08, 4.148049876708642e-09, 5.081428341415087e-10, 5.279605643622042e-11, 5.2538641428912825e-12, 4.631976928229922e-13]
     if avg_elev<=45. and avg_elev>35.:
-        flux_calibration = [0.0, 3.702522635452742e-09, 7.491659180926614e-10, 8.528563094699989e-11, 8.443899660101269e-12, 6.754731409010254e-13]
+        flux_calibration = [0.0, 3.660662606480722e-09, 7.502191531798993e-10, 8.472959692288807e-11, 8.194179254740205e-12, 6.180279437463707e-13]
 
     return calibration[energy]
 
@@ -5380,7 +5380,7 @@ def FitHybridModel2D(Hist_flux):
     M_ej = 1. # ejecta mass in solar mass unit
     t_Sedov = 423.*pow(E_SN,-0.5)*pow(M_ej,5./6.)*pow(n_0,-1./3.) # year
 
-    fix_age_and_distance = True
+    fix_age_and_distance = False
     CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
     esc_param = 2.0
     init_param = []
@@ -6581,9 +6581,8 @@ def GetExpectedHadronicMapV2(hist_column_density_map,SN_x,SN_y,SN_d,SN_t,E_CR,di
 
 def GetPulsarParameters():
 
-    #PSR J1907+0602
-    RA_PSR = 286.975
-    Dec_PSR= 6.03777777778
+    RA_PSR = source_ra
+    Dec_PSR= source_dec
     d_PSR = 3.2 #kpc
     t_PSR = 19.5*1000. #yr
     n_0 = 3.0 # cm^{-3} ambient density
@@ -6603,6 +6602,15 @@ def GetPulsarParameters():
         Dec_PSR= 17.770
         d_PSR = 0.25 #kpc
         t_PSR = 342.*1000. #yr
+        n_0 = 3.0 # cm^{-3} ambient density
+
+    elif sys.argv[1]=='HESS_J1825_ON':
+
+        #PSR J1826-1334
+        RA_PSR = 276.554416667
+        Dec_PSR= -13.5800277778
+        d_PSR = 4.0 #kpc
+        t_PSR = 20.*1000. #yr
         n_0 = 3.0 # cm^{-3} ambient density
 
     return RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0
