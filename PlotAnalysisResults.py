@@ -4287,6 +4287,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                     flux_sum += (data_cell-bkgd_cell)
                     stat_err_sum += data_err_cell*data_err_cell+bkgd_err_cell*bkgd_err_cell
                     syst_err_sum += syst_err_cell
+            if pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)==0.: continue
+            if flux_sum/pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)<1.0: continue
             edata += [energy_bin[ebin]]
             rate += [rate_sum]
             rate_err += [pow(rate_err_sum,0.5)]
@@ -4808,8 +4810,11 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
                 data_content = hist_data_skymap[ebin].GetBinContent(binx+1,biny+1)
                 bkgd_content = hist_bkgd_skymap[ebin].GetBinContent(binx+1,biny+1)
+                data_error = hist_data_skymap[ebin].GetBinError(binx+1,biny+1)
+                bkgd_error = hist_bkgd_skymap[ebin].GetBinError(binx+1,biny+1)
+                total_error = pow(data_error*data_error+bkgd_error*bkgd_error,0.5)
                 if data_content==0.: continue
-                if (data_content-bkgd_content)/pow(data_content,0.5)>2.: n_2sigma += 1
+                if (data_content-bkgd_content)/pow(data_content,0.5)>2.0: n_2sigma += 1
             if n_2sigma<3: continue
             start = (fdata[0]/pow(10,-12), -2.)
             popt, pcov = curve_fit(power_law_func, np.array(edata), np.array(fdata), p0=start, sigma=np.array(error))
@@ -4977,6 +4982,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,RA_PSR,Dec_PSR,d_PSR,MapSize_y/zoomin_scale)
             E_el_vis, lep_diffusion_radius, CR_brightness, had_diffusion_radius, t_SN, d_SN = FitHybridModel2D(hist_flux_skymap_sum)
             EstimateDiffusionCoefficient(current_gamma_energy,lep_diffusion_radius,3.,d_PSR,t_PSR,0.5)
+            DeriveSupernovaParameters(d_SN,t_SN,2.0)
             had_diffusion_radius_max = max(had_diffusion_radius_max,had_diffusion_radius)
             hist_leptonic_skymap = GetExpectedLeptonicMapV2(Hist_MWL,RA_PSR,Dec_PSR,d_PSR,t_PSR,E_el_vis,lep_diffusion_radius)
             profile_lep, profile_err_lep, theta2_lep = FindExtension(hist_leptonic_skymap,RA_PSR,Dec_PSR,d_PSR,MapSize_y/zoomin_scale)
@@ -5024,7 +5030,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         axbig.remove()
 
         if not skymap_fitting_model=='lepton':
-            RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
+            #RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
             deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
             hydrogen_to_solar_mass = 8.4144035*1e-58
             skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
@@ -5381,7 +5387,7 @@ def FitHybridModel2D(Hist_flux):
     t_Sedov = 423.*pow(E_SN,-0.5)*pow(M_ej,5./6.)*pow(n_0,-1./3.) # year
 
     fix_age_and_distance = False
-    CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
+    CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/(19.5*1000.),0.4))
     esc_param = 2.0
     init_param = []
     init_param += [CR_efficiency]
@@ -6705,12 +6711,11 @@ def DeriveSupernovaBrightnessAndDiffusionLength(CR_efficiency,esc_param,t_SN,d_S
 
     return CR_brightness, diffusion_radius
 
-def DeriveSupernovaParameters(E_CR_vis,diffusion_radius):
-
-    print ('E_CR_vis = %0.3f'%(E_CR_vis))
-    print ('diffusion_radius = %0.3f'%(diffusion_radius))
+def DeriveSupernovaParameters(d_SN_new,t_SN_new,esc_param):
 
     RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
+    t_SN = t_SN_new
+    d_SN = d_SN_new
 
     Gamma_CR = 2.1
     f_Gamma = 0.9
@@ -6737,18 +6742,11 @@ def DeriveSupernovaParameters(E_CR_vis,diffusion_radius):
     print ('E_gamma = %0.2f TeV'%(current_gamma_energy/1000.))
     print ('E_vis = %0.2f TeV'%(E_vis/1000.))
     diffusion_ism = 1e28*pow(E_vis/10.,0.5)*pow(B_ISM/3.,-0.5) # cm2/s
-    t_diff = pow(diffusion_radius*deg_to_cm,2)/(4.*diffusion_ism*365.*24.*60.*60.) # year
-    print ('t_diff = %0.2f yr'%(t_diff))
 
-    #esc_param = 1.82
-    #t_esc = t_Sedov*pow(E_vis/E_max,-1./esc_param)
-    #print ('t_esc = %0.2f kyr'%(t_esc/1000.))
-    #t_SN = t_esc+t_diff
-    #print ('t_SN = %0.2f kyr'%(t_SN/1000.))
-
-    t_esc = t_SN-t_diff
-    esc_param = -1./(math.log(t_esc/t_Sedov)/math.log(E_vis/E_max))
-    print ('esc_param = %0.2f'%(esc_param))
+    t_esc = t_Sedov*pow(E_vis/E_max,-1./esc_param)
+    print ('t_esc = %0.2f kyr'%(t_esc/1000.))
+    t_diff = t_SN-t_esc
+    print ('t_diff = %0.2f kyr'%(t_diff/1000.))
 
     E_min = pow(t_SN/t_Sedov,-esc_param)*E_max
     print ('E_min = %0.2f TeV'%(E_min/1000.))
@@ -6756,8 +6754,9 @@ def DeriveSupernovaParameters(E_CR_vis,diffusion_radius):
     visible_energy_in_CR = 1./(Gamma_CR-2.)*(pow(E_vis,-Gamma_CR+2.)-pow(E_max,-Gamma_CR+2.))
     visible_energy_frac = visible_energy_in_CR/total_energy_in_CR
     print ('visible_energy_frac = %0.5f'%(visible_energy_frac))
-    theta_ESN = E_CR_vis/(E_SN*visible_energy_frac)
-    print ('theta_ESN = %0.3f'%(theta_ESN))
+
+    R_SN = 2.5*vel_init*t_Sedov*365.*24.*60.*60.*(pow(t_SN/t_Sedov,0.4)-0.6)/deg_to_cm
+    print ('expected R_SN = %0.2f deg'%(R_SN))
 
 def FindExtension(Hist_Data_input,roi_x,roi_y,roi_d,integration_range):
 
@@ -7592,8 +7591,8 @@ exclude_roi += ['VHE region']
 exclude_roi += ['SNR region']
 exclude_roi += ['G40.5-0.5']
 #exclude_roi += ['PSR region']
-#exclude_roi += ['CO region north']
-#exclude_roi += ['CO region west']
+exclude_roi += ['CO region north']
+exclude_roi += ['CO region west']
 exclude_roi += ['LAT MeV region']
 exclude_roi += ['LAT GeV region']
 exclude_roi += ['Ring 1']
