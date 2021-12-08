@@ -4458,8 +4458,9 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     hist_syst_skymap_sum = ROOT.TH2D("hist_syst_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_rate_skymap_sum = ROOT.TH2D("hist_rate_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_flux_skymap_sum = ROOT.TH2D("hist_flux_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_molecular_cloud_expect_skymap = ROOT.TH2D("hist_molecular_cloud_expect_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_gamma_ray_expect_skymap = ROOT.TH2D("hist_gamma_ray_expect_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_expected_all_gamma_ray_skymap = ROOT.TH2D("hist_expected_all_gamma_ray_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_expected_lep_gamma_ray_skymap = ROOT.TH2D("hist_expected_lep_gamma_ray_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_expected_had_gamma_ray_skymap = ROOT.TH2D("hist_expected_had_gamma_ray_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     for ebin in range(0,len(energy_bin)-1):
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
@@ -4973,41 +4974,75 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             skymap_fitting_model = 'lepton'
 
         had_diffusion_radius_max = 0.
-        hist_molecular_cloud_expect_skymap.Reset()
-        current_gamma_energy = energy_bin[energy_bin_cut_low]
-        next_gamma_energy = energy_bin[len(energy_bin)-1]
-        if skymap_fitting_model=='hybrid':
-            RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0 = GetPulsarParameters()
-            RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
-            profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,RA_PSR,Dec_PSR,d_PSR,MapSize_y/zoomin_scale)
-            E_el_vis, D_ism_lep, CR_brightness, had_diffusion_radius, t_SN, d_SN = FitHybridModel2D(hist_flux_skymap_sum)
-            DeriveSupernovaParameters(d_SN,t_SN,2.0)
-            had_diffusion_radius_max = max(had_diffusion_radius_max,had_diffusion_radius)
-            hist_leptonic_skymap = GetExpectedLeptonicMapV2(Hist_MWL,E_el_vis,D_ism_lep)
-            profile_lep, profile_err_lep, theta2_lep = FindExtension(hist_leptonic_skymap,RA_PSR,Dec_PSR,d_PSR,MapSize_y/zoomin_scale)
-            hist_hadronic_skymap = GetExpectedHadronicMapV2(Hist_MWL,CR_brightness,had_diffusion_radius)
-            profile_had, profile_err_had, theta2_had = FindExtension(hist_hadronic_skymap,RA_PSR,Dec_PSR,d_PSR,MapSize_y/zoomin_scale)
-            hist_hybrid_skymap = hist_leptonic_skymap.Clone()
-            hist_hybrid_skymap.Add(hist_hadronic_skymap)
-            profile_hyb, profile_err_hyb, theta2_hyb = FindExtension(hist_hybrid_skymap,RA_PSR,Dec_PSR,d_PSR,MapSize_y/zoomin_scale)
-            hist_molecular_cloud_expect_skymap.Add(hist_leptonic_skymap)
-            hist_molecular_cloud_expect_skymap.Add(hist_hadronic_skymap)
-        elif skymap_fitting_model=='hadron':
-            RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
-            profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,RA_SN,Dec_SN,d_SN,MapSize_y/zoomin_scale)
-            had_brightness, had_diffusion_radius, t_SN, d_SN = FitHadronicModel2D(hist_flux_skymap_sum)
-            had_diffusion_radius_max = max(had_diffusion_radius_max,had_diffusion_radius)
-            hist_hadronic_skymap = GetExpectedHadronicMapV2(Hist_MWL,had_brightness,had_diffusion_radius)
-            profile_had, profile_err_had, theta2_had = FindExtension(hist_hadronic_skymap,RA_SN,Dec_SN,d_SN,MapSize_y/zoomin_scale)
-            hist_molecular_cloud_expect_skymap.Add(hist_hadronic_skymap)
-        else:
-            RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0 = GetPulsarParameters()
-            profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,RA_PSR,Dec_PSR,d_PSR,MapSize_y/zoomin_scale)
-            E_el_vis, D_ism_lep = FitLeptonicModel2D(hist_flux_skymap_sum)
-            hist_leptonic_skymap = GetExpectedLeptonicMapV2(Hist_MWL,E_el_vis,D_ism_lep)
-            profile_lep, profile_err_lep, theta2_lep = FindExtension(hist_leptonic_skymap,RA_PSR,Dec_PSR,d_PSR,MapSize_y/zoomin_scale)
-            hist_molecular_cloud_expect_skymap.Add(hist_leptonic_skymap)
+        CR_efficiency_total = 0.
+        CR_efficiency_total_err = 0.
+        esc_param_avg = 0.
+        esc_param_avg_weight = 0.
+        hist_expected_all_gamma_ray_skymap.Reset()
+        hist_expected_lep_gamma_ray_skymap.Reset()
+        hist_expected_had_gamma_ray_skymap.Reset()
+        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+            print ('=============================================')
+            current_gamma_energy = energy_bin[ebin]
+            next_gamma_energy = energy_bin[ebin+1]
+            print ('current_gamma_energy = %0.3f TeV'%(current_gamma_energy/1e3))
+            if skymap_fitting_model=='hybrid':
+                RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0 = GetPulsarParameters()
+                RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
+                E_el_vis, D_ism_lep, CR_brightness, had_diffusion_radius, CR_efficiency, esc_param, CR_efficiency_err = FitHybridModel2D(hist_energy_flux_skymap[ebin])
+                CR_efficiency_total += CR_efficiency
+                CR_efficiency_total_err += CR_efficiency_err*CR_efficiency_err
+                esc_param_avg += esc_param/pow(CR_efficiency_err/CR_efficiency,2)
+                esc_param_avg_weight += 1./pow(CR_efficiency_err/CR_efficiency,2)
+                hist_leptonic_skymap = GetExpectedLeptonicMapV2(Hist_MWL,E_el_vis,D_ism_lep)
+                hist_hadronic_skymap = GetExpectedHadronicMapV2(Hist_MWL,CR_brightness,had_diffusion_radius)
+                hist_hybrid_skymap = hist_leptonic_skymap.Clone()
+                hist_hybrid_skymap.Add(hist_hadronic_skymap)
+                hist_expected_all_gamma_ray_skymap.Add(hist_leptonic_skymap)
+                hist_expected_all_gamma_ray_skymap.Add(hist_hadronic_skymap)
+                hist_expected_lep_gamma_ray_skymap.Add(hist_leptonic_skymap)
+                hist_expected_had_gamma_ray_skymap.Add(hist_hadronic_skymap)
+            elif skymap_fitting_model=='hadron':
+                RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
+                had_brightness, had_diffusion_radius, CR_efficiency, esc_param, CR_efficiency_err = FitHadronicModel2D(hist_energy_flux_skymap[ebin])
+                CR_efficiency_total += CR_efficiency
+                CR_efficiency_total_err += CR_efficiency_err*CR_efficiency_err
+                esc_param_avg += esc_param/pow(CR_efficiency_err/CR_efficiency,2)
+                esc_param_avg_weight += 1./pow(CR_efficiency_err/CR_efficiency,2)
+                hist_hadronic_skymap = GetExpectedHadronicMapV2(Hist_MWL,had_brightness,had_diffusion_radius)
+                hist_expected_all_gamma_ray_skymap.Add(hist_hadronic_skymap)
+                hist_expected_had_gamma_ray_skymap.Add(hist_hadronic_skymap)
+            else:
+                RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0 = GetPulsarParameters()
+                E_el_vis, D_ism_lep = FitLeptonicModel2D(hist_energy_flux_skymap[ebin])
+                hist_leptonic_skymap = GetExpectedLeptonicMapV2(Hist_MWL,E_el_vis,D_ism_lep)
+                hist_expected_all_gamma_ray_skymap.Add(hist_leptonic_skymap)
+                hist_expected_lep_gamma_ray_skymap.Add(hist_leptonic_skymap)
+        print ('=============================================')
+        CR_efficiency_total_err = pow(CR_efficiency_total_err,0.5)
+        esc_param_avg = esc_param_avg/esc_param_avg_weight
+        print ('CR_efficiency_total = %0.3f +/- %0.3f'%(CR_efficiency_total,CR_efficiency_total_err))
+        print ('esc_param_avg = %0.3f'%(esc_param_avg))
 
+        current_gamma_energy = energy_bin[energy_bin_cut_low]
+        next_gamma_energy = energy_bin[energy_bin_cut_up]
+        DeriveSupernovaParameters(CR_efficiency_total,esc_param_avg)
+        RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0 = GetPulsarParameters()
+        RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
+        if sys.argv[1]=='MGRO_J1908_ON':
+            profile_center_x, profile_center_y, profile_center_z = RA_PSR, Dec_PSR, d_PSR
+        elif sys.argv[1]=='GammaCygni_ON':
+            profile_center_x, profile_center_y, profile_center_z = RA_SN, Dec_SN, d_SN
+        elif sys.argv[1]=='IC443HotSpot_ON':
+            profile_center_x, profile_center_y, profile_center_z = RA_SN, Dec_SN, d_SN
+        else:
+            profile_center_x, profile_center_y, profile_center_z = RA_PSR, Dec_PSR, d_PSR
+        CR_brightness, had_diffusion_radius_max = DeriveSupernovaBrightnessAndDiffusionLength(CR_efficiency_total,esc_param_avg,t_SN,d_SN,n_0)
+
+        profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+        profile_lep, profile_err_lep, theta2_lep = FindExtension(hist_expected_lep_gamma_ray_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+        profile_had, profile_err_had, theta2_had = FindExtension(hist_expected_had_gamma_ray_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+        profile_hyb, profile_err_hyb, theta2_hyb = FindExtension(hist_expected_all_gamma_ray_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
         axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
         if skymap_fitting_model=='hybrid':
             axbig.plot(theta2_lep,profile_lep,color='g',label='leptonic model')
@@ -5076,15 +5111,15 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 other_star_labels[star].Draw("same")
             canvas.SaveAs('output_plots/SkymapMWL_density_%s_%s.png'%(name,selection_tag))
 
-        hist_molecular_cloud_expect_skymap_reflect = reflectXaxis(hist_molecular_cloud_expect_skymap)
-        hist_molecular_cloud_expect_skymap_reflect.GetYaxis().SetTitle(title_y)
-        hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetTitle(title_x)
-        hist_molecular_cloud_expect_skymap_reflect.GetZaxis().SetTitle('estimated hadronic flux (cm^{-2} s^{-1})')
-        hist_molecular_cloud_expect_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
-        hist_molecular_cloud_expect_skymap_reflect.Draw("COL4Z")
+        hist_expected_all_gamma_ray_skymap_reflect = reflectXaxis(hist_expected_all_gamma_ray_skymap)
+        hist_expected_all_gamma_ray_skymap_reflect.GetYaxis().SetTitle(title_y)
+        hist_expected_all_gamma_ray_skymap_reflect.GetXaxis().SetTitle(title_x)
+        hist_expected_all_gamma_ray_skymap_reflect.GetZaxis().SetTitle('estimated hadronic flux (cm^{-2} s^{-1})')
+        hist_expected_all_gamma_ray_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
+        hist_expected_all_gamma_ray_skymap_reflect.Draw("COL4Z")
         hist_contour_reflect.Draw("CONT3 same")
-        hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetLabelOffset(999)
-        hist_molecular_cloud_expect_skymap_reflect.GetXaxis().SetTickLength(0)
+        hist_expected_all_gamma_ray_skymap_reflect.GetXaxis().SetLabelOffset(999)
+        hist_expected_all_gamma_ray_skymap_reflect.GetXaxis().SetTickLength(0)
         raLowerAxis.Draw()
         mycircles = []
         for nth_roi in range(0,len(roi_ra)):
@@ -5102,12 +5137,12 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         #    faint_star_labels[star].Draw("same")
         canvas.SaveAs('output_plots/SkymapMolecularCloudExpect_%s_%s.png'%(name,selection_tag))
 
-        hist_MWL_happiness_reflect = hist_molecular_cloud_expect_skymap_reflect.Clone()
+        hist_MWL_happiness_reflect = hist_expected_all_gamma_ray_skymap_reflect.Clone()
         hist_MWL_happiness_reflect.Reset()
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
                 reality = hist_flux_skymap_sum_reflect.GetBinContent(bx+1,by+1)
-                expectation = hist_molecular_cloud_expect_skymap_reflect.GetBinContent(bx+1,by+1)
+                expectation = hist_expected_all_gamma_ray_skymap_reflect.GetBinContent(bx+1,by+1)
                 error = hist_flux_skymap_sum_reflect.GetBinError(bx+1,by+1)
                 if reality==0.: continue
                 if expectation==0.: continue
@@ -5302,6 +5337,8 @@ def hadronic_model_2d(x, par):
     deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
     skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
 
+    #CR_efficiency, esc_param, R_esc = DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,diffusion_radius,t_SN,d_SN,n_0)
+
     Gamma_CR = 2.1
     f_Gamma = 0.9
     #Gamma_CR = 2.2
@@ -5317,8 +5354,16 @@ def hadronic_model_2d(x, par):
     distance = pow(pow(x[0]-RA_SN,2)+pow(x[1]-Dec_SN,2),0.5)
     MC_column_density = Hist_MWL.GetBinContent(binx,biny)
     MC_mass = MC_column_density*skymap_bin_area
+
     vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
-    attenuation = exp(-pow(distance/diffusion_radius,2))
+    attenuation = exp(-(distance*distance)/pow(diffusion_radius,2))
+    #vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
+    #attenuation = exp(-(distance*distance+R_esc*R_esc)/pow(diffusion_radius,2))
+    #if distance>diffusion_radius:
+    #    A_esc = 4.*3.14*R_esc*R_esc
+    #    vol_diff = diffusion_radius*A_esc*distance/R_esc*pow(deg_to_cm,3)
+    #    attenuation = exp(-(distance*distance+R_esc*R_esc)/pow(diffusion_radius,2))*math.sinh(2.*distance*R_esc/diffusion_radius)
+
     ECR_density_in_SNR = CR_brightness/vol_diff
     ECR_density_local = ECR_density_in_SNR*attenuation
     line_of_sight = diffusion_radius
@@ -5342,6 +5387,7 @@ def EstimateCosmicRayBrightness(hist_flux,roi_x,roi_y,roi_radius,diffusion_radiu
     #f_Gamma = 0.19
 
     total_flux = 0.
+    total_flux_err = 0.
     total_mass = 0.
     for binx in range(0,hist_flux.GetNbinsX()):
         for biny in range(0,hist_flux.GetNbinsY()):
@@ -5350,6 +5396,7 @@ def EstimateCosmicRayBrightness(hist_flux,roi_x,roi_y,roi_radius,diffusion_radiu
             distance_to_roi = pow(pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2),0.5)
             if distance_to_roi>roi_radius: continue
             total_flux += hist_flux.GetBinContent(binx+1,biny+1)
+            total_flux_err += hist_flux.GetBinError(binx+1,biny+1)
             total_mass += Hist_MWL.GetBinContent(binx+1,biny+1)*skymap_bin_area
 
     vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
@@ -5361,7 +5408,10 @@ def EstimateCosmicRayBrightness(hist_flux,roi_x,roi_y,roi_radius,diffusion_radiu
     ECR_density_in_SNR = ECR_density_local_avg/(attenuation*diffusion_radius*pow(3.14,0.5)/2.*math.erf(line_of_sight/diffusion_radius))*line_of_sight
     CR_brightness = ECR_density_in_SNR*vol_diff
 
-    return CR_brightness
+    CR_brightness = max(0.,CR_brightness)
+    CR_brightness_err = CR_brightness*total_flux_err/total_flux
+
+    return CR_brightness, CR_brightness_err
 
 def disk_2d_to_1D(x, B):
     return B
@@ -5434,13 +5484,18 @@ def FitHybridModel2D(Hist_flux):
 
     CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
     esc_param = 2.
-    #CR_brightness, diffusion_radius = DeriveSupernovaBrightnessAndDiffusionLength(CR_efficiency,esc_param,t_SN,d_SN,n_0)
     diffusion_radius = 1.0
-    CR_brightness = EstimateCosmicRayBrightness(Hist_flux,286.786,7.1,0.2,diffusion_radius)
-    CR_efficiency, esc_param = DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,diffusion_radius,t_SN,d_SN,n_0)
+    CR_brightness, CR_brightness_err = EstimateCosmicRayBrightness(Hist_flux,286.786,7.1,0.2,diffusion_radius)
+    Syst_err = 10.
+    if CR_brightness>0.: Syst_err = CR_brightness_err/CR_brightness
+    CR_efficiency, esc_param, R_esc = DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,diffusion_radius,t_SN,d_SN,n_0)
+    CR_brightness_up, diffusion_radius_up = DeriveSupernovaBrightnessAndDiffusionLength(2.*CR_efficiency,3.,t_SN,d_SN,n_0)
+    CR_brightness_dw, diffusion_radius_dw = DeriveSupernovaBrightnessAndDiffusionLength(0.5*CR_efficiency,1.,t_SN,d_SN,n_0)
     print ('Initial CR_efficiency = %0.3f'%(CR_efficiency))
     print ('Initial esc_param = %0.3f'%(esc_param))
     print ('Initial diffusion_radius = %0.3f'%(diffusion_radius))
+    print ('Initial diffusion_radius_up = %0.3f'%(diffusion_radius_up))
+    print ('Initial diffusion_radius_dw = %0.3f'%(diffusion_radius_dw))
 
     npar = 4
     hybrid_flux_2d = ROOT.TF2('hybrid_flux_2d',hybrid_model_2d,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
@@ -5449,7 +5504,7 @@ def FitHybridModel2D(Hist_flux):
     hybrid_flux_2d.SetParLimits(1,D_ism_lower,D_ism_upper)
     if fix_r_diff: hybrid_flux_2d.FixParameter(1,D_ism)
     hybrid_flux_2d.SetParameter(2,CR_brightness)
-    hybrid_flux_2d.SetParLimits(2,0.2*CR_brightness,2.*CR_brightness)
+    hybrid_flux_2d.SetParLimits(2,0.2*CR_brightness,10.*CR_brightness)
     hybrid_flux_2d.SetParameter(3,diffusion_radius)
     hybrid_flux_2d.SetParLimits(3,0.1,10.*diffusion_radius)
 
@@ -5463,13 +5518,18 @@ def FitHybridModel2D(Hist_flux):
     print ('2D fit D_ism = %0.3f e28 cm2/s'%(D_ism/1e28))
 
     CR_brightness = hybrid_flux_2d.GetParameter(2)
+    CR_brightness_err = hybrid_flux_2d.GetParError(2)
     had_diffusion_radius = hybrid_flux_2d.GetParameter(3)
-    CR_efficiency, esc_param = DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,had_diffusion_radius,t_SN,d_SN,n_0)
-    print ('2D fit had_diffusion_radius = %0.3f'%(had_diffusion_radius))
-    print ('2D fit CR_efficiency = %0.3f'%(CR_efficiency))
-    print ('2D fit esc_param = %0.3f'%(esc_param))
+    had_diffusion_radius_err = hybrid_flux_2d.GetParError(3)
+    print ('2D fit had_diffusion_radius = %0.3f +/- %0.3f'%(had_diffusion_radius,had_diffusion_radius_err))
+    CR_efficiency, esc_param, R_esc = DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,had_diffusion_radius,t_SN,d_SN,n_0)
 
-    return E_el_vis, D_ism, CR_brightness, had_diffusion_radius, t_SN, d_SN
+    CR_efficiency_err = CR_efficiency*Syst_err
+    print ('2D fit CR_efficiency = %0.3f +/- %0.3f'%(CR_efficiency,CR_efficiency_err))
+    print ('2D fit esc_param = %0.3f'%(esc_param))
+    print ('2D fit R_esc = %0.3f deg'%(R_esc))
+
+    return E_el_vis, D_ism, CR_brightness, had_diffusion_radius, CR_efficiency, esc_param, CR_efficiency_err
 
 def FitLeptonicModel2D(Hist_flux):
 
@@ -5545,20 +5605,25 @@ def FitHadronicModel2D(Hist_flux):
 
     CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
     esc_param = 2.
-    #CR_brightness, diffusion_radius = DeriveSupernovaBrightnessAndDiffusionLength(CR_efficiency,esc_param,t_SN,d_SN,n_0)
     diffusion_radius = 0.5
-    CR_brightness = EstimateCosmicRayBrightness(Hist_flux,RA_SN,Dec_SN,0.5,diffusion_radius)
-    CR_efficiency, esc_param = DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,diffusion_radius,t_SN,d_SN,n_0)
+    CR_brightness, CR_brightness_err = EstimateCosmicRayBrightness(Hist_flux,RA_SN,Dec_SN,0.5,diffusion_radius)
+    Syst_err = 10.
+    if CR_brightness>0.: Syst_err = CR_brightness_err/CR_brightness
+    CR_efficiency, esc_param, R_esc = DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,diffusion_radius,t_SN,d_SN,n_0)
+    CR_brightness_up, diffusion_radius_up = DeriveSupernovaBrightnessAndDiffusionLength(2.*CR_efficiency,3.,t_SN,d_SN,n_0)
+    CR_brightness_dw, diffusion_radius_dw = DeriveSupernovaBrightnessAndDiffusionLength(0.5*CR_efficiency,1.,t_SN,d_SN,n_0)
     print ('Initial CR_efficiency = %0.3f'%(CR_efficiency))
     print ('Initial esc_param = %0.3f'%(esc_param))
     print ('Initial diffusion_radius = %0.3f'%(diffusion_radius))
+    print ('Initial diffusion_radius_up = %0.3f'%(diffusion_radius_up))
+    print ('Initial diffusion_radius_dw = %0.3f'%(diffusion_radius_dw))
 
     npar = 2
     hadronic_flux_2d = ROOT.TF2('hadronic_flux_2d',hadronic_model_2d,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
     hadronic_flux_2d.SetParameter(0,CR_brightness)
-    hadronic_flux_2d.SetParLimits(0,0.,100.*CR_brightness)
-    hadronic_flux_2d.SetParameter(1,0.5)
-    hadronic_flux_2d.SetParLimits(1,0.1,10.)
+    hadronic_flux_2d.SetParLimits(0,0.2*CR_brightness,10.*CR_brightness)
+    hadronic_flux_2d.SetParameter(1,diffusion_radius)
+    hadronic_flux_2d.SetParLimits(1,0.1,10.*diffusion_radius)
 
     Hist_flux_new = Hist_flux.Clone()
     #max_content = Hist_flux_new.GetMaximum()
@@ -5571,15 +5636,25 @@ def FitHadronicModel2D(Hist_flux):
     #        error_scale = 1./exp(-0.5*pow(distance/1.0,2))
     #        Hist_flux_new.SetBinError(binx+1,biny+1,max_content*0.2)
 
-    Hist_flux_new.Fit('hadronic_flux_2d')
-    CR_brightness = hadronic_flux_2d.GetParameter(0)
-    diffusion_radius = hadronic_flux_2d.GetParameter(1)
-    CR_efficiency, esc_param = DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,diffusion_radius,t_SN,d_SN,n_0)
-    print ('2D fit diffusion_radius = %0.3f'%(diffusion_radius))
-    print ('2D fit CR_efficiency = %0.3f'%(CR_efficiency))
-    print ('2D fit esc_param = %0.3f'%(esc_param))
+    if CR_brightness>0.:
+        Hist_flux_new.Fit('hadronic_flux_2d')
 
-    return CR_brightness, diffusion_radius, t_SN, d_SN
+        CR_brightness = hadronic_flux_2d.GetParameter(0)
+        diffusion_radius = hadronic_flux_2d.GetParameter(1)
+        CR_brightness_err = hadronic_flux_2d.GetParError(0)
+        diffusion_radius_err = hadronic_flux_2d.GetParError(1)
+        print ('2D fit had_diffusion_radius = %0.3f +/- %0.3f'%(diffusion_radius,diffusion_radius_err))
+        CR_efficiency, esc_param, R_esc = DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,diffusion_radius,t_SN,d_SN,n_0)
+        CR_efficiency_err = CR_efficiency*Syst_err
+        print ('2D fit CR_efficiency = %0.3f +/- %0.3f'%(CR_efficiency,CR_efficiency_err))
+        print ('2D fit esc_param = %0.3f'%(esc_param))
+        print ('2D fit R_esc = %0.3f deg'%(R_esc))
+    else:
+        CR_efficiency = 1e-6
+        CR_efficiency_err = 1e-5
+        esc_param = 2.
+
+    return CR_brightness, diffusion_radius, CR_efficiency, esc_param, CR_efficiency_err
 
 def GetExtention2D(Hist_data_input, Hist_bkgd_input, Hist_syst_input, highlight_threshold, init_x, init_y, tag):
 
@@ -6575,6 +6650,8 @@ def GetExpectedHadronicMapV2(hist_column_density_map,CR_brightness,diffusion_rad
 
     RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
 
+    #CR_efficiency, esc_param, R_esc = DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,diffusion_radius,t_SN,d_SN,n_0)
+
     Gamma_CR = 2.1
     f_Gamma = 0.9
     #Gamma_CR = 2.2
@@ -6599,7 +6676,14 @@ def GetExpectedHadronicMapV2(hist_column_density_map,CR_brightness,diffusion_rad
             if distance_sq>1.5*1.5: continue
 
             vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
-            attenuation = exp(-pow(distance/diffusion_radius,2))
+            attenuation = exp(-(distance*distance)/pow(diffusion_radius,2))
+            #vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
+            #attenuation = exp(-(distance*distance+R_esc*R_esc)/pow(diffusion_radius,2))
+            #if distance>diffusion_radius:
+            #    A_esc = 4.*3.14*R_esc*R_esc
+            #    vol_diff = diffusion_radius*A_esc*distance/R_esc*pow(deg_to_cm,3)
+            #    attenuation = exp(-(distance*distance+R_esc*R_esc)/pow(diffusion_radius,2))*math.sinh(2.*distance*R_esc/diffusion_radius)
+
             ECR_density_in_SNR = CR_brightness/vol_diff
             ECR_density_local = ECR_density_in_SNR*attenuation
             #line_of_sight = pow(4.*diffusion_radius*diffusion_radius-distance*distance,0.5)
@@ -6663,17 +6747,23 @@ def GetSupernovaParameters():
         #RA_SN = 286.786
         #Dec_SN= 6.498
         #d_SN = 7.9 #kpc
-        ##t_SN = 20.*1000. # lower limit by Downes et al. (1980)
         #t_SN = 11.*1000. # age of PSR J1907+0631 in year
         #r_SN = 0.5*0.43 # degree, Yang et al. 2006, ChJAA, 6, 210.
         #n_0 = 3.0 # cm^{-3} ambient density
 
-        RA_SN = 287.2
-        Dec_SN= 6.6
-        d_SN = 3.2 #kpc
-        t_SN = 19.5*1000.
-        r_SN = 0.5*1.0 
+        RA_SN = 286.786
+        Dec_SN= 6.498
+        d_SN = 3.4 #kpc, Yang et al. 2006
+        t_SN = 11.*1000.
+        r_SN = 0.5*0.43 # degree, Yang et al. 2006, ChJAA, 6, 210.
         n_0 = 3.0 # cm^{-3} ambient density
+
+        #RA_SN = 287.2
+        #Dec_SN= 6.6
+        #d_SN = 3.2 #kpc
+        #t_SN = 19.5*1000.
+        #r_SN = 0.5*1.0 
+        #n_0 = 3.0 # cm^{-3} ambient density
 
     elif sys.argv[1]=='GammaCygni_ON':
 
@@ -6719,16 +6809,17 @@ def DeriveSupernovaBrightnessAndDiffusionLength(CR_efficiency,esc_param,t_SN,d_S
     t_esc = t_Sedov*pow(E_vis/E_max,-1./esc_param)
 
     diffusion_ism = 1e28*pow(E_vis/10.,0.5)*pow(B_ISM/3.,-0.5) # cm2/s
-    t_diff = max(1.,t_SN-t_esc) # year
+    t_diff = max(0.,t_SN-t_esc) # year
     diffusion_radius = pow(4.*diffusion_ism*t_diff*365.*24.*60.*60.,0.5)/deg_to_cm
+    diffusion_radius = max(smooth_size_spectroscopy,diffusion_radius)
 
     E_min = pow(t_SN/t_Sedov,-esc_param)*E_max
     total_energy_in_CR = 1./(Gamma_CR-2.)*(pow(1.,-Gamma_CR+2.)-pow(E_max,-Gamma_CR+2.))
     visible_energy_in_CR = 1./(Gamma_CR-2.)*(pow(E_vis,-Gamma_CR+2.)-pow(E_max,-Gamma_CR+2.))
     visible_energy_frac = visible_energy_in_CR/total_energy_in_CR
 
-    CR_brightness = CR_efficiency*E_SN*visible_energy_frac
-    #CR_brightness = CR_efficiency*E_SN
+    #CR_brightness = CR_efficiency*E_SN*visible_energy_frac
+    CR_brightness = CR_efficiency*E_SN
 
     return CR_brightness, diffusion_radius
 
@@ -6758,23 +6849,28 @@ def DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,diffusion_radius,t
 
     t_diff = pow(diffusion_radius*deg_to_cm,2)/(4.*diffusion_ism*365.*24.*60.*60.)
     t_esc = t_SN-t_diff
-    esc_param = -1.*math.log(E_vis/E_max)/math.log(t_esc/t_Sedov)
+    if t_esc>0.:
+        esc_param = -1.*math.log(E_vis/E_max)/math.log(t_esc/t_Sedov)
+        R_esc = 2.5*vel_init*t_Sedov*365.*24.*60.*60.*(pow(t_esc/t_Sedov,0.4)-0.6)/deg_to_cm
+        R_esc = max(smooth_size_spectroscopy,R_esc)
+    else:
+        print ("!!! CR diffusion time %0.3f kyr is longer than SNR age %0.3f kyr !!!"%(t_diff/1e3,t_SN/1e3))
+        esc_param = 0.
+        R_esc = 0.
 
     E_min = pow(t_SN/t_Sedov,-esc_param)*E_max
     total_energy_in_CR = 1./(Gamma_CR-2.)*(pow(1.,-Gamma_CR+2.)-pow(E_max,-Gamma_CR+2.))
     visible_energy_in_CR = 1./(Gamma_CR-2.)*(pow(E_vis,-Gamma_CR+2.)-pow(E_max,-Gamma_CR+2.))
     visible_energy_frac = visible_energy_in_CR/total_energy_in_CR
 
-    CR_efficiency = CR_brightness/(E_SN*visible_energy_frac)
-    #CR_efficiency = CR_brightness/(E_SN)
+    #CR_efficiency = CR_brightness/(E_SN*visible_energy_frac)
+    CR_efficiency = CR_brightness/(E_SN)
 
-    return CR_efficiency, esc_param
+    return CR_efficiency, esc_param, R_esc
 
-def DeriveSupernovaParameters(d_SN_new,t_SN_new,esc_param):
+def DeriveSupernovaParameters(CR_efficiency, esc_param):
 
     RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
-    t_SN = t_SN_new
-    d_SN = d_SN_new
 
     Gamma_CR = 2.1
     f_Gamma = 0.9
@@ -6802,10 +6898,15 @@ def DeriveSupernovaParameters(d_SN_new,t_SN_new,esc_param):
     print ('E_vis = %0.2f TeV'%(E_vis/1000.))
     diffusion_ism = 1e28*pow(E_vis/10.,0.5)*pow(B_ISM/3.,-0.5) # cm2/s
 
-    t_esc = t_Sedov*pow(E_vis/E_max,-1./esc_param)
-    print ('t_esc = %0.2f kyr'%(t_esc/1000.))
-    t_diff = t_SN-t_esc
-    print ('t_diff = %0.2f kyr'%(t_diff/1000.))
+    if esc_param>0.:
+        t_esc = t_Sedov*pow(E_vis/E_max,-1./esc_param)
+        print ('t_esc = %0.2f kyr'%(t_esc/1000.))
+        t_diff = t_SN-t_esc
+        print ('t_diff = %0.2f kyr'%(t_diff/1000.))
+        diffusion_radius = pow(t_diff*(4.*diffusion_ism*365.*24.*60.*60.),0.5)/deg_to_cm
+    else:
+        print ("!!! CR diffusion time is longer than SNR age !!!")
+        diffusion_radius = 0.1
 
     E_min = pow(t_SN/t_Sedov,-esc_param)*E_max
     print ('E_min = %0.2f TeV'%(E_min/1000.))
