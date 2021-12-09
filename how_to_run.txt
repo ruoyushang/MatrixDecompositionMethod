@@ -1,49 +1,85 @@
 
-1. Prepare ON and OFF run data.
-read_diagnostics.py is a simple script to generate a list of ON and OFF run data.
-The script reads diagnostics.txt, which contain metadata of all VERITAS runs.
-If we are analyzing PKS 1424, we need to provides these variables:
-    # PKS 1424
-    target_ra = 216.75
-    target_dec = 23.7833333333
-    range_ra = 1.0
-    range_dec = 1.0
-and the script will list the runs with pointings within 1 degree radius around the source location.
-To search for V6 ON runs, set the variables to:
-search_for_on_data = True
-   V4 = False
-   V5 = False
-   V6 = True
-Type python read_diagnostics.py, then you should see a list of PKS 1424 data.
-To get the OFF runs for the source, simply change search_for_on_data = False, and create a text file which contains
-the run numbers of PKS 1424. Then point the script to the text file, 
-    sourceFile = open('../data/output_list/MGRO_J2031_V5_runlist.txt' 
+The background method has four source code files:
 
-2. Process the ON and OFF runs with EventDisplay.
-3. Create a text file which contains the ON run numbers, and a text file contains the OFF run numbers. An example of such files is RunList_PKS1424V6.txt.
-4. Edit GetRunList.h to include RunList_PKS1424V6.txt and the OFF run file (which are already included).
+GetRunList.h -- this defines the run lists to be used in the analysis
+NetflixParameters.h -- this defines the parameters of the background method
+PrepareDarkData.C -- this reads anasum files and makes event distribution histograms
+MakePrediction.C -- this takes the shower matrix histograms from PrepareDarkData.C and produces background estimation
 
-5. PrepareDarkData.C prepares the required histograms for the background method. The OFF run data by
-    vector<pair<string,int>> Dark_runlist_init = GetRunList("Everything");
-and the ON run data is defined by
-    vector<pair<string,int>> Data_runlist_init = GetRunList(target);
-, where target is the name of the source (e.g. PKS 1424).
-To run PrepareDarkData.C, do
-    root -b -l -q 'PrepareDarkData.C+("PKS1424V6",45,85,0,0,0,1,2,false,false)'
-    root -b -l -q 'PrepareDarkData.C+("PKS1424V6",45,85,0,0,1,4,2,false,false)'
-    root -b -l -q 'PrepareDarkData.C+("PKS1424V6",45,85,0,0,4,9,2,false,false)'
-These commands will produce ROOT files with histograms that contain events in theta2 range: 0-1, 1-4, 4-9.
+1. Environment variables
 
-6. After running the commands above, we will need to run
-    root -b -l -q 'MakePrediction.C+("PKS1424V6",45,85,0,0,0,1,2,false)'
-    root -b -l -q 'MakePrediction.C+("PKS1424V6",45,85,0,0,1,4,2,false)'
-    root -b -l -q 'MakePrediction.C+("PKS1424V6",45,85,0,0,4,9,2,false)'
-These commands call MakePrediction.C, which solves the eigenvectors for the background prediction and makes skymap and energy spectrum predictions.
-The function that solves the eigenvecotrs is SpectralDecompositionMethod_v3.
+    The environment variables are defined in setup_env.sh:
+    export SMI_INPUT=/gamma_raid/userspace/rshang/analysis/Results/v483
+    export SMI_AUX=/gamma_raid/userspace/rshang/SMI_AUX
+    export SMI_DIR=/home/rshang/MatrixDecompositionMethod
+    export SMI_OUTPUT=/gamma_raid/userspace/rshang/SMI_output/output_loose
+    export SMI_BIN=$SMI_OUTPUT/bin
+    , where
+    SMI_INPUT is the directory to the input anasum files
+    SMI_AUX is the directory to the auxiliary files, including
+        diagnostics_20211012.txt is a text file containing DQM info of all VERITAS runs, you can download it from https://veritasm.sao.arizona.edu/ChiLA/diagnostics.dat
+        category_allruns.txt is a text file containing the types of the runs (obtained from the Offline database DQM table)
+        L3rate_allruns.txt is a text file containing the L3 rates of the runs (obtained from the Offline database DQM table)
+        usable_time_allruns.txt is a text file containing usable time of the runs (obtained from the Offline database DQM table)
+        timecuts_allruns.txt is a text file containing the time cuts of the runs (obtained from the Offline database DQM table)
+        TeVCat_RaDec.txt is a text file containing the locations of TeVCat sources
+        Hipparcos_MAG8_1997.dat is a text file containing the locations of bright stars
+        SystErrors.root is a ROOT file containing histograms of systematic errors of the analysis
+    SMI_DIR is the directory to the background method source code
+    SMI_OUTPUT is the directory to the output files of the background method
+    SMI_BIN is the directory to the binary files of the background method
 
-7. PlotAnalysisResults.py is a code that makes skymaps and other plots from the output of MakePrediction.C.
-To get the PKS 1424 results, you need to define these variables:
-    ONOFF_tag = 'OFF'
-    sample_list += ['PKS1424V6']
-Then you should see the resulting plots by typing 'python PlotAnalysisResults.py'.
+2. Define lists of runs
+
+    This code takes input from the anasum files of the EventDisplay.
+    There are two types of run lists in the method:
+        a. observation run list defines the runs that belong to a source
+        b. background run list defines the runs to be used for background modeling
+    A run list is a text file containing the run numbers and a name of the list.
+    For example, RunList_CrabV6.txt contains the V6 Crab runs and has the format:
+        CrabV6,95488
+        CrabV6,95489
+        CrabV6,95491
+        CrabV6,95492
+        CrabV6,95493
+        CrabV6,95495
+        CrabV6,95496
+    To add a new observation, you will need to define the list in GetRunList.h by adding these lines:
+        if (source.find("New_Observation_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("New_Observation_V6");
+        }
+    The background list is also defined in GetRunList.h as "OffRunsV6", which is a collection of extragalactic point source observations.
+
+3. Execute code
+
+    To run the PrepareDarkData.C, simply do:
+    root -b -l -q 'PrepareDarkData.C+("CrabV6_ON",75,85,0,0,0,4.0,true,false,0)'
+    , where
+    the 1st argument is the name of run list,
+    the 2nd and 3rd arguments are the lower and upper limits of the observing elevation,
+    the 4th and 5th arguments are the start and the end of the observation in MJD,
+    the 6th and 7th arguments are the lower and upper limits of the squared angular distance from the center of the camera.
+
+    After the jobs of PrepareDarkData.C finished, continue to execute:
+    root -b -l -q 'MakePrediction.C+("CrabV6_ON",75,85,0,0,0,4.0,true,0)'
+    , the input arguments are the same as those of PrepareDarkData.C.
+
+4. The output contents
+
+    In the output of MakePrediction.C, you will find these histograms for your analysis:
+
+    a. Hist_OnData_SR_Skymap: This is the data event-count histogram in the RA-Dec space.
+    b. Hist_OnData_CR_Skymap: This is the background event-count histogram in the RA-Dec space.
+    c. Hist_NormSyst_Skymap: This is the normalization systematic error histogram in the RA-Dec space.
+    d. Hist_ShapeSyst_Skymap: This is the acceptance-shape systematic error histogram in the RA-Dec space.
+
+    To compute gamma-ray event excess at a given location (RA,Dec) and energy E, you can simply do:
+    gamma_excess = Hist_OnData_SR_Skymap.at(E)->GetBinContent(RA,Dec) - Hist_OnData_CR_Skymap.at(E)->GetBinContent(RA,Dec)
+
+    To compute the detection significance of the excess at a given location (RA,Dec) and energy E, and an integration radius R, 
+    you can do:
+    normalization_error = Hist_NormSyst_Skymap.at(E)->GetBinContent(RA,Dec)
+    shape_error = Hist_ShapeSyst_Skymap.at(E).at(R)->GetBinContent(RA,Dec)
+    significance = gamma_excess/pow(normalization_error*normalization_error+shape_error*shape_error,0.5)
 
