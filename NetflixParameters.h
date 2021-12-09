@@ -34,8 +34,10 @@ double MSCL_plot_lower = -0.6;
 char output_file_tag[50] = "tight";
 double MSCW_cut_moderate = 0.6;
 double MSCL_cut_moderate = 0.6;
-double MSCW_rescale[N_energy_bins] = {0.0,0.1,0.2,0.3,0.4,0.5};
-double MSCL_rescale[N_energy_bins] = {0.0,0.1,0.2,0.3,0.4,0.5};
+//double MSCW_rescale[N_energy_bins] = {0.0,0.1,0.2,0.3,0.4,0.5};
+//double MSCL_rescale[N_energy_bins] = {0.0,0.1,0.2,0.3,0.4,0.5};
+double MSCW_rescale[N_energy_bins] = {0.0,0.05,0.1,0.15,0.2,0.25};
+double MSCL_rescale[N_energy_bins] = {0.0,0.05,0.1,0.15,0.2,0.25};
 //double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
 //double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
 

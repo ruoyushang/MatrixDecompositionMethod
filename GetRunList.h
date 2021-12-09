@@ -269,7 +269,7 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("LHAASO_J2108_V6");
         }
-        if (source=="Everything")
+        if (source=="OffRunsV6")
         {
             list_temp = GetRunListFromFile("LowElevationDarkV6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
@@ -279,8 +279,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("SNR_G150p3Plus04p5_V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
-            //list_temp = GetRunListFromFile("3C273V6");
-            //list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("3C273V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("1ES0502V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("DracoV6");
@@ -290,8 +290,6 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list_temp = GetRunListFromFile("M82V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("Segue1V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("1ES0647V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("TriIIV6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
@@ -305,9 +303,11 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("OJ287V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
-
-            //list_temp = GetRunListFromFile("NGC1275V6");
-            //list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("1ES0647V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("NGC1275V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            
             //list_temp = GetRunListFromFile("RBS0413V6");
             //list.insert(list.end(), list_temp.begin(), list_temp.end());
             //list_temp = GetRunListFromFile("IC443_MatchedDark_V6");
@@ -438,7 +438,7 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("DracoV5");
         }
-        if (source=="EverythingV5")
+        if (source=="OffRunsV5")
         {
             list_temp = GetRunListFromFile("BLLacV5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
@@ -460,8 +460,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
             //list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("M82V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
-            //list_temp = GetRunListFromFile("3C273V5");
-            //list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("3C273V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("1ES0502V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("DracoV5");
@@ -517,7 +517,7 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("TychoV4");
         }
-        if (source=="EverythingV4")
+        if (source=="OffRunsV4")
         {
             list_temp = GetRunListFromFile("WComae_MatchedDark_V4");
             list.insert(list.end(), list_temp.begin(), list_temp.end());

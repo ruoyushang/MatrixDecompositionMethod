@@ -19,6 +19,7 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TProfile.h"
+#include "TProfile2D.h"
 #include "TGraph.h"
 #include "TTree.h"
 #include "TString.h"
@@ -2106,9 +2107,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         }
         Dark_runlist.push_back(the_samples);
     }
-    vector<pair<string,int>> Dark_runlist_init = GetRunList("Everything");
-    if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("EverythingV5");
-    if (TString(target).Contains("V4")) Dark_runlist_init = GetRunList("EverythingV4");
+    vector<pair<string,int>> Dark_runlist_init = GetRunList("OffRunsV6");
+    if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("OffRunsV5");
+    if (TString(target).Contains("V4")) Dark_runlist_init = GetRunList("OffRunsV4");
     if (TString(target).Contains("Proton")) Dark_runlist_init = GetRunList("EverythingProton");
     std::cout << "initial Dark_runlist size = " << Dark_runlist_init.size() << std::endl;
     bool nsb_reweight = true;
@@ -2496,6 +2497,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     TH2D Hist_Data_ShowerDirection = TH2D("Hist_Data_ShowerDirection","",180,0,360,90,0,90);
     TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,0,10,18,0,90);
     TH2D Hist_Data_ElevAzim = TH2D("Hist_Data_ElevAzim","",18,0,360,18,0,90);
+    TH2D Hist_Data_Skymap = TH2D("Hist_Data_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
+    TH2D Hist_Data_Elev_Skymap = TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
 
     vector<TH1D> Hist_OnData_Incl_CR_Zenith;
     vector<TH1D> Hist_OnDark_Incl_CR_Zenith;
@@ -3855,6 +3858,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,tele_elev);
             Hist_Data_ElevAzim.Fill(NSB_thisrun,tele_azim);
+            Hist_Data_Skymap.Fill(ra_sky,dec_sky);
+            Hist_Data_Elev_Skymap.Fill(ra_sky,dec_sky,tele_elev);
             if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
                 Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW,weight);
@@ -4338,6 +4343,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     Hist_Dark_ElevAzim.Write();
     Hist_Data_ElevNSB.Write();
     Hist_Data_ElevAzim.Write();
+    Hist_Data_Skymap.Write();
+    Hist_Data_Elev_Skymap.Write();
     Hist_EffArea.Write();
     for (int e=0;e<N_energy_bins;e++) 
     {

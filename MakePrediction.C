@@ -3035,6 +3035,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,0,10,18,0,90);
     TH2D Hist_Dark_ElevNSB = TH2D("Hist_Dark_ElevNSB","",20,0,10,18,0,90);
     TH2D Hist_Data_ElevAzim = TH2D("Hist_Data_ElevAzim","",18,0,360,18,0,90);
+    TH2D Hist_Data_Skymap = TH2D("Hist_Data_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
+    TH2D Hist_Data_Elev_Skymap = TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
     TH2D Hist_Dark_ElevAzim = TH2D("Hist_Dark_ElevAzim","",18,0,360,18,0,90);
     TH1D Hist_EffArea = TH1D("Hist_EffArea","",N_energy_fine_bins,energy_fine_bins);
 
@@ -3074,6 +3076,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     Hist_Dark_ElevNSB.Add( (TH2D*)InputDataFile.Get(hist_name) );
     hist_name  = "Hist_Data_ElevAzim";
     Hist_Data_ElevAzim.Add( (TH2D*)InputDataFile.Get(hist_name) );
+    hist_name  = "Hist_Data_Skymap";
+    Hist_Data_Skymap.Add( (TH2D*)InputDataFile.Get(hist_name) );
+    hist_name  = "Hist_Data_Elev_Skymap";
+    Hist_Data_Elev_Skymap.Add( (TH2D*)InputDataFile.Get(hist_name) );
     hist_name  = "Hist_Dark_ElevAzim";
     Hist_Dark_ElevAzim.Add( (TH2D*)InputDataFile.Get(hist_name) );
     hist_name  = "Hist_EffArea";
@@ -4423,6 +4429,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     Hist_Dark_ElevAzim.Write();
     Hist_Data_ElevNSB.Write();
     Hist_Data_ElevAzim.Write();
+    Hist_Data_Skymap.Write();
+    Hist_Data_Elev_Skymap.Write();
     Hist_EffArea.Write();
     for (int e=0;e<N_energy_bins;e++)
     {
