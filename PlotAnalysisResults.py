@@ -26,12 +26,12 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 np.set_printoptions(precision=2)
 
 
-skymap_zoomin_scale = 2
+skymap_zoomin_scale = 1
 #n_rebins = 1
 n_rebins = 2
 #n_rebins = 4
 smooth_size_spectroscopy = 0.1
-#smooth_size_spectroscopy = 0.2
+#smooth_size_spectroscopy = 0.3
 
 method_tag = 'tight_mdm_default'
 
@@ -4019,15 +4019,15 @@ def GetFluxCalibration(map_x,map_y,energy):
     
     flux_calibration = [1.7171573302771546e-08, 3.815540141778941e-09, 5.205686613199803e-10, 6.111128565697704e-11, 6.175722680747704e-12, 5.443641190302156e-13]
     if avg_elev<=85. and avg_elev>75.:
-        flux_calibration = [1.9413653803248676e-08, 2.760325371203787e-09, 2.8044793308346884e-10, 3.505332585551125e-11, 4.497520830138521e-12, 4.976735473987472e-13]
+        flux_calibration = [1.7000410559351377e-08, 2.362938565105084e-09, 2.4101784132904175e-10, 3.0281609996644144e-11, 3.8992496167115385e-12, 4.451229698591486e-13]
     if avg_elev<=75. and avg_elev>65.:
-        flux_calibration = [1.9133689705902314e-08, 3.1023492095665645e-09, 2.973567642921832e-10, 3.475260227708444e-11, 4.29199255217973e-12, 4.755091032731551e-13]
+        flux_calibration = [1.67148099694288e-08, 2.6617588392096326e-09, 2.551026718310818e-10, 2.996220200378877e-11, 3.700207612248759e-12, 4.2045172923210686e-13]
     if avg_elev<=65. and avg_elev>55.:
-        flux_calibration = [1.7279939155245718e-08, 3.6534948259437844e-09, 3.567792370581176e-10, 3.88879764909144e-11, 3.899670710155111e-12, 3.7822770981186636e-13]
+        flux_calibration = [1.5205145007156865e-08, 3.1519355391306317e-09, 3.0581184933644597e-10, 3.35362831068137e-11, 3.390106907099628e-12, 3.381934102324388e-13]
     if avg_elev<=55. and avg_elev>45.:
-        flux_calibration = [1.2606197631102357e-08, 4.148049876708642e-09, 5.081428341415087e-10, 5.279605643622042e-11, 5.2538641428912825e-12, 4.631976928229922e-13]
+        flux_calibration = [9.57786356169794e-09, 3.5784233102933602e-09, 4.322640859349221e-10, 4.4917492211013747e-11, 4.525837487097093e-12, 3.9868390356908724e-13]
     if avg_elev<=45. and avg_elev>35.:
-        flux_calibration = [0.0, 3.660662606480722e-09, 7.502191531798993e-10, 8.472959692288807e-11, 8.194179254740205e-12, 6.180279437463707e-13]
+        flux_calibration = [0.0, 3.220192060226402e-09, 6.524352170075827e-10, 7.205445816977266e-11, 6.9790891922529825e-12, 5.387350473722953e-13]
 
     return calibration[energy]
 
@@ -4244,6 +4244,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             rate_sum = 0.
             rate_err_sum = 0.
             flux_sum = 0.
+            data_sum = 0.
+            data_unsmooth_sum = 0.
             stat_err_sum = 0.
             syst_err_sum = 0.
             for bx in range(0,hist_data_skymap[0].GetNbinsX()):
@@ -4280,10 +4282,15 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                     bkgd_err_cell = pow(energy_bin[ebin],energy_index)*hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)/expo_cell*correction
                     syst_err_cell = pow(energy_bin[ebin],energy_index)*hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
                     flux_sum += (data_cell-bkgd_cell)
+                    data_sum += hist_data_skymap[ebin].GetBinContent(bx+1,by+1)
+                    data_unsmooth_sum += hist_data_skymap_unsmooth[ebin].GetBinContent(bx+1,by+1)
                     stat_err_sum += data_err_cell*data_err_cell+bkgd_err_cell*bkgd_err_cell
                     syst_err_sum += syst_err_cell
             if pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)==0.: continue
             if flux_sum/pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)<1.0: continue
+            flux_sum = flux_sum*data_unsmooth_sum/data_sum
+            stat_err_sum = stat_err_sum*data_unsmooth_sum/data_sum
+            syst_err_sum = syst_err_sum*data_unsmooth_sum/data_sum
             edata += [energy_bin[ebin]]
             rate += [rate_sum]
             rate_err += [pow(rate_err_sum,0.5)]
@@ -4730,7 +4737,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             # https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/1PG9NV
             #MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_incl_0th_moment.txt' # CO intensity (K km s^{-1} deg)
             if J1908_model=='plerion':
-                MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_25_50_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+                MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_20_40_0th_moment.txt' # CO intensity (K km s^{-1} deg)
             if J1908_model=='SNR_3p4kpc_PSR_moving' or J1908_model=='SNR_3p4kpc_PSR_stationary':
                 MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_45_65_0th_moment.txt' # CO intensity (K km s^{-1} deg)
             if J1908_model=='SNR_7p9kpc_PSR_moving' or J1908_model=='SNR_7p9kpc_PSR_stationary':
@@ -4755,7 +4762,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             MWL_map_title = 'H_{2} column density (1/cm^{2})'
             Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
             #Hist_MWL.Scale(1.823*1e18*(9254.-8059.)/1000.) # optical thin
-            Hist_MWL.Scale(1.823*1e18*(25.)) # optical thin
+            Hist_MWL.Scale(1.823*1e18) # optical thin
 
         elif sys.argv[1]=='IC443HotSpot_ON':
 
@@ -4763,7 +4770,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             MWL_map_title = 'H_{2} column density (1/cm^{2})'
             Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
             #Hist_MWL.Scale(1.823*1e18*(9254.-8059.)/1000.) # optical thin
-            Hist_MWL.Scale(1.823*1e18*(10.)) # optical thin
+            Hist_MWL.Scale(1.823*1e18) # optical thin
 
         hist_MWL_reflect = reflectXaxis(Hist_MWL)
         hist_MWL_reflect.GetYaxis().SetTitle(title_y)
@@ -5047,8 +5054,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             axbig.plot(theta2_lep,profile_lep,color='g',label='leptonic model')
 
         axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
-        #axbig.set_xlabel('angular distance from source [degree]')
-        axbig.set_xlabel('distance from source [pc]')
+        axbig.set_xlabel('angular distance from source [degree]')
+        #axbig.set_xlabel('distance from source [pc]')
         axbig.legend(loc='best')
         #axbig.set_yscale('log')
         plotname = 'ProfileVsTheta2'
@@ -5557,7 +5564,7 @@ def FitLeptonicModel2D(Hist_flux):
     D_ism_lower = (0.082-0.059)*1e28
     print ('Initial E_el_vis = %0.3f e-16'%(E_el_vis*1e16))
     print ('Initial D_ism = %0.3f e28 cm2/s'%(D_ism/1e28))
-    fix_r_diff = True
+    fix_r_diff = False
     leptonic_flux_2d = ROOT.TF2('leptonic_flux_2d',leptonic_model_2d,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
     leptonic_flux_2d.SetParameter(0,E_el_vis)
     leptonic_flux_2d.SetParameter(1,D_ism)
@@ -5600,13 +5607,13 @@ def FitHadronicModel2D(Hist_flux):
 
     #CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
 
-    #diffusion_radius = 0.5
-    #esc_param = DeriveSupernovaEscapeParameter(diffusion_radius,t_SN,d_SN,n_0)
-    #CR_brightness, CR_brightness_err = EstimateCosmicRayBrightness(Hist_flux,RA_SN,Dec_SN,0.5,diffusion_radius)
-    #CR_efficiency = CR_brightness
-    esc_param = 2.48
-    diffusion_radius = DeriveSupernovaDiffusionLength(esc_param,t_SN,d_SN,n_0,current_gamma_energy)
-    CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
+    diffusion_radius = 0.5
+    esc_param = DeriveSupernovaEscapeParameter(diffusion_radius,t_SN,d_SN,n_0)
+    CR_brightness, CR_brightness_err = EstimateCosmicRayBrightness(Hist_flux,RA_SN,Dec_SN,0.5,diffusion_radius)
+    CR_efficiency = CR_brightness
+    #esc_param = 2.48
+    #diffusion_radius = DeriveSupernovaDiffusionLength(esc_param,t_SN,d_SN,n_0,current_gamma_energy)
+    #CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
     print ('Initial CR_efficiency = %0.3f'%(CR_efficiency))
     print ('Initial esc_param = %0.3f'%(esc_param))
     print ('Initial diffusion_radius = %0.3f'%(diffusion_radius))
@@ -6706,7 +6713,7 @@ def GetPulsarParameters():
             Dec_PSR_initial = 6.6
             RA_PSR_final = 286.975
             Dec_PSR_final = 6.03777777778
-            d_PSR = 1.7 #kpc
+            d_PSR = 1.884 #kpc
             t_PSR = 19.5*1000. #yr
             n_0 = 3.0 # cm^{-3} ambient density
 
@@ -6738,7 +6745,7 @@ def GetSupernovaParameters():
         if J1908_model=='SNR_7p9kpc_PSR_moving' or J1908_model=='SNR_7p9kpc_PSR_stationary':
             RA_SN = 286.786
             Dec_SN= 6.498
-            d_SN = 7.9 #kpc
+            d_SN = 8.7 #kpc
             t_SN = 11.*1000. # age of PSR J1907+0631 in year
             r_SN = 0.5*0.43 # degree, Yang et al. 2006, ChJAA, 6, 210.
             n_0 = 3.0 # cm^{-3} ambient density
@@ -6754,7 +6761,7 @@ def GetSupernovaParameters():
         if J1908_model=='plerion':
             RA_SN = 287.2
             Dec_SN= 6.6
-            d_SN = 1.7 #kpc
+            d_SN = 1.884 #kpc
             t_SN = 19.5*1000.
             r_SN = 0.5*1.0 
             n_0 = 3.0 # cm^{-3} ambient density
@@ -6950,7 +6957,8 @@ def FindExtension(Hist_Data_input,roi_x,roi_y,roi_d,integration_range):
         profile_content = max(0.,profile_content)
         profile_error = Hist_Profile_Theta2.GetBinError(binx+1)/solid_angle
         if center>integration_range: continue
-        theta2 += [center*roi_d*1000.*3.14/180.]
+        theta2 += [center]
+        #theta2 += [center*roi_d*1000.*3.14/180.]
         profile += [profile_content]
         profile_err += [profile_error]
 
@@ -7054,7 +7062,7 @@ def GetCRcounts(name):
     colors += [2]
     MakeMultiplePlot(Hists,legends,colors,'log10 counts per bin','N bins','CR_Counts_%s'%(name),0,0,False,False)
 
-def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
+def SingleSourceAnalysis(source_list,e_low,e_up):
 
     global ErecS_lower_cut
     global ErecS_upper_cut
@@ -7181,171 +7189,105 @@ def SingleSourceAnalysis(source_list,doMap,doSmooth,e_low,e_up):
 
     #MakeRankResidualPlots('%s%s'%(source_list[0],PercentCrab))
 
-    if not doMap: return
+    if not drawMap: return
 
     event_rate = Hist_OnBkgd_Energy_CamCenter_Sum.Integral()/exposure_hours*(smooth_size_spectroscopy*smooth_size_spectroscopy)/(3.14*1.0*1.0)
-    if doSmooth:
-        Hist_Data_Energy_Skymap_smooth = []
-        Hist_Bkgd_Energy_Skymap_smooth = []
-        Hist_Expo_Energy_Skymap_smooth = []
-        Hist_Syst_Energy_Skymap_smooth = []
-        for ebin in range(0,len(energy_bin)-1):
-            Hist_Syst_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Syst_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-            Hist_Data_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Data_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-            Hist_Bkgd_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-            Hist_Expo_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Expo_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-        for ebin in range(0,len(energy_bin)-1):
-            Hist_Data_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Data_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
-            Hist_Bkgd_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
-            Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_SumSyst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
-            Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Expo_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
-            #old_size = Hist_Bkgd_Energy_Skymap_smooth[ebin].Integral()
-            #new_size = Hist_Expo_Energy_Skymap_smooth[ebin].Integral()
-            #if new_size==0.: continue
-            #Hist_Expo_Energy_Skymap_smooth[ebin].Scale(old_size/new_size)
+    Hist_Data_Energy_Skymap_smooth = []
+    Hist_Bkgd_Energy_Skymap_smooth = []
+    Hist_Expo_Energy_Skymap_smooth = []
+    Hist_Syst_Energy_Skymap_smooth = []
+    for ebin in range(0,len(energy_bin)-1):
+        Hist_Syst_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Syst_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+        Hist_Data_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Data_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+        Hist_Bkgd_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+        Hist_Expo_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Expo_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+    for ebin in range(0,len(energy_bin)-1):
+        Hist_Data_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Data_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
+        Hist_Bkgd_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
+        Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_SumSyst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
+        Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Expo_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
+        #old_size = Hist_Bkgd_Energy_Skymap_smooth[ebin].Integral()
+        #new_size = Hist_Expo_Energy_Skymap_smooth[ebin].Integral()
+        #if new_size==0.: continue
+        #Hist_Expo_Energy_Skymap_smooth[ebin].Scale(old_size/new_size)
+
+    if 'ON' in ONOFF_tag:
         Hist_IndexMap = MakeSpectrumIndexSkymap(exposure_hours,Hist_Data_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Expo_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
 
-        fig.clf()
-        axbig = fig.add_subplot()
-        cycol = cycle('krgbcmy')
-        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-            if Hist_Data_Energy_Skymap[ebin].Integral()<100.: continue
-            next_color = next(cycol)
-            list_maxsig, list_binsize = VariableSkymapBins(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_SumSyst_Energy_Skymap[ebin])
-            axbig.plot(list_binsize, list_maxsig,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
-        axbig.set_xlabel('bin size [degree]')
-        axbig.set_ylabel('max z score')
-        axbig.legend(loc='best')
-        plotname = 'MaxZscore_wSyst'
-        fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-        axbig.remove()
-
-        fig.clf()
-        axbig = fig.add_subplot()
-        cycol = cycle('krgbcmy')
-        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-            if Hist_Data_Energy_Skymap[ebin].Integral()<100.: continue
-            next_color = next(cycol)
-            count, zscore = MakeSignificanceDistribution(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_SumSyst_Energy_Skymap[ebin])
-            axbig.plot(zscore, count,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
-        axbig.set_xlabel('significance z score')
-        axbig.set_ylabel('bin count')
-        axbig.legend(loc='best')
-        plotname = 'ZscoreDist_wSyst'
-        fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-        axbig.remove()
-
-        Hist_Syst_Energy_Skymap_Sum = []
-        for xy_bin in range(0,len(integration_radii)):
-            Hist_Syst_Energy_Skymap_Sum += [ROOT.TH2D("Hist_Syst_Energy_Skymap_Sum_%s"%(xy_bin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-        Hist_Data_Energy_Skymap_Sum = ROOT.TH2D("Hist_Data_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-        Hist_Bkgd_Energy_Skymap_Sum = ROOT.TH2D("Hist_Bkgd_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-        for ebin in range(0,len(energy_bin)-1):
-            Hist_Data_Energy_Skymap_Sum.Add(Hist_Data_Energy_Skymap[ebin])
-            Hist_Bkgd_Energy_Skymap_Sum.Add(Hist_Bkgd_Energy_Skymap[ebin])
-            for xy_bin in range(0,len(integration_radii)):
-                for bx in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsX()):
-                    for by in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsY()):
-                        norm_syst = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(bx+1,by+1)
-                        shape_syst = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].GetBinContent(bx+1,by+1)
-                        syst_new_content = pow(norm_syst*norm_syst+shape_syst*shape_syst,0.5)
-                        syst_old_content = Hist_Syst_Energy_Skymap_Sum[xy_bin].GetBinContent(bx+1,by+1)
-                        Hist_Syst_Energy_Skymap_Sum[xy_bin].SetBinContent(bx+1,by+1,pow(syst_new_content*syst_new_content+syst_old_content*syst_old_content,0.5))
-
-        fig.clf()
-        axbig = fig.add_subplot()
-        cycol = cycle('krgbcmy')
+    fig.clf()
+    axbig = fig.add_subplot()
+    cycol = cycle('krgbcmy')
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        if Hist_Data_Energy_Skymap[ebin].Integral()<100.: continue
         next_color = next(cycol)
-        zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum,Hist_Syst_Energy_Skymap_Sum,roi_ra[0],roi_dec[0])
-        axbig.plot(theta2,zscore,color=next_color,label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
-        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-            for xy_bin in range(0,len(integration_radii)):
-                Hist_Syst_Energy_Skymap_Sum[xy_bin].Reset()
-            for xy_bin in range(0,len(integration_radii)):
-                for bx in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsX()):
-                    for by in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsY()):
-                        norm_syst = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(bx+1,by+1)
-                        shape_syst = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].GetBinContent(bx+1,by+1)
-                        syst_new_content = pow(norm_syst*norm_syst+shape_syst*shape_syst,0.5)
-                        syst_old_content = Hist_Syst_Energy_Skymap_Sum[xy_bin].GetBinContent(bx+1,by+1)
-                        Hist_Syst_Energy_Skymap_Sum[xy_bin].SetBinContent(bx+1,by+1,pow(syst_new_content*syst_new_content+syst_old_content*syst_old_content,0.5))
-            next_color = next(cycol)
-            zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_Syst_Energy_Skymap_Sum,roi_ra[0],roi_dec[0])
-            axbig.plot(theta2,zscore,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
-        axbig.set_ylabel('significance z score')
-        axbig.set_xlabel('radius of integration region [degree]')
-        plt.ylim(-5.0, 12.0)
-        axbig.legend(loc='best')
-        plotname = 'ZscoreVsTheta2'
-        fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-        axbig.remove()
+        list_maxsig, list_binsize = VariableSkymapBins(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_SumSyst_Energy_Skymap[ebin])
+        axbig.plot(list_binsize, list_maxsig,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+    axbig.set_xlabel('bin size [degree]')
+    axbig.set_ylabel('max z score')
+    axbig.legend(loc='best')
+    plotname = 'MaxZscore_wSyst_%s'%(source_list[0])
+    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+    axbig.remove()
 
-        #energy_axis = []
-        #source_extent = []
-        #source_extent_err = []
-        #fig.clf()
-        #axbig = fig.add_subplot()
-        #cycol = cycle('krgbcmy')
-        #next_color = next(cycol)
-        #center_x, center_y = FindCenter(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum)
-        #profile, profile_err, theta2 = FindExtension(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum,Hist_Syst_Energy_Skymap_Sum[len(integration_radii)-1],center_x,center_y,MapSize_y/zoomin_scale)
-        #start = (0.5, np.mean(profile)*len(theta2))
-        #popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err))
-        #extension_fit = gaussian_2d_to_1D(np.array(theta2), *popt)
-        #residual = np.array(profile) - extension_fit
-        #chisq = np.sum((residual/np.array(profile_err))**2)
-        #dof = len(theta2)-2
-        #axbig.errorbar(theta2,profile,profile_err,color=next_color,ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
-        #axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), *popt),color=next_color)
-        #extent = popt[0]
-        #popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err))
-        #extent_up = popt[0]
-        #popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err))
-        #extent_dw = popt[0]
-        #extent_err = abs(extent_up-extent_dw)/2.
-        #print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
-        #for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        #    next_color = next(cycol)
-        #    profile, profile_err, theta2 = FindExtension(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_NormSyst_Energy_Skymap[ebin],center_x,center_y,MapSize_y/zoomin_scale)
-        #    start = (0.5, np.mean(profile)*len(theta2))
-        #    popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile), p0=start, sigma=np.array(profile_err))
-        #    extension_fit = gaussian_2d_to_1D(np.array(theta2), *popt)
-        #    residual = np.array(profile) - extension_fit
-        #    chisq = np.sum((residual/np.array(profile_err))**2)
-        #    dof = len(theta2)-2
-        #    #axbig.errorbar(theta2,profile,profile_err,color=next_color,ls='none',label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
-        #    #axbig.plot(np.array(theta2), gaussian_2d_to_1D(np.array(theta2), *popt),color=next_color)
-        #    extent = popt[0]
-        #    popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile)+np.array(profile_err), p0=start, sigma=np.array(profile_err))
-        #    extent_up = popt[0]
-        #    popt, pcov = curve_fit(gaussian_2d_to_1D, np.array(theta2), np.array(profile)-np.array(profile_err), p0=start, sigma=np.array(profile_err))
-        #    extent_dw = popt[0]
-        #    extent_err = abs(extent_up-extent_dw)/2.
-        #    print ('extension rms = %0.2f +/- %0.2f, chisq/dof = %0.1f'%(extent,extent_err,chisq/dof))
-        #    energy_axis += [energy_bin[ebin]]
-        #    source_extent += [extent]
-        #    source_extent_err += [extent_err]
-        #axbig.set_ylabel('excess (arbitrary scaled)')
-        #axbig.set_xlabel('angular distance from center [degree]')
-        #axbig.legend(loc='best')
-        ##axbig.set_yscale('log')
-        #plotname = 'ProfileVsTheta2'
-        #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-        #axbig.remove()
+    fig.clf()
+    axbig = fig.add_subplot()
+    cycol = cycle('krgbcmy')
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        if Hist_Data_Energy_Skymap[ebin].Integral()<100.: continue
+        next_color = next(cycol)
+        count, zscore = MakeSignificanceDistribution(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_SumSyst_Energy_Skymap[ebin])
+        axbig.plot(zscore, count,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+    axbig.set_xlabel('significance z score')
+    axbig.set_ylabel('bin count')
+    axbig.legend(loc='best')
+    plotname = 'ZscoreDist_wSyst_%s'%(source_list[0])
+    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+    axbig.remove()
 
-        #fig.clf()
-        #axbig = fig.add_subplot()
-        #axbig.errorbar(energy_axis, source_extent, source_extent_err, marker='s', ls='none', color='b',label='VERITAS')
-        ##axbig.errorbar(hawc_energy_axis, hawc_source_extent, hawc_source_extent_err, marker='s', ls='none', color='r',label='HAWC')
-        #axbig.set_xlabel('Energy [GeV]')
-        #axbig.set_ylabel('Angular extent [degree]')
-        #axbig.set_xscale('log')
-        #axbig.legend(loc='best')
-        #plt.ylim(0, 1.5)
-        #plotname = 'Energy_dep_source_extent'
-        #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-        #axbig.remove()
+    Hist_Syst_Energy_Skymap_Sum = []
+    for xy_bin in range(0,len(integration_radii)):
+        Hist_Syst_Energy_Skymap_Sum += [ROOT.TH2D("Hist_Syst_Energy_Skymap_Sum_%s"%(xy_bin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+    Hist_Data_Energy_Skymap_Sum = ROOT.TH2D("Hist_Data_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+    Hist_Bkgd_Energy_Skymap_Sum = ROOT.TH2D("Hist_Bkgd_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+    for ebin in range(0,len(energy_bin)-1):
+        Hist_Data_Energy_Skymap_Sum.Add(Hist_Data_Energy_Skymap[ebin])
+        Hist_Bkgd_Energy_Skymap_Sum.Add(Hist_Bkgd_Energy_Skymap[ebin])
+        for xy_bin in range(0,len(integration_radii)):
+            for bx in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsX()):
+                for by in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsY()):
+                    norm_syst = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(bx+1,by+1)
+                    shape_syst = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].GetBinContent(bx+1,by+1)
+                    syst_new_content = pow(norm_syst*norm_syst+shape_syst*shape_syst,0.5)
+                    syst_old_content = Hist_Syst_Energy_Skymap_Sum[xy_bin].GetBinContent(bx+1,by+1)
+                    Hist_Syst_Energy_Skymap_Sum[xy_bin].SetBinContent(bx+1,by+1,pow(syst_new_content*syst_new_content+syst_old_content*syst_old_content,0.5))
 
+    fig.clf()
+    axbig = fig.add_subplot()
+    cycol = cycle('krgbcmy')
+    next_color = next(cycol)
+    zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap_Sum,Hist_Bkgd_Energy_Skymap_Sum,Hist_Syst_Energy_Skymap_Sum,roi_ra[0],roi_dec[0])
+    axbig.plot(theta2,zscore,color=next_color,label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        for xy_bin in range(0,len(integration_radii)):
+            Hist_Syst_Energy_Skymap_Sum[xy_bin].Reset()
+        for xy_bin in range(0,len(integration_radii)):
+            for bx in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsX()):
+                for by in range(0,Hist_Syst_Energy_Skymap_Sum[xy_bin].GetNbinsY()):
+                    norm_syst = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(bx+1,by+1)
+                    shape_syst = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].GetBinContent(bx+1,by+1)
+                    syst_new_content = pow(norm_syst*norm_syst+shape_syst*shape_syst,0.5)
+                    syst_old_content = Hist_Syst_Energy_Skymap_Sum[xy_bin].GetBinContent(bx+1,by+1)
+                    Hist_Syst_Energy_Skymap_Sum[xy_bin].SetBinContent(bx+1,by+1,pow(syst_new_content*syst_new_content+syst_old_content*syst_old_content,0.5))
+        next_color = next(cycol)
+        zscore, theta2 = MakeIntegratedSignificance(Hist_Data_Energy_Skymap[ebin],Hist_Bkgd_Energy_Skymap[ebin],Hist_Syst_Energy_Skymap_Sum,roi_ra[0],roi_dec[0])
+        axbig.plot(theta2,zscore,color=next_color,label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+    axbig.set_ylabel('significance z score')
+    axbig.set_xlabel('radius of integration region [degree]')
+    plt.ylim(-5.0, 12.0)
+    axbig.legend(loc='best')
+    plotname = 'ZscoreVsTheta2_%s'%(source_list[0])
+    fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+    axbig.remove()
 
 
 def FindSourceIndex(source_name):
@@ -7728,14 +7670,14 @@ if sys.argv[1]=='IC443HotSpot_ON': doMWLMap = True
 #J1908_model = 'SNR_7p9kpc_PSR_stationary'
 #J1908_model = 'SNR_3p4kpc_PSR_stationary'
 #J1908_model = 'SNR_7p9kpc_PSR_moving'
-J1908_model = 'SNR_3p4kpc_PSR_moving'
-#J1908_model = 'plerion'
+#J1908_model = 'SNR_3p4kpc_PSR_moving'
+J1908_model = 'plerion'
 
 #set_palette('default')
 #set_palette('gray')
 
 exclude_roi = []
-exclude_roi += ['HAWC region']
+#exclude_roi += ['HAWC region']
 exclude_roi += ['VHE region']
 exclude_roi += ['SNR region']
 exclude_roi += ['G40.5-0.5']
@@ -7750,8 +7692,8 @@ exclude_roi += ['Ring 3']
 
 exclude_roi += ['Crab int. r=0.3 deg']
 #exclude_roi += ['Crab int. r=0.5 deg']
-exclude_roi += ['Crab int. r=1.0 deg']
-exclude_roi += ['Crab int. r=1.5 deg']
+#exclude_roi += ['Crab int. r=1.0 deg']
+#exclude_roi += ['Crab int. r=1.5 deg']
 
 exclude_roi += ['Control region r=0.5 deg']
 exclude_roi += ['Control region r=1.0 deg']
@@ -7775,7 +7717,7 @@ ref_rate = [45.22654248763829, 817.5534855109867, 807.4094245295635, 258.2216316
 ref_rate_err = [2.4996653879391553, 9.86773110448764, 9.161501194667895, 4.790992130002874, 2.1073161634064816, 0.8422544884101056]
 calibration = [1.7171573302771546e-08, 3.815540141778941e-09, 5.205686613199803e-10, 6.111128565697704e-11, 6.175722680747704e-12, 5.443641190302156e-13]
 
-SingleSourceAnalysis(sample_list,drawMap,Smoothing,int(sys.argv[2]),int(sys.argv[3]))
+SingleSourceAnalysis(sample_list,int(sys.argv[2]),int(sys.argv[3]))
 
 Hist_EffArea_Sum.Print("All")
 
