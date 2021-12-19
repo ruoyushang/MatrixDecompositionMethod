@@ -26,7 +26,7 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 np.set_printoptions(precision=2)
 
 
-skymap_zoomin_scale = 1
+skymap_zoomin_scale = 2
 #n_rebins = 1
 n_rebins = 2
 #n_rebins = 4
@@ -4017,21 +4017,21 @@ def GetFluxCalibration(map_x,map_y,energy):
     if data_count==0.: return 0.
     avg_elev = data_elev/data_count
     
-    flux_calibration = [1.7171573302771546e-08, 3.815540141778941e-09, 5.205686613199803e-10, 6.111128565697704e-11, 6.175722680747704e-12, 5.443641190302156e-13]
+    flux_calibration = [7.480281970231091e-08, 1.1009886026497825e-08, 1.1320725782409528e-09, 1.4396221156621074e-10, 1.8856508232367646e-11, 2.1016804096323343e-12]
     if avg_elev<=85. and avg_elev>75.:
-        flux_calibration = [1.7000410559351377e-08, 2.362938565105084e-09, 2.4101784132904175e-10, 3.0281609996644144e-11, 3.8992496167115385e-12, 4.451229698591486e-13]
+        flux_calibration = [7.480281970231091e-08, 1.1009886026497825e-08, 1.1320725782409528e-09, 1.4396221156621074e-10, 1.8856508232367646e-11, 2.1016804096323343e-12]
     if avg_elev<=75. and avg_elev>65.:
-        flux_calibration = [1.67148099694288e-08, 2.6617588392096326e-09, 2.551026718310818e-10, 2.996220200378877e-11, 3.700207612248759e-12, 4.2045172923210686e-13]
+        flux_calibration = [7.333561973309006e-08, 1.2213945455023585e-08, 1.1964927507454313e-09, 1.4250499641390284e-10, 1.7775959296515385e-11, 2.100320008117818e-12]
     if avg_elev<=65. and avg_elev>55.:
-        flux_calibration = [1.5205145007156865e-08, 3.1519355391306317e-09, 3.0581184933644597e-10, 3.35362831068137e-11, 3.390106907099628e-12, 3.381934102324388e-13]
+        flux_calibration = [6.576696787995024e-08, 1.4052982203653559e-08, 1.4133787633339727e-09, 1.5958320968447998e-10, 1.6513465925681105e-11, 1.6606468382165533e-12]
     if avg_elev<=55. and avg_elev>45.:
-        flux_calibration = [9.57786356169794e-09, 3.5784233102933602e-09, 4.322640859349221e-10, 4.4917492211013747e-11, 4.525837487097093e-12, 3.9868390356908724e-13]
+        flux_calibration = [5.031904924576364e-08, 1.5394762028304023e-08, 1.9722629877002822e-09, 2.1428974246123716e-10, 2.263059557860357e-11, 1.954877956103542e-12]
     if avg_elev<=45. and avg_elev>35.:
-        flux_calibration = [0.0, 3.220192060226402e-09, 6.524352170075827e-10, 7.205445816977266e-11, 6.9790891922529825e-12, 5.387350473722953e-13]
+        flux_calibration = [0.0, 1.3412303355020475e-08, 2.785762625854527e-09, 3.2635277626304123e-10, 3.416923628860141e-11, 2.5844438485639475e-12]
 
-    return calibration[energy]
+    return flux_calibration[energy]
 
-def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_bkgd,hist_syst,hist_expo,title_x,title_y,name,zoomin_scale):
+def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_bkgd,hist_normsyst,hist_syst,hist_expo,title_x,title_y,name,zoomin_scale):
 
     global calibration
     global calibration_radius
@@ -4141,6 +4141,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     hist_flux_skymap = []
     hist_energy_flux_skymap = []
     hist_syst_skymap = []
+    hist_normsyst_skymap = []
     hist_bkgd_skymap = []
     hist_expo_skymap = []
     for ebin in range(0,len(energy_bin)-1):
@@ -4150,6 +4151,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         hist_data_skymap += [ROOT.TH2D("hist_data_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_data_skymap_unsmooth += [ROOT.TH2D("hist_data_skymap_unsmooth_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_syst_skymap += [ROOT.TH2D("hist_syst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_normsyst_skymap += [ROOT.TH2D("hist_normsyst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_bkgd_skymap += [ROOT.TH2D("hist_bkgd_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_expo_skymap += [ROOT.TH2D("hist_expo_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
     for ebin in range(0,len(energy_bin)-1):
@@ -4162,6 +4164,9 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 new_content = hist_syst[ebin].GetBinContent(bx+1,by+1)
                 old_content = hist_syst_skymap[ebin].GetBinContent(bx2,by2)
                 hist_syst_skymap[ebin].SetBinContent(bx2,by2,old_content+new_content)
+                new_content = hist_normsyst[ebin].GetBinContent(bx+1,by+1)
+                old_content = hist_normsyst_skymap[ebin].GetBinContent(bx2,by2)
+                hist_normsyst_skymap[ebin].SetBinContent(bx2,by2,old_content+new_content)
                 new_content = hist_data[ebin].GetBinContent(bx+1,by+1)
                 old_content = hist_data_skymap[ebin].GetBinContent(bx2,by2)
                 hist_data_skymap[ebin].SetBinContent(bx2,by2,old_content+new_content)
@@ -4202,8 +4207,10 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 if data_content==0.: continue
                 if bkgd_content==0.: continue
                 expo_content = hist_expo_skymap[ebin].GetBinContent(bx+1,by+1)
-                map_x = hist_data_skymap[ebin].GetXaxis().GetBinCenter(bx+1)
-                map_y = hist_data_skymap[ebin].GetYaxis().GetBinCenter(by+1)
+                #map_x = hist_data_skymap[ebin].GetXaxis().GetBinCenter(bx+1)
+                #map_y = hist_data_skymap[ebin].GetYaxis().GetBinCenter(by+1)
+                map_x = source_ra
+                map_y = source_dec
                 flux_calibration = GetFluxCalibration(map_x,map_y,ebin)
                 correction = flux_calibration*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)
                 stat_data_err = hist_data_skymap[ebin].GetBinError(bx+1,by+1)/expo_content*correction
@@ -4219,8 +4226,6 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 hist_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err)
                 hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
                 hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
-                #hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content*pow(energy_bin[ebin]/1000.,1))
-                #hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err*pow(energy_bin[ebin]/1000.,1))
 
     
     energy_index = 0
@@ -4244,21 +4249,18 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             rate_sum = 0.
             rate_err_sum = 0.
             flux_sum = 0.
+            expo_sum = 0.
             data_sum = 0.
             data_unsmooth_sum = 0.
             stat_err_sum = 0.
             syst_err_sum = 0.
             for bx in range(0,hist_data_skymap[0].GetNbinsX()):
                 for by in range(0,hist_data_skymap[0].GetNbinsY()):
-                    map_x = hist_data_skymap[ebin].GetXaxis().GetBinCenter(bx+1)
-                    map_y = hist_data_skymap[ebin].GetYaxis().GetBinCenter(by+1)
-                    flux_calibration = GetFluxCalibration(map_x,map_y,ebin)
-                    correction = flux_calibration*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)
+                    radius_inner = roi_radius_inner[nth_roi]
+                    radius_outer = roi_radius_outer[nth_roi]
                     bin_ra = hist_data_skymap[0].GetXaxis().GetBinCenter(bx+1)
                     bin_dec = hist_data_skymap[0].GetYaxis().GetBinCenter(by+1)
                     distance = pow(pow(bin_ra-roi_ra[nth_roi],2) + pow(bin_dec-roi_dec[nth_roi],2),0.5)
-                    radius_inner = roi_radius_inner[nth_roi]
-                    radius_outer = roi_radius_outer[nth_roi]
                     if sys.argv[1]=='Crab_ON':
                         radius_inner = 0.
                         radius_outer = calibration_radius
@@ -4276,26 +4278,31 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                     rate_sum += (data_cell-bkgd_cell)
                     rate_err_sum += data_err_cell*data_err_cell+bkgd_err_cell*bkgd_err_cell
 
-                    data_cell = pow(energy_bin[ebin],energy_index)*hist_data_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
-                    bkgd_cell = pow(energy_bin[ebin],energy_index)*hist_bkgd_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
-                    data_err_cell = pow(energy_bin[ebin],energy_index)*hist_data_skymap_unsmooth[ebin].GetBinError(bx+1,by+1)/expo_cell*correction
-                    bkgd_err_cell = pow(energy_bin[ebin],energy_index)*hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)/expo_cell*correction
-                    syst_err_cell = pow(energy_bin[ebin],energy_index)*hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)/expo_cell*correction
+                    data_cell = hist_data_skymap[ebin].GetBinContent(bx+1,by+1)
+                    bkgd_cell = hist_bkgd_skymap[ebin].GetBinContent(bx+1,by+1)
+                    data_err_cell = hist_data_skymap_unsmooth[ebin].GetBinError(bx+1,by+1)
+                    bkgd_err_cell = hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)
+                    syst_err_cell = hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)
                     flux_sum += (data_cell-bkgd_cell)
+                    expo_sum += expo_cell
                     data_sum += hist_data_skymap[ebin].GetBinContent(bx+1,by+1)
                     data_unsmooth_sum += hist_data_skymap_unsmooth[ebin].GetBinContent(bx+1,by+1)
                     stat_err_sum += data_err_cell*data_err_cell+bkgd_err_cell*bkgd_err_cell
                     syst_err_sum += syst_err_cell
             if pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)==0.: continue
             if flux_sum/pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)<1.0: continue
-            flux_sum = flux_sum*data_unsmooth_sum/data_sum
-            stat_err_sum = stat_err_sum*data_unsmooth_sum/data_sum
-            syst_err_sum = syst_err_sum*data_unsmooth_sum/data_sum
+            radius_inner = roi_radius_inner[nth_roi]
+            radius_outer = roi_radius_outer[nth_roi]
+            map_x = roi_ra[nth_roi]
+            map_y = roi_dec[nth_roi]
+            flux_calibration = GetFluxCalibration(map_x,map_y,ebin)
+            roi_area = (radius_outer*radius_outer-radius_inner*radius_inner)
+            correction = flux_calibration*roi_area/(calibration_radius*calibration_radius)*data_unsmooth_sum/data_sum
             edata += [energy_bin[ebin]]
             rate += [rate_sum]
             rate_err += [pow(rate_err_sum,0.5)]
-            fdata += [flux_sum]
-            error += [pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)]
+            fdata += [flux_sum/expo_sum*correction*pow(energy_bin[ebin],energy_index)]
+            error += [pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)/expo_sum*correction*pow(energy_bin[ebin],energy_index)]
             zeros += [0.]
         list_edata += [edata]
         list_rate += [rate]
@@ -4387,7 +4394,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         log_energy = np.linspace(log10(list_edata[0][0]),log10(list_edata[0][len(list_edata[0])-1]),50)
         xdata = pow(10.,log_energy)
         for nth_roi in range(0,len(list_fdata)):
-            if 'Crab' in legends[nth_roi] and nth_roi==0:
+            if legends[nth_roi]=='Crab':
                 vectorize_f = np.vectorize(flux_crab_func)
                 ydata = pow(xdata,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'r-',label='1508.06442')
@@ -4401,7 +4408,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                         calibration_new += [ydata[binx]/list_fdata[nth_roi][binx]]
                     else:
                         calibration_new += [0.]
-                print ('calibration = %s'%(calibration_new))
+                print ('new calibration = %s'%(calibration_new))
             if 'VHE region' in legends[nth_roi]:
                 vectorize_f = np.vectorize(flux_veritas_j1908_func)
                 ydata = pow(xdata,energy_index)*vectorize_f(xdata)
@@ -7196,8 +7203,10 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
     Hist_Bkgd_Energy_Skymap_smooth = []
     Hist_Expo_Energy_Skymap_smooth = []
     Hist_Syst_Energy_Skymap_smooth = []
+    Hist_NormSyst_Energy_Skymap_smooth = []
     for ebin in range(0,len(energy_bin)-1):
         Hist_Syst_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Syst_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+        Hist_NormSyst_Energy_Skymap_smooth += [ROOT.TH2D("Hist_NormSyst_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
         Hist_Data_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Data_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
         Hist_Bkgd_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
         Hist_Expo_Energy_Skymap_smooth += [ROOT.TH2D("Hist_Expo_Energy_Skymap_smooth_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
@@ -7205,6 +7214,7 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
         Hist_Data_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Data_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
         Hist_Bkgd_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Bkgd_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
         Hist_Syst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_SumSyst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
+        Hist_NormSyst_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_NormSyst_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
         Hist_Expo_Energy_Skymap_smooth[ebin] = Smooth2DMap(Hist_Expo_Energy_Skymap[ebin],smooth_size_spectroscopy,False)
         #old_size = Hist_Bkgd_Energy_Skymap_smooth[ebin].Integral()
         #new_size = Hist_Expo_Energy_Skymap_smooth[ebin].Integral()
@@ -7212,7 +7222,7 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
         #Hist_Expo_Energy_Skymap_smooth[ebin].Scale(old_size/new_size)
 
     if 'ON' in ONOFF_tag:
-        Hist_IndexMap = MakeSpectrumIndexSkymap(exposure_hours,Hist_Data_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Expo_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
+        Hist_IndexMap = MakeSpectrumIndexSkymap(exposure_hours,Hist_Data_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_NormSyst_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Expo_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
 
     fig.clf()
     axbig = fig.add_subplot()
@@ -7708,7 +7718,7 @@ exclude_roi += ['Unknown']
 
 current_gamma_energy = 0.
 next_gamma_energy = 0.
-calibration_radius = 0.25
+calibration_radius = 0.3
 calibration = [1., 1., 1., 1., 1., 1.]
 ref_rate = [1., 1., 1., 1., 1., 1.]
 ref_rate_err = [1., 1., 1., 1., 1., 1.]
