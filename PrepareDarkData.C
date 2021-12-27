@@ -368,6 +368,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 317.15;
                 Source_Dec = 51.95;
     }
+    if (source_name.Contains("PSRB0355plus54"))
+    {
+            Source_RA = 59.72083333333333;
+                Source_Dec = 54.22027777777778;
+    }
     if (source_name.Contains("1ES0414"))
     {
             Source_RA = 64.2206666667;
@@ -2195,17 +2200,23 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.5);
 
-            roi_name.push_back("SNR region");
-            roi_ra.push_back(287.03);
-            roi_dec.push_back(6.42);
-            roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.2);
-
             roi_name.push_back("PSR region");
-            roi_ra.push_back(286.97);
-            roi_dec.push_back(6.02);
+            roi_ra.push_back(286.98);
+            roi_dec.push_back(6.04);
             roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.2);
+            roi_radius_outer.push_back(0.15);
+
+            roi_name.push_back("PSR tail 1");
+            roi_ra.push_back(287.16);
+            roi_dec.push_back(6.49);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.15);
+
+            roi_name.push_back("PSR tail 2");
+            roi_ra.push_back(287.07);
+            roi_dec.push_back(6.27);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.15);
 
             roi_name.push_back("G40.5-0.5");
             roi_ra.push_back(286.786);
@@ -2227,18 +2238,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
             roi_name.push_back("CO region west");
             roi_ra.push_back(286.2);
-            roi_dec.push_back(6.4);
-            roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.2);
-
-            roi_name.push_back("LAT MeV region");
-            roi_ra.push_back(286.4);
-            roi_dec.push_back(6.3);
-            roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.3);
-
-            roi_name.push_back("LAT GeV region");
-            roi_ra.push_back(287.2);
             roi_dec.push_back(6.4);
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.2);
@@ -2742,10 +2741,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Hist_OnData_OneRoI_CR_RoI_Energy.push_back(TH1D("Hist_Stage1_OnData_CR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OneNormSyst_RoI_Energy.push_back(TH1D("Hist_Stage1_NormSyst_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
             Hist_OneShapeSyst_RoI_Energy.push_back(TH1D("Hist_Stage1_ShapeSyst_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
-            Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
-            Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_OnData_CR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
-            Hist_OneNormSyst_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_NormSyst_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
-            Hist_OneShapeSyst_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_ShapeSyst_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,0.5));
+            Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,1.0));
+            Hist_OnData_OneRoI_CR_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_OnData_CR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,1.0));
+            Hist_OneNormSyst_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_NormSyst_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,1.0));
+            Hist_OneShapeSyst_Skymap_RoI_Theta2.push_back(TH1D("Hist_Stage1_ShapeSyst_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,1.0));
             Hist_OnData_OneRoI_SR_Skymap_RoI_X.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
             Hist_OnData_OneRoI_CR_Skymap_RoI_X.push_back(TH1D("Hist_Stage1_OnData_CR_Skymap_RoI_X_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));
             Hist_OnData_OneRoI_SR_Skymap_RoI_Y.push_back(TH1D("Hist_Stage1_OnData_SR_Skymap_RoI_Y_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",60,-roi_range,roi_range));

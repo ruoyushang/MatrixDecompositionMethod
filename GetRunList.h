@@ -269,6 +269,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("LHAASO_J2108_V6");
         }
+        if (source.find("PSRB0355plus54_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("PSRB0355plus54_V6");
+        }
         if (source=="OffRunsV6")
         {
             list_temp = GetRunListFromFile("LowElevationDarkV6");
