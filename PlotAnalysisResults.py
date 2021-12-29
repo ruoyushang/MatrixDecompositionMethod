@@ -26,7 +26,7 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 np.set_printoptions(precision=2)
 
 
-skymap_zoomin_scale = 2
+skymap_zoomin_scale = 1
 #n_rebins = 1
 n_rebins = 2
 #n_rebins = 4
@@ -502,6 +502,12 @@ if sys.argv[1]=='WComae_ON':
     #sample_list += ['WComaeV4_ON']
     # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
     
+if sys.argv[1]=='PSRB0355plus54_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['PSRB0355plus54_V6_ON']
+
 if sys.argv[1]=='IC443HotSpot_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
@@ -2016,6 +2022,36 @@ def MakeCrabUnitSpectrumPlot(Hist_data,Hist_bkgd,legends,colors,title,name):
         pads[1].SetLogy()
 
         c_both.SaveAs('output_plots/%s_RoI%s_%s.png'%(name,roi,selection_tag))
+
+def GetFermiFlux(energy_index):
+    energies = [pow(10.,10.6),pow(10.,10.86),pow(10.,11.12),pow(10.,11.37)]
+    fluxes = [pow(10.,-11.31),pow(10.,-11.29),pow(10.,-11.12),pow(10.,-10.88)]
+    flux_errs = [pow(10.,-11.31),pow(10.,-11.29),pow(10.,-11.12),pow(10.,-10.88)]
+    flux_errs_up = [pow(10.,-11.17),pow(10.,-11.12),pow(10.,-10.96),pow(10.,-10.76)]
+    flux_errs_low = [pow(10.,-11.53),pow(10.,-11.57),pow(10.,-11.38),pow(10.,-11.05)]
+
+    erg_to_TeV = 0.62
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]/1e9
+        fluxes[entry] = fluxes[entry]*erg_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])*erg_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
+def GetHAWCFlux(energy_index):
+    energies = [pow(10.,12.00),pow(10.,12.20),pow(10.,12.47),pow(10.,12.74),pow(10.,13.01),pow(10.,13.29),pow(10.,13.55),pow(10.,13.78),pow(10.,14.00),pow(10.,14.21)]
+    fluxes = [pow(10.,-10.60),pow(10.,-10.62),pow(10.,-10.64),pow(10.,-10.74),pow(10.,-10.86),pow(10.,-11.03),pow(10.,-11.18),pow(10.,-11.36),pow(10.,-11.37),pow(10.,-11.55)]
+    flux_errs = [pow(10.,-10.60),pow(10.,-10.62),pow(10.,-10.64),pow(10.,-10.74),pow(10.,-10.86),pow(10.,-11.03),pow(10.,-11.18),pow(10.,-11.36),pow(10.,-11.37),pow(10.,-11.55)]
+    flux_errs_up = [pow(10.,-10.57),pow(10.,-10.58),pow(10.,-10.61),pow(10.,-10.70),pow(10.,-10.82),pow(10.,-10.99),pow(10.,-11.14),pow(10.,-11.29),pow(10.,-11.28),pow(10.,-11.38)]
+    flux_errs_low = [pow(10.,-10.64),pow(10.,-10.65),pow(10.,-10.68),pow(10.,-10.77),pow(10.,-10.89),pow(10.,-11.07),pow(10.,-11.22),pow(10.,-11.43),pow(10.,-11.48),pow(10.,-11.81)]
+
+    erg_to_TeV = 0.62
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]/1e9
+        fluxes[entry] = fluxes[entry]*erg_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])*erg_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
 
 
 def power_law_func(x,a,b):
@@ -4226,9 +4262,11 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 hist_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err)
                 hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
                 hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
+                #hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,syst_err/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
 
     
-    energy_index = 0
+    energy_index = 2
+    #energy_index = 0
     list_edata = []
     list_rate = []
     list_rate_err = []
@@ -4269,6 +4307,13 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                     expo_cell = hist_expo_skymap[ebin].GetBinContent(bx+1,by+1)
                     if expo_cell==0.: continue
 
+                    #if 'HAWC region' in roi_name[nth_roi]:
+                    #    exclude_ra = 286.786
+                    #    exclude_dec = 7.1
+                    #    exclude_radius = 0.2
+                    #    distance = pow(pow(bin_ra-exclude_ra,2) + pow(bin_dec-exclude_dec,2),0.5)
+                    #    if distance<exclude_radius: continue
+
                     #smooth_scale = hist_data_skymap_unsmooth[ebin].Integral()/hist_data_skymap[ebin].Integral()
                     smooth_scale = 1.
                     data_cell = hist_data_skymap[ebin].GetBinContent(bx+1,by+1)/exposure_in_hours*smooth_scale
@@ -4282,7 +4327,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                     bkgd_cell = hist_bkgd_skymap[ebin].GetBinContent(bx+1,by+1)
                     data_err_cell = hist_data_skymap_unsmooth[ebin].GetBinError(bx+1,by+1)
                     bkgd_err_cell = hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)
-                    syst_err_cell = hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)
+                    syst_err_cell = hist_normsyst_skymap[ebin].GetBinContent(bx+1,by+1)
+                    #syst_err_cell = hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)
                     flux_sum += (data_cell-bkgd_cell)
                     expo_sum += expo_cell
                     data_sum += hist_data_skymap[ebin].GetBinContent(bx+1,by+1)
@@ -4290,7 +4336,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                     stat_err_sum += data_err_cell*data_err_cell+bkgd_err_cell*bkgd_err_cell
                     syst_err_sum += syst_err_cell
             if pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)==0.: continue
-            if flux_sum/pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)<1.0: continue
+            #if flux_sum/pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)<1.0: continue
             radius_inner = roi_radius_inner[nth_roi]
             radius_outer = roi_radius_outer[nth_roi]
             map_x = roi_ra[nth_roi]
@@ -4301,8 +4347,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             edata += [energy_bin[ebin]]
             rate += [rate_sum]
             rate_err += [pow(rate_err_sum,0.5)]
-            fdata += [flux_sum/expo_sum*correction*pow(energy_bin[ebin],energy_index)]
-            error += [pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)/expo_sum*correction*pow(energy_bin[ebin],energy_index)]
+            fdata += [flux_sum/expo_sum*correction*pow(energy_bin[ebin]/1e3,energy_index)]
+            error += [pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)/expo_sum*correction*pow(energy_bin[ebin]/1e3,energy_index)]
             zeros += [0.]
         list_edata += [edata]
         list_rate += [rate]
@@ -4352,7 +4398,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         axbig = fig.add_subplot()
         for nth_roi in range(0,len(list_fdata)):
             vectorize_f = np.vectorize(flux_crab_func)
-            ref_flux = pow(np.array(list_edata[nth_roi]),energy_index)*vectorize_f(np.array(list_edata[nth_roi]))
+            ref_flux = pow(np.array(list_edata[nth_roi])/1e3,energy_index)*vectorize_f(np.array(list_edata[nth_roi]))
             ratio = np.array(list_fdata[nth_roi])/ref_flux
             ratio_err = np.array(list_error[nth_roi])/ref_flux
             next_color = next(cycol)
@@ -4376,7 +4422,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             if list_fdata[nth_roi][binx]/list_error[nth_roi][binx]>1.:
                 n_1sigma += 1
         next_color = next(cycol)
-        if 'Crab' in legends[nth_roi] or n_1sigma<3 or doUpperLimit:
+        if 'Crab' in legends[nth_roi] or n_1sigma<30 or doUpperLimit:
             axbig.errorbar(list_edata[nth_roi],list_fdata[nth_roi],list_error[nth_roi],color=next_color,marker='s',ls='none',label='%s'%(legends[nth_roi]))
         else:
             start = (list_fdata[nth_roi][0]/pow(10,-12), -2.)
@@ -4390,18 +4436,18 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         if doUpperLimit:
             axbig.fill_between(list_edata[nth_roi], list_zeros[nth_roi], list_error[nth_roi], alpha=0.2, color='r')
 
-    if doReferenceFlux:
+    if doReferenceFlux and len(list_edata[0])>=1:
         log_energy = np.linspace(log10(list_edata[0][0]),log10(list_edata[0][len(list_edata[0])-1]),50)
         xdata = pow(10.,log_energy)
         for nth_roi in range(0,len(list_fdata)):
             if legends[nth_roi]=='Crab':
                 vectorize_f = np.vectorize(flux_crab_func)
-                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'r-',label='1508.06442')
                 xdata_array = []
                 for binx in range(0,len(list_fdata[nth_roi])):
                     xdata_array += [list_edata[nth_roi][binx]]
-                ydata = pow(np.array(xdata_array),energy_index)*vectorize_f(xdata_array)
+                ydata = pow(np.array(xdata_array)/1e3,energy_index)*vectorize_f(xdata_array)
                 calibration_new = []
                 for binx in range(0,len(list_fdata[nth_roi])):
                     if list_fdata[nth_roi][binx]>0.:
@@ -4411,44 +4457,52 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 print ('new calibration = %s'%(calibration_new))
             if 'VHE region' in legends[nth_roi]:
                 vectorize_f = np.vectorize(flux_veritas_j1908_func)
-                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'r-',label='1404.7185 (VERITAS)')
             if 'HAWC region' in legends[nth_roi]:
+                log_energy = np.linspace(log10(1e2),log10(1e5),50)
+                xdata_ref = pow(10.,log_energy)
                 vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
-                ydata_hawc = pow(xdata,energy_index)*vectorize_f_hawc(xdata)
-                axbig.plot(xdata, ydata_hawc,'r-',label='1909.08609 (HAWC)')
-                vectorize_f = np.vectorize(flux_veritas_j1908_func)
-                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'b-',label='1404.7185 (VERITAS)')
-                vectorize_f = np.vectorize(flux_hess_j1908_func)
-                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'g-',label='0904.3409 (HESS)')
+                ydata_hawc = pow(xdata_ref/1e3,energy_index)*vectorize_f_hawc(xdata_ref)
+                axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)')
+                axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r')
+                # HAWC systematic uncertainty, The Astrophysical Journal 881, 134. Fig 13
+                #vectorize_f = np.vectorize(flux_veritas_j1908_func)
+                #ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+                #axbig.plot(xdata, ydata,'b-',label='1404.7185 (VERITAS)')
+                #vectorize_f = np.vectorize(flux_hess_j1908_func)
+                #ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+                #axbig.plot(xdata, ydata,'g-',label='0904.3409 (HESS)')
+                HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFlux(energy_index)
+                Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFlux(energy_index)
+                axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi')
+                axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC')
             if 'IC 443' in legends[nth_roi]:
                 vectorize_f = np.vectorize(flux_ic443_func)
-                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'r-',label='0905.3291')
                 vectorize_f = np.vectorize(flux_ic443_hawc_func)
-                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'g-',label='2007.08582 (HAWC)')
             if '1ES 1218+304' in legends[nth_roi]:
                 vectorize_f = np.vectorize(flux_1es1218_func)
-                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'r-',label='0810.0301')
             if 'Geminga Pulsar' in legends[nth_roi]:
                 vectorize_f = np.vectorize(flux_geminga_func)
-                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'r-',label='HAWC extrapolation')
             if 'J1856+0245' in legends[nth_roi]:
                 vectorize_f = np.vectorize(flux_j1857_func)
-                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'r-',label='From Aleksic et al. (2014)')
             if 'J2019+407' in legends[nth_roi]:
                 vectorize_f = np.vectorize(flux_veritas_gamma_cygni_func)
-                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'r-',label='From Weinstein et al. (2012)')
             if 'Boomerang' in legends[nth_roi]:
                 vectorize_f = np.vectorize(flux_veritas_boomerang_func)
-                ydata = pow(xdata,energy_index)*vectorize_f(xdata)
+                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'r-',label='2005.13699')
 
     axbig.legend(loc='best')
@@ -4949,7 +5003,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
     #axbig.remove()
 
-    if doExtentFit:
+    if doExtentFit and doMWLMap:
 
         energy_axis = []
         source_extent = []
@@ -5310,7 +5364,7 @@ def leptonic_model_2d(x, par):
     for segment in range(0,n_segments):
         # segment=0 is the final pulsar position
         diff_time = t_PSR/n_segments*(segment+1)
-        mag_field = 3.
+        mag_field = 6.
         E_cmb = 6.6*1e-4 # eV
         m_e = 0.511*1e6 # eV
         sigma_thomson = 6.65*1e-29 # Thomson cross section in m2
@@ -5322,11 +5376,11 @@ def leptonic_model_2d(x, par):
             E_e = m_e*pow(energy_bin[ebin]*1e9/E_cmb,0.5) # eV
             gamma_factor = E_e/m_e
             t_cooling = m_e/speed_light/(4./3.*sigma_thomson*gamma_factor*(U_cmb+U_B)) # sec
-            energy_loss = exp(-diff_time/t_cooling)
-            t_cooling = min(diff_time,t_cooling)
+            energy_loss = exp(-diff_time*365.*24.*60.*60./t_cooling)
+            t_cooling = min(diff_time*365.*24.*60.*60.,t_cooling)
 
             diffusion_coefficient = EstimateLeptonicDiffusionCoefficient(energy_bin[ebin],mag_field,d_PSR,t_PSR,diffusion_coefficient_1TeV,0.5)
-            diffusion_radius = pow(4.*diffusion_coefficient*t_cooling*365.*24.*60.*60.,0.5)/deg_to_cm
+            diffusion_radius = pow(4.*diffusion_coefficient*t_cooling,0.5)/deg_to_cm
             diffusion_radius = pow(smooth_size_spectroscopy*smooth_size_spectroscopy+diffusion_radius*diffusion_radius,0.5)
             pulsar_current_x = (pulsar_initial_x-pulsar_final_x)/t_PSR*diff_time+pulsar_final_x
             pulsar_current_y = (pulsar_initial_y-pulsar_final_y)/t_PSR*diff_time+pulsar_final_y
@@ -5482,12 +5536,12 @@ def FitHybridModel2D(Hist_flux):
 
     E_SN = 1. # 10^{51} erg
     B_SNR = 100. # micro G
-    B_ISM = 3. # micro G
+    B_ISM = 6. # micro G
     M_ej = 1. # ejecta mass in solar mass unit
     t_Sedov = 423.*pow(E_SN,-0.5)*pow(M_ej,5./6.)*pow(n_0,-1./3.) # year
 
 
-    fix_lep_r_diff = True
+    fix_lep_r_diff = False
     D_ism = 0.069*1e28
     D_ism_upper = (0.082+0.209)*1e28
     D_ism_lower = (0.082-0.059)*1e28
@@ -5497,7 +5551,7 @@ def FitHybridModel2D(Hist_flux):
     fix_had_r_diff = False
     #diffusion_radius = 1.0
     #esc_param = DeriveSupernovaEscapeParameter(diffusion_radius,t_SN,d_SN,n_0)
-    esc_param = 2.48
+    esc_param = 2.0
     diffusion_radius = DeriveSupernovaDiffusionLength(esc_param,t_SN,d_SN,n_0,current_gamma_energy)
     #CR_brightness, CR_brightness_err = EstimateCosmicRayBrightness(Hist_flux,286.786,7.1,0.5,diffusion_radius)
     #CR_efficiency = CR_brightness
@@ -5513,7 +5567,7 @@ def FitHybridModel2D(Hist_flux):
     hybrid_flux_2d.SetParLimits(1,D_ism_lower,D_ism_upper)
     if fix_lep_r_diff: hybrid_flux_2d.FixParameter(1,D_ism)
     hybrid_flux_2d.SetParameter(2,CR_efficiency)
-    hybrid_flux_2d.SetParLimits(2,0.1*CR_efficiency,10.*CR_efficiency)
+    hybrid_flux_2d.SetParLimits(2,0.5*CR_efficiency,2.*CR_efficiency)
     hybrid_flux_2d.SetParameter(3,esc_param)
     hybrid_flux_2d.SetParLimits(3,1.,3.5)
     if fix_had_r_diff: hybrid_flux_2d.FixParameter(3,esc_param)
@@ -5602,7 +5656,7 @@ def FitHadronicModel2D(Hist_flux):
 
     E_SN = 1. # 10^{51} erg
     B_SNR = 100. # micro G
-    B_ISM = 3. # micro G
+    B_ISM = 6. # micro G
     M_ej = 1. # ejecta mass in solar mass unit
     t_Sedov = 423.*pow(E_SN,-0.5)*pow(M_ej,5./6.)*pow(n_0,-1./3.) # year
 
@@ -6593,6 +6647,19 @@ def GetExpectedLeptonicMapV2(hist_column_density_map,el_brightness,diffusion_coe
     pulsar_final_x = RA_PSR
     pulsar_final_y = Dec_PSR
 
+    mag_field = 6.
+    E_cmb = 6.6*1e-4 # eV
+    m_e = 0.511*1e6 # eV
+    sigma_thomson = 6.65*1e-29 # Thomson cross section in m2
+    speed_light = 3.*1e8 # m/s
+    U_cmb = 2.6*1e5 # eV/m3
+    U_B = 6.24*1e18/(8.*3.14*1e-7)*pow(mag_field*1e-6/1e4,2) # eV/m3
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        E_e = m_e*pow(energy_bin[ebin]*1e9/E_cmb,0.5) # eV
+        gamma_factor = E_e/m_e
+        t_cooling = m_e/speed_light/(4./3.*sigma_thomson*gamma_factor*(U_cmb+U_B)) # sec
+        print ('Energy %0.1f GeV, t_cooling = %0.2f kyr'%(energy_bin[ebin],t_cooling/(1000.*365.*24.*60.*60.)))
+
     hist_leptonic_map = hist_column_density_map.Clone()
     hist_leptonic_map.Reset()
     for bx in range(0,hist_column_density_map.GetNbinsX()):
@@ -6608,7 +6675,7 @@ def GetExpectedLeptonicMapV2(hist_column_density_map,el_brightness,diffusion_coe
                 # segment=0 is the final pulsar position
                 diff_time = t_PSR/n_segments*(segment+1)
 
-                mag_field = 3.
+                mag_field = 6.
                 E_cmb = 6.6*1e-4 # eV
                 m_e = 0.511*1e6 # eV
                 sigma_thomson = 6.65*1e-29 # Thomson cross section in m2
@@ -6620,11 +6687,11 @@ def GetExpectedLeptonicMapV2(hist_column_density_map,el_brightness,diffusion_coe
                     E_e = m_e*pow(energy_bin[ebin]*1e9/E_cmb,0.5) # eV
                     gamma_factor = E_e/m_e
                     t_cooling = m_e/speed_light/(4./3.*sigma_thomson*gamma_factor*(U_cmb+U_B)) # sec
-                    energy_loss = exp(-diff_time/t_cooling)
-                    t_cooling = min(diff_time,t_cooling)
+                    energy_loss = exp(-diff_time*365.*24.*60.*60./t_cooling)
+                    t_cooling = min(diff_time*365.*24.*60.*60.,t_cooling)
 
                     diffusion_coefficient = EstimateLeptonicDiffusionCoefficient(energy_bin[ebin],mag_field,d_PSR,t_PSR,diffusion_coefficient_1TeV,0.5)
-                    diffusion_radius = pow(4.*diffusion_coefficient*t_cooling*365.*24.*60.*60.,0.5)/deg_to_cm
+                    diffusion_radius = pow(4.*diffusion_coefficient*t_cooling,0.5)/deg_to_cm
                     diffusion_radius = pow(smooth_size_spectroscopy*smooth_size_spectroscopy+diffusion_radius*diffusion_radius,0.5)
                     pulsar_current_x = (pulsar_initial_x-pulsar_final_x)/t_PSR*diff_time+pulsar_final_x
                     pulsar_current_y = (pulsar_initial_y-pulsar_final_y)/t_PSR*diff_time+pulsar_final_y
@@ -6805,7 +6872,7 @@ def DeriveSupernovaDiffusionLength(esc_param,t_SN,d_SN,n_0,gamma_energy):
 
     E_SN = 1. # 10^{51} erg
     B_SNR = 100. # micro G
-    B_ISM = 3. # micro G
+    B_ISM = 6. # micro G
     M_ej = 1. # ejecta mass in solar mass unit
 
     t_Sedov = 423.*pow(E_SN,-0.5)*pow(M_ej,5./6.)*pow(n_0,-1./3.) # year
@@ -6840,7 +6907,7 @@ def DeriveSupernovaEscapeParameter(diffusion_radius,t_SN,d_SN,n_0):
 
     E_SN = 1. # 10^{51} erg
     B_SNR = 100. # micro G
-    B_ISM = 3. # micro G
+    B_ISM = 6. # micro G
     M_ej = 1. # ejecta mass in solar mass unit
 
     t_Sedov = 423.*pow(E_SN,-0.5)*pow(M_ej,5./6.)*pow(n_0,-1./3.) # year
@@ -6879,7 +6946,7 @@ def DeriveSupernovaParameters(CR_efficiency, esc_param):
 
     E_SN = 1. # 10^{51} erg
     B_SNR = 100. # micro G
-    B_ISM = 3. # micro G
+    B_ISM = 6. # micro G
     M_ej = 1. # ejecta mass in solar mass unit
 
     t_Sedov = 423.*pow(E_SN,-0.5)*pow(M_ej,5./6.)*pow(n_0,-1./3.) # year
@@ -7221,8 +7288,7 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
         #if new_size==0.: continue
         #Hist_Expo_Energy_Skymap_smooth[ebin].Scale(old_size/new_size)
 
-    if 'ON' in ONOFF_tag:
-        Hist_IndexMap = MakeSpectrumIndexSkymap(exposure_hours,Hist_Data_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_NormSyst_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Expo_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
+    Hist_IndexMap = MakeSpectrumIndexSkymap(exposure_hours,Hist_Data_Energy_Skymap,Hist_Data_Energy_Skymap_smooth,Hist_Bkgd_Energy_Skymap_smooth,Hist_NormSyst_Energy_Skymap_smooth,Hist_Syst_Energy_Skymap_smooth,Hist_Expo_Energy_Skymap_smooth,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
 
     fig.clf()
     axbig = fig.add_subplot()
@@ -7689,13 +7755,12 @@ J1908_model = 'plerion'
 exclude_roi = []
 #exclude_roi += ['HAWC region']
 exclude_roi += ['VHE region']
-exclude_roi += ['SNR region']
 exclude_roi += ['G40.5-0.5']
-#exclude_roi += ['PSR region']
+exclude_roi += ['PSR tail 1']
+exclude_roi += ['PSR tail 2']
+exclude_roi += ['PSR region']
 exclude_roi += ['CO region north']
 exclude_roi += ['CO region west']
-exclude_roi += ['LAT MeV region']
-exclude_roi += ['LAT GeV region']
 exclude_roi += ['Ring 1']
 exclude_roi += ['Ring 2']
 exclude_roi += ['Ring 3']
