@@ -26,7 +26,7 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 np.set_printoptions(precision=2)
 
 
-skymap_zoomin_scale = 1
+skymap_zoomin_scale = 2
 #n_rebins = 1
 n_rebins = 2
 #n_rebins = 4
@@ -921,33 +921,48 @@ def GetGammaSourceInfo():
     global other_stars
     global other_star_coord
 
-    inputFile = open('PSR_RaDec_w_Names.txt')
-    for line in inputFile:
-        gamma_source_name = line.split(',')[0]
-        gamma_source_ra = float(line.split(',')[1])
-        gamma_source_dec = float(line.split(',')[2])
-        near_a_source = False
-        for entry in range(0,len(other_stars)):
-            distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-            if distance<0.3*0.3:
-                near_a_source = True
-        if not near_a_source and not '%' in gamma_source_name:
-            other_stars += [gamma_source_name]
-            other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+    if sys.argv[1]=='MGRO_J1908_ON':
+        inputFile = open('J1908_sources_RaDec_w_Names.txt')
+        for line in inputFile:
+            gamma_source_name = line.split(',')[0]
+            gamma_source_ra = float(line.split(',')[1])
+            gamma_source_dec = float(line.split(',')[2])
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<0.*0.:
+                    near_a_source = True
+            if not near_a_source and not '%' in gamma_source_name:
+                other_stars += [gamma_source_name]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+    else:
 
-    inputFile = open('TeVCat_RaDec_w_Names.txt')
-    for line in inputFile:
-        gamma_source_name = line.split(',')[0]
-        gamma_source_ra = float(line.split(',')[1])
-        gamma_source_dec = float(line.split(',')[2])
-        near_a_source = False
-        for entry in range(0,len(other_stars)):
-            distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-            if distance<0.3*0.3:
-                near_a_source = True
-        if not near_a_source and not '%' in gamma_source_name:
-            other_stars += [gamma_source_name]
-            other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+        inputFile = open('PSR_RaDec_w_Names.txt')
+        for line in inputFile:
+            gamma_source_name = line.split(',')[0]
+            gamma_source_ra = float(line.split(',')[1])
+            gamma_source_dec = float(line.split(',')[2])
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<0.3*0.3:
+                    near_a_source = True
+            if not near_a_source and not '%' in gamma_source_name:
+                other_stars += [gamma_source_name]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+        inputFile = open('TeVCat_RaDec_w_Names.txt')
+        for line in inputFile:
+            gamma_source_name = line.split(',')[0]
+            gamma_source_ra = float(line.split(',')[1])
+            gamma_source_dec = float(line.split(',')[2])
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<0.3*0.3:
+                    near_a_source = True
+            if not near_a_source and not '%' in gamma_source_name:
+                other_stars += [gamma_source_name]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
 def ResetStackedShowerHistograms():
 
@@ -2023,7 +2038,7 @@ def MakeCrabUnitSpectrumPlot(Hist_data,Hist_bkgd,legends,colors,title,name):
 
         c_both.SaveAs('output_plots/%s_RoI%s_%s.png'%(name,roi,selection_tag))
 
-def GetFermiFlux(energy_index):
+def GetFermiFluxJ1908(energy_index):
     energies = [pow(10.,10.6),pow(10.,10.86),pow(10.,11.12),pow(10.,11.37)]
     fluxes = [pow(10.,-11.31),pow(10.,-11.29),pow(10.,-11.12),pow(10.,-10.88)]
     flux_errs = [pow(10.,-11.31),pow(10.,-11.29),pow(10.,-11.12),pow(10.,-10.88)]
@@ -2038,7 +2053,50 @@ def GetFermiFlux(energy_index):
 
     return energies, fluxes, flux_errs
 
-def GetHAWCFlux(energy_index):
+def GetFermiUpperLimitFluxGeminga(energy_index):
+    energies = [pow(10.,2.09),pow(10.,2.35),pow(10.,2.61),pow(10.,2.87)]
+    fluxes = [pow(10.,-7.35),pow(10.,-7.23),pow(10.,-7.34),pow(10.,-7.18)]
+    fluxes_err = [pow(10.,-7.35),pow(10.,-7.23),pow(10.,-7.34),pow(10.,-7.18)]
+
+    GeV_to_TeV = 1e-3
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]
+        fluxes[entry] = fluxes[entry]*GeV_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        fluxes_err[entry] = fluxes[entry]*0.3
+
+    return energies, fluxes, fluxes_err
+
+def GetFermiHAWCFluxGeminga(energy_index):
+    energies = [pow(10.,3.90),pow(10.,4.60)]
+    fluxes = [pow(10.,-8.13),pow(10.,-8.36)]
+    flux_errs = [0.,0.]
+    flux_errs_up = [pow(10.,-8.06),pow(10.,-8.30)]
+    flux_errs_low = [pow(10.,-8.24),pow(10.,-8.47)]
+
+    GeV_to_TeV = 1e-3
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]
+        fluxes[entry] = fluxes[entry]*GeV_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])*GeV_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
+def GetFermiFluxGeminga(energy_index):
+    energies = [pow(10.,1.03),pow(10.,1.30),pow(10.,1.56),pow(10.,1.82)]
+    fluxes = [pow(10.,-7.27),pow(10.,-7.29),pow(10.,-7.41),pow(10.,-7.35)]
+    flux_errs = [pow(10.,-7.27),pow(10.,-7.29),pow(10.,-7.41),pow(10.,-7.35)]
+    flux_errs_up = [pow(10.,-7.14),pow(10.,-7.16),pow(10.,-7.29),pow(10.,-7.23)]
+    flux_errs_low = [pow(10.,-7.46),pow(10.,-7.49),pow(10.,-7.58),pow(10.,-7.50)]
+
+    GeV_to_TeV = 1e-3
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]
+        fluxes[entry] = fluxes[entry]*GeV_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])*GeV_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
+def GetHAWCFluxJ1908(energy_index):
     energies = [pow(10.,12.00),pow(10.,12.20),pow(10.,12.47),pow(10.,12.74),pow(10.,13.01),pow(10.,13.29),pow(10.,13.55),pow(10.,13.78),pow(10.,14.00),pow(10.,14.21)]
     fluxes = [pow(10.,-10.60),pow(10.,-10.62),pow(10.,-10.64),pow(10.,-10.74),pow(10.,-10.86),pow(10.,-11.03),pow(10.,-11.18),pow(10.,-11.36),pow(10.,-11.37),pow(10.,-11.55)]
     flux_errs = [pow(10.,-10.60),pow(10.,-10.62),pow(10.,-10.64),pow(10.,-10.74),pow(10.,-10.86),pow(10.,-11.03),pow(10.,-11.18),pow(10.,-11.36),pow(10.,-11.37),pow(10.,-11.55)]
@@ -2092,8 +2150,8 @@ def flux_1es1218_func(x):
     # 1ES 1218 https://arxiv.org/pdf/0810.0301.pdf
     return 7.5*pow(10,-12)*pow(x*1./1000.,-3.08)
 def flux_geminga_func(x):
-    #return 3.5*pow(10,-12)*pow(x*1./1000.,-2.2)
     return 48.7*pow(10,-15)*pow(x*1./7000.,-2.23)  #https://arxiv.org/pdf/1702.02992.pdf table 3
+    #return 5.9*pow(10,-15)*pow(x*1./7000.,-2.52)  #https://arxiv.org/pdf/2007.08582.pdf table 2
 
 def MakeSpectrumInNonCrabUnit(ax_local,hist_data,hist_bkgd,hist_syst,radii,legends,title,doCalibrate,doBkgFlux,E_index):
     
@@ -4071,7 +4129,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
 
     global calibration
     global calibration_radius
-    global Hist_MWL
+    global Hist_MWL_global
     global current_gamma_energy
     global next_gamma_energy
 
@@ -4092,7 +4150,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     bright_star_markers_gal = []
     faint_star_labels_gal = []
     faint_star_markers_gal = []
-    star_range = 2.0/zoomin_scale
+    star_range = 3.0/zoomin_scale
     for star in range(0,len(other_stars)):
         if pow(source_ra-other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
         other_star_markers += [ROOT.TMarker(-other_star_coord[star][0],other_star_coord[star][1],2)]
@@ -4236,6 +4294,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     flux_index = 2.75
     for ebin in range(0,len(energy_bin)-1):
         hist_zscore_skymap[ebin] = GetSignificanceMap(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],False)
+        data_sum = hist_data_skymap[ebin].Integral()
+        data_unsmooth_sum = hist_data_skymap_unsmooth[ebin].Integral()
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
                 data_content = hist_data_skymap[ebin].GetBinContent(bx+1,by+1)
@@ -4248,7 +4308,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 map_x = source_ra
                 map_y = source_dec
                 flux_calibration = GetFluxCalibration(map_x,map_y,ebin)
-                correction = flux_calibration*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)
+                correction = flux_calibration*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)*data_unsmooth_sum/data_sum
                 stat_data_err = hist_data_skymap[ebin].GetBinError(bx+1,by+1)/expo_content*correction
                 stat_bkgd_err = hist_bkgd_skymap[ebin].GetBinError(bx+1,by+1)/expo_content*correction
                 stat_err = pow(stat_data_err*stat_data_err+stat_bkgd_err*stat_bkgd_err,0.5)
@@ -4260,12 +4320,14 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 #if flux_content/flux_err<2.0: continue
                 hist_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content)
                 hist_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err)
-                hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
-                hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
-                #hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,syst_err/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
+                #hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
+                #hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
+                hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content*energy_bin[ebin]/1000.)
+                hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err*energy_bin[ebin]/1000.)
 
     
     energy_index = 2
+    #energy_index = 1
     #energy_index = 0
     list_edata = []
     list_rate = []
@@ -4273,6 +4335,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     list_fdata = []
     list_error = []
     list_zeros = []
+    list_uplim = []
     legends = []
     for nth_roi in range(1,len(roi_ra)):
         if (roi_name[nth_roi] in exclude_roi): continue
@@ -4281,6 +4344,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         rate = []
         rate_err = []
         fdata = []
+        uplim = []
         error = []
         zeros = []
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
@@ -4350,10 +4414,12 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             fdata += [flux_sum/expo_sum*correction*pow(energy_bin[ebin]/1e3,energy_index)]
             error += [pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)/expo_sum*correction*pow(energy_bin[ebin]/1e3,energy_index)]
             zeros += [0.]
+            uplim += [0]
         list_edata += [edata]
         list_rate += [rate]
         list_rate_err += [rate_err]
         list_fdata += [fdata]
+        list_uplim += [uplim]
         list_error += [error]
         list_zeros += [zeros]
 
@@ -4421,9 +4487,21 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             if list_error[nth_roi][binx]==0.: continue
             if list_fdata[nth_roi][binx]/list_error[nth_roi][binx]>1.:
                 n_1sigma += 1
+            #else:
+            #    list_uplim[nth_roi][binx] = 1
+            #    list_fdata[nth_roi][binx] = max(0.,list_fdata[nth_roi][binx])+list_error[nth_roi][binx]
+            #    list_error[nth_roi][binx] = 0.3*list_fdata[nth_roi][binx]
+        uplims = np.array(list_uplim[nth_roi], dtype=bool)
         next_color = next(cycol)
-        if 'Crab' in legends[nth_roi] or n_1sigma<30 or doUpperLimit:
-            axbig.errorbar(list_edata[nth_roi],list_fdata[nth_roi],list_error[nth_roi],color=next_color,marker='s',ls='none',label='%s'%(legends[nth_roi]))
+        doFit = False
+        if 'Crab' in legends[nth_roi]:
+            doFit = False
+        if 'Geminga' in legends[nth_roi]:
+            doFit = False
+        if n_1sigma<3 or doUpperLimit:
+            doFit = False
+        if not doFit:
+            axbig.errorbar(list_edata[nth_roi],list_fdata[nth_roi],list_error[nth_roi],color=next_color,marker='s',uplims=uplims,ls='none',label='%s'%(legends[nth_roi]))
         else:
             start = (list_fdata[nth_roi][0]/pow(10,-12), -2.)
             popt, pcov = curve_fit(power_law_func,np.array(list_edata[nth_roi]),np.array(list_fdata[nth_roi]),p0=start,sigma=np.array(list_error[nth_roi]))
@@ -4432,7 +4510,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             residual = np.array(list_fdata[nth_roi]) - flux_fit
             chisq = np.sum((residual/np.array(list_error[nth_roi]))**2)
             dof = len(list_edata[nth_roi])-2
-            axbig.errorbar(list_edata[nth_roi],list_fdata[nth_roi],list_error[nth_roi],color=next_color,marker='s',ls='none',label='%s, $\Gamma$ = %0.1f, $\chi^{2}/dof = %0.1f$'%(legends[nth_roi],popt[1]-energy_index,chisq/dof))
+            axbig.errorbar(list_edata[nth_roi],list_fdata[nth_roi],list_error[nth_roi],color=next_color,marker='s',uplims=uplims,ls='none',label='%s, $\Gamma$ = %0.1f, $\chi^{2}/dof = %0.1f$'%(legends[nth_roi],popt[1]-energy_index,chisq/dof))
         if doUpperLimit:
             axbig.fill_between(list_edata[nth_roi], list_zeros[nth_roi], list_error[nth_roi], alpha=0.2, color='r')
 
@@ -4473,8 +4551,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 #vectorize_f = np.vectorize(flux_hess_j1908_func)
                 #ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 #axbig.plot(xdata, ydata,'g-',label='0904.3409 (HESS)')
-                HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFlux(energy_index)
-                Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFlux(energy_index)
+                HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index)
+                Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index)
                 axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi')
                 axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC')
             if 'IC 443' in legends[nth_roi]:
@@ -4489,9 +4567,20 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'r-',label='0810.0301')
             if 'Geminga Pulsar' in legends[nth_roi]:
-                vectorize_f = np.vectorize(flux_geminga_func)
-                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'r-',label='HAWC extrapolation')
+                #log_energy = np.linspace(log10(3.2e3),log10(93e3),50)
+                #xdata_ref = pow(10.,log_energy)
+                #vectorize_f = np.vectorize(flux_geminga_func)
+                #ydata = pow(xdata_ref/1e3,energy_index)*vectorize_f(xdata_ref)
+                #axbig.plot(xdata_ref, ydata,'r-',label='HAWC')
+                #axbig.fill_between(xdata_ref, ydata-0.17*ydata, ydata+0.34*ydata, alpha=0.2, color='r')
+                HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetFermiHAWCFluxGeminga(energy_index)
+                axbig.plot(HAWC_energies, HAWC_fluxes,'r-',label='HAWC')
+                axbig.fill_between(HAWC_energies, np.array(HAWC_fluxes)-np.array(HAWC_flux_errs), np.array(HAWC_fluxes)+np.array(HAWC_flux_errs), alpha=0.2, color='r')
+                Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxGeminga(energy_index)
+                axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi')
+                Fermi_UL_energies, Fermi_UL_fluxes, Fermi_UL_err = GetFermiUpperLimitFluxGeminga(energy_index)
+                uplims = np.array([1,1,1,1], dtype=bool)
+                axbig.errorbar(Fermi_UL_energies,Fermi_UL_fluxes,Fermi_UL_err,color='g',marker='s',ls='none',uplims=uplims)
             if 'J1856+0245' in legends[nth_roi]:
                 vectorize_f = np.vectorize(flux_j1857_func)
                 ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
@@ -4516,14 +4605,13 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
 
     # energy inclusive histograms
     hist_data_skymap_sum = ROOT.TH2D("hist_data_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_data_skymap_unsmooth_sum = ROOT.TH2D("hist_data_skymap_unsmooth_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_bkgd_skymap_sum = ROOT.TH2D("hist_bkgd_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_expo_skymap_sum = ROOT.TH2D("hist_expo_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_syst_skymap_sum = ROOT.TH2D("hist_syst_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_rate_skymap_sum = ROOT.TH2D("hist_rate_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_flux_skymap_sum = ROOT.TH2D("hist_flux_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_expected_all_gamma_ray_skymap = ROOT.TH2D("hist_expected_all_gamma_ray_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_expected_lep_gamma_ray_skymap = ROOT.TH2D("hist_expected_lep_gamma_ray_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_expected_had_gamma_ray_skymap = ROOT.TH2D("hist_expected_had_gamma_ray_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     for ebin in range(0,len(energy_bin)-1):
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
@@ -4533,6 +4621,12 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 data_new_error = hist_data_skymap[ebin].GetBinError(bx+1,by+1)
                 data_old_error = hist_data_skymap_sum.GetBinError(bx+1,by+1)
                 hist_data_skymap_sum.SetBinError(bx+1,by+1,pow(data_new_error*data_new_error+data_old_error*data_old_error,0.5))
+                data_new_content = hist_data_skymap_unsmooth[ebin].GetBinContent(bx+1,by+1)
+                data_old_content = hist_data_skymap_unsmooth_sum.GetBinContent(bx+1,by+1)
+                hist_data_skymap_unsmooth_sum.SetBinContent(bx+1,by+1,data_new_content+data_old_content)
+                data_new_error = hist_data_skymap_unsmooth[ebin].GetBinError(bx+1,by+1)
+                data_old_error = hist_data_skymap_unsmooth_sum.GetBinError(bx+1,by+1)
+                hist_data_skymap_unsmooth_sum.SetBinError(bx+1,by+1,pow(data_new_error*data_new_error+data_old_error*data_old_error,0.5))
                 bkgd_new_content = hist_bkgd_skymap[ebin].GetBinContent(bx+1,by+1)
                 bkgd_old_content = hist_bkgd_skymap_sum.GetBinContent(bx+1,by+1)
                 hist_bkgd_skymap_sum.SetBinContent(bx+1,by+1,bkgd_new_content+bkgd_old_content)
@@ -4633,6 +4727,69 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     #    faint_star_markers[star].Draw("same")
     #    faint_star_labels[star].Draw("same")
     canvas.SaveAs('output_plots/SkymapZscore_%s_%s.png'%(name,selection_tag))
+
+    flat_disk_PWN, flat_disk_CO_north, flat_disk_CO_west, flat_elipse_PSR, hist_PWN_skymap, hist_CO_north_skymap, hist_CO_west_skymap, hist_PSR_skymap = FitSimpleGeometryModel2D_J1908(hist_data_skymap_unsmooth_sum,hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_expo_skymap_sum,energy_bin_cut_low)
+    mycircle_PWN = ROOT.TEllipse(-1.*flat_disk_PWN[0],flat_disk_PWN[1],flat_disk_PWN[2])
+    mycircle_PWN.SetFillStyle(0)
+    mycircle_PWN.SetLineColor(2)
+    mycircle_CO_north = ROOT.TEllipse(-1.*flat_disk_CO_north[0],flat_disk_CO_north[1],flat_disk_CO_north[2])
+    mycircle_CO_north.SetFillStyle(0)
+    mycircle_CO_north.SetLineColor(2)
+    mycircle_CO_west = ROOT.TEllipse(-1.*flat_disk_CO_west[0],flat_disk_CO_west[1],flat_disk_CO_west[2])
+    mycircle_CO_west.SetFillStyle(0)
+    mycircle_CO_west.SetLineColor(2)
+    elipse_center_x = -(flat_elipse_PSR[0]+flat_elipse_PSR[2])/2.
+    elipse_center_y = (flat_elipse_PSR[1]+flat_elipse_PSR[3])/2.
+    eccentricity = 0.5*pow(pow(flat_elipse_PSR[0]-flat_elipse_PSR[2],2)+pow(flat_elipse_PSR[1]-flat_elipse_PSR[3],2),0.5)
+    semi_major = flat_elipse_PSR[4]
+    semi_minor = pow(semi_major*semi_major-eccentricity*eccentricity,0.5)
+    theta_elipse = ROOT.TMath.ATan2(flat_elipse_PSR[1]-flat_elipse_PSR[3],-flat_elipse_PSR[0]+flat_elipse_PSR[2])*180./ROOT.TMath.Pi()
+    mycircle_PSR = ROOT.TEllipse(elipse_center_x,elipse_center_y,semi_major,semi_minor,0.,360.,theta_elipse)
+    mycircle_PSR.SetFillStyle(0)
+    mycircle_PSR.SetLineColor(2)
+    mymarker_PSR_init = ROOT.TMarker(-flat_elipse_PSR[0],flat_elipse_PSR[1],27)
+    mymarker_PSR_init.SetMarkerSize(1.5)
+    hist_excess_skymap_sum = hist_data_skymap_sum.Clone()
+    hist_excess_skymap_sum.Add(hist_bkgd_skymap_sum,-1.)
+    hist_excess_skymap_sum_reflect = reflectXaxis(hist_excess_skymap_sum)
+    hist_excess_skymap_sum_reflect.GetXaxis().SetLabelOffset(999)
+    hist_excess_skymap_sum_reflect.GetXaxis().SetTickLength(0)
+    hist_excess_skymap_sum_reflect.Draw("COL4Z")
+    hist_contour_reflect.Draw("CONT3 same")
+    raLowerAxis.Draw()
+    mycircle_PWN.Draw("same")
+    mycircle_CO_north.Draw("same")
+    mycircle_CO_west.Draw("same")
+    mycircle_PSR.Draw("same")
+    mymarker_PSR_init.Draw("same")
+    for star in range(0,len(other_star_markers)):
+        other_star_markers[star].Draw("same")
+        other_star_labels[star].Draw("same")
+    canvas.SaveAs('output_plots/SkymapExcess_%s_%s.png'%(name,selection_tag))
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        hist_excess_skymap = hist_data_skymap[ebin].Clone()
+        hist_excess_skymap.Add(hist_bkgd_skymap[ebin],-1.)
+        hist_excess_skymap_reflect = reflectXaxis(hist_excess_skymap)
+        hist_excess_skymap_reflect.GetXaxis().SetLabelOffset(999)
+        hist_excess_skymap_reflect.GetXaxis().SetTickLength(0)
+        hist_excess_skymap_reflect.Draw("COL4Z")
+        hist_contour_reflect.Draw("CONT3 same")
+        raLowerAxis.Draw()
+        mycircles = []
+        for nth_roi in range(0,len(roi_ra)):
+            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
+            mycircles[nth_roi].SetFillStyle(0)
+            mycircles[nth_roi].SetLineColor(2)
+            if nth_roi==0: continue
+            if (roi_name[nth_roi] in exclude_roi): continue
+            mycircles[nth_roi].Draw("same")
+        for star in range(0,len(other_star_markers)):
+            other_star_markers[star].Draw("same")
+            other_star_labels[star].Draw("same")
+        #for star in range(0,len(faint_star_markers)):
+        #    faint_star_markers[star].Draw("same")
+        #    faint_star_labels[star].Draw("same")
+        canvas.SaveAs('output_plots/SkymapExcess_E%s_%s_%s.png'%(ebin,name,selection_tag))
     hist_rel_syst_skymap_sum = hist_syst_skymap_sum.Clone()
     hist_rel_syst_skymap_sum.Divide(hist_bkgd_skymap_sum)
     hist_rel_syst_skymap_sum_reflect = reflectXaxis(hist_rel_syst_skymap_sum)
@@ -4748,20 +4905,20 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         canvas.SaveAs('output_plots/Skymap_%s_%s_E%s.png'%(name,selection_tag,ebin))
 
     if doMWLMap:
-        #Hist_MWL = GetCOSkymap(Hist_MWL, isRaDec)
-        #Hist_MWL = GetHawcSkymap(Hist_MWL, isRaDec)
+        #Hist_MWL_global = GetCOSkymap(Hist_MWL_global, isRaDec)
+        #Hist_MWL_global = GetHawcSkymap(Hist_MWL_global, isRaDec)
         #MWL_label = 'HAWC significance map'
-        #Hist_MWL = GetSkyViewMap("MWL_maps/skv25081611580573_NineYear_INTEGRAL_IBIS_17_35keV_J1908.txt", Hist_MWL, isRaDec)
+        #Hist_MWL_global = GetSkyViewMap("MWL_maps/skv25081611580573_NineYear_INTEGRAL_IBIS_17_35keV_J1908.txt", Hist_MWL_global, isRaDec)
         #MWL_label = '9 year Integral IBIS 17-35 keV'
-        #Hist_MWL = GetSkyViewMap("MWL_maps/skv25082422748501_SwiftBAT_70_Month_14_195keV_J1908.txt", Hist_MWL, isRaDec)
+        #Hist_MWL_global = GetSkyViewMap("MWL_maps/skv25082422748501_SwiftBAT_70_Month_14_195keV_J1908.txt", Hist_MWL_global, isRaDec)
         #MWL_label = 'Swift BAT 70 months 14-195 keV'
-        #Hist_MWL = GetSkyViewMap("MWL_maps/skv25082676066561_ROSAT_Xray_Band7_J1908.txt", Hist_MWL, isRaDec)
+        #Hist_MWL_global = GetSkyViewMap("MWL_maps/skv25082676066561_ROSAT_Xray_Band7_J1908.txt", Hist_MWL_global, isRaDec)
         #MWL_label = 'ROSAT X-ray Band 7'
-        #Hist_MWL = GetSkyViewMap("MWL_maps/skv23774123153055_fermi5_J1908.txt", Hist_MWL, isRaDec)
+        #Hist_MWL_global = GetSkyViewMap("MWL_maps/skv23774123153055_fermi5_J1908.txt", Hist_MWL_global, isRaDec)
         #MWL_label = 'Fermi 5'
-        #Hist_MWL = GetSkyViewMap("MWL_maps/skv23774832380255_CO_J1908.txt", Hist_MWL, isRaDec)
+        #Hist_MWL_global = GetSkyViewMap("MWL_maps/skv23774832380255_CO_J1908.txt", Hist_MWL_global, isRaDec)
         #MWL_label = 'CO Galactic Plane Survey'
-        #Hist_MWL = GetSkyViewMap("MWL_maps/skv25103829773371_Effelsberg_Bonn_HI_J1908.txt", Hist_MWL, isRaDec)
+        #Hist_MWL_global = GetSkyViewMap("MWL_maps/skv25103829773371_Effelsberg_Bonn_HI_J1908.txt", Hist_MWL_global, isRaDec)
         #MWL_label = 'Effelsberg-Bonn HI Survey'
         #MWL_map_file += ['MWL_maps/skv23774832380255_CO_J1908.txt']
         #MWL_map_title += ['CO intensity (K km s^{-1} deg)']
@@ -4785,63 +4942,64 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             #MWL_map_file = 'MWL_maps/FGN_04000+0000_2x2_12CO_v1.00_cube_53_78_0th_moment.txt' # CO intensity (K km s^{-1} deg)
             ##MWL_map_file = 'MWL_maps/FGN_04000+0000_2x2_12CO_v1.00_cube_72_75_0th_moment.txt'
             #MWL_map_title = 'H_{2} column density (1/cm^{2})'
-            #Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
-            #Hist_MWL.Scale(2.*1e20) # H2 column density
+            #Hist_MWL_global = GetGalacticCoordMap(MWL_map_file, Hist_MWL_global, isRaDec)
+            #Hist_MWL_global.Scale(2.*1e20) # H2 column density
             ##MWL_label = 'FUGIN project'
 
             #MWL_map_file = 'MWL_maps/skv23774832380255_CO_J1908.txt' # CO intensity (K km s^{-1} deg)
             #MWL_map_title = 'H_{2} column density (1/cm^{2})'
-            #Hist_MWL = GetSkyViewMap(MWL_map_file, Hist_MWL, isRaDec)
-            #Hist_MWL.Scale(2.*1e20) # H2 column density
+            #Hist_MWL_global = GetSkyViewMap(MWL_map_file, Hist_MWL_global, isRaDec)
+            #Hist_MWL_global.Scale(2.*1e20) # H2 column density
 
             # Dame, T. M.; Hartmann, Dap; Thaddeus, P., 2011, "Replication data for: First Quadrant, main survey (DHT08)", https://doi.org/10.7910/DVN/1PG9NV, Harvard Dataverse, V3
             # https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/1PG9NV
             #MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_incl_0th_moment.txt' # CO intensity (K km s^{-1} deg)
             if J1908_model=='plerion':
-                MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_20_40_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+                #MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_20_40_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+                MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_45_65_0th_moment.txt' # CO intensity (K km s^{-1} deg)
             if J1908_model=='SNR_3p4kpc_PSR_moving' or J1908_model=='SNR_3p4kpc_PSR_stationary':
                 MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_45_65_0th_moment.txt' # CO intensity (K km s^{-1} deg)
             if J1908_model=='SNR_7p9kpc_PSR_moving' or J1908_model=='SNR_7p9kpc_PSR_stationary':
                 MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_50_75_0th_moment.txt' # CO intensity (K km s^{-1} deg)
             MWL_map_title = 'H_{2} column density (1/cm^{2})'
-            Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
-            Hist_MWL.Scale(2.*1e20*1000.) # H2 column density, the source FITS file has a mistake in velocity km/s -> m/s
+            Hist_MWL_global = GetGalacticCoordMap(MWL_map_file, Hist_MWL_global, isRaDec)
+            Hist_MWL_global.Scale(2.*1e20*1000.) # H2 column density, the source FITS file has a mistake in velocity km/s -> m/s
 
             #MWL_map_file = 'MWL_maps/VGPS_cont_MOS041_ds9.txt' # CO intensity (K km s^{-1} deg)
             #MWL_map_title = 'H_{2} column density (1/cm^{2})'
-            #Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
-            #Hist_MWL.Scale(1.823*1e18*(25.)) # optical thin
+            #Hist_MWL_global = GetGalacticCoordMap(MWL_map_file, Hist_MWL_global, isRaDec)
+            #Hist_MWL_global.Scale(1.823*1e18*(25.)) # optical thin
 
         elif sys.argv[1]=='GammaCygni_ON':
 
             #MWL_map_file = 'MWL_maps/skv4052116888244_gammaCygni.txt' # CO intensity (K km s^{-1} deg)
             #MWL_map_title = 'H_{2} column density (1/cm^{2})'
-            #Hist_MWL = GetSkyViewMap(MWL_map_file, Hist_MWL, isRaDec)
-            #Hist_MWL.Scale(2.*1e20) # H2 column density
+            #Hist_MWL_global = GetSkyViewMap(MWL_map_file, Hist_MWL_global, isRaDec)
+            #Hist_MWL_global.Scale(2.*1e20) # H2 column density
 
             MWL_map_file = 'MWL_maps/CGPS_1420MHz.txt' # CO intensity (K km s^{-1} deg)
             MWL_map_title = 'H_{2} column density (1/cm^{2})'
-            Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
-            #Hist_MWL.Scale(1.823*1e18*(9254.-8059.)/1000.) # optical thin
-            Hist_MWL.Scale(1.823*1e18) # optical thin
+            Hist_MWL_global = GetGalacticCoordMap(MWL_map_file, Hist_MWL_global, isRaDec)
+            #Hist_MWL_global.Scale(1.823*1e18*(9254.-8059.)/1000.) # optical thin
+            Hist_MWL_global.Scale(1.823*1e18) # optical thin
 
         elif sys.argv[1]=='IC443HotSpot_ON':
 
             MWL_map_file = 'MWL_maps/CGPS_1420MHz_IC443.txt' # CO intensity (K km s^{-1} deg)
             MWL_map_title = 'H_{2} column density (1/cm^{2})'
-            Hist_MWL = GetGalacticCoordMap(MWL_map_file, Hist_MWL, isRaDec)
-            #Hist_MWL.Scale(1.823*1e18*(9254.-8059.)/1000.) # optical thin
-            Hist_MWL.Scale(1.823*1e18) # optical thin
+            Hist_MWL_global = GetGalacticCoordMap(MWL_map_file, Hist_MWL_global, isRaDec)
+            #Hist_MWL_global.Scale(1.823*1e18*(9254.-8059.)/1000.) # optical thin
+            Hist_MWL_global.Scale(1.823*1e18) # optical thin
 
-        hist_MWL_reflect = reflectXaxis(Hist_MWL)
-        hist_MWL_reflect.GetYaxis().SetTitle(title_y)
-        hist_MWL_reflect.GetXaxis().SetTitle(title_x)
-        hist_MWL_reflect.GetZaxis().SetTitle(MWL_map_title)
-        hist_MWL_reflect.GetZaxis().SetTitleOffset(title_offset+0.1)
-        hist_MWL_reflect.Draw("COL4Z")
+        Hist_MWL_global_reflect = reflectXaxis(Hist_MWL_global)
+        Hist_MWL_global_reflect.GetYaxis().SetTitle(title_y)
+        Hist_MWL_global_reflect.GetXaxis().SetTitle(title_x)
+        Hist_MWL_global_reflect.GetZaxis().SetTitle(MWL_map_title)
+        Hist_MWL_global_reflect.GetZaxis().SetTitleOffset(title_offset+0.1)
+        Hist_MWL_global_reflect.Draw("COL4Z")
         hist_contour_reflect.Draw("CONT3 same")
-        hist_MWL_reflect.GetXaxis().SetLabelOffset(999)
-        hist_MWL_reflect.GetXaxis().SetTickLength(0)
+        Hist_MWL_global_reflect.GetXaxis().SetLabelOffset(999)
+        Hist_MWL_global_reflect.GetXaxis().SetTickLength(0)
         raLowerAxis.Draw()
         mycircles = []
         for nth_roi in range(0,len(roi_ra)):
@@ -4958,51 +5116,6 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     canvas.SaveAs('output_plots/SkymapChisq_%s_%s.png'%(name,selection_tag))
 
 
-    #print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    #init_x = source_ra
-    #init_y = source_dec
-    #excess_center_x, excess_center_y, excess_radius, excess_disk, chisq = GetExtention2D(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,2,init_x,init_y,"inclusive")
-    #excess_center_x_err = max(abs(excess_center_x[0]-excess_center_x[1]),abs(excess_center_x[0]-excess_center_x[2]))
-    #excess_center_y_err = max(abs(excess_center_y[0]-excess_center_y[1]),abs(excess_center_y[0]-excess_center_y[2]))
-    #excess_radius_err = max(abs(excess_radius[0]-excess_radius[1]),abs(excess_radius[0]-excess_radius[2]))
-    #print ('center RA = %0.3f +/- %0.3f'%(excess_center_x[0],excess_center_x_err))
-    #print ('center Dec = %0.3f +/- %0.3f'%(excess_center_y[0],excess_center_y_err))
-    #print ('radius = %0.3f +/- %0.3f'%(excess_radius[0],excess_radius_err))
-    #print ('chisq / DoF = %0.3f'%(chisq))
-
-    #hawc_energy_axis = [500.,1700.,10000.,56000.]
-    #hawc_source_extent = [33./3200.*180./3.14,27.2/3200.*180./3.14,22.4/3200.*180./3.14,24.4/3200.*180./3.14]
-    #hawc_source_extent_err = [3./3200.*180./3.14,2./3200.*180./3.14,1.5/3200.*180./3.14,3./3200.*180./3.14]
-    #energy_axis = []
-    #source_extent = []
-    #source_extent_err = []
-    #fit_chisq = []
-    #for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-    #    print ('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    #    print ('Energy = %0.1f'%(energy_bin[ebin]))
-    #    init_x = source_ra
-    #    init_y = source_dec
-    #    excess_center_x, excess_center_y, excess_radius, excess_disk, chisq = GetExtention2D(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],2,init_x,init_y,"E%s"%(ebin))
-    #    excess_radius_err = max(abs(excess_radius[0]-excess_radius[1]),abs(excess_radius[0]-excess_radius[2]))
-    #    print ('radius = %0.3f +/- %0.3f'%(excess_radius[0],excess_radius_err))
-    #    print ('chisq / DoF = %0.3f'%(chisq))
-    #    energy_axis += [energy_bin[ebin]]
-    #    source_extent += [excess_radius[0]]
-    #    source_extent_err += [excess_radius_err]
-    #    fit_chisq += [chisq]
-    #fig.clf()
-    #axbig = fig.add_subplot()
-    #axbig.errorbar(energy_axis, source_extent, source_extent_err, marker='s', ls='none', color='b',label='VERITAS')
-    ##axbig.errorbar(hawc_energy_axis, hawc_source_extent, hawc_source_extent_err, marker='s', ls='none', color='r',label='HAWC')
-    #axbig.set_xlabel('Energy [GeV]')
-    #axbig.set_ylabel('Angular extent [degree]')
-    #axbig.set_xscale('log')
-    #axbig.legend(loc='best')
-    #plt.ylim(0, 1.0)
-    #plotname = 'Energy_dep_2dfit_extent'
-    #fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-    #axbig.remove()
-
     if doExtentFit and doMWLMap:
 
         energy_axis = []
@@ -5029,11 +5142,9 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         current_gamma_energy = energy_bin[energy_bin_cut_low]
         next_gamma_energy = energy_bin[energy_bin_cut_up]
 
-        fig.clf()
-        axbig = fig.add_subplot()
-
         skymap_fitting_model = 'hybrid'
         if sys.argv[1]=='MGRO_J1908_ON':
+
             skymap_fitting_model = 'hybrid'
             #skymap_fitting_model = 'lepton'
             #skymap_fitting_model = 'hadron'
@@ -5045,48 +5156,48 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             skymap_fitting_model = 'lepton'
 
         had_diffusion_radius_max = 0.
-        CR_efficiency_total = 0.
         CR_efficiency_total_err = 0.
-        esc_param_avg = 0.
         esc_param_avg_weight = 0.
         hist_expected_all_gamma_ray_skymap.Reset()
-        hist_expected_lep_gamma_ray_skymap.Reset()
-        hist_expected_had_gamma_ray_skymap.Reset()
+        hist_expected_all_gamma_ray_skymap.Add(hist_PWN_skymap)
+        hist_expected_all_gamma_ray_skymap.Add(hist_CO_north_skymap)
+        hist_expected_all_gamma_ray_skymap.Add(hist_CO_west_skymap)
+        hist_expected_all_gamma_ray_skymap.Add(hist_PSR_skymap)
+
+        hist_expected_all_gamma_ray_skymap_reflect = reflectXaxis(hist_expected_all_gamma_ray_skymap)
+        hist_expected_all_gamma_ray_skymap_reflect.GetXaxis().SetLabelOffset(999)
+        hist_expected_all_gamma_ray_skymap_reflect.GetXaxis().SetTickLength(0)
+        hist_expected_all_gamma_ray_skymap_reflect.Draw("COL4Z")
+        hist_contour_reflect.Draw("CONT3 same")
+        raLowerAxis.Draw()
+        mycircle_PWN.Draw("same")
+        mycircle_CO_north.Draw("same")
+        mycircle_CO_west.Draw("same")
+        mycircle_PSR.Draw("same")
+        mymarker_PSR_init.Draw("same")
+        for star in range(0,len(other_star_markers)):
+            other_star_markers[star].Draw("same")
+            other_star_labels[star].Draw("same")
+        canvas.SaveAs('output_plots/SkymapModel_%s_%s.png'%(name,selection_tag))
 
         if skymap_fitting_model=='hybrid':
+
             RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0 = GetPulsarParameters()
             RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
-            E_el_vis, D_ism_lep, CR_efficiency, esc_param = FitHybridModel2D(hist_flux_skymap_sum)
-            CR_efficiency_total = CR_efficiency
-            esc_param_avg = esc_param
-            hist_leptonic_skymap = GetExpectedLeptonicMapV2(Hist_MWL,E_el_vis,D_ism_lep)
-            hist_hadronic_skymap = GetExpectedHadronicMapV2(Hist_MWL,CR_efficiency,esc_param)
-            hist_hybrid_skymap = hist_leptonic_skymap.Clone()
-            hist_hybrid_skymap.Add(hist_hadronic_skymap)
-            hist_expected_all_gamma_ray_skymap.Add(hist_leptonic_skymap)
-            hist_expected_all_gamma_ray_skymap.Add(hist_hadronic_skymap)
-            hist_expected_lep_gamma_ray_skymap.Add(hist_leptonic_skymap)
-            hist_expected_had_gamma_ray_skymap.Add(hist_hadronic_skymap)
+            E_el_vis, D_ism, CR_efficiency, RA_PSR_initial, Dec_PSR_initial = FitHybridModel2D(hist_flux_skymap_sum)
+
+            total_obs_flux_integral, total_model_flux_integral = FitCloudRegionFlux(hist_data_skymap,hist_bkgd_skymap,hist_expo_skymap,hist_syst_skymap,hist_data_skymap_unsmooth,Hist_MWL_global)
+
         elif skymap_fitting_model=='hadron':
             RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
-            CR_efficiency, esc_param = FitHadronicModel2D(hist_flux_skymap_sum)
-            CR_efficiency_total = CR_efficiency
-            esc_param_avg = esc_param
-            hist_hadronic_skymap = GetExpectedHadronicMapV2(Hist_MWL,CR_efficiency,esc_param)
-            hist_expected_all_gamma_ray_skymap.Add(hist_hadronic_skymap)
-            hist_expected_had_gamma_ray_skymap.Add(hist_hadronic_skymap)
+            CR_efficiency, D_ism = FitHadronicModel2D(hist_flux_skymap_sum)
         else:
             RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0 = GetPulsarParameters()
             E_el_vis, D_ism_lep = FitLeptonicModel2D(hist_flux_skymap_sum)
-            hist_leptonic_skymap = GetExpectedLeptonicMapV2(Hist_MWL,E_el_vis,D_ism_lep)
-            hist_expected_all_gamma_ray_skymap.Add(hist_leptonic_skymap)
-            hist_expected_lep_gamma_ray_skymap.Add(hist_leptonic_skymap)
         print ('=============================================')
-        print ('CR_efficiency_total = %0.3f'%(CR_efficiency_total))
-        print ('esc_param_avg = %0.3f'%(esc_param_avg))
 
         if skymap_fitting_model!='lepton':
-            DeriveSupernovaParameters(CR_efficiency_total,esc_param_avg)
+            DeriveSupernovaParameters(CR_efficiency,2.0)
         RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0 = GetPulsarParameters()
         RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
         if sys.argv[1]=='MGRO_J1908_ON':
@@ -5098,21 +5209,15 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         else:
             profile_center_x, profile_center_y, profile_center_z = RA_PSR, Dec_PSR, d_PSR
         if skymap_fitting_model!='lepton':
-            had_diffusion_radius_max = DeriveSupernovaDiffusionLength(esc_param_avg,t_SN,d_SN,n_0,current_gamma_energy)
+            had_diffusion_radius_max = DeriveSupernovaDiffusionLength(2.0,t_SN,d_SN,n_0,current_gamma_energy)
 
         profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-        profile_lep, profile_err_lep, theta2_lep = FindExtension(hist_expected_lep_gamma_ray_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-        profile_had, profile_err_had, theta2_had = FindExtension(hist_expected_had_gamma_ray_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
         profile_hyb, profile_err_hyb, theta2_hyb = FindExtension(hist_expected_all_gamma_ray_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+
+        fig.clf()
+        axbig = fig.add_subplot()
         axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
-        if skymap_fitting_model=='hybrid':
-            axbig.plot(theta2_lep,profile_lep,color='g',label='leptonic model')
-            axbig.plot(theta2_had,profile_had,color='r',label='hadronic model')
-            axbig.plot(theta2_hyb,profile_hyb,color='k',label='hybrid model')
-        elif skymap_fitting_model=='hadron':
-            axbig.plot(theta2_had,profile_had,color='r',label='hadronic model')
-        else:
-            axbig.plot(theta2_lep,profile_lep,color='g',label='leptonic model')
+        axbig.plot(theta2_hyb,profile_hyb,color='k',label='hybrid model')
 
         axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
         axbig.set_xlabel('angular distance from source [degree]')
@@ -5128,14 +5233,14 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
             hydrogen_to_solar_mass = 8.4144035*1e-58
             skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
-            hist_MWL_mass_reflect = hist_MWL_reflect.Clone()
-            hist_MWL_mass_reflect.Scale(skymap_bin_area/3.14*2.8*hydrogen_to_solar_mass) # in solar mass
+            Hist_MWL_global_mass_reflect = Hist_MWL_global_reflect.Clone()
+            Hist_MWL_global_mass_reflect.Scale(skymap_bin_area/3.14*2.8*hydrogen_to_solar_mass) # in solar mass
             MWL_map_title = 'H_{2} mass'
-            hist_MWL_mass_reflect.GetZaxis().SetTitle(MWL_map_title)
-            hist_MWL_mass_reflect.Draw("COL4Z")
+            Hist_MWL_global_mass_reflect.GetZaxis().SetTitle(MWL_map_title)
+            Hist_MWL_global_mass_reflect.Draw("COL4Z")
             hist_contour_reflect.Draw("CONT3 same")
-            hist_MWL_mass_reflect.GetXaxis().SetLabelOffset(999)
-            hist_MWL_mass_reflect.GetXaxis().SetTickLength(0)
+            Hist_MWL_global_mass_reflect.GetXaxis().SetLabelOffset(999)
+            Hist_MWL_global_mass_reflect.GetXaxis().SetTickLength(0)
             raLowerAxis.Draw()
             mycircles = []
             for nth_roi in range(0,len(roi_ra)):
@@ -5149,15 +5254,15 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 other_star_markers[star].Draw("same")
                 other_star_labels[star].Draw("same")
             canvas.SaveAs('output_plots/SkymapMWL_mass_%s_%s.png'%(name,selection_tag))
-            hist_MWL_density = Hist_MWL.Clone()
-            hist_MWL_density.Scale(1./(1.*had_diffusion_radius_max*deg_to_cm)) 
-            hist_MWL_density_reflect = reflectXaxis(hist_MWL_density)
+            Hist_MWL_global_density = Hist_MWL_global.Clone()
+            Hist_MWL_global_density.Scale(1./(1.*had_diffusion_radius_max*deg_to_cm)) 
+            Hist_MWL_global_density_reflect = reflectXaxis(Hist_MWL_global_density)
             MWL_map_title = 'H_{2} density 1/cm^{3}'
-            hist_MWL_density_reflect.GetZaxis().SetTitle(MWL_map_title)
-            hist_MWL_density_reflect.Draw("COL4Z")
+            Hist_MWL_global_density_reflect.GetZaxis().SetTitle(MWL_map_title)
+            Hist_MWL_global_density_reflect.Draw("COL4Z")
             hist_contour_reflect.Draw("CONT3 same")
-            hist_MWL_density_reflect.GetXaxis().SetLabelOffset(999)
-            hist_MWL_density_reflect.GetXaxis().SetTickLength(0)
+            Hist_MWL_global_density_reflect.GetXaxis().SetLabelOffset(999)
+            Hist_MWL_global_density_reflect.GetXaxis().SetTickLength(0)
             raLowerAxis.Draw()
             mycircles = []
             for nth_roi in range(0,len(roi_ra)):
@@ -5171,71 +5276,6 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 other_star_markers[star].Draw("same")
                 other_star_labels[star].Draw("same")
             canvas.SaveAs('output_plots/SkymapMWL_density_%s_%s.png'%(name,selection_tag))
-
-        hist_expected_all_gamma_ray_skymap_reflect = reflectXaxis(hist_expected_all_gamma_ray_skymap)
-        hist_expected_all_gamma_ray_skymap_reflect.GetYaxis().SetTitle(title_y)
-        hist_expected_all_gamma_ray_skymap_reflect.GetXaxis().SetTitle(title_x)
-        hist_expected_all_gamma_ray_skymap_reflect.GetZaxis().SetTitle('estimated hadronic flux (cm^{-2} s^{-1})')
-        hist_expected_all_gamma_ray_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
-        hist_expected_all_gamma_ray_skymap_reflect.Draw("COL4Z")
-        hist_contour_reflect.Draw("CONT3 same")
-        hist_expected_all_gamma_ray_skymap_reflect.GetXaxis().SetLabelOffset(999)
-        hist_expected_all_gamma_ray_skymap_reflect.GetXaxis().SetTickLength(0)
-        raLowerAxis.Draw()
-        mycircles = []
-        for nth_roi in range(0,len(roi_ra)):
-            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
-            mycircles[nth_roi].SetFillStyle(0)
-            mycircles[nth_roi].SetLineColor(2)
-            if nth_roi==0: continue
-            if (roi_name[nth_roi] in exclude_roi): continue
-            mycircles[nth_roi].Draw("same")
-        for star in range(0,len(other_star_markers)):
-            other_star_markers[star].Draw("same")
-            other_star_labels[star].Draw("same")
-        #for star in range(0,len(faint_star_markers)):
-        #    faint_star_markers[star].Draw("same")
-        #    faint_star_labels[star].Draw("same")
-        canvas.SaveAs('output_plots/SkymapMolecularCloudExpect_%s_%s.png'%(name,selection_tag))
-
-        hist_MWL_happiness_reflect = hist_expected_all_gamma_ray_skymap_reflect.Clone()
-        hist_MWL_happiness_reflect.Reset()
-        for bx in range(0,hist_data_skymap[0].GetNbinsX()):
-            for by in range(0,hist_data_skymap[0].GetNbinsY()):
-                reality = hist_flux_skymap_sum_reflect.GetBinContent(bx+1,by+1)
-                expectation = hist_expected_all_gamma_ray_skymap_reflect.GetBinContent(bx+1,by+1)
-                error = hist_flux_skymap_sum_reflect.GetBinError(bx+1,by+1)
-                if reality==0.: continue
-                if expectation==0.: continue
-                happiness = (reality-expectation)/error
-                hist_MWL_happiness_reflect.SetBinContent(bx+1,by+1,happiness)
-        hist_MWL_happiness_reflect.GetYaxis().SetTitle(title_y)
-        hist_MWL_happiness_reflect.GetXaxis().SetTitle(title_x)
-        #hist_MWL_happiness_reflect.GetZaxis().SetTitle('leptonic flux (cm^{-2} s^{-1})')
-        hist_MWL_happiness_reflect.GetZaxis().SetTitle('(observed-predicted flux) significance')
-        hist_MWL_happiness_reflect.GetZaxis().SetTitleOffset(title_offset)
-        hist_MWL_happiness_reflect.SetMaximum(5.)
-        hist_MWL_happiness_reflect.SetMinimum(-5.)
-        hist_MWL_happiness_reflect.Draw("COL4Z")
-        hist_contour_reflect.Draw("CONT3 same")
-        hist_MWL_happiness_reflect.GetXaxis().SetLabelOffset(999)
-        hist_MWL_happiness_reflect.GetXaxis().SetTickLength(0)
-        raLowerAxis.Draw()
-        mycircles = []
-        for nth_roi in range(0,len(roi_ra)):
-            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
-            mycircles[nth_roi].SetFillStyle(0)
-            mycircles[nth_roi].SetLineColor(2)
-            if nth_roi==0: continue
-            if (roi_name[nth_roi] in exclude_roi): continue
-            mycircles[nth_roi].Draw("same")
-        for star in range(0,len(other_star_markers)):
-            other_star_markers[star].Draw("same")
-            other_star_labels[star].Draw("same")
-        #for star in range(0,len(faint_star_markers)):
-        #    faint_star_markers[star].Draw("same")
-        #    faint_star_labels[star].Draw("same")
-        canvas.SaveAs('output_plots/SkymapHappiness_%s_%s.png'%(name,selection_tag))
 
 
         #fig.clf()
@@ -5335,9 +5375,9 @@ def hybrid_model_2d(x, par):
 
     flux_integral = 0.
 
-    lep_par = [par[0],par[1]]
+    lep_par = [par[0],par[2],par[3],par[4]]
     flux_integral += leptonic_model_2d(x, lep_par)
-    had_par = [par[2],par[3]]
+    had_par = [par[1],par[2],par[3],par[4]]
     flux_integral += hadronic_model_2d(x, had_par)
 
     return flux_integral
@@ -5353,9 +5393,11 @@ def leptonic_model_2d(x, par):
     pulsar_final_y = Dec_PSR
     skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
 
-    spectral_index = 2.4
+    spectral_index = 2.2
     el_brightness = par[0]
     diffusion_coefficient_1TeV = par[1]
+    RA_PSR_initial = par[2]
+    Dec_PSR_initial = par[3]
  
     distance_sq = pow(x[0]-source_ra,2) + pow(x[1]-source_dec,2)
     if distance_sq>1.5*1.5: return 0.
@@ -5395,49 +5437,21 @@ def leptonic_model_2d(x, par):
 def hadronic_model_2d(x, par):
 
     CR_efficiency = par[0]
-    esc_param = par[1]
-
-    RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
-    deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
-    skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
-
-    Gamma_CR = 2.1
-    f_Gamma = 0.9
-    #Gamma_CR = 2.2
-    #f_Gamma = 0.43
-    #Gamma_CR = 2.3
-    #f_Gamma = 0.19
-    E_SN = 1.
+    diffusion_coefficient_1TeV = par[1]
+    RA_SN = par[2]
+    Dec_SN = par[3]
 
     distance_sq = pow(x[0]-source_ra,2) + pow(x[1]-source_dec,2)
     if distance_sq>1.5*1.5: return 0.
 
-    binx = Hist_MWL.GetXaxis().FindBin(x[0])
-    biny = Hist_MWL.GetYaxis().FindBin(x[1])
-    distance = pow(pow(x[0]-RA_SN,2)+pow(x[1]-Dec_SN,2),0.5)
-    MC_column_density = Hist_MWL.GetBinContent(binx,biny)
-    MC_mass = MC_column_density*skymap_bin_area
+    bin_ra = Hist_MWL_global.GetXaxis().FindBin(x[0])
+    bin_dec = Hist_MWL_global.GetYaxis().FindBin(x[1])
 
     flux_integral = 0.
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
 
-        diffusion_radius = DeriveSupernovaDiffusionLength(esc_param,t_SN,d_SN,n_0,energy_bin[ebin])
-        diffusion_radius = pow(smooth_size_spectroscopy*smooth_size_spectroscopy+diffusion_radius*diffusion_radius,0.5)
-        vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
-        attenuation = exp(-(distance*distance)/pow(diffusion_radius,2))
-        #vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
-        #attenuation = exp(-(distance*distance+R_esc*R_esc)/pow(diffusion_radius,2))
-        #if distance>diffusion_radius:
-        #    A_esc = 4.*3.14*R_esc*R_esc
-        #    vol_diff = diffusion_radius*A_esc*distance/R_esc*pow(deg_to_cm,3)
-        #    attenuation = exp(-(distance*distance+R_esc*R_esc)/pow(diffusion_radius,2))*math.sinh(2.*distance*R_esc/diffusion_radius)
-
-        ECR_density_in_SNR = CR_efficiency*E_SN/vol_diff
-        ECR_density_local = ECR_density_in_SNR*attenuation
-        line_of_sight = diffusion_radius
-        ECR_density_local_avg = ECR_density_in_SNR*attenuation*diffusion_radius/line_of_sight*pow(3.14,0.5)/2.*math.erf(line_of_sight/diffusion_radius)
-        A_par = MC_mass*ECR_density_local_avg*pow(d_SN,-2)
-        flux_integral += A_par*(f_Gamma*1e-10*(pow(energy_bin[ebin]/1000.,1-Gamma_CR)-pow(energy_bin[ebin+1]/1000.,1-Gamma_CR)))
+        hadronic_emission = CalculateHadronicEmission(Hist_MWL_global,bin_ra,bin_dec,ebin,CR_efficiency,diffusion_coefficient_1TeV,RA_SN,Dec_SN)
+        flux_integral += hadronic_emission
 
     return flux_integral
 
@@ -5465,7 +5479,7 @@ def EstimateCosmicRayBrightness(hist_flux,roi_x,roi_y,roi_radius,diffusion_radiu
             if distance_to_roi>roi_radius: continue
             total_flux += hist_flux.GetBinContent(binx+1,biny+1)
             total_flux_err += hist_flux.GetBinError(binx+1,biny+1)
-            total_mass += Hist_MWL.GetBinContent(binx+1,biny+1)*skymap_bin_area
+            total_mass += Hist_MWL_global.GetBinContent(binx+1,biny+1)*skymap_bin_area
 
     vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
     distance_to_SNR = pow(pow(RA_SN-roi_x,2)+pow(Dec_SN-roi_y,2),0.5)
@@ -5505,6 +5519,556 @@ def _gaussian_2d(M, *args):
        arr += gaussian_2d(x, y, *args[i*n_param:i*n_param+n_param])
     return arr
 
+def CalculateHadronicEmission(hist_column_density_map,bin_ra,bin_dec,e_bin,CR_efficiency,diffusion_coefficient_1TeV,RA_SN_input, Dec_SN_input):
+
+    RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
+    RA_SN = RA_SN_input
+    Dec_SN = Dec_SN_input
+
+    E_SN = 1. # 10^{51} erg
+    B_SNR = 100. # micro G
+    B_ISM = 6. # micro G
+    M_ej = 1. # ejecta mass in solar mass unit
+    t_Sedov = 423.*pow(E_SN,-0.5)*pow(M_ej,5./6.)*pow(n_0,-1./3.) # year
+    vel_init = 7090.*1e5*pow(E_SN,-0.5)*pow(M_ej,-0.5) # cm/s 
+    E_p_max = 1e6*vel_init*vel_init*t_Sedov*365.*24.*60.*60./(3.4*1e28)*B_SNR # GeV, Bohm limit
+
+    # E_pion = k*E_proton, k = 0.17 from https://www.mpi-hd.mpg.de/personalhomes/frieger/HEA9.pdf
+    E_p_min_vis = (1./0.17)*2.*energy_bin[e_bin]  # visible CR energy threshold
+    E_p_max_vis = (1./0.17)*2.*energy_bin[e_bin+1]  # visible CR energy threshold
+    f_vis = log(E_p_max_vis/E_p_min_vis)/log(E_p_max/1.)
+
+    Gamma_CR = 2.1
+    f_Gamma = 0.9
+    #Gamma_CR = 2.2
+    #f_Gamma = 0.43
+    #Gamma_CR = 2.3
+    #f_Gamma = 0.19
+    deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
+    bin_x_size = hist_column_density_map.GetXaxis().GetBinLowEdge(2)-hist_column_density_map.GetXaxis().GetBinLowEdge(1)
+    bin_y_size = hist_column_density_map.GetYaxis().GetBinLowEdge(2)-hist_column_density_map.GetYaxis().GetBinLowEdge(1)
+    skymap_bin_area = bin_x_size*bin_y_size*deg_to_cm*deg_to_cm
+
+    #t_Sedov = 423.*pow(E_SN,-0.5)*pow(M_ej,5./6.)*pow(n_0,-1./3.) # year
+    #CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
+    #esc_param = 2.0
+
+    binx = hist_column_density_map.GetXaxis().FindBin(bin_ra)
+    biny = hist_column_density_map.GetYaxis().FindBin(bin_dec)
+    distance = pow(pow(bin_ra-RA_SN,2)+pow(bin_dec-Dec_SN,2),0.5)
+    MC_column_density = hist_column_density_map.GetBinContent(binx,biny)
+    MC_mass = MC_column_density*skymap_bin_area
+
+    #diffusion_radius = DeriveSupernovaDiffusionLength(esc_param,t_SN,d_SN,n_0,energy_bin[e_bin])
+    #diffusion_radius = pow(smooth_size_spectroscopy*smooth_size_spectroscopy+diffusion_radius*diffusion_radius,0.5)
+    diffusion_coefficient = diffusion_coefficient_1TeV*pow((1./0.17)*2.*energy_bin[e_bin]/1000.,0.5)
+    diffusion_radius = pow(4.*diffusion_coefficient*t_SN*365.*24.*60.*60.,0.5)/deg_to_cm
+    vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
+    attenuation = exp(-(distance*distance)/pow(diffusion_radius,2))
+    #vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
+    #attenuation = exp(-(distance*distance+R_esc*R_esc)/pow(diffusion_radius,2))
+    #if distance>diffusion_radius:
+    #    A_esc = 4.*3.14*R_esc*R_esc
+    #    vol_diff = diffusion_radius*A_esc*distance/R_esc*pow(deg_to_cm,3)
+    #    attenuation = exp(-(distance*distance+R_esc*R_esc)/pow(diffusion_radius,2))*math.sinh(2.*distance*R_esc/diffusion_radius)
+
+    ECR_density_in_SNR = CR_efficiency*E_SN/vol_diff
+    ECR_density_local = ECR_density_in_SNR*attenuation
+    line_of_sight = diffusion_radius
+    ECR_density_local_avg = ECR_density_in_SNR*attenuation*diffusion_radius/line_of_sight*pow(3.14,0.5)/2.*math.erf(line_of_sight/diffusion_radius)
+    A_par = MC_mass*ECR_density_local_avg*pow(d_SN,-2)
+    hadronic_emission = A_par*(f_Gamma*1e-10*(pow(energy_bin[e_bin]/1000.,1-Gamma_CR)-pow(energy_bin[e_bin+1]/1000.,1-Gamma_CR)))
+
+    return hadronic_emission
+
+def FitCloudRegionFlux(hist_data_skymap,hist_bkgd_skymap,hist_expo_skymap,hist_syst_skymap,hist_data_skymap_unsmooth,hist_column_density_map):
+
+    # PSR J1907+0602
+    PSR_ra = 286.975
+    PSR_dec = 6.03777777778
+    PSR_radius = 0.2
+
+    # CO north
+    region_ra = 286.786
+    region_dec = 7.1
+    region_radius = 0.2
+    # PSR tail 2
+    #region_ra = 287.2
+    #region_dec = 6.6
+    #region_radius = 0.2
+
+    hist_hadronic_map = hist_column_density_map.Clone()
+    hist_hadronic_map.Reset()
+
+    energy_array = []
+    cloud_mass = []
+    psr_flux_integral = []
+    psr_flux_integral_err = []
+    obs_flux_integral = []
+    obs_flux_integral_err = []
+    had_model_flux_integral = []
+    for ebin in range(0,len(energy_bin)-1):
+        energy_array += [energy_bin[ebin]]
+        cloud_mass += [0.]
+        psr_flux_integral += [0.]
+        psr_flux_integral_err += [0.]
+        obs_flux_integral += [0.]
+        obs_flux_integral_err += [0.]
+        had_model_flux_integral += [0.]
+
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+
+        data_sum = 0.
+        data_unsmooth_sum = 0.
+        bkgd_sum = 0.
+        expo_sum = 0.
+        syst_sum = 0.
+        for bx in range(0,hist_column_density_map.GetNbinsX()):
+            for by in range(0,hist_column_density_map.GetNbinsY()):
+
+                bin_ra = hist_column_density_map.GetXaxis().GetBinCenter(bx+1)
+                bin_dec = hist_column_density_map.GetYaxis().GetBinCenter(by+1)
+                distance_sq = pow(bin_ra-PSR_ra,2) + pow(bin_dec-PSR_dec,2)
+                if distance_sq>PSR_radius*PSR_radius: continue
+
+                data_content = hist_data_skymap[ebin].GetBinContent(bx+1,by+1)
+                data_unsmooth_content = hist_data_skymap_unsmooth[ebin].GetBinContent(bx+1,by+1)
+                bkgd_content = hist_bkgd_skymap[ebin].GetBinContent(bx+1,by+1)
+                expo_content = hist_expo_skymap[ebin].GetBinContent(bx+1,by+1)
+                syst_err = hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)
+
+                data_sum += data_content
+                data_unsmooth_sum += data_unsmooth_content
+                bkgd_sum += bkgd_content
+                expo_sum += expo_content
+                syst_sum += syst_err
+
+        map_x = region_ra
+        map_y = region_dec
+        flux_calibration = GetFluxCalibration(map_x,map_y,ebin)
+        correction = flux_calibration*pow(region_radius,2)/(calibration_radius*calibration_radius)*data_unsmooth_sum/data_sum
+        flux_content = (data_sum-bkgd_sum)/expo_sum*correction
+        flux_err = syst_sum/expo_sum*correction
+        psr_flux_integral[ebin] = flux_content*pow(energy_bin[ebin]/1e3,1)
+        psr_flux_integral_err[ebin] = flux_err*pow(energy_bin[ebin]/1e3,1)
+
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+
+        flux_index = 2.75
+        data_sum = 0.
+        data_unsmooth_sum = 0.
+        bkgd_sum = 0.
+        expo_sum = 0.
+        syst_sum = 0.
+        for bx in range(0,hist_column_density_map.GetNbinsX()):
+            for by in range(0,hist_column_density_map.GetNbinsY()):
+
+                bin_ra = hist_column_density_map.GetXaxis().GetBinCenter(bx+1)
+                bin_dec = hist_column_density_map.GetYaxis().GetBinCenter(by+1)
+                distance_sq = pow(bin_ra-region_ra,2) + pow(bin_dec-region_dec,2)
+                if distance_sq>region_radius*region_radius: continue
+
+                data_content = hist_data_skymap[ebin].GetBinContent(bx+1,by+1)
+                data_unsmooth_content = hist_data_skymap_unsmooth[ebin].GetBinContent(bx+1,by+1)
+                bkgd_content = hist_bkgd_skymap[ebin].GetBinContent(bx+1,by+1)
+                expo_content = hist_expo_skymap[ebin].GetBinContent(bx+1,by+1)
+                syst_err = hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)
+
+                data_sum += data_content
+                data_unsmooth_sum += data_unsmooth_content
+                bkgd_sum += bkgd_content
+                expo_sum += expo_content
+                syst_sum += syst_err
+
+        map_x = region_ra
+        map_y = region_dec
+        flux_calibration = GetFluxCalibration(map_x,map_y,ebin)
+        correction = flux_calibration*pow(region_radius,2)/(calibration_radius*calibration_radius)*data_unsmooth_sum/data_sum
+        flux_content = (data_sum-bkgd_sum)/expo_sum*correction
+        flux_err = syst_sum/expo_sum*correction
+        #obs_flux_integral[ebin] = flux_content/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index))
+        #obs_flux_integral_err[ebin] = flux_err/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index))
+        obs_flux_integral[ebin] = flux_content*pow(energy_bin[ebin]/1e3,1)
+        obs_flux_integral_err[ebin] = flux_err*pow(energy_bin[ebin]/1e3,1)
+
+        RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
+        Gamma_CR = 2.1
+        f_Gamma = 0.9
+        #Gamma_CR = 2.2
+        #f_Gamma = 0.43
+        #Gamma_CR = 2.3
+        #f_Gamma = 0.19
+        E_SN = 1.
+        M_ej = 1. # ejecta mass in solar mass unit
+        t_Sedov = 423.*pow(E_SN,-0.5)*pow(M_ej,5./6.)*pow(n_0,-1./3.) # year
+        CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
+        esc_param = 2.0
+        diffusion_coefficient_1TeV = 8.2*1e26
+
+        for bx in range(0,hist_column_density_map.GetNbinsX()):
+            for by in range(0,hist_column_density_map.GetNbinsY()):
+
+                bin_ra = hist_column_density_map.GetXaxis().GetBinCenter(bx+1)
+                bin_dec = hist_column_density_map.GetYaxis().GetBinCenter(by+1)
+                distance_sq = pow(bin_ra-region_ra,2) + pow(bin_dec-region_dec,2)
+                if distance_sq>region_radius*region_radius: continue
+
+                hadronic_emission = CalculateHadronicEmission(hist_column_density_map,bin_ra,bin_dec,ebin,CR_efficiency,diffusion_coefficient_1TeV,RA_SN,Dec_SN)
+
+                had_model_flux_integral[ebin] += hadronic_emission
+
+    total_psr_flux_integral = 0.
+    total_obs_flux_integral = 0.
+    total_model_flux_integral = 0.
+    for ebin in range(0,len(energy_bin)-1):
+        total_psr_flux_integral += psr_flux_integral[ebin]
+        total_obs_flux_integral += obs_flux_integral[ebin]
+        total_model_flux_integral += had_model_flux_integral[ebin]
+
+    hydrogen_to_solar_mass = 8.4144035*1e-58
+    print ('number of molecules = %0.2e (%0.2e solar mass)'%(cloud_mass[energy_bin_cut_low],cloud_mass[energy_bin_cut_low]*hydrogen_to_solar_mass))
+    print ('psr_flux_integral = %0.2e /cm2/s'%(total_psr_flux_integral))
+    print ('obs_flux_integral = %0.2e /cm2/s'%(total_obs_flux_integral))
+    print ('had_model_flux_integral = %0.2e /cm2/s'%(total_model_flux_integral))
+
+    #return energy_array,obs_flux_integral,obs_flux_integral_err,had_model_flux_integral
+    return total_obs_flux_integral, total_model_flux_integral
+
+def flat_disk_model(x,par):
+
+    binx = Hist_bkgd_global.GetXaxis().FindBin(x[0])
+    biny = Hist_bkgd_global.GetYaxis().FindBin(x[1])
+    bkgd_scale = Hist_bkgd_global.GetBinContent(binx,biny)
+
+    disk_center_x = par[0]
+    disk_center_y = par[1]
+    disk_radius = par[2]
+    disk_norm = par[3]
+    distance_sq = pow(x[0]-disk_center_x,2) + pow(x[1]-disk_center_y,2)
+    if distance_sq<disk_radius:
+        return disk_norm*bkgd_scale
+    return 0.
+
+def symmetric_gauss_model(x,par):
+
+    binx = Hist_bkgd_global.GetXaxis().FindBin(x[0])
+    biny = Hist_bkgd_global.GetYaxis().FindBin(x[1])
+    bkgd_scale = Hist_bkgd_global.GetBinContent(binx,biny)
+
+    disk_center_x = par[0]
+    disk_center_y = par[1]
+    disk_radius = par[2]
+    disk_norm = par[3]
+    distance_sq = pow(x[0]-disk_center_x,2) + pow(x[1]-disk_center_y,2)
+    return bkgd_scale*disk_norm*exp(-distance_sq/(2.*disk_radius*disk_radius))
+
+def flat_elipse_model(x,par):
+
+    binx = Hist_bkgd_global.GetXaxis().FindBin(x[0])
+    biny = Hist_bkgd_global.GetYaxis().FindBin(x[1])
+    bkgd_scale = Hist_bkgd_global.GetBinContent(binx,biny)
+
+    elipse_center_x1 = par[0]
+    elipse_center_y1 = par[1]
+    elipse_center_x2 = par[2]
+    elipse_center_y2 = par[3]
+    elipse_semi_major_ax = par[4]
+    elipse_norm = par[5]
+    if pow(pow(x[0]-elipse_center_x1,2)+pow(x[1]-elipse_center_y1,2),0.5) + pow(pow(x[0]-elipse_center_x2,2)+pow(x[1]-elipse_center_y2,2),0.5) < 2.*elipse_semi_major_ax:
+        return elipse_norm*bkgd_scale
+    return 0.
+
+def asymmetric_gauss_model(x,par):
+
+    binx = Hist_bkgd_global.GetXaxis().FindBin(x[0])
+    biny = Hist_bkgd_global.GetYaxis().FindBin(x[1])
+    bkgd_scale = Hist_bkgd_global.GetBinContent(binx,biny)
+
+    elipse_center_x1 = par[0]
+    elipse_center_y1 = par[1]
+    elipse_center_x2 = par[2]
+    elipse_center_y2 = par[3]
+    elipse_semi_major_ax = par[4]
+    elipse_norm = par[5]
+    gauss_center_x = 0.5*(elipse_center_x1+elipse_center_x2)
+    gauss_center_y = 0.5*(elipse_center_y1+elipse_center_y2)
+    eccentricity = 0.5*pow(pow(elipse_center_x2-elipse_center_x1,2)+pow(elipse_center_y2-elipse_center_y1,2),0.5)
+    if elipse_semi_major_ax*elipse_semi_major_ax-eccentricity*eccentricity<0.:
+        return 0.
+    elipse_semi_minor_ax = pow(elipse_semi_major_ax*elipse_semi_major_ax-eccentricity*eccentricity,0.5)
+    theta_elipse = ROOT.TMath.ATan2(elipse_center_y1-elipse_center_y2,elipse_center_x1-elipse_center_x2)
+    x_rotated = (x[0]-gauss_center_x)*ROOT.TMath.Cos(theta_elipse) - (x[1]-gauss_center_y)*ROOT.TMath.Sin(theta_elipse)
+    y_rotated = (x[0]-gauss_center_x)*ROOT.TMath.Sin(theta_elipse) + (x[1]-gauss_center_y)*ROOT.TMath.Cos(theta_elipse)
+    return bkgd_scale*elipse_norm*exp(-x_rotated*x_rotated/(2.*elipse_semi_major_ax*elipse_semi_major_ax))*exp(-y_rotated*y_rotated/(2.*elipse_semi_minor_ax*elipse_semi_minor_ax))
+
+
+def simple_geometry_model_J1908(x,par):
+
+    par_PWN = [par[0],par[1],par[2],par[3]]
+    par_CO_north = [par[4],par[5],par[6],par[7]]
+    par_CO_west = [par[8],par[9],par[10],par[11]]
+    par_PSR = [par[12],par[13],par[14],par[15],par[16],par[17]]
+    total = 0.
+    #total += flat_disk_model(x,par_PWN)
+    #total += flat_disk_model(x,par_CO_north)
+    #total += flat_disk_model(x,par_CO_west)
+    #total += flat_elipse_model(x,par_PSR)
+    total += symmetric_gauss_model(x,par_PWN)
+    total += symmetric_gauss_model(x,par_CO_north)
+    total += symmetric_gauss_model(x,par_CO_west)
+    total += asymmetric_gauss_model(x,par_PSR)
+    return total
+
+def FitSimpleGeometryModel2D_J1908(hist_data_skymap_unsmooth,hist_data_skymap,hist_bkgd_skymap,hist_expo_skymap,ebin):
+
+    global Hist_bkgd_global
+    Hist_bkgd_global.Reset()
+    Hist_bkgd_global.Add(hist_bkgd_skymap)
+
+    print ('====================================================================')
+    print ('FitSimpleGeometryModel2D_J1908')
+    print ('hist_data_skymap_unsmooth.Integral() = %0.2f'%(hist_data_skymap_unsmooth.Integral()))
+    print ('hist_data_skymap.Integral() = %0.2f'%(hist_data_skymap.Integral()))
+
+    MapEdge_left = hist_data_skymap.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = hist_data_skymap.GetXaxis().GetBinLowEdge(hist_data_skymap.GetNbinsX()+1)
+    MapEdge_lower = hist_data_skymap.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = hist_data_skymap.GetYaxis().GetBinLowEdge(hist_data_skymap.GetNbinsY()+1)
+    MapCenter_x = (MapEdge_right+MapEdge_left)/2.
+    MapCenter_y = (MapEdge_upper+MapEdge_lower)/2.
+    MapBinSize = hist_data_skymap.GetXaxis().GetBinLowEdge(2)-hist_data_skymap.GetXaxis().GetBinLowEdge(1)
+
+    hist_excess_skymap = hist_data_skymap.Clone()
+    hist_excess_skymap.Add(hist_bkgd_skymap,-1.)
+
+    flat_disk_CO_north = [286.786,7.1,0.2]
+    flat_disk_CO_west = [286.2,6.4,0.2]
+    flat_disk_PWN = [286.91,6.32,1.5]
+    RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0 = GetPulsarParameters()
+    flat_elipse_PSR = [RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, 0.5]
+
+    norm_CO_north = 0.
+    norm_CO_west = 0.
+    norm_PWN = 0.
+    norm_PSR = 0.
+    area_CO_north = 0.
+    area_CO_west = 0.
+    area_PWN = 0.
+    area_PSR = 0.
+    for bx in range(0,hist_excess_skymap.GetNbinsX()):
+        for by in range(0,hist_excess_skymap.GetNbinsY()):
+            cell_x = hist_excess_skymap.GetXaxis().GetBinCenter(bx+1)
+            cell_y = hist_excess_skymap.GetYaxis().GetBinCenter(by+1)
+            if pow(cell_x-flat_disk_CO_north[0],2) + pow(cell_y-flat_disk_CO_north[1],2) < pow(flat_disk_CO_north[2],2):
+                norm_CO_north += hist_excess_skymap.GetBinContent(bx+1,by+1)
+                area_CO_north += hist_bkgd_skymap.GetBinContent(bx+1,by+1)
+            if pow(cell_x-flat_disk_CO_west[0],2) + pow(cell_y-flat_disk_CO_west[1],2) < pow(flat_disk_CO_west[2],2):
+                norm_CO_west += hist_excess_skymap.GetBinContent(bx+1,by+1)
+                area_CO_west += hist_bkgd_skymap.GetBinContent(bx+1,by+1)
+            if pow(cell_x-flat_disk_PWN[0],2) + pow(cell_y-flat_disk_PWN[1],2) < pow(flat_disk_PWN[2],2):
+                norm_PWN += hist_excess_skymap.GetBinContent(bx+1,by+1)
+                area_PWN += hist_bkgd_skymap.GetBinContent(bx+1,by+1)
+            if pow(pow(cell_x-flat_elipse_PSR[0],2)+pow(cell_y-flat_elipse_PSR[1],2),0.5) + pow(pow(cell_x-flat_elipse_PSR[2],2)+pow(cell_y-flat_elipse_PSR[3],2),0.5) < 2.*flat_elipse_PSR[4]:
+                norm_PSR += hist_excess_skymap.GetBinContent(bx+1,by+1)
+                area_PSR += hist_bkgd_skymap.GetBinContent(bx+1,by+1)
+    norm_PWN = norm_PWN/area_PWN
+    norm_CO_north = max(0.,norm_CO_north/area_CO_north - norm_PWN)
+    norm_CO_west = max(0.,norm_CO_west/area_CO_west - norm_PWN)
+    norm_PSR = max(0.,norm_PSR/area_PSR - norm_PWN)
+
+    npar = 18
+    simple_model_2d = ROOT.TF2('simple_model_2d',simple_geometry_model_J1908,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
+
+    simple_model_2d.SetParameter(0,flat_disk_PWN[0])
+    simple_model_2d.SetParLimits(0,flat_disk_PWN[0]-flat_disk_PWN[2],flat_disk_PWN[0]+flat_disk_PWN[2])
+    simple_model_2d.FixParameter(0,flat_disk_PWN[0])
+    simple_model_2d.SetParameter(1,flat_disk_PWN[1])
+    simple_model_2d.SetParLimits(1,flat_disk_PWN[1]-flat_disk_PWN[2],flat_disk_PWN[1]+flat_disk_PWN[2])
+    simple_model_2d.FixParameter(1,flat_disk_PWN[1])
+    simple_model_2d.SetParameter(2,flat_disk_PWN[2])
+    simple_model_2d.SetParLimits(2,0.5*flat_disk_PWN[2],1.5*flat_disk_PWN[2])
+    simple_model_2d.SetParameter(3,norm_PWN)
+    simple_model_2d.SetParLimits(3,0.*norm_PWN,2.0*norm_PWN)
+
+    simple_model_2d.SetParameter(4,flat_disk_CO_north[0])
+    simple_model_2d.SetParLimits(4,flat_disk_CO_north[0]-flat_disk_CO_north[2],flat_disk_CO_north[0]+flat_disk_CO_north[2])
+    simple_model_2d.SetParameter(5,flat_disk_CO_north[1])
+    simple_model_2d.SetParLimits(5,flat_disk_CO_north[1]-flat_disk_CO_north[2],flat_disk_CO_north[1]+flat_disk_CO_north[2])
+    simple_model_2d.SetParameter(6,flat_disk_CO_north[2])
+    simple_model_2d.SetParLimits(6,0.5*flat_disk_CO_north[2],1.5*flat_disk_CO_north[2])
+    simple_model_2d.SetParameter(7,norm_CO_north)
+    simple_model_2d.SetParLimits(7,0.*norm_CO_north,2.0*norm_CO_north)
+    #simple_model_2d.FixParameter(4,flat_disk_CO_north[0])
+    #simple_model_2d.FixParameter(5,flat_disk_CO_north[1])
+    #simple_model_2d.FixParameter(6,flat_disk_CO_north[2])
+    #simple_model_2d.FixParameter(7,0.)
+
+    simple_model_2d.SetParameter(8,flat_disk_CO_west[0])
+    simple_model_2d.SetParLimits(8,flat_disk_CO_west[0]-flat_disk_CO_west[2],flat_disk_CO_west[0]+flat_disk_CO_west[2])
+    simple_model_2d.SetParameter(9,flat_disk_CO_west[1])
+    simple_model_2d.SetParLimits(9,flat_disk_CO_west[1]-flat_disk_CO_west[2],flat_disk_CO_west[1]+flat_disk_CO_west[2])
+    simple_model_2d.SetParameter(10,flat_disk_CO_west[2])
+    simple_model_2d.SetParLimits(10,0.5*flat_disk_CO_west[2],1.5*flat_disk_CO_west[2])
+    simple_model_2d.SetParameter(11,norm_CO_west)
+    simple_model_2d.SetParLimits(11,0.*norm_CO_west,3.0*norm_CO_west)
+    #simple_model_2d.FixParameter(8,flat_disk_CO_west[0])
+    #simple_model_2d.FixParameter(9,flat_disk_CO_west[1])
+    #simple_model_2d.FixParameter(10,flat_disk_CO_west[2])
+    #simple_model_2d.FixParameter(11,0.)
+
+    simple_model_2d.SetParameter(12,flat_elipse_PSR[0])
+    simple_model_2d.SetParLimits(12,flat_elipse_PSR[0]-flat_elipse_PSR[4],flat_elipse_PSR[0]+flat_elipse_PSR[4])
+    simple_model_2d.SetParameter(13,flat_elipse_PSR[1])
+    simple_model_2d.SetParLimits(13,flat_elipse_PSR[1]-flat_elipse_PSR[4],flat_elipse_PSR[1]+flat_elipse_PSR[4])
+    simple_model_2d.SetParameter(14,flat_elipse_PSR[2])
+    simple_model_2d.SetParLimits(14,flat_elipse_PSR[2]-flat_elipse_PSR[4],flat_elipse_PSR[2]+flat_elipse_PSR[4])
+    simple_model_2d.FixParameter(14,flat_elipse_PSR[2])
+    simple_model_2d.SetParameter(15,flat_elipse_PSR[3])
+    simple_model_2d.SetParLimits(15,flat_elipse_PSR[3]-flat_elipse_PSR[4],flat_elipse_PSR[3]+flat_elipse_PSR[4])
+    simple_model_2d.FixParameter(15,flat_elipse_PSR[3])
+    simple_model_2d.SetParameter(16,flat_elipse_PSR[4])
+    simple_model_2d.SetParLimits(16,0.5*flat_elipse_PSR[4],1.5*flat_elipse_PSR[4])
+    simple_model_2d.SetParameter(17,norm_PSR)
+    simple_model_2d.SetParLimits(17,0.*norm_PSR,2.0*norm_PSR)
+
+    print ('Initial PWN RA = %0.2f'%(flat_disk_PWN[0]))
+    print ('Initial PWN Dec = %0.2f'%(flat_disk_PWN[1]))
+    print ('Initial PWN radius = %0.2f deg'%(flat_disk_PWN[2]))
+    print ('Initial PWN norm = %0.3e'%(norm_PWN))
+    print ('Initial CO_north RA = %0.2f'%(flat_disk_CO_north[0]))
+    print ('Initial CO_north Dec = %0.2f'%(flat_disk_CO_north[1]))
+    print ('Initial CO_north radius = %0.2f deg'%(flat_disk_CO_north[2]))
+    print ('Initial CO_north norm = %0.3e'%(norm_CO_north))
+    print ('Initial CO_west RA = %0.2f'%(flat_disk_CO_west[0]))
+    print ('Initial CO_west Dec = %0.2f'%(flat_disk_CO_west[1]))
+    print ('Initial CO_west radius = %0.2f deg'%(flat_disk_CO_west[2]))
+    print ('Initial CO_west norm = %0.3e'%(norm_CO_west))
+    print ('Initial PSR initial RA = %0.2f'%(flat_elipse_PSR[0]))
+    print ('Initial PSR initial Dec = %0.2f'%(flat_elipse_PSR[1]))
+    print ('Initial PSR final RA = %0.2f'%(flat_elipse_PSR[2]))
+    print ('Initial PSR final Dec = %0.2f'%(flat_elipse_PSR[3]))
+    print ('Initial PSR radius = %0.2f deg'%(flat_elipse_PSR[4]))
+    print ('Initial PSR norm = %0.3e'%(norm_PSR))
+
+    hist_excess_skymap.Fit('simple_model_2d')
+
+    flat_disk_PWN[0] = simple_model_2d.GetParameter(0)
+    print ('2D fit PWN RA = %0.2f'%(flat_disk_PWN[0]))
+    flat_disk_PWN[1] = simple_model_2d.GetParameter(1)
+    print ('2D fit PWN Dec = %0.2f'%(flat_disk_PWN[1]))
+    flat_disk_PWN[2] = simple_model_2d.GetParameter(2)
+    print ('2D fit PWN radius = %0.2f deg'%(flat_disk_PWN[2]))
+    norm_PWN = simple_model_2d.GetParameter(3)
+    print ('2D fit PWN norm = %0.3e'%(norm_PWN))
+
+    flat_disk_CO_north[0] = simple_model_2d.GetParameter(4)
+    print ('2D fit CO_north RA = %0.2f'%(flat_disk_CO_north[0]))
+    flat_disk_CO_north[1] = simple_model_2d.GetParameter(5)
+    print ('2D fit CO_north Dec = %0.2f'%(flat_disk_CO_north[1]))
+    flat_disk_CO_north[2] = simple_model_2d.GetParameter(6)
+    print ('2D fit CO_north radius = %0.2f deg'%(flat_disk_CO_north[2]))
+    norm_CO_north = simple_model_2d.GetParameter(7)
+    print ('2D fit CO_north norm = %0.3e'%(norm_CO_north))
+
+    flat_disk_CO_west[0] = simple_model_2d.GetParameter(8)
+    print ('2D fit CO_west RA = %0.2f'%(flat_disk_CO_west[0]))
+    flat_disk_CO_west[1] = simple_model_2d.GetParameter(9)
+    print ('2D fit CO_west Dec = %0.2f'%(flat_disk_CO_west[1]))
+    flat_disk_CO_west[2] = simple_model_2d.GetParameter(10)
+    print ('2D fit CO_west radius = %0.2f deg'%(flat_disk_CO_west[2]))
+    norm_CO_west = simple_model_2d.GetParameter(11)
+    print ('2D fit CO_west norm = %0.3e'%(norm_CO_west))
+
+    flat_elipse_PSR[0] = simple_model_2d.GetParameter(12)
+    print ('2D fit PSR initial RA = %0.2f'%(flat_elipse_PSR[0]))
+    flat_elipse_PSR[1] = simple_model_2d.GetParameter(13)
+    print ('2D fit PSR initial Dec = %0.2f'%(flat_elipse_PSR[1]))
+    flat_elipse_PSR[2] = simple_model_2d.GetParameter(14)
+    print ('2D fit PSR final RA = %0.2f'%(flat_elipse_PSR[2]))
+    flat_elipse_PSR[3] = simple_model_2d.GetParameter(15)
+    print ('2D fit PSR final Dec = %0.2f'%(flat_elipse_PSR[3]))
+    flat_elipse_PSR[4] = simple_model_2d.GetParameter(16)
+    print ('2D fit PSR semi_major = %0.2f deg'%(flat_elipse_PSR[4]))
+    norm_PSR = simple_model_2d.GetParameter(17)
+    print ('2D fit PSR norm = %0.3e'%(norm_PSR))
+    elipse_center_x = (flat_elipse_PSR[0]+flat_elipse_PSR[2])/2.
+    elipse_center_y = (flat_elipse_PSR[1]+flat_elipse_PSR[3])/2.
+    eccentricity = 0.5*pow(pow(flat_elipse_PSR[0]-flat_elipse_PSR[2],2)+pow(flat_elipse_PSR[1]-flat_elipse_PSR[3],2),0.5)
+    semi_major = flat_elipse_PSR[4]
+    semi_minor = pow(semi_major*semi_major-eccentricity*eccentricity,0.5)
+    print ('2D fit PSR semi_minor = %0.2f deg'%(semi_minor))
+
+    fit_result = hist_excess_skymap.GetFunction('simple_model_2d')
+    degree_of_freedom = fit_result.GetNDF()
+    fit_chi2 = fit_result.GetChisquare()
+    print ('degree_of_freedom = %s'%(degree_of_freedom))
+    print ('chi2/ndf = %0.2f'%(fit_chi2/degree_of_freedom))
+
+    npar = 4
+    PWN_model_2d = ROOT.TF2('PWN_model_2d',symmetric_gauss_model,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
+    PWN_model_2d.SetParameter(0,flat_disk_PWN[0])
+    PWN_model_2d.SetParameter(1,flat_disk_PWN[1])
+    PWN_model_2d.SetParameter(2,flat_disk_PWN[2])
+    PWN_model_2d.SetParameter(3,norm_PWN)
+
+    npar = 4
+    CO_north_model_2d = ROOT.TF2('CO_north_model_2d',symmetric_gauss_model,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
+    CO_north_model_2d.SetParameter(0,flat_disk_CO_north[0])
+    CO_north_model_2d.SetParameter(1,flat_disk_CO_north[1])
+    CO_north_model_2d.SetParameter(2,flat_disk_CO_north[2])
+    CO_north_model_2d.SetParameter(3,norm_CO_north)
+
+    npar = 4
+    CO_west_model_2d = ROOT.TF2('CO_west_model_2d',symmetric_gauss_model,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
+    CO_west_model_2d.SetParameter(0,flat_disk_CO_west[0])
+    CO_west_model_2d.SetParameter(1,flat_disk_CO_west[1])
+    CO_west_model_2d.SetParameter(2,flat_disk_CO_west[2])
+    CO_west_model_2d.SetParameter(3,norm_CO_west)
+
+    npar = 6
+    PSR_model_2d = ROOT.TF2('PSR_model_2d',asymmetric_gauss_model,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
+    PSR_model_2d.SetParameter(0,flat_elipse_PSR[0])
+    PSR_model_2d.SetParameter(1,flat_elipse_PSR[1])
+    PSR_model_2d.SetParameter(2,flat_elipse_PSR[2])
+    PSR_model_2d.SetParameter(3,flat_elipse_PSR[3])
+    PSR_model_2d.SetParameter(4,flat_elipse_PSR[4])
+    PSR_model_2d.SetParameter(5,norm_PSR)
+
+    hist_PWN_skymap = hist_data_skymap.Clone()
+    hist_PWN_skymap.Reset()
+    hist_CO_north_skymap = hist_data_skymap.Clone()
+    hist_CO_north_skymap.Reset()
+    hist_CO_west_skymap = hist_data_skymap.Clone()
+    hist_CO_west_skymap.Reset()
+    hist_PSR_skymap = hist_data_skymap.Clone()
+    hist_PSR_skymap.Reset()
+    for bx in range(0,hist_data_skymap.GetNbinsX()):
+        for by in range(0,hist_data_skymap.GetNbinsY()):
+            map_x = hist_data_skymap.GetXaxis().GetBinCenter(bx+1)
+            map_y = hist_data_skymap.GetYaxis().GetBinCenter(by+1)
+            flux_calibration = GetFluxCalibration(map_x,map_y,ebin)
+            correction = flux_calibration*pow(smooth_size_spectroscopy,2)/(calibration_radius*calibration_radius)*energy_bin[ebin]/1000.
+            expo_count = hist_expo_skymap.GetBinContent(bx+1,by+1)
+            if expo_count==0: continue
+            PWN_flux = PWN_model_2d.Eval(map_x,map_y)/expo_count*correction
+            hist_PWN_skymap.SetBinContent(bx+1,by+1,PWN_flux)
+            CO_north_flux = CO_north_model_2d.Eval(map_x,map_y)/expo_count*correction
+            hist_CO_north_skymap.SetBinContent(bx+1,by+1,CO_north_flux)
+            CO_west_flux = CO_west_model_2d.Eval(map_x,map_y)/expo_count*correction
+            hist_CO_west_skymap.SetBinContent(bx+1,by+1,CO_west_flux)
+            PSR_flux = PSR_model_2d.Eval(map_x,map_y)/expo_count*correction
+            hist_PSR_skymap.SetBinContent(bx+1,by+1,PSR_flux)
+
+    print ('hist_excess_skymap.Integral() = %0.2e'%(hist_excess_skymap.Integral()))
+    print ('hist_PWN_skymap.Integral() = %0.2e'%(hist_PWN_skymap.Integral()))
+    print ('hist_PSR_skymap.Integral() = %0.2e'%(hist_PSR_skymap.Integral()))
+    print ('hist_CO_north_skymap.Integral() = %0.2e'%(hist_CO_north_skymap.Integral()))
+    print ('hist_CO_west_skymap.Integral() = %0.2e'%(hist_CO_west_skymap.Integral()))
+
+    print ('====================================================================')
+
+    return flat_disk_PWN, flat_disk_CO_north, flat_disk_CO_west, flat_elipse_PSR, hist_PWN_skymap, hist_CO_north_skymap, hist_CO_west_skymap, hist_PSR_skymap
+
 def FitHybridModel2D(Hist_flux):
 
     MapEdge_left = Hist_flux.GetXaxis().GetBinLowEdge(1)
@@ -5540,57 +6104,57 @@ def FitHybridModel2D(Hist_flux):
     M_ej = 1. # ejecta mass in solar mass unit
     t_Sedov = 423.*pow(E_SN,-0.5)*pow(M_ej,5./6.)*pow(n_0,-1./3.) # year
 
-
     fix_lep_r_diff = False
-    D_ism = 0.069*1e28
+    D_ism = 0.082*1e28
     D_ism_upper = (0.082+0.209)*1e28
     D_ism_lower = (0.082-0.059)*1e28
-    print ('Initial E_el_vis = %0.3f e-16'%(E_el_vis*1e16))
-    print ('Initial D_ism = %0.3f e28 cm2/s'%(D_ism/1e28))
 
-    fix_had_r_diff = False
     #diffusion_radius = 1.0
     #esc_param = DeriveSupernovaEscapeParameter(diffusion_radius,t_SN,d_SN,n_0)
-    esc_param = 2.0
-    diffusion_radius = DeriveSupernovaDiffusionLength(esc_param,t_SN,d_SN,n_0,current_gamma_energy)
+    #esc_param = 2.0
+    #diffusion_radius = DeriveSupernovaDiffusionLength(esc_param,t_SN,d_SN,n_0,current_gamma_energy)
     #CR_brightness, CR_brightness_err = EstimateCosmicRayBrightness(Hist_flux,286.786,7.1,0.5,diffusion_radius)
     #CR_efficiency = CR_brightness
     CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
-    print ('Initial CR_efficiency = %0.3f'%(CR_efficiency))
-    print ('Initial esc_param = %0.3f'%(esc_param))
-    print ('Initial diffusion_radius = %0.3f'%(diffusion_radius))
 
-    npar = 4
+    print ('Initial E_el_vis = %0.3f e-16'%(E_el_vis*1e16))
+    print ('Initial CR_efficiency = %0.3f'%(CR_efficiency))
+    print ('Initial D_ism = %0.3f e28 cm2/s'%(D_ism/1e28))
+
+    npar = 5
     hybrid_flux_2d = ROOT.TF2('hybrid_flux_2d',hybrid_model_2d,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
     hybrid_flux_2d.SetParameter(0,E_el_vis)
-    hybrid_flux_2d.SetParameter(1,D_ism)
-    hybrid_flux_2d.SetParLimits(1,D_ism_lower,D_ism_upper)
-    if fix_lep_r_diff: hybrid_flux_2d.FixParameter(1,D_ism)
-    hybrid_flux_2d.SetParameter(2,CR_efficiency)
-    hybrid_flux_2d.SetParLimits(2,0.5*CR_efficiency,2.*CR_efficiency)
-    hybrid_flux_2d.SetParameter(3,esc_param)
-    hybrid_flux_2d.SetParLimits(3,1.,3.5)
-    if fix_had_r_diff: hybrid_flux_2d.FixParameter(3,esc_param)
-    else: hybrid_flux_2d.FixParameter(2,CR_efficiency)
+    hybrid_flux_2d.SetParLimits(0,0.5*E_el_vis,1.5*E_el_vis)
+    hybrid_flux_2d.SetParameter(1,CR_efficiency)
+    hybrid_flux_2d.SetParLimits(1,0.5*CR_efficiency,1.5*CR_efficiency)
+    hybrid_flux_2d.SetParameter(2,D_ism)
+    hybrid_flux_2d.SetParLimits(2,D_ism_lower,D_ism_upper)
+    hybrid_flux_2d.FixParameter(2,D_ism)
+    hybrid_flux_2d.SetParameter(3,RA_PSR_initial)
+    hybrid_flux_2d.FixParameter(3,RA_PSR_initial)
+    hybrid_flux_2d.SetParameter(4,Dec_PSR_initial)
+    hybrid_flux_2d.FixParameter(4,Dec_PSR_initial)
 
     Hist_flux_new = Hist_flux.Clone()
 
     Hist_flux_new.Fit('hybrid_flux_2d')
 
     E_el_vis = hybrid_flux_2d.GetParameter(0)
-    D_ism = hybrid_flux_2d.GetParameter(1)
+    CR_efficiency = hybrid_flux_2d.GetParameter(1)
+    CR_efficiency_err = hybrid_flux_2d.GetParError(1)
     print ('2D fit E_el_vis = %0.3f e-16'%(E_el_vis*1e16))
+    print ('2D fit CR_efficiency = %0.3f +/- %0.3f'%(CR_efficiency,CR_efficiency_err))
+
+    D_ism = hybrid_flux_2d.GetParameter(2)
     print ('2D fit D_ism = %0.3f e28 cm2/s'%(D_ism/1e28))
 
-    CR_efficiency = hybrid_flux_2d.GetParameter(2)
-    CR_efficiency_err = hybrid_flux_2d.GetParError(2)
-    esc_param = hybrid_flux_2d.GetParameter(3)
-    esc_param_err = hybrid_flux_2d.GetParError(3)
+    RA_PSR_initial = hybrid_flux_2d.GetParameter(3)
+    Dec_PSR_initial = hybrid_flux_2d.GetParameter(4)
+    print ('2D fit RA_PSR_initial = %0.2f'%(RA_PSR_initial))
+    print ('2D fit Dec_PSR_initial = %0.2f'%(Dec_PSR_initial))
 
-    print ('2D fit CR_efficiency = %0.3f +/- %0.3f'%(CR_efficiency,CR_efficiency_err))
-    print ('2D fit esc_param = %0.3f'%(esc_param))
 
-    return E_el_vis, D_ism, CR_efficiency, esc_param
+    return E_el_vis, D_ism, CR_efficiency, RA_PSR_initial, Dec_PSR_initial
 
 def FitLeptonicModel2D(Hist_flux):
 
@@ -5619,18 +6183,20 @@ def FitLeptonicModel2D(Hist_flux):
             total_area += 1.
     E_el_vis = total_flux/100.
 
-    npar = 2
-    D_ism = 0.069*1e28
+    npar = 4
+    D_ism = 0.082*1e28
     D_ism_upper = (0.082+0.209)*1e28
     D_ism_lower = (0.082-0.059)*1e28
     print ('Initial E_el_vis = %0.3f e-16'%(E_el_vis*1e16))
     print ('Initial D_ism = %0.3f e28 cm2/s'%(D_ism/1e28))
-    fix_r_diff = False
+    fix_r_diff = True
     leptonic_flux_2d = ROOT.TF2('leptonic_flux_2d',leptonic_model_2d,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
     leptonic_flux_2d.SetParameter(0,E_el_vis)
     leptonic_flux_2d.SetParameter(1,D_ism)
     leptonic_flux_2d.SetParLimits(1,D_ism_lower,D_ism_upper)
     if fix_r_diff: leptonic_flux_2d.FixParameter(1,D_ism)
+    leptonic_flux_2d.SetParameter(2,RA_PSR_initial)
+    leptonic_flux_2d.SetParameter(3,Dec_PSR_initial)
 
     Hist_flux_new = Hist_flux.Clone()
 
@@ -5666,38 +6232,45 @@ def FitHadronicModel2D(Hist_flux):
     #Syst_err = 10.
     #if CR_brightness>0.: Syst_err = CR_brightness_err/CR_brightness
 
-    #CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
+    CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
 
     diffusion_radius = 0.5
     esc_param = DeriveSupernovaEscapeParameter(diffusion_radius,t_SN,d_SN,n_0)
-    CR_brightness, CR_brightness_err = EstimateCosmicRayBrightness(Hist_flux,RA_SN,Dec_SN,0.5,diffusion_radius)
-    CR_efficiency = CR_brightness
+    #CR_brightness, CR_brightness_err = EstimateCosmicRayBrightness(Hist_flux,RA_SN,Dec_SN,0.5,diffusion_radius)
+    #CR_efficiency = CR_brightness
+    D_ism = 0.082*1e28
+    D_ism_upper = (0.082+0.209)*1e28
+    D_ism_lower = (0.082-0.059)*1e28
     #esc_param = 2.48
     #diffusion_radius = DeriveSupernovaDiffusionLength(esc_param,t_SN,d_SN,n_0,current_gamma_energy)
     #CR_efficiency = 3.14/5.*(1.-pow(t_Sedov/t_SN,0.4))
     print ('Initial CR_efficiency = %0.3f'%(CR_efficiency))
     print ('Initial esc_param = %0.3f'%(esc_param))
     print ('Initial diffusion_radius = %0.3f'%(diffusion_radius))
-    npar = 2
+    npar = 4
     hadronic_flux_2d = ROOT.TF2('hadronic_flux_2d',hadronic_model_2d,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
     hadronic_flux_2d.SetParameter(0,CR_efficiency)
-    hadronic_flux_2d.SetParLimits(0,0.01*CR_efficiency,10.*CR_efficiency)
-    hadronic_flux_2d.SetParameter(1,esc_param)
-    hadronic_flux_2d.SetParLimits(1,1.,3.5)
-    #hadronic_flux_2d.FixParameter(0,CR_efficiency)
+    hadronic_flux_2d.SetParLimits(0,0.01*CR_efficiency,2.*CR_efficiency)
+    hadronic_flux_2d.SetParameter(1,D_ism)
+    hadronic_flux_2d.SetParLimits(1,D_ism_lower,D_ism_upper)
+    hadronic_flux_2d.FixParameter(1,D_ism)
+    hadronic_flux_2d.SetParameter(2,RA_SN)
+    hadronic_flux_2d.FixParameter(2,RA_SN)
+    hadronic_flux_2d.SetParameter(3,Dec_SN)
+    hadronic_flux_2d.FixParameter(3,Dec_SN)
 
     Hist_flux_new = Hist_flux.Clone()
 
     Hist_flux_new.Fit('hadronic_flux_2d')
 
     CR_efficiency = hadronic_flux_2d.GetParameter(0)
-    esc_param = hadronic_flux_2d.GetParameter(1)
+    D_ism = hadronic_flux_2d.GetParameter(1)
     CR_efficiency_err = hadronic_flux_2d.GetParError(0)
-    esc_param_err = hadronic_flux_2d.GetParError(1)
+    D_ism_err = hadronic_flux_2d.GetParError(1)
     print ('2D fit CR_efficiency = %0.3f +/- %0.3f'%(CR_efficiency,CR_efficiency_err))
-    print ('2D fit esc_param = %0.3f'%(esc_param))
+    print ('2D fit D_ism = %0.3f'%(D_ism))
 
-    return CR_efficiency, esc_param
+    return CR_efficiency, D_ism
 
 def GetExtention2D(Hist_data_input, Hist_bkgd_input, Hist_syst_input, highlight_threshold, init_x, init_y, tag):
 
@@ -6633,132 +7206,6 @@ def FindCenter(Hist_Data_input,Hist_Bkgd_input):
     return excess_center_x_init, excess_center_y_init
 
 
-def GetExpectedLeptonicMapV2(hist_column_density_map,el_brightness,diffusion_coefficient):
-
-    RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0 = GetPulsarParameters()
-
-    diffusion_coefficient_1TeV = diffusion_coefficient
-    spectral_index = 2.4
-    deg_to_cm = 3.14/180.*d_PSR*1000.*3.086e18
-    skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
-    n_segments = 10
-    pulsar_initial_x = RA_PSR_initial
-    pulsar_initial_y = Dec_PSR_initial
-    pulsar_final_x = RA_PSR
-    pulsar_final_y = Dec_PSR
-
-    mag_field = 6.
-    E_cmb = 6.6*1e-4 # eV
-    m_e = 0.511*1e6 # eV
-    sigma_thomson = 6.65*1e-29 # Thomson cross section in m2
-    speed_light = 3.*1e8 # m/s
-    U_cmb = 2.6*1e5 # eV/m3
-    U_B = 6.24*1e18/(8.*3.14*1e-7)*pow(mag_field*1e-6/1e4,2) # eV/m3
-    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        E_e = m_e*pow(energy_bin[ebin]*1e9/E_cmb,0.5) # eV
-        gamma_factor = E_e/m_e
-        t_cooling = m_e/speed_light/(4./3.*sigma_thomson*gamma_factor*(U_cmb+U_B)) # sec
-        print ('Energy %0.1f GeV, t_cooling = %0.2f kyr'%(energy_bin[ebin],t_cooling/(1000.*365.*24.*60.*60.)))
-
-    hist_leptonic_map = hist_column_density_map.Clone()
-    hist_leptonic_map.Reset()
-    for bx in range(0,hist_column_density_map.GetNbinsX()):
-        for by in range(0,hist_column_density_map.GetNbinsY()):
-            bin_ra = hist_column_density_map.GetXaxis().GetBinCenter(bx+1)
-            bin_dec = hist_column_density_map.GetYaxis().GetBinCenter(by+1)
-
-            distance_sq = pow(bin_ra-source_ra,2) + pow(bin_dec-source_dec,2)
-            if distance_sq>1.5*1.5: continue
-
-            flux_integral = 0.
-            for segment in range(0,n_segments):
-                # segment=0 is the final pulsar position
-                diff_time = t_PSR/n_segments*(segment+1)
-
-                mag_field = 6.
-                E_cmb = 6.6*1e-4 # eV
-                m_e = 0.511*1e6 # eV
-                sigma_thomson = 6.65*1e-29 # Thomson cross section in m2
-                speed_light = 3.*1e8 # m/s
-                U_cmb = 2.6*1e5 # eV/m3
-                U_B = 6.24*1e18/(8.*3.14*1e-7)*pow(mag_field*1e-6/1e4,2) # eV/m3
-
-                for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-                    E_e = m_e*pow(energy_bin[ebin]*1e9/E_cmb,0.5) # eV
-                    gamma_factor = E_e/m_e
-                    t_cooling = m_e/speed_light/(4./3.*sigma_thomson*gamma_factor*(U_cmb+U_B)) # sec
-                    energy_loss = exp(-diff_time*365.*24.*60.*60./t_cooling)
-                    t_cooling = min(diff_time*365.*24.*60.*60.,t_cooling)
-
-                    diffusion_coefficient = EstimateLeptonicDiffusionCoefficient(energy_bin[ebin],mag_field,d_PSR,t_PSR,diffusion_coefficient_1TeV,0.5)
-                    diffusion_radius = pow(4.*diffusion_coefficient*t_cooling,0.5)/deg_to_cm
-                    diffusion_radius = pow(smooth_size_spectroscopy*smooth_size_spectroscopy+diffusion_radius*diffusion_radius,0.5)
-                    pulsar_current_x = (pulsar_initial_x-pulsar_final_x)/t_PSR*diff_time+pulsar_final_x
-                    pulsar_current_y = (pulsar_initial_y-pulsar_final_y)/t_PSR*diff_time+pulsar_final_y
-                    distance = pow(pow(bin_ra-pulsar_current_x,2)+pow(bin_dec-pulsar_current_y,2),0.5)
-                    attenuation = exp(-pow(distance/diffusion_radius,2))
-                    line_of_sight = diffusion_radius
-                    flux_integral += el_brightness*energy_loss*pow(energy_bin[ebin]/energy_bin[energy_bin_cut_low],-spectral_index+1)*attenuation*diffusion_radius/line_of_sight*pow(3.14,0.5)/2.*math.erf(line_of_sight/diffusion_radius)
-            
-            hist_leptonic_map.SetBinContent(bx+1,by+1,flux_integral)
-
-    return hist_leptonic_map
-
-def GetExpectedHadronicMapV2(hist_column_density_map,CR_efficiency,esc_param):
-
-    RA_SN, Dec_SN, r_SN, d_SN, t_SN, n_0 = GetSupernovaParameters()
-
-    #CR_efficiency, esc_param, R_esc = DeriveSupernovaEfficiencyAndEscapeParameter(CR_brightness,diffusion_radius,t_SN,d_SN,n_0)
-
-    Gamma_CR = 2.1
-    f_Gamma = 0.9
-    #Gamma_CR = 2.2
-    #f_Gamma = 0.43
-    #Gamma_CR = 2.3
-    #f_Gamma = 0.19
-    E_SN = 1.
-    deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
-    skymap_bin_area = 3.14*pow(smooth_size_spectroscopy*deg_to_cm,2)
-
-    hist_hadronic_map = hist_column_density_map.Clone()
-    hist_hadronic_map.Reset()
-
-    for bx in range(0,hist_column_density_map.GetNbinsX()):
-        for by in range(0,hist_column_density_map.GetNbinsY()):
-
-            bin_ra = hist_column_density_map.GetXaxis().GetBinCenter(bx+1)
-            bin_dec = hist_column_density_map.GetYaxis().GetBinCenter(by+1)
-            distance = pow(pow(bin_ra-RA_SN,2)+pow(bin_dec-Dec_SN,2),0.5)
-            MC_column_density = hist_column_density_map.GetBinContent(bx+1,by+1)
-            MC_mass = MC_column_density*skymap_bin_area
-            
-            distance_sq = pow(bin_ra-source_ra,2) + pow(bin_dec-source_dec,2)
-            if distance_sq>1.5*1.5: continue
-
-            flux_integral = 0.
-            for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-                diffusion_radius = DeriveSupernovaDiffusionLength(esc_param,t_SN,d_SN,n_0,energy_bin[ebin])
-                diffusion_radius = pow(smooth_size_spectroscopy*smooth_size_spectroscopy+diffusion_radius*diffusion_radius,0.5)
-                vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
-                attenuation = exp(-(distance*distance)/pow(diffusion_radius,2))
-                #vol_diff = 4.*3.14/3.*pow(diffusion_radius*deg_to_cm,3)
-                #attenuation = exp(-(distance*distance+R_esc*R_esc)/pow(diffusion_radius,2))
-                #if distance>diffusion_radius:
-                #    A_esc = 4.*3.14*R_esc*R_esc
-                #    vol_diff = diffusion_radius*A_esc*distance/R_esc*pow(deg_to_cm,3)
-                #    attenuation = exp(-(distance*distance+R_esc*R_esc)/pow(diffusion_radius,2))*math.sinh(2.*distance*R_esc/diffusion_radius)
-
-                ECR_density_in_SNR = CR_efficiency*E_SN/vol_diff
-                ECR_density_local = ECR_density_in_SNR*attenuation
-                line_of_sight = diffusion_radius
-                ECR_density_local_avg = ECR_density_in_SNR*attenuation*diffusion_radius/line_of_sight*pow(3.14,0.5)/2.*math.erf(line_of_sight/diffusion_radius)
-                A_par = MC_mass*ECR_density_local_avg*pow(d_SN,-2)
-                flux_integral += A_par*(f_Gamma*1e-10*(pow(energy_bin[ebin]/1000.,1-Gamma_CR)-pow(energy_bin[ebin+1]/1000.,1-Gamma_CR)))
-                
-            hist_hadronic_map.SetBinContent(bx+1,by+1,flux_integral)
-
-    return hist_hadronic_map
-
 def GetPulsarParameters():
 
     RA_PSR_initial = source_ra
@@ -6787,7 +7234,8 @@ def GetPulsarParameters():
             Dec_PSR_initial = 6.6
             RA_PSR_final = 286.975
             Dec_PSR_final = 6.03777777778
-            d_PSR = 1.884 #kpc
+            #d_PSR = 1.884 #kpc
+            d_PSR = 3.2 #kpc
             t_PSR = 19.5*1000. #yr
             n_0 = 3.0 # cm^{-3} ambient density
 
@@ -6817,11 +7265,17 @@ def GetSupernovaParameters():
     if sys.argv[1]=='MGRO_J1908_ON':
 
         if J1908_model=='SNR_7p9kpc_PSR_moving' or J1908_model=='SNR_7p9kpc_PSR_stationary':
-            RA_SN = 286.786
-            Dec_SN= 6.498
-            d_SN = 8.7 #kpc
-            t_SN = 11.*1000. # age of PSR J1907+0631 in year
-            r_SN = 0.5*0.43 # degree, Yang et al. 2006, ChJAA, 6, 210.
+            #RA_SN = 286.786
+            #Dec_SN= 6.498
+            #d_SN = 8.7 #kpc
+            #t_SN = 11.*1000. # age of PSR J1907+0631 in year
+            #r_SN = 0.5*0.43 # degree, Yang et al. 2006, ChJAA, 6, 210.
+            #n_0 = 3.0 # cm^{-3} ambient density
+            RA_SN = 286.9 # G41.1-0.3
+            Dec_SN= 7.1
+            d_SN = 8.5 #kpc
+            t_SN = 5.*1000. 
+            r_SN = 0.5*0.43 
             n_0 = 3.0 # cm^{-3} ambient density
 
         if J1908_model=='SNR_3p4kpc_PSR_moving' or J1908_model=='SNR_3p4kpc_PSR_stationary':
@@ -6835,7 +7289,8 @@ def GetSupernovaParameters():
         if J1908_model=='plerion':
             RA_SN = 287.2
             Dec_SN= 6.6
-            d_SN = 1.884 #kpc
+            #d_SN = 1.884 #kpc
+            d_SN = 3.2 #kpc
             t_SN = 19.5*1000.
             r_SN = 0.5*1.0 
             n_0 = 3.0 # cm^{-3} ambient density
@@ -6960,7 +7415,7 @@ def DeriveSupernovaParameters(CR_efficiency, esc_param):
     # E_pion = k*E_proton, k = 0.17 from https://www.mpi-hd.mpg.de/personalhomes/frieger/HEA9.pdf
     E_vis = (1./0.17)*2.*current_gamma_energy  # visible CR energy threshold
     print ('E_gamma = %0.2f TeV'%(current_gamma_energy/1000.))
-    print ('E_vis = %0.2f TeV'%(E_vis/1000.))
+    print ('E_CR = %0.2f TeV'%(E_vis/1000.))
     diffusion_ism = 1e28*pow(E_vis/10.,0.5)*pow(B_ISM/3.,-0.5) # cm2/s
 
     if esc_param>0.:
@@ -7580,7 +8035,8 @@ for ebin in range(0,len(energy_bin)-1):
         Hist_ShapeSyst_Energy_Skymap_ThisBin += [ROOT.TH2D("Hist_ShapeSyst_Energy_Skymap_%s_%s"%(ebin,xy_bin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_ShapeSyst_Energy_Skymap += [Hist_ShapeSyst_Energy_Skymap_ThisBin]
 
-Hist_MWL = ROOT.TH2D("Hist_MWL","",int(Skymap_nbins/skymap_zoomin_scale),source_ra-Skymap_size/skymap_zoomin_scale,source_ra+Skymap_size/skymap_zoomin_scale,int(Skymap_nbins/skymap_zoomin_scale),source_dec-Skymap_size/skymap_zoomin_scale,source_dec+Skymap_size/skymap_zoomin_scale)
+Hist_bkgd_global = ROOT.TH2D("Hist_bkgd_global","",int(Skymap_nbins/skymap_zoomin_scale),source_ra-Skymap_size/skymap_zoomin_scale,source_ra+Skymap_size/skymap_zoomin_scale,int(Skymap_nbins/skymap_zoomin_scale),source_dec-Skymap_size/skymap_zoomin_scale,source_dec+Skymap_size/skymap_zoomin_scale)
+Hist_MWL_global = ROOT.TH2D("Hist_MWL_global","",int(Skymap_nbins/skymap_zoomin_scale),source_ra-Skymap_size/skymap_zoomin_scale,source_ra+Skymap_size/skymap_zoomin_scale,int(Skymap_nbins/skymap_zoomin_scale),source_dec-Skymap_size/skymap_zoomin_scale,source_dec+Skymap_size/skymap_zoomin_scale)
 
 Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_OnDark_Skymap = ROOT.TH2D("Hist_OnDark_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
