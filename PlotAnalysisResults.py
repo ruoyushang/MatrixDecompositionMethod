@@ -4247,6 +4247,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     hist_data_skymap = []
     hist_flux_skymap = []
     hist_energy_flux_skymap = []
+    hist_energy_flux_syst_skymap = []
     hist_syst_skymap = []
     hist_normsyst_skymap = []
     hist_bkgd_skymap = []
@@ -4254,6 +4255,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     for ebin in range(0,len(energy_bin)-1):
         hist_flux_skymap += [ROOT.TH2D("hist_flux_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_energy_flux_skymap += [ROOT.TH2D("hist_energy_flux_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_energy_flux_syst_skymap += [ROOT.TH2D("hist_energy_flux_syst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_zscore_skymap += [ROOT.TH2D("hist_zscore_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_data_skymap += [ROOT.TH2D("hist_data_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_data_skymap_unsmooth += [ROOT.TH2D("hist_data_skymap_unsmooth_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
@@ -4333,15 +4335,11 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 syst_err = hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)/expo_content*correction
                 syst_err = max(syst_err,1e-4*correction)
                 flux_content = (data_content-bkgd_content)/expo_content*correction
-                flux_err = pow(stat_err*stat_err+syst_err*syst_err,0.5)
-                #if flux_err==0: continue
-                #if flux_content/flux_err<2.0: continue
                 hist_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content)
-                hist_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err)
-                #hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
-                #hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err/(flux_index-1)*(energy_bin[ebin]/1000.-pow(energy_bin[ebin+1]/1000.,1-flux_index)/pow(energy_bin[ebin]/1000.,-flux_index)))
+                hist_flux_skymap[ebin].SetBinError(bx+1,by+1,stat_err)
                 hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content*pow(energy_bin[ebin]/1e3,energy_index))
-                hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,flux_err*pow(energy_bin[ebin]/1e3,energy_index))
+                hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,stat_err*pow(energy_bin[ebin]/1e3,energy_index))
+                hist_energy_flux_syst_skymap[ebin].SetBinContent(bx+1,by+1,syst_err*pow(energy_bin[ebin]/1e3,energy_index))
 
     
     list_edata = []
@@ -4415,7 +4413,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                     stat_err_sum += data_err_cell*data_err_cell+bkgd_err_cell*bkgd_err_cell
                     syst_err_sum += syst_err_cell
             if pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)==0.: continue
-            if flux_sum/pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)<0.5: continue
+            #if flux_sum/pow(stat_err_sum+syst_err_sum*syst_err_sum,0.5)<0.5: continue
             radius_inner = roi_radius_inner[nth_roi]
             radius_outer = roi_radius_outer[nth_roi]
             #map_x = roi_ra[nth_roi]
@@ -4503,12 +4501,12 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         n_1sigma = 0
         for binx in range(0,len(list_fdata[nth_roi])):
             if list_error[nth_roi][binx]==0.: continue
-            if list_fdata[nth_roi][binx]/list_error[nth_roi][binx]>1.:
+            if list_fdata[nth_roi][binx]/list_error[nth_roi][binx]>2.:
                 n_1sigma += 1
-            #else:
-            #    list_uplim[nth_roi][binx] = 1
-            #    list_fdata[nth_roi][binx] = max(0.,list_fdata[nth_roi][binx])+list_error[nth_roi][binx]
-            #    list_error[nth_roi][binx] = 0.3*list_fdata[nth_roi][binx]
+            else:
+                list_uplim[nth_roi][binx] = 1
+                list_fdata[nth_roi][binx] = 2.*list_error[nth_roi][binx]
+                list_error[nth_roi][binx] = 0.3*list_fdata[nth_roi][binx]
         uplims = np.array(list_uplim[nth_roi], dtype=bool)
         next_color = next(cycol)
         doFit = True
@@ -4519,7 +4517,11 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
         if n_1sigma<3 or doUpperLimit:
             doFit = False
         if not doFit:
-            axbig.errorbar(list_edata[nth_roi],list_fdata[nth_roi],list_error[nth_roi],color=next_color,marker='s',uplims=uplims,ls='none',label='%s'%(legends[nth_roi]))
+            axbig.errorbar(list_edata[nth_roi],list_fdata[nth_roi],list_error[nth_roi],color=next_color,marker='_',uplims=uplims,ls='none',label='%s'%(legends[nth_roi]))
+            print ('=================================================')
+            print ('Region %s'%(legends[nth_roi]))
+            print ('list_fdata[nth_roi] = %s'%(list_fdata[nth_roi]))
+            print ('list_error[nth_roi] = %s'%(list_error[nth_roi]))
         else:
             start = (list_fdata[nth_roi][0]/pow(10,-12), -2.)
             popt, pcov = curve_fit(power_law_func,np.array(list_edata[nth_roi]),np.array(list_fdata[nth_roi]),p0=start,sigma=np.array(list_error[nth_roi]))
@@ -4592,13 +4594,13 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
                 #axbig.plot(xdata_ref, ydata,'r-',label='HAWC')
                 #axbig.fill_between(xdata_ref, ydata-0.17*ydata, ydata+0.34*ydata, alpha=0.2, color='r')
                 HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetFermiHAWCFluxGeminga(energy_index)
-                axbig.plot(HAWC_energies, HAWC_fluxes,'r-',label='HAWC')
-                axbig.fill_between(HAWC_energies, np.array(HAWC_fluxes)-np.array(HAWC_flux_errs), np.array(HAWC_fluxes)+np.array(HAWC_flux_errs), alpha=0.2, color='r')
+                axbig.plot(HAWC_energies, HAWC_fluxes,'g-',label='HAWC')
+                axbig.fill_between(HAWC_energies, np.array(HAWC_fluxes)-np.array(HAWC_flux_errs), np.array(HAWC_fluxes)+np.array(HAWC_flux_errs), alpha=0.2, color='g')
                 Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxGeminga(energy_index)
-                axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi')
+                axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='r',marker='_',ls='none',label='Fermi')
                 Fermi_UL_energies, Fermi_UL_fluxes, Fermi_UL_err = GetFermiUpperLimitFluxGeminga(energy_index)
                 uplims = np.array([1,1,1,1], dtype=bool)
-                axbig.errorbar(Fermi_UL_energies,Fermi_UL_fluxes,Fermi_UL_err,color='g',marker='s',ls='none',uplims=uplims)
+                axbig.errorbar(Fermi_UL_energies,Fermi_UL_fluxes,Fermi_UL_err,color='r',marker='_',ls='none',uplims=uplims)
             if 'J1856+0245' in legends[nth_roi]:
                 vectorize_f = np.vectorize(flux_j1857_func)
                 ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
@@ -4629,6 +4631,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
     hist_syst_skymap_sum = ROOT.TH2D("hist_syst_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_rate_skymap_sum = ROOT.TH2D("hist_rate_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_flux_skymap_sum = ROOT.TH2D("hist_flux_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_flux_syst_skymap_sum = ROOT.TH2D("hist_flux_syst_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_expected_all_gamma_ray_skymap = ROOT.TH2D("hist_expected_all_gamma_ray_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     for ebin in range(0,len(energy_bin)-1):
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
@@ -4689,12 +4692,13 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
                 flux_content = hist_energy_flux_skymap[ebin].GetBinContent(bx+1,by+1)
                 flux_error = hist_energy_flux_skymap[ebin].GetBinError(bx+1,by+1)
-                #if flux_error==0.: continue
-                #if flux_content/flux_error<3.0: continue
                 old_content = hist_flux_skymap_sum.GetBinContent(bx+1,by+1)
                 old_error = hist_flux_skymap_sum.GetBinError(bx+1,by+1)
                 hist_flux_skymap_sum.SetBinContent(bx+1,by+1,old_content+flux_content)
                 hist_flux_skymap_sum.SetBinError(bx+1,by+1,pow(old_error*old_error+flux_error*flux_error,0.5))
+                syst_content = hist_energy_flux_syst_skymap[ebin].GetBinContent(bx+1,by+1)
+                old_content = hist_flux_syst_skymap_sum.GetBinContent(bx+1,by+1)
+                hist_flux_syst_skymap_sum.SetBinContent(bx+1,by+1,pow(old_content*old_content+syst_content*syst_content,0.5))
     for bx in range(0,hist_flux_skymap_sum.GetNbinsX()):
         for by in range(0,hist_flux_skymap_sum.GetNbinsY()):
             cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
@@ -5320,12 +5324,12 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             axbig.remove()
 
             profile_center_x, profile_center_y, profile_center_z = RA_PSR, Dec_PSR, d_PSR
-            profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_all, profile_err_all, theta2_all = FindExtension(hist_expected_all_gamma_ray_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_PWN, profile_err_PWN, theta2_PWN = FindExtension(hist_fit_PWN_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_PSR, profile_err_PSR, theta2_PSR = FindExtension(hist_fit_PSR_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_CO_north, profile_err_CO_north, theta2_CO_north = FindExtension(hist_fit_CO_north_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_CO_west, profile_err_CO_west, theta2_CO_west = FindExtension(hist_fit_CO_west_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,hist_flux_syst_skymap_sum,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_all, profile_err_all, theta2_all = FindExtension(hist_expected_all_gamma_ray_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_PWN, profile_err_PWN, theta2_PWN = FindExtension(hist_fit_PWN_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_PSR, profile_err_PSR, theta2_PSR = FindExtension(hist_fit_PSR_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_CO_north, profile_err_CO_north, theta2_CO_north = FindExtension(hist_fit_CO_north_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_CO_west, profile_err_CO_west, theta2_CO_west = FindExtension(hist_fit_CO_west_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
             fig.clf()
             axbig = fig.add_subplot()
             axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
@@ -5345,12 +5349,12 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
 
             profile_center_x = 286.77
             profile_center_y = 7.11
-            profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_all, profile_err_all, theta2_all = FindExtension(hist_expected_all_gamma_ray_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_PWN, profile_err_PWN, theta2_PWN = FindExtension(hist_fit_PWN_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_PSR, profile_err_PSR, theta2_PSR = FindExtension(hist_fit_PSR_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_CO_north, profile_err_CO_north, theta2_CO_north = FindExtension(hist_fit_CO_north_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_CO_west, profile_err_CO_west, theta2_CO_west = FindExtension(hist_fit_CO_west_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,hist_flux_syst_skymap_sum,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_all, profile_err_all, theta2_all = FindExtension(hist_expected_all_gamma_ray_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_PWN, profile_err_PWN, theta2_PWN = FindExtension(hist_fit_PWN_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_PSR, profile_err_PSR, theta2_PSR = FindExtension(hist_fit_PSR_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_CO_north, profile_err_CO_north, theta2_CO_north = FindExtension(hist_fit_CO_north_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_CO_west, profile_err_CO_west, theta2_CO_west = FindExtension(hist_fit_CO_west_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
             fig.clf()
             axbig = fig.add_subplot()
             axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
@@ -5370,12 +5374,12 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
 
             profile_center_x = 286.16
             profile_center_y = 6.43
-            profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_all, profile_err_all, theta2_all = FindExtension(hist_expected_all_gamma_ray_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_PWN, profile_err_PWN, theta2_PWN = FindExtension(hist_fit_PWN_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_PSR, profile_err_PSR, theta2_PSR = FindExtension(hist_fit_PSR_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_CO_north, profile_err_CO_north, theta2_CO_north = FindExtension(hist_fit_CO_north_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_CO_west, profile_err_CO_west, theta2_CO_west = FindExtension(hist_fit_CO_west_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,hist_flux_syst_skymap_sum,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_all, profile_err_all, theta2_all = FindExtension(hist_expected_all_gamma_ray_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_PWN, profile_err_PWN, theta2_PWN = FindExtension(hist_fit_PWN_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_PSR, profile_err_PSR, theta2_PSR = FindExtension(hist_fit_PSR_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_CO_north, profile_err_CO_north, theta2_CO_north = FindExtension(hist_fit_CO_north_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_CO_west, profile_err_CO_west, theta2_CO_west = FindExtension(hist_fit_CO_west_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
             fig.clf()
             axbig = fig.add_subplot()
             axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
@@ -5461,20 +5465,29 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data_unsmooth,hist_data,hist_
             canvas.SaveAs('output_plots/SkymapExcess_%s_%s.png'%(name,selection_tag))
 
             profile_center_x, profile_center_y, profile_center_z = RA_PSR, Dec_PSR, d_PSR
-            profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
-            profile_PWN, profile_err_PWN, theta2_PWN = FindExtension(hist_fit_PWN_skymap,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,hist_flux_syst_skymap_sum,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
+            profile_PWN, profile_err_PWN, theta2_PWN = FindExtension(hist_fit_PWN_skymap,None,profile_center_x,profile_center_y,profile_center_z,MapSize_y/zoomin_scale)
             fig.clf()
             axbig = fig.add_subplot()
             axbig.errorbar(theta2,profile,profile_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
             axbig.plot(theta2_PWN,profile_PWN,color='b',label='model')
+            #start = (0.2,np.mean(np.array(profile)))
+            #popt, pcov = curve_fit(gaussian_disk_2d_to_1D,np.array(theta2),np.array(profile),p0=start,sigma=np.array(profile_err))
+            #axbig.plot(np.array(theta2),gaussian_disk_2d_to_1D(np.array(theta2),*popt),color='b')
+            #print ('diffusion angle = %0.3f deg'%(popt[0]))
             axbig.set_ylabel('surface brightness [$\mathrm{TeV}^{%s}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]'%(-1+energy_index))
             axbig.set_xlabel('angular distance from source [degree]')
-            #axbig.set_xlabel('distance from source [pc]')
+            new_tick_locations = axbig.get_xticks()
+            axbig2 = axbig.twiny()
+            axbig2.set_xlim(axbig.get_xlim())
+            axbig2.set_xticklabels(tick_function_deg_to_pc(new_tick_locations,d_PSR))
+            axbig2.set_xlabel('distance from source [pc]')
             axbig.legend(loc='best')
             #axbig.set_yscale('log')
             plotname = 'ProfileVsTheta2_PSR'
             fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
             axbig.remove()
+            axbig2.remove()
 
 
     return hist_index_skymap
@@ -5674,10 +5687,9 @@ def gaussian_2d_to_1D(x, rms, A):
     #return A * np.exp( -0.5*(x/rms)**2 )
     #return A * 1./(x+0.085*rms) * np.exp(-1.54*pow(x/rms,1.52))
     return A * 1./(x+0.06*rms) * np.exp(-1.*pow(x/rms,2))
-def gaussian_disk_2d_to_1D(x, rms, A, B):
-    #return A * np.exp( -0.5*(x/rms)**2 ) + B
-    #return A * 1./(x+0.085*rms) * np.exp(-1.54*pow(x/rms,1.52)) + B
-    return A * 1./(x+0.06*rms) * np.exp(-1.*pow(x/rms,2)) + B
+def gaussian_disk_2d_to_1D(x, rms, A):
+    #return A * 1./(x+0.085*rms) * np.exp(-1.54*pow(x/rms,1.52))
+    return A * 1.22/(rms*pow(3.14,3/2)*(x+0.06*rms)) * np.exp(-1.*pow(x/rms,2))
 def gaussian_2d(x, y, x0, y0, rms, A, B):
     return A * np.exp( -0.5*((x-x0)/rms)**2 -0.5*((y-y0)/rms)**2) + B
 def _gaussian_2d(M, *args):
@@ -7836,7 +7848,11 @@ def DeriveSupernovaParameters(CR_efficiency, esc_param):
     R_SN = 2.5*vel_init*t_Sedov*365.*24.*60.*60.*(pow(t_SN/t_Sedov,0.4)-0.6)/deg_to_cm
     print ('expected R_SN = %0.2f deg'%(R_SN))
 
-def FindExtension(Hist_Data_input,roi_x,roi_y,roi_d,integration_range):
+def tick_function_deg_to_pc(theta_deg,distance_kpc):
+    radius_pc = theta_deg*3.14/180.*distance_kpc*1000.
+    return ["%.2f" % z for z in radius_pc]
+
+def FindExtension(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,roi_d,integration_range):
 
     global calibration_radius
 
@@ -7844,7 +7860,7 @@ def FindExtension(Hist_Data_input,roi_x,roi_y,roi_d,integration_range):
     integration_range = 1.5
     if sys.argv[1]=='Geminga_ON':
         n_bins = 5
-        integration_range = 1.5
+        integration_range = 1.8
 
     Hist_Profile_Theta2 = ROOT.TH1D("Hist_Profile_Theta2","",n_bins,0,integration_range)
     for br in range(0,Hist_Profile_Theta2.GetNbinsX()):
@@ -7852,6 +7868,7 @@ def FindExtension(Hist_Data_input,roi_x,roi_y,roi_d,integration_range):
         range_limit_previous = Hist_Profile_Theta2.GetBinLowEdge(br+1)
         slice_data = 0.
         slice_data_err = 0.
+        slice_syst_err = 0.
         for bx in range(0,Hist_Data_input.GetNbinsX()):
             for by in range(0,Hist_Data_input.GetNbinsY()):
                 cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
@@ -7861,14 +7878,17 @@ def FindExtension(Hist_Data_input,roi_x,roi_y,roi_d,integration_range):
                 map_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
                 data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
                 data_error = Hist_Data_input.GetBinError(bx+1,by+1)
+                syst_error = 0.
+                if Hist_Syst_input!=None:
+                    syst_error = Hist_Syst_input.GetBinContent(bx+1,by+1)
                 if distance_sq>=pow(range_limit_previous,2) and distance_sq<pow(range_limit,2):
                     slice_data += data_content
-                    #slice_data_err += data_error
                     slice_data_err += data_error*data_error
+                    slice_syst_err += syst_error
         slice_data_err = pow(slice_data_err,0.5)
         if slice_data==0.: slice_data_err = 1.
         Hist_Profile_Theta2.SetBinContent(br+1,slice_data)
-        Hist_Profile_Theta2.SetBinError(br+1,slice_data_err)
+        Hist_Profile_Theta2.SetBinError(br+1,pow(slice_data_err*slice_data_err+slice_syst_err*slice_syst_err,0.5))
 
 
     profile = []
