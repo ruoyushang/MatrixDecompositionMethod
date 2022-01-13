@@ -2207,14 +2207,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_radius_outer.push_back(0.15);
 
             roi_name.push_back("PSR tail 1");
-            roi_ra.push_back(287.16);
-            roi_dec.push_back(6.49);
+            roi_ra.push_back(287.09);
+            roi_dec.push_back(6.32);
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.15);
 
             roi_name.push_back("PSR tail 2");
-            roi_ra.push_back(287.07);
-            roi_dec.push_back(6.27);
+            roi_ra.push_back(287.2);
+            roi_dec.push_back(6.6);
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.15);
 
@@ -2224,19 +2224,19 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.2);
 
-            roi_name.push_back("HAWC region");
+            roi_name.push_back("HAWC region (VERITAS)");
             roi_ra.push_back(286.91);
             roi_dec.push_back(6.32);
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(1.5);
 
-            roi_name.push_back("CO region north");
-            roi_ra.push_back(286.786);
+            roi_name.push_back("Hot spot north");
+            roi_ra.push_back(286.8);
             roi_dec.push_back(7.1);
             roi_radius_inner.push_back(0.);
             roi_radius_outer.push_back(0.2);
 
-            roi_name.push_back("CO region west");
+            roi_name.push_back("Hot spot west");
             roi_ra.push_back(286.2);
             roi_dec.push_back(6.4);
             roi_radius_inner.push_back(0.);
@@ -2372,7 +2372,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_ra.push_back(98.476);
             roi_dec.push_back(17.770);
             roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(1.2);
+            roi_radius_outer.push_back(2.0);
         }
         else if (TString(target).Contains("Cygnus")) 
         {
