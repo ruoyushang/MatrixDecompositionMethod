@@ -117,6 +117,7 @@ double svd_threshold_scale = 1.0;
 
 vector<int> dark_stable_rank;
 vector<double> data_gamma_count;
+vector<double> data_antigamma_count;
 vector<double> dark_sigma_rank0;
 vector<double> dark_sigma_rank1;
 vector<double> dark_sigma_rank2;
@@ -3449,6 +3450,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH1D> Hist_OnDark_SR_R2off;
     vector<TH1D> Hist_OnData_SR_R2off;
     vector<TH1D> Hist_OnData_CR_R2off;
+    vector<TH1D> Hist_OnData_ISR_R2off;
     vector<TH1D> Hist_OnData_CR_Yoff;
     vector<TH1D> Hist_OnData_CR_Xoff;
     vector<TH2D> Hist_OnData_CR_XYoff;
@@ -3491,6 +3493,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnDark_SR_R2off.push_back(TH1D("Hist_OnDark_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
         Hist_OnData_SR_R2off.push_back(TH1D("Hist_OnData_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
         Hist_OnData_CR_R2off.push_back(TH1D("Hist_OnData_CR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
+        Hist_OnData_ISR_R2off.push_back(TH1D("Hist_OnData_ISR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
         Hist_OnData_CR_Yoff.push_back(TH1D("Hist_OnData_CR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_OnData_CR_Xoff.push_back(TH1D("Hist_OnData_CR_Xoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_OnData_CR_XYoff.push_back(TH2D("Hist_OnData_CR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
@@ -3691,6 +3694,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_SR_R2off.at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_CR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_OnData_CR_R2off.at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
+        hist_name  = "Hist_Stage1_OnData_ISR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+        Hist_OnData_ISR_R2off.at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_CR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_OnData_CR_Yoff.at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_CR_Xoff_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -4145,6 +4150,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         double dark_full_count = CountGammaRegion(mtx_dark);
         double dark_full_chi2 = Chi2Coefficients(mtx_dark,mtx_data,e);
         double data_full_count = CountGammaRegion(mtx_data);
+        double data_full_antigamma_count = CountAllRegion(mtx_data) - CountGammaRegion(mtx_data);
         double data_redu_count = CountGammaRegion(mtx_data_truncate);
         double epsilon_redu  = data_redu_count/data_full_count -1.;
         std::cout << "N^{ON} = " << data_full_count << ", N^{ON}_{3} = " << data_redu_count << ", epsilon^{ON}_{3} = " << epsilon_redu << std::endl;
@@ -4171,6 +4177,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         std::cout << "N^{ON} = " << data_full_count << ", N^{Chi2}_{3} = " << bkgd_redu_count << ", epsilon^{Chi2}_{3} = " << epsilon_bkgd_redu << std::endl;
         dark_stable_rank.push_back(NumberOfEigenvectors_Stable);
         data_gamma_count.push_back(data_full_count);
+        data_antigamma_count.push_back(data_full_antigamma_count);
         dark_gamma_count.push_back(dark_full_count);
         best_gamma_count.push_back(best_full_count);
         bkgd_gamma_count.push_back(bkgd_full_count);
@@ -4396,6 +4403,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     NewInfoTree.Branch("Zenith_RMS_dark",&Zenith_RMS_dark,"Zenith_RMS_dark/D");
     NewInfoTree.Branch("max_chi2_diff2_position","std::vector<double>",&max_chi2_diff2_position);
     NewInfoTree.Branch("data_gamma_count","std::vector<double>",&data_gamma_count);
+    NewInfoTree.Branch("data_antigamma_count","std::vector<double>",&data_antigamma_count);
     NewInfoTree.Branch("dark_stable_rank","std::vector<int>",&dark_stable_rank);
     NewInfoTree.Branch("dark_sigma_rank0","std::vector<double>",&dark_sigma_rank0);
     NewInfoTree.Branch("dark_sigma_rank1","std::vector<double>",&dark_sigma_rank1);
@@ -4553,6 +4561,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnDark_SR_R2off.at(e).Write();
         Hist_OnData_SR_R2off.at(e).Write();
         Hist_OnData_CR_R2off.at(e).Write();
+        Hist_OnData_ISR_R2off.at(e).Write();
         Hist_OnData_CR_Yoff.at(e).Write();
         Hist_OnData_CR_Xoff.at(e).Write();
         Hist_OnData_CR_XYoff.at(e).Write();

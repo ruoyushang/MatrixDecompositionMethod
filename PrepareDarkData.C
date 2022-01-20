@@ -634,7 +634,7 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20211012.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics_20220111.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -687,6 +687,7 @@ int RunTypeCategory(int run_number, bool doPrint)
     std::string::size_type sz;
     int runtype = 2;
 
+    // run veritas_db_query.py to get this file
     ifstream myfile (SMI_AUX+"/category_allruns.txt");
     if (myfile.is_open())
     {
@@ -762,6 +763,7 @@ double GetRunL3Rate(int run_number)
     std::string::size_type sz;
     double L3_rate = 0.;
 
+    // run GetRunL3Rates.py to get this file
     ifstream myfile (SMI_AUX+"/L3rate_allruns.txt");
     if (myfile.is_open())
     {
@@ -818,6 +820,7 @@ double GetRunUsableTime(string file_name,int run_number)
     std::string::size_type sz;
     double usable_time = 0.;
 
+    // run veritas_db_query.py to get this file
     ifstream myfile (SMI_AUX+"/usable_time_allruns.txt");
     if (myfile.is_open())
     {
@@ -907,6 +910,7 @@ vector<pair<double,double>> GetRunTimecuts(int run_number)
     int nth_delimiter = 0;
     std::string::size_type sz;
 
+    // run veritas_db_query.py to get this file
     ifstream myfile (SMI_AUX+"/timecuts_allruns.txt");
     if (myfile.is_open())
     {
@@ -2625,6 +2629,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<TH1D> Hist_OnData_SR_R2off;
     vector<TH1D> Hist_OnDark_SR_R2off;
     vector<TH1D> Hist_OnData_CR_R2off;
+    vector<TH1D> Hist_OnData_ISR_R2off;
     vector<TH2D> Hist_OnData_CR_XYoff;
     vector<TH2D> Hist_OnDark_SR_XYoff;
     vector<TH1D> Hist_OnData_CR_Yoff_Raw;
@@ -2677,6 +2682,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_SR_R2off.push_back(TH1D("Hist_Stage1_OnData_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
         Hist_OnDark_SR_R2off.push_back(TH1D("Hist_Stage1_OnDark_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
         Hist_OnData_CR_R2off.push_back(TH1D("Hist_Stage1_OnData_CR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
+        Hist_OnData_ISR_R2off.push_back(TH1D("Hist_Stage1_OnData_ISR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
         Hist_OnData_CR_XYoff.push_back(TH2D("Hist_Stage1_OnData_CR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
         Hist_OnDark_SR_XYoff.push_back(TH2D("Hist_Stage1_OnDark_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
         Hist_OnData_CR_Yoff_Raw.push_back(TH1D("Hist_Stage1_OnData_CR_Yoff_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
@@ -3986,6 +3992,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                 if (FoV())
                 {
                     Hist_OnData_ISR_Skymap.at(energy).Fill(ra_sky,dec_sky,weight);
+                    Hist_OnData_ISR_R2off.at(energy).Fill(R2off,weight);
                 }
             }
             if (SignalSelectionTheta2())
@@ -4478,6 +4485,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_SR_R2off.at(e).Write();
         Hist_OnDark_SR_R2off.at(e).Write();
         Hist_OnData_CR_R2off.at(e).Write();
+        Hist_OnData_ISR_R2off.at(e).Write();
         Hist_OnData_CR_XYoff.at(e).Write();
         Hist_OnDark_SR_XYoff.at(e).Write();
         Hist_OnData_CR_Yoff_Raw.at(e).Write();
