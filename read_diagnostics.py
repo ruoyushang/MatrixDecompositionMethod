@@ -51,16 +51,16 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 3.0
 
 # MGRO J1908
-target_ra = 286.975
-target_dec = 6.269
-range_ra = 3.0
-range_dec = 3.0
+#target_ra = 286.975
+#target_dec = 6.269
+#range_ra = 3.0
+#range_dec = 3.0
 
 # Draco dSph
-#target_ra = 260.059729167
-#target_dec = 57.9212194444
-#range_ra = 2.0
-#range_dec = 2.0
+target_ra = 260.059729167
+target_dec = 57.9212194444
+range_ra = 2.0
+range_dec = 2.0
 
 # 1ES 0502+675
 #target_ra = 76.9839421535
@@ -83,8 +83,8 @@ range_dec = 3.0
 # IC 443
 #target_ra = 94.511
 #target_dec = 22.660
-#range_ra = 1.0
-#range_dec = 1.0
+#range_ra = 2.0
+#range_dec = 2.0
 
 # Segue 1
 #target_ra = 151.917
@@ -116,6 +116,12 @@ range_dec = 3.0
 #range_ra = 1.0
 #range_dec = 1.0
 
+# Gamma-Cygni
+#target_ra = 305.557091
+#target_dec = 40.256679166666665
+#range_ra = 2.0
+#range_dec = 2.0
+
 # Crab
 #target_ra = 83.6332083333
 #target_dec = 22.0144722222
@@ -131,8 +137,8 @@ range_dec = 3.0
 # MGRO J2031+41
 #target_ra = 307.18
 #target_dec = 41.31
-#range_ra = 4.0
-#range_dec = 4.0
+#range_ra = 2.0
+#range_dec = 2.0
 
 # 1ES 0229
 #target_ra = 38.2216666667
@@ -288,8 +294,8 @@ range_dec = 3.0
 # VER J2019+407
 #target_ra = 305.02
 #target_dec = 40.7572222222
-#range_ra = 4.0
-#range_dec = 4.0
+#range_ra = 2.0
+#range_dec = 2.0
 
 # SNR G150.3+4.5
 #target_ra = 66.5
@@ -300,8 +306,8 @@ range_dec = 3.0
 # VER J2019+368
 #target_ra = 304.854166667
 #target_dec = 36.8038888889
-#range_ra = 3.0
-#range_dec = 3.0
+#range_ra = 2.0
+#range_dec = 2.0
 
 # Cas A
 #target_ra = 350.8075
@@ -357,6 +363,12 @@ range_dec = 3.0
 #range_ra = 3.0
 #range_dec = 3.0
 
+# PSR B0355+54
+#target_ra = 59.72083333333333
+#target_dec = 54.22027777777778
+#range_ra = 2.0
+#range_dec = 2.0
+
 # PSR B0114+58
 #target_ra = 19.4110875
 #target_dec = 59.2439972222
@@ -399,6 +411,12 @@ range_dec = 3.0
 #range_ra = 2.0
 #range_dec = 2.0
 
+# Ursa Major II
+#target_ra = 132.875
+#target_dec = 63.13
+#range_ra = 2.0
+#range_dec = 2.0
+
 search_for_on_data = True
 #search_for_on_data = False
 
@@ -409,7 +427,7 @@ V6 = True
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
 
-Search_Range_Elev = [30.,90.]
+Search_Range_Elev = [0.,90.]
 Search_Range_Azim = [0.,360.]
 Search_Range_PedVar_DC = [0.,10.]
 
@@ -420,11 +438,8 @@ Search_Range_PedVar_DC = [0.,10.]
 #Search_Center_RA = 132.
 #Search_Center_Dec = 62.
 
-#Search_Center_RA = 250.
-#Search_Center_Dec = 40.
-
-#Search_Range_RA = [Search_Center_RA-10.,Search_Center_RA+10.]
-#Search_Range_Dec = [Search_Center_Dec-10.,Search_Center_Dec+10.]
+#Search_Range_RA = [Search_Center_RA-4.,Search_Center_RA+4.]
+#Search_Range_Dec = [Search_Center_Dec-4.,Search_Center_Dec+4.]
 
 RunNumber = 0
 Elev = 0
@@ -447,6 +462,8 @@ Livetime = 0.
 Total_Livetime = 0.
 
 List_RunNumber = []
+List_Name = []
+List_Offset = []
 List_MJD = []
 List_Elev = []
 List_Azim = []
@@ -483,8 +500,7 @@ Source_Livetime = []
 #        Source_Azim += [0.]
 #        Source_Livetime += [0.]
 
-#inputFile = open('diagnostics_20210705.txt')
-inputFile = open('diagnostics_20210929.txt')
+inputFile = open('diagnostics_20220111.txt')
 for line in inputFile:
     if line.split(' ')[0]=="#": 
         #print 'this is a comment line'
@@ -503,8 +519,12 @@ for line in inputFile:
         #print 'this is a V2 line'
         V2 = True
     RunNumber = line.split(' ')[1-1]
+    Name = line.split(' ')[6-1]
     if RunNumber=='': continue
     List_RunNumber += [int(RunNumber)]
+    List_Name += [Name]
+    offset = line.split(' ')[7-1]
+    List_Offset += [offset]
     MJD = line.split(' ')[5-1]
     Elev = line.split(' ')[8-1]
     Azim = line.split(' ')[9-1]
@@ -576,6 +596,8 @@ if search_for_on_data:
     for entry in range(0,len(List_RunNumber)):
     
         RunNumber = List_RunNumber[entry]
+        Name = List_Name[entry]
+        offset = List_Offset[entry]
         MJD = List_MJD[entry]
         Elev = List_Elev[entry]
         Azim = List_Azim[entry]
@@ -595,7 +617,14 @@ if search_for_on_data:
         if int(RunNumber)>=63373:
             if not V6: continue
     
-        if MJD<59480: continue
+        if Elev<Search_Range_Elev[0]: continue
+        if Elev>Search_Range_Elev[1]: continue
+        if Azim<Search_Range_Azim[0]: continue
+        if Azim>Search_Range_Azim[1]: continue
+        if PedVar_DC<Search_Range_PedVar_DC[0]: continue
+        if PedVar_DC>Search_Range_PedVar_DC[1]: continue
+
+        #if MJD<59480: continue
 
         if L3_rate<150.: continue
         #if L3_rate>450.: continue
@@ -605,15 +634,19 @@ if search_for_on_data:
         if abs(float(T1_RA)-target_ra)>range_ra: continue
         if abs(float(T1_Dec)-target_dec)>range_dec: continue
         distance_to_source = pow(pow(float(T1_RA)-target_ra,2)+pow(float(T1_Dec)-target_dec,2),0.5)
-        #if distance_to_source<1.0: continue
+        #if distance_to_source<0.4: continue
+        #if distance_to_source<0.8: continue
+        #if distance_to_source<1.1: continue
         #if distance_to_source>2.0: continue
+        #if not 'wobble0.7' in offset: continue
+        #if not 'geminga-' in Name: continue
 
         DoNotUse = False
         for entry2 in range(0,len(Source_RunNumber)):
             if int(Source_RunNumber[entry2])==int(RunNumber): DoNotUse = True
         if DoNotUse: continue
     
-        print ('RunNumber %s, L3_rate %s, Livetime %s, Elev %s, RA %s, Dec %s'%(RunNumber,L3_rate,Livetime,Elev,T1_RA,T1_Dec))
+        print ('RunNumber %s, L3_rate %s, Livetime %s, Elev %s, RA %s, Dec %s, offset %s'%(RunNumber,L3_rate,Livetime,Elev,T1_RA,T1_Dec, offset))
     
         List_Used += [RunNumber]
         List_Used_Exposure += [Livetime/60.]
@@ -920,7 +953,7 @@ plt.savefig("output_plots/RunRADec.png")
 
 plt.clf()
 fig, ax = plt.subplots()
-hist, xbins, ybins, im = plt.hist2d(List_Used_Elev, List_Used_Azim, range = [[0,90], [0,360]], bins=(18,18), cmap=plt.cm.Greys)
+hist, xbins, ybins, im = plt.hist2d(List_Used_Elev, List_Used_Azim, weights=List_Used_Exposure, range = [[0,90], [0,360]], bins=(18,18), cmap=plt.cm.Greys)
 plt.colorbar()
 for i in range(len(xbins)-1):
     for j in range(len(ybins)-1):
@@ -1029,13 +1062,15 @@ if search_for_on_data:
 
     plt.clf()
     fig, ax = plt.subplots()
-    hist, xbins, ybins, im = plt.hist2d(List_Used_RA_Flipped, List_Used_Dec, weights=List_Used_Exposure, range=[[-target_ra-3.0,-target_ra+3.0],[target_dec-3.0, target_dec+3.0]], bins=(60,60), cmap=plt.cm.Greens)
+    hist, xbins, ybins, im = plt.hist2d(List_Used_RA_Flipped, List_Used_Dec, weights=List_Used_Exposure, range=[[-target_ra-3.0,-target_ra+3.0],[target_dec-3.0, target_dec+3.0]], bins=(60,60), cmap=plt.cm.Reds)
     plt.colorbar()
     ax.axis('on')
     ax.set_xlabel('RA')
     ax.set_ylabel('Dec')
     plt.scatter(other_star_ra_flipped, other_star_dec, s=80, c='black', marker="+")
     plt.scatter(List_Proposed_RA_Flipped, List_Proposed_Dec, s=80, c='red', marker="o")
+    circle1 = plt.Circle((-286.65, 7.05), 0.3, color='r', fill=False)
+    ax.add_patch(circle1)
     for star in range(0,len(other_stars)):
         plt.text(-1.*other_star_ra[star],other_star_dec[star]+0.2,other_stars[star])
     plt.clabel(CS, inline=1, fontsize=10)

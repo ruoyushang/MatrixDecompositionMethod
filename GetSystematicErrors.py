@@ -32,18 +32,16 @@ fig, ax = plt.subplots()
 energy_bin_cut_low = 0
 energy_bin_cut_up = 2
 
-N_bins_for_deconv = 16
-#N_bins_for_deconv = 8
+#N_bins_for_deconv = 16
+N_bins_for_deconv = 8
 #N_bins_for_deconv = 4
 #N_bins_for_deconv = 2
 
 ComputeShapeSystErr = False
 
-#folder_path = 'output_nominal'
-folder_path = 'output_16x16'
-#folder_path = 'output_8x8'
-#folder_path = 'output_4x4'
-#folder_path = 'output_2x2'
+#folder_path = 'output_loose'
+#folder_path = 'output_medium'
+folder_path = 'output_tight'
 
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
@@ -55,6 +53,7 @@ validate_bkgd_count = []
 validate_rfov_count = []
 validate_comb_count = []
 data_count = []
+expo_count = []
 bkgd_count = []
 bkgd_rank0_count = []
 bkgd_rank1_count = []
@@ -85,10 +84,6 @@ sample_list += ['DracoV6_OFF']
 sample_name += ['Draco V6']
 sample_list += ['DracoV5_OFF']
 sample_name += ['Draco V5']
-sample_list += ['PG1553V6_OFF']
-sample_name += ['PG1553 V6']
-sample_list += ['PG1553V5_OFF']
-sample_name += ['PG1553 V5']
 sample_list += ['M82V6_OFF']
 sample_name += ['M82 V6']
 sample_list += ['M82V5_OFF']
@@ -99,6 +94,10 @@ sample_list += ['3C273V6_OFF']
 sample_name += ['3C273 V6']
 sample_list += ['3C273V5_OFF']
 sample_name += ['3C273 V5']
+sample_list += ['PG1553V6_OFF']
+sample_name += ['PG1553 V6']
+sample_list += ['PG1553V5_OFF']
+sample_name += ['PG1553 V5']
 sample_list += ['1ES0647V6_OFF']
 sample_name += ['1ES0647 V6']
 sample_list += ['1ES1011V6_OFF']
@@ -127,15 +126,15 @@ sample_list += ['H1426V6_OFF']
 sample_name += ['H1426 V6']
 sample_list += ['RGBJ0710V5_OFF']
 sample_name += ['RGBJ0710 V5']
-
+sample_list += ['NGC1275V6_OFF']
+sample_name += ['NGC 1275 V6']
 sample_list += ['CrabV5_OFF']
 sample_name += ['Crab V5']
 sample_list += ['CrabV6_OFF']
 sample_name += ['Crab V6']
+
 ##sample_list += ['RBS0413V6_OFF']
 ##sample_name += ['RBS0413 V6']
-##sample_list += ['NGC1275V6_OFF']
-##sample_name += ['NGC 1275 V6']
 ##sample_list += ['RBS0413V5_OFF']
 ##sample_name += ['RBS0413 V5']
 
@@ -158,6 +157,7 @@ elev_bins = [35,45,55,65,75,85]
 #elev_bins = [45,55,65,75,85]
 lowrank_tag += 'elev_incl'
 
+#theta2_bins = [0,1]
 theta2_bins = [0,4]
 #theta2_bins = [0,6]
 
@@ -181,6 +181,7 @@ energy_dependent_singularvalue = []
 
 energy_dependent_stat = []
 energy_dependent_syst = []
+energy_dependent_flux_syst = []
 energy_dependent_syst_rank0 = []
 energy_dependent_syst_rank1 = []
 energy_dependent_syst_init = []
@@ -202,6 +203,28 @@ for elev in range(0,len(elev_bins)-1):
         theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
         for d in range(0,len(mjd_tag)):
             root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]
+
+def flux_crab_func(x):
+    # Crab https://arxiv.org/pdf/1508.06442.pdf
+    return 37.5*pow(10,-12)*pow(x*1./1000.,-2.467-0.16*log(x/1000.))
+
+def GetFluxCalibration(avg_elev,energy):
+
+    #return 1.
+    
+    flux_calibration = [7.480281970231091e-08, 1.1009886026497825e-08, 1.1320725782409528e-09, 1.4396221156621074e-10, 1.8856508232367646e-11, 2.1016804096323343e-12]
+    if avg_elev<=85. and avg_elev>75.:
+        flux_calibration = [7.480281970231091e-08, 1.1009886026497825e-08, 1.1320725782409528e-09, 1.4396221156621074e-10, 1.8856508232367646e-11, 2.1016804096323343e-12]
+    if avg_elev<=75. and avg_elev>65.:
+        flux_calibration = [7.333561973309006e-08, 1.2213945455023585e-08, 1.1964927507454313e-09, 1.4250499641390284e-10, 1.7775959296515385e-11, 2.100320008117818e-12]
+    if avg_elev<=65. and avg_elev>55.:
+        flux_calibration = [6.576696787995024e-08, 1.4052982203653559e-08, 1.4133787633339727e-09, 1.5958320968447998e-10, 1.6513465925681105e-11, 1.6606468382165533e-12]
+    if avg_elev<=55. and avg_elev>45.:
+        flux_calibration = [5.031904924576364e-08, 1.5394762028304023e-08, 1.9722629877002822e-09, 2.1428974246123716e-10, 2.263059557860357e-11, 1.954877956103542e-12]
+    if avg_elev<=45. and avg_elev>35.:
+        flux_calibration = [0.0, 1.3412303355020475e-08, 2.785762625854527e-09, 3.2635277626304123e-10, 3.416923628860141e-11, 2.5844438485639475e-12]
+
+    return flux_calibration[energy]
 
 def SystematicErrorMeasurement(list_measurements, list_err_measurements):
 
@@ -248,9 +271,9 @@ def Make2DPlot(Hist2D,title_x,title_y,name,logz,min_z,max_z):
     Hist2D.SetMinimum(min_z)
     Hist2D.Draw("COL4Z")
     #Hist2D.Draw("TEXT45 same")
-    canvas.SaveAs('output_plots/%s.png'%(name))
+    canvas.SaveAs('output_syst_file/%s.png'%(name))
 
-def MakeMultipleFitPlot(ax,Hists,legends,colors,title_x,title_y):
+def MakeMultipleFitPlot(Hists):
 
     func_gauss = []
     for h in range(0,len(Hists)):
@@ -290,16 +313,7 @@ def MakeMultipleFitPlot(ax,Hists,legends,colors,title_x,title_y):
         func_ydata += [ydata]
         hist_error += [error]
 
-    cycol = cycle('brgcmk')
-    for entry in range(0,len(Hists)):
-        next_color = next(cycol)
-        ax.errorbar(hist_xdata[entry], hist_ydata[entry], hist_error[entry], color=next_color, marker='s', ls='none', label='%s'%(legends[entry]))
-        ax.plot(func_xdata[entry], func_ydata[entry], color=next_color)
-
-    ax.legend(loc='best')
-    ax.set_xlabel(title_x)
-    ax.set_ylabel(title_y)
-    return(ax)
+    return hist_xdata, hist_ydata, hist_error, func_xdata, func_ydata
 
 def MakeMultiplePlot(ax,Hists,legends,colors,title_x,title_y,name,x_min,x_max,logx,logy):
     
@@ -411,6 +425,7 @@ def GetHistogramsFromFile(FilePath,which_source,doShapeSyst):
     global validate_rfov_count
     global validate_comb_count
     global data_count
+    global expo_count
     global bkgd_count
     global bkgd_rank0_count
     global bkgd_rank1_count
@@ -424,6 +439,7 @@ def GetHistogramsFromFile(FilePath,which_source,doShapeSyst):
     global rank3_count
     global rank4_count
     data_gamma_count = ROOT.std.vector("double")(10)
+    data_antigamma_count = ROOT.std.vector("double")(10)
     bkgd_gamma_count = ROOT.std.vector("double")(10)
     bkgd_rank0_gamma_count = ROOT.std.vector("double")(10)
     bkgd_rank1_gamma_count = ROOT.std.vector("double")(10)
@@ -441,6 +457,7 @@ def GetHistogramsFromFile(FilePath,which_source,doShapeSyst):
     NewInfoTree = InputFile.Get("NewInfoTree")
     InfoTree.GetEntry(0)
     NewInfoTree.SetBranchAddress('data_gamma_count',ROOT.AddressOf(data_gamma_count))
+    NewInfoTree.SetBranchAddress('data_antigamma_count',ROOT.AddressOf(data_antigamma_count))
     NewInfoTree.SetBranchAddress('bkgd_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
     NewInfoTree.SetBranchAddress('bkgd_rank0_gamma_count',ROOT.AddressOf(bkgd_rank0_gamma_count))
     NewInfoTree.SetBranchAddress('bkgd_rank1_gamma_count',ROOT.AddressOf(bkgd_rank1_gamma_count))
@@ -473,6 +490,7 @@ def GetHistogramsFromFile(FilePath,which_source,doShapeSyst):
         validate_comb_count[nth_roi][which_source] += (1./energy_mibe_weight[energy_index]*bkgd_validate_count[energy_index][2*nth_roi+1]+1./energy_rfov_weight[energy_index]*rfov_validate_count[energy_index][2*nth_roi+1])/(1./energy_mibe_weight[energy_index]+1./energy_rfov_weight[energy_index])
     data_count[which_source]  += data_gamma_count[energy_index]
     bkgd_count[which_source]  += bkgd_gamma_count[energy_index]
+    expo_count[which_source]  += bkgd_gamma_count[energy_index] + data_antigamma_count[energy_index]
     bkgd_rank0_count[which_source]  += bkgd_rank0_gamma_count[energy_index]
     bkgd_rank1_count[which_source]  += bkgd_rank1_gamma_count[energy_index]
     par8_count[which_source]  += par8_gamma_count[energy_index]
@@ -641,11 +659,13 @@ for entry in range(0,len(integration_radius)):
 
 Hist_NormStatErr = []
 Hist_NormSystErr = []
+Hist_FluxSystErr = []
 Hist_NormSystInitErr = []
 for elev in range(0,len(elev_bins)-1):
     elev_tag = 'TelElev%sto%s'%(elev_bins[elev],elev_bins[elev+1])
     Hist_NormStatErr += [ROOT.TH1D("Hist_NormStatErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
     Hist_NormSystErr += [ROOT.TH1D("Hist_NormSystErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
+    Hist_FluxSystErr += [ROOT.TH1D("Hist_FluxSystErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
     Hist_NormSystInitErr += [ROOT.TH1D("Hist_NormSystInitErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
 Hist_ShapeSystErr = []
 Hist_ShapeSystErr_1D = []
@@ -678,6 +698,7 @@ for e in range(0,len(energy_bin)-1):
         validate_rfov_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
         validate_comb_count = [ [0.]*len(sample_list) for i in range(number_of_roi)]
         data_count = [0.]*len(sample_list)
+        expo_count = [0.]*len(sample_list)
         bkgd_count = [0.]*len(sample_list)
         bkgd_rank0_count = [0.]*len(sample_list)
         bkgd_rank1_count = [0.]*len(sample_list)
@@ -734,18 +755,27 @@ for e in range(0,len(energy_bin)-1):
         AccuracyBkgd_source = []
         AccuracyBkgdSigned_source = []
         AccuracyBkgdErr_source = []
+        AccuracyFlux_source = []
+        AccuracyFluxErr_source = []
         for entry in range(1,len(Hist_Bkgd_Optimization)):
             if data_count[entry-1]<10.:
                 AccuracyBkgd_source += [0.]
                 AccuracyBkgdSigned_source += [0.]
                 AccuracyBkgdErr_source += [0.]
+                AccuracyFlux_source += [0.]
+                AccuracyFluxErr_source += [0.]
             else:
                 AccuracyBkgd_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
                 AccuracyBkgdSigned_source += [(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
                 AccuracyBkgdErr_source += [1./pow(data_count[entry-1],0.5)]
+                AccuracyFlux_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/expo_count[entry-1]]
+                AccuracyFluxErr_source += [pow(data_count[entry-1],0.5)/expo_count[entry-1]]
         AccuracyBkgd_mean, AccuracyBkgd_mean_error = SystematicErrorMeasurement(AccuracyBkgd_source,AccuracyBkgdErr_source)
+        AccuracyFlux_mean, AccuracyFlux_mean_error = SystematicErrorMeasurement(AccuracyFlux_source,AccuracyFluxErr_source)
         elev_dependent_syst = pow(max(0.,pow(AccuracyBkgd_mean,2)-pow(AccuracyBkgd_mean_error,2)),0.5)
+        elev_dependent_flux_syst = pow(max(0.,pow(AccuracyFlux_mean,2)-pow(AccuracyFlux_mean_error,2)),0.5)
         Hist_NormSystErr[elev].SetBinContent(e+1,elev_dependent_syst)
+        Hist_FluxSystErr[elev].SetBinContent(e+1,elev_dependent_flux_syst)
         Hist_NormStatErr[elev].SetBinContent(e+1,AccuracyBkgd_mean_error)
         AccuracyInit_source = []
         AccuracyInitErr_source = []
@@ -840,7 +870,7 @@ for e in range(0,len(energy_bin)-1):
     #colors += [3]
     ax.cla()
     MakeMultiplePlot(ax,Hists,legends,colors,'$\\theta^{2}$ from camera center','relative uncertainty','Theta2Errors_E%s%s_B%s'%(e,folder_path,R2off_nbins),0.,4.,False,False)
-    fig.savefig("output_plots/Theta2Errors_E%s%s_B%s.png"%(e,folder_path,R2off_nbins))
+    fig.savefig("output_syst_file/Theta2Errors_E%s%s_B%s.png"%(e,folder_path,R2off_nbins))
     for entry in range(0,len(integration_radius)):
         for binx in range (0,Hist_OnBkgd_SystErr_XYoff[entry].GetNbinsX()):
             for biny in range (0,Hist_OnBkgd_SystErr_XYoff[entry].GetNbinsY()):
@@ -1000,16 +1030,23 @@ for e in range(0,len(energy_bin)-1):
     AccuracyBkgd_source = []
     AccuracyBkgdSigned_source = []
     AccuracyBkgdErr_source = []
+    AccuracyFlux_source = []
+    AccuracyFluxErr_source = []
     for entry in range(1,len(Hist_Bkgd_Optimization)):
         if data_count[entry-1]<10.:
             AccuracyBkgd_source += [0.]
             AccuracyBkgdSigned_source += [0.]
             AccuracyBkgdErr_source += [0.]
+            AccuracyFlux_source += [0.]
+            AccuracyFluxErr_source += [0.]
         else:
             AccuracyBkgd_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
             AccuracyBkgdSigned_source += [(data_count[entry-1]-bkgd_count[entry-1])/data_count[entry-1]]
             AccuracyBkgdErr_source += [1./pow(data_count[entry-1],0.5)]
+            AccuracyFlux_source += [abs(data_count[entry-1]-bkgd_count[entry-1])/expo_count[entry-1]]
+            AccuracyFluxErr_source += [pow(data_count[entry-1],0.5)/expo_count[entry-1]]
     AccuracyBkgd_mean, AccuracyBkgd_mean_error = SystematicErrorMeasurement(AccuracyBkgd_source,AccuracyBkgdErr_source)
+    AccuracyFlux_mean, AccuracyFluxErr_mean_error = SystematicErrorMeasurement(AccuracyFlux_source,AccuracyFluxErr_source)
 
     AccuracyBkgdRank0_source = []
     AccuracyBkgdRank0Err_source = []
@@ -1054,7 +1091,7 @@ for e in range(0,len(energy_bin)-1):
     #plt.plot(x,y,color='#1B2ACC')
     #plt.fill_between(x,y-AccuracyInit_mean_error,y+AccuracyInit_mean_error,edgecolor='#CC4F1B',alpha=0.2,facecolor='#FF9848')
     #plt.title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,AccuracyInit_mean_error))
-    #plt.savefig("output_plots/PerformanceInit_Zenith_E%s%s.png"%(e,lowrank_tag))
+    #plt.savefig("output_syst_file/PerformanceInit_Zenith_E%s%s.png"%(e,lowrank_tag))
     #plt.clf()
     #plt.xlabel("NSB", fontsize=18)
     #plt.ylabel("$abs(N_{\gamma bkg}-N_{model})/N_{\gamma bkg}$", fontsize=18)
@@ -1065,7 +1102,7 @@ for e in range(0,len(energy_bin)-1):
     #plt.plot(x,y,color='#1B2ACC')
     #plt.fill_between(x,y-AccuracyInit_mean_error,y+AccuracyInit_mean_error,edgecolor='#CC4F1B',alpha=0.2,facecolor='#FF9848')
     #plt.title('$<\epsilon>=%0.3f \pm %0.3f$'%(AccuracyInit_mean,AccuracyInit_mean_error))
-    #plt.savefig("output_plots/PerformanceInit_NSB_E%s%s.png"%(e,lowrank_tag))
+    #plt.savefig("output_syst_file/PerformanceInit_NSB_E%s%s.png"%(e,lowrank_tag))
 
 
     Accuracy_source = []
@@ -1109,7 +1146,7 @@ for e in range(0,len(energy_bin)-1):
     plt.setp(xtickNames, rotation=45, fontsize=10)
     #ax.legend( (rects1[0]), ('Initial $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
     plt.subplots_adjust(bottom=0.15)
-    plt.savefig("output_plots/PerformanceInit_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
+    plt.savefig("output_syst_file/PerformanceInit_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     plt.clf()
     ax = fig.add_subplot(111)
@@ -1125,7 +1162,7 @@ for e in range(0,len(energy_bin)-1):
     plt.setp(xtickNames, rotation=45, fontsize=10)
     #ax.legend( (rects1[0]), ('Initial $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
     plt.subplots_adjust(bottom=0.25)
-    plt.savefig("output_plots/PerformanceInitSigned_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
+    plt.savefig("output_syst_file/PerformanceInitSigned_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     plt.clf()
     ax = fig.add_subplot(111)
@@ -1142,7 +1179,7 @@ for e in range(0,len(energy_bin)-1):
     plt.setp(xtickNames, rotation=45, fontsize=10)
     ax.legend( (rects1[0], rects2[0]), ('Best 9-par $<\epsilon>=%0.3f$'%(AccuracyBestPar9_mean), 'Initial $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
     plt.subplots_adjust(bottom=0.15)
-    plt.savefig("output_plots/PerformanceBest_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
+    plt.savefig("output_syst_file/PerformanceBest_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     plt.clf()
     ax = fig.add_subplot(111)
@@ -1159,7 +1196,7 @@ for e in range(0,len(energy_bin)-1):
     plt.setp(xtickNames, rotation=45, fontsize=10)
     ax.legend( (rects1[0], rects2[0]), ('MIBE $<\epsilon>=%0.3f$'%(AccuracyBkgd_mean), 'ON/OFF $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
     plt.subplots_adjust(bottom=0.25)
-    plt.savefig("output_plots/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
+    plt.savefig("output_syst_file/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     plt.clf()
     ax = fig.add_subplot(111)
@@ -1176,10 +1213,11 @@ for e in range(0,len(energy_bin)-1):
     plt.setp(xtickNames, rotation=45, fontsize=10)
     ax.legend( (rects1[0], rects2[0]), ('MIBE $<\epsilon>=%0.3f$'%(AccuracyBkgd_mean), 'ON/OFF $<\epsilon>=%0.3f$'%(AccuracyInit_mean)), loc='best' )
     plt.subplots_adjust(bottom=0.25)
-    plt.savefig("output_plots/PerformanceSigned_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
+    plt.savefig("output_syst_file/PerformanceSigned_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     energy_dependent_stat += [AccuracyBkgd_mean_error]
     energy_dependent_syst += [pow(max(0.,pow(AccuracyBkgd_mean,2)-pow(AccuracyBkgd_mean_error,2)),0.5)]
+    energy_dependent_flux_syst += [pow(max(0.,pow(AccuracyFlux_mean,2)-pow(AccuracyFlux_mean_error,2)),0.5)]
     energy_dependent_syst_rank0 += [pow(max(0.,pow(AccuracyBkgdRank0_mean,2)-pow(AccuracyBkgdRank0_mean_error,2)),0.5)]
     energy_dependent_syst_rank1 += [pow(max(0.,pow(AccuracyBkgdRank1_mean,2)-pow(AccuracyBkgdRank1_mean_error,2)),0.5)]
     energy_dependent_syst_init += [pow(max(0.,pow(AccuracyInit_mean,2)-pow(AccuracyInit_mean_error,2)),0.5)]
@@ -1247,7 +1285,7 @@ for e in range(0,len(energy_bin)-1):
         ax.legend( (rects1[0], rects2[0]), ('MIBE $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean)), loc='best' )
         #ax.legend( (rects1[0], rects2[0], rects3[0]), ('LRR $<\epsilon>=%0.3f$'%(ValidateBkgd_mean), 'FoV method $<\epsilon>=%0.3f$'%(ValidateRFoV_mean), 'combined $<\epsilon>=%0.3f$'%(ValidateComb_mean)), loc='best' )
         plt.subplots_adjust(bottom=0.15)
-        plt.savefig("output_plots/PerformanceRFoV_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
+        plt.savefig("output_syst_file/PerformanceRFoV_SourceName_E%s_%s%s.png"%(e,method_tag,lowrank_tag))
 
         this_roi_energy_dependent_stat_vali += [ValidateBkgd_mean_error]
         this_roi_energy_dependent_syst_vbkg += [ValidateBkgd_mean]
@@ -1279,7 +1317,7 @@ for e in range(0,len(energy_bin)-1):
     #    RankCounts += [abs(data_count[s]-rank3_count[s])/data_count[s]]
     #    RankCounts += [abs(data_count[s]-rank4_count[s])/data_count[s]]
     #    plt.errorbar(Rank,RankCounts,fmt='o')
-    #plt.savefig("output_plots/RankCounts_E%s%s.png"%(e,folder_path))
+    #plt.savefig("output_syst_file/RankCounts_E%s%s.png"%(e,folder_path))
 
     Hists = []
     legends = []
@@ -1295,7 +1333,7 @@ for e in range(0,len(energy_bin)-1):
         colors += [int(random_gen.Uniform(29.,49.))]
     ax.cla()
     MakeMultiplePlot(ax,Hists,legends,colors,'log10 c','relative error','OptimizationAlpha_E%s%s'%(e,folder_path),0.,0.,False,False)
-    fig.savefig("output_plots/OptimizationAlpha_E%s%s.png"%(e,folder_path))
+    fig.savefig("output_syst_file/OptimizationAlpha_E%s%s.png"%(e,folder_path))
 
 
     singularvalue_array = []
@@ -1318,7 +1356,7 @@ for e in range(0,len(energy_bin)-1):
     #line_x = np.arange(0.0, 0.1, 1e-4) # angular size
     #line_y = line_x
     #plt.plot(line_x, line_y, color='r')
-    #plt.savefig("output_plots/PlainVsWeightedFrobenius_Count_E%s_%s%s.png"%(e,method_tag,folder_path))
+    #plt.savefig("output_syst_file/PlainVsWeightedFrobenius_Count_E%s_%s%s.png"%(e,method_tag,folder_path))
 
     #par9_epsilon = []
     #wpar9_epsilon = []
@@ -1334,7 +1372,7 @@ for e in range(0,len(energy_bin)-1):
     #line_x = np.arange(0.0, 0.1, 1e-4) # angular size
     #line_y = line_x
     #plt.plot(line_x, line_y, color='r')
-    #plt.savefig("output_plots/PlainVsWeightedFrobenius_Chi2_E%s_%s%s.png"%(e,method_tag,folder_path))
+    #plt.savefig("output_syst_file/PlainVsWeightedFrobenius_Chi2_E%s_%s%s.png"%(e,method_tag,folder_path))
 
 my_table = PrettyTable()
 my_table.field_names = ["field","exposure"]
@@ -1376,10 +1414,11 @@ for nth_roi in range(0,number_of_roi):
     axbig.set_xscale('log')
     axbig.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_vbkg[:,nth_roi], color='b', label='MIBE')
     axbig.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_vbkg[:,nth_roi]-energy_dependent_stat_vali[:,nth_roi], energy_dependent_syst_vbkg[:,nth_roi]+energy_dependent_stat_vali[:,nth_roi], alpha=0.1, color='b')
-    axbig.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rfov[:,nth_roi], color='r', label='OFF region')
+    axbig.plot(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rfov[:,nth_roi], color='r', label='RBM')
     axbig.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rfov[:,nth_roi]-energy_dependent_stat_vali[:,nth_roi], energy_dependent_syst_rfov[:,nth_roi]+energy_dependent_stat_vali[:,nth_roi], alpha=0.1, color='r')
     axbig.legend(loc='best')
-    fig.savefig("output_plots/MIBE_vs_RFoV_SystErr_RoI%s.png"%(nth_roi))
+    plt.ylim(0.,0.3)
+    fig.savefig("output_syst_file/MIBE_vs_RFoV_SystErr_RoI%s.png"%(nth_roi))
     axbig.remove()
 
 energy_dependent_stat_array = np.array(energy_dependent_stat)
@@ -1401,7 +1440,7 @@ axbig.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_syst_rank
 #axbig.plot(energy_array[0:len(energy_bin)-1], energy_dependent_init_array, color='m', label='initial')
 #axbig.fill_between(energy_array[0:len(energy_bin)-1], energy_dependent_init_array-energy_dependent_stat_array, energy_dependent_init_array+energy_dependent_stat_array, alpha=0.1, color='m')
 axbig.legend(loc='best')
-fig.savefig("output_plots/MIBE_vs_DiffRanks_SystErr.png")
+fig.savefig("output_syst_file/MIBE_vs_DiffRanks_SystErr.png")
 axbig.remove()
 
 fig.clf()
@@ -1412,7 +1451,7 @@ axbig.set_yscale('log')
 for entry in range(0,len(energy_dependent_singularvalue)):
     axbig.plot(energy_dependent_singularvalue[entry],marker='.',label='%s-%s GeV'%(energy_bin[entry],energy_bin[entry+1]))
 axbig.legend(loc='best')
-fig.savefig("output_plots/MatrixSingularValue.png")
+fig.savefig("output_syst_file/MatrixSingularValue.png")
 axbig.remove()
 
 fig.clf()
@@ -1426,36 +1465,53 @@ axbig.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank1,marker='.',l
 axbig.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank2,marker='.',label='$n \leq 2$')
 axbig.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank3,marker='.',label='$n \leq 3$')
 axbig.legend(loc='best')
-fig.savefig("output_plots/RankErrors.png")
+fig.savefig("output_syst_file/RankErrors.png")
 axbig.remove()
 
 Hists = []
 legends = []
 colors = []
+Hist_SystErrDist_MDM.Print('All')
+Hist_SystErrDist_Init.Print('All')
 Hists += [Hist_SystErrDist_MDM]
 legends += ['Refined']
 colors += [1]
 Hists += [Hist_SystErrDist_Init]
-legends += ['Init.']
+legends += ['Initial']
 colors += [2]
-ax.cla()
-MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error','number of measurements')
-fig.savefig("output_plots/SystErrDist.png")
+hist_xdata, hist_ydata, hist_error, func_xdata, func_ydata = MakeMultipleFitPlot(Hists)
+fig.clf()
+axbig = fig.add_subplot()
+axbig.errorbar(hist_xdata[0], hist_ydata[0], hist_error[0], color='b', marker='s', ls='none', label='%s'%(legends[0]))
+axbig.errorbar(hist_xdata[1], hist_ydata[1], hist_error[1], color='r', marker='s', ls='none', label='%s'%(legends[1]))
+axbig.plot(func_xdata[0], func_ydata[0], color='b')
+axbig.plot(func_xdata[1], func_ydata[1], color='r')
+axbig.legend(loc='best')
+axbig.set_xlabel('relative error')
+axbig.set_ylabel('number of measurements')
+fig.savefig("output_syst_file/SystErrDist.png")
+axbig.remove()
 
 for elev in range(0,len(elev_bins)-1):
     energy_interval = []
     for ebin in range(0,len(energy_bin)-1):
         energy_interval += ["%s-%s"%(energy_bin[ebin],energy_bin[ebin+1])]
+        flux_calibration = GetFluxCalibration(elev_bins[elev],ebin)
+        calibration_radius = 0.3
+        correction = flux_calibration*(3.14*2.0*2.0)/(3.14*calibration_radius*calibration_radius)
         energy_dependent_syst[ebin] = Hist_NormSystErr[elev].GetBinContent(ebin+1)
+        energy_dependent_flux_syst[ebin] = Hist_FluxSystErr[elev].GetBinContent(ebin+1)*correction/(3.14*2.0*2.0)
         energy_dependent_syst_init[ebin] = Hist_NormSystInitErr[elev].GetBinContent(ebin+1)
         energy_dependent_stat[ebin] = Hist_NormStatErr[elev].GetBinContent(ebin+1)
     my_table = PrettyTable()
-    my_table.field_names = ["energy","Syst. err init.", "Syst. err refined", "Stat. err"]
+    my_table.field_names = ["energy","Syst. err init.", "Syst. err refined", "Stat. err", "Syst. err in [/TeV/cm2/s/deg2]", "Syst. err in CU/deg2"]
     my_table.float_format["Syst. err init."] = ".3"
     my_table.float_format["Syst. err refined"] = ".3"
     my_table.float_format["Stat. err"] = ".3"
+    my_table.float_format["Syst. err in [/TeV/cm2/s/deg2]"] = ".3E"
+    my_table.float_format["Syst. err in CU/deg2"] = ".3"
     for entry in range(0,len(energy_dependent_syst)):
-        my_table.add_row([energy_interval[entry],energy_dependent_syst_init[entry],energy_dependent_syst[entry],energy_dependent_stat[entry]])
+        my_table.add_row([energy_interval[entry],energy_dependent_syst_init[entry],energy_dependent_syst[entry],energy_dependent_stat[entry],energy_dependent_flux_syst[entry],energy_dependent_flux_syst[entry]*(3.14*0.2*0.2)/flux_crab_func(energy_bin[entry])])
     print(my_table)
 
 for ebin in range(0,len(energy_bin)-1):
@@ -1472,10 +1528,10 @@ for ebin in range(0,len(energy_bin)-1):
         next_color = next(cycol)
         axbig.plot(location_radius[entry], location_syst[entry], color=next_color, label='int. radius = %0.1f'%(integration_radius[entry]))
     axbig.legend(loc='best')
-    fig.savefig("output_plots/ShapeErr_vs_integration_radius_E%s.png"%(ebin))
+    fig.savefig("output_syst_file/ShapeErr_vs_integration_radius_E%s.png"%(ebin))
     axbig.remove()
 
-OutputFile = ROOT.TFile('output_plots/SystErrors.root','recreate')
+OutputFile = ROOT.TFile('output_syst_file/SystErrors.root','recreate')
 for elev in range(0,len(elev_bins)-1):
     Hist_NormSystErr[elev].Write()
 for ebin in range(0,len(energy_bin)-1):
