@@ -4326,8 +4326,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                 hist_expo_skymap[ebin].SetBinError(bx2,by2,pow(new_error*new_error+old_error*old_error,0.5))
     for ebin in range(0,len(energy_bin)-1):
         hist_bkgd_skymap[ebin] = Smooth2DMap(hist_bkgd_skymap[ebin],smooth_size_spectroscopy,False,True)
-        hist_expo_skymap[ebin] = Smooth2DMap(hist_expo_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_data_skymap[ebin] = Smooth2DMap(hist_data_skymap[ebin],smooth_size_spectroscopy,False,True)
+        hist_expo_skymap[ebin] = Smooth2DMap(hist_expo_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_syst_skymap[ebin] = Smooth2DMap(hist_syst_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_normsyst_skymap[ebin] = Smooth2DMap(hist_normsyst_skymap[ebin],smooth_size_spectroscopy,False,True)
 
@@ -5075,15 +5075,6 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
             list_PWN_radius_err = []
             list_PWN_norm = []
             list_PWN_norm_err = []
-            list_PSR_energy = []
-            list_PSR_norm = []
-            list_PSR_norm_err = []
-            list_PSR_head = []
-            list_PSR_head_err = []
-            list_PSR_tail = []
-            list_PSR_tail_err = []
-            list_PSR_width = []
-            list_PSR_width_err = []
             for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
                 model_PWN, hist_PWN_skymap, model_PSR_diffusion, hist_PSR_diffusion_skymap = FitSimpleGeometryModel1D_J1908(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_expo_skymap[ebin],hist_syst_skymap[ebin],ebin,True)
                 #model_PSR_ellipse, hist_PSR_ellipse_skymap, model_PSR_diffusion, hist_PSR_diffusion_skymap, model_CO_north, hist_CO_north_skymap, model_CO_east, hist_CO_east_skymap, model_CO_west, hist_CO_west_skymap, model_PWN, hist_PWN_skymap = FitSimpleGeometryModel2D_J1908(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_expo_skymap[ebin],hist_syst_skymap[ebin],ebin)
@@ -5097,17 +5088,6 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                     list_PWN_radius += [model_PWN[2][0]]
                     list_PWN_radius_err += [model_PWN[2][1]]
                     list_PWN_norm_err += [error]
-                if hist_PSR_diffusion_skymap.Integral()>0.:
-                    list_PSR_energy += [energy_bin[ebin]]
-                    integral, error = Hist2DIntegralAndError(hist_PSR_diffusion_skymap)
-                    list_PSR_norm += [integral]
-                    list_PSR_norm_err += [error]
-                    list_PSR_head += [model_PSR_diffusion[0][0]]
-                    list_PSR_head_err += [model_PSR_diffusion[0][1]]
-                    list_PSR_tail += [model_PSR_diffusion[1][0]]
-                    list_PSR_tail_err += [model_PSR_diffusion[1][1]]
-                    list_PSR_width += [model_PSR_diffusion[2][0]]
-                    list_PSR_width_err += [model_PSR_diffusion[2][1]]
                 hist_fit_PWN_skymap.Add(hist_PWN_skymap)
                 hist_fit_PSR_ellipse_skymap.Add(hist_PSR_diffusion_skymap)
                 hist_expected_all_gamma_ray_skymap.Add(hist_PWN_skymap)
@@ -5157,6 +5137,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                 #    faint_star_markers[star].Draw("same")
                 #    faint_star_labels[star].Draw("same")
                 canvas.SaveAs('output_plots/SkymapExcess_E%s_%s_%s.png'%(ebin,name,selection_tag))
+
+            CompareToPulsarModels(hist_expected_all_gamma_ray_skymap,hist_fit_PWN_skymap,energy_index)
 
             hist_expected_all_gamma_ray_skymap_reflect = reflectXaxis(hist_expected_all_gamma_ray_skymap)
             hist_expected_all_gamma_ray_skymap_reflect.GetXaxis().SetLabelOffset(999)
@@ -5216,28 +5198,6 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
             fig.savefig("output_plots/%s_%s.png"%(plotname,sys.argv[1]),bbox_inches='tight')
             axbig.remove()
 
-            fig.clf()
-            axbig = fig.add_subplot()
-            axbig.errorbar(list_PSR_energy,list_PSR_width,list_PSR_width_err,color='b',label='diffusion coeff.')
-            axbig.legend(loc='best')
-            axbig.set_xlabel('Energy [GeV]')
-            axbig.set_ylabel('Angular diffusion coefficient [deg]')
-            axbig.set_xscale('log')
-            plotname = 'PSRCoeffFromModel'
-            fig.savefig("output_plots/%s_%s.png"%(plotname,sys.argv[1]),bbox_inches='tight')
-            axbig.remove()
-
-            fig.clf()
-            axbig = fig.add_subplot()
-            axbig.errorbar(list_PSR_energy,list_PSR_head,list_PSR_head_err,color='b',label='head length')
-            axbig.errorbar(list_PSR_energy,list_PSR_tail,list_PSR_tail_err,color='r',label='tail length')
-            axbig.legend(loc='best')
-            axbig.set_xlabel('Energy [GeV]')
-            axbig.set_ylabel('Angular length [deg]')
-            axbig.set_xscale('log')
-            plotname = 'PSRHeadTailFromModel'
-            fig.savefig("output_plots/%s_%s.png"%(plotname,sys.argv[1]),bbox_inches='tight')
-            axbig.remove()
 
             profile_center_x, profile_center_y, profile_center_z = RA_PSR, Dec_PSR, d_PSR
             profile, profile_err, theta2 = FindExtension(hist_flux_skymap_sum,hist_flux_syst_skymap_sum,profile_center_x,profile_center_y,2.0)
@@ -5975,10 +5935,12 @@ def asymmetric_gauss_model(x,par):
     biny = Hist_bkgd_global.GetYaxis().FindBin(x[1])
     bkgd_scale = Hist_bkgd_global.GetBinContent(binx,biny)
 
-    ellipse_center_x1 = par[0]
-    ellipse_center_y1 = par[1]
+    travel_distance = par[0]
+    travel_angle = par[1]
     ellipse_center_x2 = par[2]
     ellipse_center_y2 = par[3]
+    ellipse_center_x1 = travel_distance*np.cos(travel_angle*3.14/180.)+ellipse_center_x2
+    ellipse_center_y1 = travel_distance*np.sin(travel_angle*3.14/180.)+ellipse_center_y2
     ellipse_semi_major_ax = par[4]
     ellipse_norm = par[5]
     gauss_center_x = 0.5*(ellipse_center_x1+ellipse_center_x2)
@@ -6017,7 +5979,7 @@ def simple_geometry_model_J1908(x,par):
 def simple_diffusion_model_J1908(x,par):
 
     par_PWN = [par[0],par[1],par[2],par[3]]
-    par_PSR_diffusion = [par[4],par[5],par[6],par[7]]
+    par_PSR_diffusion = [par[4],par[5],par[6],par[7],par[8],par[9],par[10]]
     total = 0.
     total += symmetric_gauss_model(x,par_PWN)
     total += simple_diffusion_model_PSR(x,par_PSR_diffusion)
@@ -6036,15 +5998,18 @@ def simple_diffusion_model_PSR(x,par):
     biny = Hist_bkgd_global.GetYaxis().FindBin(x[1])
     bkgd_scale = Hist_bkgd_global.GetBinContent(binx,biny)
 
-    head_length = par[0]
-    tail_length = par[1]
-    transverse_length = par[2]
-    norm = par[3]
+    travel_angle = par[0]
+    head_x = par[1]
+    head_y = par[2]
+    head_length = par[3]
+    tail_length = par[4]
+    transverse_length = par[5]
+    norm = par[6]
 
-    PSR_head_x = 286.98
-    PSR_head_y = 6.04
-    PSR_tail_x = 287.09
-    PSR_tail_y = 6.86
+    PSR_head_x = head_x
+    PSR_head_y = head_y
+    PSR_tail_x = tail_length*np.cos(travel_angle*3.14/180.)+PSR_head_x
+    PSR_tail_y = tail_length*np.sin(travel_angle*3.14/180.)+PSR_head_y
 
     # ax + by + c = 0
     b = 1.
@@ -6263,7 +6228,7 @@ def FitSimpleDiffusionPSR(hist_excess_skymap,model_parammeters,fitting_smooth_si
     MapCenter_y = (MapEdge_upper+MapEdge_lower)/2.
     MapBinSize = hist_excess_skymap.GetXaxis().GetBinLowEdge(2)-hist_excess_skymap.GetXaxis().GetBinLowEdge(1)
 
-    npar = 4
+    npar = 7
     simple_model_psr = ROOT.TF2('simple_model_psr',simple_diffusion_model_PSR,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
 
     simple_model_psr.SetParameter(0,model_parammeters[0][0])
@@ -6351,6 +6316,50 @@ def FillHistgramModelPWN2D(hist_input,par):
             hist_input.SetBinContent(binx+1,biny+1,content_per_deg2*size_x*size_y)
     return hist_input
 
+def CompareToPulsarModels(hist_data_skymap,hist_pwn_skymap,energy_index):
+
+    nbins = hist_data_skymap.GetNbinsX()
+    MapEdge_left = hist_data_skymap.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = hist_data_skymap.GetXaxis().GetBinLowEdge(hist_data_skymap.GetNbinsX()+1)
+    MapEdge_lower = hist_data_skymap.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = hist_data_skymap.GetYaxis().GetBinLowEdge(hist_data_skymap.GetNbinsY()+1)
+    hist_model_skymap = ROOT.TH2D("hist_model_skymap","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+    hist_residual_skymap = ROOT.TH2D("hist_residual_skymap","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+    hist_residual_skymap.Add(hist_data_skymap)
+    hist_residual_skymap.Add(hist_pwn_skymap,-1.)
+
+    InputFile = ROOT.TFile("easy_scripts/output_pulsar/pulsar_skymap.root")
+    HistName = "hist_skymap_E600GeV"
+    hist_model_skymap.Add(InputFile.Get(HistName),pow(energy_bin[2]/1e3,energy_index))
+    #HistName = "hist_skymap_E1500GeV"
+    #hist_model_skymap.Add(InputFile.Get(HistName),pow(energy_bin[3]/1e3,energy_index))
+    #HistName = "hist_skymap_E4000GeV"
+    #hist_model_skymap.Add(InputFile.Get(HistName),pow(energy_bin[4]/1e3,energy_index))
+    #HistName = "hist_skymap_E10000GeV"
+    #hist_model_skymap.Add(InputFile.Get(HistName),pow(energy_bin[5]/1e3,energy_index))
+    hist_model_skymap.Scale(hist_residual_skymap.Integral()/hist_model_skymap.Integral())
+    InputFile.Close()
+
+    RA_PSR_initial, Dec_PSR_initial, RA_PSR, Dec_PSR, d_PSR, t_PSR, n_0 = GetPulsarParameters()
+    profile_center_x = RA_PSR
+    profile_center_y = Dec_PSR
+    profile_data, profile_data_err, theta2_data = FindExtension(hist_data_skymap,None,profile_center_x,profile_center_y,2.5)
+    profile_pwn, profile_pwn_err, theta2_pwn = FindExtension(hist_pwn_skymap,None,profile_center_x,profile_center_y,2.5)
+    profile_model, profile_model_err, theta2_model = FindExtension(hist_model_skymap,None,profile_center_x,profile_center_y,2.5)
+    profile_total = np.array(profile_pwn)+np.array(profile_model)
+    fig.clf()
+    axbig = fig.add_subplot()
+    axbig.errorbar(theta2_data,profile_data,profile_data_err,color='k',marker='s',ls='none',label='excess')
+    axbig.plot(theta2_pwn,profile_pwn,color='r')
+    axbig.plot(theta2_model,profile_model,color='b')
+    axbig.plot(theta2_pwn,profile_total,color='k')
+    axbig.set_ylabel('[counts $\mathrm{deg}^{-2}$]')
+    axbig.set_xlabel('angular distance from source [degree]')
+    axbig.legend(loc='best')
+    plotname = 'ProfileModel'
+    fig.savefig("output_plots/%s_%s_E%s.png"%(plotname,sys.argv[1],ebin),bbox_inches='tight')
+    axbig.remove()
+
 def FitSimpleGeometryModel1D_J1908(hist_data_skymap,hist_bkgd_skymap,hist_expo_skymap,hist_syst_skymap,ebin,useDiffusion):
 
     global Hist_bkgd_global
@@ -6401,8 +6410,8 @@ def FitSimpleGeometryModel1D_J1908(hist_data_skymap,hist_bkgd_skymap,hist_expo_s
     model_PWN = [[RA_PSR,0.],[Dec_PSR,0.],[1.5,0.],[avg_count,0.]]
     PSR_initial_RA = 287.09
     PSR_initial_Dec = 6.86
-    model_PSR_ellipse = [[PSR_initial_RA,0.], [PSR_initial_Dec,0.], [RA_PSR,0.], [Dec_PSR,0.], [0.44,0.], [avg_count,0.]]
-    model_PSR_diffusion = [[0.1,0.], [1.0,0.], [0.2,0.], [avg_count,0.]]
+    model_PSR_ellipse = [[1.0,0.], [45.,0.], [RA_PSR,0.], [Dec_PSR,0.], [0.44,0.], [avg_count,0.]]
+    model_PSR_diffusion = [[84.13,0.],[RA_PSR,0.], [Dec_PSR,0.],[0.1,0.], [1.0,0.], [0.05,0.], [avg_count,0.]]
 
     npar = 4
     simple_model_2d = ROOT.TF2('simple_model_2d',symmetric_gauss_model,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
@@ -6434,8 +6443,8 @@ def FitSimpleGeometryModel1D_J1908(hist_data_skymap,hist_bkgd_skymap,hist_expo_s
     ellipse_model_2d = ROOT.TF2('ellipse_model_2d',simple_geometry_model_J1908,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
     ellipse_model_2d.SetParameter(0,model_PWN[0][0])
     ellipse_model_2d.SetParameter(1,model_PWN[1][0])
-    ellipse_model_2d.SetParameter(2,model_PWN[2][0])
-    ellipse_model_2d.SetParLimits(2,1.5*model_PWN[2][0],2.0)
+    ellipse_model_2d.SetParameter(2,1.5*model_PWN[2][0])
+    ellipse_model_2d.SetParLimits(2,1.2*model_PWN[2][0],2.0)
     ellipse_model_2d.SetParameter(3,model_PWN[3][0])
     ellipse_model_2d.SetParLimits(3,0.,10.0*(model_PWN[3][0]))
     ellipse_model_2d.FixParameter(0,model_PWN[0][0])
@@ -6446,21 +6455,21 @@ def FitSimpleGeometryModel1D_J1908(hist_data_skymap,hist_bkgd_skymap,hist_expo_s
     print ('Initial PWN norm = %0.3e'%(model_PWN[3][0]))
 
     ellipse_model_2d.SetParameter(4,model_PSR_ellipse[0][0])
-    ellipse_model_2d.SetParLimits(4,model_PSR_ellipse[0][0]-1.0,model_PSR_ellipse[0][0]+1.0)
+    ellipse_model_2d.SetParLimits(4,0.,2.0)
     ellipse_model_2d.SetParameter(5,model_PSR_ellipse[1][0])
-    ellipse_model_2d.SetParLimits(5,model_PSR_ellipse[1][0]-1.0,model_PSR_ellipse[1][0]+1.0)
+    ellipse_model_2d.SetParLimits(5,45.,135.)
     ellipse_model_2d.SetParameter(6,model_PSR_ellipse[2][0])
     ellipse_model_2d.SetParameter(7,model_PSR_ellipse[3][0])
     ellipse_model_2d.SetParameter(8,model_PSR_ellipse[4][0])
     ellipse_model_2d.SetParLimits(8,0.5*model_PSR_ellipse[4][0],2.0*model_PSR_ellipse[4][0])
     ellipse_model_2d.SetParameter(9,model_PSR_ellipse[5][0])
     ellipse_model_2d.SetParLimits(9,0.,10.0*model_PSR_ellipse[5][0])
-    ellipse_model_2d.FixParameter(4,model_PSR_ellipse[0][0])
-    ellipse_model_2d.FixParameter(5,model_PSR_ellipse[1][0])
+    #ellipse_model_2d.FixParameter(4,model_PSR_ellipse[0][0])
+    #ellipse_model_2d.FixParameter(5,model_PSR_ellipse[1][0])
     ellipse_model_2d.FixParameter(6,model_PSR_ellipse[2][0])
     ellipse_model_2d.FixParameter(7,model_PSR_ellipse[3][0])
-    print ('Initial model_PSR_ellipse initial RA = %0.2f'%(model_PSR_ellipse[0][0]))
-    print ('Initial model_PSR_ellipse initial Dec = %0.2f'%(model_PSR_ellipse[1][0]))
+    print ('Initial model_PSR_ellipse travel distance = %0.2f'%(model_PSR_ellipse[0][0]))
+    print ('Initial model_PSR_ellipse travel angle = %0.2f'%(model_PSR_ellipse[1][0]))
     print ('Initial model_PSR_ellipse final RA = %0.2f'%(model_PSR_ellipse[2][0]))
     print ('Initial model_PSR_ellipse final Dec = %0.2f'%(model_PSR_ellipse[3][0]))
     print ('Initial model_PSR_ellipse semi_major = %0.2f deg'%(model_PSR_ellipse[4][0]))
@@ -6483,8 +6492,8 @@ def FitSimpleGeometryModel1D_J1908(hist_data_skymap,hist_bkgd_skymap,hist_expo_s
     model_PSR_ellipse[3][0] = ellipse_model_2d.GetParameter(7)
     model_PSR_ellipse[4][0] = ellipse_model_2d.GetParameter(8)
     model_PSR_ellipse[5][0] = ellipse_model_2d.GetParameter(9)
-    print ('2D fit model_PSR_ellipse initial RA = %0.2f'%(model_PSR_ellipse[0][0]))
-    print ('2D fit model_PSR_ellipse initial Dec = %0.2f'%(model_PSR_ellipse[1][0]))
+    print ('2D fit model_PSR_ellipse travel distance = %0.2f'%(model_PSR_ellipse[0][0]))
+    print ('2D fit model_PSR_ellipse travel angle = %0.2f'%(model_PSR_ellipse[1][0]))
     print ('2D fit model_PSR_ellipse final RA = %0.2f'%(model_PSR_ellipse[2][0]))
     print ('2D fit model_PSR_ellipse final Dec = %0.2f'%(model_PSR_ellipse[3][0]))
     print ('2D fit model_PSR_ellipse semi_major = %0.2f deg'%(model_PSR_ellipse[4][0]))
@@ -6508,33 +6517,43 @@ def FitSimpleGeometryModel1D_J1908(hist_data_skymap,hist_bkgd_skymap,hist_expo_s
 
     if useDiffusion:
 
-        npar = 8
+        npar = 11
         diffusion_model_2d = ROOT.TF2('diffusion_model_2d',simple_diffusion_model_J1908,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
         diffusion_model_2d.SetParameter(0,model_PWN[0][0])
         diffusion_model_2d.SetParameter(1,model_PWN[1][0])
-        diffusion_model_2d.SetParameter(2,model_PWN[2][0])
-        diffusion_model_2d.SetParLimits(2,1.5*model_PWN[2][0],2.0)
+        diffusion_model_2d.SetParameter(2,1.5*model_PWN[2][0])
+        diffusion_model_2d.SetParLimits(2,1.2*model_PWN[2][0],2.0)
         diffusion_model_2d.SetParameter(3,model_PWN[3][0])
         diffusion_model_2d.SetParLimits(3,0.,10.0*(model_PWN[3][0]))
         diffusion_model_2d.FixParameter(0,model_PWN[0][0])
         diffusion_model_2d.FixParameter(1,model_PWN[1][0])
+        #diffusion_model_2d.FixParameter(2,1.)
+        #diffusion_model_2d.FixParameter(3,0.)
         print ('Initial PWN RA = %0.2f'%(model_PWN[0][0]))
         print ('Initial PWN Dec = %0.2f'%(model_PWN[1][0]))
         print ('Initial PWN radius = %0.2f deg'%(model_PWN[2][0]))
         print ('Initial PWN norm = %0.3e'%(model_PWN[3][0]))
 
         diffusion_model_2d.SetParameter(4,model_PSR_diffusion[0][0])
-        diffusion_model_2d.SetParLimits(4,0.1,0.5)
+        diffusion_model_2d.SetParLimits(4,45.,135.)
+        diffusion_model_2d.FixParameter(4,model_PSR_diffusion[0][0])
         diffusion_model_2d.SetParameter(5,model_PSR_diffusion[1][0])
-        diffusion_model_2d.SetParLimits(5,0.1,2.0)
+        diffusion_model_2d.FixParameter(5,model_PSR_diffusion[1][0])
         diffusion_model_2d.SetParameter(6,model_PSR_diffusion[2][0])
-        diffusion_model_2d.SetParLimits(6,0.001,1.0)
+        diffusion_model_2d.FixParameter(6,model_PSR_diffusion[2][0])
         diffusion_model_2d.SetParameter(7,model_PSR_diffusion[3][0])
-        diffusion_model_2d.SetParLimits(7,0.,10.*model_PSR_diffusion[3][0])
-        print ('Initial model_PSR_diffusion head length = %0.3e'%(model_PSR_diffusion[0][0]))
-        print ('Initial model_PSR_diffusion tail length = %0.3e'%(model_PSR_diffusion[1][0]))
-        print ('Initial model_PSR_diffusion angular coeff = %0.3e'%(model_PSR_diffusion[2][0]))
-        print ('Initial model_PSR_diffusion norm = %0.3e'%(model_PSR_diffusion[3][0]))
+        diffusion_model_2d.SetParLimits(7,0.1,0.5)
+        diffusion_model_2d.SetParameter(8,model_PSR_diffusion[4][0])
+        diffusion_model_2d.SetParLimits(8,0.1,2.0)
+        diffusion_model_2d.SetParameter(9,model_PSR_diffusion[5][0])
+        diffusion_model_2d.SetParLimits(9,0.001,1.0)
+        diffusion_model_2d.SetParameter(10,model_PSR_diffusion[6][0])
+        diffusion_model_2d.SetParLimits(10,0.,10.*model_PSR_diffusion[6][0])
+        print ('Initial model_PSR_diffusion travel angle = %0.3e'%(model_PSR_diffusion[0][0]))
+        print ('Initial model_PSR_diffusion head length = %0.3e'%(model_PSR_diffusion[3][0]))
+        print ('Initial model_PSR_diffusion tail length = %0.3e'%(model_PSR_diffusion[4][0]))
+        print ('Initial model_PSR_diffusion angular coeff = %0.3e'%(model_PSR_diffusion[5][0]))
+        print ('Initial model_PSR_diffusion norm = %0.3e'%(model_PSR_diffusion[6][0]))
 
         hist_excess_skymap.Fit('diffusion_model_2d')
 
@@ -6551,56 +6570,14 @@ def FitSimpleGeometryModel1D_J1908(hist_data_skymap,hist_bkgd_skymap,hist_expo_s
         model_PSR_diffusion[1][0] = diffusion_model_2d.GetParameter(5)
         model_PSR_diffusion[2][0] = diffusion_model_2d.GetParameter(6)
         model_PSR_diffusion[3][0] = diffusion_model_2d.GetParameter(7)
-        print ('2D fit model_PSR_diffusion head length = %0.3e'%(model_PSR_diffusion[0][0]))
-        print ('2D fit model_PSR_diffusion tail length = %0.3e'%(model_PSR_diffusion[1][0]))
-        print ('2D fit model_PSR_diffusion angular coeff = %0.3e'%(model_PSR_diffusion[2][0]))
-        print ('2D fit model_PSR_diffusion norm = %0.3e'%(model_PSR_diffusion[3][0]))
-
-        #Hist_bkgd_global.Reset()
-        #Hist_bkgd_global.SetBins(nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-        #Hist_bkgd_global.Add(hist_expo_skymap)
-        #hist_excess_skymap.Reset()
-        #hist_excess_skymap.SetBins(nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-        #hist_excess_skymap.Add(hist_data_skymap)
-        #hist_excess_skymap.Add(hist_bkgd_skymap,-1.)
-
-        #fitting_smooth_size = 0.15
-        #Hist_bkgd_global = Smooth2DMap(Hist_bkgd_global,fitting_smooth_size,False,True)
-        #hist_excess_skymap = Smooth2DMap(hist_excess_skymap,fitting_smooth_size,False,True)
-
-        #fit_rebin = 2
-        #if ebin>=4:
-        #    fit_rebin = 4
-        #fit_rebin = max(1,int(fit_rebin/n_rebins))
-        #Hist_bkgd_global.Rebin2D(fit_rebin,fit_rebin)
-        #Hist_bkgd_global.Scale(1./float(fit_rebin*fit_rebin))
-        #hist_excess_skymap.Rebin2D(fit_rebin,fit_rebin)
-        #hist_excess_skymap.Scale(1./float(fit_rebin*fit_rebin))
-
-        diffusion_model_2d.FixParameter(0,model_PWN[0][0])
-        diffusion_model_2d.FixParameter(1,model_PWN[1][0])
-        diffusion_model_2d.FixParameter(2,model_PWN[2][0])
-        diffusion_model_2d.FixParameter(3,model_PWN[3][0])
-
-        hist_excess_skymap.Fit('diffusion_model_2d')
-
-        #head_length = pow(max(0.01,pow(diffusion_model_2d.GetParameter(4),2)-pow(fitting_smooth_size,2)),0.5)
-        #model_PSR_diffusion[0][0] = head_length
-        #tail_length = pow(max(0.01,pow(diffusion_model_2d.GetParameter(5),2)-pow(fitting_smooth_size,2)),0.5)
-        #model_PSR_diffusion[1][0] = tail_length
-        #width_sq = diffusion_model_2d.GetParameter(6)*tail_length-pow(fitting_smooth_size,2)
-        #width_sq = max(0.01,width_sq)
-        #diff_coeff = width_sq/tail_length
-        #model_PSR_diffusion[2][0] = diff_coeff
-        #model_PSR_diffusion[3][0] = diffusion_model_2d.GetParameter(7)
-        model_PSR_diffusion[0][0] = diffusion_model_2d.GetParameter(4)
-        model_PSR_diffusion[1][0] = diffusion_model_2d.GetParameter(5)
-        model_PSR_diffusion[2][0] = diffusion_model_2d.GetParameter(6)
-        model_PSR_diffusion[3][0] = diffusion_model_2d.GetParameter(7)
-        print ('2D fit model_PSR_diffusion head length = %0.3e'%(model_PSR_diffusion[0][0]))
-        print ('2D fit model_PSR_diffusion tail length = %0.3e'%(model_PSR_diffusion[1][0]))
-        print ('2D fit model_PSR_diffusion angular coeff = %0.3e'%(model_PSR_diffusion[2][0]))
-        print ('2D fit model_PSR_diffusion norm = %0.3e'%(model_PSR_diffusion[3][0]))
+        model_PSR_diffusion[4][0] = diffusion_model_2d.GetParameter(8)
+        model_PSR_diffusion[5][0] = diffusion_model_2d.GetParameter(9)
+        model_PSR_diffusion[6][0] = diffusion_model_2d.GetParameter(10)
+        print ('2D fit model_PSR_diffusion travel angle = %0.3e'%(model_PSR_diffusion[0][0]))
+        print ('2D fit model_PSR_diffusion head length = %0.3e'%(model_PSR_diffusion[3][0]))
+        print ('2D fit model_PSR_diffusion tail length = %0.3e'%(model_PSR_diffusion[4][0]))
+        print ('2D fit model_PSR_diffusion angular coeff = %0.3e'%(model_PSR_diffusion[5][0]))
+        print ('2D fit model_PSR_diffusion norm = %0.3e'%(model_PSR_diffusion[6][0]))
 
         npar = 4
         model_PWN_func = ROOT.TF2('model_PWN_func',symmetric_gauss_model,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
@@ -6609,12 +6586,15 @@ def FitSimpleGeometryModel1D_J1908(hist_data_skymap,hist_bkgd_skymap,hist_expo_s
         model_PWN_func.SetParameter(2,model_PWN[2][0])
         model_PWN_func.SetParameter(3,model_PWN[3][0])
 
-        npar = 4
+        npar = 7
         model_PSR_diffusion_func = ROOT.TF2('model_PSR_diffusion_func',simple_diffusion_model_PSR,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
         model_PSR_diffusion_func.SetParameter(0,model_PSR_diffusion[0][0])
         model_PSR_diffusion_func.SetParameter(1,model_PSR_diffusion[1][0])
         model_PSR_diffusion_func.SetParameter(2,model_PSR_diffusion[2][0])
         model_PSR_diffusion_func.SetParameter(3,model_PSR_diffusion[3][0])
+        model_PSR_diffusion_func.SetParameter(4,model_PSR_diffusion[4][0])
+        model_PSR_diffusion_func.SetParameter(5,model_PSR_diffusion[5][0])
+        model_PSR_diffusion_func.SetParameter(6,model_PSR_diffusion[6][0])
 
 
     Hist_bkgd_global.Reset()
@@ -6731,19 +6711,33 @@ def FitSimpleGeometryModel1D_J1908(hist_data_skymap,hist_bkgd_skymap,hist_expo_s
                 hist_PSR_ellipse_skymap.SetBinError(bx+1,by+1,model_error*PSR_ellipse_flux)
             else:
                 model_error = 0.
-                if model_PSR_diffusion[3][0]>0.:
-                    model_error = model_PSR_diffusion[3][1]/model_PSR_diffusion[3][0]
+                if model_PSR_diffusion[6][0]>0.:
+                    model_error = model_PSR_diffusion[6][1]/model_PSR_diffusion[6][0]
                 PSR_ellipse_flux = model_PSR_diffusion_func.Eval(map_x,map_y)/expo_count*correction
                 hist_PSR_ellipse_skymap.SetBinContent(bx+1,by+1,PSR_ellipse_flux)
                 hist_PSR_ellipse_skymap.SetBinError(bx+1,by+1,model_error*PSR_ellipse_flux)
 
-            model_error = model_PWN[3][1]/model_PWN[3][0]
+            model_error = 0.
+            if model_PWN[3][0]>0.:
+                model_error = model_PWN[3][1]/model_PWN[3][0]
             PWN_flux = model_PWN_func.Eval(map_x,map_y)/expo_count*correction
             hist_PWN_skymap.SetBinContent(bx+1,by+1,PWN_flux)
             hist_PWN_skymap.SetBinError(bx+1,by+1,model_error*PWN_flux)
 
 
     if not useDiffusion:
+        travel_distance = model_PSR_ellipse[0][0]
+        travel_angle = model_PSR_ellipse[1][0]
+        ellipse_center_x2 = model_PSR_ellipse[2][0]
+        ellipse_center_y2 = model_PSR_ellipse[3][0]
+        ellipse_center_x1 = travel_distance*np.cos(travel_angle*3.14/180.)+ellipse_center_x2
+        ellipse_center_y1 = travel_distance*np.sin(travel_angle*3.14/180.)+ellipse_center_y2
+        model_PSR_ellipse[0][0] = ellipse_center_x1
+        model_PSR_ellipse[1][0] = ellipse_center_y1
+        print ('2D fit model_PSR_ellipse initial RA = %0.2f'%(model_PSR_ellipse[0][0]))
+        print ('2D fit model_PSR_ellipse initial Dec = %0.2f'%(model_PSR_ellipse[1][0]))
+        print ('2D fit model_PSR_ellipse final RA = %0.2f'%(model_PSR_ellipse[2][0]))
+        print ('2D fit model_PSR_ellipse final Dec = %0.2f'%(model_PSR_ellipse[3][0]))
         return model_PWN, hist_PWN_skymap, model_PSR_ellipse, hist_PSR_ellipse_skymap
     else:
         return model_PWN, hist_PWN_skymap, model_PSR_diffusion, hist_PSR_ellipse_skymap
@@ -7068,7 +7062,7 @@ def FitSimpleGeometryModel2D_J1908(hist_data_skymap,hist_bkgd_skymap,hist_expo_s
     print ('2D fit model_PSR_diffusion angular coeff = %0.3e'%(model_PSR_diffusion[2][0]))
     print ('2D fit model_PSR_diffusion norm = %0.3e'%(model_PSR_diffusion[3][0]))
 
-    npar = 4
+    npar = 7
     model_PSR_diffusion_func = ROOT.TF2('model_PSR_diffusion_func',simple_diffusion_model_PSR,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
     model_PSR_diffusion_func.SetParameter(0,model_PSR_diffusion[0][0])
     model_PSR_diffusion_func.SetParameter(1,model_PSR_diffusion[1][0])
