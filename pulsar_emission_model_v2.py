@@ -80,6 +80,8 @@ def electron_density_burst(t0_year,photon_location,source_location_initial,sourc
     #km_to_pc = 3.24078e-14
     #larmor_radius = 33.36*E_e_final_GeV*(1./(mag_field*1e-6))*km_to_pc
     #diffusion_length_at_t_now = max(diffusion_length_at_t_now,larmor_radius)
+    PSF_length = 0.1*3.14/180.*pulsar_distance
+    diffusion_length_at_t_now = pow(pow(diffusion_length_at_t_now,2)+pow(PSF_length,2),0.5)
     energy_loss_at_t_now = total_electron_energy_loss_function(E_e_final_GeV)
     E_e_initial_GeV = initial_electron_energy(dt_year,E_e_final_GeV)
     energy_loss_at_t0 = total_electron_energy_loss_function(E_e_initial_GeV)
@@ -96,7 +98,7 @@ def electron_density_continuum(photon_location_z,photon_location_x,photon_locati
     source_ref_distance = pow(source_ref_dx*source_ref_dx+source_ref_dy*source_ref_dy,0.5)
     source_location_initial = np.array([source_location_final[0]+source_ref_dx*source_travel_distance/source_ref_distance,source_location_final[1]+source_ref_dy*source_travel_distance/source_ref_distance])
     photon_location = np.array([photon_location_x,photon_location_y,photon_location_z])
-    electron_density = quad(electron_density_burst, 0., 0.999*t_age, args=(photon_location,source_location_initial,source_location_final,E_e_final_GeV))[0]
+    electron_density = quad(electron_density_burst, 0., 1.0*t_age, args=(photon_location,source_location_initial,source_location_final,E_e_final_GeV))[0]
     return electron_density # 1./pc^3/GeV
 
 def electron_column_density_continuum(E_e_final_GeV,photon_location_x,photon_location_y,t_age):
@@ -105,27 +107,31 @@ def electron_column_density_continuum(E_e_final_GeV,photon_location_x,photon_loc
     electron_column_density = quad(electron_density_continuum, x_low, x_up, args=(photon_location_x,photon_location_y,t_age,E_e_final_GeV))[0]
     return 2.*electron_column_density # 1./pc^2/GeV
 
-def electron_column_density_integrated(photon_location_x,photon_location_y,t_age,E_e_GeV_low,E_e_GeV_up):
-    electron_column_density = quad(electron_column_density_continuum, E_e_GeV_low, E_e_GeV_up, args=(photon_location_x,photon_location_y,t_age))[0]
-    return electron_column_density # 1./pc^2
-
-def IC_photon_rate_column_density_integrated(pixel_size_deg2,photon_location_x,photon_location_y,t_age,E_ph_GeV_low,E_ph_GeV_up):
+def electron_column_density_integrated(photon_location_x,photon_location_y,t_age,E_ph_GeV_low,E_ph_GeV_up):
 
     E_ph_GeV_avg = (E_ph_GeV_low+E_ph_GeV_up)/2.
-    E_e_GeV_up = E_ph_GeV_avg*100.
-    E_e_GeV_low = E_ph_GeV_avg
-    E_e_GeV_avg = (E_e_GeV_up+E_e_GeV_low)/2.
-    electron_column_density = electron_column_density_integrated(photon_location_x,photon_location_y,t_age,E_e_GeV_low,E_e_GeV_up) # 1/pc^2
+    E_e_GeV_avg = m_e*pow(E_ph_GeV_avg*1e9/E_cmb,0.5)/1e9 # GeV
+    E_e_GeV_up = m_e*pow(E_ph_GeV_up*1e9/E_cmb,0.5)/1e9 # GeV
+    E_e_GeV_low = m_e*pow(E_ph_GeV_low*1e9/E_cmb,0.5)/1e9 # GeV
+    electron_column_density = quad(electron_column_density_continuum, E_e_GeV_low, E_e_GeV_up, args=(photon_location_x,photon_location_y,t_age))[0]
+    return electron_column_density # el/pc^2
+
+def IC_photon_rate_column_density_integrated(pixel_size_deg2,E_ph_GeV_low,E_ph_GeV_up):
+
+    E_ph_GeV_avg = (E_ph_GeV_low+E_ph_GeV_up)/2.
+    E_e_GeV_avg = m_e*pow(E_ph_GeV_avg*1e9/E_cmb,0.5)/1e9 # GeV
+    E_e_GeV_up = m_e*pow(E_ph_GeV_up*1e9/E_cmb,0.5)/1e9 # GeV
+    E_e_GeV_low = m_e*pow(E_ph_GeV_low*1e9/E_cmb,0.5)/1e9 # GeV
+
     E1_factor_hat_up = E_ph_GeV_to_E1_factor_hat(E_ph_GeV_up,E_e_GeV_avg)
     E1_factor_hat_low = E_ph_GeV_to_E1_factor_hat(E_ph_GeV_low,E_e_GeV_avg)
-    IC_photon_rate = IC_photon_rate_per_electron_integrated(E1_factor_hat_low,E1_factor_hat_up,E_e_GeV_avg) # 1/sec/ph
-    IC_photon_rate_column_density = electron_column_density*IC_photon_rate # 1/sec/pc^2
+    IC_photon_rate = IC_photon_rate_per_electron_integrated(E1_factor_hat_low,E1_factor_hat_up,E_e_GeV_avg) # 1/sec/el
 
     area_per_pixel = pixel_size_deg2*pow(3.14/180.*pulsar_distance,2) # pc^2
     pc_to_cm = 3.086e+18
     solid_angle_per_cm2_from_source = 1./(pow(pulsar_distance*pc_to_cm,2))  # 1/cm^2
 
-    return IC_photon_rate_column_density*area_per_pixel*solid_angle_per_cm2_from_source # 1/sec/cm^2
+    return IC_photon_rate*area_per_pixel*solid_angle_per_cm2_from_source # pc^2/sec/el/cm^2
 
 def E1_factor_hat_to_E_ph_GeV(E1_factor_hat,E_e_GeV=1e5):
 
@@ -184,25 +190,27 @@ def PlotElectronColummnDensity(E_e_GeV_low,E_e_GeV_up,plot_tag):
     source_ref_distance = pow(source_ref_dx*source_ref_dx+source_ref_dy*source_ref_dy,0.5)
     source_location_initial = np.array([source_location_final[0]+source_ref_dx*source_travel_distance/source_ref_distance,source_location_final[1]+source_ref_dy*source_travel_distance/source_ref_distance])
 
-    Skymap_nbins = 10
-    MapEdge_left = PSR_head_x-2.
-    MapEdge_right = PSR_head_x+2.
-    MapEdge_lower = PSR_head_y-2.
-    MapEdge_upper = PSR_head_y+2.
+    Source_RA = 286.975
+    Source_Dec = 6.269
+    Skymap_nbins = 60
+    MapEdge_left = Source_RA-3.
+    MapEdge_right = Source_RA+3.
+    MapEdge_lower = Source_Dec-3.
+    MapEdge_upper = Source_Dec+3.
     pixel_size = ((MapEdge_right-MapEdge_left)/Skymap_nbins)*((MapEdge_upper-MapEdge_lower)/Skymap_nbins)
 
     x_axis = np.linspace(MapEdge_left,MapEdge_right,Skymap_nbins)
     y_axis = np.linspace(MapEdge_lower,MapEdge_upper,Skymap_nbins)
     grid_z = []
+    IC_photon_rate = IC_photon_rate_column_density_integrated(pixel_size,E_e_GeV_low,E_e_GeV_up)
     for ybin in range(0,len(y_axis)):
         z_along_x_axis = []
         for xbin in range(0,len(x_axis)):
             print ('xbin = %s, ybin = %s'%(xbin,ybin))
             x = x_axis[xbin]
             y = y_axis[ybin]
-            #z = electron_column_density_integrated(x,y,pulsar_age_year,E_e_GeV_low,E_e_GeV_up)
-            z = IC_photon_rate_column_density_integrated(pixel_size,x,y,pulsar_age_year,E_e_GeV_low,E_e_GeV_up)
-            z_along_x_axis += [z]
+            electron_column_density = electron_column_density_integrated(x,y,pulsar_age_year,E_e_GeV_low,E_e_GeV_up)
+            z_along_x_axis += [electron_column_density*IC_photon_rate]
         grid_z += [z_along_x_axis]
     fig.clf()
     axbig = fig.add_subplot()
@@ -254,5 +262,5 @@ PlotAFunction(injection_spectrum_time_dep,1e3,1e5,'injection_spectrum')
 PlotAFunction(IC_photon_rate_per_electron,0.01,0.99,'IC_photon_rate_per_electron',logx=False,logy=False)
 PlotAFunction(E1_factor_hat_to_E_ph_GeV,0.,1.,'E1_factor_hat_to_E_ph_GeV',logx=False,logy=False)
 PlotAFunction(E_ph_GeV_to_E1_factor_hat,1e2,1e4,'E_ph_GeV_to_E1_factor_hat',logy=False)
-PlotElectronColummnDensity(1e3,2e3,'1TeV')
+PlotElectronColummnDensity(600,1500,'1TeV')
 
