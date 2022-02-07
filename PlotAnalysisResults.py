@@ -4945,12 +4945,14 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         if sys.argv[1]=='MGRO_J1908_ON':
             output_file = ROOT.TFile("output_fitting/J1908_skymap.root","recreate")
             hist_flux_skymap_sum.Write()
+            hist_flux_syst_skymap_sum.Write()
             hist_data_skymap_sum.Write()
             hist_bkgd_skymap_sum.Write()
             hist_expo_skymap_sum.Write()
             hist_syst_skymap_sum.Write()
             for ebin in range(0,len(energy_bin)-1):
                 hist_energy_flux_skymap[ebin].Write()
+                hist_energy_flux_syst_skymap[ebin].Write()
                 hist_cali_skymap[ebin].Write()
                 hist_data_skymap[ebin].Write()
                 hist_bkgd_skymap[ebin].Write()
