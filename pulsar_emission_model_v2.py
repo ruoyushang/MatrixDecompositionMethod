@@ -177,7 +177,7 @@ def PlotAFunction(function,x_low,x_up,plot_name,logx=True,logy=True):
     axbig.plot(x_axis, y_axis,'k-')
     if logx: axbig.set_xscale('log')
     if logy: axbig.set_yscale('log')
-    fig.savefig("output_plots/%s.png"%(plot_name),bbox_inches='tight')
+    fig.savefig("/gamma_raid/userspace/rshang/pulsar_models_output/%s_%s.png"%(plot_name,model_tag),bbox_inches='tight')
     axbig.remove()
 
 def PlotElectronColummnDensity(E_e_GeV_low,E_e_GeV_up,plot_tag):
@@ -198,6 +198,7 @@ def PlotElectronColummnDensity(E_e_GeV_low,E_e_GeV_up,plot_tag):
     MapEdge_lower = Source_Dec-3.
     MapEdge_upper = Source_Dec+3.
     pixel_size = ((MapEdge_right-MapEdge_left)/Skymap_nbins)*((MapEdge_upper-MapEdge_lower)/Skymap_nbins)
+    hist_pulsar_skymap = ROOT.TH2D("hist_pulsar_skymap_%s"%(plot_tag),"",Skymap_nbins,MapEdge_left,MapEdge_right,Skymap_nbins,MapEdge_lower,MapEdge_upper)
 
     x_axis = np.linspace(MapEdge_left,MapEdge_right,Skymap_nbins)
     y_axis = np.linspace(MapEdge_lower,MapEdge_upper,Skymap_nbins)
@@ -210,7 +211,9 @@ def PlotElectronColummnDensity(E_e_GeV_low,E_e_GeV_up,plot_tag):
             x = x_axis[xbin]
             y = y_axis[ybin]
             electron_column_density = electron_column_density_integrated(x,y,pulsar_age_year,E_e_GeV_low,E_e_GeV_up)
-            z_along_x_axis += [electron_column_density*IC_photon_rate]
+            IC_photon_flux = electron_column_density*IC_photon_rate
+            z_along_x_axis += [IC_photon_flux]
+            hist_pulsar_skymap.SetBinContent(xbin+1,ybin+1,IC_photon_flux)
         grid_z += [z_along_x_axis]
     fig.clf()
     axbig = fig.add_subplot()
@@ -221,9 +224,18 @@ def PlotElectronColummnDensity(E_e_GeV_low,E_e_GeV_up,plot_tag):
     cbar.set_label('electron density [$pc^{-2}$]')
     axbig.scatter(source_location_final[0], source_location_final[1], marker='^', c='r')
     axbig.scatter(source_location_initial[0], source_location_initial[1], marker='^', c='r')
-    plotname = 'ElectronColumnDensity_%s'%(plot_tag)
-    fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
+    plotname = 'ElectronColumnDensity_%s_%s'%(plot_tag,model_tag)
+    fig.savefig("/gamma_raid/userspace/rshang/pulsar_models_output/%s.png"%(plotname),bbox_inches='tight')
     axbig.remove()
+
+    output_file = ROOT.TFile("/gamma_raid/userspace/rshang/pulsar_models_output/pulsar_skymap_%s.root"%(model_tag),"update")
+    hist_pulsar_skymap.Write()
+    output_file.Close()
+
+
+D0_input = sys.argv[1]
+V0_input = sys.argv[2]
+model_tag = sys.argv[3]
 
 E_cmb = 6.6*1e-4 # eV
 m_e = 0.511*1e6 # eV
@@ -238,16 +250,18 @@ mag_field = 3. # muG
 #mag_field = 6. # muG
 U_B = 6.24*1e18/(8.*3.14*1e-7)*pow(mag_field*1e-6/1e4,2) # eV/m3
 
-D0 = 8.2*1e26 # cm2/s
+#D0 = 8.2*1e26 # cm2/s
+D0 = float(D0_input)*1e26 # cm2/s
 alpha = 1/3
-proper_velocity = 2000 #km/s
+#proper_velocity = 2000 #km/s
+proper_velocity = float(V0_input) #km/s
 km_to_pc = 3.24078e-14
 year_to_sec = 365.*24.*60.*60.
 proper_velocity_pc_per_year = proper_velocity*km_to_pc*year_to_sec
 
 
 gamma_index = 2.
-pulsar_age_year = 20*1e3 # year
+pulsar_age_year = 19.5*1e3 # year
 pulsar_distance = 3.2*1000. # pc
 PSR_head_x = 286.98
 PSR_head_y = 6.04
@@ -257,10 +271,42 @@ PSR_tail_y = 6.86
 Q0_normalization = injection_normalization()
 print ('Q0_normalization = %0.2e / year'%(Q0_normalization))
 
+output_file = ROOT.TFile("/gamma_raid/userspace/rshang/pulsar_models_output/pulsar_skymap_%s.root"%(model_tag),"recreate")
+InfoTree = ROOT.TTree("InfoTree","info tree")
+var_pulsar_age_year = array('f', [0.])
+var_pulsar_distance = array('f', [0.])
+var_gamma_index = array('f', [0.])
+var_proper_velocity = array('f', [0.])
+var_D0 = array('f', [0.])
+var_alpha = array('f', [0.])
+var_mag_field = array('f', [0.])
+InfoTree.Branch("pulsar_age_year",var_pulsar_age_year,"pulsar_age_year/F")
+InfoTree.Branch("pulsar_distance",var_pulsar_distance,"pulsar_distance/F")
+InfoTree.Branch("gamma_index",var_gamma_index,"gamma_index/F")
+InfoTree.Branch("proper_velocity",var_proper_velocity,"proper_velocity/F")
+InfoTree.Branch("D0",var_D0,"D0/F")
+InfoTree.Branch("alpha",var_alpha,"alpha/F")
+InfoTree.Branch("mag_field",var_mag_field,"mag_field/F")
+var_pulsar_age_year[0] = pulsar_age_year
+var_pulsar_distance[0] = pulsar_distance
+var_gamma_index[0] = gamma_index
+var_proper_velocity[0] = proper_velocity
+var_D0[0] = D0
+var_alpha[0] = alpha
+var_mag_field[0] = mag_field
+InfoTree.Fill()
+InfoTree.Write()
+output_file.Close()
+
 fig, ax = plt.subplots()
 PlotAFunction(injection_spectrum_time_dep,1e3,1e5,'injection_spectrum')
 PlotAFunction(IC_photon_rate_per_electron,0.01,0.99,'IC_photon_rate_per_electron',logx=False,logy=False)
 PlotAFunction(E1_factor_hat_to_E_ph_GeV,0.,1.,'E1_factor_hat_to_E_ph_GeV',logx=False,logy=False)
 PlotAFunction(E_ph_GeV_to_E1_factor_hat,1e2,1e4,'E_ph_GeV_to_E1_factor_hat',logy=False)
-PlotElectronColummnDensity(600,1500,'1TeV')
+PlotElectronColummnDensity(100,251,'100_251')
+PlotElectronColummnDensity(251,631,'251_631')
+PlotElectronColummnDensity(631,1585,'631_1585')
+PlotElectronColummnDensity(1585,3981,'1585_3981')
+PlotElectronColummnDensity(3981,10000,'3981_10000')
+PlotElectronColummnDensity(10000,25118,'10000_25118')
 
