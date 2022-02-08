@@ -46,7 +46,7 @@ def simple_diffusion_model_PSR(x,par):
     a = -b*(PSR_tail_y-PSR_head_y)/(PSR_tail_x-PSR_head_x)
     c = -(b*PSR_head_y + a*PSR_head_x)
 
-    projected_x = abs(a*x[0]+b*x[1]+c)/(a*a+b*b)  # transverse distance to line
+    projected_x = abs(a*x[0]+b*x[1]+c)/pow(a*a+b*b,0.5)  # transverse distance to line
     closest_x_on_line = (b*(b*x[0]-a*x[1])-a*c)/(a*a+b*b)
     closest_y_on_line = (a*(-b*x[0]+a*x[1])-b*c)/(a*a+b*b)
     projected_y = pow(pow(closest_x_on_line-PSR_core_x,2)+pow(closest_y_on_line-PSR_core_y,2),0.5)
