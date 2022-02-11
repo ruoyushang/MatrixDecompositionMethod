@@ -871,8 +871,7 @@ def EstimateDiffusionCoefficient(photon_energy,angular_extent,mag_field,d_PSR,t_
     print ('D_ism = %0.3f x10^{28} cm2/s at E_e = 100 TeV'%(D_ism_100TeV/1e28))
 
 def ConvertGalacticToRaDec(l, b):
-    my_sky = SkyCoord(l*my_unit.deg, b*my_unit.deg, frame='galactic')
-    return my_sky.icrs.ra.deg, my_sky.icrs.dec.deg
+    return CommonPlotFunctions.ConvertGalacticToRaDec(l, b)
 
 def ConvertRaDecToGalactic(ra, dec):
     delta = dec*ROOT.TMath.Pi()/180.
@@ -924,48 +923,7 @@ def GetGammaSourceInfo():
     global other_stars
     global other_star_coord
 
-    if sys.argv[1]=='MGRO_J1908_ON':
-        inputFile = open('J1908_sources_RaDec_w_Names.txt')
-        for line in inputFile:
-            gamma_source_name = line.split(',')[0]
-            gamma_source_ra = float(line.split(',')[1])
-            gamma_source_dec = float(line.split(',')[2])
-            near_a_source = False
-            for entry in range(0,len(other_stars)):
-                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-                if distance<0.*0.:
-                    near_a_source = True
-            if not near_a_source and not '%' in gamma_source_name:
-                other_stars += [gamma_source_name]
-                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
-    else:
-
-        inputFile = open('PSR_RaDec_w_Names.txt')
-        for line in inputFile:
-            gamma_source_name = line.split(',')[0]
-            gamma_source_ra = float(line.split(',')[1])
-            gamma_source_dec = float(line.split(',')[2])
-            near_a_source = False
-            for entry in range(0,len(other_stars)):
-                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-                if distance<0.3*0.3:
-                    near_a_source = True
-            if not near_a_source and not '%' in gamma_source_name:
-                other_stars += [gamma_source_name]
-                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
-        inputFile = open('TeVCat_RaDec_w_Names.txt')
-        for line in inputFile:
-            gamma_source_name = line.split(',')[0]
-            gamma_source_ra = float(line.split(',')[1])
-            gamma_source_dec = float(line.split(',')[2])
-            near_a_source = False
-            for entry in range(0,len(other_stars)):
-                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-                if distance<0.3*0.3:
-                    near_a_source = True
-            if not near_a_source and not '%' in gamma_source_name:
-                other_stars += [gamma_source_name]
-                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+    other_stars, other_star_coord = CommonPlotFunctions.GetGammaSourceInfo() 
 
 def ResetStackedShowerHistograms():
 
@@ -3877,31 +3835,7 @@ def reflectXaxis(hist):
 
 def FillSkymapHoles(hist_map, map_resolution):
 
-    hist_map_new = hist_map.Clone()
-    bin_size = hist_map.GetXaxis().GetBinCenter(2)-hist_map.GetXaxis().GetBinCenter(1)
-    nbin_smooth = int(map_resolution/bin_size) + 1
-    for bx1 in range(1,hist_map.GetNbinsX()+1):
-        for by1 in range(1,hist_map.GetNbinsY()+1):
-            bin_content_1 = hist_map.GetBinContent(bx1,by1)
-            if bin_content_1!=0.: continue
-            min_distance = 1e10
-            min_distance_content = 0.
-            locationx1 = hist_map.GetXaxis().GetBinCenter(bx1)
-            locationy1 = hist_map.GetYaxis().GetBinCenter(by1)
-            for bx2 in range(bx1-nbin_smooth,bx1+nbin_smooth):
-                for by2 in range(by1-nbin_smooth,by1+nbin_smooth):
-                    if bx2>=1 and bx2<=hist_map.GetNbinsX():
-                        if by2>=1 and by2<=hist_map.GetNbinsY():
-                            bin_content_2 = hist_map.GetBinContent(bx2,by2)
-                            if bin_content_2==0.: continue
-                            locationx2 = hist_map.GetXaxis().GetBinCenter(bx2)
-                            locationy2 = hist_map.GetYaxis().GetBinCenter(by2)
-                            distance = pow(pow(locationx1-locationx2,2)+pow(locationy1-locationy2,2),0.5)
-                            if min_distance>distance:
-                                min_distance = distance
-                                min_distance_content = bin_content_2
-            hist_map_new.SetBinContent(bx1,by1,min_distance_content)
-    return hist_map_new
+    return CommonPlotFunctions.FillSkymapHoles(hist_map, map_resolution)
 
 def ConvertRaDecToGalacticMap(hist_map_radec,hist_map_galactic):
 
@@ -3945,23 +3879,7 @@ def GetSkyViewMap(map_file, hist_map, isRaDec):
 
 def GetGalacticCoordMap(map_file, hist_map, isRaDec):
 
-    hist_map.Reset()
-    inputFile = open(map_file)
-    for line in inputFile:
-        sig = float(line.split(' ')[2])
-        l = float(line.split(' ')[0])
-        b = float(line.split(' ')[1])
-        if isRaDec: 
-            l, b = ConvertGalacticToRaDec(l,b)
-        binx = hist_map.GetXaxis().FindBin(l)
-        biny = hist_map.GetYaxis().FindBin(b)
-        old_sig = hist_map.GetBinContent(binx+1,biny+1)
-        hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
-
-    map_resolution = 0.1
-    hist_map_new = FillSkymapHoles(hist_map, map_resolution)
-
-    return hist_map_new
+    return CommonPlotFunctions.GetGalacticCoordMap(map_file, hist_map, isRaDec)
 
 def GetHawcSkymap(hist_map, isRaDec):
 
@@ -4604,6 +4522,28 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
     hist_elev_skymap_reflect = reflectXaxis(hist_elev_skymap)
     hist_elev_skymap_reflect.Draw("COL4Z")
     canvas.SaveAs('output_plots/SkymapElev_%s_%s.png'%(name,selection_tag))
+
+    hist_expo_hours_skymap = ROOT.TH2D("hist_expo_hours_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_expo_hours_skymap.Add(hist_bkgd_skymap_sum)
+    bin_size_0 = hist_bkgd_skymap_sum.GetXaxis().GetBinLowEdge(2)-hist_bkgd_skymap_sum.GetXaxis().GetBinLowEdge(1)
+    bin_size_1 = Hist_OnData_CR_XYoff_Sum.GetXaxis().GetBinLowEdge(2)-Hist_OnData_CR_XYoff_Sum.GetXaxis().GetBinLowEdge(1)
+    bkgd_rate = Hist_OnData_CR_XYoff_Sum.GetMaximum()*(bin_size_0*bin_size_0)/(exposure_hours*bin_size_1*bin_size_1)
+    hist_expo_hours_skymap.Scale(1./bkgd_rate)
+    hist_expo_hours_skymap_reflect = reflectXaxis(hist_expo_hours_skymap)
+    hist_expo_hours_skymap_reflect.GetYaxis().SetTitle(title_y)
+    hist_expo_hours_skymap_reflect.GetXaxis().SetTitle(title_x)
+    hist_expo_hours_skymap_reflect.GetZaxis().SetTitle('exposure [hour]')
+    hist_expo_hours_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
+    hist_expo_hours_skymap_reflect.Draw("COL4Z")
+    #hist_contour_reflect.Draw("CONT3 same")
+    hist_expo_hours_skymap_reflect.GetXaxis().SetLabelOffset(999)
+    hist_expo_hours_skymap_reflect.GetXaxis().SetTickLength(0)
+    raLowerAxis.Draw()
+    for star in range(0,len(other_star_markers)):
+        other_star_markers[star].Draw("same")
+        other_star_labels[star].Draw("same")
+    canvas.SaveAs('output_plots/SkymapExpoHour_%s_%s.png'%(name,selection_tag))
+
     hist_rate_skymap_sum_reflect = reflectXaxis(hist_rate_skymap_sum)
     hist_rate_skymap_sum_reflect.GetYaxis().SetTitle(title_y)
     hist_rate_skymap_sum_reflect.GetXaxis().SetTitle(title_x)

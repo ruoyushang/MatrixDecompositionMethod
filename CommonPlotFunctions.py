@@ -44,6 +44,12 @@ energy_bin += [3981]
 energy_bin += [10000]
 energy_bin += [25118]
 
+energy_bin_big = []
+energy_bin_big += [100]
+energy_bin_big += [631]
+energy_bin_big += [3981]
+energy_bin_big += [25118]
+
 def Hist2DIntegralAndError(Hist):
 
     integral = 0.
@@ -178,8 +184,8 @@ def FindProjection(Hist_Data_input,Hist_Syst_input,roi_x1,roi_y1,roi_x2,roi_y2,r
         slice_data_err = pow(slice_data_err,0.5)
         #if slice_data==0.: slice_data_err = 1.
         Hist_Profile_ProjectedX.SetBinContent(br+1,slice_data)
-        Hist_Profile_ProjectedX.SetBinError(br+1,slice_data_err)
-        #Hist_Profile_ProjectedX.SetBinError(br+1,pow(slice_data_err*slice_data_err+slice_syst_err*slice_syst_err,0.5))
+        #Hist_Profile_ProjectedX.SetBinError(br+1,slice_data_err)
+        Hist_Profile_ProjectedX.SetBinError(br+1,pow(slice_data_err*slice_data_err+slice_syst_err*slice_syst_err,0.5))
 
     profile = []
     profile_err = []
@@ -257,4 +263,104 @@ def FindExtension(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range)
 
     return profile, profile_err, theta2
 
+def ConvertGalacticToRaDec(l, b):
+    my_sky = SkyCoord(l*my_unit.deg, b*my_unit.deg, frame='galactic')
+    return my_sky.icrs.ra.deg, my_sky.icrs.dec.deg
+
+def FillSkymapHoles(hist_map, map_resolution):
+
+    hist_map_new = hist_map.Clone()
+    bin_size = hist_map.GetXaxis().GetBinCenter(2)-hist_map.GetXaxis().GetBinCenter(1)
+    nbin_smooth = int(map_resolution/bin_size) + 1
+    for bx1 in range(1,hist_map.GetNbinsX()+1):
+        for by1 in range(1,hist_map.GetNbinsY()+1):
+            bin_content_1 = hist_map.GetBinContent(bx1,by1)
+            if bin_content_1!=0.: continue
+            min_distance = 1e10
+            min_distance_content = 0.
+            locationx1 = hist_map.GetXaxis().GetBinCenter(bx1)
+            locationy1 = hist_map.GetYaxis().GetBinCenter(by1)
+            for bx2 in range(bx1-nbin_smooth,bx1+nbin_smooth):
+                for by2 in range(by1-nbin_smooth,by1+nbin_smooth):
+                    if bx2>=1 and bx2<=hist_map.GetNbinsX():
+                        if by2>=1 and by2<=hist_map.GetNbinsY():
+                            bin_content_2 = hist_map.GetBinContent(bx2,by2)
+                            if bin_content_2==0.: continue
+                            locationx2 = hist_map.GetXaxis().GetBinCenter(bx2)
+                            locationy2 = hist_map.GetYaxis().GetBinCenter(by2)
+                            distance = pow(pow(locationx1-locationx2,2)+pow(locationy1-locationy2,2),0.5)
+                            if min_distance>distance:
+                                min_distance = distance
+                                min_distance_content = bin_content_2
+            hist_map_new.SetBinContent(bx1,by1,min_distance_content)
+    return hist_map_new
+
+def GetGalacticCoordMap(map_file, hist_map, isRaDec):
+
+    hist_map.Reset()
+    inputFile = open(map_file)
+    for line in inputFile:
+        sig = float(line.split(' ')[2])
+        l = float(line.split(' ')[0])
+        b = float(line.split(' ')[1])
+        if isRaDec: 
+            l, b = ConvertGalacticToRaDec(l,b)
+        binx = hist_map.GetXaxis().FindBin(l)
+        biny = hist_map.GetYaxis().FindBin(b)
+        old_sig = hist_map.GetBinContent(binx+1,biny+1)
+        hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
+
+    map_resolution = 0.1
+    hist_map_new = FillSkymapHoles(hist_map, map_resolution)
+
+    return hist_map_new
+
+def GetGammaSourceInfo():
+
+    other_stars = []
+    other_star_coord = []
+    if sys.argv[1]=='MGRO_J1908_ON':
+        inputFile = open('J1908_sources_RaDec_w_Names.txt')
+        for line in inputFile:
+            gamma_source_name = line.split(',')[0]
+            gamma_source_ra = float(line.split(',')[1])
+            gamma_source_dec = float(line.split(',')[2])
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<0.*0.:
+                    near_a_source = True
+            if not near_a_source and not '%' in gamma_source_name:
+                other_stars += [gamma_source_name]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+    else:
+
+        inputFile = open('PSR_RaDec_w_Names.txt')
+        for line in inputFile:
+            gamma_source_name = line.split(',')[0]
+            gamma_source_ra = float(line.split(',')[1])
+            gamma_source_dec = float(line.split(',')[2])
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<0.3*0.3:
+                    near_a_source = True
+            if not near_a_source and not '%' in gamma_source_name:
+                other_stars += [gamma_source_name]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+        inputFile = open('TeVCat_RaDec_w_Names.txt')
+        for line in inputFile:
+            gamma_source_name = line.split(',')[0]
+            gamma_source_ra = float(line.split(',')[1])
+            gamma_source_dec = float(line.split(',')[2])
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<0.3*0.3:
+                    near_a_source = True
+            if not near_a_source and not '%' in gamma_source_name:
+                other_stars += [gamma_source_name]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+
+    return other_stars, other_star_coord
 
