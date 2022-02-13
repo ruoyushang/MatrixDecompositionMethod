@@ -100,7 +100,7 @@ def CalculateHadronicEmission(photon_x_bin,photon_y_bin,photon_E_low_GeV,photon_
     deg_to_cm = 3.14/180.*d_SN*1000.*3.086e18
     skymap_bin_area = bin_x_size*bin_y_size*deg_to_cm*deg_to_cm
 
-    cloud_density = hist_clouds.GetBinContent(binx,biny)
+    cloud_density = hist_clouds.GetBinContent(photon_x_bin,photon_y_bin)
     ECR_column_density = CR_energy_column_density(photon_x_deg,photon_y_deg,photon_E_low_GeV,photon_E_up_GeV,SN_data,D0_had)
     ECR_in_a_pixel = skymap_bin_area*ECR_column_density 
     A_factor = cloud_density*ECR_in_a_pixel*pow(d_SN/1000.,-2)
@@ -161,8 +161,8 @@ def GetHadronicModelChi2(hist_flux,hist_flux_syst,hist_pwn,hist_psr):
 
     #D_lep_par = [0,1,2,3,4,5,6,7,8,9]
     #D_had_par = [0,1,2,3,4,5,6,7,8,9]
-    D_lep_par = [0,1]
-    D_had_par = [0,1]
+    D_lep_par = [0,1,3,4]
+    D_had_par = [0,1,3,4]
     chi2_array = np.full((len(energy_bin_big)-1,len(D_lep_par),len(D_had_par)),0.)
     D_lep_axis = [ [0 for x in range(len(D_lep_par))] for y in range(0,2)]
     D_had_axis = [ [0 for x in range(len(D_had_par))] for y in range(0,2)]
@@ -329,8 +329,10 @@ Hist_mc_density_G41p1.Add(Hist_mc_column_G41p1)
 Hist_mc_density_G41p1.Scale(1./mc_depth_G41p1)
 
 hist_hadronic_skymap = []
+hist_leptonic_skymap = []
 for ebin in range(0,len(energy_bin_big)-1):
     hist_hadronic_skymap += [ROOT.TH2D("hist_hadronic_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_leptonic_skymap += [ROOT.TH2D("hist_leptonic_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
 
 RA_G41p1 = 286.9 # G41.1-0.3
 Dec_G41p1= 7.1
@@ -358,19 +360,8 @@ print ('t_Sedov = %0.2e years'%(t_Sedov))
 print ('vel_init = %0.2e cm/s'%(vel_init))
 print ('E_p_max = %0.2e GeV'%(E_p_max))
 
-D0 = 8.2*1e26
-hist_hadronic_skymap_sum = ROOT.TH2D("hist_hadronic_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-energy_index = 2
-for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-    for binx in range(0,hist_hadronic_skymap[ebin].GetNbinsX()):
-        for biny in range(0,hist_hadronic_skymap[ebin].GetNbinsY()):
-            G40p5_emission = 0.
-            G41p1_emission = 0.
-            G40p5_emission = CalculateHadronicEmission(binx+1,biny+1,energy_bin_big[ebin],energy_bin_big[ebin+1],SNR_G40p5_data,Hist_mc_density_G40p5,D0)
-            #G41p1_emission = CalculateHadronicEmission(binx+1,biny+1,energy_bin_big[ebin],energy_bin_big[ebin+1],SNR_G41p1_data,Hist_mc_density_G41p1,D0)
-            hist_hadronic_skymap[ebin].SetBinContent(binx+1,biny+1,G40p5_emission+G41p1_emission)
-    hist_hadronic_skymap[ebin].Scale(pow(energy_bin_big[ebin]/1e3,energy_index-1))
-    hist_hadronic_skymap_sum.Add(hist_hadronic_skymap[ebin])
+print ('SNR G41.1-0.3 radius = %0.2f deg'%(SNR_radius_Sedov(t_G41p1)/(3.14/180.*d_G41p1*3.086e18)))
+print ('SNR G40.5-0.5 radius = %0.2f deg'%(SNR_radius_Sedov(t_G40p5)/(3.14/180.*d_G40p5*3.086e18)))
 
 chi2_array_pub, D_lep_axis, D_had_axis = GetHadronicModelChi2(hist_flux_skymap,hist_flux_syst_skymap,hist_pwn_skymap,hist_psr_skymap)
 for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
@@ -383,6 +374,44 @@ for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
     plotname = 'HadronicModelChi2_E%s'%(ebin)
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
     plt.clf()
+
+energy_index = 2
+hist_leptonic_skymap_sum = ROOT.TH2D("hist_leptonic_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+InputFile = ROOT.TFile("output_pulsar_models/pulsar_skymap_D4_V4.root")
+for ebin_big in range(energy_bin_cut_low,energy_bin_cut_up):
+    hist_leptonic_skymap[ebin_big].Reset()
+    for ebin in range(0,len(energy_bin)-1):
+        if energy_bin[ebin]<energy_bin_big[ebin_big]: continue
+        if energy_bin[ebin]>=energy_bin_big[ebin_big+1]: continue
+        HistName = "hist_pulsar_skymap_631_1585"
+        if ebin==2:
+            HistName = "hist_pulsar_skymap_631_1585"
+        elif ebin==3:
+            HistName = "hist_pulsar_skymap_1585_3981"
+        elif ebin==4:
+            HistName = "hist_pulsar_skymap_3981_10000"
+        elif ebin==5:
+            HistName = "hist_pulsar_skymap_10000_25118"
+        hist_leptonic_skymap[ebin_big].Add(InputFile.Get(HistName),pow(energy_bin[ebin]/1e3,energy_index-1))
+    hist_leptonic_skymap_sum.Add(hist_leptonic_skymap[ebin_big])
+InputFile.Close()
+
+D0 = 8.2*1e26
+hist_hadronic_skymap_sum = ROOT.TH2D("hist_hadronic_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+    for binx in range(0,hist_hadronic_skymap[ebin].GetNbinsX()):
+        for biny in range(0,hist_hadronic_skymap[ebin].GetNbinsY()):
+            G40p5_emission = 0.
+            G41p1_emission = 0.
+            G40p5_emission = CalculateHadronicEmission(binx+1,biny+1,energy_bin_big[ebin],energy_bin_big[ebin+1],SNR_G40p5_data,Hist_mc_density_G40p5,D0)
+            #G41p1_emission = CalculateHadronicEmission(binx+1,biny+1,energy_bin_big[ebin],energy_bin_big[ebin+1],SNR_G41p1_data,Hist_mc_density_G41p1,D0)
+            hist_hadronic_skymap[ebin].SetBinContent(binx+1,biny+1,G40p5_emission+G41p1_emission)
+    hist_hadronic_skymap[ebin].Scale(pow(energy_bin_big[ebin]/1e3,energy_index-1))
+    hist_hadronic_skymap_sum.Add(hist_hadronic_skymap[ebin])
+
+hist_lephad_skymap_sum = ROOT.TH2D("hist_lephad_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+hist_lephad_skymap_sum.Add(hist_hadronic_skymap_sum)
+hist_lephad_skymap_sum.Add(hist_leptonic_skymap_sum)
 
 
 canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 650, 600)
@@ -410,7 +439,7 @@ Hist_mc_density_G40p5_reflect.Draw("COL4Z")
 raLowerAxis.Draw()
 canvas.SaveAs('output_plots/SkymapMolecularDensity_G40p5.png')
 
-hist_hadronic_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_hadronic_skymap_sum)
+hist_hadronic_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_lephad_skymap_sum)
 hist_hadronic_skymap_sum_reflect.GetXaxis().SetLabelOffset(999)
 hist_hadronic_skymap_sum_reflect.GetXaxis().SetTickLength(0)
 hist_hadronic_skymap_sum_reflect.Draw("COL4Z")
