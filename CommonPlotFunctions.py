@@ -25,8 +25,8 @@ skymap_zoomin_scale = 1
 n_rebins = 2
 #n_rebins = 4
 #n_rebins = 8
-#smooth_size_spectroscopy = 0.1
-smooth_size_spectroscopy = 0.15
+smooth_size_spectroscopy = 0.1
+#smooth_size_spectroscopy = 0.15
 #smooth_size_spectroscopy = 0.2
 #smooth_size_spectroscopy = 0.3
 
@@ -34,6 +34,18 @@ calibration_radius = 0.2
 
 Skymap_size = 3.
 Skymap_nbins = 120
+
+elev_range = [35,45,55,65,75,85]
+#elev_range = [55,65,75,85]
+#elev_range = [65,75,85]
+#elev_range = [35,45,55,65]
+#elev_range = [35,45,55]
+#elev_range = [75,85]
+#elev_range = [65,75]
+#elev_range = [55,65]
+#elev_range = [45,55]
+#elev_range = [35,45]
+
 
 energy_bin = []
 energy_bin += [100]
@@ -46,8 +58,11 @@ energy_bin += [25118]
 
 energy_bin_big = []
 energy_bin_big += [100]
+energy_bin_big += [251]
 energy_bin_big += [631]
+energy_bin_big += [1585]
 energy_bin_big += [3981]
+energy_bin_big += [10000]
 energy_bin_big += [25118]
 
 def Hist2DIntegralAndError(Hist):
@@ -78,7 +93,11 @@ def reflectXaxis(hist):
 
 def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
 
-    Hist_Kernel = ROOT.TH2D("Hist_Kernel","",Skymap_nbins,-Skymap_size,Skymap_size,Skymap_nbins,-Skymap_size,Skymap_size)
+    nbins = Hist_Old.GetNbinsX()
+    MapEdge_left = Hist_Old.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = Hist_Old.GetXaxis().GetBinLowEdge(Hist_Old.GetNbinsX()+1)
+    map_size = (MapEdge_right-MapEdge_left)/2.
+    Hist_Kernel = ROOT.TH2D("Hist_Kernel","",nbins,-map_size,map_size,nbins,-map_size,map_size)
     Hist_Kernel.Reset()
     for bx1 in range(1,Hist_Old.GetNbinsX()+1):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
@@ -93,7 +112,7 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
 
     bin_size = Hist_Old.GetXaxis().GetBinCenter(2)-Hist_Old.GetXaxis().GetBinCenter(1)
     nbin_smooth = int(2*smooth_size/bin_size) + 1
-    central_bin = int(Skymap_nbins/2)
+    central_bin = int(nbins/2)
     for bx1 in range(1,Hist_Old.GetNbinsX()+1):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
             old_content = Hist_Old.GetBinContent(bx1,by1)
@@ -363,4 +382,66 @@ def GetGammaSourceInfo():
                 other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
     return other_stars, other_star_coord
+
+def GetRegionSpectrum(hist_data_skymap,hist_syst_skymap,roi_x,roi_y,roi_r):
+
+    x_axis = []
+    y_axis = []
+    y_error = []
+    for ebin in range(0,len(hist_data_skymap)):
+        flux_sum = 0.
+        flux_stat_err = 0.
+        flux_syst_err = 0.
+        for bx in range(0,hist_data_skymap[ebin].GetNbinsX()):
+            for by in range(0,hist_data_skymap[ebin].GetNbinsY()):
+                bin_ra = hist_data_skymap[ebin].GetXaxis().GetBinCenter(bx+1)
+                bin_dec = hist_data_skymap[ebin].GetYaxis().GetBinCenter(by+1)
+                distance = pow(pow(bin_ra-roi_x,2) + pow(bin_dec-roi_y,2),0.5)
+                if distance>roi_r: continue
+                flux_sum += hist_data_skymap[ebin].GetBinContent(bx+1,by+1)
+                if hist_syst_skymap!=None:
+                    flux_syst_err += hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)
+                flux_stat_err += pow(hist_data_skymap[ebin].GetBinError(bx+1,by+1),2)
+        x_axis += [energy_bin[ebin]]
+        y_axis += [flux_sum]
+        y_error += [pow(flux_stat_err+flux_syst_err*flux_syst_err,0.5)]
+
+    return x_axis, y_axis, y_error
+
+def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
+
+    Hist_Skymap = Hist_SR.Clone()
+    MapEdge_left = Hist_Skymap.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = Hist_Skymap.GetXaxis().GetBinLowEdge(Hist_Skymap.GetNbinsX()+1)
+    MapEdge_lower = Hist_Skymap.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = Hist_Skymap.GetYaxis().GetBinLowEdge(Hist_Skymap.GetNbinsY()+1)
+    MapCenter_x = (MapEdge_right+MapEdge_left)/2.
+    MapCenter_y = (MapEdge_upper+MapEdge_lower)/2.
+    MapSize_x = (MapEdge_right-MapEdge_left)/2.
+    MapSize_y = (MapEdge_upper-MapEdge_lower)/2.
+    Hist_Skymap_zoomin = ROOT.TH2D("Hist_Skymap_zoomin","",int(Skymap_nbins/2),MapCenter_x-MapSize_x/2,MapCenter_x+MapSize_x/2,int(Skymap_nbins/2),MapCenter_y-MapSize_y/2,MapCenter_y+MapSize_y/2)
+    for bx in range(0,Hist_SR.GetNbinsX()):
+        for by in range(0,Hist_SR.GetNbinsY()):
+            if Hist_Bkg.GetBinContent(bx+1,by+1)==0: continue
+            NSR = Hist_SR.GetBinContent(bx+1,by+1)
+            NSR_Err = Hist_SR.GetBinError(bx+1,by+1)
+            NBkg = Hist_Bkg.GetBinContent(bx+1,by+1)
+            Shape_Err = Hist_Syst.GetBinContent(bx+1,by+1)
+            Data_Stat_Err = Hist_SR.GetBinError(bx+1,by+1)
+            Bkgd_Stat_Err = Hist_Bkg.GetBinError(bx+1,by+1)
+            NBkg_Err = pow(pow(Bkgd_Stat_Err,2)+pow(Shape_Err,2),0.5)
+            #Sig = CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
+            Sig = 0.
+            if pow(pow(NBkg_Err,2)+pow(Data_Stat_Err,2),0.5)>0.:
+                Sig = (NSR-NBkg)/pow(pow(NBkg_Err,2)+pow(Data_Stat_Err,2),0.5)
+            Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
+            bx_center = Hist_Skymap.GetXaxis().GetBinCenter(bx+1)
+            by_center = Hist_Skymap.GetYaxis().GetBinCenter(by+1)
+            bx2 = Hist_Skymap_zoomin.GetXaxis().FindBin(bx_center)
+            by2 = Hist_Skymap_zoomin.GetYaxis().FindBin(by_center)
+            Hist_Skymap_zoomin.SetBinContent(bx2,by2,Sig)
+    if isZoomIn:
+        return Hist_Skymap_zoomin
+    else:
+        return Hist_Skymap
 

@@ -76,6 +76,8 @@ ONOFF_tag = 'OFF'
 ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
+sample_list += ['UrsaMajorIIV6_OFF']
+sample_name += ['UrsaMajorII V6']
 sample_list += ['1ES0502V6_OFF']
 sample_name += ['1ES0502 V6']
 sample_list += ['1ES0502V5_OFF']
@@ -158,8 +160,8 @@ elev_bins = [35,45,55,65,75,85]
 lowrank_tag += 'elev_incl'
 
 #theta2_bins = [0,1]
-theta2_bins = [0,4]
-#theta2_bins = [0,6]
+#theta2_bins = [0,4]
+theta2_bins = [0,9]
 
 number_of_roi = 4
 
@@ -393,7 +395,7 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly):
 
 def Find1DShapeSystErr(hist_shape_syst):
 
-    hist_radius = ROOT.TH1D("hist_radius","",20,0.,2.0)
+    hist_radius = ROOT.TH1D("hist_radius","",5,0.,2.0)
     array_radius = []
     array_syst = []
     for binr in range(0,len(integration_radius)):
@@ -657,12 +659,14 @@ for entry in range(0,len(integration_radius)):
     Hist_OnData_StatErr_XYoff += [ROOT.TH2D("Hist_OnData_StatErr_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
     Hist_OnData_StatWeight_XYoff += [ROOT.TH2D("Hist_OnData_StatWeight_XYoff_Bin%s"%(entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
 
+Hist_BkgdCount = []
 Hist_NormStatErr = []
 Hist_NormSystErr = []
 Hist_FluxSystErr = []
 Hist_NormSystInitErr = []
 for elev in range(0,len(elev_bins)-1):
     elev_tag = 'TelElev%sto%s'%(elev_bins[elev],elev_bins[elev+1])
+    Hist_BkgdCount += [ROOT.TH1D("Hist_BkgdCount_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
     Hist_NormStatErr += [ROOT.TH1D("Hist_NormStatErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
     Hist_NormSystErr += [ROOT.TH1D("Hist_NormSystErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
     Hist_FluxSystErr += [ROOT.TH1D("Hist_FluxSystErr_"+elev_tag,"",len(energy_bin)-1,array('d',energy_bin))]
@@ -674,7 +678,7 @@ for ebin in range(0,len(energy_bin)-1):
     Hist_ShapeSystErr_ThisEnergy = []
     for entry in range(0,len(integration_radius)):
         Hist_ShapeSystErr_ThisEnergy += [ROOT.TH2D("Hist_ShapeSystErr_ErecS%sto%s_Bin%s"%(int(energy_bin[ebin]),int(energy_bin[ebin+1]),entry),"",XYoff_nbins,-3,3,XYoff_nbins,-3,3)]
-        Hist_ShapeSystErr_1D_ThisEnergy += [ROOT.TH1D("Hist_ShapeSystErr_1D_ErecS%sto%s_Bin%s"%(int(energy_bin[ebin]),int(energy_bin[ebin+1]),entry),"",20,0.,2.0)]
+        Hist_ShapeSystErr_1D_ThisEnergy += [ROOT.TH1D("Hist_ShapeSystErr_1D_ErecS%sto%s_Bin%s"%(int(energy_bin[ebin]),int(energy_bin[ebin+1]),entry),"",5,0.,2.0)]
     Hist_ShapeSystErr += [Hist_ShapeSystErr_ThisEnergy]
     Hist_ShapeSystErr_1D += [Hist_ShapeSystErr_1D_ThisEnergy]
 
@@ -777,6 +781,10 @@ for e in range(0,len(energy_bin)-1):
         Hist_NormSystErr[elev].SetBinContent(e+1,elev_dependent_syst)
         Hist_FluxSystErr[elev].SetBinContent(e+1,elev_dependent_flux_syst)
         Hist_NormStatErr[elev].SetBinContent(e+1,AccuracyBkgd_mean_error)
+        for entry in range(1,len(Hist_Bkgd_Optimization)):
+            old_content = Hist_BkgdCount[elev].GetBinContent(e+1)
+            new_content = data_count[entry-1]
+            Hist_BkgdCount[elev].SetBinContent(e+1,old_content+new_content)
         AccuracyInit_source = []
         AccuracyInitErr_source = []
         for entry in range(1,len(Hist_Bkgd_Optimization)):
@@ -1466,6 +1474,32 @@ axbig.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank2,marker='.',l
 axbig.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank3,marker='.',label='$n \leq 3$')
 axbig.legend(loc='best')
 fig.savefig("output_syst_file/RankErrors.png")
+axbig.remove()
+
+energy_axis = []
+count_axis = []
+for elev in range(0,len(elev_bins)-1):
+    energy_axis_this_elev = []
+    count_axis_this_elev = []
+    for ebin in range(0,Hist_BkgdCount[elev].GetNbinsX()):
+        count = Hist_BkgdCount[elev].GetBinContent(ebin+1)
+        energy = Hist_BkgdCount[elev].GetBinCenter(ebin+1)
+        count_axis_this_elev += [count*pow(energy/1000.,2.7)]
+        energy_axis_this_elev += [energy/1000.]
+    count_axis += [count_axis_this_elev]
+    energy_axis += [energy_axis_this_elev]
+fig.clf()
+axbig = fig.add_subplot()
+axbig.set_xlabel("Energy [TeV]", fontsize=18)
+axbig.set_ylabel("count $\\times E^{2.7}$ ", fontsize=18)
+axbig.set_yscale('log')
+axbig.set_xscale('log')
+cycol = cycle('krgbcmy')
+for elev in range(0,len(elev_bins)-1):
+    next_color = next(cycol)
+    axbig.plot(energy_axis[elev],count_axis[elev],marker='.',color=next_color,label='elev %s-%s deg'%(elev_bins[elev],elev_bins[elev+1]))
+axbig.legend(loc='best')
+fig.savefig("output_syst_file/ElevVsEnergyThresholds.png")
 axbig.remove()
 
 Hists = []

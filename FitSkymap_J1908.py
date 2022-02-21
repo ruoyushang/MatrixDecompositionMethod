@@ -960,12 +960,18 @@ hist_fit_CO_north_skymap_sum.Multiply(hist_expo_skymap_bool)
 hist_fit_PSR_ellipse_skymap_sum.Multiply(hist_expo_skymap_bool)
 hist_fit_all_models_skymap_sum.Multiply(hist_expo_skymap_bool)
 
+hist_data_skymap_big = []
+hist_bkgd_skymap_big = []
+hist_syst_skymap_big = []
 hist_flux_skymap_big = []
 hist_flux_syst_skymap_big = []
 hist_fit_PWN_skymap_big = []
 hist_fit_CO_north_skymap_big = []
 hist_fit_PSR_ellipse_skymap_big = []
 for ebin in range(0,len(energy_bin_big)-1):
+    hist_data_skymap_big += [ROOT.TH2D("hist_data_skymap_big_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_bkgd_skymap_big += [ROOT.TH2D("hist_bkgd_skymap_big_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_syst_skymap_big += [ROOT.TH2D("hist_syst_skymap_big_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
     hist_flux_skymap_big += [ROOT.TH2D("hist_flux_skymap_big_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
     hist_flux_syst_skymap_big += [ROOT.TH2D("hist_flux_syst_skymap_big_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
     hist_fit_PWN_skymap_big += [ROOT.TH2D("hist_fit_PWN_skymap_big_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
@@ -976,6 +982,9 @@ for ebin_big in range(0,len(energy_bin_big)-1):
     for ebin in range(0,len(energy_bin)-1):
         if energy_bin[ebin]<energy_bin_big[ebin_big]: continue
         if energy_bin[ebin]>=energy_bin_big[ebin_big+1]: continue
+        hist_data_skymap_big[ebin_big].Add(hist_data_skymap[ebin])
+        hist_bkgd_skymap_big[ebin_big].Add(hist_bkgd_skymap[ebin])
+        hist_syst_skymap_big[ebin_big].Add(hist_syst_skymap[ebin])
         hist_flux_skymap_big[ebin_big].Add(hist_flux_skymap[ebin])
         hist_flux_syst_skymap_big[ebin_big].Add(hist_flux_syst_skymap[ebin])
         hist_fit_PWN_skymap_big[ebin_big].Add(hist_fit_PWN_skymap[ebin])
@@ -985,6 +994,9 @@ for ebin_big in range(0,len(energy_bin_big)-1):
 output_file = ROOT.TFile("output_fitting/J1908_fit_skymap.root","recreate")
 hist_expo_skymap_bool.Write()
 for ebin in range(0,len(energy_bin_big)-1):
+    hist_data_skymap_big[ebin].Write()
+    hist_bkgd_skymap_big[ebin].Write()
+    hist_syst_skymap_big[ebin].Write()
     hist_flux_skymap_big[ebin].Write()
     hist_flux_syst_skymap_big[ebin].Write()
     hist_fit_PWN_skymap_big[ebin].Write()
