@@ -364,6 +364,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 330.680416667;
                 Source_Dec = 42.2777777778;
     }
+    if (source_name.Contains("UrsaMajorII"))
+    {
+            Source_RA = 132.875;
+                Source_Dec = 63.13;
+    }
     if (source_name.Contains("LHAASO_J2108"))
     {
             Source_RA = 317.15;
@@ -2072,7 +2077,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             char xybin_tag[50];
             sprintf(xybin_tag,"Bin%i",xybin);
             Hist_ShapeSystErr_ThisBin.push_back(TH2D("Hist_ShapeSystErr_Temp_"+TString(e_tag)+TString("_")+TString(xybin_tag),"",36,-3,3,36,-3,3));
-            Hist_ShapeSystErr_1D_ThisBin.push_back(TH1D("Hist_ShapeSystErr_1D_Temp_"+TString(e_tag)+TString("_")+TString(xybin_tag),"",20,0.,2.));
+            Hist_ShapeSystErr_1D_ThisBin.push_back(TH1D("Hist_ShapeSystErr_1D_Temp_"+TString(e_tag)+TString("_")+TString(xybin_tag),"",5,0.,2.));
         }
         Hist_ShapeSystErr.push_back(Hist_ShapeSystErr_ThisBin);
         Hist_ShapeSystErr_1D.push_back(Hist_ShapeSystErr_1D_ThisBin);
@@ -2309,19 +2314,19 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             roi_ra.push_back(286.8);
             roi_dec.push_back(7.1);
             roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.2);
+            roi_radius_outer.push_back(0.3);
 
             roi_name.push_back("Hot spot west");
             roi_ra.push_back(286.2);
             roi_dec.push_back(6.4);
             roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.2);
+            roi_radius_outer.push_back(0.3);
 
             roi_name.push_back("Hot spot east");
             roi_ra.push_back(288.1);
             roi_dec.push_back(6.4);
             roi_radius_inner.push_back(0.);
-            roi_radius_outer.push_back(0.2);
+            roi_radius_outer.push_back(0.3);
 
             double ring_center_ra = 286.91;
             double ring_center_dec = 6.32;
