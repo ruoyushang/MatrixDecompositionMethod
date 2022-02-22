@@ -1123,11 +1123,11 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         double delta_RA = TelRAJ2000_tmp - 287.9565;
         double delta_Dec = TelDecJ2000_tmp - 4.9827;
         double distance = pow(delta_RA*delta_RA + delta_Dec*delta_Dec,0.5);
-        if (distance>2.0)
-        {
-            input_file->Close();
-            return false;
-        }
+        //if (distance>2.0)
+        //{
+        //    input_file->Close();
+        //    return false;
+        //}
     }
     else if (TString(target).Contains("MGRO_J2031"))
     {
@@ -1990,10 +1990,8 @@ bool ControlSelectionTheta2()
 {
     if (SignalSelectionTheta2()) return false;
     if (MSCW<MSCW_cut_blind && MSCL<MSCL_cut_blind) return false;
-    if (MSCW<MSCW_cut_blind) return false;
-    if (MSCL>MSCL_cut_blind) return false;
-    //if (MSCL>gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
-    //if (MSCW>gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
+    //if (MSCW<MSCW_cut_blind) return false;
+    //if (MSCL>MSCL_cut_blind) return false;
     double boundary = 1.0;
     if (MSCL>boundary*gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
     if (MSCW>boundary*gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
@@ -2765,8 +2763,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         int Yoff_bins = 6;
         Hist_SRDark_XYoff.push_back(TH2D("Hist_SRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",R2off_bins,0,9,Yoff_bins,-3,3));
         Hist_CRDark_XYoff.push_back(TH2D("Hist_CRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",R2off_bins,0,9,Yoff_bins,-3,3));
-        Hist_SRDark_RaDec.push_back(TH2D("Hist_SRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,12,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_CRDark_RaDec.push_back(TH2D("Hist_CRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",12,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,12,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        int RaDec_bins = 24;
+        Hist_SRDark_RaDec.push_back(TH2D("Hist_SRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,RaDec_bins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_CRDark_RaDec.push_back(TH2D("Hist_CRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,RaDec_bins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
     }
     vector<TH1D> Hist_SRDark_R2off;
     vector<TH1D> Hist_CRDark_R2off;
@@ -3217,7 +3216,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 if (R2off<camera_theta2_cut_upper)
                 {
-                    Hist_OnData_Correct_R2off.at(energy).Fill(R2off,yoff_weight);
+                    Hist_OnData_Correct_R2off.at(energy).Fill(R2off,radec_weight);
                 }
             }
 
@@ -3524,10 +3523,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_OnData_CR_Skymap_Theta2.at(energy).Fill(theta2,radec_weight);
                     Hist_NormSyst_Skymap_Theta2.at(energy).Fill(theta2,radec_weight*norm_syst_err);
                     Hist_ShapeSyst_Skymap_Theta2.at(energy).Fill(theta2,radec_weight*shape_syst_err[0]);
-                    Hist_OnData_CR_Yoff.at(energy).Fill(Yoff,yoff_weight);
-                    Hist_OnData_CR_Xoff.at(energy).Fill(Xoff,yoff_weight);
-                    Hist_OnData_CR_XYoff.at(energy).Fill(Xoff,Yoff,yoff_weight);
-                    Hist_OnData_CR_R2off.at(energy).Fill(R2off,yoff_weight);
+                    Hist_OnData_CR_Yoff.at(energy).Fill(Yoff,radec_weight);
+                    Hist_OnData_CR_Xoff.at(energy).Fill(Xoff,radec_weight);
+                    Hist_OnData_CR_XYoff.at(energy).Fill(Xoff,Yoff,radec_weight);
+                    Hist_OnData_CR_R2off.at(energy).Fill(R2off,radec_weight);
                     Hist_OnData_CR_Yoff_Raw.at(energy).Fill(Yoff,1.);
                     Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,radec_weight);
                     Hist_NormSyst_Skymap.at(energy).Fill(ra_sky,dec_sky,radec_weight*norm_syst_err);
