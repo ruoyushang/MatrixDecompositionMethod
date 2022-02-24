@@ -116,141 +116,9 @@ def CalculateHadronicEmission(photon_x_bin,photon_y_bin,photon_E_low_GeV,photon_
 
     return hadronic_emission
 
-def hadronic_model(x,par):
-
-    binx = hist_lep_model_global.GetXaxis().FindBin(x[0])
-    biny = hist_lep_model_global.GetYaxis().FindBin(x[1])
-    model_lep = hist_lep_model_global.GetBinContent(binx,biny)
-    model_had = hist_had_model_global.GetBinContent(binx,biny)
-
-    norm_lep = par[0]
-    norm_had = par[1]
-    return norm_lep*model_lep + norm_had*model_had
-
-def FitHadronicModel(hist_flux,hist_flux_syst,hist_pwn,hist_psr,hist_lep_model,hist_had_model):
-
-    global hist_lep_model_global
-    hist_lep_model_global.Reset()
-    hist_lep_model_global.Add(hist_lep_model)
-    global hist_had_model_global
-    hist_had_model_global.Reset()
-    hist_had_model_global.Add(hist_had_model)
-
-    hist_data = ROOT.TH2D("hist_data","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-    hist_data.Add(hist_flux)
-    for bx in range(0,hist_data.GetNbinsX()):
-        for by in range(0,hist_data.GetNbinsY()):
-            syst = hist_flux_syst.GetBinContent(bx+1,by+1)
-            hist_data.SetBinError(bx+1,by+1,syst)
-
-    scaling_factor_lep = hist_psr.Integral()/hist_lep_model.Integral()
-    scaling_factor_had = 1.
-
-    npar = 2
-    simple_model_2d = ROOT.TF2('simple_model_2d',hadronic_model,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
-    simple_model_2d.SetParameter(0,scaling_factor_lep)
-    simple_model_2d.SetParLimits(0,0.,2.0*scaling_factor_lep)
-    simple_model_2d.SetParameter(1,scaling_factor_had)
-    simple_model_2d.SetParLimits(1,0.,10.0*scaling_factor_had)
-    hist_data.Fit('simple_model_2d')
-    scaling_factor_lep = simple_model_2d.GetParameter(0)
-    scaling_factor_had = simple_model_2d.GetParameter(1)
-
-    return scaling_factor_lep, scaling_factor_had
-
-def GetHadronicModelChi2(hist_flux,hist_flux_syst,hist_pwn,hist_psr):
-
-    hist_lep_model = []
-    hist_had_model = []
-    for ebin in range(0,len(energy_bin_big)-1):
-        hist_lep_model += [ROOT.TH2D("hist_lep_model_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-        hist_had_model += [ROOT.TH2D("hist_had_model_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-
-    #D_lep_par = [0,1,2,3,4,5,6,7,8,9]
-    #D_had_par = [0,1,2,3,4,5,6,7,8,9]
-    D_lep_par = [0,1,3,4]
-    D_had_par = [0,1,3,4]
-    chi2_array = np.full((len(energy_bin_big)-1,len(D_lep_par),len(D_had_par)),0.)
-    D_lep_axis = [ [0 for x in range(len(D_lep_par))] for y in range(0,2)]
-    D_had_axis = [ [0 for x in range(len(D_had_par))] for y in range(0,2)]
-
-    for idx_l in range(0,len(D_lep_par)):
-        InputFile = ROOT.TFile("output_pulsar_models/pulsar_skymap_D%s_V%s.root"%(D_lep_par[idx_l],0))
-        InfoTree = InputFile.Get("InfoTree")
-        InfoTree.GetEntry(0)
-        D0_lep = InfoTree.D0/1e26
-        D_lep_axis[0][idx_l] = '%0.2f'%(D0_lep)
-        D_lep_axis[1][idx_l] = D_lep_par[idx_l]
-        D_had_axis[0][idx_l] = '%0.2f'%(D0_lep)
-        D_had_axis[1][idx_l] = D_lep_par[idx_l]
-        InputFile.Close()
-
-    for idx_l in range(0,len(D_lep_par)):
-        for idx_h in range(0,len(D_had_par)):
-
-            energy_index = 2
-            InputFile = ROOT.TFile("output_pulsar_models/pulsar_skymap_D%s_V%s.root"%(D_lep_par[idx_l],0))
-            for ebin_big in range(energy_bin_cut_low,energy_bin_cut_up):
-                hist_lep_model[ebin_big].Reset()
-                for ebin in range(0,len(energy_bin)-1):
-                    if energy_bin[ebin]<energy_bin_big[ebin_big]: continue
-                    if energy_bin[ebin]>=energy_bin_big[ebin_big+1]: continue
-                    HistName = "hist_pulsar_skymap_631_1585"
-                    if ebin==2:
-                        HistName = "hist_pulsar_skymap_631_1585"
-                    elif ebin==3:
-                        HistName = "hist_pulsar_skymap_1585_3981"
-                    elif ebin==4:
-                        HistName = "hist_pulsar_skymap_3981_10000"
-                    elif ebin==5:
-                        HistName = "hist_pulsar_skymap_10000_25118"
-                    hist_lep_model[ebin_big].Add(InputFile.Get(HistName),pow(energy_bin[ebin]/1e3,energy_index-1))
-            InputFile.Close()
-
-            for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-                for binx in range(0,hist_had_model[ebin].GetNbinsX()):
-                    for biny in range(0,hist_had_model[ebin].GetNbinsY()):
-                        D0_had = float(D_had_axis[0][idx_h])*1e26
-                        G40p5_emission = 0.
-                        G41p1_emission = 0.
-                        J1908_emission = 0.
-                        G40p5_emission = CalculateHadronicEmission(binx+1,biny+1,energy_bin_big[ebin],energy_bin_big[ebin+1],SNR_G40p5_data,Hist_mc_column_G40p5,D0_had)
-                        #G41p1_emission = CalculateHadronicEmission(binx+1,biny+1,energy_bin_big[ebin],energy_bin_big[ebin+1],SNR_G41p1_data,Hist_mc_column_G41p1,D0_had)
-                        #J1908_emission = CalculateHadronicEmission(binx+1,biny+1,energy_bin_big[ebin],energy_bin_big[ebin+1],SNR_J1908_data,Hist_mc_column_G40p5,D0_had)
-                        hist_had_model[ebin].SetBinContent(binx+1,biny+1,G40p5_emission+G41p1_emission+J1908_emission)
-                hist_had_model[ebin].Scale(pow(energy_bin[ebin]/1e3,energy_index-1))
-            
-            for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-                hist_lep_model[ebin] = CommonPlotFunctions.Smooth2DMap(hist_lep_model[ebin],CommonPlotFunctions.smooth_size_spectroscopy,False,True)
-                hist_had_model[ebin] = CommonPlotFunctions.Smooth2DMap(hist_had_model[ebin],CommonPlotFunctions.smooth_size_spectroscopy,False,True)
-                scaling_factor_lep, scaling_factor_had = FitHadronicModel(hist_flux[ebin],hist_flux_syst[ebin],hist_pwn[ebin],hist_psr[ebin],hist_lep_model[ebin],hist_had_model[ebin])
-                hist_lep_model[ebin].Scale(scaling_factor_lep)
-                hist_had_model[ebin].Scale(scaling_factor_had)
-                total_chi2 = 0.
-                total_bins = 0.
-                for binx in range(0,hist_flux[ebin].GetNbinsX()):
-                    for biny in range(0,hist_flux[ebin].GetNbinsY()):
-                        data_flux = hist_flux[ebin].GetBinContent(binx+1,biny+1)
-                        data_flux_err = hist_flux[ebin].GetBinError(binx+1,biny+1)
-                        data_flux_syst = hist_flux_syst[ebin].GetBinContent(binx+1,biny+1)
-                        pwn_flux = hist_pwn[ebin].GetBinContent(binx+1,biny+1)
-                        model_flux_lep = hist_lep_model[ebin].GetBinContent(binx+1,biny+1)
-                        model_flux_had = hist_had_model[ebin].GetBinContent(binx+1,biny+1)
-                        error_sq = (data_flux_err*data_flux_err+data_flux_syst*data_flux_syst)
-                        if error_sq>0.:
-                            flux_zscore = data_flux/pow(error_sq,0.5)
-                            if flux_zscore>2.:
-                                chi2 = pow(data_flux-pwn_flux-model_flux_lep-model_flux_had,2)/error_sq
-                                total_chi2 += chi2
-                                total_bins += 1.
-                chi2_array[ebin,idx_l,idx_h] = total_chi2/total_bins
-
-    return chi2_array, D_lep_axis, D_had_axis
-
 
 fig, ax = plt.subplots()
 energy_bin = CommonPlotFunctions.energy_bin
-energy_bin_big = CommonPlotFunctions.energy_bin_big
 
 energy_bin_cut_low = int(sys.argv[2])
 energy_bin_cut_up = int(sys.argv[3])
@@ -283,7 +151,6 @@ for star in range(0,len(other_stars)):
 
 hist_lep_model_global = ROOT.TH2D("hist_lep_model_global","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_had_model_global = ROOT.TH2D("hist_had_model_global","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-hist_expo_skymap_bool = ROOT.TH2D("hist_expo_skymap_bool","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_data_skymap_sum = ROOT.TH2D("hist_data_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_bkgd_skymap_sum = ROOT.TH2D("hist_bkgd_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_syst_skymap_sum = ROOT.TH2D("hist_syst_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
@@ -291,89 +158,47 @@ hist_flux_skymap_sum = ROOT.TH2D("hist_flux_skymap_sum","",nbins,MapEdge_left,Ma
 hist_flux_syst_skymap_sum = ROOT.TH2D("hist_flux_syst_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_pwn_skymap_sum = ROOT.TH2D("hist_pwn_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_psr_skymap_sum = ROOT.TH2D("hist_psr_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-hist_data_skymap = []
-hist_bkgd_skymap = []
-hist_syst_skymap = []
-hist_flux_skymap = []
-hist_flux_syst_skymap = []
-hist_pwn_skymap = []
-hist_psr_skymap = []
-for ebin in range(0,len(energy_bin_big)-1):
-    hist_data_skymap += [ROOT.TH2D("hist_data_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-    hist_bkgd_skymap += [ROOT.TH2D("hist_bkgd_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-    hist_syst_skymap += [ROOT.TH2D("hist_syst_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-    hist_flux_skymap += [ROOT.TH2D("hist_flux_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-    hist_flux_syst_skymap += [ROOT.TH2D("hist_flux_syst_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-    hist_pwn_skymap += [ROOT.TH2D("hist_pwn_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-    hist_psr_skymap += [ROOT.TH2D("hist_psr_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
 
 energy_bin_cut_low = int(sys.argv[2])
 energy_bin_cut_up = int(sys.argv[3])
 
 InputFile = ROOT.TFile("output_fitting/J1908_fit_skymap.root")
-HistName = "hist_expo_skymap_bool"
-hist_expo_skymap_bool.Add(InputFile.Get(HistName))
-for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-    HistName = "hist_data_skymap_big_E%s"%(ebin)
-    hist_data_skymap_sum.Add(InputFile.Get(HistName))
-    hist_data_skymap[ebin].Add(InputFile.Get(HistName))
-    HistName = "hist_bkgd_skymap_big_E%s"%(ebin)
-    hist_bkgd_skymap_sum.Add(InputFile.Get(HistName))
-    hist_bkgd_skymap[ebin].Add(InputFile.Get(HistName))
-    HistName = "hist_syst_skymap_big_E%s"%(ebin)
-    hist_syst_skymap_sum.Add(InputFile.Get(HistName))
-    hist_syst_skymap[ebin].Add(InputFile.Get(HistName))
-    HistName = "hist_flux_skymap_big_E%s"%(ebin)
-    hist_flux_skymap_sum.Add(InputFile.Get(HistName))
-    hist_flux_skymap[ebin].Add(InputFile.Get(HistName))
-    HistName = "hist_flux_syst_skymap_big_E%s"%(ebin)
-    hist_flux_syst_skymap_sum.Add(InputFile.Get(HistName))
-    hist_flux_syst_skymap[ebin].Add(InputFile.Get(HistName))
-    HistName = "hist_fit_PWN_skymap_big_E%s"%(ebin)
-    hist_pwn_skymap_sum.Add(InputFile.Get(HistName))
-    hist_pwn_skymap[ebin].Add(InputFile.Get(HistName))
-    HistName = "hist_fit_PSR_ellipse_skymap_big_E%s"%(ebin)
-    hist_psr_skymap_sum.Add(InputFile.Get(HistName))
-    hist_psr_skymap[ebin].Add(InputFile.Get(HistName))
+HistName = "hist_data_skymap_sum_v2"
+hist_data_skymap_sum.Add(InputFile.Get(HistName))
+HistName = "hist_bkgd_skymap_sum_v2"
+hist_bkgd_skymap_sum.Add(InputFile.Get(HistName))
+HistName = "hist_syst_skymap_sum_v2"
+hist_syst_skymap_sum.Add(InputFile.Get(HistName))
+HistName = "hist_flux_skymap_sum_v2"
+hist_flux_skymap_sum.Add(InputFile.Get(HistName))
+HistName = "hist_flux_syst_skymap_sum_v2"
+hist_flux_syst_skymap_sum.Add(InputFile.Get(HistName))
+HistName = "hist_fit_PWN_skymap_sum"
+hist_pwn_skymap_sum.Add(InputFile.Get(HistName))
+HistName = "hist_fit_PSR_ellipse_skymap_sum"
+hist_psr_skymap_sum.Add(InputFile.Get(HistName))
 InputFile.Close()
 
 
-Hist_mc_intensity_G40p5 = ROOT.TH2D("Hist_mc_intensity_G40p5","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-Hist_mc_intensity_G41p1 = ROOT.TH2D("Hist_mc_intensity_G41p1","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-Hist_mc_column_G40p5 = ROOT.TH2D("Hist_mc_column_G40p5","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-Hist_mc_column_G41p1 = ROOT.TH2D("Hist_mc_column_G41p1","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-Hist_mc_density_G40p5 = ROOT.TH2D("Hist_mc_density_G40p5","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-Hist_mc_density_G41p1 = ROOT.TH2D("Hist_mc_density_G41p1","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+Hist_mc_intensity = ROOT.TH2D("Hist_mc_intensity","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+Hist_mc_column = ROOT.TH2D("Hist_mc_column","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+Hist_mc_density = ROOT.TH2D("Hist_mc_density","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 
 pc_to_cm = 3.086e+18
 CO_intensity_to_H_column_density = 2.*1e20
 # Dame, T. M.; Hartmann, Dap; Thaddeus, P., 2011, "Replication data for: First Quadrant, main survey (DHT08)", https://doi.org/10.7910/DVN/1PG9NV, Harvard Dataverse, V3
 # https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/1PG9NV
 FITS_correction = 1000.# the source FITS file has a mistake in velocity km/s -> m/s
-#MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_50_80_0th_moment.txt' # CO intensity (K km s^{-1} deg)
-MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_25_45_0th_moment.txt' # CO intensity (K km s^{-1} deg)
-Hist_mc_intensity_G40p5 = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity_G40p5, True)
-Hist_mc_intensity_G40p5.Scale(FITS_correction)
-Hist_mc_column_G40p5.Add(Hist_mc_intensity_G40p5)
-Hist_mc_column_G40p5.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
-print ('Hist_mc_column_G40p5.Integral() = %s'%(Hist_mc_column_G40p5.Integral()))
-mc_depth_G40p5 = 1000.*(3.824-3.116)*pc_to_cm
-Hist_mc_density_G40p5.Add(Hist_mc_column_G40p5)
-Hist_mc_density_G40p5.Scale(1./mc_depth_G40p5)
-MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_50_60_0th_moment.txt' # CO intensity (K km s^{-1} deg)
-Hist_mc_intensity_G41p1 = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity_G41p1, True)
-Hist_mc_intensity_G41p1.Scale(FITS_correction)
-Hist_mc_column_G41p1.Add(Hist_mc_intensity_G41p1)
-Hist_mc_column_G41p1.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
-mc_depth_G41p1 = 1000.*(8.294-7.586)*pc_to_cm
-Hist_mc_density_G41p1.Add(Hist_mc_column_G41p1)
-Hist_mc_density_G41p1.Scale(1./mc_depth_G41p1)
+MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_25_50_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
+Hist_mc_intensity.Scale(FITS_correction)
+Hist_mc_column.Add(Hist_mc_intensity)
+Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
+print ('Hist_mc_column.Integral() = %s'%(Hist_mc_column.Integral()))
+mc_depth = 1000.*(3.824-3.116)*pc_to_cm
+Hist_mc_density.Add(Hist_mc_column)
+Hist_mc_density.Scale(1./mc_depth)
 
-hist_hadronic_skymap = []
-hist_leptonic_skymap = []
-for ebin in range(0,len(energy_bin_big)-1):
-    hist_hadronic_skymap += [ROOT.TH2D("hist_hadronic_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-    hist_leptonic_skymap += [ROOT.TH2D("hist_leptonic_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
 
 RA_G41p1 = 286.9 # G41.1-0.3
 Dec_G41p1= 7.1
@@ -445,60 +270,36 @@ print ('SNR G40.5-0.5 age = %0.2f kyr'%(t_G40p5/1000.))
 print ('SNR J1908+06 radius = %0.2f deg'%(radius_J1908))
 print ('CR_distribution_radius_J1908 = %0.2f deg'%(CR_distribution_radius_J1908))
 
-find_chi2 = False
-
-if find_chi2:
-    chi2_array_pub, D_lep_axis, D_had_axis = GetHadronicModelChi2(hist_flux_skymap,hist_flux_syst_skymap,hist_pwn_skymap,hist_psr_skymap)
-    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        plt.imshow(chi2_array_pub[ebin,:,:])
-        plt.xticks(D_had_axis[1], D_had_axis[0])
-        plt.yticks(D_lep_axis[1], D_lep_axis[0])
-        plt.xlabel("SNR diffusion coefficient 1e26 $\mathrm{cm}^{2}\mathrm{s}^{-1}$")
-        plt.ylabel("pulsar diffusion coefficient 1e26 $\mathrm{cm}^{2}\mathrm{s}^{-1}$")
-        plt.colorbar()
-        plotname = 'HadronicModelChi2_E%s'%(ebin)
-        fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
-        plt.clf()
+CR_source_data = SNR_J1908_data
 
 energy_index = 2
 hist_leptonic_skymap_sum = ROOT.TH2D("hist_leptonic_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 InputFile = ROOT.TFile("output_pulsar_models/pulsar_skymap_D4_V4.root")
-for ebin_big in range(energy_bin_cut_low,energy_bin_cut_up):
-    hist_leptonic_skymap[ebin_big].Reset()
-    for ebin in range(0,len(energy_bin)-1):
-        if energy_bin[ebin]<energy_bin_big[ebin_big]: continue
-        if energy_bin[ebin]>=energy_bin_big[ebin_big+1]: continue
+for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+    HistName = "hist_pulsar_skymap_631_1585"
+    if ebin==2:
         HistName = "hist_pulsar_skymap_631_1585"
-        if ebin==2:
-            HistName = "hist_pulsar_skymap_631_1585"
-        elif ebin==3:
-            HistName = "hist_pulsar_skymap_1585_3981"
-        elif ebin==4:
-            HistName = "hist_pulsar_skymap_3981_10000"
-        elif ebin==5:
-            HistName = "hist_pulsar_skymap_10000_25118"
-        hist_leptonic_skymap[ebin_big].Add(InputFile.Get(HistName),pow(energy_bin[ebin]/1e3,energy_index-1))
-    hist_leptonic_skymap_sum.Add(hist_leptonic_skymap[ebin_big])
+    elif ebin==3:
+        HistName = "hist_pulsar_skymap_1585_3981"
+    elif ebin==4:
+        HistName = "hist_pulsar_skymap_3981_10000"
+    elif ebin==5:
+        HistName = "hist_pulsar_skymap_10000_25118"
+    hist_leptonic_skymap_sum.Add(InputFile.Get(HistName),pow(energy_bin[ebin]/1e3,energy_index-1))
 InputFile.Close()
 
 hist_hadronic_skymap_sum = ROOT.TH2D("hist_hadronic_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+hist_hadronic_skymap = ROOT.TH2D("hist_hadronic_skymap","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-    hist_hadronic_skymap[ebin].Reset()
-    for binx in range(0,hist_hadronic_skymap[ebin].GetNbinsX()):
-        for biny in range(0,hist_hadronic_skymap[ebin].GetNbinsY()):
-            G40p5_emission = 0.
-            G41p1_emission = 0.
+    hist_hadronic_skymap.Reset()
+    for binx in range(0,hist_hadronic_skymap_sum.GetNbinsX()):
+        for biny in range(0,hist_hadronic_skymap_sum.GetNbinsY()):
             J1908_emission = 0.
-            G40p5_emission = CalculateHadronicEmission(binx+1,biny+1,energy_bin_big[ebin],energy_bin_big[ebin+1],SNR_G40p5_data,Hist_mc_column_G40p5,D0)
-            #G41p1_emission = CalculateHadronicEmission(binx+1,biny+1,energy_bin_big[ebin],energy_bin_big[ebin+1],SNR_G41p1_data,Hist_mc_column_G41p1,D0)
-            #J1908_emission = CalculateHadronicEmission(binx+1,biny+1,energy_bin_big[ebin],energy_bin_big[ebin+1],SNR_J1908_data,Hist_mc_column_G40p5,D0)
-            hist_hadronic_skymap[ebin].SetBinContent(binx+1,biny+1,G40p5_emission+G41p1_emission+J1908_emission)
-    hist_hadronic_skymap[ebin].Scale(pow(energy_bin_big[ebin]/1e3,energy_index-1))
-    hist_hadronic_skymap_sum.Add(hist_hadronic_skymap[ebin])
+            J1908_emission = CalculateHadronicEmission(binx+1,biny+1,energy_bin[ebin],energy_bin[ebin+1],CR_source_data,Hist_mc_column,D0)
+            hist_hadronic_skymap.SetBinContent(binx+1,biny+1,J1908_emission)
+    hist_hadronic_skymap.Scale(pow(energy_bin[ebin]/1e3,energy_index-1))
+    hist_hadronic_skymap_sum.Add(hist_hadronic_skymap)
 
-hist_lephad_skymap_sum = ROOT.TH2D("hist_lephad_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-hist_lephad_skymap_sum.Add(hist_hadronic_skymap_sum)
-#hist_lephad_skymap_sum.Add(hist_leptonic_skymap_sum)
 
 hist_zscore = CommonPlotFunctions.GetSignificanceMap(hist_data_skymap_sum,hist_bkgd_skymap_sum,hist_syst_skymap_sum,False)
 hist_zscore_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore)
@@ -532,50 +333,50 @@ mycircles[2].SetFillStyle(0)
 mycircles[2].SetLineColor(2)
 mycircles[2].SetLineWidth(2)
 
-Hist_mc_density_G40p5_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_density_G40p5)
-x1 = Hist_mc_density_G40p5_reflect.GetXaxis().GetXmin()
-x2 = Hist_mc_density_G40p5_reflect.GetXaxis().GetXmax()
-y1 = Hist_mc_density_G40p5_reflect.GetYaxis().GetXmin()
-y2 = Hist_mc_density_G40p5_reflect.GetYaxis().GetXmax()
+Hist_mc_density_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_density)
+x1 = Hist_mc_density_reflect.GetXaxis().GetXmin()
+x2 = Hist_mc_density_reflect.GetXaxis().GetXmax()
+y1 = Hist_mc_density_reflect.GetYaxis().GetXmin()
+y2 = Hist_mc_density_reflect.GetYaxis().GetXmax()
 IncValues = ROOT.TF1( "IncValues", "-x", -x2, -x1 )
 raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 505, "+")
-raLowerAxis.SetLabelSize(Hist_mc_density_G40p5_reflect.GetXaxis().GetLabelSize())
+raLowerAxis.SetLabelSize(Hist_mc_density_reflect.GetXaxis().GetLabelSize())
 raLowerAxis.Draw()
-Hist_mc_density_G40p5_reflect.GetXaxis().SetLabelOffset(999)
-Hist_mc_density_G40p5_reflect.GetXaxis().SetTickLength(0)
-Hist_mc_density_G40p5_reflect.Draw("COL4Z")
+Hist_mc_density_reflect.GetXaxis().SetLabelOffset(999)
+Hist_mc_density_reflect.GetXaxis().SetTickLength(0)
+Hist_mc_density_reflect.Draw("COL4Z")
 hist_zscore_reflect.Draw("CONT3 same")
 mycircles[0].Draw("same")
 mycircles[1].Draw("same")
 mycircles[2].Draw("same")
 raLowerAxis.Draw()
-canvas.SaveAs('output_plots/SkymapMolecularDensity_G40p5.png')
+canvas.SaveAs('output_plots/SkymapMolecularDensity.png')
 
-Hist_mc_column_G40p5_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column_G40p5)
+Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
 raLowerAxis.Draw()
-Hist_mc_column_G40p5_reflect.GetXaxis().SetLabelOffset(999)
-Hist_mc_column_G40p5_reflect.GetXaxis().SetTickLength(0)
-Hist_mc_column_G40p5_reflect.Draw("COL4Z")
+Hist_mc_column_reflect.GetXaxis().SetLabelOffset(999)
+Hist_mc_column_reflect.GetXaxis().SetTickLength(0)
+Hist_mc_column_reflect.Draw("COL4Z")
 hist_zscore_reflect.Draw("CONT3 same")
 mycircles[0].Draw("same")
 mycircles[1].Draw("same")
 mycircles[2].Draw("same")
 raLowerAxis.Draw()
-canvas.SaveAs('output_plots/SkymapMolecularColumn_G40p5.png')
+canvas.SaveAs('output_plots/SkymapMolecularColumn.png')
 
-Hist_mc_intensity_G40p5_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_intensity_G40p5)
+Hist_mc_intensity_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_intensity)
 raLowerAxis.Draw()
-Hist_mc_intensity_G40p5_reflect.GetXaxis().SetLabelOffset(999)
-Hist_mc_intensity_G40p5_reflect.GetXaxis().SetTickLength(0)
-Hist_mc_intensity_G40p5_reflect.Draw("COL4Z")
+Hist_mc_intensity_reflect.GetXaxis().SetLabelOffset(999)
+Hist_mc_intensity_reflect.GetXaxis().SetTickLength(0)
+Hist_mc_intensity_reflect.Draw("COL4Z")
 hist_zscore_reflect.Draw("CONT3 same")
 mycircles[0].Draw("same")
 mycircles[1].Draw("same")
 mycircles[2].Draw("same")
 raLowerAxis.Draw()
-canvas.SaveAs('output_plots/SkymapMolecularIntensity_G40p5.png')
+canvas.SaveAs('output_plots/SkymapMolecularIntensity.png')
 
-hist_hadronic_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_lephad_skymap_sum)
+hist_hadronic_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_hadronic_skymap_sum)
 hist_hadronic_skymap_sum_reflect.GetXaxis().SetLabelOffset(999)
 hist_hadronic_skymap_sum_reflect.GetXaxis().SetTickLength(0)
 hist_hadronic_skymap_sum_reflect.Draw("COL4Z")
@@ -589,7 +390,6 @@ canvas.SaveAs('output_plots/SkymapHadronicEmission.png')
 hist_flux_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_flux_skymap_sum)
 hist_flux_skymap_sum_reflect.GetXaxis().SetLabelOffset(999)
 hist_flux_skymap_sum_reflect.GetXaxis().SetTickLength(0)
-hist_flux_skymap_sum_reflect.Multiply(hist_expo_skymap_bool)
 hist_flux_skymap_sum_reflect.Draw("COL4Z")
 hist_zscore_reflect.Draw("CONT3 same")
 mycircles[0].Draw("same")
@@ -601,12 +401,10 @@ canvas.SaveAs('output_plots/SkymapFlux.png')
 hist_UL_skymap = ROOT.TH2D("hist_UL_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_UL_skymap.Add(hist_flux_skymap_sum)
 hist_UL_skymap.Add(hist_pwn_skymap_sum,-1)
-hist_UL_skymap.Add(hist_lephad_skymap_sum,-1)
-#hist_UL_skymap.Divide(hist_lephad_skymap_sum)
+hist_UL_skymap.Add(hist_hadronic_skymap_sum,-1)
 hist_UL_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_UL_skymap)
 hist_UL_skymap_reflect.GetXaxis().SetLabelOffset(999)
 hist_UL_skymap_reflect.GetXaxis().SetTickLength(0)
-hist_UL_skymap_reflect.Multiply(hist_expo_skymap_bool)
 #hist_UL_skymap_reflect.SetMaximum(5)
 #hist_UL_skymap_reflect.SetMinimum(-5)
 hist_UL_skymap_reflect.Draw("COL4Z")
@@ -616,24 +414,4 @@ mycircles[1].Draw("same")
 mycircles[2].Draw("same")
 raLowerAxis.Draw()
 canvas.SaveAs('output_plots/SkymapUpperLimit.png')
-
-roi_x = 286.8
-roi_y = 7.1
-roi_r = 0.2
-energy_axis, roi_flux, roi_flux_err = CommonPlotFunctions.GetRegionSpectrum(hist_flux_skymap,hist_flux_syst_skymap,roi_x,roi_y,roi_r)
-energy_axis, pwn_flux, pwn_flux_err = CommonPlotFunctions.GetRegionSpectrum(hist_pwn_skymap,None,roi_x,roi_y,roi_r)
-energy_axis, had_flux, had_flux_err = CommonPlotFunctions.GetRegionSpectrum(hist_hadronic_skymap,None,roi_x,roi_y,roi_r)
-roi_flux_residule = np.array(roi_flux)-np.array(pwn_flux)
-fig.clf()
-axbig = fig.add_subplot()
-axbig.errorbar(energy_axis,roi_flux_residule,roi_flux_err,color='k',marker='s',ls='none',label='data-PWN')
-axbig.errorbar(energy_axis,had_flux,pwn_flux_err,color='r',marker='s',ls='none',label='hadronic UL')
-axbig.set_xlabel('Energy [GeV]')
-axbig.set_ylabel('$E^{%s}$ Flux [$\mathrm{TeV}^{%s}\mathrm{cm}^{-2}\mathrm{s}^{-1}$]'%(energy_index,-1+energy_index))
-axbig.set_xscale('log')
-axbig.set_yscale('log')
-axbig.legend(loc='best')
-plotname = 'RoINorthFlux'
-fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
-axbig.remove()
 

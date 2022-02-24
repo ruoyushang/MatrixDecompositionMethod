@@ -56,15 +56,6 @@ energy_bin += [3981]
 energy_bin += [10000]
 energy_bin += [25118]
 
-energy_bin_big = []
-energy_bin_big += [100]
-energy_bin_big += [251]
-energy_bin_big += [631]
-energy_bin_big += [1585]
-energy_bin_big += [3981]
-energy_bin_big += [10000]
-energy_bin_big += [25118]
-
 def Hist2DIntegralAndError(Hist):
 
     integral = 0.

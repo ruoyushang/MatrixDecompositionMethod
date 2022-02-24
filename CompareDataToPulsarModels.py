@@ -101,7 +101,6 @@ def GetPulsarModelChi2(hist_flux,hist_flux_syst,hist_pwn,hist_co_north,hist_psr)
             
             for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
                 hist_model[ebin] = CommonPlotFunctions.Smooth2DMap(hist_model[ebin],CommonPlotFunctions.smooth_size_spectroscopy,False,True)
-                #hist_model[ebin].Multiply(hist_expo_skymap_bool)
                 print ('hist_flux[ebin].Integral() = %s'%(hist_flux[ebin].Integral()))
                 print ('hist_co_north[ebin].Integral() = %s'%(hist_co_north[ebin].Integral()))
                 scaling_factor = FitPulsarModel(hist_flux[ebin],hist_flux_syst[ebin],hist_pwn[ebin],hist_co_north[ebin],hist_psr[ebin],hist_model[ebin])
@@ -117,7 +116,6 @@ def GetPulsarModelChi2(hist_flux,hist_flux_syst,hist_pwn,hist_co_north,hist_psr)
                         co_north_flux = hist_co_north[ebin].GetBinContent(binx+1,biny+1)
                         model_flux = hist_model[ebin].GetBinContent(binx+1,biny+1)
                         error_sq = (data_flux_err*data_flux_err+data_flux_syst*data_flux_syst)
-                        #mask = hist_expo_skymap_bool.GetBinContent(binx+1,biny+1)
                         cell_x = hist_flux[ebin].GetXaxis().GetBinCenter(binx+1)
                         cell_y = hist_flux[ebin].GetYaxis().GetBinCenter(biny+1)
                         distance_to_pulsar = pow(pow(cell_x-RA_PSR,2)+pow(cell_y-Dec_PSR,2),0.5)
@@ -152,7 +150,6 @@ MapEdge_lower = InputFile.Get(HistName).GetYaxis().GetBinLowEdge(1)
 MapEdge_upper = InputFile.Get(HistName).GetYaxis().GetBinLowEdge(InputFile.Get(HistName).GetNbinsY()+1)
 InputFile.Close()
  
-hist_expo_skymap_bool = ROOT.TH2D("hist_expo_skymap_bool","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_model_global = ROOT.TH2D("hist_model_global","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_data_skymap_sum = ROOT.TH2D("hist_data_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_bkgd_skymap_sum = ROOT.TH2D("hist_bkgd_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
@@ -178,8 +175,6 @@ energy_bin_cut_low = int(sys.argv[2])
 energy_bin_cut_up = int(sys.argv[3])
 
 InputFile = ROOT.TFile("output_fitting/J1908_fit_skymap.root")
-HistName = "hist_expo_skymap_bool"
-hist_expo_skymap_bool.Add(InputFile.Get(HistName))
 for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
     HistName = "hist_data_skymap_big_E%s"%(ebin)
     hist_data_skymap_sum.Add(InputFile.Get(HistName))
@@ -203,16 +198,6 @@ for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
     hist_psr_skymap_sum.Add(InputFile.Get(HistName))
     hist_psr_skymap[ebin].Add(InputFile.Get(HistName))
 InputFile.Close()
-hist_flux_skymap_sum.Multiply(hist_expo_skymap_bool)
-hist_flux_syst_skymap_sum.Multiply(hist_expo_skymap_bool)
-hist_pwn_skymap_sum.Multiply(hist_expo_skymap_bool)
-hist_co_north_skymap_sum.Multiply(hist_expo_skymap_bool)
-hist_psr_skymap_sum.Multiply(hist_expo_skymap_bool)
-#for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-#    hist_flux_skymap[ebin].Multiply(hist_expo_skymap_bool)
-#    hist_flux_syst_skymap[ebin].Multiply(hist_expo_skymap_bool)
-#    hist_pwn_skymap[ebin].Multiply(hist_expo_skymap_bool)
-#    hist_psr_skymap[ebin].Multiply(hist_expo_skymap_bool)
 
 hist_model_skymap_sum = ROOT.TH2D("hist_model_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_model_skymap = []
@@ -220,7 +205,7 @@ for ebin in range(0,len(energy_bin_big)-1):
     hist_model_skymap += [ROOT.TH2D("hist_model_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
 
 
-find_chi2 = False
+find_chi2 = True
 
 if find_chi2:
     chi2_array_pub, D0_axis, Vel_axis = GetPulsarModelChi2(hist_flux_skymap,hist_flux_syst_skymap,hist_pwn_skymap,hist_co_north_skymap,hist_psr_skymap)
@@ -277,9 +262,6 @@ for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
     hist_model_skymap[ebin].Scale(scaling_factor)
     print ('scaling_factor = %s'%(scaling_factor))
     hist_model_skymap_sum.Add(hist_model_skymap[ebin])
-hist_model_skymap_sum.Multiply(hist_expo_skymap_bool)
-#for ebin_big in range(energy_bin_cut_low,energy_bin_cut_up):
-#    hist_model_skymap[ebin_big].Multiply(hist_expo_skymap_bool)
 print ('Done fitting.')
 
 profile_center_x = RA_PSR
