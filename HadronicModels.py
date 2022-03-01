@@ -20,6 +20,8 @@ from scipy.integrate import quad
 
 import CommonPlotFunctions
 
+energy_index_scale = CommonPlotFunctions.energy_index_scale
+
 def SNR_radius_Sedov(t_age_year):
 
     radius = 1.54*1e19*pow(E_SN,1./5.)*pow(n_0,-1./5.)*pow(t_age_year/1000.,2./5.) # cm
@@ -272,7 +274,7 @@ print ('CR_distribution_radius_J1908 = %0.2f deg'%(CR_distribution_radius_J1908)
 
 CR_source_data = SNR_J1908_data
 
-energy_index = 2
+energy_index = energy_index_scale
 hist_leptonic_skymap_sum = ROOT.TH2D("hist_leptonic_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 InputFile = ROOT.TFile("output_pulsar_models/pulsar_skymap_D4_V4.root")
 for ebin in range(energy_bin_cut_low,energy_bin_cut_up):

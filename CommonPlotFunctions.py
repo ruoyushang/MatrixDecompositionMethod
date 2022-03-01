@@ -24,13 +24,18 @@ skymap_zoomin_scale = 1
 #n_rebins = 1
 n_rebins = 2
 #n_rebins = 4
-#n_rebins = 8
+#n_rebins = 6
 smooth_size_spectroscopy = 0.1
 #smooth_size_spectroscopy = 0.15
 #smooth_size_spectroscopy = 0.2
 #smooth_size_spectroscopy = 0.3
 
+Smoothing = True
+#Smoothing = False
+
 calibration_radius = 0.2
+
+energy_index_scale = 2
 
 Skymap_size = 3.
 Skymap_nbins = 120
@@ -374,25 +379,38 @@ def GetGammaSourceInfo():
 
     return other_stars, other_star_coord
 
-def GetRegionSpectrum(hist_data_skymap,hist_syst_skymap,roi_x,roi_y,roi_r):
+def GetRegionIntegral(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,roi_x,roi_y,roi_r):
+
+    flux_sum = 0.
+    flux_stat_err = 0.
+    flux_syst_err = 0.
+    for bx in range(0,hist_data_skymap.GetNbinsX()):
+        for by in range(0,hist_data_skymap.GetNbinsY()):
+            bin_ra = hist_data_skymap.GetXaxis().GetBinCenter(bx+1)
+            bin_dec = hist_data_skymap.GetYaxis().GetBinCenter(by+1)
+            distance = pow(pow(bin_ra-roi_x,2) + pow(bin_dec-roi_y,2),0.5)
+            if distance>roi_r: 
+                continue
+            if not hist_mask_skymap==None:
+                mask = hist_mask_skymap.GetBinContent(bx+1,by+1)
+                if mask!=0.:
+                    continue
+            flux_sum += hist_data_skymap.GetBinContent(bx+1,by+1)
+            if hist_syst_skymap!=None:
+                flux_syst_err += hist_syst_skymap.GetBinContent(bx+1,by+1)
+            flux_stat_err += pow(hist_data_skymap.GetBinError(bx+1,by+1),2)
+    return flux_sum, flux_stat_err, flux_syst_err
+
+def GetRegionSpectrum(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin_low,ebin_up,roi_x,roi_y,roi_r):
 
     x_axis = []
     y_axis = []
     y_error = []
-    for ebin in range(0,len(hist_data_skymap)):
+    for ebin in range(ebin_low,ebin_up):
         flux_sum = 0.
         flux_stat_err = 0.
         flux_syst_err = 0.
-        for bx in range(0,hist_data_skymap[ebin].GetNbinsX()):
-            for by in range(0,hist_data_skymap[ebin].GetNbinsY()):
-                bin_ra = hist_data_skymap[ebin].GetXaxis().GetBinCenter(bx+1)
-                bin_dec = hist_data_skymap[ebin].GetYaxis().GetBinCenter(by+1)
-                distance = pow(pow(bin_ra-roi_x,2) + pow(bin_dec-roi_y,2),0.5)
-                if distance>roi_r: continue
-                flux_sum += hist_data_skymap[ebin].GetBinContent(bx+1,by+1)
-                if hist_syst_skymap!=None:
-                    flux_syst_err += hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)
-                flux_stat_err += pow(hist_data_skymap[ebin].GetBinError(bx+1,by+1),2)
+        flux_sum, flux_stat_err, flux_syst_err = GetRegionIntegral(hist_data_skymap[ebin],hist_syst_skymap[ebin],hist_mask_skymap,roi_x,roi_y,roi_r)
         x_axis += [energy_bin[ebin]]
         y_axis += [flux_sum]
         y_error += [pow(flux_stat_err+flux_syst_err*flux_syst_err,0.5)]

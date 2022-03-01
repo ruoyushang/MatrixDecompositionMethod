@@ -35,6 +35,8 @@ Skymap_nbins = CommonPlotFunctions.Skymap_nbins
 energy_bin = CommonPlotFunctions.energy_bin
 calibration_radius = CommonPlotFunctions.calibration_radius
 elev_range = CommonPlotFunctions.elev_range
+energy_index_scale = CommonPlotFunctions.energy_index_scale
+Smoothing = CommonPlotFunctions.Smoothing
 
 method_tag = 'tight_mdm_default'
 
@@ -4094,6 +4096,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
     hist_flux_skymap = []
     hist_energy_flux_skymap = []
     hist_energy_flux_syst_skymap = []
+    hist_energy_flux_normsyst_skymap = []
     hist_syst_skymap = []
     hist_normsyst_skymap = []
     hist_bkgd_skymap = []
@@ -4103,6 +4106,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         hist_flux_skymap += [ROOT.TH2D("hist_flux_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_energy_flux_skymap += [ROOT.TH2D("hist_energy_flux_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_energy_flux_syst_skymap += [ROOT.TH2D("hist_energy_flux_syst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_energy_flux_normsyst_skymap += [ROOT.TH2D("hist_energy_flux_normsyst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_zscore_skymap += [ROOT.TH2D("hist_zscore_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_cali_skymap += [ROOT.TH2D("hist_cali_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_data_skymap += [ROOT.TH2D("hist_data_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
@@ -4151,13 +4155,13 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         hist_syst_skymap[ebin] = Smooth2DMap(hist_syst_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_normsyst_skymap[ebin] = Smooth2DMap(hist_normsyst_skymap[ebin],smooth_size_spectroscopy,False,True)
     for ebin in range(0,len(energy_bin)-1):
-        expo_rebin = 1
+        expo_rebin = 2
         if ebin==3:
             expo_rebin = 2
         if ebin==4:
             expo_rebin = 4
         if ebin==5:
-            expo_rebin = 10
+            expo_rebin = 5
         hist_expo_rebin_skymap[ebin].Add(hist_expo_skymap[ebin])
         hist_expo_rebin_skymap[ebin].Rebin2D(expo_rebin,expo_rebin)
         hist_expo_rebin_skymap[ebin].Scale(1./(expo_rebin*expo_rebin))
@@ -4171,9 +4175,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                 hist_expo_skymap[ebin].SetBinContent(bx+1,by+1,expo_content)
 
     flux_index = 2.75
-    energy_index = 2
-    #energy_index = 1
-    #energy_index = 0
+    energy_index = energy_index_scale
     skymap_bin_size_x = hist_data_skymap[0].GetXaxis().GetBinCenter(2)-hist_data_skymap[0].GetXaxis().GetBinCenter(1)
     skymap_bin_size_y = hist_data_skymap[0].GetYaxis().GetBinCenter(2)-hist_data_skymap[0].GetYaxis().GetBinCenter(1)
     for ebin in range(0,len(energy_bin)-1):
@@ -4202,12 +4204,15 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                 stat_err = pow(stat_data_err*stat_data_err+stat_bkgd_err*stat_bkgd_err,0.5)
                 syst_err = hist_syst_skymap[ebin].GetBinContent(bx+1,by+1)/expo_content*correction
                 syst_err = max(syst_err,1e-4*correction)
+                normsyst_err = hist_normsyst_skymap[ebin].GetBinContent(bx+1,by+1)/expo_content*correction
+                normsyst_err = max(normsyst_err,1e-4*correction)
                 flux_content = (data_content-bkgd_content)/expo_content*correction
                 hist_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content)
                 hist_flux_skymap[ebin].SetBinError(bx+1,by+1,stat_err)
                 hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,flux_content*pow(energy_bin[ebin]/1e3,energy_index))
                 hist_energy_flux_skymap[ebin].SetBinError(bx+1,by+1,stat_err*pow(energy_bin[ebin]/1e3,energy_index))
                 hist_energy_flux_syst_skymap[ebin].SetBinContent(bx+1,by+1,syst_err*pow(energy_bin[ebin]/1e3,energy_index))
+                hist_energy_flux_normsyst_skymap[ebin].SetBinContent(bx+1,by+1,normsyst_err*pow(energy_bin[ebin]/1e3,energy_index))
 
     
     list_eaxis = []
@@ -4455,7 +4460,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
             cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
             cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
             distance_sq = pow(cell_x-MapCenter_x,2) + pow(cell_y-MapCenter_y,2)
-            if distance_sq>1.8*1.8: 
+            if distance_sq>1.6*1.6: 
                 hist_flux_skymap_sum.SetBinContent(bx+1,by+1,0.)
                 for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
                     hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,0.)
@@ -4907,7 +4912,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                     cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
                     cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
                     distance_sq = pow(cell_x-MapCenter_x,2) + pow(cell_y-MapCenter_y,2)
-                    if distance_sq>1.8*1.8: 
+                    if distance_sq>1.6*1.6: 
                         hist_flux_skymap_sum.SetBinContent(bx+1,by+1,0.)
                         hist_flux_syst_skymap_sum.SetBinContent(bx+1,by+1,0.)
                         hist_data_skymap_sum.SetBinContent(bx+1,by+1,0.)
@@ -4942,7 +4947,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                     cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
                     cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
                     distance_sq = pow(cell_x-MapCenter_x,2) + pow(cell_y-MapCenter_y,2)
-                    if distance_sq>1.8*1.8: 
+                    if distance_sq>1.6*1.6: 
                         hist_mask_skymap_sum.SetBinContent(bx+1,by+1,1.)
             output_file = ROOT.TFile("output_fitting/J1908_skymap.root","recreate")
             hist_mask_skymap_sum.Write()
@@ -4955,11 +4960,13 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
             for ebin in range(0,len(energy_bin)-1):
                 hist_energy_flux_skymap[ebin].Write()
                 hist_energy_flux_syst_skymap[ebin].Write()
+                hist_energy_flux_normsyst_skymap[ebin].Write()
                 hist_cali_skymap[ebin].Write()
                 hist_data_skymap[ebin].Write()
                 hist_bkgd_skymap[ebin].Write()
                 hist_expo_skymap[ebin].Write()
                 hist_syst_skymap[ebin].Write()
+                hist_normsyst_skymap[ebin].Write()
             output_file.Close();
 
     else:
@@ -7578,7 +7585,6 @@ GetGammaSourceInfo()
 
 drawMap = True
 doMWLMap = False
-Smoothing = True
 doUpperLimit = False
 doReferenceFlux = True
 doExtentFit = False
