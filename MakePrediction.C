@@ -3030,6 +3030,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     mean_tele_point_l = tele_point_l_b.first;
     mean_tele_point_b = tele_point_l_b.second;
 
+    GetBrightStars();
 
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
     TH1D Hist_ErecS_fine = TH1D("Hist_ErecS_fine","",N_energy_fine_bins,energy_fine_bins);
@@ -4013,7 +4014,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         std::cout << "Dark_SR_Integral = " << Dark_SR_Integral << std::endl;
         if (Old_Integral_Raw>0.)
         {
-            scale_dark_raw = Dark_SR_Integral/Old_Integral_Raw;
+            //scale_dark_raw = Dark_SR_Integral/Old_Integral_Raw;
+            scale_dark_raw = Bkgd_SR_Integral/Old_Integral_Raw;
         }
         Hist_OnData_CR_Energy.at(e).Scale(scale_energy);
         Hist_OnDark_SR_Energy.at(e).Scale(scale_dark_raw);
@@ -4040,6 +4042,19 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             Hist_ShapeSyst_Skymap.at(e).at(xybin).Scale(scale_yoff);
         }
         Hist_OnDark_SR_Skymap.at(e).Scale(scale_dark_raw);
+        for (int binx=0;binx<Hist_OnData_CR_Skymap.at(e).GetNbinsX();binx++)
+        {
+            for (int biny=0;biny<Hist_OnData_CR_Skymap.at(e).GetNbinsY();biny++)
+            {
+                double ra_sky = Hist_OnData_CR_Skymap.at(e).GetXaxis()->GetBinCenter(binx+1);
+                double dec_sky = Hist_OnData_CR_Skymap.at(e).GetYaxis()->GetBinCenter(biny+1);
+                if (CoincideWithBrightStars(ra_sky,dec_sky))
+                {
+                    double dark_content = Hist_OnDark_SR_Skymap.at(e).GetBinContent(binx+1,biny+1);
+                    Hist_OnData_CR_Skymap.at(e).SetBinContent(binx+1,biny+1,dark_content);
+                }
+            }
+        }
         Hist_OnData_CR_Skymap_Galactic.at(e).Scale(scale_yoff);
         for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
         {
