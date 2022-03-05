@@ -26,13 +26,11 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 
 target_energy_index = 1
-N_bins_for_deconv = 16
-#N_bins_for_deconv = 8
+#N_bins_for_deconv = 16
+N_bins_for_deconv = 8
 #N_bins_for_deconv = 4
 
-folder_path = 'output_16x16'
-#folder_path = 'output_8x8'
-#folder_path = 'output_4x4'
+folder_path = 'output_loose'
 
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
@@ -56,6 +54,8 @@ ONOFF_tag = 'OFF'
 ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
+sample_list += ['UrsaMajorIIV6_OFF']
+sample_name += ['UrsaMajorII V6']
 sample_list += ['1ES0502V6_OFF']
 sample_name += ['1ES0502 V6']
 sample_list += ['1ES0502V5_OFF']
@@ -106,6 +106,8 @@ sample_list += ['H1426V6_OFF']
 sample_name += ['H1426 V6']
 sample_list += ['RGBJ0710V5_OFF']
 sample_name += ['RGBJ0710 V5']
+sample_list += ['NGC1275V6_OFF']
+sample_name += ['NGC 1275 V6']
     
 elev_bins = [45,55,65,75,85]
 #elev_bins = [65,75,85]

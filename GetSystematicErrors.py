@@ -39,9 +39,16 @@ N_bins_for_deconv = 8
 
 ComputeShapeSystErr = False
 
-#folder_path = 'output_loose'
+folder_path = 'output_loose'
 #folder_path = 'output_medium'
-folder_path = 'output_tight'
+#folder_path = 'output_tight'
+
+#theta2_bins = [0,2]
+theta2_bins = [0,4]
+#theta2_bins = [0,9]
+
+elev_bins = [35,45,55,65,75,85]
+#elev_bins = [55,65,75,85]
 
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
@@ -130,10 +137,10 @@ sample_list += ['RGBJ0710V5_OFF']
 sample_name += ['RGBJ0710 V5']
 sample_list += ['NGC1275V6_OFF']
 sample_name += ['NGC 1275 V6']
-sample_list += ['CrabV5_OFF']
-sample_name += ['Crab V5']
-sample_list += ['CrabV6_OFF']
-sample_name += ['Crab V6']
+#sample_list += ['CrabV5_OFF']
+#sample_name += ['Crab V5']
+#sample_list += ['CrabV6_OFF']
+#sample_name += ['Crab V6']
 
 ##sample_list += ['RBS0413V6_OFF']
 ##sample_name += ['RBS0413 V6']
@@ -155,13 +162,7 @@ sample_name += ['Crab V6']
 #sample_list += ['CrabV5_ON']
 #sample_name += ['Crab V5']
     
-elev_bins = [35,45,55,65,75,85]
-#elev_bins = [45,55,65,75,85]
 lowrank_tag += 'elev_incl'
-
-#theta2_bins = [0,1]
-#theta2_bins = [0,4]
-theta2_bins = [0,9]
 
 number_of_roi = 4
 

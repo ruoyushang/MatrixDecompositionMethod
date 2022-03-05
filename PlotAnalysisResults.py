@@ -51,10 +51,11 @@ folder_path = 'output_loose'
 energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
-#theta2_bins = [0,1]
+#theta2_bins = [0,2]
 theta2_bins = [0,4]
 #theta2_bins = [0,9]
 
+distance_sq_limit = 3.24
 
 # all time
 mjd_tag = []
@@ -471,6 +472,17 @@ if sys.argv[1]=='Crab_Offset_ON':
     sample_list = []
     sample_list += ['Crab_Offset_V6_ON']
 
+if sys.argv[1]=='CrabRHV_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['CrabRHVV6_ON']
+if sys.argv[1]=='CrabRHV_OFF':
+    ONOFF_tag = 'OFF'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['CrabRHVV6_OFF']
+
 if sys.argv[1]=='Mrk421_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
@@ -667,8 +679,8 @@ PercentCrab = ''
 N_bins_for_deconv = 8
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
-MSCW_blind_cut = 0.5
-MSCL_blind_cut = 0.5
+MSCW_blind_cut = 0.6
+MSCL_blind_cut = 0.6
 MSCW_chi2_upper = -0.6
 MSCL_chi2_upper = -0.6
 MSCW_plot_lower = -0.6
@@ -696,7 +708,6 @@ MJD_Start = 2147483647
 MJD_End = 0
 Data_runlist_NSB = ROOT.std.vector("double")(10)
 Data_runlist_L3Rate = ROOT.std.vector("double")(10)
-Data_runlist_L3Rate_all = ROOT.std.vector("double")(10)
 roi_name = ROOT.std.vector("string")(10)
 roi_ra = ROOT.std.vector("double")(10)
 roi_dec = ROOT.std.vector("double")(10)
@@ -1063,7 +1074,6 @@ def GetSourceInfo(file_list):
     global MJD_End
     global Data_runlist_NSB
     global Data_runlist_L3Rate
-    global Data_runlist_L3Rate_all
     global roi_name
     global roi_ra
     global roi_dec
@@ -1085,7 +1095,6 @@ def GetSourceInfo(file_list):
         InfoTree = InputFile.Get("InfoTree")
         InfoTree.SetBranchAddress('Data_runlist_NSB',ROOT.AddressOf(Data_runlist_NSB))
         InfoTree.SetBranchAddress('Data_runlist_L3Rate',ROOT.AddressOf(Data_runlist_L3Rate))
-        InfoTree.SetBranchAddress('Data_runlist_L3Rate_all',ROOT.AddressOf(Data_runlist_L3Rate_all))
         InfoTree.SetBranchAddress('roi_name',ROOT.AddressOf(roi_name))
         InfoTree.SetBranchAddress('roi_ra',ROOT.AddressOf(roi_ra))
         InfoTree.SetBranchAddress('roi_dec',ROOT.AddressOf(roi_dec))
@@ -1094,13 +1103,10 @@ def GetSourceInfo(file_list):
         InfoTree.GetEntry(0)
         Hist_NSB.Reset()
         Hist_L3Rate.Reset()
-        Hist_L3Rate_all.Reset()
         for entry in range(0,len(Data_runlist_NSB)):
             Hist_NSB.Fill(Data_runlist_NSB[entry])
         for entry in range(0,len(Data_runlist_L3Rate)):
             Hist_L3Rate.Fill(Data_runlist_L3Rate[entry])
-        for entry in range(0,len(Data_runlist_L3Rate_all)):
-            Hist_L3Rate_all.Fill(Data_runlist_L3Rate_all[entry])
         #N_bins_for_deconv = InfoTree.N_bins_for_deconv
         MSCW_blind_cut = InfoTree.MSCW_cut_blind
         MSCL_blind_cut = InfoTree.MSCL_cut_blind
@@ -4091,6 +4097,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
     MapSize_y = (MapEdge_upper-MapEdge_lower)/2.
 
     hist_zscore_skymap = []
+    hist_excess_skymap = []
     hist_cali_skymap = []
     hist_data_skymap = []
     hist_flux_skymap = []
@@ -4108,6 +4115,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         hist_energy_flux_syst_skymap += [ROOT.TH2D("hist_energy_flux_syst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_energy_flux_normsyst_skymap += [ROOT.TH2D("hist_energy_flux_normsyst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_zscore_skymap += [ROOT.TH2D("hist_zscore_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_excess_skymap += [ROOT.TH2D("hist_excess_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_cali_skymap += [ROOT.TH2D("hist_cali_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_data_skymap += [ROOT.TH2D("hist_data_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_syst_skymap += [ROOT.TH2D("hist_syst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
@@ -4180,6 +4188,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
     skymap_bin_size_y = hist_data_skymap[0].GetYaxis().GetBinCenter(2)-hist_data_skymap[0].GetYaxis().GetBinCenter(1)
     for ebin in range(0,len(energy_bin)-1):
         hist_zscore_skymap[ebin] = GetSignificanceMap(hist_data_skymap[ebin],hist_bkgd_skymap[ebin],hist_syst_skymap[ebin],False)
+        hist_excess_skymap[ebin].Add(hist_data_skymap[ebin])
+        hist_excess_skymap[ebin].Add(hist_bkgd_skymap[ebin],-1)
         data_sum = hist_data_skymap[ebin].Integral()
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
@@ -4460,7 +4470,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
             cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
             cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
             distance_sq = pow(cell_x-MapCenter_x,2) + pow(cell_y-MapCenter_y,2)
-            if distance_sq>1.6*1.6: 
+            if distance_sq>distance_sq_limit: 
                 hist_flux_skymap_sum.SetBinContent(bx+1,by+1,0.)
                 for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
                     hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,0.)
@@ -4635,7 +4645,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
     canvas.SaveAs('output_plots/SkymapZscoreGal_%s_E%sto%s.png'%(sys.argv[1],energy_bin_cut_low,energy_bin_cut_up))
 
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        hist_zscore_skymap_reflect = reflectXaxis(hist_zscore_skymap[ebin])
+        #hist_zscore_skymap_reflect = reflectXaxis(hist_zscore_skymap[ebin])
+        hist_zscore_skymap_reflect = reflectXaxis(hist_excess_skymap[ebin])
         hist_zscore_skymap_reflect.GetYaxis().SetTitle(title_y)
         hist_zscore_skymap_reflect.GetXaxis().SetTitle(title_x)
         hist_zscore_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
@@ -4661,7 +4672,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         #for star in range(0,len(faint_star_markers)):
         #    faint_star_markers[star].Draw("same")
         #    faint_star_labels[star].Draw("same")
-        canvas.SaveAs('output_plots/Skymap_%s_%s_E%s.png'%(name,selection_tag,ebin))
+        canvas.SaveAs('output_plots/SkymapExcess_%s_%s_E%s.png'%(name,selection_tag,ebin))
 
     if doMWLMap:
         #Hist_MWL_global = GetCOSkymap(Hist_MWL_global, isRaDec)
@@ -4912,7 +4923,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                     cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
                     cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
                     distance_sq = pow(cell_x-MapCenter_x,2) + pow(cell_y-MapCenter_y,2)
-                    if distance_sq>1.6*1.6: 
+                    if distance_sq>distance_sq_limit: 
                         hist_flux_skymap_sum.SetBinContent(bx+1,by+1,0.)
                         hist_flux_syst_skymap_sum.SetBinContent(bx+1,by+1,0.)
                         hist_data_skymap_sum.SetBinContent(bx+1,by+1,0.)
@@ -4947,7 +4958,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                     cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
                     cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
                     distance_sq = pow(cell_x-MapCenter_x,2) + pow(cell_y-MapCenter_y,2)
-                    if distance_sq>1.6*1.6: 
+                    if distance_sq>distance_sq_limit: 
                         hist_mask_skymap_sum.SetBinContent(bx+1,by+1,1.)
             output_file = ROOT.TFile("output_fitting/J1908_skymap.root","recreate")
             hist_mask_skymap_sum.Write()
@@ -7224,7 +7235,6 @@ def FindSourceIndex(source_name):
 
 Hist_NSB = ROOT.TH1D("Hist_NSB","",20,0,8)
 Hist_L3Rate = ROOT.TH1D("Hist_L3Rate","",30,0,600)
-Hist_L3Rate_all = ROOT.TH1D("Hist_L3Rate_all","",30,0,600)
 Hist_EffArea = ROOT.TH1D("Hist_EffArea","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 Hist_EffArea_Sum = ROOT.TH1D("Hist_EffArea_Sum","",len(energy_fine_bin)-1,array('d',energy_fine_bin))
 
@@ -7247,7 +7257,6 @@ for source in range(0,len(sample_list)):
             GetSourceInfo(FilePath_Folder)
     MakeOneHistPlot(Hist_NSB,'NSB','number of runs','NSB_%s'%(sample_list[source]),False)
     MakeOneHistPlot(Hist_L3Rate,'L3 rate','number of runs','L3Rate_%s'%(sample_list[source]),False)
-    MakeOneHistPlot(Hist_L3Rate_all,'L3 rate','number of runs','L3Rate_all_%s'%(sample_list[source]),False)
 
 print ('analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut))
 MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
@@ -7471,16 +7480,16 @@ Hist_ShapeSyst_Theta2 = ROOT.TH1D("Hist_ShapeSyst_Theta2","",50,0,10)
 Hist_CR_Counts_MSCW = ROOT.TH1D("Hist_CR_Counts_MSCW","",6,0,6)
 Hist_CR_Counts_MSCL = ROOT.TH1D("Hist_CR_Counts_MSCL","",6,0,6)
 
-print ('MJD_Start = %s'%(MJD_Start))
-time = Time(MJD_Start, format='mjd')
-time.format = 'decimalyear'
-year_start = time.value
-print ('MJD_End = %s'%(MJD_End))
-time = Time(MJD_End, format='mjd')
-time.format = 'decimalyear'
-year_end = time.value
-print ('year_start = %s'%(year_start))
-print ('year_end = %s'%(year_end))
+#print ('MJD_Start = %s'%(MJD_Start))
+#time = Time(MJD_Start, format='mjd')
+#time.format = 'decimalyear'
+#year_start = time.value
+#print ('MJD_End = %s'%(MJD_End))
+#time = Time(MJD_End, format='mjd')
+#time.format = 'decimalyear'
+#year_end = time.value
+#print ('year_start = %s'%(year_start))
+#print ('year_end = %s'%(year_end))
 print ('roi_ra = %s'%(roi_ra[0]))
 print ('roi_dec = %s'%(roi_dec[0]))
 Hist_OnData_RoI_Energy_Sum = [] 

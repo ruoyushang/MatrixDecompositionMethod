@@ -196,7 +196,7 @@ def asymmetric_gauss_model(x,par):
     y_rotated = (x[0]-gauss_center_x)*ROOT.TMath.Sin(theta_ellipse) + (x[1]-gauss_center_y)*ROOT.TMath.Cos(theta_ellipse)
     return bkgd_scale*ellipse_norm*exp(-x_rotated*x_rotated/(2.*ellipse_semi_major_ax*ellipse_semi_major_ax))*exp(-y_rotated*y_rotated/(2.*ellipse_semi_minor_ax*ellipse_semi_minor_ax))
 
-def FitSimpleGeometryModel1D_J1908(hist_mask_skymap,hist_data_skymap,hist_syst_skymap):
+def FitSimpleGeometryModel1D_J1908(hist_mask_skymap,hist_data_skymap,hist_syst_skymap,par_fixed):
 
     global Hist_bkgd_global
     Hist_bkgd_global.Reset()
@@ -206,6 +206,7 @@ def FitSimpleGeometryModel1D_J1908(hist_mask_skymap,hist_data_skymap,hist_syst_s
     global PSR_travel_distance
     global CO_north_center_x
     global CO_north_center_y
+    global CO_north_radius
 
     print ('====================================================================')
     print ('FitSimpleGeometryModel1D_J1908')
@@ -247,7 +248,7 @@ def FitSimpleGeometryModel1D_J1908(hist_mask_skymap,hist_data_skymap,hist_syst_s
     PSR_initial_RA = 287.09
     PSR_initial_Dec = 6.86
     model_PSR_diffusion = [[PSR_travel_angle,0.],[PSR_travel_distance,0.],[0.1,0.],[avg_count,0.], [0.1,0.], [avg_count,0.]]
-    model_CO_north = [[CO_north_center_x,0.],[CO_north_center_y,0.],[0.2,0.],[avg_count,0.]]
+    model_CO_north = [[CO_north_center_x,0.],[CO_north_center_y,0.],[CO_north_radius,0.],[avg_count,0.]]
 
     npar = 4
     simple_model_2d = ROOT.TF2('simple_model_2d',symmetric_gauss_model,MapEdge_left,MapEdge_right,MapEdge_lower,MapEdge_upper,npar)
@@ -306,6 +307,9 @@ def FitSimpleGeometryModel1D_J1908(hist_mask_skymap,hist_data_skymap,hist_syst_s
     diffusion_model_2d.SetParLimits(8,0.1,1.0)
     diffusion_model_2d.SetParameter(9,model_PSR_diffusion[5][0])
     diffusion_model_2d.SetParLimits(9,0.,10.*model_PSR_diffusion[5][0])
+    if par_fixed:
+        diffusion_model_2d.FixParameter(4,model_PSR_diffusion[0][0])
+        diffusion_model_2d.FixParameter(5,model_PSR_diffusion[1][0])
     print ('Initial model_PSR_diffusion travel angle = %0.3e'%(model_PSR_diffusion[0][0]))
     print ('Initial model_PSR_diffusion travel distance = %0.3e'%(model_PSR_diffusion[1][0]))
     print ('Initial model_PSR_diffusion head width = %0.3e'%(model_PSR_diffusion[2][0]))
@@ -325,6 +329,9 @@ def FitSimpleGeometryModel1D_J1908(hist_mask_skymap,hist_data_skymap,hist_syst_s
     print ('Initial CO north Dec = %0.2f'%(model_CO_north[1][0]))
     print ('Initial CO north radius = %0.2f deg'%(model_CO_north[2][0]))
     print ('Initial CO north norm = %0.3e'%(model_CO_north[3][0]))
+    diffusion_model_2d.FixParameter(10,model_CO_north[0][0])
+    diffusion_model_2d.FixParameter(11,model_CO_north[1][0])
+    diffusion_model_2d.FixParameter(12,model_CO_north[2][0])
 
 
     hist_excess_skymap.Fit('diffusion_model_2d')
@@ -363,6 +370,7 @@ def FitSimpleGeometryModel1D_J1908(hist_mask_skymap,hist_data_skymap,hist_syst_s
     print ('2D fit CO north norm = %0.3e'%(model_CO_north[3][0]))
     CO_north_center_x = model_CO_north[0][0]
     CO_north_center_y = model_CO_north[1][0]
+    CO_north_radius = model_CO_north[2][0]
 
 
     npar = 4
@@ -425,11 +433,16 @@ energy_bin_cut_up = int(sys.argv[3])
 print ('energy_bin_cut_low = %s'%(energy_bin_cut_low))
 print ('energy_bin_cut_up = %s'%(energy_bin_cut_up))
 
+fix_pars = False
+if energy_bin_cut_low!=2 or energy_bin_cut_up!=6:
+    fix_pars = True
+
 PWN_radius = 1.5
-PSR_travel_angle = 6.247e+01
-PSR_travel_distance = 0.2
-CO_north_center_x = 286.8
-CO_north_center_y = 7.1
+PSR_travel_angle = 8.264e+01
+PSR_travel_distance = 2.888e-01
+CO_north_center_x = 286.90
+CO_north_center_y = 7.02
+CO_north_radius = 0.21
 
 InputFile = ROOT.TFile("output_fitting/J1908_skymap.root")
 HistName = "hist_data_skymap_sum"
@@ -497,7 +510,7 @@ hist_fit_CO_north_skymap_sum = ROOT.TH2D("hist_fit_CO_north_skymap_sum_E%sto%s"%
 hist_fit_PSR_ellipse_skymap_sum = ROOT.TH2D("hist_fit_PSR_ellipse_skymap_sum_E%sto%s"%(energy_bin_cut_low,energy_bin_cut_up),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_fit_all_models_skymap_sum = ROOT.TH2D("hist_fit_all_models_skymap_sum_E%sto%s"%(energy_bin_cut_low,energy_bin_cut_up),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 
-model_PWN, hist_fit_PWN_skymap, model_PSR_ellipse, hist_fit_PSR_ellipse_skymap, model_CO_north, hist_fit_CO_north_skymap = FitSimpleGeometryModel1D_J1908(hist_mask_skymap_sum,hist_flux_skymap_sum,hist_flux_syst_skymap_sum)
+model_PWN, hist_fit_PWN_skymap, model_PSR_ellipse, hist_fit_PSR_ellipse_skymap, model_CO_north, hist_fit_CO_north_skymap = FitSimpleGeometryModel1D_J1908(hist_mask_skymap_sum,hist_flux_skymap_sum,hist_flux_syst_skymap_sum,fix_pars)
 hist_fit_PWN_skymap_sum.Add(hist_fit_PWN_skymap)
 hist_fit_PSR_ellipse_skymap_sum.Add(hist_fit_PSR_ellipse_skymap)
 hist_fit_CO_north_skymap_sum.Add(hist_fit_CO_north_skymap)
