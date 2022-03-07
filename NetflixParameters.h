@@ -34,12 +34,10 @@ double MSCL_plot_lower = -0.6;
 char output_file_tag[50] = "tight";
 double MSCW_cut_moderate = 0.6;
 double MSCL_cut_moderate = 0.6;
-//double MSCW_rescale[N_energy_bins] = {0.0,0.1,0.2,0.3,0.4,0.5};
-//double MSCL_rescale[N_energy_bins] = {0.0,0.1,0.2,0.3,0.4,0.5};
-double MSCW_rescale[N_energy_bins] = {0.0,0.05,0.1,0.15,0.2,0.25};
-double MSCL_rescale[N_energy_bins] = {0.0,0.05,0.1,0.15,0.2,0.25};
-//double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
-//double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
+//double MSCW_rescale[N_energy_bins] = {0.0,0.05,0.1,0.15,0.2,0.25};
+//double MSCL_rescale[N_energy_bins] = {0.0,0.05,0.1,0.15,0.2,0.25};
+double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
+double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
 
 bool UseTruncatedONData = false;
 bool UseMinChi2 = false;
@@ -96,7 +94,7 @@ double MSCL_plot_upper = 3.;
 double Skymap_size = 3.;
 int Skymap_nbins = 120;
 
-double brightness_cut = 1.0;
+double brightness_cut = 5.0;
 //double faint_brightness_cut = 5.0;
-double faint_brightness_cut = 6.0;
+double faint_brightness_cut = 7.0;
 double bright_star_radius_cut = 0.3;

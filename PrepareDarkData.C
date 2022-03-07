@@ -110,7 +110,6 @@ vector<vector<double>> BrightStars_Data;
 vector<vector<double>> FaintStars_Data;
 vector<vector<double>> GammaSource_Data;
 vector<vector<double>> Dark_weight;
-vector<bool> did_i_find_a_match;
 
 string SMI_INPUT;
 string SMI_OUTPUT;
@@ -1677,7 +1676,6 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
 
     std::cout << "Select matched runs" << std::endl;
     vector<vector<vector<pair<string,int>>>> new_list;
-    did_i_find_a_match.clear();
     for (int on_run=0;on_run<ON_runlist.size();on_run++)
     {
         vector<vector<pair<string,int>>> the_samples;
@@ -1690,7 +1688,6 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
         }
         new_list.push_back(the_samples);
         Dark_count.push_back(Dark_count_thisrun);
-        did_i_find_a_match.push_back(false);
     }
     vector<pair<double,double>> ON_pointing_radec_new;
     TH2D hist_on_acc = TH2D("hist_on_acc","",8,-2,2,8,-2,2);
@@ -1846,7 +1843,6 @@ vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,in
                     //std::cout << "OFF_time[off_run] = " << OFF_time[best_off_run] << std::endl;
                     //std::cout << "OFF_L3Rate[off_run] = " << OFF_L3Rate[best_off_run] << std::endl;
                     //std::cout << "OFF_NSB[off_run] = " << OFF_NSB[best_off_run] << std::endl;
-                    did_i_find_a_match.at(on_run) = true;
                     new_list.at(on_run).at(nth_sample).push_back(best_match);
                     ON_pointing_radec_new.push_back(ON_pointing_radec[on_run]);
                     n_good_matches += 1;
@@ -1991,7 +1987,11 @@ bool ControlSelectionTheta2()
 {
     if (SignalSelectionTheta2()) return false;
     if (MSCW<MSCW_cut_blind && MSCL<MSCL_cut_blind) return false;
-    if (MSCW<MSCW_cut_blind || MSCL<MSCL_cut_blind) return false;
+    //if (MSCW<MSCW_cut_blind || MSCL<MSCL_cut_blind) return false;
+    if (MSCW<MSCW_cut_blind) return false;
+    double boundary = 0.5;
+    if (MSCW>boundary*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
+
     //if (MSCW<MSCW_cut_blind) return false;
     //if (MSCL>MSCL_cut_blind) return false;
     //double boundary = 1.0;
@@ -2161,45 +2161,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     if (TString(target).Contains("V4")) SizeSecondMax_Cut = 400.;
     if (TString(target).Contains("V5")) SizeSecondMax_Cut = 400.;
 
-    std::cout << "Get a list of target observation runs" << std::endl;
-    vector<pair<string,int>> Data_runlist_init = GetRunList(target);
-    vector<pair<string,int>> Data_runlist;
-    if (!TString(target).Contains("Proton")) Data_runlist = SelectONRunList(Data_runlist_init,TelElev_lower,TelElev_upper,MJD_start_cut,MJD_end_cut);
-    else Data_runlist = Data_runlist_init;
-    std::cout << "Data_runlist size = " << Data_runlist.size() << std::endl;
-    if (Data_runlist.size()==0) return;
-    for (int on_run=0;on_run<Data_runlist.size();on_run++)
-    {
-        std::cout << "selected ON run " << Data_runlist[on_run].second << std::endl;
-        vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[on_run].second);
-        std::cout << "time cut: ";
-        for (int entry=0;entry<timecut_thisrun.size();entry++)
-        {
-            std::cout << timecut_thisrun.at(entry).first << "-" << timecut_thisrun.at(entry).second << ", ";
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "Get a list of dark runs" << std::endl;
-    vector<vector<vector<pair<string,int>>>> Dark_runlist;
-    for (int on_run=0;on_run<Data_runlist.size();on_run++)
-    {
-        vector<vector<pair<string,int>>> the_samples;
-        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
-        {
-            vector<pair<string,int>> the_runs;
-            the_samples.push_back(the_runs);
-        }
-        Dark_runlist.push_back(the_samples);
-    }
-    vector<pair<string,int>> Dark_runlist_init = GetRunList("OffRunsV6");
-    if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("OffRunsV5");
-    if (TString(target).Contains("V4")) Dark_runlist_init = GetRunList("OffRunsV4");
-    if (TString(target).Contains("Proton")) Dark_runlist_init = GetRunList("EverythingProton");
-    std::cout << "initial Dark_runlist size = " << Dark_runlist_init.size() << std::endl;
-    bool nsb_reweight = true;
-    if (TString(target).Contains("V4")) nsb_reweight = false;
-    Dark_runlist = SelectDarkRunList(Data_runlist, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, nsb_reweight);
 
     mean_tele_point_ra = 0.;
     mean_tele_point_dec = 0.;
@@ -2729,6 +2690,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_CR_Skymap_Galactic.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,Skymap_nbins,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
     }
 
+
     vector<vector<TH2D>> Hist_OnDark_MSCLW;
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {
@@ -2776,6 +2738,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_SRDark_XYoff.push_back(TH2D("Hist_SRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Xoff_bins,-3,3,Yoff_bins,-3,3));
         Hist_CRDark_XYoff.push_back(TH2D("Hist_CRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Xoff_bins,-3,3,Yoff_bins,-3,3));
         int RaDec_bins = 24;
+        if (e>2)
+        {
+            RaDec_bins = 12;
+        }
+        if (e>4)
+        {
+            RaDec_bins = 6;
+        }
         Hist_SRDark_RaDec.push_back(TH2D("Hist_SRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,RaDec_bins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_CRDark_RaDec.push_back(TH2D("Hist_CRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,RaDec_bins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
     }
@@ -2884,10 +2854,49 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     std::cout << "Prepare dark run samples..." << std::endl;
 
+    TFile InputRunListFile(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TTree* RunListTree_ptr = nullptr;
+    RunListTree_ptr = (TTree*) InputRunListFile.Get("RunListTree");
+    int ON_runnumber_ptr;
+    RunListTree_ptr->SetBranchAddress("ON_runnumber",&ON_runnumber_ptr);
+    double ON_exposure_hour_ptr;
+    RunListTree_ptr->SetBranchAddress("ON_exposure_hour",&ON_exposure_hour_ptr);
+    vector<int>* OFF_runnumber_ptr = new std::vector<int>(10);
+    RunListTree_ptr->SetBranchAddress("OFF_runnumber",&OFF_runnumber_ptr);
+    vector<double>* OFF_exposure_hour_ptr = new std::vector<double>(10);
+    RunListTree_ptr->SetBranchAddress("OFF_exposure_hour",&OFF_exposure_hour_ptr);
+
+    vector<pair<string,int>> Data_runlist;
+    vector<double> Data_exposure_hour;
+    vector<vector<vector<pair<string,int>>>> Dark_runlist;
+    vector<vector<vector<double>>> Dark_exposure_hour;
+    for (int on_run=0;on_run<RunListTree_ptr->GetEntries();on_run++)
+    {
+        RunListTree_ptr->GetEntry(on_run);
+        if (OFF_runnumber_ptr->at(0)==0) continue;
+        pair<string,int> on_run_pair = std::make_pair("",ON_runnumber_ptr);
+        Data_runlist.push_back(on_run_pair);
+        Data_exposure_hour.push_back(ON_exposure_hour_ptr);
+        vector<vector<pair<string,int>>> off_run_vtr;
+        vector<pair<string,int>> off_run_vtr2;
+        vector<vector<double>> off_expo_vtr;
+        vector<double> off_expo_vtr2;
+        for (int off_run=0;off_run<OFF_runnumber_ptr->size();off_run++)
+        {
+            pair<string,int> off_run_pair = std::make_pair("",OFF_runnumber_ptr->at(off_run));
+            off_run_vtr2.push_back(off_run_pair);
+            off_expo_vtr2.push_back(OFF_exposure_hour_ptr->at(off_run));
+        }
+        off_run_vtr.push_back(off_run_vtr2);
+        off_expo_vtr.push_back(off_expo_vtr2);
+        Dark_runlist.push_back(off_run_vtr);
+        Dark_exposure_hour.push_back(off_expo_vtr);
+    }
+
+
     for (int run=0;run<Data_runlist.size();run++)
     {
 
-        if (!did_i_find_a_match.at(run)) continue;
         char run_number[50];
         char Data_observation[50];
         sprintf(run_number, "%i", int(Data_runlist[run].second));
@@ -2906,7 +2915,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             for (int off_run=0;off_run<Dark_runlist.at(run).at(nth_sample).size();off_run++)
             {
 
-                std::cout << "Prepare off run ..." << int(Dark_runlist.at(run).at(nth_sample)[off_run].second) << std::endl;
+                std::cout << "Prepare off run ..." << int(Dark_runlist.at(run).at(nth_sample)[off_run].second) << " for on run " << run_number << std::endl;
+                if (Dark_runlist.at(run).at(nth_sample)[off_run].second==0) continue;
                 char run_number[50];
                 char Dark_observation[50];
                 sprintf(run_number, "%i", int(Dark_runlist.at(run).at(nth_sample)[off_run].second));
@@ -2991,7 +3001,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     //if (R2off>4.) continue;
                     MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
                     MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
-                    double run_weight = Dark_weight.at(run).at(nth_sample);
+                    double run_weight = Data_exposure_hour[run]/Dark_exposure_hour.at(run).at(nth_sample)[off_run];
                     double weight = run_weight;
                     if (DarkFoV())
                     {
@@ -3072,7 +3082,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
                     Hist_Dark_ElevNSB.Fill(NSB_thisrun,tele_elev_off);
                     Hist_Dark_ElevAzim.Fill(NSB_thisrun,tele_azim_off);
-                    double run_weight = Dark_weight.at(run).at(nth_sample);
+                    double run_weight = Data_exposure_hour[run]/Dark_exposure_hour.at(run).at(nth_sample)[off_run];
                     double weight = run_weight;
                     //if (theta2_dark<source_theta2_cut && SignalSelectionTheta2()) weight = run_weight*source_weight.at(energy);
 
@@ -3094,10 +3104,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                         }
                         else if (ControlSelectionTheta2())
                         {
-                            Hist_CRDark_XYoff.at(energy).Fill(Xoff,Yoff,run_weight);
-                            Hist_CRDark_RaDec.at(energy).Fill(ra_sky,dec_sky,run_weight);
-                            Hist_CRDark_Energy.at(energy).Fill(ErecS*1000.,run_weight);
-                            Hist_CRDark_R2off.at(energy).Fill(R2off,run_weight);
+                            Hist_CRDark_XYoff.at(energy).Fill(Xoff,Yoff,weight);
+                            Hist_CRDark_RaDec.at(energy).Fill(ra_sky,dec_sky,weight);
+                            Hist_CRDark_Energy.at(energy).Fill(ErecS*1000.,weight);
+                            Hist_CRDark_R2off.at(energy).Fill(R2off,weight);
                         }
 
                         if (theta2_dark>source_theta2_cut)
@@ -3116,7 +3126,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<double> Data_runlist_exposure;
     for (int run=0;run<Data_runlist.size();run++)
     {
-        if (!did_i_find_a_match.at(run)) continue;
         char run_number[50];
         char Data_observation[50];
         sprintf(run_number, "%i", int(Data_runlist[run].second));
@@ -3217,8 +3226,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             }
             if (dark_cr_content_radec>0.)
             {
-                //radec_weight = data_cr_content_radec/dark_cr_content_radec;
-                radec_weight = yoff_weight;
+                radec_weight = data_cr_content_radec/dark_cr_content_radec;
+                //radec_weight = yoff_weight;
             }
             if (dark_cr_content_energy>0.)
             {
@@ -3240,7 +3249,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     std::cout << "Build exposure map from cosmic rays." << std::endl;
     for (int run=0;run<Data_runlist.size();run++)
     {
-        if (!did_i_find_a_match.at(run)) continue;
         char run_number[50];
         char Data_observation[50];
         sprintf(run_number, "%i", int(Data_runlist[run].second));
@@ -3335,8 +3343,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             }
             if (dark_cr_content_radec>0.)
             {
-                //radec_weight = data_cr_content_radec/dark_cr_content_radec;
-                radec_weight = yoff_weight;
+                radec_weight = data_cr_content_radec/dark_cr_content_radec;
+                //radec_weight = yoff_weight;
             }
             if (dark_cr_content_energy>0.)
             {
@@ -3366,7 +3374,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     std::cout << "Build templates from cosmic rays." << std::endl;
     for (int run=0;run<Data_runlist.size();run++)
     {
-        if (!did_i_find_a_match.at(run)) continue;
         char run_number[50];
         char Data_observation[50];
         sprintf(run_number, "%i", int(Data_runlist[run].second));
@@ -3470,8 +3477,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             }
             if (dark_cr_content_radec>0.)
             {
-                //radec_weight = data_cr_content_radec/dark_cr_content_radec;
-                radec_weight = yoff_weight;
+                radec_weight = data_cr_content_radec/dark_cr_content_radec;
+                //radec_weight = yoff_weight;
             }
             if (dark_cr_content_energy>0.)
             {
@@ -3620,16 +3627,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     int final_runs = 0;
     for (int run=0;run<Data_runlist.size();run++)
     {
-        if (!did_i_find_a_match.at(run)) 
-        {
-            std::cout << "Skip run " << int(Data_runlist[run].second) << std::endl;
-            continue;
-        }
-        else
-        {
-            std::cout << "Prepare run ..." << int(Data_runlist[run].second) << std::endl;
-            final_runs += 1;
-        }
+        std::cout << "Prepare run ..." << int(Data_runlist[run].second) << std::endl;
+        final_runs += 1;
 
         char run_number[50];
         char Data_observation[50];
@@ -4033,12 +4032,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_EffArea.SetBinContent(e+1,Hist_EffArea.GetBinContent(e+1)/(3600.*exposure_hours_usable));
     }
 
-    vector<double> Data_runlist_L3Rate_all;
-    for (int run=0;run<Data_runlist_init.size();run++)
-    {
-        Data_runlist_L3Rate_all.push_back(GetRunL3Rate(int(Data_runlist_init[run].second)));
-    }
-
     vector<int> Data_runlist_number;
     vector<string> Data_runlist_name;
     vector<int> Dark_runlist_number;
@@ -4049,7 +4042,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<int> Data_runlist_MJD;
     for (int run=0;run<Data_runlist.size();run++)
     {
-        if (!did_i_find_a_match.at(run)) continue;
         Data_runlist_name.push_back(Data_runlist[run].first);
         Data_runlist_number.push_back(Data_runlist[run].second);
         char run_number[50];
@@ -4352,7 +4344,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     InfoTree.Branch("Data_runlist_elev","std::vector<double>",&Data_runlist_elev);
     InfoTree.Branch("Data_runlist_NSB","std::vector<double>",&Data_runlist_NSB);
     InfoTree.Branch("Data_runlist_L3Rate","std::vector<double>",&Data_runlist_L3Rate);
-    InfoTree.Branch("Data_runlist_L3Rate_all","std::vector<double>",&Data_runlist_L3Rate_all);
     InfoTree.Branch("Data_runlist_exposure","std::vector<double>",&Data_runlist_exposure);
     InfoTree.Branch("roi_name","std::vector<std::string>",&roi_name);
     InfoTree.Branch("roi_ra","std::vector<double>",&roi_ra);
@@ -4485,7 +4476,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     
     OutputFile.Close();
 
-    std::cout << "initial runs = " << Data_runlist_init.size() << std::endl;
     std::cout << "selected runs = " << Data_runlist.size() << std::endl;
     std::cout << "final runs = " << final_runs << std::endl;
     std::cout << "Done." << std::endl;
