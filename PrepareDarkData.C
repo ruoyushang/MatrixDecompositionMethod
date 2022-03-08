@@ -422,8 +422,10 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name.Contains("MGRO_J1908"))
     {
+            //Source_RA = 286.975;
+            //    Source_Dec = 6.269;
             Source_RA = 286.975;
-                Source_Dec = 6.269;
+                Source_Dec = 6.03777777778;
     }
     if (source_name.Contains("SS433"))
     {

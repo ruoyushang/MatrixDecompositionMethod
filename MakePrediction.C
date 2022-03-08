@@ -1493,17 +1493,17 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             //idx_n2 = 2-1;
             //if (TelElev_lower>=65.)
             //{
-            //    ratio_1 = -0.7558294014011183;
-            //    ratio_2 = 0.6547685972751192;
-            //    variance_1 = 0.01658324;
-            //    variance_2 = 0.03123512;
+            //    ratio_1 = -0.7154901881057069;
+            //    ratio_2 = 0.6986227814238956;
+            //    variance_1 = 0.01985922;
+            //    variance_2 = 0.02872624;
             //}
             //else
             //{
-            //    ratio_1 = -0.7558294014011183;
-            //    ratio_2 = 0.6547685972751192;
-            //    variance_1 = 0.01658324;
-            //    variance_2 = 0.03123512;
+            //    ratio_1 = -0.7154901881057069;
+            //    ratio_2 = 0.6986227814238956;
+            //    variance_1 = 0.01985922;
+            //    variance_2 = 0.02872624;
             //}
             //idx_v1 = idx_k1*size_n + idx_n1;
             //idx_v2 = idx_k2*size_n + idx_n2;

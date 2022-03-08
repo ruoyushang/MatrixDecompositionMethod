@@ -964,7 +964,7 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     int matched_runnumber = 0;
     double match_chi2 = 1e10;
     double threshold_dElev = 2.0;
-    double threshold_dAirmass = 0.2;
+    double threshold_dAirmass = 0.1;
     double threshold_dNSB = 0.2;
     double threshold_dL3Rate = 0.3;
     double threshold_dMJD = 3.*365.;
@@ -988,16 +988,17 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         double delta_azim = abs(ON_pointing.second-OFF_pointing[off_run].second);
         if (delta_azim>180.) delta_azim = 360.-delta_azim;
 
-        //if (delta_airmass>threshold_dAirmass) continue;
+        if (delta_airmass>threshold_dAirmass) continue;
         if (delta_nsb>threshold_dNSB) continue;
         //if (delta_l3rate/ON_L3Rate>threshold_dL3Rate) continue;
         //if (delta_elev>threshold_dElev) continue;
         //if (delta_mjd>threshold_dMJD) continue;
         //
         //double chi2 = pow(delta_nsb,2); // matrix method doesn't make good prediction when dNSB is large.
-        double chi2 = pow(delta_airmass,2);
+        //double chi2 = pow(delta_airmass,2);
         //double chi2 = pow(delta_mjd,2);
         //double chi2 = pow(delta_l3rate,2);
+        double chi2 = pow(delta_azim,2);
 
         if (chi2<match_chi2)
         {
