@@ -1991,7 +1991,7 @@ bool ControlSelectionTheta2()
     if (MSCW<MSCW_cut_blind && MSCL<MSCL_cut_blind) return false;
     //if (MSCW<MSCW_cut_blind || MSCL<MSCL_cut_blind) return false;
     if (MSCW<MSCW_cut_blind) return false;
-    double boundary = 0.5;
+    double boundary = 0.7;
     if (MSCW>boundary*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
 
     //if (MSCW<MSCW_cut_blind) return false;
@@ -2005,8 +2005,8 @@ bool ControlSelectionTheta2()
 void Smooth2DMap(TH2D* hist, double smooth_size)
 {
 
-    TH2D Hist_Unit = TH2D("Hist_Unit","",Skymap_nbins/2,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins/2,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
-    TH2D Hist_Smooth = TH2D("Hist_Smooth","",Skymap_nbins/2,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins/2,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
+    TH2D Hist_Unit = TH2D("Hist_Unit","",Skymap_nbins/3,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins/3,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
+    TH2D Hist_Smooth = TH2D("Hist_Smooth","",Skymap_nbins/3,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins/3,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
     double bin_size = Hist_Unit.GetXaxis()->GetBinCenter(2)-Hist_Unit.GetXaxis()->GetBinCenter(1);
     int nbin_smooth = int(2*smooth_size/bin_size) + 1;
     for (int bx1=1;bx1<=Hist_Unit.GetNbinsX();bx1++)
@@ -2048,7 +2048,7 @@ void Smooth2DMap(TH2D* hist, double smooth_size)
 
 }
 
-void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doRaster, int GammaModel)
+void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel)
 {
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
@@ -2739,14 +2739,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         }
         Hist_SRDark_XYoff.push_back(TH2D("Hist_SRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Xoff_bins,-3,3,Yoff_bins,-3,3));
         Hist_CRDark_XYoff.push_back(TH2D("Hist_CRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Xoff_bins,-3,3,Yoff_bins,-3,3));
-        int RaDec_bins = 24;
+        int RaDec_bins = 16;
         if (e>2)
         {
-            RaDec_bins = 12;
+            RaDec_bins = 18;
         }
         if (e>4)
         {
-            RaDec_bins = 6;
+            RaDec_bins = 4;
         }
         Hist_SRDark_RaDec.push_back(TH2D("Hist_SRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,RaDec_bins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_CRDark_RaDec.push_back(TH2D("Hist_CRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,RaDec_bins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
@@ -2863,6 +2863,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     RunListTree_ptr->SetBranchAddress("ON_runnumber",&ON_runnumber_ptr);
     double ON_exposure_hour_ptr;
     RunListTree_ptr->SetBranchAddress("ON_exposure_hour",&ON_exposure_hour_ptr);
+    double ON_pointing_RA_ptr;
+    RunListTree_ptr->SetBranchAddress("ON_pointing_RA",&ON_pointing_RA_ptr);
+    double ON_pointing_Dec_ptr;
+    RunListTree_ptr->SetBranchAddress("ON_pointing_Dec",&ON_pointing_Dec_ptr);
     vector<int>* OFF_runnumber_ptr = new std::vector<int>(10);
     RunListTree_ptr->SetBranchAddress("OFF_runnumber",&OFF_runnumber_ptr);
     vector<double>* OFF_exposure_hour_ptr = new std::vector<double>(10);
@@ -2870,6 +2874,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     vector<pair<string,int>> Data_runlist;
     vector<double> Data_exposure_hour;
+    vector<pair<double,double>> Data_runlist_RaDec;
     vector<vector<vector<pair<string,int>>>> Dark_runlist;
     vector<vector<vector<double>>> Dark_exposure_hour;
     for (int on_run=0;on_run<RunListTree_ptr->GetEntries();on_run++)
@@ -2878,6 +2883,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         if (OFF_runnumber_ptr->at(0)==0) continue;
         pair<string,int> on_run_pair = std::make_pair("",ON_runnumber_ptr);
         Data_runlist.push_back(on_run_pair);
+        pair<double,double> on_run_radec = std::make_pair(ON_pointing_RA_ptr,ON_pointing_Dec_ptr);
+        Data_runlist_RaDec.push_back(on_run_radec);
         Data_exposure_hour.push_back(ON_exposure_hour_ptr);
         vector<vector<pair<string,int>>> off_run_vtr;
         vector<pair<string,int>> off_run_vtr2;
@@ -2908,7 +2915,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
         //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
         pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
-        if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+        //if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+        tele_point_ra_dec = Data_runlist_RaDec[run];
         run_tele_point_ra = tele_point_ra_dec.first;
         run_tele_point_dec = tele_point_ra_dec.second;
 
@@ -2972,13 +2980,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Phioff = atan2(Yoff,Xoff)+M_PI;
                     ra_sky = tele_point_ra_dec.first+Xoff_derot;
                     dec_sky = tele_point_ra_dec.second+Yoff_derot;
-                    if (doRaster)
-                    {
-                        double delta_phi = 2*M_PI*double(entry)/double(Dark_tree->GetEntries());
-                        double delta_r = 1.0;
-                        ra_sky += delta_r*cos(delta_phi);
-                        dec_sky += delta_r*sin(delta_phi);
-                    }
+                    //if (doRaster)
+                    //{
+                    //    double delta_phi = 2*M_PI*double(entry)/double(Dark_tree->GetEntries());
+                    //    double delta_r = 1.0;
+                    //    ra_sky += delta_r*cos(delta_phi);
+                    //    dec_sky += delta_r*sin(delta_phi);
+                    //}
                     ra_sky_dark = dark_tele_point_ra_dec.first+Xoff_derot;
                     dec_sky_dark = dark_tele_point_ra_dec.second+Yoff_derot;
                     // redefine theta2
@@ -3050,13 +3058,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
                     Phioff = atan2(Yoff,Xoff)+M_PI;
                     ra_sky = tele_point_ra_dec.first+Xoff_derot;
                     dec_sky = tele_point_ra_dec.second+Yoff_derot;
-                    if (doRaster)
-                    {
-                        double delta_phi = 2*M_PI*double(entry)/double(Dark_tree->GetEntries());
-                        double delta_r = 1.0;
-                        ra_sky += delta_r*cos(delta_phi);
-                        dec_sky += delta_r*sin(delta_phi);
-                    }
+                    //if (doRaster)
+                    //{
+                    //    double delta_phi = 2*M_PI*double(entry)/double(Dark_tree->GetEntries());
+                    //    double delta_r = 1.0;
+                    //    ra_sky += delta_r*cos(delta_phi);
+                    //    dec_sky += delta_r*sin(delta_phi);
+                    //}
                     ra_sky_dark = dark_tele_point_ra_dec.first+Xoff_derot;
                     dec_sky_dark = dark_tele_point_ra_dec.second+Yoff_derot;
                     // redefine theta2
@@ -3137,7 +3145,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
         std::cout << "Get telescope pointing RA and Dec for run " << run_number << std::endl;
         pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
-        if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+        //if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+        tele_point_ra_dec = Data_runlist_RaDec[run];
         run_tele_point_ra = tele_point_ra_dec.first;
         run_tele_point_dec = tele_point_ra_dec.second;
 
@@ -3176,13 +3185,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
-            if (doRaster)
-            {
-                double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
-                double delta_r = 1.0;
-                ra_sky += delta_r*cos(delta_phi);
-                dec_sky += delta_r*sin(delta_phi);
-            }
+            //if (doRaster)
+            //{
+            //    double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
+            //    double delta_r = 1.0;
+            //    ra_sky += delta_r*cos(delta_phi);
+            //    dec_sky += delta_r*sin(delta_phi);
+            //}
             // redefine theta2
             theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
             pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
@@ -3260,7 +3269,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
         //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
         pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
-        if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+        //if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+        tele_point_ra_dec = Data_runlist_RaDec[run];
         run_tele_point_ra = tele_point_ra_dec.first;
         run_tele_point_dec = tele_point_ra_dec.second;
 
@@ -3293,13 +3303,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
-            if (doRaster)
-            {
-                double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
-                double delta_r = 1.0;
-                ra_sky += delta_r*cos(delta_phi);
-                dec_sky += delta_r*sin(delta_phi);
-            }
+            //if (doRaster)
+            //{
+            //    double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
+            //    double delta_r = 1.0;
+            //    ra_sky += delta_r*cos(delta_phi);
+            //    dec_sky += delta_r*sin(delta_phi);
+            //}
             // redefine theta2
             theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
             pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
@@ -3385,7 +3395,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
         //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
         pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
-        if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+        //if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+        tele_point_ra_dec = Data_runlist_RaDec[run];
         run_tele_point_ra = tele_point_ra_dec.first;
         run_tele_point_dec = tele_point_ra_dec.second;
 
@@ -3416,13 +3427,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
-            if (doRaster)
-            {
-                double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
-                double delta_r = 1.0;
-                ra_sky += delta_r*cos(delta_phi);
-                dec_sky += delta_r*sin(delta_phi);
-            }
+            //if (doRaster)
+            //{
+            //    double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
+            //    double delta_r = 1.0;
+            //    ra_sky += delta_r*cos(delta_phi);
+            //    dec_sky += delta_r*sin(delta_phi);
+            //}
             // redefine theta2
             theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
             pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
@@ -3641,7 +3652,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
         //std::cout << "Get telescope pointing RA and Dec..." << std::endl;
         pair<double,double> tele_point_ra_dec = std::make_pair(0,0);
-        if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+        //if (!TString(target).Contains("Proton")) tele_point_ra_dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+        tele_point_ra_dec = Data_runlist_RaDec[run];
         run_tele_point_ra = tele_point_ra_dec.first;
         run_tele_point_dec = tele_point_ra_dec.second;
 
@@ -3803,13 +3815,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
-            if (doRaster)
-            {
-                double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
-                double delta_r = 1.0;
-                ra_sky += delta_r*cos(delta_phi);
-                dec_sky += delta_r*sin(delta_phi);
-            }
+            //if (doRaster)
+            //{
+            //    double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
+            //    double delta_r = 1.0;
+            //    ra_sky += delta_r*cos(delta_phi);
+            //    dec_sky += delta_r*sin(delta_phi);
+            //}
             // redefine theta2
             theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
             pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
@@ -3875,13 +3887,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
-            if (doRaster)
-            {
-                double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
-                double delta_r = 1.0;
-                ra_sky += delta_r*cos(delta_phi);
-                dec_sky += delta_r*sin(delta_phi);
-            }
+            //if (doRaster)
+            //{
+            //    double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
+            //    double delta_r = 1.0;
+            //    ra_sky += delta_r*cos(delta_phi);
+            //    dec_sky += delta_r*sin(delta_phi);
+            //}
             // redefine theta2
             theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
             pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
