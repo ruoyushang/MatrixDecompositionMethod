@@ -1991,7 +1991,7 @@ bool ControlSelectionTheta2()
     if (MSCW<MSCW_cut_blind && MSCL<MSCL_cut_blind) return false;
     //if (MSCW<MSCW_cut_blind || MSCL<MSCL_cut_blind) return false;
     if (MSCW<MSCW_cut_blind) return false;
-    double boundary = 0.7;
+    double boundary = 0.8;
     if (MSCW>boundary*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
 
     //if (MSCW<MSCW_cut_blind) return false;

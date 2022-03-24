@@ -91,7 +91,7 @@ double MSCL_chi2_upper = 3.;
 double MSCW_plot_upper = 3.;
 double MSCL_plot_upper = 3.;
 
-double Skymap_size = 2.;
+double Skymap_size = 3.;
 int Skymap_nbins = 81;
 
 double brightness_cut = 5.0;

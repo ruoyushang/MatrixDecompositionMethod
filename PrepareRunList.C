@@ -1009,7 +1009,7 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     return matched_runnumber;
 }
 
-void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, int MJD_start_cut, int MJD_end_cut)
+void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, int MJD_start_cut, int MJD_end_cut, int iteration)
 {
     std::cout << "initial runs = " << Data_runlist.size() << std::endl;
 
@@ -1115,45 +1115,50 @@ void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_ru
     vector<int> exclusion_list = new_list;
     vector<int> imposter_list;
     vector<pair<double,double>> imposter_list_radec;
-    for (int on_run=0;on_run<new_list.size();on_run++)
+    for (int trial=0;trial<iteration;trial++)
     {
-        ON_runnumber = new_list.at(on_run);
-        ON_timecut = GetRunTimecuts(ON_runnumber);
-        std::cout << "Selected ON run " << ON_runnumber << std::endl;
-        std::cout << "time cut: ";
-        for (int entry=0;entry<ON_timecut.size();entry++)
+        for (int on_run=0;on_run<new_list.size();on_run++)
         {
-            std::cout << ON_timecut.at(entry).first << "-" << ON_timecut.at(entry).second << ", ";
-        }
-        std::cout << std::endl;
+            ON_runnumber = new_list.at(on_run);
+            ON_timecut = GetRunTimecuts(ON_runnumber);
+            std::cout << "Selected ON run " << ON_runnumber << std::endl;
+            std::cout << "time cut: ";
+            for (int entry=0;entry<ON_timecut.size();entry++)
+            {
+                std::cout << ON_timecut.at(entry).first << "-" << ON_timecut.at(entry).second << ", ";
+            }
+            std::cout << std::endl;
 
-        char char_runnumber[50];
-        sprintf(char_runnumber, "%i", ON_runnumber);
-        string ON_filename;
-        ON_filename = TString(SMI_INPUT+"/"+string(char_runnumber)+".anasum.root");
-        std::pair<double,double> on_run_elev_azim = GetRunElevAzim(ON_filename,ON_runnumber);
-        std::pair<double,double> on_run_RA_Dec = GetRunRaDec(ON_filename,ON_runnumber);
-        ON_pointing_RA = on_run_RA_Dec.first;
-        ON_pointing_Dec = on_run_RA_Dec.second;
-        double on_run_NSB = GetRunPedestalVar(ON_runnumber);
-        ON_exposure_hour = GetRunUsableTime(ON_filename,ON_runnumber)/3600.;
-        double ON_L3Rate = GetRunL3Rate(ON_runnumber);
-        pair<double,double> ON_pointing = new_list_pointing[on_run];
-        double on_run_MJD = double(GetRunMJD(ON_filename,ON_runnumber));
+            char char_runnumber[50];
+            sprintf(char_runnumber, "%i", ON_runnumber);
+            string ON_filename;
+            ON_filename = TString(SMI_INPUT+"/"+string(char_runnumber)+".anasum.root");
+            std::pair<double,double> on_run_elev_azim = GetRunElevAzim(ON_filename,ON_runnumber);
+            std::pair<double,double> on_run_RA_Dec = GetRunRaDec(ON_filename,ON_runnumber);
+            ON_pointing_RA = on_run_RA_Dec.first;
+            ON_pointing_Dec = on_run_RA_Dec.second;
+            double on_run_NSB = GetRunPedestalVar(ON_runnumber);
+            ON_exposure_hour = GetRunUsableTime(ON_filename,ON_runnumber)/3600.;
+            double ON_L3Rate = GetRunL3Rate(ON_runnumber);
+            pair<double,double> ON_pointing = new_list_pointing[on_run];
+            double on_run_MJD = double(GetRunMJD(ON_filename,ON_runnumber));
 
-        int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list); 
-        if (matched_runnumber==0)
-        {
-            std::cout << "ON run " << ON_runnumber << " failed to find an imposter." << std::endl;
+            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list); 
+            if (matched_runnumber==0)
+            {
+                std::cout << "ON run " << ON_runnumber << " failed to find an imposter." << std::endl;
+            }
+            else
+            {
+                std::cout << "ON run " << ON_runnumber << " found an imposter " << matched_runnumber << std::endl;
+                if (trial==iteration-1)
+                {
+                    imposter_list.push_back(matched_runnumber);
+                    imposter_list_radec.push_back(std::make_pair(ON_pointing_RA,ON_pointing_Dec));
+                }
+                exclusion_list.push_back(matched_runnumber);
+            }
         }
-        else
-        {
-            std::cout << "ON run " << ON_runnumber << " found an imposter " << matched_runnumber << std::endl;
-            imposter_list.push_back(matched_runnumber);
-            imposter_list_radec.push_back(std::make_pair(ON_pointing_RA,ON_pointing_Dec));
-            exclusion_list.push_back(matched_runnumber);
-        }
-
     }
 
 
@@ -1460,7 +1465,13 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     }
     else
     {
-        SelectImposterRunList(&RunListTree, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut);
+        int iteration = 1;
+        if (TString(target).Contains("Imposter1")) iteration = 1;
+        if (TString(target).Contains("Imposter2")) iteration = 2;
+        if (TString(target).Contains("Imposter3")) iteration = 3;
+        if (TString(target).Contains("Imposter4")) iteration = 4;
+        if (TString(target).Contains("Imposter5")) iteration = 5;
+        SelectImposterRunList(&RunListTree, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, iteration);
     }
 
 
