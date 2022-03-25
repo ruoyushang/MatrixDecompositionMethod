@@ -2978,8 +2978,8 @@ void NormalizeDarkMatrix(TH2D* hist_data, TH2D* hist_dark, int normalization_bin
         for (int biny=1;biny<=hist_data->GetNbinsY();biny++)
         {
             if (binx<binx_blind && biny<biny_blind) continue;
-            if (binx>=binx_blind+normalization_bins) continue;
-            if (biny>=biny_blind+normalization_bins) continue;
+            //if (binx>=binx_blind+normalization_bins) continue;
+            //if (biny>=biny_blind+normalization_bins) continue;
             Data_CR_Integral += hist_data->GetBinContent(binx,biny);
             Dark_CR_Integral += hist_dark->GetBinContent(binx,biny);
         }
