@@ -28,7 +28,6 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 np.set_printoptions(precision=2)
 
 skymap_zoomin_scale = CommonPlotFunctions.skymap_zoomin_scale
-n_rebins = CommonPlotFunctions.n_rebins
 smooth_size_spectroscopy = CommonPlotFunctions.smooth_size_spectroscopy
 Skymap_size = CommonPlotFunctions.Skymap_size
 Skymap_nbins = CommonPlotFunctions.Skymap_nbins
@@ -44,9 +43,8 @@ lowrank_tag = '_svd'
 #lowrank_tag = '_eigen'
 method_tag += lowrank_tag
 
-#folder_path = 'output_tight'
-#folder_path = 'output_medium'
-folder_path = 'output_loose'
+folder_path = 'output_tight'
+#folder_path = 'output_loose'
 
 energy_bin_cut_low = 0
 energy_bin_cut_up = 6
@@ -55,7 +53,8 @@ energy_bin_cut_up = 6
 theta2_bins = [0,4]
 #theta2_bins = [0,9]
 
-distance_sq_limit = 3.24
+#distance_sq_limit = 3.24
+distance_sq_limit = 2.56
 
 # all time
 mjd_tag = []
@@ -223,13 +222,6 @@ if sys.argv[1]=='PG1553_ON':
     sample_list = []
     sample_list += ['PG1553V6_ON']
     sample_list += ['PG1553V5_ON']
-    
-if sys.argv[1]=='PG1553_Raster':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['PG1553V6_Raster']
-    sample_list += ['PG1553V5_Raster']
     
 if sys.argv[1]=='1ES1011_ON':
     ONOFF_tag = 'ON'
@@ -566,6 +558,37 @@ if sys.argv[1]=='MGRO_J1908_ON':
     sample_list += ['MGRO_J1908_V5_ON']
     #sample_list += ['MGRO_J1908_V4_ON']
     # this is a Tevatron
+
+if sys.argv[1]=='MGRO_J1908_Imposter1':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['MGRO_J1908_V6_Imposter1']
+    sample_list += ['MGRO_J1908_V5_Imposter1']
+if sys.argv[1]=='MGRO_J1908_Imposter2':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['MGRO_J1908_V6_Imposter2']
+    sample_list += ['MGRO_J1908_V5_Imposter2']
+if sys.argv[1]=='MGRO_J1908_Imposter3':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['MGRO_J1908_V6_Imposter3']
+    sample_list += ['MGRO_J1908_V5_Imposter3']
+if sys.argv[1]=='MGRO_J1908_Imposter4':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['MGRO_J1908_V6_Imposter4']
+    sample_list += ['MGRO_J1908_V5_Imposter4']
+if sys.argv[1]=='MGRO_J1908_Imposter5':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['MGRO_J1908_V6_Imposter5']
+    sample_list += ['MGRO_J1908_V5_Imposter5']
     
 if sys.argv[1]=='SS433_ON':
     ONOFF_tag = 'ON'
@@ -1064,7 +1087,7 @@ def GetSourceInfo(file_list):
     global NSB_RMS_data
     global Zenith_RMS_data
     global Skymap_size
-    global Skymap_nbins
+    #global Skymap_nbins
     global source_ra
     global source_dec
     global source_l
@@ -1115,8 +1138,7 @@ def GetSourceInfo(file_list):
         #MSCW_plot_lower = InfoTree.MSCW_plot_lower
         #MSCL_plot_lower = InfoTree.MSCL_plot_lower
         Skymap_size = InfoTree.Skymap_size
-        Skymap_nbins = InfoTree.Skymap_nbins
-        Skymap_nbins = int(Skymap_nbins/n_rebins)
+        #Skymap_nbins = InfoTree.Skymap_nbins
         source_ra = InfoTree.mean_tele_point_ra
         source_dec = InfoTree.mean_tele_point_dec
         source_l = InfoTree.mean_tele_point_l
@@ -1537,30 +1559,37 @@ def StackShowerHistograms():
         Hist2D_Coeff_Data_Sum.Add(Hist2D_Coeff_Data)
         Hist2D_Coeff_Bkgd_Sum.Add(Hist2D_Coeff_Bkgd)
 
-    #Hist2D_Rank0_Data_Sum.Add(Hist2D_Rank0_Data)
-    #Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank1_Data)
-    #Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank2_Data)
-    #Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank3_Data)
-    Hist2D_Rank0_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
-    Hist2D_Rank0_Data_Sum.Add(Hist2D_OnData)
-    Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
-    Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
-    Hist2D_Rank1_Data_Sum.Add(Hist2D_OnData)
-    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
-    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
-    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank2_Data,-1.)
-    Hist2D_Rank2_Data_Sum.Add(Hist2D_OnData)
-    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
-    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
-    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank2_Data,-1.)
-    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank3_Data,-1.)
-    Hist2D_Rank3_Data_Sum.Add(Hist2D_OnData)
-    Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
-    Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
-    Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank2_Data,-1.)
-    Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank3_Data,-1.)
-    Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank4_Data,-1.)
-    Hist2D_Rank4_Data_Sum.Add(Hist2D_OnData)
+    Hist2D_Rank0_Data_Sum.Add(Hist2D_Rank0_Data)
+    Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank0_Data)
+    Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank1_Data)
+    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank0_Data)
+    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank1_Data)
+    Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank2_Data)
+    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank0_Data)
+    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank1_Data)
+    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank2_Data)
+    Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank3_Data)
+
+    #Hist2D_Rank0_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
+    #Hist2D_Rank0_Data_Sum.Add(Hist2D_OnData)
+    #Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
+    #Hist2D_Rank1_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
+    #Hist2D_Rank1_Data_Sum.Add(Hist2D_OnData)
+    #Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
+    #Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
+    #Hist2D_Rank2_Data_Sum.Add(Hist2D_Rank2_Data,-1.)
+    #Hist2D_Rank2_Data_Sum.Add(Hist2D_OnData)
+    #Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
+    #Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
+    #Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank2_Data,-1.)
+    #Hist2D_Rank3_Data_Sum.Add(Hist2D_Rank3_Data,-1.)
+    #Hist2D_Rank3_Data_Sum.Add(Hist2D_OnData)
+    #Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank0_Data,-1.)
+    #Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank1_Data,-1.)
+    #Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank2_Data,-1.)
+    #Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank3_Data,-1.)
+    #Hist2D_Rank4_Data_Sum.Add(Hist2D_Rank4_Data,-1.)
+    #Hist2D_Rank4_Data_Sum.Add(Hist2D_OnData)
 
     Hist2D_Rank0_Dark_Sum.Add(Hist2D_Rank0_Data)
     Hist2D_Rank1_Dark_Sum.Add(Hist2D_Rank1_Data)
@@ -3825,53 +3854,11 @@ def ConvertRaDecToGalacticMap(hist_map_radec,hist_map_galactic):
 
 def GetSkyViewMap(map_file, hist_map, isRaDec):
 
-    hist_map.Reset()
-    inputFile = open(map_file)
-    for line in inputFile:
-        sig = float(line.split(' ')[2])
-        l = float(line.split(' ')[0])
-        b = float(line.split(' ')[1])
-        if not isRaDec: 
-            l, b = ConvertRaDecToGalactic(l,b)
-        binx = hist_map.GetXaxis().FindBin(l)
-        biny = hist_map.GetYaxis().FindBin(b)
-        if binx<1: continue
-        if binx>=hist_map.GetNbinsX()-1: continue
-        if biny<1: continue
-        if biny>=hist_map.GetNbinsY()-1: continue
-        old_sig = hist_map.GetBinContent(binx+1,biny+1)
-        hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
-        #hist_map.SetBinContent(binx+1,biny+1,sig+old_sig)
-
-    map_resolution = 0.1
-    hist_map_new = FillSkymapHoles(hist_map, map_resolution)
-    return hist_map_new
-
-    #return hist_map
+    return CommonPlotFunctions.GetSkyViewMap(map_file, hist_map, isRaDec)
 
 def GetGalacticCoordMap(map_file, hist_map, isRaDec):
 
     return CommonPlotFunctions.GetGalacticCoordMap(map_file, hist_map, isRaDec)
-
-def GetHawcSkymap(hist_map, isRaDec):
-
-    hist_map.Reset()
-    inputFile = open('MWL_maps/hawc_map.txt')
-    for line in inputFile:
-        sig = float(line.split(' ')[0])
-        l = float(line.split(' ')[1])
-        b = float(line.split(' ')[2])
-        if not isRaDec: 
-            l, b = ConvertRaDecToGalactic(l,b)
-        binx = hist_map.GetXaxis().FindBin(l)
-        biny = hist_map.GetYaxis().FindBin(b)
-        old_sig = hist_map.GetBinContent(binx+1,biny+1)
-        hist_map.SetBinContent(binx+1,biny+1,max(sig,0.))
-
-    map_resolution = 0.1
-    hist_map_new = FillSkymapHoles(hist_map, map_resolution)
-
-    return hist_map_new
 
 def GetCOSkymap(hist_map, isRaDec):
 
@@ -4163,13 +4150,13 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         hist_syst_skymap[ebin] = Smooth2DMap(hist_syst_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_normsyst_skymap[ebin] = Smooth2DMap(hist_normsyst_skymap[ebin],smooth_size_spectroscopy,False,True)
     for ebin in range(0,len(energy_bin)-1):
-        expo_rebin = 2
-        if ebin==3:
-            expo_rebin = 2
-        if ebin==4:
-            expo_rebin = 4
-        if ebin==5:
-            expo_rebin = 5
+        expo_rebin = 1
+        #if ebin==3:
+        #    expo_rebin = 2
+        #if ebin==4:
+        #    expo_rebin = 4
+        #if ebin==5:
+        #    expo_rebin = 5
         hist_expo_rebin_skymap[ebin].Add(hist_expo_skymap[ebin])
         hist_expo_rebin_skymap[ebin].Rebin2D(expo_rebin,expo_rebin)
         hist_expo_rebin_skymap[ebin].Scale(1./(expo_rebin*expo_rebin))
@@ -4548,7 +4535,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
     hist_expo_hours_skymap_reflect.GetZaxis().SetTitle('exposure [hour]')
     hist_expo_hours_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
     hist_expo_hours_skymap_reflect.Draw("COL4Z")
-    hist_contour_reflect.Draw("CONT3 same")
+    #hist_contour_reflect.Draw("CONT3 same")
     hist_expo_hours_skymap_reflect.GetXaxis().SetLabelOffset(999)
     hist_expo_hours_skymap_reflect.GetXaxis().SetTickLength(0)
     raLowerAxis.Draw()
@@ -4615,6 +4602,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
     #    faint_star_markers[star].Draw("same")
     #    faint_star_labels[star].Draw("same")
     canvas.SaveAs('output_plots/SkymapFlux_%s_%s.png'%(name,selection_tag))
+    CommonPlotFunctions.MatplotlibMap2D(hist_flux_skymap_sum_reflect,None,fig,'RA','Dec','flux','SkymapFlux2_%s_%s.png'%(name,selection_tag))
 
     hist_zscore_skymap_galactic = ROOT.TH2D("hist_zscore_skymap_galactic","",int(Skymap_nbins/zoomin_scale),source_l-MapSize_x/zoomin_scale,source_l+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),source_b-MapSize_y/zoomin_scale,source_b+MapSize_y/zoomin_scale)
     ConvertRaDecToGalacticMap(hist_zscore_skymap_sum,hist_zscore_skymap_galactic)
@@ -4978,6 +4966,13 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                 hist_expo_skymap[ebin].Write()
                 hist_syst_skymap[ebin].Write()
                 hist_normsyst_skymap[ebin].Write()
+            output_file.Close();
+
+        if 'MGRO_J1908_Imposter' in sys.argv[1]:
+            output_file = ROOT.TFile("output_fitting/%s_skymap.root"%(sys.argv[1]),"recreate")
+            for ebin in range(0,len(energy_bin)-1):
+                hist_data_skymap[ebin].Write()
+                hist_bkgd_skymap[ebin].Write()
             output_file.Close();
 
     else:
@@ -5991,13 +5986,13 @@ def MatrixDecompositionDemo(name):
     line4.SetLineWidth(2)
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'M^{Full} = #sum_{k=1}^{8} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_OnData_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_OnData_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_OnData_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_OnData_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_OnData_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
@@ -6006,13 +6001,13 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/OnData_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{OFF}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'M^{Full} = #sum_{k=1}^{8} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_OnDark_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_OnDark_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_OnDark_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_OnDark_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_OnDark_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
@@ -6036,7 +6031,7 @@ def MatrixDecompositionDemo(name):
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.70,'t_{ij} coefficents' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     lumilab2 = ROOT.TLatex(0.15,0.20,'(Zenith = %0.1f #pm %0.1f, NSB = %0.1f #pm %0.1f)'%(Zenith_mean_data,Zenith_RMS_data,NSB_mean_data,NSB_RMS_data) )
     lumilab2.SetNDC()
@@ -6053,7 +6048,7 @@ def MatrixDecompositionDemo(name):
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.70,'t_{ij} coefficents')
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     lumilab2 = ROOT.TLatex(0.15,0.20,'(Zenith = %0.1f #pm %0.1f, NSB = %0.1f #pm %0.1f)'%(Zenith_mean_data,Zenith_RMS_data,NSB_mean_data,NSB_RMS_data) )
     lumilab2.SetNDC()
@@ -6072,7 +6067,7 @@ def MatrixDecompositionDemo(name):
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.20,'#delta H_{ij} coefficents' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
     pad1.SetLogz()
@@ -6087,7 +6082,7 @@ def MatrixDecompositionDemo(name):
     pad3.cd()
     lumilab1 = ROOT.TLatex(0.15,0.20,'#delta H_{ij} coefficents' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
     pad1.SetLogz()
@@ -6101,130 +6096,130 @@ def MatrixDecompositionDemo(name):
 
     pad3.Clear()
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON} - #sum_{k=1}^{1} #sigma_{k} u_{k} v_{k}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{1} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_Rank0_Data_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_Rank0_Data_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank0_Data_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_Rank0_Data_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_Rank0_Data_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
     canvas.SaveAs('output_plots/Rank0_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{1} u_{1} v_{1}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{1} u_{1} v_{1}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_Rank0_Dark_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_Rank0_Dark_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank0_Dark_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_Rank0_Dark_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_Rank0_Dark_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
     canvas.SaveAs('output_plots/Rank0_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON} - #sum_{k=1}^{2} #sigma_{k} u_{k} v_{k}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{2} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_Rank1_Data_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_Rank1_Data_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank1_Data_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_Rank1_Data_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_Rank1_Data_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
     canvas.SaveAs('output_plots/Rank1_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{2} u_{2} v_{2}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{2} u_{2} v_{2}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_Rank1_Dark_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_Rank1_Dark_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank1_Dark_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_Rank1_Dark_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_Rank1_Dark_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
     canvas.SaveAs('output_plots/Rank1_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON} - #sum_{k=1}^{3} #sigma_{k} u_{k} v_{k}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{3} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_Rank2_Data_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_Rank2_Data_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank2_Data_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_Rank2_Data_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_Rank2_Data_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
     canvas.SaveAs('output_plots/Rank2_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{3} u_{3} v_{3}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{3} u_{3} v_{3}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_Rank2_Dark_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_Rank2_Dark_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank2_Dark_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_Rank2_Dark_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_Rank2_Dark_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
     canvas.SaveAs('output_plots/Rank2_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON} - #sum_{k=1}^{4} #sigma_{k} u_{k} v_{k}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{4} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_Rank3_Data_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_Rank3_Data_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank3_Data_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_Rank3_Data_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_Rank3_Data_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
     canvas.SaveAs('output_plots/Rank3_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{4} u_{4} v_{4}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{4} u_{4} v_{4}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_Rank3_Dark_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_Rank3_Dark_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank3_Dark_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_Rank3_Dark_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_Rank3_Dark_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
     canvas.SaveAs('output_plots/Rank3_Dark_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON} - #sum_{k=1}^{5} #sigma_{k} u_{k} v_{k}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'M^{ON} - #sum_{k=1}^{5} #sigma_{k} u_{k} v_{k}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_Rank4_Data_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_Rank4_Data_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank4_Data_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_Rank4_Data_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_Rank4_Data_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
     canvas.SaveAs('output_plots/Rank4_Data_%s_%s.png'%(name,selection_tag))
 
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#sigma_{5} u_{5} v_{5}^{T}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{5} u_{5} v_{5}^{T}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_Rank4_Dark_Sum.GetYaxis().SetTitle('MSCW')
-    Hist2D_Rank4_Dark_Sum.GetXaxis().SetTitle('MSCL')
+    Hist2D_Rank4_Dark_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_Rank4_Dark_Sum.GetXaxis().SetTitle('scaled length')
     Hist2D_Rank4_Dark_Sum.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
@@ -6254,13 +6249,13 @@ def MatrixDecompositionDemo(name):
                     sum_var += pow(n_data-n_bkgd-error_avg,2)
     error_var = sum_var/sum_bins
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON}-M^{OFF}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'')
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
-    Hist2D_ErrDark.GetYaxis().SetTitle('MSCW')
-    Hist2D_ErrDark.GetXaxis().SetTitle('MSCL')
+    Hist2D_ErrDark.GetYaxis().SetTitle('scaled width')
+    Hist2D_ErrDark.GetXaxis().SetTitle('scaled length')
     Hist2D_ErrDark.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
@@ -6310,15 +6305,15 @@ def MatrixDecompositionDemo(name):
                     n_bkgd = Hist2D_OnBkgd_Sum.GetBinContent(binx+1,biny+1)
                     sum_var += pow(n_data-n_bkgd,2)
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON}-#tilde{M}^{ON}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'')
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
     Hist2D_ErrBkgd.SetMaximum(Hist2D_ErrDark.GetMaximum());
     Hist2D_ErrBkgd.SetMinimum(Hist2D_ErrDark.GetMinimum());
-    Hist2D_ErrBkgd.GetYaxis().SetTitle('MSCW')
-    Hist2D_ErrBkgd.GetXaxis().SetTitle('MSCL')
+    Hist2D_ErrBkgd.GetYaxis().SetTitle('scaled width')
+    Hist2D_ErrBkgd.GetXaxis().SetTitle('scaled length')
     Hist2D_ErrBkgd.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
@@ -6328,15 +6323,15 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrRing.Add(Hist2D_OnData_Point_Sum)
     Hist2D_ErrRing.Add(Hist2D_OnData_Ring_Sum,-1)
     pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'M^{ON}-M^{Ring}' )
+    lumilab1 = ROOT.TLatex(0.15,0.25,'M^{ON}-M^{Ring}' )
     lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.3)
+    lumilab1.SetTextSize(0.25)
     lumilab1.Draw()
     pad1.cd()
     Hist2D_ErrRing.SetMaximum(Hist2D_ErrDark.GetMaximum());
     Hist2D_ErrRing.SetMinimum(Hist2D_ErrDark.GetMinimum());
-    Hist2D_ErrRing.GetYaxis().SetTitle('MSCW')
-    Hist2D_ErrRing.GetXaxis().SetTitle('MSCL')
+    Hist2D_ErrRing.GetYaxis().SetTitle('scaled width')
+    Hist2D_ErrRing.GetXaxis().SetTitle('scaled length')
     Hist2D_ErrRing.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")

@@ -20,7 +20,7 @@ from scipy.integrate import quad
 
 import CommonPlotFunctions
 
-energy_index_scale = CommonPlotFunctions.energy_index_scale
+energy_index = CommonPlotFunctions.energy_index_scale
 
 def SNR_radius_Sedov(t_age_year):
 
@@ -151,36 +151,61 @@ for star in range(0,len(other_stars)):
     other_star_labels[len(other_star_labels)-1].SetTextSize(0.03)
     other_star_names += [other_stars[star]]
 
-hist_lep_model_global = ROOT.TH2D("hist_lep_model_global","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-hist_had_model_global = ROOT.TH2D("hist_had_model_global","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-hist_data_skymap_sum = ROOT.TH2D("hist_data_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-hist_bkgd_skymap_sum = ROOT.TH2D("hist_bkgd_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-hist_syst_skymap_sum = ROOT.TH2D("hist_syst_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-hist_flux_skymap_sum = ROOT.TH2D("hist_flux_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-hist_flux_syst_skymap_sum = ROOT.TH2D("hist_flux_syst_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-hist_pwn_skymap_sum = ROOT.TH2D("hist_pwn_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-hist_psr_skymap_sum = ROOT.TH2D("hist_psr_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+hist_mask_skymap_sum = ROOT.TH2D("hist_mask_skymap_sum_v2","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+hist_excess_skymap_sum = ROOT.TH2D("hist_excess_skymap_sum_v2","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+hist_data_skymap_sum = ROOT.TH2D("hist_data_skymap_sum_v2","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+hist_bkgd_skymap_sum = ROOT.TH2D("hist_bkgd_skymap_sum_v2","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+hist_syst_skymap_sum = ROOT.TH2D("hist_syst_skymap_sum_v2","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+hist_flux_skymap_sum = ROOT.TH2D("hist_flux_skymap_sum_v2","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+hist_flux_skymap = []
+hist_flux_syst_skymap = []
+hist_flux_normsyst_skymap = []
+hist_cali_skymap = []
+hist_data_skymap = []
+hist_bkgd_skymap = []
+hist_expo_skymap = []
+hist_syst_skymap = []
+hist_normsyst_skymap = []
+for ebin in range(0,len(energy_bin)-1):
+    hist_flux_skymap += [ROOT.TH2D("hist_flux_skymap_v2_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_flux_syst_skymap += [ROOT.TH2D("hist_flux_syst_skymap_v2_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_flux_normsyst_skymap += [ROOT.TH2D("hist_flux_normsyst_skymap_v2_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_cali_skymap += [ROOT.TH2D("hist_cali_skymap_v2_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_data_skymap += [ROOT.TH2D("hist_data_skymap_v2_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_bkgd_skymap += [ROOT.TH2D("hist_bkgd_skymap_v2_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_expo_skymap += [ROOT.TH2D("hist_expo_skymap_v2_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_syst_skymap += [ROOT.TH2D("hist_syst_skymap_v2_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_normsyst_skymap += [ROOT.TH2D("hist_normsyst_skymap_v2_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
 
-energy_bin_cut_low = int(sys.argv[2])
-energy_bin_cut_up = int(sys.argv[3])
-
-InputFile = ROOT.TFile("output_fitting/J1908_fit_skymap.root")
-HistName = "hist_data_skymap_sum_v2"
-hist_data_skymap_sum.Add(InputFile.Get(HistName))
-HistName = "hist_bkgd_skymap_sum_v2"
-hist_bkgd_skymap_sum.Add(InputFile.Get(HistName))
-HistName = "hist_syst_skymap_sum_v2"
-hist_syst_skymap_sum.Add(InputFile.Get(HistName))
-HistName = "hist_flux_skymap_sum_v2"
-hist_flux_skymap_sum.Add(InputFile.Get(HistName))
-HistName = "hist_flux_syst_skymap_sum_v2"
-hist_flux_syst_skymap_sum.Add(InputFile.Get(HistName))
-HistName = "hist_fit_PWN_skymap_sum"
-hist_pwn_skymap_sum.Add(InputFile.Get(HistName))
-HistName = "hist_fit_PSR_ellipse_skymap_sum"
-hist_psr_skymap_sum.Add(InputFile.Get(HistName))
+InputFile = ROOT.TFile("output_fitting/J1908_skymap.root")
+HistName = "hist_mask_skymap_sum"
+hist_mask_skymap_sum.Add(InputFile.Get(HistName))
+for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+    HistName = "hist_energy_flux_skymap_%s"%(ebin)
+    hist_flux_skymap[ebin].Add(InputFile.Get(HistName))
+    hist_flux_skymap_sum.Add(InputFile.Get(HistName))
+    HistName = "hist_energy_flux_syst_skymap_%s"%(ebin)
+    hist_flux_syst_skymap[ebin].Add(InputFile.Get(HistName))
+    HistName = "hist_energy_flux_normsyst_skymap_%s"%(ebin)
+    hist_flux_normsyst_skymap[ebin].Add(InputFile.Get(HistName))
+    HistName = "hist_cali_skymap_%s"%(ebin)
+    hist_cali_skymap[ebin].Add(InputFile.Get(HistName))
+    HistName = "hist_data_skymap_%s"%(ebin)
+    hist_data_skymap[ebin].Add(InputFile.Get(HistName))
+    hist_data_skymap_sum.Add(InputFile.Get(HistName))
+    hist_excess_skymap_sum.Add(InputFile.Get(HistName))
+    HistName = "hist_bkgd_skymap_%s"%(ebin)
+    hist_bkgd_skymap[ebin].Add(InputFile.Get(HistName))
+    hist_bkgd_skymap_sum.Add(InputFile.Get(HistName))
+    hist_excess_skymap_sum.Add(InputFile.Get(HistName),-1.)
+    HistName = "hist_expo_skymap_%s"%(ebin)
+    hist_expo_skymap[ebin].Add(InputFile.Get(HistName))
+    HistName = "hist_syst_skymap_%s"%(ebin)
+    hist_syst_skymap[ebin].Add(InputFile.Get(HistName))
+    hist_syst_skymap_sum.Add(InputFile.Get(HistName))
+    HistName = "hist_normsyst_skymap_%s"%(ebin)
+    hist_normsyst_skymap[ebin].Add(InputFile.Get(HistName))
 InputFile.Close()
-
 
 Hist_mc_intensity = ROOT.TH2D("Hist_mc_intensity","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 Hist_mc_column = ROOT.TH2D("Hist_mc_column","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
@@ -191,7 +216,7 @@ CO_intensity_to_H_column_density = 2.*1e20
 # Dame, T. M.; Hartmann, Dap; Thaddeus, P., 2011, "Replication data for: First Quadrant, main survey (DHT08)", https://doi.org/10.7910/DVN/1PG9NV, Harvard Dataverse, V3
 # https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/1PG9NV
 FITS_correction = 1000.# the source FITS file has a mistake in velocity km/s -> m/s
-MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_25_50_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_50_80_0th_moment.txt' # CO intensity (K km s^{-1} deg)
 Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
 Hist_mc_intensity.Scale(FITS_correction)
 Hist_mc_column.Add(Hist_mc_intensity)
@@ -200,7 +225,6 @@ print ('Hist_mc_column.Integral() = %s'%(Hist_mc_column.Integral()))
 mc_depth = 1000.*(3.824-3.116)*pc_to_cm
 Hist_mc_density.Add(Hist_mc_column)
 Hist_mc_density.Scale(1./mc_depth)
-
 
 RA_G41p1 = 286.9 # G41.1-0.3
 Dec_G41p1= 7.1
@@ -211,10 +235,10 @@ SNR_G41p1_data = [RA_G41p1,Dec_G41p1,d_G41p1,t_G41p1]
 
 RA_G40p5 = 286.786
 Dec_G40p5 = 6.498
-d_G40p5 = 8.7*1000. #pc, PSR J1907+0631
-t_G40p5 = 11.*1000. # years
-#d_G40p5 = 3.4*1000. #pc, Yang 2006
-#t_G40p5 = 11.6*1000. # years
+#d_G40p5 = 8.7*1000. #pc, PSR J1907+0631
+#t_G40p5 = 11.*1000. # years
+d_G40p5 = 3.4*1000. #pc, Yang 2006
+t_G40p5 = 11.6*1000. # years
 #d_G40p5 = 5.5*1000. #pc, Downes 1980
 #t_G40p5 = 38.59*1000. # years
 radius_G40p5 = 0.18 # deg
@@ -272,23 +296,9 @@ print ('SNR G40.5-0.5 age = %0.2f kyr'%(t_G40p5/1000.))
 print ('SNR J1908+06 radius = %0.2f deg'%(radius_J1908))
 print ('CR_distribution_radius_J1908 = %0.2f deg'%(CR_distribution_radius_J1908))
 
-CR_source_data = SNR_J1908_data
-
-energy_index = energy_index_scale
-hist_leptonic_skymap_sum = ROOT.TH2D("hist_leptonic_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-InputFile = ROOT.TFile("output_pulsar_models/pulsar_skymap_D4_V4.root")
-for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-    HistName = "hist_pulsar_skymap_631_1585"
-    if ebin==2:
-        HistName = "hist_pulsar_skymap_631_1585"
-    elif ebin==3:
-        HistName = "hist_pulsar_skymap_1585_3981"
-    elif ebin==4:
-        HistName = "hist_pulsar_skymap_3981_10000"
-    elif ebin==5:
-        HistName = "hist_pulsar_skymap_10000_25118"
-    hist_leptonic_skymap_sum.Add(InputFile.Get(HistName),pow(energy_bin[ebin]/1e3,energy_index-1))
-InputFile.Close()
+#CR_source_data = SNR_G41p1_data
+CR_source_data = SNR_G40p5_data
+#CR_source_data = SNR_J1908_data
 
 hist_hadronic_skymap_sum = ROOT.TH2D("hist_hadronic_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_hadronic_skymap = ROOT.TH2D("hist_hadronic_skymap","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
@@ -311,109 +321,30 @@ hist_zscore_reflect.SetContourLevel(1,4)
 hist_zscore_reflect.SetContourLevel(2,5)
 hist_zscore_reflect.SetLineColor(0)
 
-canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 650, 600)
-pad1 = ROOT.TPad("pad1","pad1",0,0,1,1)
-pad1.SetBottomMargin(0.10)
-pad1.SetRightMargin(0.20)
-pad1.SetLeftMargin(0.10)
-pad1.SetTopMargin(0.10)
-pad1.SetBorderMode(0)
-pad1.Draw()
-pad1.cd()
-
-mycircles = []
-mycircles += [ROOT.TEllipse(-1.*RA_G40p5,Dec_G40p5,radius_G40p5)]
-mycircles[0].SetFillStyle(0)
-mycircles[0].SetLineColor(2)
-mycircles[0].SetLineWidth(2)
-mycircles += [ROOT.TEllipse(-1.*RA_G41p1,Dec_G41p1,radius_G41p1)]
-mycircles[1].SetFillStyle(0)
-mycircles[1].SetLineColor(2)
-mycircles[1].SetLineWidth(2)
-mycircles += [ROOT.TEllipse(-1.*RA_J1908,Dec_J1908,radius_J1908)]
-mycircles[2].SetFillStyle(0)
-mycircles[2].SetLineColor(2)
-mycircles[2].SetLineWidth(2)
-
 Hist_mc_density_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_density)
-x1 = Hist_mc_density_reflect.GetXaxis().GetXmin()
-x2 = Hist_mc_density_reflect.GetXaxis().GetXmax()
-y1 = Hist_mc_density_reflect.GetYaxis().GetXmin()
-y2 = Hist_mc_density_reflect.GetYaxis().GetXmax()
-IncValues = ROOT.TF1( "IncValues", "-x", -x2, -x1 )
-raLowerAxis = ROOT.TGaxis( x1, y1, x2, y1,"IncValues", 505, "+")
-raLowerAxis.SetLabelSize(Hist_mc_density_reflect.GetXaxis().GetLabelSize())
-raLowerAxis.Draw()
-Hist_mc_density_reflect.GetXaxis().SetLabelOffset(999)
-Hist_mc_density_reflect.GetXaxis().SetTickLength(0)
-Hist_mc_density_reflect.Draw("COL4Z")
-hist_zscore_reflect.Draw("CONT3 same")
-mycircles[0].Draw("same")
-mycircles[1].Draw("same")
-mycircles[2].Draw("same")
-raLowerAxis.Draw()
-canvas.SaveAs('output_plots/SkymapMolecularDensity.png')
+CommonPlotFunctions.MatplotlibMap2D(Hist_mc_density_reflect,hist_zscore_reflect,fig,'RA','Dec','density [$1/cm^{3}$]','SkymapMolecularDensity.png')
 
 Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
-raLowerAxis.Draw()
-Hist_mc_column_reflect.GetXaxis().SetLabelOffset(999)
-Hist_mc_column_reflect.GetXaxis().SetTickLength(0)
-Hist_mc_column_reflect.Draw("COL4Z")
-hist_zscore_reflect.Draw("CONT3 same")
-mycircles[0].Draw("same")
-mycircles[1].Draw("same")
-mycircles[2].Draw("same")
-raLowerAxis.Draw()
-canvas.SaveAs('output_plots/SkymapMolecularColumn.png')
+CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapMolecularColumn.png')
 
 Hist_mc_intensity_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_intensity)
-raLowerAxis.Draw()
-Hist_mc_intensity_reflect.GetXaxis().SetLabelOffset(999)
-Hist_mc_intensity_reflect.GetXaxis().SetTickLength(0)
-Hist_mc_intensity_reflect.Draw("COL4Z")
-hist_zscore_reflect.Draw("CONT3 same")
-mycircles[0].Draw("same")
-mycircles[1].Draw("same")
-mycircles[2].Draw("same")
-raLowerAxis.Draw()
-canvas.SaveAs('output_plots/SkymapMolecularIntensity.png')
+CommonPlotFunctions.MatplotlibMap2D(Hist_mc_intensity_reflect,hist_zscore_reflect,fig,'RA','Dec','Intensity','SkymapMolecularIntensity.png')
 
 hist_hadronic_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_hadronic_skymap_sum)
-hist_hadronic_skymap_sum_reflect.GetXaxis().SetLabelOffset(999)
-hist_hadronic_skymap_sum_reflect.GetXaxis().SetTickLength(0)
-hist_hadronic_skymap_sum_reflect.Draw("COL4Z")
-hist_zscore_reflect.Draw("CONT3 same")
-mycircles[0].Draw("same")
-mycircles[1].Draw("same")
-mycircles[2].Draw("same")
-raLowerAxis.Draw()
-canvas.SaveAs('output_plots/SkymapHadronicEmission.png')
+CommonPlotFunctions.MatplotlibMap2D(hist_hadronic_skymap_sum_reflect,hist_zscore_reflect,fig,'RA','Dec','hadronic emission','SkymapHadronicEmission.png')
 
 hist_flux_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_flux_skymap_sum)
-hist_flux_skymap_sum_reflect.GetXaxis().SetLabelOffset(999)
-hist_flux_skymap_sum_reflect.GetXaxis().SetTickLength(0)
-hist_flux_skymap_sum_reflect.Draw("COL4Z")
-hist_zscore_reflect.Draw("CONT3 same")
-mycircles[0].Draw("same")
-mycircles[1].Draw("same")
-mycircles[2].Draw("same")
-raLowerAxis.Draw()
-canvas.SaveAs('output_plots/SkymapFlux.png')
+CommonPlotFunctions.MatplotlibMap2D(hist_flux_skymap_sum_reflect,hist_zscore_reflect,fig,'RA','Dec','flux','SkymapFlux.png')
 
 hist_UL_skymap = ROOT.TH2D("hist_UL_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_UL_skymap.Add(hist_flux_skymap_sum)
-hist_UL_skymap.Add(hist_pwn_skymap_sum,-1)
 hist_UL_skymap.Add(hist_hadronic_skymap_sum,-1)
 hist_UL_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_UL_skymap)
-hist_UL_skymap_reflect.GetXaxis().SetLabelOffset(999)
-hist_UL_skymap_reflect.GetXaxis().SetTickLength(0)
-#hist_UL_skymap_reflect.SetMaximum(5)
-#hist_UL_skymap_reflect.SetMinimum(-5)
-hist_UL_skymap_reflect.Draw("COL4Z")
-hist_zscore_reflect.Draw("CONT3 same")
-mycircles[0].Draw("same")
-mycircles[1].Draw("same")
-mycircles[2].Draw("same")
-raLowerAxis.Draw()
-canvas.SaveAs('output_plots/SkymapUpperLimit.png')
+CommonPlotFunctions.MatplotlibMap2D(hist_UL_skymap_reflect,hist_zscore_reflect,fig,'RA','Dec','flux','SkymapUpperLimit.png')
+
+Hist_fermi5 = ROOT.TH2D("Hist_fermi5","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+Hist_fermi5 = CommonPlotFunctions.GetSkyViewMap("MWL_maps/skv1826930706371_j1908_fermi5.txt", Hist_fermi5, True)
+# 3-300 GeV Band 5, Atwood et al. 2009
+Hist_fermi5_reflect = CommonPlotFunctions.reflectXaxis(Hist_fermi5)
+CommonPlotFunctions.MatplotlibMap2D(Hist_fermi5_reflect,hist_zscore_reflect,fig,'RA','Dec','cnts$/s/cm^{2}/sr$','SkymapFermi5.png')
 

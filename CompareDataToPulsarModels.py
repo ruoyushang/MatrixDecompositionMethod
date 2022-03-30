@@ -19,7 +19,7 @@ from itertools import cycle
 
 import CommonPlotFunctions
 
-energy_index_scale = CommonPlotFunctions.energy_index_scale
+energy_index = CommonPlotFunctions.energy_index_scale
 Smoothing = CommonPlotFunctions.Smoothing
 
 def pulsar_model(x,par):
@@ -73,20 +73,8 @@ def GetPulsarModelChi2(hist_flux,hist_flux_syst,hist_pwn,hist_co_north,hist_psr)
         for idx_v in range(0,len(V_par)):
 
             print ('Fitting model D%sV%s'%(D_par[idx_d],V_par[idx_v]))
-            energy_index = energy_index_scale
+            hist_model = ReadPulsarModelMap(hist_model,D_par[idx_d],V_par[idx_v])
             InputFile = ROOT.TFile("output_pulsar_models_3kpc/pulsar_skymap_D%s_V%s.root"%(D_par[idx_d],V_par[idx_v]))
-            hist_model.Reset()
-            for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-                HistName = "hist_pulsar_skymap_631_1585"
-                if ebin==2:
-                    HistName = "hist_pulsar_skymap_631_1585"
-                elif ebin==3:
-                    HistName = "hist_pulsar_skymap_1585_3981"
-                elif ebin==4:
-                    HistName = "hist_pulsar_skymap_3981_10000"
-                elif ebin==5:
-                    HistName = "hist_pulsar_skymap_10000_25118"
-                hist_model.Add(InputFile.Get(HistName),pow(energy_bin[ebin]/1e3,energy_index-1))
             InfoTree = InputFile.Get("InfoTree")
             InfoTree.GetEntry(0)
             proper_velocity = InfoTree.proper_velocity/1000.
@@ -129,6 +117,45 @@ def GetPulsarModelChi2(hist_flux,hist_flux_syst,hist_pwn,hist_co_north,hist_psr)
 
     return chi2_array, D_axis, V_axis
 
+def ReadPulsarModelMap(hist_model_skymap_output,idx_d_best,idx_v_best):
+
+    InputFile = ROOT.TFile("output_pulsar_models_3kpc/pulsar_skymap_D%s_V%s.root"%(idx_d_best,idx_v_best))
+
+    HistName = "hist_pulsar_skymap_631_1585"
+    nbins = InputFile.Get(HistName).GetNbinsX()
+    MapEdge_left = InputFile.Get(HistName).GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = InputFile.Get(HistName).GetXaxis().GetBinLowEdge(InputFile.Get(HistName).GetNbinsX()+1)
+    MapEdge_lower = InputFile.Get(HistName).GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = InputFile.Get(HistName).GetYaxis().GetBinLowEdge(InputFile.Get(HistName).GetNbinsY()+1)
+    hist_model_skymap = ROOT.TH2D("hist_model_skymap","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        HistName = "hist_pulsar_skymap_631_1585"
+        if ebin==2:
+            HistName = "hist_pulsar_skymap_631_1585"
+        elif ebin==3:
+            HistName = "hist_pulsar_skymap_1585_3981"
+        elif ebin==4:
+            HistName = "hist_pulsar_skymap_3981_10000"
+        elif ebin==5:
+            HistName = "hist_pulsar_skymap_10000_25118"
+        hist_model_skymap.Add(InputFile.Get(HistName),pow(energy_bin[ebin]/1e3,energy_index-1))
+    print ('hist_model_skymap.Integral() = %s'%(hist_model_skymap.Integral()))
+
+    hist_model_skymap_output.Reset()
+    for binx in range(0,hist_model_skymap.GetNbinsX()):
+        for biny in range(0,hist_model_skymap.GetNbinsY()):
+            cell_x = hist_model_skymap.GetXaxis().GetBinCenter(binx+1)
+            cell_y = hist_model_skymap.GetYaxis().GetBinCenter(biny+1)
+            cell_z = hist_model_skymap.GetBinContent(binx+1,biny+1)
+            binx_out = hist_model_skymap_output.GetXaxis().FindBin(cell_x)
+            biny_out = hist_model_skymap_output.GetYaxis().FindBin(cell_y)
+            old_content = hist_model_skymap_output.GetBinContent(binx_out,biny_out)
+            hist_model_skymap_output.SetBinContent(binx_out,biny_out,cell_z+old_content)
+
+    InputFile.Close()
+
+    return hist_model_skymap_output
 
 
 fig, ax = plt.subplots()
@@ -148,6 +175,7 @@ MapEdge_upper = InputFile.Get(HistName).GetYaxis().GetBinLowEdge(InputFile.Get(H
 InputFile.Close()
  
 hist_model_global = ROOT.TH2D("hist_model_global","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+hist_excess_skymap_sum = ROOT.TH2D("hist_excess_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_data_skymap_sum = ROOT.TH2D("hist_data_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_bkgd_skymap_sum = ROOT.TH2D("hist_bkgd_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_syst_skymap_sum = ROOT.TH2D("hist_syst_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
@@ -163,8 +191,10 @@ energy_bin_cut_up = int(sys.argv[3])
 InputFile = ROOT.TFile("output_fitting/J1908_fit_skymap.root")
 HistName = "hist_data_skymap_sum_E%sto%s"%(energy_bin_cut_low,energy_bin_cut_up)
 hist_data_skymap_sum.Add(InputFile.Get(HistName))
+hist_excess_skymap_sum.Add(InputFile.Get(HistName))
 HistName = "hist_bkgd_skymap_sum_E%sto%s"%(energy_bin_cut_low,energy_bin_cut_up)
 hist_bkgd_skymap_sum.Add(InputFile.Get(HistName))
+hist_excess_skymap_sum.Add(InputFile.Get(HistName),-1.)
 HistName = "hist_syst_skymap_sum_E%sto%s"%(energy_bin_cut_low,energy_bin_cut_up)
 hist_syst_skymap_sum.Add(InputFile.Get(HistName))
 HistName = "hist_flux_skymap_sum_E%sto%s"%(energy_bin_cut_low,energy_bin_cut_up)
@@ -178,6 +208,9 @@ hist_psr_skymap_sum.Add(InputFile.Get(HistName))
 HistName = "hist_fit_CO_north_skymap_sum_E%sto%s"%(energy_bin_cut_low,energy_bin_cut_up)
 hist_co_north_skymap_sum.Add(InputFile.Get(HistName))
 InputFile.Close()
+
+hist_psr_skymap_sum.Reset()
+hist_co_north_skymap_sum.Reset()
 
 
 hist_model_skymap_sum = ROOT.TH2D("hist_model_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
@@ -197,9 +230,8 @@ if find_chi2:
     plt.clf()
 
 
-energy_index = energy_index_scale
 chi2_min = 1e10
-idx_d_best = 4
+idx_d_best = 2
 idx_v_best = 4
 if find_chi2:
     for idx_d in range(0,len(D0_axis[1])):
@@ -212,19 +244,7 @@ if find_chi2:
 print ('chi2_min = %s'%(chi2_min))
 print ('idx_d_best = %s'%(idx_d_best))
 print ('idx_v_best = %s'%(idx_v_best))
-InputFile = ROOT.TFile("output_pulsar_models_3kpc/pulsar_skymap_D%s_V%s.root"%(idx_d_best,idx_v_best))
-for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-    HistName = "hist_pulsar_skymap_631_1585"
-    if ebin==2:
-        HistName = "hist_pulsar_skymap_631_1585"
-    elif ebin==3:
-        HistName = "hist_pulsar_skymap_1585_3981"
-    elif ebin==4:
-        HistName = "hist_pulsar_skymap_3981_10000"
-    elif ebin==5:
-        HistName = "hist_pulsar_skymap_10000_25118"
-    hist_model_skymap_sum.Add(InputFile.Get(HistName),pow(energy_bin[ebin]/1e3,energy_index-1))
-InputFile.Close()
+hist_model_skymap_sum = ReadPulsarModelMap(hist_model_skymap_sum,idx_d_best,idx_v_best)
 
 if Smoothing:
     hist_model_skymap_sum = CommonPlotFunctions.Smooth2DMap(hist_model_skymap_sum,CommonPlotFunctions.smooth_size_spectroscopy,False,True)
@@ -281,7 +301,7 @@ fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
 axbig.remove()
 print ('Done plotting %s.'%(plotname))
 
-travel_angle = 71.94
+travel_angle = 78.02
 travel_distance = 1.0
 profile_center_x1 = 286.98
 profile_center_y1 = 6.04
@@ -342,6 +362,9 @@ hist_zscore_reflect.SetContourLevel(0,3)
 hist_zscore_reflect.SetContourLevel(1,4)
 hist_zscore_reflect.SetContourLevel(2,5)
 
+hist_excess_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_excess_skymap_sum)
+CommonPlotFunctions.MatplotlibMap2D(hist_excess_skymap_sum_reflect,hist_zscore_reflect,fig,'RA','Dec','excess','SkymapExcess_E%sto%s.png'%(energy_bin_cut_low,energy_bin_cut_up))
+
 hist_flux_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_flux_skymap_sum)
 x1 = hist_flux_skymap_sum_reflect.GetXaxis().GetXmin()
 x2 = hist_flux_skymap_sum_reflect.GetXaxis().GetXmax()
@@ -363,18 +386,10 @@ canvas.SaveAs('output_plots/SkymapDataFlux_E%sto%s.png'%(energy_bin_cut_low,ener
 
 hist_fit_all_models_skymap_sum = ROOT.TH2D("hist_fit_all_models_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_fit_all_models_skymap_sum.Add(hist_model_skymap_sum)
-#hist_fit_all_models_skymap_sum.Add(hist_pwn_skymap_sum)
-#hist_fit_all_models_skymap_sum.Add(hist_co_north_skymap_sum)
+hist_fit_all_models_skymap_sum.Add(hist_pwn_skymap_sum)
 hist_fit_all_models_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_fit_all_models_skymap_sum)
-hist_fit_all_models_skymap_sum_reflect.GetXaxis().SetLabelOffset(999)
-hist_fit_all_models_skymap_sum_reflect.GetXaxis().SetTickLength(0)
-hist_fit_all_models_skymap_sum_reflect.Draw("COL4Z")
-hist_zscore_reflect.Draw("CONT3 same")
-for star in range(0,len(other_star_markers)):
-    other_star_markers[star].Draw("same")
-    other_star_labels[star].Draw("same")
-raLowerAxis.Draw()
-canvas.SaveAs('output_plots/SkymapModel_E%sto%s.png'%(energy_bin_cut_low,energy_bin_cut_up))
+y_label = '$E^{%s}$ Flux [$\mathrm{TeV}^{%s}\mathrm{cm}^{-2}\mathrm{s}^{-1}$]'%(energy_index,-1+energy_index)
+CommonPlotFunctions.MatplotlibMap2D(hist_fit_all_models_skymap_sum_reflect,hist_zscore_reflect,fig,'RA','Dec',y_label,'SkymapModel_E%sto%s.png'%(energy_bin_cut_low,energy_bin_cut_up))
 
 hist_fit_error_skymap = ROOT.TH2D("hist_fit_error_skymap","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_fit_error_skymap.Add(hist_flux_skymap_sum)

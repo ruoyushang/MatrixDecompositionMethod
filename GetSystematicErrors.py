@@ -30,7 +30,7 @@ ROOT.gROOT.LoadMacro("load_stl.h+") # access vectors and vector of vectors
 fig, ax = plt.subplots()
 
 energy_bin_cut_low = 0
-energy_bin_cut_up = 2
+energy_bin_cut_up = 1
 
 #N_bins_for_deconv = 16
 N_bins_for_deconv = 8
@@ -39,16 +39,15 @@ N_bins_for_deconv = 8
 
 ComputeShapeSystErr = False
 
-folder_path = 'output_loose'
-#folder_path = 'output_medium'
-#folder_path = 'output_tight'
+#folder_path = 'output_loose'
+folder_path = 'output_tight'
 
 #theta2_bins = [0,2]
 theta2_bins = [0,4]
 #theta2_bins = [0,9]
 
-elev_bins = [35,45,55,65,75,85]
-#elev_bins = [55,65,75,85]
+#elev_bins = [35,45,55,65,75,85]
+elev_bins = [55,65,75,85]
 
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
@@ -83,6 +82,8 @@ ONOFF_tag = 'OFF'
 ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
+sample_list += ['SNR_G150p3Plus04p5_V6_ON']
+sample_name += ['SNR G150.3+4.5 V6']
 sample_list += ['UrsaMajorIIV6_OFF']
 sample_name += ['UrsaMajorII V6']
 sample_list += ['1ES0502V6_OFF']
@@ -131,12 +132,12 @@ sample_list += ['BLLacV6_OFF']
 sample_name += ['BLLac V6']
 sample_list += ['BLLacV5_OFF']
 sample_name += ['BLLac V5']
-sample_list += ['H1426V6_OFF']
-sample_name += ['H1426 V6']
 sample_list += ['RGBJ0710V5_OFF']
 sample_name += ['RGBJ0710 V5']
 sample_list += ['NGC1275V6_OFF']
 sample_name += ['NGC 1275 V6']
+#sample_list += ['H1426V6_OFF']
+#sample_name += ['H1426 V6']
 #sample_list += ['CrabV5_OFF']
 #sample_name += ['Crab V5']
 #sample_list += ['CrabV6_OFF']
@@ -276,15 +277,17 @@ def Make2DPlot(Hist2D,title_x,title_y,name,logz,min_z,max_z):
     #Hist2D.Draw("TEXT45 same")
     canvas.SaveAs('output_syst_file/%s.png'%(name))
 
-def MakeMultipleFitPlot(Hists):
+def MakeMultipleFitPlot(Hists,legends):
 
     func_gauss = []
     for h in range(0,len(Hists)):
         func_gauss += [ROOT.TF1("func_gauss_%s"%(h),"[0]*TMath::Gaus(x,[1],[2]*pow(2,0.5))",-0.2,0.2)]
         func_gauss[h].SetParameters(Hists[h].Integral(),0,0.02)
+        func_gauss[h].FixParameter(1,0.)
         Hists[h].Fit("func_gauss_%s"%(h),"N")
         func_gauss[h].SetLineColor(colors[h])
         func_gauss[h].Draw("E same")
+        print ("%s"%(legends[h]))
         print ("func_gauss[%s].GetNDF() = %s"%(h,func_gauss[h].GetNDF()))
         print ("chi2/NDF = %s"%(func_gauss[h].GetChisquare()/func_gauss[h].GetNDF()))
 
@@ -1207,6 +1210,14 @@ for e in range(0,len(energy_bin)-1):
     plt.subplots_adjust(bottom=0.25)
     plt.savefig("output_syst_file/PerformanceMin_SourceName_E%s_%s%s.png"%(e,method_tag,folder_path))
 
+    my_table = PrettyTable()
+    my_table.field_names = ["field","error","uncertainty"]
+    my_table.float_format["error"] = ".3"
+    my_table.float_format["uncertainty"] = ".3"
+    for entry in range(0,len(data_exposure)):
+        my_table.add_row([sample_name[entry],AccuracyBkgd_source[entry],AccuracyBkgdErr_source[entry]])
+    print(my_table)
+
     plt.clf()
     ax = fig.add_subplot(111)
     ind = np.arange(len(AccuracyBkgdSigned_source))
@@ -1514,13 +1525,13 @@ colors += [1]
 Hists += [Hist_SystErrDist_Init]
 legends += ['Initial']
 colors += [2]
-hist_xdata, hist_ydata, hist_error, func_xdata, func_ydata = MakeMultipleFitPlot(Hists)
+hist_xdata, hist_ydata, hist_error, func_xdata, func_ydata = MakeMultipleFitPlot(Hists,legends)
 fig.clf()
 axbig = fig.add_subplot()
 axbig.errorbar(hist_xdata[0], hist_ydata[0], hist_error[0], color='b', marker='s', ls='none', label='%s'%(legends[0]))
-axbig.errorbar(hist_xdata[1], hist_ydata[1], hist_error[1], color='r', marker='s', ls='none', label='%s'%(legends[1]))
+#axbig.errorbar(hist_xdata[1], hist_ydata[1], hist_error[1], color='r', marker='s', ls='none', label='%s'%(legends[1]))
 axbig.plot(func_xdata[0], func_ydata[0], color='b')
-axbig.plot(func_xdata[1], func_ydata[1], color='r')
+#axbig.plot(func_xdata[1], func_ydata[1], color='r')
 axbig.legend(loc='best')
 axbig.set_xlabel('relative error')
 axbig.set_ylabel('number of measurements')

@@ -16,15 +16,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from itertools import cycle
+from matplotlib import cm
+from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 
 
 skymap_zoomin_scale = 1
 #skymap_zoomin_scale = 1.5
 #skymap_zoomin_scale = 2
-#n_rebins = 1
-n_rebins = 2
-#n_rebins = 4
-#n_rebins = 6
 smooth_size_spectroscopy = 0.1
 #smooth_size_spectroscopy = 0.15
 #smooth_size_spectroscopy = 0.2
@@ -37,8 +35,11 @@ calibration_radius = 0.2
 
 energy_index_scale = 2
 
-Skymap_size = 3.
-Skymap_nbins = 120
+Skymap_size = 2.
+Skymap_nbins = 81
+#Skymap_nbins = 27
+#Skymap_nbins = 9
+#Skymap_nbins = 3
 
 elev_range = [35,45,55,65,75,85]
 #elev_range = [55,65,75,85]
@@ -153,9 +154,7 @@ def FindProjection(Hist_Data_input,Hist_Syst_input,roi_x1,roi_y1,roi_x2,roi_y2,r
         extension_up = 2.
         roi_x0 = roi_x1+(roi_x2-roi_x1)*fraction
         roi_y0 = roi_y1+(roi_y2-roi_y1)*fraction
-    n_bins = int((integration_range+extension_low+extension_up)/(0.1*n_rebins))
-    #Hist_Profile_ProjectedX = ROOT.TH1D("Hist_Profile_ProjectedX","",n_bins,-extension_low,extension_up+integration_range)
-    #Hist_Profile_ProjectedX = ROOT.TH1D("Hist_Profile_ProjectedX","",int(20/n_rebins),-1.5,1.5)
+    n_bins = int((integration_range+extension_low+extension_up)/0.1)
     Hist_Profile_ProjectedX = ROOT.TH1D("Hist_Profile_ProjectedX","",10,-1.5,1.5)
 
     # ax + by + c = 0
@@ -223,14 +222,14 @@ def FindExtension(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range)
 
     global calibration_radius
 
-    n_bins = 10
-    #integration_range = 1.8
+    n_bins = 8
+    integration_range = 1.6
     if sys.argv[1]=='Geminga_ON':
         n_bins = 5
-        integration_range = 1.8
+        integration_range = 1.6
     if sys.argv[1]=='LHAASO_J2108_ON':
         n_bins = 5
-        integration_range = 1.8
+        integration_range = 1.6
 
     Hist_Profile_Theta2 = ROOT.TH1D("Hist_Profile_Theta2","",n_bins,0,integration_range)
     for br in range(0,Hist_Profile_Theta2.GetNbinsX()):
@@ -334,8 +333,9 @@ def GetGammaSourceInfo():
 
     other_stars = []
     other_star_coord = []
-    if sys.argv[1]=='MGRO_J1908_ON':
+    if 'MGRO_J1908' in sys.argv[1]:
         inputFile = open('J1908_sources_RaDec_w_Names.txt')
+        #inputFile = open('TeVCat_RaDec_w_Names.txt')
         for line in inputFile:
             gamma_source_name = line.split(',')[0]
             gamma_source_ra = float(line.split(',')[1])
@@ -428,7 +428,7 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
     MapCenter_y = (MapEdge_upper+MapEdge_lower)/2.
     MapSize_x = (MapEdge_right-MapEdge_left)/2.
     MapSize_y = (MapEdge_upper-MapEdge_lower)/2.
-    Hist_Skymap_zoomin = ROOT.TH2D("Hist_Skymap_zoomin","",int(Skymap_nbins/2),MapCenter_x-MapSize_x/2,MapCenter_x+MapSize_x/2,int(Skymap_nbins/2),MapCenter_y-MapSize_y/2,MapCenter_y+MapSize_y/2)
+    Hist_Skymap_zoomin = ROOT.TH2D("Hist_Skymap_zoomin","",int(Skymap_nbins/3),MapCenter_x-MapSize_x/2,MapCenter_x+MapSize_x/2,int(Skymap_nbins/3),MapCenter_y-MapSize_y/2,MapCenter_y+MapSize_y/2)
     for bx in range(0,Hist_SR.GetNbinsX()):
         for by in range(0,Hist_SR.GetNbinsY()):
             if Hist_Bkg.GetBinContent(bx+1,by+1)==0: continue
@@ -453,4 +453,145 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
         return Hist_Skymap_zoomin
     else:
         return Hist_Skymap
+
+def GetHawcSkymap(hist_map, isRaDec):
+
+    hist_map.Reset()
+    inputFile = open('MWL_maps/hawc_map.txt')
+    for line in inputFile:
+        sig = float(line.split(' ')[0])
+        l = float(line.split(' ')[1])
+        b = float(line.split(' ')[2])
+        if not isRaDec: 
+            l, b = ConvertRaDecToGalactic(l,b)
+        binx = hist_map.GetXaxis().FindBin(l)
+        biny = hist_map.GetYaxis().FindBin(b)
+        old_sig = hist_map.GetBinContent(binx+1,biny+1)
+        hist_map.SetBinContent(binx+1,biny+1,max(sig,0.))
+
+    map_resolution = 0.1
+    hist_map_new = FillSkymapHoles(hist_map, map_resolution)
+
+    return hist_map_new
+
+def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
+
+    top = cm.get_cmap('Blues_r', 128) # r means reversed version
+    bottom = cm.get_cmap('Oranges', 128)# combine it all
+    newcolors = np.vstack((top(np.linspace(0, 1, 128)),bottom(np.linspace(0, 1, 128))))# create a new colormaps with a name of OrangeBlue
+    orange_blue = ListedColormap(newcolors, name='OrangeBlue')
+    colormap = 'coolwarm'
+
+    map_nbins = hist_map.GetNbinsX()
+    MapEdge_left = hist_map.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = hist_map.GetXaxis().GetBinLowEdge(hist_map.GetNbinsX()+1)
+    MapEdge_lower = hist_map.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = hist_map.GetYaxis().GetBinLowEdge(hist_map.GetNbinsY()+1)
+
+    deg_per_bin = (MapEdge_right-MapEdge_left)/map_nbins
+    nbins_per_deg = map_nbins/(MapEdge_right-MapEdge_left)
+    nbins_extend = int(0.*nbins_per_deg)
+    deg_extend = nbins_extend/nbins_per_deg
+    x_axis = np.linspace(MapEdge_left,MapEdge_right,map_nbins)
+    x_axis_extend = np.linspace(MapEdge_left-deg_extend,MapEdge_right,map_nbins+nbins_extend)
+    x_axis_sparse = np.linspace(MapEdge_left-deg_extend,MapEdge_right,5)
+    x_axis_reflect = ["{:6.2f}".format(-1.*i) for i in x_axis_sparse]
+    y_axis = np.linspace(MapEdge_lower,MapEdge_upper,map_nbins)
+    grid_z = np.zeros((map_nbins, map_nbins+nbins_extend))
+    max_z = 0.
+    for ybin in range(0,len(y_axis)):
+        for xbin in range(0,len(x_axis_extend)):
+            #hist_bin_x = hist_map.GetXaxis().FindBin(x_axis_extend[xbin])
+            #hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
+            #print ('=========================================')
+            #print ('x_axis_extend[%s] = %s'%(xbin,x_axis_extend[xbin]))
+            #print ('y_axis[%s] = %s'%(ybin,y_axis[ybin]))
+            #print ('hist_bin_x = %s'%(hist_bin_x))
+            #print ('hist_bin_y = %s'%(hist_bin_y))
+            hist_bin_x = xbin+1
+            hist_bin_y = ybin+1
+            if hist_bin_x<1: continue
+            if hist_bin_y<1: continue
+            if hist_bin_x>hist_map.GetNbinsX(): continue
+            if hist_bin_y>hist_map.GetNbinsY(): continue
+            grid_z[ybin,xbin] = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+            if max_z<hist_map.GetBinContent(hist_bin_x,hist_bin_y):
+                max_z = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+
+    levels = np.arange(3.0, 6.0, 1.0)
+    grid_contour = np.zeros((map_nbins, map_nbins+nbins_extend))
+    if not hist_contour==None:
+        for ybin in range(0,len(y_axis)):
+            for xbin in range(0,len(x_axis_extend)):
+                hist_bin_x = hist_contour.GetXaxis().FindBin(x_axis_extend[xbin])
+                hist_bin_y = hist_contour.GetYaxis().FindBin(y_axis[ybin])
+                if hist_bin_x<1: continue
+                if hist_bin_y<1: continue
+                if hist_bin_x>hist_contour.GetNbinsX(): continue
+                if hist_bin_y>hist_contour.GetNbinsY(): continue
+                grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)
+
+    other_stars, other_star_coord = GetGammaSourceInfo() 
+    other_star_labels = []
+    other_star_markers = []
+    star_range = 2.0
+    source_ra = (MapEdge_left+MapEdge_right)/2.
+    source_dec = (MapEdge_lower+MapEdge_upper)/2.
+    for star in range(0,len(other_stars)):
+        if pow(source_ra+other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
+        #if '#' in other_stars[star]: continue
+        other_star_markers += [[-other_star_coord[star][0],other_star_coord[star][1]]]
+        other_star_labels += ['%s'%(other_stars[star])]
+    print ('len(other_stars) = %s'%len(other_stars))
+    print ('len(other_star_markers) = %s'%len(other_star_markers))
+
+    fig.clf()
+    axbig = fig.add_subplot()
+    axbig.set_xlabel(label_x)
+    axbig.set_ylabel(label_y)
+    #im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()), vmin=-max_z, vmax=max_z)
+    im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()))
+    axbig.contour(grid_contour, levels, colors='w', extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()))
+    #cbar = fig.colorbar(im,orientation="horizontal")
+    cbar = fig.colorbar(im)
+    cbar.set_label(label_z)
+    for star in range(0,len(other_star_markers)):
+        axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], c='k', marker='+', label=other_star_labels[star])
+        text_offset_x = 0.
+        text_offset_y = 0.
+        text_length = len(other_star_labels[star])/10.
+        if source_ra+other_star_coord[star][0]>0.:
+            text_offset_x = -text_length
+        else: 
+            text_offset_x = 0.1
+        plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k')
+    axbig.set_xticks(x_axis_sparse)
+    axbig.set_xticklabels(x_axis_reflect)
+    #axbig.legend(fontsize=7)
+    fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
+    axbig.remove()
+
+def GetSkyViewMap(map_file, hist_map, isRaDec):
+
+    hist_map.Reset()
+    inputFile = open(map_file)
+    for line in inputFile:
+        sig = float(line.split(' ')[2])
+        l = float(line.split(' ')[0])
+        b = float(line.split(' ')[1])
+        if not isRaDec: 
+            l, b = ConvertRaDecToGalactic(l,b)
+        binx = hist_map.GetXaxis().FindBin(l)
+        biny = hist_map.GetYaxis().FindBin(b)
+        if binx<1: continue
+        if binx>=hist_map.GetNbinsX()-1: continue
+        if biny<1: continue
+        if biny>=hist_map.GetNbinsY()-1: continue
+        old_sig = hist_map.GetBinContent(binx+1,biny+1)
+        hist_map.SetBinContent(binx+1,biny+1,max(sig,old_sig))
+        #hist_map.SetBinContent(binx+1,biny+1,sig+old_sig)
+
+    map_resolution = 0.1
+    hist_map_new = FillSkymapHoles(hist_map, map_resolution)
+    return hist_map_new
 

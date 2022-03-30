@@ -30,7 +30,8 @@ target_energy_index = 1
 N_bins_for_deconv = 8
 #N_bins_for_deconv = 4
 
-folder_path = 'output_loose'
+#folder_path = 'output_loose'
+folder_path = 'output_tight'
 
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
@@ -54,6 +55,8 @@ ONOFF_tag = 'OFF'
 ONOFF_tag += '_Model0'
 sample_list = []
 sample_name = []
+sample_list += ['SNR_G150p3Plus04p5_V6_ON']
+sample_name += ['SNR G150.3+4.5 V6']
 sample_list += ['UrsaMajorIIV6_OFF']
 sample_name += ['UrsaMajorII V6']
 sample_list += ['1ES0502V6_OFF']
@@ -102,16 +105,20 @@ sample_list += ['BLLacV6_OFF']
 sample_name += ['BLLac V6']
 sample_list += ['BLLacV5_OFF']
 sample_name += ['BLLac V5']
-sample_list += ['H1426V6_OFF']
-sample_name += ['H1426 V6']
 sample_list += ['RGBJ0710V5_OFF']
 sample_name += ['RGBJ0710 V5']
 sample_list += ['NGC1275V6_OFF']
 sample_name += ['NGC 1275 V6']
+#sample_list += ['H1426V6_OFF']
+#sample_name += ['H1426 V6']
     
 elev_bins = [45,55,65,75,85]
 #elev_bins = [65,75,85]
 #elev_bins = [45,55,65]
+#elev_bins = [75,85]
+#elev_bins = [65,75]
+#elev_bins = [55,65]
+#elev_bins = [45,55]
 theta2_bins = [0,4]
 
 #energy_bin_ref = 1
