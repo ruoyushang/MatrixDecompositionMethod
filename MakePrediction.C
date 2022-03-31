@@ -1487,23 +1487,23 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
         if (entry_size==3)
         {
 
-            //idx_k1 = 1-1;
-            //idx_n1 = 2-1;
-            //idx_k2 = 2-1;
+            //idx_k1 = 2-1;
+            //idx_n1 = 1-1;
+            //idx_k2 = 3-1;
             //idx_n2 = 2-1;
             //if (TelElev_lower>=65.)
             //{
-            //    ratio_1 = -0.7154901881057069;
-            //    ratio_2 = 0.6986227814238956;
-            //    variance_1 = 0.01985922;
-            //    variance_2 = 0.02872624;
+            //    ratio_1 = 0.6957869930121152;
+            //    ratio_2 = 0.7182481885498625;
+            //    variance_1 = 0.02562884;
+            //    variance_2 = 0.036263;
             //}
             //else
             //{
-            //    ratio_1 = -0.7154901881057069;
-            //    ratio_2 = 0.6986227814238956;
-            //    variance_1 = 0.01985922;
-            //    variance_2 = 0.02872624;
+            //    ratio_1 = 0.6957869930121152;
+            //    ratio_2 = 0.7182481885498625;
+            //    variance_1 = 0.02562884;
+            //    variance_2 = 0.036263;
             //}
             //idx_v1 = idx_k1*size_n + idx_n1;
             //idx_v2 = idx_k2*size_n + idx_n2;
@@ -1513,75 +1513,13 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             //sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
             //sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
             //coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
-            //coeff_2 = mtx_S_dark(0,0)*(1./sigma_k2);
+            //coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
+            ////coeff_1 = mtx_S_dark(0,0)*(1./sigma_k1);
+            ////coeff_2 = mtx_S_dark(0,0)*(1./sigma_k2);
             //mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
             //mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
             ////mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
             ////mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
-
-            //idx_k1 = 2-1;
-            //idx_n1 = 2-1;
-            //idx_k2 = 3-1;
-            //idx_n2 = 3-1;
-            //if (TelElev_lower>=65.)
-            //{
-            //    ratio_1 = -0.7393351137996836;
-            //    ratio_2 = -0.6733376489569024;
-            //    variance_1 = 0.03123512;
-            //    variance_2 = 0.11134941;
-            //}
-            //else
-            //{
-            //    ratio_1 = -0.7393351137996836;
-            //    ratio_2 = -0.6733376489569024;
-            //    variance_1 = 0.03123512;
-            //    variance_2 = 0.11134941;
-            //}
-            //idx_v1 = idx_k1*size_n + idx_n1;
-            //idx_v2 = idx_k2*size_n + idx_n2;
-            //idx_u1 = idx_v1;
-            //sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
-            //sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
-            //sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
-            //sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
-            //coeff_1 = mtx_S_dark(0,0)*(1./sigma_k1);
-            //coeff_2 = mtx_S_dark(0,0)*(1./sigma_k2);
-            //mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
-            //mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
-            ////mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
-            ////mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
-
-            idx_k1 = 2-1;
-            idx_n1 = 1-1;
-            idx_k2 = 3-1;
-            idx_n2 = 2-1;
-            if (TelElev_lower>=65.)
-            {
-                ratio_1 = 0.6957869930121152;
-                ratio_2 = 0.7182481885498625;
-                variance_1 = 0.02562884;
-                variance_2 = 0.036263;
-            }
-            else
-            {
-                ratio_1 = 0.6957869930121152;
-                ratio_2 = 0.7182481885498625;
-                variance_1 = 0.02562884;
-                variance_2 = 0.036263;
-            }
-            idx_v1 = idx_k1*size_n + idx_n1;
-            idx_v2 = idx_k2*size_n + idx_n2;
-            idx_u1 = idx_v1;
-            sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
-            sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
-            sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
-            sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
-            coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
-            coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
-            mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
-            mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
-            //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
-            //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
             
             idx_k1 = 1-1;
             idx_n1 = 2-1;
@@ -1610,6 +1548,8 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
             coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
             coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
+            //coeff_1 = mtx_S_dark(0,0)*(1./sigma_k1);
+            //coeff_2 = mtx_S_dark(0,0)*(1./sigma_k2);
             mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
             mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
             //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
@@ -3509,6 +3449,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     vector<TH1D> Hist_OnData_CR_Yoff_Raw;
     vector<TH1D> Hist_OnRFoV_CR_Skymap_Theta2;
     vector<TH1D> Hist_OnDark_CR_Skymap_Theta2;
+    vector<TH2D> Hist_OnData_EffArea_Skymap;
     vector<TH2D> Hist_OnData_ISR_Skymap;
     vector<TH2D> Hist_OnData_SR_Skymap;
     vector<TH2D> Hist_OnData_CR_Skymap;
@@ -3552,6 +3493,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_CR_Yoff_Raw.push_back(TH1D("Hist_OnData_CR_Yoff_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_OnRFoV_CR_Skymap_Theta2.push_back(TH1D("Hist_OnRFoV_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnDark_CR_Skymap_Theta2.push_back(TH1D("Hist_OnDark_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
+        Hist_OnData_EffArea_Skymap.push_back(TH2D("Hist_OnData_EffArea_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_ISR_Skymap.push_back(TH2D("Hist_OnData_ISR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_SR_Skymap.push_back(TH2D("Hist_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_CR_Skymap.push_back(TH2D("Hist_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
@@ -3756,6 +3698,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_CR_XYoff.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_CR_Yoff_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_OnData_CR_Yoff_Raw.at(e).Add( (TH1D*)InputDataFile.Get(hist_name) );
+        hist_name  = "Hist_Stage1_OnData_EffArea_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+        Hist_OnData_EffArea_Skymap.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_ISR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_OnData_ISR_Skymap.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -4634,6 +4578,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         Hist_OnData_CR_Yoff_Raw.at(e).Write();
         Hist_OnRFoV_CR_Skymap_Theta2.at(e).Write();
         Hist_OnDark_CR_Skymap_Theta2.at(e).Write();
+        Hist_OnData_EffArea_Skymap.at(e).Write();
         Hist_OnData_ISR_Skymap.at(e).Write();
         Hist_OnData_SR_Skymap.at(e).Write();
         Hist_OnData_CR_Skymap.at(e).Write();

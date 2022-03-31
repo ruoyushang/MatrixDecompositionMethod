@@ -2603,6 +2603,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     vector<TH1D> Hist_OnData_CR_Yoff_Raw;
     vector<TH2D> Hist_Photon_Exp_Skymap;
     vector<TH2D> Hist_Photon_Raw_Skymap;
+    vector<TH2D> Hist_OnData_EffArea_Skymap;
     vector<TH2D> Hist_OnData_ISR_Skymap;
     vector<TH2D> Hist_OnData_SR_Skymap;
     vector<TH2D> Hist_OnData_CR_Skymap;
@@ -2656,6 +2657,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_CR_Yoff_Raw.push_back(TH1D("Hist_Stage1_OnData_CR_Yoff_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_Photon_Exp_Skymap.push_back(TH2D("Hist_Stage1_Photon_Exp_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_Photon_Raw_Skymap.push_back(TH2D("Hist_Stage1_Photon_Raw_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnData_EffArea_Skymap.push_back(TH2D("Hist_Stage1_OnData_EffArea_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_ISR_Skymap.push_back(TH2D("Hist_Stage1_OnData_ISR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_SR_Skymap.push_back(TH2D("Hist_Stage1_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_CR_Skymap.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
@@ -3923,6 +3925,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             int bin_ra = Hist_OnData_Expo_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
             int bin_dec = Hist_OnData_Expo_Skymap.at(energy).GetYaxis()->FindBin(dec_sky);
 
+            double eff_area = i_hEffAreaP->GetBinContent( i_hEffAreaP->FindBin( log10(0.5*(energy_bins[energy]+energy_bins[energy+1])/1000.)));
+            double eff_area_weight = (eff_area*(energy_bins[energy+1]-energy_bins[energy])/1000.);
+
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,tele_elev);
             Hist_Data_ElevAzim.Fill(NSB_thisrun,tele_azim);
@@ -3944,6 +3949,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
             {
                 if (FoV())
                 {
+                    Hist_OnData_EffArea_Skymap.at(energy).Fill(ra_sky,dec_sky,eff_area_weight);
                     Hist_OnData_ISR_Skymap.at(energy).Fill(ra_sky,dec_sky,weight);
                     Hist_OnData_ISR_R2off.at(energy).Fill(R2off,weight);
                 }
@@ -4434,6 +4440,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         Hist_OnData_CR_XYoff.at(e).Write();
         Hist_OnDark_SR_XYoff.at(e).Write();
         Hist_OnData_CR_Yoff_Raw.at(e).Write();
+        Hist_OnData_EffArea_Skymap.at(e).Write();
         Hist_OnData_ISR_Skymap.at(e).Write();
         Hist_OnData_SR_Skymap.at(e).Write();
         Hist_OnData_CR_Skymap.at(e).Write();
