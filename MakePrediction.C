@@ -1555,6 +1555,40 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
             //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
             
+            idx_k1 = 2-1;
+            idx_n1 = 2-1;
+            idx_k2 = 3-1;
+            idx_n2 = 3-1;
+            if (TelElev_lower>=65.)
+            {
+                ratio_1 = -0.7364979653680156;
+                ratio_2 = -0.6764397585955257;
+                variance_1 = 0.03803975;
+                variance_2 = 0.12932877;
+            }
+            else
+            {
+                ratio_1 = -0.7364979653680156;
+                ratio_2 = -0.6764397585955257;
+                variance_1 = 0.03803975;
+                variance_2 = 0.12932877;
+            }
+            idx_v1 = idx_k1*size_n + idx_n1;
+            idx_v2 = idx_k2*size_n + idx_n2;
+            idx_u1 = idx_v1;
+            sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
+            sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
+            sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
+            sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
+            //coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
+            //coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
+            coeff_1 = mtx_S_dark(0,0)*(1./sigma_k1);
+            coeff_2 = mtx_S_dark(0,0)*(1./sigma_k2);
+            mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
+            mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
+            //mtx_A(idx_u1,idx_v1) = temp_alpha*coeff_1*1./(ratio_1*variance_1);
+            //mtx_A(idx_u1,idx_v2) = -1.*temp_alpha*coeff_2*1./(ratio_2*variance_2);
+            
         }
 
     }
@@ -3030,6 +3064,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     TH2D Hist_Data_ElevAzim = TH2D("Hist_Data_ElevAzim","",18,0,360,18,0,90);
     TH2D Hist_Data_Skymap = TH2D("Hist_Data_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
     TH2D Hist_Data_Elev_Skymap = TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
+    TH2D Hist_Data_Azim_Skymap = TH2D("Hist_Data_Azim_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
+    TH2D Hist_Data_NSB_Skymap = TH2D("Hist_Data_NSB_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
     TH2D Hist_Dark_ElevAzim = TH2D("Hist_Dark_ElevAzim","",18,0,360,18,0,90);
     TH1D Hist_EffArea = TH1D("Hist_EffArea","",N_energy_fine_bins,energy_fine_bins);
 
@@ -3073,6 +3109,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     Hist_Data_Skymap.Add( (TH2D*)InputDataFile.Get(hist_name) );
     hist_name  = "Hist_Data_Elev_Skymap";
     Hist_Data_Elev_Skymap.Add( (TH2D*)InputDataFile.Get(hist_name) );
+    hist_name  = "Hist_Data_Azim_Skymap";
+    Hist_Data_Azim_Skymap.Add( (TH2D*)InputDataFile.Get(hist_name) );
+    hist_name  = "Hist_Data_NSB_Skymap";
+    Hist_Data_NSB_Skymap.Add( (TH2D*)InputDataFile.Get(hist_name) );
     hist_name  = "Hist_Dark_ElevAzim";
     Hist_Dark_ElevAzim.Add( (TH2D*)InputDataFile.Get(hist_name) );
     hist_name  = "Hist_EffArea";
@@ -3087,48 +3127,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     double Zenith_RMS_dark = Hist_Dark_ElevNSB.GetRMS(2);
 
     std::cout << "Zenith_mean_data = " << Zenith_mean_data << std::endl;
-    //if ((90.-Zenith_mean_data)>75.)
-    //{
-    //    Log10_alpha[0] = -3.;
-    //    Log10_alpha[1] = -3.;
-    //    Log10_alpha[2] = 0.;
-    //    Log10_alpha[3] = 0.;
-    //    Log10_alpha[4] = 0.;
-    //    Log10_alpha[5] = 0.;
-    //}
-    //else if ((90.-Zenith_mean_data)<=75. && (90.-Zenith_mean_data)>65.)
-    //{
-    //    Log10_alpha[0] = -3.;
-    //    Log10_alpha[1] = -3.;
-    //    Log10_alpha[2] = 0.;
-    //    Log10_alpha[3] = 0.;
-    //    Log10_alpha[4] = 0.;
-    //    Log10_alpha[5] = 0.;
-    //}
-    //else if ((90.-Zenith_mean_data)<=65. && (90.-Zenith_mean_data)>55.)
-    //{
-    //    Log10_alpha[0] = -2.;
-    //    Log10_alpha[1] = 0.;
-    //    Log10_alpha[2] = 0.;
-    //    Log10_alpha[3] = 0.;
-    //    Log10_alpha[4] = 0.;
-    //    Log10_alpha[5] = 0.;
-    //}
-    //else if ((90.-Zenith_mean_data)<=55. && (90.-Zenith_mean_data)>45.)
-    //{
-    //    Log10_alpha[0] = 0.;
-    //    Log10_alpha[1] = 0.;
-    //    Log10_alpha[2] = 0.;
-    //    Log10_alpha[3] = 0.;
-    //    Log10_alpha[4] = 0.;
-    //    Log10_alpha[5] = 0.;
-    //}
-    Log10_alpha[0] = 0.;
-    Log10_alpha[1] = 0.;
-    Log10_alpha[2] = 0.;
-    Log10_alpha[3] = 0.;
-    Log10_alpha[4] = 0.;
-    Log10_alpha[5] = 0.;
 
     TTree* InfoTree_ptr = nullptr;
     InfoTree_ptr = (TTree*) InputDataFile.Get("InfoTree");
@@ -3938,7 +3936,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 mtx_data_bkgd = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,temp_alpha,temp_beta1,temp_beta2,std::make_pair(NumberOfEigenvectors_Stable,NumberOfEigenvectors_Stable),e).first;
                 double data_count = CountGammaRegion(mtx_data);
                 double bkgd_count = CountGammaRegion(mtx_data_bkgd);
-                Hist_Bkgd_Optimization.at(e).SetBinContent(binx,abs(1.-bkgd_count/data_count));
+                if (data_count>0.)
+                {
+                    Hist_Bkgd_Optimization.at(e).SetBinContent(binx,abs(1.-bkgd_count/data_count));
+                }
                 double chi2 = 0.;
                 for (int row=0;row<N_bins_for_deconv;row++)
                 {
@@ -4449,6 +4450,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     Hist_Data_ElevAzim.Write();
     Hist_Data_Skymap.Write();
     Hist_Data_Elev_Skymap.Write();
+    Hist_Data_Azim_Skymap.Write();
+    Hist_Data_NSB_Skymap.Write();
     Hist_EffArea.Write();
     for (int e=0;e<N_energy_bins;e++)
     {

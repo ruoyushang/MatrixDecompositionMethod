@@ -394,6 +394,10 @@ double GetRunUsableTime(string file_name,int run_number)
     //    input_file->Close();
     //    usable_time = time_end-time_start;
     //}
+    if (usable_time==0.)
+    {
+        usable_time = 30.*60.;
+    }
 
     return usable_time;
 }
@@ -1136,23 +1140,6 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     double TelRAJ2000_tmp = 0.;
     double TelDecJ2000_tmp = 0.;
 
-    //char run_number[50];
-    //sprintf(run_number, "%i", int(run));
-    //TFile*  input_file = TFile::Open(file_name.c_str());
-    //TTree* pointing_tree = nullptr;
-    //pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
-    //pointing_tree->SetBranchStatus("*",0);
-    //pointing_tree->SetBranchStatus("TelRAJ2000",1);
-    //pointing_tree->SetBranchStatus("TelDecJ2000",1);
-    //pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
-    //pointing_tree->SetBranchAddress("TelDecJ2000",&TelDecJ2000);
-    //double total_entries = (double)pointing_tree->GetEntries();
-    //pointing_tree->GetEntry(int(total_entries/2.));
-    //TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
-    //TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
-    //input_file->Close();
-    //std::cout << "root file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
-
     string line;
     char delimiter = ' ';
     string acc_runnumber = "";
@@ -1212,7 +1199,27 @@ pair<double,double> GetRunRaDec(string file_name, int run)
         myfile.close();
     }
     //else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
-    //std::cout << "diag file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
+    std::cout << "diag file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
+
+    if (!gSystem->AccessPathName(file_name.c_str()))
+    {
+        char run_number[50];
+        sprintf(run_number, "%i", int(run));
+        TFile*  input_file = TFile::Open(file_name.c_str());
+        TTree* pointing_tree = nullptr;
+        pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
+        pointing_tree->SetBranchStatus("*",0);
+        pointing_tree->SetBranchStatus("TelRAJ2000",1);
+        pointing_tree->SetBranchStatus("TelDecJ2000",1);
+        pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
+        pointing_tree->SetBranchAddress("TelDecJ2000",&TelDecJ2000);
+        double total_entries = (double)pointing_tree->GetEntries();
+        pointing_tree->GetEntry(int(total_entries/2.));
+        TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
+        TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
+        input_file->Close();
+        std::cout << "root file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
+    }
 
     return std::make_pair(TelRAJ2000_tmp,TelDecJ2000_tmp);
 }
@@ -1991,12 +1998,11 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::cout << "Get a list of target observation runs" << std::endl;
     vector<pair<string,int>> Data_runlist_init = GetRunList(target);
 
-    //vector<pair<string,int>> Dark_runlist_init = GetRunList("OffRunsV6");
-    //if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("OffRunsV5");
-    //if (TString(target).Contains("V4")) Dark_runlist_init = GetRunList("OffRunsV4");
     vector<pair<string,int>> Dark_runlist_init;
-    if (TString(target).Contains("V6")) Dark_runlist_init = GetDBRunList("V6", tel_elev_lower_input, tel_elev_upper_input);
-    if (TString(target).Contains("V5")) Dark_runlist_init = GetDBRunList("V5", tel_elev_lower_input, tel_elev_upper_input);
+    if (TString(target).Contains("V6")) Dark_runlist_init = GetRunList("OffRunsV6");
+    if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("OffRunsV5");
+    //if (TString(target).Contains("V6")) Dark_runlist_init = GetDBRunList("V6", tel_elev_lower_input, tel_elev_upper_input);
+    //if (TString(target).Contains("V5")) Dark_runlist_init = GetDBRunList("V5", tel_elev_lower_input, tel_elev_upper_input);
     
     std::cout << "initial Dark_runlist size = " << Dark_runlist_init.size() << std::endl;
     TTree RunListTree("RunListTree","ON data runn list tree");
