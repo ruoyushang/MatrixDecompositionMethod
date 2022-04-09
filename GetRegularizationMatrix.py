@@ -30,8 +30,8 @@ target_energy_index = 1
 N_bins_for_deconv = 8
 #N_bins_for_deconv = 4
 
-#folder_path = 'output_loose'
-folder_path = 'output_tight'
+folder_path = 'output_loose'
+#folder_path = 'output_tight'
 
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
@@ -125,14 +125,20 @@ theta2_bins = [0,4]
 stable_rank = 3
 #stable_rank = 2
 
+#energy_bin = []
+#energy_bin += [100]
+#energy_bin += [251]
+#energy_bin += [631]
+#energy_bin += [1585]
+#energy_bin += [3981]
+#energy_bin += [10000]
+#energy_bin += [25118]
 energy_bin = []
 energy_bin += [100]
-energy_bin += [251]
-energy_bin += [631]
-energy_bin += [1585]
-energy_bin += [3981]
+energy_bin += [316]
+energy_bin += [1000]
+energy_bin += [3162]
 energy_bin += [10000]
-energy_bin += [25118]
 
 root_file_tags = []
 mjd_tag = []

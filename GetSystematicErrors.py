@@ -30,7 +30,7 @@ ROOT.gROOT.LoadMacro("load_stl.h+") # access vectors and vector of vectors
 fig, ax = plt.subplots()
 
 energy_bin_cut_low = 0
-energy_bin_cut_up = 1
+energy_bin_cut_up = 2
 
 #N_bins_for_deconv = 16
 N_bins_for_deconv = 8
@@ -39,15 +39,16 @@ N_bins_for_deconv = 8
 
 ComputeShapeSystErr = False
 
-#folder_path = 'output_loose'
-folder_path = 'output_tight'
+folder_path = 'output_loose'
+#folder_path = 'output_tight'
 
 #theta2_bins = [0,2]
 theta2_bins = [0,4]
 #theta2_bins = [0,9]
 
-#elev_bins = [35,45,55,65,75,85]
-elev_bins = [55,65,75,85]
+elev_bins = [35,45,55,65,75,85]
+#elev_bins = [55,65,75,85]
+#elev_bins = [65,75,85]
 
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
@@ -136,6 +137,7 @@ sample_list += ['RGBJ0710V5_OFF']
 sample_name += ['RGBJ0710 V5']
 sample_list += ['NGC1275V6_OFF']
 sample_name += ['NGC 1275 V6']
+
 #sample_list += ['H1426V6_OFF']
 #sample_name += ['H1426 V6']
 #sample_list += ['CrabV5_OFF']
@@ -167,14 +169,20 @@ lowrank_tag += 'elev_incl'
 
 number_of_roi = 4
 
+#energy_bin = []
+#energy_bin += [100]
+#energy_bin += [251]
+#energy_bin += [631]
+#energy_bin += [1585]
+#energy_bin += [3981]
+#energy_bin += [10000]
+#energy_bin += [25118]
 energy_bin = []
 energy_bin += [100]
-energy_bin += [251]
-energy_bin += [631]
-energy_bin += [1585]
-energy_bin += [3981]
+energy_bin += [316]
+energy_bin += [1000]
+energy_bin += [3162]
 energy_bin += [10000]
-energy_bin += [25118]
 
 #energy_mibe_weight = [0.039,0.033,0.032,0.040,0.064,0.073,0.141]
 #energy_rfov_weight = [0.061,0.048,0.036,0.050,0.058,0.072,0.055]
@@ -686,8 +694,8 @@ for ebin in range(0,len(energy_bin)-1):
     Hist_ShapeSystErr += [Hist_ShapeSystErr_ThisEnergy]
     Hist_ShapeSystErr_1D += [Hist_ShapeSystErr_1D_ThisEnergy]
 
-optimiz_lower = -5.
-optimiz_upper = -1.
+optimiz_lower = -6.
+optimiz_upper = -3.
 Hist_Bkgd_Optimization = []
 for e in range(0,len(sample_list)+1):
     Hist_Bkgd_Optimization += [ROOT.TH1D("Hist_Bkgd_Optimization_%s"%(e),"",10,optimiz_lower,optimiz_upper)]
@@ -1346,11 +1354,11 @@ for e in range(0,len(energy_bin)-1):
     legends += ['average']
     colors += [1]
     random_gen = ROOT.TRandom3()
-    for entry in range(1,len(Hist_Bkgd_Optimization)):
-        Hists += [Hist_Bkgd_Optimization[entry]]
-        #legends += ['exposure %0.1f'%(data_exposure[entry-1])]
-        legends += ['%s'%(sample_name[entry-1])]
-        colors += [int(random_gen.Uniform(29.,49.))]
+    #for entry in range(1,len(Hist_Bkgd_Optimization)):
+    #    Hists += [Hist_Bkgd_Optimization[entry]]
+    #    #legends += ['exposure %0.1f'%(data_exposure[entry-1])]
+    #    legends += ['%s'%(sample_name[entry-1])]
+    #    colors += [int(random_gen.Uniform(29.,49.))]
     ax.cla()
     MakeMultiplePlot(ax,Hists,legends,colors,'log10 c','relative error','OptimizationAlpha_E%s%s'%(e,folder_path),0.,0.,False,False)
     fig.savefig("output_syst_file/OptimizationAlpha_E%s%s.png"%(e,folder_path))
@@ -1529,9 +1537,9 @@ hist_xdata, hist_ydata, hist_error, func_xdata, func_ydata = MakeMultipleFitPlot
 fig.clf()
 axbig = fig.add_subplot()
 axbig.errorbar(hist_xdata[0], hist_ydata[0], hist_error[0], color='b', marker='s', ls='none', label='%s'%(legends[0]))
-#axbig.errorbar(hist_xdata[1], hist_ydata[1], hist_error[1], color='r', marker='s', ls='none', label='%s'%(legends[1]))
+axbig.errorbar(hist_xdata[1], hist_ydata[1], hist_error[1], color='r', marker='s', ls='none', label='%s'%(legends[1]))
 axbig.plot(func_xdata[0], func_ydata[0], color='b')
-#axbig.plot(func_xdata[1], func_ydata[1], color='r')
+axbig.plot(func_xdata[1], func_ydata[1], color='r')
 axbig.legend(loc='best')
 axbig.set_xlabel('relative error')
 axbig.set_ylabel('number of measurements')
