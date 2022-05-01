@@ -1,8 +1,14 @@
 
+const int N_energy_bins = 4;
+
 //int N_bins_for_deconv = 16; // 8 should be the lowest bin number
+//double Log10_alpha[N_energy_bins] = {-4.5,-4.5,-4.5,-4.5};
 int N_bins_for_deconv = 8; // 8 should be the lowest bin number
+double Log10_alpha[N_energy_bins] = {-4.5,-4.5,-4.5,-4.5};
 //int N_bins_for_deconv = 4; // 8 should be the lowest bin number
+//double Log10_alpha[N_energy_bins] = {-3.5,-3.5,-3.5,-3.5};
 //int N_bins_for_deconv = 2; // 8 should be the lowest bin number
+//double Log10_alpha[N_energy_bins] = {-3.5,-3.5,-3.5,-3.5};
 
 //const int N_energy_bins = 6;
 //double Log10_alpha[N_energy_bins] = {-5.,-3.,-3.,-3.8,-5.,-5.};
@@ -12,14 +18,14 @@ int N_bins_for_deconv = 8; // 8 should be the lowest bin number
 //double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
 //double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
 
-const int N_energy_bins = 4;
-double Log10_alpha[N_energy_bins] = {-4.5,-4.5,-4.5,-4.5};
 int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
 int RankTruncation[N_energy_bins] = {3,3,2,2};
 double energy_bins[N_energy_bins+1] = {100.,316.,1000.,3162.,10000.};
 double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.};
 double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.};
 
+bool UseDBOnly = false;
+bool RHVData = false;
 bool EigenDecomposition = false;
 
 bool UseRegularization = true;

@@ -35,7 +35,6 @@
 #include "/home/rshang/MatrixDecompositionMethod/EventDisplay/VEvndispRunParameter.h"
 
 #include "GetRunList.h"
-#include "NetflixParameters.h"
 
 #include <complex>
 //#include "../../Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
@@ -222,23 +221,30 @@ int RunTypeCategory(int run_number, bool doPrint)
                 if (acc_runtype=="science" || acc_runtype=="NULL" || acc_runtype=="None")
                 {
                     runtype = 0;
+                    if (RHVData)
+                    {
+                        runtype = 1;
+                    }
                 }
                 else if (acc_runtype=="reducedhv")
                 {
                     runtype = 1;
-                    //runtype = 0;
-                    if (doPrint)
+                    //if (doPrint)
+                    //{
+                    //    std::cout << "Run " << run_number << " rejected. Run Type " << acc_runtype << std::endl;
+                    //}
+                    if (RHVData)
                     {
-                        std::cout << "Run " << run_number << " rejected. Run Type " << acc_runtype << std::endl;
+                        runtype = 0;
                     }
                 }
                 else
                 {
                     runtype = 2;
-                    if (doPrint)
-                    {
-                        std::cout << "Run " << run_number << " rejected. Run Type " << acc_runtype << std::endl;
-                    }
+                    //if (doPrint)
+                    //{
+                    //    std::cout << "Run " << run_number << " rejected. Run Type " << acc_runtype << std::endl;
+                    //}
                 }
                 break;
             }
@@ -1201,24 +1207,27 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     //else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
     std::cout << "diag file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
 
-    if (!gSystem->AccessPathName(file_name.c_str()))
+    if (!UseDBOnly)
     {
-        char run_number[50];
-        sprintf(run_number, "%i", int(run));
-        TFile*  input_file = TFile::Open(file_name.c_str());
-        TTree* pointing_tree = nullptr;
-        pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
-        pointing_tree->SetBranchStatus("*",0);
-        pointing_tree->SetBranchStatus("TelRAJ2000",1);
-        pointing_tree->SetBranchStatus("TelDecJ2000",1);
-        pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
-        pointing_tree->SetBranchAddress("TelDecJ2000",&TelDecJ2000);
-        double total_entries = (double)pointing_tree->GetEntries();
-        pointing_tree->GetEntry(int(total_entries/2.));
-        TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
-        TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
-        input_file->Close();
-        std::cout << "root file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
+        if (!gSystem->AccessPathName(file_name.c_str()))
+        {
+            char run_number[50];
+            sprintf(run_number, "%i", int(run));
+            TFile*  input_file = TFile::Open(file_name.c_str());
+            TTree* pointing_tree = nullptr;
+            pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
+            pointing_tree->SetBranchStatus("*",0);
+            pointing_tree->SetBranchStatus("TelRAJ2000",1);
+            pointing_tree->SetBranchStatus("TelDecJ2000",1);
+            pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
+            pointing_tree->SetBranchAddress("TelDecJ2000",&TelDecJ2000);
+            double total_entries = (double)pointing_tree->GetEntries();
+            pointing_tree->GetEntry(int(total_entries/2.));
+            TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
+            TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
+            input_file->Close();
+            std::cout << "root file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
+        }
     }
 
     return std::make_pair(TelRAJ2000_tmp,TelDecJ2000_tmp);
@@ -1379,12 +1388,12 @@ void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_ru
 
         if (!PointingSelection(filename,int(Data_runlist[run].second),Elev_cut_lower,Elev_cut_upper))
         {
-            std::cout << int(Data_runlist[run].second) << " pointing rejected." << std::endl;
+            //std::cout << int(Data_runlist[run].second) << " pointing rejected." << std::endl;
             continue;
         }
         if (!MJDSelection(filename,int(Data_runlist[run].second),MJD_start_cut,MJD_end_cut)) 
         {
-            std::cout << int(Data_runlist[run].second) << " MJD rejected." << std::endl;
+            //std::cout << int(Data_runlist[run].second) << " MJD rejected." << std::endl;
             continue;
         }
         double L3_rate = GetRunL3Rate(Data_runlist[run].second);
@@ -1432,13 +1441,13 @@ void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_ru
         if (run_elevation>Elev_cut_upper+5.) continue;
         if (RunTypeCategory(OFF_runlist_input[off_run].second,true)!=0) 
         {
-            std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " category rejected." << std::endl;
+            //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " category rejected." << std::endl;
             continue;
         }
         double L3_rate = GetRunL3Rate(OFF_runlist_input[off_run].second);
         if (L3_rate<150.)
         {
-            std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " L3 rate rejected." << std::endl;
+            //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " L3 rate rejected." << std::endl;
             continue;
         }
         std::pair<double,double> off_run_RA_Dec = GetRunRaDec(OFF_filename,int(OFF_runlist_input[off_run].second));
@@ -1447,12 +1456,12 @@ void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_ru
         double delta_angle = pow(delta_ra*delta_ra+delta_dec*delta_dec,0.5);
         if (delta_angle<5.)
         {
-            std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " coordinate rejected." << std::endl;
+            //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " coordinate rejected." << std::endl;
             continue;
         }
         if (CheckBrightGammaRaySource(off_run_RA_Dec.first,off_run_RA_Dec.second))
         {
-            std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " coordinate rejected." << std::endl;
+            //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " coordinate rejected." << std::endl;
             continue;
         }
         std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " selected." << std::endl;
@@ -1614,11 +1623,11 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
     for (int run=0;run<Data_runlist.size();run++)
     {
 
-        if (RunTypeCategory(Data_runlist[run].second,true)!=0) 
-        {
-            std::cout << int(Data_runlist[run].second) << " category rejected." << std::endl;
-            continue;
-        }
+        //if (RunTypeCategory(Data_runlist[run].second,true)!=0) 
+        //{
+        //    std::cout << int(Data_runlist[run].second) << " category rejected." << std::endl;
+        //    continue;
+        //}
         char run_number[50];
         char Data_observation[50];
         sprintf(run_number, "%i", int(Data_runlist[run].second));
@@ -1629,12 +1638,12 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
 
         if (!PointingSelection(filename,int(Data_runlist[run].second),Elev_cut_lower,Elev_cut_upper))
         {
-            std::cout << int(Data_runlist[run].second) << " pointing rejected." << std::endl;
+            //std::cout << int(Data_runlist[run].second) << " pointing rejected." << std::endl;
             continue;
         }
         if (!MJDSelection(filename,int(Data_runlist[run].second),MJD_start_cut,MJD_end_cut)) 
         {
-            std::cout << int(Data_runlist[run].second) << " MJD rejected." << std::endl;
+            //std::cout << int(Data_runlist[run].second) << " MJD rejected." << std::endl;
             continue;
         }
         double L3_rate = GetRunL3Rate(Data_runlist[run].second);
@@ -1682,13 +1691,13 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
         if (run_elevation>Elev_cut_upper+5.) continue;
         if (RunTypeCategory(OFF_runlist_input[off_run].second,true)!=0) 
         {
-            std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " category rejected." << std::endl;
+            //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " category rejected." << std::endl;
             continue;
         }
         double L3_rate = GetRunL3Rate(OFF_runlist_input[off_run].second);
         if (L3_rate<150.)
         {
-            std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " L3 rate rejected." << std::endl;
+            //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " L3 rate rejected." << std::endl;
             continue;
         }
         std::pair<double,double> off_run_RA_Dec = GetRunRaDec(OFF_filename,int(OFF_runlist_input[off_run].second));
@@ -1697,12 +1706,12 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
         double delta_angle = pow(delta_ra*delta_ra+delta_dec*delta_dec,0.5);
         if (delta_angle<5.)
         {
-            std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " coordinate rejected." << std::endl;
+            //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " coordinate rejected." << std::endl;
             continue;
         }
         if (CheckBrightGammaRaySource(off_run_RA_Dec.first,off_run_RA_Dec.second))
         {
-            std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " coordinate rejected." << std::endl;
+            //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " coordinate rejected." << std::endl;
             continue;
         }
         std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " selected." << std::endl;
@@ -1770,7 +1779,12 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
         OFF_runnumber.clear();
         OFF_exposure_hour.clear();
         bool continue_to_find_match = true;
-        while (total_off_time<2.0*ON_exposure_hour && continue_to_find_match)
+        double ratio_exposure = 2.0;
+        if (UseDBOnly)
+        {
+            ratio_exposure = 4.0;
+        }
+        while (total_off_time<ratio_exposure*ON_exposure_hour && continue_to_find_match)
         {
 
             int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, 1.); 
@@ -1999,10 +2013,16 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     vector<pair<string,int>> Data_runlist_init = GetRunList(target);
 
     vector<pair<string,int>> Dark_runlist_init;
-    if (TString(target).Contains("V6")) Dark_runlist_init = GetRunList("OffRunsV6");
-    if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("OffRunsV5");
-    //if (TString(target).Contains("V6")) Dark_runlist_init = GetDBRunList("V6", tel_elev_lower_input, tel_elev_upper_input);
-    //if (TString(target).Contains("V5")) Dark_runlist_init = GetDBRunList("V5", tel_elev_lower_input, tel_elev_upper_input);
+    if (!UseDBOnly)
+    {
+        if (TString(target).Contains("V6")) Dark_runlist_init = GetRunList("OffRunsV6");
+        if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("OffRunsV5");
+    }
+    else
+    {
+        if (TString(target).Contains("V6")) Dark_runlist_init = GetDBRunList("V6", tel_elev_lower_input, tel_elev_upper_input);
+        if (TString(target).Contains("V5")) Dark_runlist_init = GetDBRunList("V5", tel_elev_lower_input, tel_elev_upper_input);
+    }
     
     std::cout << "initial Dark_runlist size = " << Dark_runlist_init.size() << std::endl;
     TTree RunListTree("RunListTree","ON data runn list tree");

@@ -107,8 +107,8 @@ double GammaScale = 0.;
 double MinChi2Unblind = 1e10;
 double current_energy = 0.;
 
-double optimiz_lower = -5.;
-double optimiz_upper = -1.;
+double optimiz_lower = -6.;
+double optimiz_upper = -3.;
 vector<double> max_chi2_diff2_position;
 
 //double svd_threshold = 1e-6; // size of singular value to be considered as nonzero.
@@ -1679,11 +1679,11 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     mtx_vari += mtx_U_init*mtx_S_vari*mtx_V_init.transpose();
     mtx_output += mtx_vari;
 
-    if (available_bins<9)
-    {
-        mtx_output = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
-        mtx_CDE = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
-    }
+    //if (available_bins<9)
+    //{
+    //    mtx_output = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    //    mtx_CDE = MatrixXcd::Zero(mtx_init_input.rows(),mtx_init_input.cols());
+    //}
 
     //return std::make_pair(mtx_output,mtx_t);
     return std::make_pair(mtx_output,mtx_CDE);
@@ -3830,9 +3830,14 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             JacobiSVD<MatrixXd> svd_Moff(mtx_dark.real(), ComputeFullU | ComputeFullV);
             bool find_elbow = false;
             int max_rank = min(N_bins_for_deconv-1,3);
+            if (N_bins_for_deconv<4)
+            {
+                max_rank = 1;
+            }
             for (int i=0;i<max_rank;i++)
             {
                 if (find_elbow) continue;
+                if (svd_Moff.singularValues()(max_rank)==0.) continue;
                 std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank) << std::endl;
                 if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<3.0)
                 {
@@ -3843,6 +3848,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
             }
             NumberOfEigenvectors_Stable = max(NumberOfEigenvectors_Stable,1);
             NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,max_rank);
+            if (svd_Moff.singularValues()(max_rank)==0.)
+            {
+                NumberOfEigenvectors_Stable = 0;
+            }
             std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
 
             for (int binx=1;binx<=Hist_Bkgd_Optimization_beta.at(e).GetNbinsX();binx++)
