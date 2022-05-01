@@ -28,20 +28,21 @@ smooth_size_spectroscopy = 0.1
 #smooth_size_spectroscopy = 0.2
 #smooth_size_spectroscopy = 0.3
 
-Smoothing = True
-#Smoothing = False
+#Smoothing = True
+Smoothing = False
 
-calibration_radius = 0.2
+calibration_radius = 0.3
 
 energy_index_scale = 2
 
 Skymap_size = 2.
-Skymap_nbins = 81
-#Skymap_nbins = 27
-#Skymap_nbins = 9
-#Skymap_nbins = 3
+#Skymap_nbins = 60
+#Skymap_nbins = 30
+Skymap_nbins = 15
+#Skymap_nbins = 6
 
 elev_range = [35,45,55,65,75,85]
+#elev_range = [45,55,65,75,85]
 #elev_range = [55,65,75,85]
 #elev_range = [65,75,85]
 #elev_range = [35,45,55,65]
@@ -53,14 +54,20 @@ elev_range = [35,45,55,65,75,85]
 #elev_range = [35,45]
 
 
+#energy_bin = []
+#energy_bin += [100]
+#energy_bin += [251]
+#energy_bin += [631]
+#energy_bin += [1585]
+#energy_bin += [3981]
+#energy_bin += [10000]
+#energy_bin += [25118]
 energy_bin = []
 energy_bin += [100]
-energy_bin += [251]
-energy_bin += [631]
-energy_bin += [1585]
-energy_bin += [3981]
+energy_bin += [316]
+energy_bin += [1000]
+energy_bin += [3162]
 energy_bin += [10000]
-energy_bin += [25118]
 
 def Hist2DIntegralAndError(Hist):
 
@@ -399,6 +406,7 @@ def GetRegionIntegral(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,roi_x,r
             if hist_syst_skymap!=None:
                 flux_syst_err += hist_syst_skymap.GetBinContent(bx+1,by+1)
             flux_stat_err += pow(hist_data_skymap.GetBinError(bx+1,by+1),2)
+    flux_stat_err = pow(flux_stat_err,0.5)
     return flux_sum, flux_stat_err, flux_syst_err
 
 def GetRegionSpectrum(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin_low,ebin_up,roi_x,roi_y,roi_r):
@@ -413,7 +421,8 @@ def GetRegionSpectrum(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin_lo
         flux_sum, flux_stat_err, flux_syst_err = GetRegionIntegral(hist_data_skymap[ebin],hist_syst_skymap[ebin],hist_mask_skymap,roi_x,roi_y,roi_r)
         x_axis += [energy_bin[ebin]]
         y_axis += [flux_sum]
-        y_error += [pow(flux_stat_err+flux_syst_err*flux_syst_err,0.5)]
+        #y_error += [pow(flux_stat_err*flux_stat_err+flux_syst_err*flux_syst_err,0.5)]
+        y_error += [flux_stat_err]
 
     return x_axis, y_axis, y_error
 
@@ -473,6 +482,101 @@ def GetHawcSkymap(hist_map, isRaDec):
     hist_map_new = FillSkymapHoles(hist_map, map_resolution)
 
     return hist_map_new
+
+def MatplotlibMultiMaps(hist_maps,fig,label_x,label_y,label_z,plotname):
+
+    top = cm.get_cmap('Blues_r', 5) # r means reversed version
+    bottom = cm.get_cmap('Reds', 5)# combine it all
+    newcolors = np.vstack((top(np.linspace(0, 1, 5)),bottom(np.linspace(0, 1, 5))))# create a new colormaps with a name of OrangeBlue
+    redblue = ListedColormap(newcolors, name='RedBlue')
+
+    N = 256
+    red = np.ones((N, 4))
+    red[:, 0] = np.linspace(255/256, 1, N) # R = 255
+    red[:, 1] = np.linspace(0/256, 1, N)   # G = 0
+    red[:, 2] = np.linspace(0/256, 1, N)   # B = 0
+    red_cmp = ListedColormap(red[::-1])
+    blue = np.ones((N, 4))
+    blue[:, 0] = np.linspace(0/256, 1, N)   # R = 0
+    blue[:, 1] = np.linspace(0/256, 1, N)   # G = 0
+    blue[:, 2] = np.linspace(255/256, 1, N) # B = 255
+    blue_cmp = ListedColormap(blue[::-1])
+    map_colors = [blue_cmp,red_cmp]
+
+    map_nbins = hist_maps[0].GetNbinsX()
+    MapEdge_left = hist_maps[0].GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = hist_maps[0].GetXaxis().GetBinLowEdge(hist_maps[0].GetNbinsX()+1)
+    MapEdge_lower = hist_maps[0].GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = hist_maps[0].GetYaxis().GetBinLowEdge(hist_maps[0].GetNbinsY()+1)
+
+    deg_per_bin = (MapEdge_right-MapEdge_left)/map_nbins
+    nbins_per_deg = map_nbins/(MapEdge_right-MapEdge_left)
+    nbins_extend = int(0.*nbins_per_deg)
+    deg_extend = nbins_extend/nbins_per_deg
+    x_axis = np.linspace(MapEdge_left,MapEdge_right,map_nbins)
+    x_axis_extend = np.linspace(MapEdge_left-deg_extend,MapEdge_right,map_nbins+nbins_extend)
+    x_axis_sparse = np.linspace(MapEdge_left-deg_extend,MapEdge_right,5)
+    x_axis_reflect = ["{:6.2f}".format(-1.*i) for i in x_axis_sparse]
+    y_axis = np.linspace(MapEdge_lower,MapEdge_upper,map_nbins)
+
+    grid_z_list = []
+    zmax_list = []
+    for nmap in range(0,len(hist_maps)):
+        grid_z = np.zeros((map_nbins, map_nbins+nbins_extend))
+        zmax = 0.
+        for ybin in range(0,len(y_axis)):
+            for xbin in range(0,len(x_axis_extend)):
+                hist_bin_x = xbin+1
+                hist_bin_y = ybin+1
+                if hist_bin_x<1: continue
+                if hist_bin_y<1: continue
+                if hist_bin_x>hist_maps[nmap].GetNbinsX(): continue
+                if hist_bin_y>hist_maps[nmap].GetNbinsY(): continue
+                grid_z[ybin,xbin] = hist_maps[nmap].GetBinContent(hist_bin_x,hist_bin_y)
+                if zmax<grid_z[ybin,xbin]:
+                    zmax = grid_z[ybin,xbin]
+        grid_z_list += [grid_z]
+        zmax_list += [zmax]
+
+    other_stars, other_star_coord = GetGammaSourceInfo() 
+    other_star_labels = []
+    other_star_markers = []
+    star_range = 2.0
+    source_ra = (MapEdge_left+MapEdge_right)/2.
+    source_dec = (MapEdge_lower+MapEdge_upper)/2.
+    for star in range(0,len(other_stars)):
+        if pow(source_ra+other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
+        #if '#' in other_stars[star]: continue
+        other_star_markers += [[-other_star_coord[star][0],other_star_coord[star][1]]]
+        other_star_labels += ['%s'%(other_stars[star])]
+
+    fig.clf()
+    axbig = fig.add_subplot()
+    axbig.set_xlabel(label_x)
+    axbig.set_ylabel(label_y)
+    #level_low = 2.0
+    #level_high = 7.0
+    for nmap in range(0,len(hist_maps)):
+        mycolor = cm.get_cmap(map_colors[nmap], 3) # r means reversed version
+        im = axbig.imshow(grid_z_list[nmap], origin='lower', cmap=mycolor, alpha=0.5, extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()), vmin=0.5*zmax_list[nmap])
+        cbar = fig.colorbar(im)
+        cbar.set_label(label_z)
+        #axbig.contour(grid_z_list[nmap], levels, cmap=mycolor, extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()), vmin=0.)
+    for star in range(0,len(other_star_markers)):
+        axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], c='k', marker='+', label=other_star_labels[star])
+        text_offset_x = 0.
+        text_offset_y = 0.
+        text_length = len(other_star_labels[star])/10.
+        if source_ra+other_star_coord[star][0]>0.:
+            text_offset_x = -text_length
+        else: 
+            text_offset_x = 0.1
+        plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k')
+    axbig.set_xticks(x_axis_sparse)
+    axbig.set_xticklabels(x_axis_reflect)
+    #axbig.legend(fontsize=7)
+    fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
+    axbig.remove()
 
 def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
 
@@ -551,7 +655,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
     axbig.set_ylabel(label_y)
     #im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()), vmin=-max_z, vmax=max_z)
     im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()))
-    axbig.contour(grid_contour, levels, colors='w', extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()))
+    #axbig.contour(grid_contour, levels, colors='w', extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()))
     #cbar = fig.colorbar(im,orientation="horizontal")
     cbar = fig.colorbar(im)
     cbar.set_label(label_z)

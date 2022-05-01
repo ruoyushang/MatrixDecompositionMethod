@@ -32,22 +32,25 @@ fig, ax = plt.subplots()
 energy_bin_cut_low = 0
 energy_bin_cut_up = 2
 
-#N_bins_for_deconv = 16
-N_bins_for_deconv = 8
+N_bins_for_deconv = 16
+#N_bins_for_deconv = 8
 #N_bins_for_deconv = 4
 #N_bins_for_deconv = 2
 
 ComputeShapeSystErr = False
 
-folder_path = 'output_loose'
-#folder_path = 'output_tight'
+#folder_path = 'output_2x2'
+#folder_path = 'output_4x4'
+folder_path = 'output_8x8'
+#folder_path = 'output_16x16'
 
 #theta2_bins = [0,2]
 theta2_bins = [0,4]
 #theta2_bins = [0,9]
 
-elev_bins = [35,45,55,65,75,85]
-#elev_bins = [55,65,75,85]
+#elev_bins = [35,45,55,65,75,85]
+#elev_bins = [45,55,65,75,85]
+elev_bins = [55,65,75,85]
 #elev_bins = [65,75,85]
 
 ErecS_lower_cut = 0
@@ -224,17 +227,17 @@ def GetFluxCalibration(avg_elev,energy):
 
     #return 1.
     
-    flux_calibration = [7.480281970231091e-08, 1.1009886026497825e-08, 1.1320725782409528e-09, 1.4396221156621074e-10, 1.8856508232367646e-11, 2.1016804096323343e-12]
+    flux_calibration = []
     if avg_elev<=85. and avg_elev>75.:
-        flux_calibration = [7.480281970231091e-08, 1.1009886026497825e-08, 1.1320725782409528e-09, 1.4396221156621074e-10, 1.8856508232367646e-11, 2.1016804096323343e-12]
+        flux_calibration = [3.352236564473935e-08, 2.658740853181333e-09, 2.0324882825007042e-10, 1.6339503640997207e-11]
     if avg_elev<=75. and avg_elev>65.:
-        flux_calibration = [7.333561973309006e-08, 1.2213945455023585e-08, 1.1964927507454313e-09, 1.4250499641390284e-10, 1.7775959296515385e-11, 2.100320008117818e-12]
+        flux_calibration = [3.749034537077448e-08, 3.161714293121568e-09, 2.1383421146594705e-10, 1.6093279456176878e-11]
     if avg_elev<=65. and avg_elev>55.:
-        flux_calibration = [6.576696787995024e-08, 1.4052982203653559e-08, 1.4133787633339727e-09, 1.5958320968447998e-10, 1.6513465925681105e-11, 1.6606468382165533e-12]
+        flux_calibration = [3.914394112202656e-08, 3.8960057300817696e-09, 2.4197334576912557e-10, 1.5785941060327452e-11]
     if avg_elev<=55. and avg_elev>45.:
-        flux_calibration = [5.031904924576364e-08, 1.5394762028304023e-08, 1.9722629877002822e-09, 2.1428974246123716e-10, 2.263059557860357e-11, 1.954877956103542e-12]
+        flux_calibration = [2.920184347950322e-08, 4.934389551239988e-09, 2.9907377075292634e-10, 1.8132248320894532e-11]
     if avg_elev<=45. and avg_elev>35.:
-        flux_calibration = [0.0, 1.3412303355020475e-08, 2.785762625854527e-09, 3.2635277626304123e-10, 3.416923628860141e-11, 2.5844438485639475e-12]
+        flux_calibration = [0.0, 5.58195550720075e-09, 4.624524584170672e-10, 2.808212850301435e-11]
 
     return flux_calibration[energy]
 
@@ -615,8 +618,8 @@ def GetHistogramsFromFile(FilePath,which_source,doShapeSyst):
         if data_gamma_count[energy_index]>0.:
             measured_error_mibe = (data_gamma_count[energy_index]-bkgd_gamma_count[energy_index])/data_gamma_count[energy_index]
             measured_error_init = (data_gamma_count[energy_index]-dark_gamma_count[energy_index])/data_gamma_count[energy_index]
-            measured_error_weight = 1.
-            #measured_error_weight = 1./(pow(data_gamma_count[energy_index],0.5)/data_gamma_count[energy_index])
+            #measured_error_weight = 1.
+            measured_error_weight = 1./(pow(data_gamma_count[energy_index],0.5)/data_gamma_count[energy_index])
             Hist_SystErrDist_MDM.Fill(measured_error_mibe,measured_error_weight)
             Hist_SystErrDist_Init.Fill(measured_error_init,measured_error_weight)
     HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)

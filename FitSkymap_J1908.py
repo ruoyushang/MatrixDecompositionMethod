@@ -343,6 +343,8 @@ def FitDetailModel_J1908(hist_mask_skymap,hist_data_skymap,hist_syst_skymap,par_
     hist_excess_skymap_rebin.Rebin2D(rebin_big,rebin_big)
 
     avg_count = hist_excess_skymap.Integral()
+    avg_syst_count = hist_syst_skymap.Integral()
+    avg_count = max(avg_syst_count,avg_count)
     RA_3HWC = 287.05
     Dec_3HWC = 6.39
     model_PWN = [[RA_3HWC,0.],[Dec_3HWC,0.],[PWN_radius,0.],[avg_count,0.]]

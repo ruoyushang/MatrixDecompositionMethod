@@ -30,8 +30,10 @@ target_energy_index = 1
 N_bins_for_deconv = 8
 #N_bins_for_deconv = 4
 
-folder_path = 'output_loose'
-#folder_path = 'output_tight'
+folder_path = 'output_2x2'
+#folder_path = 'output_4x4'
+#folder_path = 'output_8x8'
+#folder_path = 'output_16x16'
 
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
