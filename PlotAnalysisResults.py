@@ -558,6 +558,30 @@ if sys.argv[1]=='LHAASO_J2108_ON':
     sample_list = []
     sample_list += ['LHAASO_J2108_V6_ON']
     # this is a Tevatron
+if sys.argv[1]=='LHAASO_J0341_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J0341_V6_ON']
+    # this is a Tevatron
+if sys.argv[1]=='LHAASO_J1929_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1929_V6_ON']
+    # this is a Tevatron
+if sys.argv[1]=='LHAASO_J1843_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1843_V6_ON']
+    # this is a Tevatron
+
+if sys.argv[1]=='Perseus_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Perseus_V6_ON']
 
 if sys.argv[1]=='MGRO_J1908_ON':
     ONOFF_tag = 'ON'
@@ -863,6 +887,9 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
 
 def FindExtension(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range):
     return CommonPlotFunctions.FindExtension(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range)
+
+def FindGalacticProjection(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range):
+    return CommonPlotFunctions.FindGalacticProjection(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range)
 
 def EstimateLeptonicDiffusionCoefficient(photon_energy,mag_field,d_PSR,t_PSR,diff_coeff,diff_coeff_index):
     # photon_energy in GeV
@@ -2148,6 +2175,18 @@ def flux_veritas_gamma_cygni_func(x):
 def flux_hawc_gamma_cygni_func(x):
     # 3HWC J2020+403  TeV^{-1}cm^{-2}s^{-1}
     return 11.4*pow(10,-15)*pow(x*1./7000.,-3.11)
+def flux_2hwc_J1928_point_func(x):
+    # 2HWC J1928+177 TeV^{-1}cm^{-2}s^{-1}
+    return 10.0*pow(10,-15)*pow(x*1./7000.,-2.56)
+def flux_2hwc_J1844_point_func(x):
+    # 2HWC J1844-032 TeV^{-1}cm^{-2}s^{-1}
+    return 46.8*pow(10,-15)*pow(x*1./7000.,-2.64)
+def flux_2hwc_J1844_extend_func(x):
+    # 2HWC J1844-032 TeV^{-1}cm^{-2}s^{-1}
+    return 92.8*pow(10,-15)*pow(x*1./7000.,-2.51)
+def flux_hess_J1843_func(x):
+    # HESS J1843-033 TeV^{-1}cm^{-2}s^{-1}
+    return 9.14*pow(10,-13)*pow(x*1./1870.,-2.15)
 def flux_veritas_j1908_func(x):
     # MGRO J1908  TeV^{-1}cm^{-2}s^{-1}
     return 4.23*pow(10,-12)*pow(x*1./1000.,-2.2)
@@ -4441,6 +4480,26 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                 vectorize_f = np.vectorize(flux_veritas_boomerang_func)
                 ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
                 axbig.plot(xdata, ydata,'r-',label='2005.13699')
+            if 'J1929+1745' in legends[nth_roi]:
+                vectorize_f = np.vectorize(flux_2hwc_J1928_point_func)
+                hawc_log_energy = np.linspace(log10(2000.),log10(56000.),50)
+                hawc_xdata = pow(10.,hawc_log_energy)
+                ydata = pow(hawc_xdata/1e3,energy_index)*vectorize_f(hawc_xdata)
+                axbig.plot(hawc_xdata, ydata,'r-',label='2HWC J1928+177 (point-like)')
+            if 'J1843-0338' in legends[nth_roi]:
+                vectorize_f = np.vectorize(flux_2hwc_J1844_point_func)
+                hawc_log_energy = np.linspace(log10(2000.),log10(56000.),50)
+                hawc_xdata = pow(10.,hawc_log_energy)
+                ydata = pow(hawc_xdata/1e3,energy_index)*vectorize_f(hawc_xdata)
+                axbig.plot(hawc_xdata, ydata,'r-',label='2HWC J1844-032 (point-like)')
+                vectorize_f = np.vectorize(flux_2hwc_J1844_extend_func)
+                hawc_log_energy = np.linspace(log10(2000.),log10(56000.),50)
+                hawc_xdata = pow(10.,hawc_log_energy)
+                ydata = pow(hawc_xdata/1e3,energy_index)*vectorize_f(hawc_xdata)
+                axbig.plot(hawc_xdata, ydata,'m-',label='2HWC J1844-032 (0.6-deg ext.)')
+                vectorize_f = np.vectorize(flux_hess_J1843_func)
+                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+                axbig.plot(xdata, ydata,'g-',label='HESS J1843-033')
 
     axbig.legend(loc='best')
     axbig.set_xlabel('Energy [GeV]')
@@ -4994,6 +5053,28 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         new_tick_locations = axbig.get_xticks()
         axbig.legend(loc='best')
         plotname = 'ProfileVsTheta2'
+        fig.savefig("output_plots/%s_%s_E%sto%s.png"%(plotname,sys.argv[1],energy_bin_cut_low,energy_bin_cut_up),bbox_inches='tight')
+        axbig.remove()
+
+        profile, profile_err, theta2 = FindGalacticProjection(hist_flux_skymap_sum,hist_flux_syst_skymap_sum,profile_center_x,profile_center_y,0.5)
+        fig.clf()
+        axbig = fig.add_subplot()
+        axbig.errorbar(theta2[0],profile[0],profile_err[0],color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
+        axbig.set_ylabel('flux [$\mathrm{TeV}^{%s}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}$]'%(-1+energy_index))
+        axbig.set_xlabel('galactic l. [degree]')
+        new_tick_locations = axbig.get_xticks()
+        axbig.legend(loc='best')
+        plotname = 'ProfileVsGal_l'
+        fig.savefig("output_plots/%s_%s_E%sto%s.png"%(plotname,sys.argv[1],energy_bin_cut_low,energy_bin_cut_up),bbox_inches='tight')
+        axbig.remove()
+        fig.clf()
+        axbig = fig.add_subplot()
+        axbig.errorbar(theta2[1],profile[1],profile_err[1],color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
+        axbig.set_ylabel('flux [$\mathrm{TeV}^{%s}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}$]'%(-1+energy_index))
+        axbig.set_xlabel('galactic b. [degree]')
+        new_tick_locations = axbig.get_xticks()
+        axbig.legend(loc='best')
+        plotname = 'ProfileVsGal_b'
         fig.savefig("output_plots/%s_%s_E%sto%s.png"%(plotname,sys.argv[1],energy_bin_cut_low,energy_bin_cut_up),bbox_inches='tight')
         axbig.remove()
 
