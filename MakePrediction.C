@@ -3839,7 +3839,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
                 if (find_elbow) continue;
                 if (svd_Moff.singularValues()(max_rank)==0.) continue;
                 std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank) << std::endl;
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<3.0)
+                //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<2.0)
+                //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<3.0)
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<5.0)
                 {
                     find_elbow = true;
                 }

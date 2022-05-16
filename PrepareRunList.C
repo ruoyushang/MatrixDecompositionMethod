@@ -129,7 +129,7 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20220111.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics_20220426.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -518,7 +518,7 @@ int GetRunMJD(string file_name,int run)
     int nth_delimiter = 0;
     std::string::size_type sz;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20220111.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics_20220426.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -599,7 +599,7 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     int nth_delimiter = 0;
     std::string::size_type sz;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20220111.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics_20220426.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -655,7 +655,7 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
 
 bool PointingSelection(string file_name,int run, double Elev_cut_lower, double Elev_cut_upper)
 {
-    if (run>100000) return true;
+    //if (run>100000) return true;
     char run_number[50];
     sprintf(run_number, "%i", int(run));
     //TFile*  input_file = TFile::Open(file_name.c_str());
@@ -675,11 +675,13 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
     if (TelElevation<Elev_cut_lower) 
     {
         //input_file->Close();
+        std::cout << run << ", elev = " << TelElevation << ", pointing rejected." << std::endl;
         return false;
     }
     if (TelElevation>Elev_cut_upper)
     {
         //input_file->Close();
+        std::cout << run << ", elev = " << TelElevation << ", pointing rejected." << std::endl;
         return false;
     }
     //if (Azim_region=="North")
@@ -1038,6 +1040,26 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 317.15;
                 Source_Dec = 51.95;
     }
+    if (source_name.Contains("LHAASO_J0341"))
+    {
+            Source_RA = 55.34;
+                Source_Dec = 52.97;
+    }
+    if (source_name.Contains("LHAASO_J1929"))
+    {
+            Source_RA = 292.25;
+                Source_Dec = 17.75;
+    }
+    if (source_name.Contains("LHAASO_J1843"))
+    {
+            Source_RA = 280.75;
+                Source_Dec = -3.63;
+    }
+    if (source_name.Contains("Perseus"))
+    {
+            Source_RA = 52.9;
+                Source_Dec = 30.9;
+    }
     if (source_name.Contains("PSRB0355plus54"))
     {
             Source_RA = 59.72083333333333;
@@ -1156,7 +1178,7 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     int nth_delimiter = 0;
     std::string::size_type sz;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20220111.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics_20220426.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -1236,7 +1258,7 @@ pair<double,double> GetRunRaDec(string file_name, int run)
 bool MJDSelection(string file_name,int run, int MJD_start_cut, int MJD_end_cut)
 {
     if (MJD_start_cut==0 && MJD_end_cut==0) return true;
-    if (run>100000) return true;
+    //if (run>100000) return true;
     char run_number[50];
     sprintf(run_number, "%i", int(run));
     TFile*  input_file = TFile::Open(file_name.c_str());
@@ -1620,6 +1642,7 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
     vector<double> ON_time;
     vector<double> ON_NSB;
     vector<double> ON_L3Rate;
+    std::cout << "ON runs (initial) = " << Data_runlist.size() << std::endl;
     for (int run=0;run<Data_runlist.size();run++)
     {
 
@@ -1786,8 +1809,12 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
         }
         while (total_off_time<ratio_exposure*ON_exposure_hour && continue_to_find_match)
         {
-
-            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, 1.); 
+             double matching_threshold = 1.0;
+             if (RHVData)
+             {
+                 matching_threshold = 2.0;
+             }
+            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, matching_threshold); 
             if (matched_runnumber==0)
             {
                 std::cout << "ON run " << ON_runnumber << " failed to find a match." << std::endl;
@@ -1840,7 +1867,7 @@ vector<std::pair<string,int>> GetDBRunList(string epoch, double elev_low, double
     double TelAzimuth_avg = 0.;
     double Tel0Fir_avg = 0.;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20220111.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics_20220426.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -1938,8 +1965,8 @@ vector<std::pair<string,int>> GetDBRunList(string epoch, double elev_low, double
                     {
                         if (runnumber>=63373)
                         {
-                            std::cout << "Adding run " << runnumber << std::endl;
-                            std::cout << "T0 FIR temp = " << Tel0Fir_avg << std::endl;
+                            //std::cout << "Adding run " << runnumber << std::endl;
+                            //std::cout << "T0 FIR temp = " << Tel0Fir_avg << std::endl;
                             list.push_back(std::make_pair("",runnumber));
                         }
                     }
