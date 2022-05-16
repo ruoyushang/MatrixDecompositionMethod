@@ -37,9 +37,10 @@ energy_index_scale = 2
 
 Skymap_size = 2.
 #Skymap_nbins = 60
-#Skymap_nbins = 30
-Skymap_nbins = 15
+Skymap_nbins = 30
+#Skymap_nbins = 15
 #Skymap_nbins = 6
+#Skymap_nbins = 3
 
 elev_range = [35,45,55,65,75,85]
 #elev_range = [45,55,65,75,85]
@@ -221,6 +222,123 @@ def FindProjection(Hist_Data_input,Hist_Syst_input,roi_x1,roi_y1,roi_x2,roi_y2,r
         theta2 += [center]
         profile += [profile_content]
         profile_err += [profile_error]
+
+    return profile, profile_err, theta2
+
+def ConvertRaDecToGalactic(ra, dec):
+    delta = dec*ROOT.TMath.Pi()/180.
+    delta_G = 27.12825*ROOT.TMath.Pi()/180.
+    alpha = ra*ROOT.TMath.Pi()/180.
+    alpha_G = 192.85948*ROOT.TMath.Pi()/180.
+    l_NCP = 122.93192*ROOT.TMath.Pi()/180.
+    sin_b = ROOT.TMath.Sin(delta)*ROOT.TMath.Sin(delta_G)+ROOT.TMath.Cos(delta)*ROOT.TMath.Cos(delta_G)*ROOT.TMath.Cos(alpha-alpha_G)
+    cos_b = ROOT.TMath.Cos(ROOT.TMath.ASin(sin_b))
+    sin_l_NCP_m_l = ROOT.TMath.Cos(delta)*ROOT.TMath.Sin(alpha-alpha_G)/cos_b
+    cos_l_NCP_m_l = (ROOT.TMath.Cos(delta_G)*ROOT.TMath.Sin(delta)-ROOT.TMath.Sin(delta_G)*ROOT.TMath.Cos(delta)*ROOT.TMath.Cos(alpha-alpha_G))/cos_b
+    b = (ROOT.TMath.ASin(sin_b))*180./ROOT.TMath.Pi()
+    l = (l_NCP-ROOT.TMath.ATan2(sin_l_NCP_m_l,cos_l_NCP_m_l))*180./ROOT.TMath.Pi()
+    return l, b
+
+def FindGalacticProjection(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range):
+
+    global calibration_radius
+
+    roi_l, roi_b = ConvertRaDecToGalactic(roi_x,roi_y)
+
+    n_bins = 10
+    Hist_Profile_Gal_l = ROOT.TH1D("Hist_Profile_Gal_l","",n_bins,roi_l-2.,roi_l+2.)
+    n_bins = 10
+    Hist_Profile_Gal_b = ROOT.TH1D("Hist_Profile_Gal_b","",n_bins,roi_b-2.,roi_b+2.)
+
+    for br in range(0,Hist_Profile_Gal_l.GetNbinsX()):
+        range_limit = Hist_Profile_Gal_l.GetBinLowEdge(br+2)
+        range_limit_previous = Hist_Profile_Gal_l.GetBinLowEdge(br+1)
+        slice_data = 0.
+        slice_data_err = 0.
+        slice_syst_err = 0.
+        for bx in range(0,Hist_Data_input.GetNbinsX()):
+            for by in range(0,Hist_Data_input.GetNbinsY()):
+                cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
+                cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
+                cell_l, cell_b = ConvertRaDecToGalactic(cell_x,cell_y)
+                data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
+                data_error = Hist_Data_input.GetBinError(bx+1,by+1)
+                syst_error = 0.
+                if Hist_Syst_input!=None:
+                    syst_error = Hist_Syst_input.GetBinContent(bx+1,by+1)
+                delta_b = abs(cell_b-roi_b)
+                if delta_b>integration_range: continue
+                if cell_l>=range_limit_previous and cell_l<range_limit:
+                    slice_data += data_content
+                    slice_data_err += data_error*data_error
+                    slice_syst_err += syst_error
+        slice_data_err = pow(slice_data_err,0.5)
+        if slice_data==0.: slice_data_err = 1.
+        Hist_Profile_Gal_l.SetBinContent(br+1,slice_data)
+        Hist_Profile_Gal_l.SetBinError(br+1,pow(slice_data_err*slice_data_err+slice_syst_err*slice_syst_err,0.5))
+
+    for br in range(0,Hist_Profile_Gal_b.GetNbinsX()):
+        range_limit = Hist_Profile_Gal_b.GetBinLowEdge(br+2)
+        range_limit_previous = Hist_Profile_Gal_b.GetBinLowEdge(br+1)
+        slice_data = 0.
+        slice_data_err = 0.
+        slice_syst_err = 0.
+        for bx in range(0,Hist_Data_input.GetNbinsX()):
+            for by in range(0,Hist_Data_input.GetNbinsY()):
+                cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
+                cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
+                cell_l, cell_b = ConvertRaDecToGalactic(cell_x,cell_y)
+                data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
+                data_error = Hist_Data_input.GetBinError(bx+1,by+1)
+                syst_error = 0.
+                if Hist_Syst_input!=None:
+                    syst_error = Hist_Syst_input.GetBinContent(bx+1,by+1)
+                delta_l = abs(cell_l-roi_l)
+                if delta_l>integration_range: continue
+                if cell_b>=range_limit_previous and cell_b<range_limit:
+                    slice_data += data_content
+                    slice_data_err += data_error*data_error
+                    slice_syst_err += syst_error
+        slice_data_err = pow(slice_data_err,0.5)
+        if slice_data==0.: slice_data_err = 1.
+        Hist_Profile_Gal_b.SetBinContent(br+1,slice_data)
+        Hist_Profile_Gal_b.SetBinError(br+1,pow(slice_data_err*slice_data_err+slice_syst_err*slice_syst_err,0.5))
+
+
+    profile_l = []
+    profile_err_l = []
+    theta2_l = []
+    for binx in range(0,Hist_Profile_Gal_l.GetNbinsX()):
+        center = Hist_Profile_Gal_l.GetBinCenter(binx+1)
+        range_limit = Hist_Profile_Gal_l.GetBinLowEdge(binx+2)
+        range_limit_previous = Hist_Profile_Gal_l.GetBinLowEdge(binx+1)
+        profile_content = Hist_Profile_Gal_l.GetBinContent(binx+1)
+        profile_error = Hist_Profile_Gal_l.GetBinError(binx+1)
+        theta2_l += [center]
+        profile_l += [profile_content]
+        profile_err_l += [profile_error]
+    profile_b = []
+    profile_err_b = []
+    theta2_b = []
+    for binx in range(0,Hist_Profile_Gal_b.GetNbinsX()):
+        center = Hist_Profile_Gal_b.GetBinCenter(binx+1)
+        range_limit = Hist_Profile_Gal_b.GetBinLowEdge(binx+2)
+        range_limit_previous = Hist_Profile_Gal_b.GetBinLowEdge(binx+1)
+        profile_content = Hist_Profile_Gal_b.GetBinContent(binx+1)
+        profile_error = Hist_Profile_Gal_b.GetBinError(binx+1)
+        theta2_b += [center]
+        profile_b += [profile_content]
+        profile_err_b += [profile_error]
+
+    profile = []
+    profile_err = []
+    theta2 = []
+    profile += [profile_l]
+    profile_err += [profile_err_l]
+    theta2 += [theta2_l]
+    profile += [profile_b]
+    profile_err += [profile_err_b]
+    theta2 += [theta2_b]
 
     return profile, profile_err, theta2
 
@@ -664,10 +782,11 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
         text_offset_x = 0.
         text_offset_y = 0.
         text_length = len(other_star_labels[star])/10.
-        if source_ra+other_star_coord[star][0]>0.:
-            text_offset_x = -text_length
-        else: 
-            text_offset_x = 0.1
+        text_offset_x = 0.1
+        #if source_ra+other_star_coord[star][0]>0.:
+        #    text_offset_x = -text_length
+        #else: 
+        #    text_offset_x = 0.1
         plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k')
     axbig.set_xticks(x_axis_sparse)
     axbig.set_xticklabels(x_axis_reflect)

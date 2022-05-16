@@ -49,8 +49,8 @@ theta2_bins = [0,4]
 #theta2_bins = [0,9]
 
 #elev_bins = [35,45,55,65,75,85]
-#elev_bins = [45,55,65,75,85]
-elev_bins = [55,65,75,85]
+elev_bins = [45,55,65,75,85]
+#elev_bins = [55,65,75,85]
 #elev_bins = [65,75,85]
 
 ErecS_lower_cut = 0
@@ -227,17 +227,18 @@ def GetFluxCalibration(avg_elev,energy):
 
     #return 1.
     
-    flux_calibration = []
-    if avg_elev<=85. and avg_elev>75.:
-        flux_calibration = [3.352236564473935e-08, 2.658740853181333e-09, 2.0324882825007042e-10, 1.6339503640997207e-11]
-    if avg_elev<=75. and avg_elev>65.:
-        flux_calibration = [3.749034537077448e-08, 3.161714293121568e-09, 2.1383421146594705e-10, 1.6093279456176878e-11]
-    if avg_elev<=65. and avg_elev>55.:
-        flux_calibration = [3.914394112202656e-08, 3.8960057300817696e-09, 2.4197334576912557e-10, 1.5785941060327452e-11]
-    if avg_elev<=55. and avg_elev>45.:
-        flux_calibration = [2.920184347950322e-08, 4.934389551239988e-09, 2.9907377075292634e-10, 1.8132248320894532e-11]
-    if avg_elev<=45. and avg_elev>35.:
-        flux_calibration = [0.0, 5.58195550720075e-09, 4.624524584170672e-10, 2.808212850301435e-11]
+    #flux_calibration = []
+    #if avg_elev<=85. and avg_elev>75.:
+    #    flux_calibration = [3.352236564473935e-08, 2.658740853181333e-09, 2.0324882825007042e-10, 1.6339503640997207e-11]
+    #if avg_elev<=75. and avg_elev>65.:
+    #    flux_calibration = [3.749034537077448e-08, 3.161714293121568e-09, 2.1383421146594705e-10, 1.6093279456176878e-11]
+    #if avg_elev<=65. and avg_elev>55.:
+    #    flux_calibration = [3.914394112202656e-08, 3.8960057300817696e-09, 2.4197334576912557e-10, 1.5785941060327452e-11]
+    #if avg_elev<=55. and avg_elev>45.:
+    #    flux_calibration = [2.920184347950322e-08, 4.934389551239988e-09, 2.9907377075292634e-10, 1.8132248320894532e-11]
+    #if avg_elev<=45. and avg_elev>35.:
+    #    flux_calibration = [0.0, 5.58195550720075e-09, 4.624524584170672e-10, 2.808212850301435e-11]
+    flux_calibration = [6.27173299710032e-08, 6.4968658047416255e-09, 5.064356246026387e-10, 3.5916888925763446e-11]
 
     return flux_calibration[energy]
 
