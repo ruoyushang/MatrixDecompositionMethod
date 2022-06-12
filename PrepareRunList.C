@@ -129,7 +129,7 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20220426.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -518,7 +518,7 @@ int GetRunMJD(string file_name,int run)
     int nth_delimiter = 0;
     std::string::size_type sz;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20220426.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -599,7 +599,7 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     int nth_delimiter = 0;
     std::string::size_type sz;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20220426.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -1055,6 +1055,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 280.75;
                 Source_Dec = -3.63;
     }
+    if (source_name.Contains("LHAASO_J1956"))
+    {
+            Source_RA = 299.05;
+                Source_Dec = 28.75;
+    }
     if (source_name.Contains("Perseus"))
     {
             Source_RA = 52.9;
@@ -1178,7 +1183,7 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     int nth_delimiter = 0;
     std::string::size_type sz;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20220426.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -1867,7 +1872,7 @@ vector<std::pair<string,int>> GetDBRunList(string epoch, double elev_low, double
     double TelAzimuth_avg = 0.;
     double Tel0Fir_avg = 0.;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20220426.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )

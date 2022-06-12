@@ -387,6 +387,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 280.75;
                 Source_Dec = -3.63;
     }
+    if (source_name.Contains("LHAASO_J1956"))
+    {
+            Source_RA = 299.05;
+                Source_Dec = 28.75;
+    }
     if (source_name.Contains("Perseus"))
     {
             Source_RA = 52.9;
@@ -2558,6 +2563,14 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         else if (TString(target).Contains("LHAASO_J1843"))
         {
             roi_name.push_back("J1843-0338");
+            roi_ra.push_back(mean_tele_point_ra);
+            roi_dec.push_back(mean_tele_point_dec);
+            roi_radius_inner.push_back(0.);
+            roi_radius_outer.push_back(0.6);
+        }
+        else if (TString(target).Contains("LHAASO_J1956"))
+        {
+            roi_name.push_back("J1956+2845");
             roi_ra.push_back(mean_tele_point_ra);
             roi_dec.push_back(mean_tele_point_dec);
             roi_radius_inner.push_back(0.);
