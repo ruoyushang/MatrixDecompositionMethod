@@ -2984,7 +2984,7 @@ void AlterDarkMatrix(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_dark_alter)
     }
 
 }
-void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel)
+void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel, int group_index)
 {
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
@@ -2994,6 +2994,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
     TH1::SetDefaultSumw2();
 
+    sprintf(group_tag, "_G%d", group_index);
 
     sprintf(target, "%s", target_data.c_str());
 
@@ -3039,11 +3040,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     //        MSCL_cut_blind = MSCL_cut_loose;
     //    }
     //}
-
-    if (TString(target).Contains("MAGIC_J1857")) 
-    {
-        Skymap_size = 3.;
-    }
 
 
     mean_tele_point_ra = 0.;
@@ -3096,7 +3092,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         regularization_name  = "../Regularization_eigen.root";
     }
     TFile RegularizationFile(regularization_name);
-    TFile InputDataFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TFile InputDataFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root");
 
     TString hist_name;
     hist_name  = "Hist_Data_ElevNSB";
@@ -4384,7 +4380,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     }
     InputDataFile.Close();
 
-    TFile InputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TFile InputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputFile.Get("InfoTree");
     TTree* StarTree = nullptr;
@@ -4401,7 +4397,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     {
         sprintf(lowrank_tag, "svd");
     }
-    TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_"+TString(lowrank_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
+    TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_"+TString(lowrank_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root","recreate");
 
     TTree *newtree = InfoTree->CloneTree();
     newtree->Branch("MSCW_chi2_upper",&MSCW_chi2_upper,"MSCW_chi2_upper/D");
@@ -4611,5 +4607,71 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     InputFile.Close();
 
     std::cout << "Done." << std::endl;
+
+}
+
+void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel)
+{
+
+    SMI_INPUT = string(std::getenv("SMI_INPUT"));
+    SMI_OUTPUT = string(std::getenv("SMI_OUTPUT"));
+    SMI_DIR = string(std::getenv("SMI_DIR"));
+    SMI_AUX = string(std::getenv("SMI_AUX"));
+
+    TH1::SetDefaultSumw2();
+
+    sprintf(target, "%s", target_data.c_str());
+
+    TString ONOFF_tag;
+    if (isON) 
+    {
+        source_theta2_cut = 0.;
+        ONOFF_tag = "ON";
+    }
+    else
+    {
+        ONOFF_tag = "OFF";
+    }
+    char char_SignalStrength[50];
+    sprintf(char_SignalStrength, "%i", GammaModel);
+    ONOFF_tag += TString("_Model")+TString(char_SignalStrength);
+
+    if (MJD_start_cut!=0 || MJD_end_cut!=0)
+    {
+        sprintf(mjd_cut_tag, "_MJD%dto%d", MJD_start_cut, MJD_end_cut);
+    }
+    camera_theta2_cut_lower = input_theta2_cut_lower;
+    camera_theta2_cut_upper = input_theta2_cut_upper;
+    sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    TelElev_lower = tel_elev_lower_input;
+    TelElev_upper = tel_elev_upper_input;
+    sprintf(elev_cut_tag, "_TelElev%dto%d%s", int(TelElev_lower), int(TelElev_upper), Azim_region.c_str());
+
+    bool file_exists = true;
+    int group_index = 0;
+    int n_groups = 0;
+    while (file_exists)
+    {
+        sprintf(group_tag, "_G%d", group_index);
+        std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root" << std::endl;
+        if (gSystem->AccessPathName(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root"))
+        {
+            std::cout << "file does not exist." << std::endl;
+            file_exists = false;
+        }
+        else
+        {
+            std::cout << "file exists." << std::endl;
+            n_groups += 1;
+        }
+        group_index += 1;
+    }
+    std::cout << "n_groups = " << n_groups << std::endl;
+
+
+    for (int g_idx=0;g_idx<n_groups;g_idx++)
+    {
+        MakePrediction_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, input_theta2_cut_lower, input_theta2_cut_upper, isON, GammaModel, g_idx);
+    }
 
 }

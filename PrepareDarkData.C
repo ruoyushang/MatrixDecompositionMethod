@@ -48,6 +48,7 @@ char target[50] = "";
 char elev_cut_tag[50] = "";
 char theta2_cut_tag[50] = "";
 char mjd_cut_tag[50] = "";
+char group_tag[50] = "";
 double SizeSecondMax_Cut = 0.;
 
 // EventDisplay variables
@@ -2093,7 +2094,7 @@ void Smooth2DMap(TH2D* hist, double smooth_size)
 
 }
 
-void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel)
+void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel, int group_index)
 {
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
@@ -2102,6 +2103,8 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     SMI_AUX = string(std::getenv("SMI_AUX"));
 
     TH1::SetDefaultSumw2();
+
+    sprintf(group_tag, "_G%d", group_index);
 
     std::cout << "Get systematic error histograms" << std::endl;
     vector<TH1D> Hist_NormSystErr;
@@ -2596,11 +2599,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //    roi_radius_outer.push_back(bright_star_radius_cut);
     //}
 
-    if (TString(target).Contains("MAGIC_J1857")) 
-    {
-        Skymap_size = 3.;
-    }
-
     TH1D Hist_Elev = TH1D("Hist_Elev","",N_elev_bins,elev_bins);
     TH1D Hist_MJD = TH1D("Hist_MJD","",N_MJD_bins,MJD_bins);
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
@@ -2927,11 +2925,18 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
 
     std::cout << "Prepare dark run samples..." << std::endl;
-    std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root" << std::endl;
+    std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root" << std::endl;
 
-    TFile InputRunListFile(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root");
+    TFile InputRunListFile(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root");
     TTree* RunListTree_ptr = nullptr;
-    RunListTree_ptr = (TTree*) InputRunListFile.Get("RunListTree");
+    RunListTree_ptr = (TTree*) InputRunListFile.Get("RunListTree_subgroup");
+    RunListTree_ptr->SetBranchStatus("*", 0);
+    RunListTree_ptr->SetBranchStatus("ON_runnumber", 1);
+    RunListTree_ptr->SetBranchStatus("ON_pointing_RA", 1);
+    RunListTree_ptr->SetBranchStatus("ON_pointing_Dec", 1);
+    RunListTree_ptr->SetBranchStatus("ON_exposure_hour", 1);
+    RunListTree_ptr->SetBranchStatus("OFF_runnumber", 1);
+    RunListTree_ptr->SetBranchStatus("OFF_exposure_hour", 1);
     int ON_runnumber_ptr;
     RunListTree_ptr->SetBranchAddress("ON_runnumber",&ON_runnumber_ptr);
     double ON_exposure_hour_ptr;
@@ -4410,7 +4415,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     //}
 
 
-    TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
+    TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root","recreate");
 
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("N_bins_for_deconv",&N_bins_for_deconv,"N_bins_for_deconv/I");
@@ -4573,4 +4578,68 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     std::cout << "selected runs = " << Data_runlist.size() << std::endl;
     std::cout << "final runs = " << final_runs << std::endl;
     std::cout << "Done." << std::endl;
+}
+
+void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel)
+{
+
+    SMI_INPUT = string(std::getenv("SMI_INPUT"));
+    SMI_OUTPUT = string(std::getenv("SMI_OUTPUT"));
+    SMI_DIR = string(std::getenv("SMI_DIR"));
+    SMI_AUX = string(std::getenv("SMI_AUX"));
+
+    if (MJD_start_cut!=0 || MJD_end_cut!=0)
+    {
+        sprintf(mjd_cut_tag, "_MJD%dto%d", MJD_start_cut, MJD_end_cut);
+    }
+    camera_theta2_cut_lower = input_theta2_cut_lower;
+    camera_theta2_cut_upper = input_theta2_cut_upper;
+    sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    sprintf(target, "%s", target_data.c_str());
+    TelElev_lower = tel_elev_lower_input;
+    TelElev_upper = tel_elev_upper_input;
+    sprintf(elev_cut_tag, "_TelElev%dto%d%s", int(TelElev_lower), int(TelElev_upper), Azim_region.c_str());
+    MSCW_cut_blind = MSCW_cut_moderate;
+    MSCL_cut_blind = MSCL_cut_moderate;
+
+    TString ONOFF_tag;
+    if (isON) 
+    {
+        source_theta2_cut = 0.;
+        ONOFF_tag = "ON";
+    }
+    else
+    {
+        ONOFF_tag = "OFF";
+    }
+    char char_SignalStrength[50];
+    sprintf(char_SignalStrength, "%i", GammaModel);
+    ONOFF_tag += TString("_Model")+TString(char_SignalStrength);
+
+    bool file_exists = true;
+    int group_index = 0;
+    int n_groups = 0;
+    while (file_exists)
+    {
+        sprintf(group_tag, "_G%d", group_index);
+        std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root" << std::endl;
+        if (gSystem->AccessPathName(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root"))
+        {
+            std::cout << "file does not exist." << std::endl;
+            file_exists = false;
+        }
+        else
+        {
+            std::cout << "file exists." << std::endl;
+            n_groups += 1;
+        }
+        group_index += 1;
+    }
+    std::cout << "n_groups = " << n_groups << std::endl;
+
+    for (int g_idx=0;g_idx<n_groups;g_idx++)
+    {
+        PrepareDarkData_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, input_theta2_cut_lower, input_theta2_cut_upper, isON, doImposter, GammaModel, g_idx);
+    }
+
 }

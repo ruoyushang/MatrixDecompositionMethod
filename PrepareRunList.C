@@ -49,6 +49,7 @@ char target[50] = "";
 char elev_cut_tag[50] = "";
 char theta2_cut_tag[50] = "";
 char mjd_cut_tag[50] = "";
+char group_tag[50] = "";
 double SizeSecondMax_Cut = 0.;
 
 // EventDisplay variables
@@ -1283,6 +1284,16 @@ bool MJDSelection(string file_name,int run, int MJD_start_cut, int MJD_end_cut)
     input_file->Close();
     return true;
 }
+vector<double> GetRunElevationList(vector<pair<string,int>> list)
+{
+    vector<double> list_elev;
+    for (int run=0;run<list.size();run++)
+    {
+        double run_elev = GetRunElevAzim(list.at(run).first,int(list.at(run).second)).first;
+        list_elev.push_back(run_elev);
+    }
+    return list_elev;
+}
 void SortingList(vector<pair<string,int>>* list, vector<double>* list_pointing)
 {
     pair<string,int> temp_list;
@@ -2043,6 +2054,8 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
 
     std::cout << "Get a list of target observation runs" << std::endl;
     vector<pair<string,int>> Data_runlist_init = GetRunList(target);
+    vector<double> Data_runlist_init_elev = GetRunElevationList(Data_runlist_init);
+    SortingList(&Data_runlist_init,&Data_runlist_init_elev);
 
     vector<pair<string,int>> Dark_runlist_init;
     if (!UseDBOnly)
@@ -2073,11 +2086,69 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
         SelectImposterRunList(&RunListTree, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, iteration, source_ra_dec);
     }
 
+    RunListTree.SetBranchStatus("*", 0);
+    RunListTree.SetBranchStatus("ON_runnumber", 1);
+    RunListTree.SetBranchStatus("ON_pointing_RA", 1);
+    RunListTree.SetBranchStatus("ON_pointing_Dec", 1);
+    RunListTree.SetBranchStatus("ON_exposure_hour", 1);
+    RunListTree.SetBranchStatus("OFF_runnumber", 1);
+    RunListTree.SetBranchStatus("OFF_exposure_hour", 1);
+    int ON_runnumber_ptr;
+    double ON_exposure_hour_ptr;
+    double ON_pointing_RA_ptr;
+    double ON_pointing_Dec_ptr;
+    vector<int>* OFF_runnumber_ptr = new std::vector<int>(10);
+    vector<double>* OFF_exposure_hour_ptr = new std::vector<double>(10);
+    RunListTree.SetBranchAddress("ON_runnumber",&ON_runnumber_ptr);
+    RunListTree.SetBranchAddress("ON_exposure_hour",&ON_exposure_hour_ptr);
+    RunListTree.SetBranchAddress("ON_pointing_RA",&ON_pointing_RA_ptr);
+    RunListTree.SetBranchAddress("ON_pointing_Dec",&ON_pointing_Dec_ptr);
+    RunListTree.SetBranchAddress("OFF_runnumber",&OFF_runnumber_ptr);
+    RunListTree.SetBranchAddress("OFF_exposure_hour",&OFF_exposure_hour_ptr);
+    int ON_runnumber;
+    double ON_exposure_hour;
+    double ON_pointing_RA;
+    double ON_pointing_Dec;
+    vector<int> OFF_runnumber;
+    vector<double> OFF_exposure_hour;
+    TTree RunListTree_subgroup("RunListTree_subgroup","ON data run list tree subgroup");
+    RunListTree_subgroup.Branch("ON_runnumber",&ON_runnumber,"ON_runnumber/I");
+    RunListTree_subgroup.Branch("ON_exposure_hour",&ON_exposure_hour,"ON_exposure_hour/D");
+    RunListTree_subgroup.Branch("ON_pointing_RA",&ON_pointing_RA,"ON_pointing_RA/D");
+    RunListTree_subgroup.Branch("ON_pointing_Dec",&ON_pointing_Dec,"ON_pointing_Dec/D");
+    RunListTree_subgroup.Branch("OFF_runnumber","std::vector<int>",&OFF_runnumber);
+    RunListTree_subgroup.Branch("OFF_exposure_hour","std::vector<double>",&OFF_exposure_hour);
+    std::cout << __LINE__ << std::endl;
+    std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
+    int group_index = 0;
+    double exposure_hour_limit = 5.;
+    double exposure_hour_sum = 0.;
+    for (int on_run=0;on_run<RunListTree.GetEntries();on_run++)
+    {
+        sprintf(group_tag, "_G%d", group_index);
 
-    TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+".root","recreate");
+        RunListTree.GetEntry(on_run);
+        ON_runnumber = ON_runnumber_ptr;
+        ON_exposure_hour = ON_exposure_hour_ptr;
+        ON_pointing_RA = ON_pointing_RA_ptr;
+        ON_pointing_Dec = ON_pointing_Dec_ptr;
+        OFF_runnumber = *OFF_runnumber_ptr;
+        OFF_exposure_hour = *OFF_exposure_hour_ptr;
+        RunListTree_subgroup.Fill();
 
-    RunListTree.Write();
-    OutputFile.Close();
+        exposure_hour_sum += ON_exposure_hour;
+        
+        if (exposure_hour_sum>exposure_hour_limit || on_run==RunListTree.GetEntries()-1)
+        {
+            TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root","recreate");
+            RunListTree_subgroup.Write();
+            OutputFile.Close();
+            RunListTree_subgroup.Reset();
+            exposure_hour_sum = 0.;
+            group_index += 1;
+        }
+
+    }
 
     std::cout << "initial runs = " << Data_runlist_init.size() << std::endl;
     std::cout << "selected runs = " << RunListTree.GetEntries() << std::endl;
