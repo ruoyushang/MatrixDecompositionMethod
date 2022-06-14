@@ -43,10 +43,11 @@ lowrank_tag = '_svd'
 #lowrank_tag = '_eigen'
 method_tag += lowrank_tag
 
+folder_path = 'output_test'
 #folder_path = 'output_rhv'
 #folder_path = 'output_2x2'
 #folder_path = 'output_4x4'
-folder_path = 'output_8x8'
+#folder_path = 'output_8x8'
 #folder_path = 'output_16x16'
 
 energy_bin_cut_low = 0
@@ -575,6 +576,12 @@ if sys.argv[1]=='LHAASO_J1843_ON':
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['LHAASO_J1843_V6_ON']
+    # this is a Tevatron
+if sys.argv[1]=='LHAASO_J1956_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1956_V6_ON']
     # this is a Tevatron
 
 if sys.argv[1]=='Perseus_ON':
@@ -1156,7 +1163,10 @@ def GetSourceInfo(file_list):
     Zenith_RMS_data = 0.
     for path in range(0,len(file_list)):
         print ('Read file: %s'%(file_list[path]))
-        if not os.path.isfile(file_list[path]):continue
+        if not os.path.isfile(file_list[path]):
+            print ('Cannot get source info from file: %s'%(file_list[path]))
+            continue
+        print ('Getting source info from file: %s'%(file_list[path]))
         InputFile = ROOT.TFile(file_list[path])
         InfoTree = InputFile.Get("InfoTree")
         InfoTree.SetBranchAddress('Data_runlist_NSB',ROOT.AddressOf(Data_runlist_NSB))
@@ -1190,6 +1200,7 @@ def GetSourceInfo(file_list):
             exposure_hours += InfoTree.exposure_hours_usable
         MJD_Start = min(InfoTree.MJD_Start,MJD_Start)
         MJD_End = max(InfoTree.MJD_End,MJD_End)
+        print ('len(roi_ra) = %s'%(len(roi_ra)))
 
         NewInfoTree = InputFile.Get("NewInfoTree")
         NewInfoTree.SetBranchAddress('max_chi2_diff2_position',ROOT.AddressOf(max_chi2_diff2_position))
@@ -3016,17 +3027,36 @@ def PlotsStackedHistograms(tag):
         title = 'energy [GeV]'
         MakeChi2Plot(Hists,legends,colors,stack_it,title,plotname,True,0.,pow(10,4.0),-1)
 
-        Hist_OnData_RoI_MJD_Sum[nth_roi].Rebin(40)
-        Hist_OnBkgd_RoI_MJD_Sum[nth_roi].Rebin(40)
+        mjd_start = 2147483647
+        mjd_end = 0
+        for binx in range(0,Hist_OnData_RoI_MJD_Sum[nth_roi].GetNbinsX()):
+            bin_content = Hist_OnData_RoI_MJD_Sum[nth_roi].GetBinContent(binx+1)
+            bin_lower_edge = Hist_OnData_RoI_MJD_Sum[nth_roi].GetBinLowEdge(binx+1)
+            if bin_content>0:
+                if mjd_start>bin_lower_edge:
+                    mjd_start = bin_lower_edge
+                if mjd_end<bin_lower_edge:
+                    mjd_end = bin_lower_edge
+        hist_mjd_data_plot = ROOT.TH1D("hist_mjd_data_plot","",10,mjd_start,mjd_end)
+        hist_mjd_bkgd_plot = ROOT.TH1D("hist_mjd_bkgd_plot","",10,mjd_start,mjd_end)
+        for binx in range (0,Hist_OnData_RoI_MJD_Sum[nth_roi].GetNbinsX()):
+            mjd_bin_center = Hist_OnData_RoI_MJD_Sum[nth_roi].GetBinCenter(binx+1)
+            mjd_data = Hist_OnData_RoI_MJD_Sum[nth_roi].GetBinContent(binx+1)
+            mjd_bkgd = Hist_OnBkgd_RoI_MJD_Sum[nth_roi].GetBinContent(binx+1)
+            mjd_bin = hist_mjd_data_plot.FindBin(mjd_bin_center)
+            mjd_data_old_content = hist_mjd_data_plot.GetBinContent(mjd_bin)
+            mjd_bkgd_old_content = hist_mjd_bkgd_plot.GetBinContent(mjd_bin)
+            hist_mjd_data_plot.SetBinContent(mjd_bin,mjd_data_old_content+mjd_data)
+            hist_mjd_bkgd_plot.SetBinContent(mjd_bin,mjd_bkgd_old_content+mjd_bkgd)
         Hists = []
         legends = []
         colors = []
         stack_it = []
-        Hists += [Hist_OnData_RoI_MJD_Sum[nth_roi]]
+        Hists += [hist_mjd_data_plot]
         legends += ['obs. data (%s)'%(roi_name[nth_roi])]
         colors += [1]
         stack_it += [False]
-        Hists += [Hist_OnBkgd_RoI_MJD_Sum[nth_roi]]
+        Hists += [hist_mjd_bkgd_plot]
         legends += ['predict. bkg.']
         colors += [4]
         stack_it += [True]
@@ -3470,6 +3500,7 @@ def NormalizeEnergyHistograms(FilePath):
 
     for nth_roi in range(0,len(roi_ra)):
         HistName = "Hist_OnData_SR_RoI_Energy_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
+        print ('read histogram: %s'%(HistName))
         Hist_OnData_RoI_Energy[nth_roi].Reset()
         Hist_OnData_RoI_Energy[nth_roi].Add(InputFile.Get(HistName))
         HistName = "Hist_OnData_CR_RoI_Energy_V%s_ErecS%sto%s"%(nth_roi,ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -4752,14 +4783,15 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
     CommonPlotFunctions.MatplotlibMap2D(hist_flux_skymap_sum_reflect,None,fig,'RA','Dec','flux','SkymapFlux2_%s_%s.png'%(name,selection_tag))
 
     hist_zscore_skymap_galactic = ROOT.TH2D("hist_zscore_skymap_galactic","",int(Skymap_nbins/zoomin_scale),source_l-MapSize_x/zoomin_scale,source_l+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),source_b-MapSize_y/zoomin_scale,source_b+MapSize_y/zoomin_scale)
-    ConvertRaDecToGalacticMap(hist_zscore_skymap_sum,hist_zscore_skymap_galactic)
+    #ConvertRaDecToGalacticMap(hist_zscore_skymap_sum,hist_zscore_skymap_galactic)
+    ConvertRaDecToGalacticMap(hist_flux_skymap_sum,hist_zscore_skymap_galactic)
     hist_zscore_skymap_galactic_reflect = reflectXaxis(hist_zscore_skymap_galactic)
     hist_zscore_skymap_galactic_reflect.GetYaxis().SetTitle('gal. latitude')
     hist_zscore_skymap_galactic_reflect.GetXaxis().SetTitle('gal. longitude')
-    hist_zscore_skymap_galactic_reflect.GetZaxis().SetTitle('Significance')
+    hist_zscore_skymap_galactic_reflect.GetZaxis().SetTitle('Flux [$\mathrm{TeV}^{1}\mathrm{cm}^{-2}\mathrm{s}^{-1}$]')
     hist_zscore_skymap_galactic_reflect.GetZaxis().SetTitleOffset(title_offset)
-    hist_zscore_skymap_galactic_reflect.SetMaximum(5)
-    hist_zscore_skymap_galactic_reflect.SetMinimum(-5)
+    #hist_zscore_skymap_galactic_reflect.SetMaximum(5)
+    #hist_zscore_skymap_galactic_reflect.SetMinimum(-5)
     hist_zscore_skymap_galactic_reflect.Draw("COL4Z")
     hist_zscore_skymap_galactic_reflect.GetXaxis().SetLabelOffset(999)
     hist_zscore_skymap_galactic_reflect.GetXaxis().SetTickLength(0)
@@ -4773,6 +4805,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
     galLowerAxis.Draw()
     for star in range(0,len(other_star_markers_gal)):
         other_star_markers_gal[star].Draw("same")
+        other_star_labels_gal[star].SetTextAngle(45)
         other_star_labels_gal[star].Draw("same")
     for star in range(0,len(bright_star_markers)):
         bright_star_markers[star].SetMarkerSize(1.5*zoomin_scale)
@@ -4812,6 +4845,31 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         #    faint_star_markers[star].Draw("same")
         #    faint_star_labels[star].Draw("same")
         canvas.SaveAs('output_plots/SkymapExcess_%s_%s_E%s.png'%(name,selection_tag,ebin))
+
+        hist_bkgd_skymap_reflect = reflectXaxis(hist_bkgd_skymap[ebin])
+        hist_bkgd_skymap_reflect.GetYaxis().SetTitle(title_y)
+        hist_bkgd_skymap_reflect.GetXaxis().SetTitle(title_x)
+        hist_bkgd_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
+        hist_bkgd_skymap_reflect.GetXaxis().SetLabelOffset(999)
+        hist_bkgd_skymap_reflect.GetXaxis().SetTickLength(0)
+        hist_bkgd_skymap_reflect.Draw("COL4Z")
+        raLowerAxis.Draw()
+        mycircles = []
+        for nth_roi in range(0,len(roi_ra)):
+            mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
+            mycircles[nth_roi].SetFillStyle(0)
+            mycircles[nth_roi].SetLineColor(2)
+            mycircles[nth_roi].SetLineWidth(2)
+            if nth_roi==0: continue
+            if (roi_name[nth_roi] in exclude_roi): continue
+            mycircles[nth_roi].Draw("same")
+        for star in range(0,len(other_star_markers)):
+            other_star_markers[star].Draw("same")
+            other_star_labels[star].Draw("same")
+        for star in range(0,len(bright_star_markers)):
+            bright_star_markers[star].Draw("same")
+            bright_star_labels[star].Draw("same")
+        canvas.SaveAs('output_plots/SkymapBkgd_%s_%s_E%s.png'%(name,selection_tag,ebin))
 
     if doMWLMap:
         #Hist_MWL_global = GetCOSkymap(Hist_MWL_global, isRaDec)
@@ -5056,7 +5114,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         fig.savefig("output_plots/%s_%s_E%sto%s.png"%(plotname,sys.argv[1],energy_bin_cut_low,energy_bin_cut_up),bbox_inches='tight')
         axbig.remove()
 
-        profile, profile_err, theta2 = FindGalacticProjection(hist_flux_skymap_sum,hist_flux_syst_skymap_sum,profile_center_x,profile_center_y,0.5)
+        profile, profile_err, theta2 = FindGalacticProjection(hist_flux_skymap_sum,hist_flux_syst_skymap_sum,profile_center_x,profile_center_y,0.2)
         fig.clf()
         axbig = fig.add_subplot()
         axbig.errorbar(theta2[0],profile[0],profile_err[0],color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
@@ -7198,45 +7256,58 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
 
     FilePath_List = []
     ResetStackedShowerHistograms()
-    FilePath = "%s/Netflix_"%(folder_path)+source_list[0]+"_%s"%(root_file_tags[0])+".root"
+    file_exists = True
+    n_groups = 0
+    g_idx = 0
+    while file_exists:
+        SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[0]+"_%s"%(root_file_tags[len(root_file_tags)-1])+"_G%d"%(g_idx)+".root"
+        print ('Read file: %s'%(SourceFilePath))
+        if os.path.exists(SourceFilePath):
+            n_groups += 1
+            print ('file exists.')
+        else:
+            file_exists = False
+            print ('file does not exist.')
+        g_idx += 1
     for source in range(0,len(source_list)):
         source_name = source_list[source]
         for elev in range(0,len(root_file_tags)):
-            FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+".root"
-            GetBrightStarInfo(FilePath)
-            print ('len(bright_star_ra) = %s'%(len(bright_star_ra)))
-            FilePath_List += [FilePath]
-            if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
-            print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
-            InputFile = ROOT.TFile(FilePath_List[len(FilePath_List)-1])
-            InfoTree = InputFile.Get("InfoTree")
-            InfoTree.GetEntry(0)
+            for g_idx in range(0,n_groups):
+                FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+"_G%d"%(g_idx)+".root"
+                GetBrightStarInfo(FilePath)
+                print ('len(bright_star_ra) = %s'%(len(bright_star_ra)))
+                FilePath_List += [FilePath]
+                if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
+                print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
+                InputFile = ROOT.TFile(FilePath_List[len(FilePath_List)-1])
+                InfoTree = InputFile.Get("InfoTree")
+                InfoTree.GetEntry(0)
 
-            MSCW_blind_cut = InfoTree.MSCW_cut_blind
-            MSCL_blind_cut = InfoTree.MSCL_cut_blind
-            bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_plot_lower)
-            bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
-            bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
-            bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
-            for e in range(0,len(energy_bin)-1):
-                print ('energy_bin = %s'%(energy_bin))
-                max_chi2_diff2_position_this_energy = max_chi2_diff2_position[e]
-                ErecS_lower_cut = energy_bin[e]
-                ErecS_upper_cut = energy_bin[e+1]
-                print ('max_chi2_diff2_position_this_energy = %0.3f'%(max_chi2_diff2_position_this_energy))
-                if ErecS_upper_cut<=energy_bin[energy_bin_cut_low]: continue
-                if ErecS_lower_cut>=energy_bin[energy_bin_cut_up]: continue
-                Syst_MDM = energy_syst[e]
-                GetShowerHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
-                StackShowerHistograms()
-                NormalizeEnergyHistograms(FilePath_List[len(FilePath_List)-1])
-                StackEnergyHistograms()
-                NormalizeTheta2Histograms(FilePath_List[len(FilePath_List)-1])
-                StackTheta2Histograms()
-                NormalizeSkyMapHistograms(FilePath_List[len(FilePath_List)-1],e)
-                StackSkymapHistograms(e)
+                MSCW_blind_cut = InfoTree.MSCW_cut_blind
+                MSCL_blind_cut = InfoTree.MSCL_cut_blind
+                bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_plot_lower)
+                bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
+                bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
+                bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
+                for e in range(0,len(energy_bin)-1):
+                    print ('energy_bin = %s'%(energy_bin))
+                    max_chi2_diff2_position_this_energy = max_chi2_diff2_position[e]
+                    ErecS_lower_cut = energy_bin[e]
+                    ErecS_upper_cut = energy_bin[e+1]
+                    print ('max_chi2_diff2_position_this_energy = %0.3f'%(max_chi2_diff2_position_this_energy))
+                    if ErecS_upper_cut<=energy_bin[energy_bin_cut_low]: continue
+                    if ErecS_lower_cut>=energy_bin[energy_bin_cut_up]: continue
+                    Syst_MDM = energy_syst[e]
+                    GetShowerHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
+                    StackShowerHistograms()
+                    NormalizeEnergyHistograms(FilePath_List[len(FilePath_List)-1])
+                    StackEnergyHistograms()
+                    NormalizeTheta2Histograms(FilePath_List[len(FilePath_List)-1])
+                    StackTheta2Histograms()
+                    NormalizeSkyMapHistograms(FilePath_List[len(FilePath_List)-1],e)
+                    StackSkymapHistograms(e)
 
-            InputFile.Close()
+                InputFile.Close()
 
     for ebin in range(0,len(energy_bin)-1):
         for binx in range(0,Hist_SumSyst_Energy_Skymap[ebin].GetNbinsX()):
@@ -7415,19 +7486,33 @@ source_ra = 0.
 source_dec = 0.
 source_l = 0.
 source_b = 0.
+file_exists = True
+n_groups = 0
+g_idx = 0
+while file_exists:
+    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[0]+"_%s"%(root_file_tags[len(root_file_tags)-1])+"_G%d"%(g_idx)+".root"
+    print ('Read file: %s'%(SourceFilePath))
+    if os.path.exists(SourceFilePath):
+        n_groups += 1
+        print ('file exists.')
+    else:
+        file_exists = False
+        print ('file does not exist.')
+    g_idx += 1
 for source in range(0,len(sample_list)):
     source_idx = FindSourceIndex(sample_list[source])
     FilePath_Folder = []
     for elev in range(0,len(root_file_tags)):
-        SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+".root"
-        FilePath_Folder += [SourceFilePath]
-        print ('Get %s...'%(FilePath_Folder[elev]))
-        if not os.path.isfile(FilePath_Folder[elev]): 
-            print ('Found no file!!')
-            continue
-        else:
-            print ('Found a file.')
-            GetSourceInfo(FilePath_Folder)
+        for g_idx in range(0,n_groups):
+            SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d"%(g_idx)+".root"
+            FilePath_Folder += [SourceFilePath]
+            print ('Get %s...'%(FilePath_Folder[elev]))
+            if not os.path.isfile(FilePath_Folder[elev]): 
+                print ('Found no file!!')
+                continue
+            else:
+                print ('Found a file.')
+    GetSourceInfo(FilePath_Folder)
     MakeOneHistPlot(Hist_NSB,'NSB','number of runs','NSB_%s'%(sample_list[source]),False)
     MakeOneHistPlot(Hist_L3Rate,'L3 rate','number of runs','L3Rate_%s'%(sample_list[source]),False)
 
@@ -7435,6 +7520,7 @@ print ('analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut))
 MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
 MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
 print ('plot range: MSCL = %s, MSCW = %s'%(MSCL_plot_upper,MSCW_plot_upper))
+print ('N_bins_for_deconv = %d'%(N_bins_for_deconv))
 
 Hist2D_OnData_Point_Sum = ROOT.TH2D("Hist2D_OnData_Point_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
 Hist2D_OnData_Ring_Sum = ROOT.TH2D("Hist2D_OnData_Ring_Sum","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -7661,7 +7747,8 @@ Hist_ShapeSyst_Theta2 = ROOT.TH1D("Hist_ShapeSyst_Theta2","",50,0,10)
 Hist_CR_Counts_MSCW = ROOT.TH1D("Hist_CR_Counts_MSCW","",6,0,6)
 Hist_CR_Counts_MSCL = ROOT.TH1D("Hist_CR_Counts_MSCL","",6,0,6)
 
-#print ('MJD_Start = %s'%(MJD_Start))
+print ('MJD_Start = %s'%(MJD_Start))
+print ('MJD_End = %s'%(MJD_End))
 #time = Time(MJD_Start, format='mjd')
 #time.format = 'decimalyear'
 #year_start = time.value
