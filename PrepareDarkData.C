@@ -2106,6 +2106,16 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
     sprintf(group_tag, "_G%d", group_index);
 
+    roi_name.clear();
+    roi_ra.clear();
+    roi_dec.clear();
+    roi_radius_inner.clear();
+    roi_radius_outer.clear();
+    BrightStars_Data.clear();
+    FaintStars_Data.clear();
+    GammaSource_Data.clear();
+    Dark_weight.clear();
+
     std::cout << "Get systematic error histograms" << std::endl;
     vector<TH1D> Hist_NormSystErr;
     for (int elev=0;elev<N_elev_bins;elev++) 
