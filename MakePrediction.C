@@ -4345,6 +4345,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         rank4_gamma_count.push_back(rank0_count+rank1_count+rank2_count+rank3_count+rank4_count);
         mtx_dark_redu = GetReducedEigenvalueMatrix(mtx_dark,4);
         fill2DHistogram(&Hist_Rank4_MSCLW_Dark.at(e),mtx_dark_redu);
+        std::cout << "Done filling 2D histograms." << std::endl;
 
 
         SetInitialSpectralvectors(binx_blind_global,biny_blind_global,mtx_data);
@@ -4376,9 +4377,12 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         fill1DHistogram(&Hist_Dark_Rank1_RightVector.at(e),mtx_eigenvector_init,1,1.0);
         fill1DHistogram(&Hist_Dark_Rank2_RightVector.at(e),mtx_eigenvector_init,2,1.0);
         fill1DHistogram(&Hist_Dark_Rank3_RightVector.at(e),mtx_eigenvector_init,3,1.0);
+        std::cout << "Done filling 1D histograms." << std::endl;
 
     }
-    InputDataFile.Close();
+    //std::cout << "Prepare to close input file." << std::endl;
+    //InputDataFile.Close();
+    //std::cout << "Input file closed." << std::endl;
 
     TFile InputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root");
     TTree* InfoTree = nullptr;
@@ -4408,6 +4412,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     newstartree->Write();
     TTree *newfaintstartree = FaintStarTree->CloneTree();
     newfaintstartree->Write();
+    std::cout << "Done writing info and star trees." << std::endl;
 
     TTree NewInfoTree("NewInfoTree","new info tree");
     NewInfoTree.Branch("exposure_hours",&exposure_hours,"exposure_hours/D");
@@ -4450,6 +4455,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     NewInfoTree.Branch("rank4_gamma_count","std::vector<double>",&rank4_gamma_count);
     NewInfoTree.Fill();
     NewInfoTree.Write();
+    std::cout << "Done writing new info tree." << std::endl;
 
     Hist_Dark_ElevNSB.Write();
     Hist_Dark_ElevAzim.Write();
@@ -4605,6 +4611,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     }
     OutputFile.Close();
     InputFile.Close();
+    std::cout << "Output file closed." << std::endl;
 
     std::cout << "Done." << std::endl;
 

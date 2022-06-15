@@ -2115,6 +2115,8 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     FaintStars_Data.clear();
     GammaSource_Data.clear();
     Dark_weight.clear();
+    exposure_hours = 0.;
+    exposure_hours_usable = 0.;
 
     std::cout << "Get systematic error histograms" << std::endl;
     vector<TH1D> Hist_NormSystErr;
