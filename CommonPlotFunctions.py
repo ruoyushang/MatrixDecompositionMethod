@@ -31,29 +31,21 @@ smooth_size_spectroscopy = 0.1
 #Smoothing = True
 Smoothing = False
 
-calibration_radius = 0.3
+#calibration_radius = 0.3
+calibration_radius = 0.2
 
 energy_index_scale = 2
 
 Skymap_size = 2.
 #Skymap_nbins = 60
-Skymap_nbins = 30
-#Skymap_nbins = 15
+#Skymap_nbins = 30
+Skymap_nbins = 15
 #Skymap_nbins = 6
+#Skymap_nbins = 5
 #Skymap_nbins = 3
 
-elev_range = [35,45,55,65,75,85]
-#elev_range = [45,55,65,75,85]
-#elev_range = [55,65,75,85]
-#elev_range = [65,75,85]
-#elev_range = [35,45,55,65]
-#elev_range = [35,45,55]
-#elev_range = [75,85]
-#elev_range = [65,75]
-#elev_range = [55,65]
-#elev_range = [45,55]
-#elev_range = [35,45]
-
+#elev_range = [35,45,55,65,75,85]
+elev_range = [45,65,85]
 
 #energy_bin = []
 #energy_bin += [100]
@@ -266,6 +258,8 @@ def FindGalacticProjection(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integrati
                 syst_error = 0.
                 if Hist_Syst_input!=None:
                     syst_error = Hist_Syst_input.GetBinContent(bx+1,by+1)
+                cell_err = pow(syst_error*syst_error+data_error*data_error,0.5)
+                if cell_err>0.9: continue
                 delta_b = abs(cell_b-roi_b)
                 if delta_b>integration_range: continue
                 if cell_l>=range_limit_previous and cell_l<range_limit:
@@ -293,6 +287,8 @@ def FindGalacticProjection(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integrati
                 syst_error = 0.
                 if Hist_Syst_input!=None:
                     syst_error = Hist_Syst_input.GetBinContent(bx+1,by+1)
+                cell_err = pow(syst_error*syst_error+data_error*data_error,0.5)
+                if cell_err>0.9: continue
                 delta_l = abs(cell_l-roi_l)
                 if delta_l>integration_range: continue
                 if cell_b>=range_limit_previous and cell_b<range_limit:
@@ -314,6 +310,7 @@ def FindGalacticProjection(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integrati
         range_limit_previous = Hist_Profile_Gal_l.GetBinLowEdge(binx+1)
         profile_content = Hist_Profile_Gal_l.GetBinContent(binx+1)
         profile_error = Hist_Profile_Gal_l.GetBinError(binx+1)
+        if profile_error>0.9: continue
         theta2_l += [center]
         profile_l += [profile_content]
         profile_err_l += [profile_error]
@@ -326,6 +323,7 @@ def FindGalacticProjection(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integrati
         range_limit_previous = Hist_Profile_Gal_b.GetBinLowEdge(binx+1)
         profile_content = Hist_Profile_Gal_b.GetBinContent(binx+1)
         profile_error = Hist_Profile_Gal_b.GetBinError(binx+1)
+        if profile_error>0.9: continue
         theta2_b += [center]
         profile_b += [profile_content]
         profile_err_b += [profile_error]

@@ -43,19 +43,18 @@ lowrank_tag = '_svd'
 #lowrank_tag = '_eigen'
 method_tag += lowrank_tag
 
-folder_path = 'output_test'
 #folder_path = 'output_rhv'
 #folder_path = 'output_2x2'
 #folder_path = 'output_4x4'
 #folder_path = 'output_8x8'
 #folder_path = 'output_16x16'
+folder_path = 'output_test'
 
 energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
-#theta2_bins = [0,2]
-theta2_bins = [0,4]
-#theta2_bins = [0,9]
+#theta2_bins = [0,1]
+theta2_bins = [0,1,2,4]
 
 #distance_sq_limit = 3.24
 distance_sq_limit = 2.56
@@ -4079,7 +4078,7 @@ def GetFluxCalibration(map_x,map_y,energy):
     if data_count==0.: return 0.
     avg_elev = data_elev/data_count
     
-    flux_calibration = [6.27173299710032e-08, 6.4968658047416255e-09, 5.064356246026387e-10, 3.5916888925763446e-11]
+    flux_calibration = [3.715619485492126e-08, 3.4686074327294743e-09, 2.5491285892959776e-10, 1.6854055449950507e-11]
     #flux_calibration = []
     #if avg_elev<=85. and avg_elev>75.:
     #    flux_calibration = [3.352236564473935e-08, 2.658740853181333e-09, 2.0324882825007042e-10, 1.6339503640997207e-11]
@@ -7256,22 +7255,20 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
 
     FilePath_List = []
     ResetStackedShowerHistograms()
-    file_exists = True
-    n_groups = 0
-    g_idx = 0
-    while file_exists:
-        SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[0]+"_%s"%(root_file_tags[len(root_file_tags)-1])+"_G%d"%(g_idx)+".root"
-        print ('Read file: %s'%(SourceFilePath))
-        if os.path.exists(SourceFilePath):
-            n_groups += 1
-            print ('file exists.')
-        else:
-            file_exists = False
-            print ('file does not exist.')
-        g_idx += 1
     for source in range(0,len(source_list)):
         source_name = source_list[source]
         for elev in range(0,len(root_file_tags)):
+            file_exists = True
+            n_groups = 0
+            while file_exists:
+                SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+"_G%d"%(n_groups)+".root"
+                print ('Read file: %s'%(SourceFilePath))
+                if os.path.exists(SourceFilePath):
+                    n_groups += 1
+                    print ('file exists.')
+                else:
+                    file_exists = False
+                    print ('file does not exist.')
             for g_idx in range(0,n_groups):
                 FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+"_G%d"%(g_idx)+".root"
                 GetBrightStarInfo(FilePath)
@@ -7486,28 +7483,26 @@ source_ra = 0.
 source_dec = 0.
 source_l = 0.
 source_b = 0.
-file_exists = True
-n_groups = 0
-g_idx = 0
-while file_exists:
-    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[0]+"_%s"%(root_file_tags[len(root_file_tags)-1])+"_G%d"%(g_idx)+".root"
-    print ('Read file: %s'%(SourceFilePath))
-    if os.path.exists(SourceFilePath):
-        n_groups += 1
-        print ('file exists.')
-    else:
-        file_exists = False
-        print ('file does not exist.')
-    g_idx += 1
 for source in range(0,len(sample_list)):
     source_idx = FindSourceIndex(sample_list[source])
     FilePath_Folder = []
     for elev in range(0,len(root_file_tags)):
+        file_exists = True
+        n_groups = 0
+        while file_exists:
+            SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d"%(n_groups)+".root"
+            print ('Read file: %s'%(SourceFilePath))
+            if os.path.exists(SourceFilePath):
+                n_groups += 1
+                print ('file exists.')
+            else:
+                file_exists = False
+                print ('file does not exist.')
         for g_idx in range(0,n_groups):
             SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d"%(g_idx)+".root"
             FilePath_Folder += [SourceFilePath]
-            print ('Get %s...'%(FilePath_Folder[elev]))
-            if not os.path.isfile(FilePath_Folder[elev]): 
+            print ('Get %s...'%(FilePath_Folder[len(FilePath_Folder)-1]))
+            if not os.path.isfile(FilePath_Folder[len(FilePath_Folder)-1]): 
                 print ('Found no file!!')
                 continue
             else:
