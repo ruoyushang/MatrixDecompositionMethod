@@ -939,6 +939,10 @@ double GetRunUsableTime(string file_name,int run_number)
         TFile*  input_file = TFile::Open(file_name.c_str());
         TTree* pointing_tree = nullptr;
         pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number_char)+"/stereo/pointingDataReduced"));
+        if (!pointing_tree)
+        {
+            return 0.;
+        }
         pointing_tree->SetBranchStatus("*",0);
         pointing_tree->SetBranchStatus("Time",1);
         pointing_tree->SetBranchAddress("Time",&Time);
@@ -1045,6 +1049,10 @@ int GetRunMJD(string file_name,int run)
     TFile*  input_file = TFile::Open(file_name.c_str());
     TTree* pointing_tree = nullptr;
     pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
+    if (!pointing_tree)
+    {
+        return 0;
+    }
     pointing_tree->SetBranchStatus("*",0);
     pointing_tree->SetBranchStatus("MJD",1);
     pointing_tree->SetBranchAddress("MJD",&MJD_UInt_t);
@@ -1115,6 +1123,10 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
 
     TTree* pointing_tree = nullptr;
     pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
+    if (!pointing_tree)
+    {
+        return false;
+    }
     pointing_tree->SetBranchAddress("TelElevation",&TelElevation);
     pointing_tree->SetBranchAddress("TelAzimuth",&TelAzimuth);
     pointing_tree->SetBranchAddress("TelRAJ2000",&TelRAJ2000);
@@ -1307,6 +1319,10 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     TFile*  input_file = TFile::Open(file_name.c_str());
     TTree* pointing_tree = nullptr;
     pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
+    if (!pointing_tree)
+    {
+        return std::make_pair(0.,0.);
+    }
     pointing_tree->SetBranchStatus("*",0);
     pointing_tree->SetBranchStatus("TelRAJ2000",1);
     pointing_tree->SetBranchStatus("TelDecJ2000",1);
@@ -1461,6 +1477,10 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     TFile*  input_file = TFile::Open(file_name.c_str());
     TTree* pointing_tree = nullptr;
     pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
+    if (!pointing_tree)
+    {
+        return std::make_pair(0.,0.);
+    }
     pointing_tree->SetBranchStatus("*",0);
     pointing_tree->SetBranchStatus("TelElevation",1);
     pointing_tree->SetBranchStatus("TelAzimuth",1);
@@ -1554,6 +1574,10 @@ bool MJDSelection(string file_name,int run, int MJD_start_cut, int MJD_end_cut)
 
     TTree* pointing_tree = nullptr;
     pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
+    if (!pointing_tree)
+    {
+        return false;
+    }
     pointing_tree->SetBranchAddress("MJD",&MJD_UInt_t);
     double total_entries = (double)pointing_tree->GetEntries();
     pointing_tree->GetEntry(0);
@@ -2822,7 +2846,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         Hist_SRDark_XYoff.push_back(TH2D("Hist_SRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Xoff_bins,-2,2,Yoff_bins,-2,2));
         Hist_CRDark_XYoff.push_back(TH2D("Hist_CRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Xoff_bins,-2,2,Yoff_bins,-2,2));
         Hist_SRCRDarkRatio_XYoff.push_back(TH2D("Hist_SRCRDarkRatio_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Xoff_bins,-2,2,Yoff_bins,-2,2));
-        Hist_SRCRDarkRatio_XYoff_Smooth.push_back(TH2D("Hist_SRCRDarkRatio_XYoff_Smooth_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",40,-2,2,40,-2,2));
+        Hist_SRCRDarkRatio_XYoff_Smooth.push_back(TH2D("Hist_SRCRDarkRatio_XYoff_Smooth_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",32,-2,2,32,-2,2));
         int RaDec_bins = 8;
         if (e>=2)
         {
@@ -3029,6 +3053,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                 TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(dark_input_file,Dark_runlist.at(run).at(nth_sample)[off_run].second, 0.5);
                 TString root_file = "run_"+string(run_number)+"/stereo/data_on";
                 TTree* Dark_tree = (TTree*) dark_input_file->Get(root_file);
+                if (!Dark_tree)
+                {
+                    std::cout << "TTree does not exist: " << root_file << std::endl;
+                    continue;
+                }
                 SetEventDisplayTreeBranch(Dark_tree);
                 vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Dark_runlist.at(run).at(nth_sample)[off_run].second);
 
@@ -3287,6 +3316,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
+        if (!Data_tree)
+        {
+            std::cout << "TTree does not exist: " << root_file << std::endl;
+            continue;
+        }
         SetEventDisplayTreeBranch(Data_tree);
         std::cout << "Get time cuts for run " << run_number << std::endl;
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
@@ -3398,6 +3432,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
+        if (!Data_tree)
+        {
+            std::cout << "TTree does not exist: " << root_file << std::endl;
+            continue;
+        }
         SetEventDisplayTreeBranch(Data_tree);
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
         double tele_elev = GetRunElevAzim(filename,int(Data_runlist[run].second)).first;
@@ -3503,6 +3542,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
+        if (!Data_tree)
+        {
+            std::cout << "TTree does not exist: " << root_file << std::endl;
+            continue;
+        }
         SetEventDisplayTreeBranch(Data_tree);
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
         double tele_elev = GetRunElevAzim(filename,int(Data_runlist[run].second)).first;
@@ -3747,6 +3791,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
+        if (!Data_tree)
+        {
+            std::cout << "TTree does not exist: " << root_file << std::endl;
+            continue;
+        }
         SetEventDisplayTreeBranch(Data_tree);
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
 
@@ -4651,6 +4700,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
 
     for (int g_idx=0;g_idx<n_groups;g_idx++)
     {
+        std::cout << "===============================================================================" << std::endl;
+        std::cout << "Prepare sub-group " << g_idx+1 << "/" << n_groups << std::endl;
+        std::cout << "===============================================================================" << std::endl;
         PrepareDarkData_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, input_theta2_cut_lower, input_theta2_cut_upper, isON, doImposter, GammaModel, g_idx);
     }
 
