@@ -2984,7 +2984,7 @@ void AlterDarkMatrix(TH2D* hist_data, TH2D* hist_dark, TH2D* hist_dark_alter)
     }
 
 }
-void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel, int group_index)
+void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel, int group_index, int map_x_index, int map_y_index)
 {
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
@@ -2995,6 +2995,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     TH1::SetDefaultSumw2();
 
     sprintf(group_tag, "_G%d", group_index);
+    sprintf(map_x_tag, "_X%d", map_x_index);
+    sprintf(map_y_tag, "_Y%d", map_y_index);
 
     sprintf(target, "%s", target_data.c_str());
 
@@ -3092,7 +3094,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         regularization_name  = "../Regularization_eigen.root";
     }
     TFile RegularizationFile(regularization_name);
-    TFile InputDataFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root");
+    TFile InputDataFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root");
 
     TString hist_name;
     hist_name  = "Hist_Data_ElevNSB";
@@ -4384,7 +4386,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     //InputDataFile.Close();
     //std::cout << "Input file closed." << std::endl;
 
-    TFile InputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root");
+    TFile InputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root");
     TTree* InfoTree = nullptr;
     InfoTree = (TTree*) InputFile.Get("InfoTree");
     TTree* StarTree = nullptr;
@@ -4401,7 +4403,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     {
         sprintf(lowrank_tag, "svd");
     }
-    TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_"+TString(lowrank_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root","recreate");
+    TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_"+TString(lowrank_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root","recreate");
 
     TTree *newtree = InfoTree->CloneTree();
     newtree->Branch("MSCW_chi2_upper",&MSCW_chi2_upper,"MSCW_chi2_upper/D");
@@ -4660,8 +4662,8 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     while (file_exists)
     {
         sprintf(group_tag, "_G%d", group_index);
-        std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root" << std::endl;
-        if (gSystem->AccessPathName(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root"))
+        std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+"_X0_Y0"+".root" << std::endl;
+        if (gSystem->AccessPathName(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+"_X0_Y0"+".root"))
         {
             std::cout << "file does not exist." << std::endl;
             file_exists = false;
@@ -4678,7 +4680,13 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
     for (int g_idx=0;g_idx<n_groups;g_idx++)
     {
-        MakePrediction_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, input_theta2_cut_lower, input_theta2_cut_upper, isON, GammaModel, g_idx);
+        for (int x_idx=0;x_idx<4;x_idx++)
+        {
+            for (int y_idx=0;y_idx<4;y_idx++)
+            {
+                MakePrediction_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, input_theta2_cut_lower, input_theta2_cut_upper, isON, GammaModel, g_idx, x_idx, y_idx);
+            }
+        }
     }
 
 }

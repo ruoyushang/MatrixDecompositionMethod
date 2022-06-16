@@ -49,6 +49,8 @@ char elev_cut_tag[50] = "";
 char theta2_cut_tag[50] = "";
 char mjd_cut_tag[50] = "";
 char group_tag[50] = "";
+char map_x_tag[50] = "";
+char map_y_tag[50] = "";
 double SizeSecondMax_Cut = 0.;
 
 // EventDisplay variables
@@ -92,6 +94,10 @@ double exposure_hours_usable = 0.;
 double exposure_hours_ref = 0.;
 int MJD_Start = 2147483647;
 int MJD_End = 0;
+double map_x_bin_upper = 0.;
+double map_x_bin_lower = 0.;
+double map_y_bin_upper = 0.;
+double map_y_bin_lower = 0.;
 
 int n_expect_matches = 0;
 int n_good_matches = 0;
@@ -586,6 +592,10 @@ bool FoV() {
     if (abs(x)>Skymap_size) return false;
     if (abs(y)>Skymap_size) return false;
     if (source_theta2_cut>(x*x+y*y)) return false;
+    if (x<map_x_bin_lower) return false;
+    if (x>map_x_bin_upper) return false;
+    if (y<map_y_bin_lower) return false;
+    if (y>map_y_bin_upper) return false;
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
     
@@ -2118,7 +2128,7 @@ void Smooth2DMap(TH2D* hist, double smooth_size)
 
 }
 
-void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel, int group_index)
+void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel, int group_index, int map_x_index, int map_y_index)
 {
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
@@ -2129,6 +2139,12 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     TH1::SetDefaultSumw2();
 
     sprintf(group_tag, "_G%d", group_index);
+    sprintf(map_x_tag, "_X%d", map_x_index);
+    sprintf(map_y_tag, "_Y%d", map_y_index);
+    map_x_bin_upper = double(map_x_index+1)*1.0-Skymap_size;
+    map_x_bin_lower = double(map_x_index)*1.0-Skymap_size;
+    map_y_bin_upper = double(map_y_index+1)*1.0-Skymap_size;
+    map_y_bin_lower = double(map_y_index)*1.0-Skymap_size;
 
     roi_name.clear();
     roi_ra.clear();
@@ -4476,7 +4492,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     //}
 
 
-    TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root","recreate");
+    TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root","recreate");
 
     TTree InfoTree("InfoTree","info tree");
     InfoTree.Branch("N_bins_for_deconv",&N_bins_for_deconv,"N_bins_for_deconv/I");
@@ -4703,7 +4719,13 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         std::cout << "===============================================================================" << std::endl;
         std::cout << "Prepare sub-group " << g_idx+1 << "/" << n_groups << std::endl;
         std::cout << "===============================================================================" << std::endl;
-        PrepareDarkData_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, input_theta2_cut_lower, input_theta2_cut_upper, isON, doImposter, GammaModel, g_idx);
+        for (int x_idx=0;x_idx<4;x_idx++)
+        {
+            for (int y_idx=0;y_idx<4;y_idx++)
+            {
+                PrepareDarkData_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, input_theta2_cut_lower, input_theta2_cut_upper, isON, doImposter, GammaModel, g_idx, x_idx, y_idx);
+            }
+        }
     }
 
 }
