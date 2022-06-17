@@ -36,6 +36,7 @@ calibration_radius = CommonPlotFunctions.calibration_radius
 elev_range = CommonPlotFunctions.elev_range
 energy_index_scale = CommonPlotFunctions.energy_index_scale
 Smoothing = CommonPlotFunctions.Smoothing
+Skymap_normalization_nbins = CommonPlotFunctions.Skymap_normalization_nbins
 
 method_tag = 'tight_mdm_default'
 
@@ -46,15 +47,15 @@ method_tag += lowrank_tag
 #folder_path = 'output_rhv'
 #folder_path = 'output_2x2'
 #folder_path = 'output_4x4'
-#folder_path = 'output_8x8'
+folder_path = 'output_8x8'
 #folder_path = 'output_16x16'
-folder_path = 'output_test'
+#folder_path = 'output_test'
 
 energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
-#theta2_bins = [0,1]
-theta2_bins = [0,1,2,4]
+theta2_bins = [0,4]
+#theta2_bins = [0,1,2,4]
 
 #distance_sq_limit = 3.24
 distance_sq_limit = 2.56
@@ -1195,7 +1196,7 @@ def GetSourceInfo(file_list):
         source_dec = InfoTree.mean_tele_point_dec
         source_l = InfoTree.mean_tele_point_l
         source_b = InfoTree.mean_tele_point_b
-        if 'Theta20' in file_list[path]:
+        if '_X0_Y0' in file_list[path]:
             exposure_hours += InfoTree.exposure_hours_usable
         MJD_Start = min(InfoTree.MJD_Start,MJD_Start)
         MJD_End = max(InfoTree.MJD_End,MJD_End)
@@ -5205,6 +5206,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         if 'MGRO_J1908_Imposter' in sys.argv[1]:
             output_file = ROOT.TFile("output_fitting/%s_skymap.root"%(sys.argv[1]),"recreate")
             for ebin in range(0,len(energy_bin)-1):
+                hist_energy_flux_skymap[ebin].Write()
+                hist_energy_flux_syst_skymap[ebin].Write()
                 hist_data_skymap[ebin].Write()
                 hist_bkgd_skymap[ebin].Write()
             output_file.Close();
@@ -7261,7 +7264,7 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
             file_exists = True
             n_groups = 0
             while file_exists:
-                SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+"_G%d"%(n_groups)+".root"
+                SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,0,0)+".root"
                 print ('Read file: %s'%(SourceFilePath))
                 if os.path.exists(SourceFilePath):
                     n_groups += 1
@@ -7269,42 +7272,44 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
                 else:
                     file_exists = False
                     print ('file does not exist.')
-            for g_idx in range(0,n_groups):
-                FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+"_G%d"%(g_idx)+".root"
-                GetBrightStarInfo(FilePath)
-                print ('len(bright_star_ra) = %s'%(len(bright_star_ra)))
-                FilePath_List += [FilePath]
-                if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
-                print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
-                InputFile = ROOT.TFile(FilePath_List[len(FilePath_List)-1])
-                InfoTree = InputFile.Get("InfoTree")
-                InfoTree.GetEntry(0)
+            for x_idx in range(0,Skymap_normalization_nbins):
+                for y_idx in range(0,Skymap_normalization_nbins):
+                    for g_idx in range(0,n_groups):
+                        FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
+                        GetBrightStarInfo(FilePath)
+                        print ('len(bright_star_ra) = %s'%(len(bright_star_ra)))
+                        FilePath_List += [FilePath]
+                        if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
+                        print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
+                        InputFile = ROOT.TFile(FilePath_List[len(FilePath_List)-1])
+                        InfoTree = InputFile.Get("InfoTree")
+                        InfoTree.GetEntry(0)
 
-                MSCW_blind_cut = InfoTree.MSCW_cut_blind
-                MSCL_blind_cut = InfoTree.MSCL_cut_blind
-                bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_plot_lower)
-                bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
-                bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
-                bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
-                for e in range(0,len(energy_bin)-1):
-                    print ('energy_bin = %s'%(energy_bin))
-                    max_chi2_diff2_position_this_energy = max_chi2_diff2_position[e]
-                    ErecS_lower_cut = energy_bin[e]
-                    ErecS_upper_cut = energy_bin[e+1]
-                    print ('max_chi2_diff2_position_this_energy = %0.3f'%(max_chi2_diff2_position_this_energy))
-                    if ErecS_upper_cut<=energy_bin[energy_bin_cut_low]: continue
-                    if ErecS_lower_cut>=energy_bin[energy_bin_cut_up]: continue
-                    Syst_MDM = energy_syst[e]
-                    GetShowerHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
-                    StackShowerHistograms()
-                    NormalizeEnergyHistograms(FilePath_List[len(FilePath_List)-1])
-                    StackEnergyHistograms()
-                    NormalizeTheta2Histograms(FilePath_List[len(FilePath_List)-1])
-                    StackTheta2Histograms()
-                    NormalizeSkyMapHistograms(FilePath_List[len(FilePath_List)-1],e)
-                    StackSkymapHistograms(e)
+                        MSCW_blind_cut = InfoTree.MSCW_cut_blind
+                        MSCL_blind_cut = InfoTree.MSCL_cut_blind
+                        bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_plot_lower)
+                        bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
+                        bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
+                        bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
+                        for e in range(0,len(energy_bin)-1):
+                            print ('energy_bin = %s'%(energy_bin))
+                            max_chi2_diff2_position_this_energy = max_chi2_diff2_position[e]
+                            ErecS_lower_cut = energy_bin[e]
+                            ErecS_upper_cut = energy_bin[e+1]
+                            print ('max_chi2_diff2_position_this_energy = %0.3f'%(max_chi2_diff2_position_this_energy))
+                            if ErecS_upper_cut<=energy_bin[energy_bin_cut_low]: continue
+                            if ErecS_lower_cut>=energy_bin[energy_bin_cut_up]: continue
+                            Syst_MDM = energy_syst[e]
+                            GetShowerHistogramsFromFile(FilePath_List[len(FilePath_List)-1])
+                            StackShowerHistograms()
+                            NormalizeEnergyHistograms(FilePath_List[len(FilePath_List)-1])
+                            StackEnergyHistograms()
+                            NormalizeTheta2Histograms(FilePath_List[len(FilePath_List)-1])
+                            StackTheta2Histograms()
+                            NormalizeSkyMapHistograms(FilePath_List[len(FilePath_List)-1],e)
+                            StackSkymapHistograms(e)
 
-                InputFile.Close()
+                        InputFile.Close()
 
     for ebin in range(0,len(energy_bin)-1):
         for binx in range(0,Hist_SumSyst_Energy_Skymap[ebin].GetNbinsX()):
@@ -7490,7 +7495,7 @@ for source in range(0,len(sample_list)):
         file_exists = True
         n_groups = 0
         while file_exists:
-            SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d"%(n_groups)+".root"
+            SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,0,0)+".root"
             print ('Read file: %s'%(SourceFilePath))
             if os.path.exists(SourceFilePath):
                 n_groups += 1
@@ -7498,15 +7503,17 @@ for source in range(0,len(sample_list)):
             else:
                 file_exists = False
                 print ('file does not exist.')
-        for g_idx in range(0,n_groups):
-            SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d"%(g_idx)+".root"
-            FilePath_Folder += [SourceFilePath]
-            print ('Get %s...'%(FilePath_Folder[len(FilePath_Folder)-1]))
-            if not os.path.isfile(FilePath_Folder[len(FilePath_Folder)-1]): 
-                print ('Found no file!!')
-                continue
-            else:
-                print ('Found a file.')
+        for x_idx in range(0,Skymap_normalization_nbins):
+            for y_idx in range(0,Skymap_normalization_nbins):
+                for g_idx in range(0,n_groups):
+                    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
+                    FilePath_Folder += [SourceFilePath]
+                    print ('Get %s...'%(FilePath_Folder[len(FilePath_Folder)-1]))
+                    if not os.path.isfile(FilePath_Folder[len(FilePath_Folder)-1]): 
+                        print ('Found no file!!')
+                        continue
+                    else:
+                        print ('Found a file.')
     GetSourceInfo(FilePath_Folder)
     MakeOneHistPlot(Hist_NSB,'NSB','number of runs','NSB_%s'%(sample_list[source]),False)
     MakeOneHistPlot(Hist_L3Rate,'L3 rate','number of runs','L3Rate_%s'%(sample_list[source]),False)
