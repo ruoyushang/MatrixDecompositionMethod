@@ -99,6 +99,7 @@ double MSCL_plot_upper = 3.;
 
 double Skymap_size = 2.;
 int Skymap_nbins = 60;
+int Skymap_normalization_nbins = 1;
 
 double brightness_cut = 5.0;
 //double faint_brightness_cut = 5.0;

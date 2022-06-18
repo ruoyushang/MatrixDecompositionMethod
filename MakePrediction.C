@@ -4680,9 +4680,9 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
 
     for (int g_idx=0;g_idx<n_groups;g_idx++)
     {
-        for (int x_idx=0;x_idx<4;x_idx++)
+        for (int x_idx=0;x_idx<Skymap_normalization_nbins;x_idx++)
         {
-            for (int y_idx=0;y_idx<4;y_idx++)
+            for (int y_idx=0;y_idx<Skymap_normalization_nbins;y_idx++)
             {
                 MakePrediction_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, input_theta2_cut_lower, input_theta2_cut_upper, isON, GammaModel, g_idx, x_idx, y_idx);
             }

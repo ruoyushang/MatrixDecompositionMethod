@@ -2141,10 +2141,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     sprintf(group_tag, "_G%d", group_index);
     sprintf(map_x_tag, "_X%d", map_x_index);
     sprintf(map_y_tag, "_Y%d", map_y_index);
-    map_x_bin_upper = double(map_x_index+1)*1.0-Skymap_size;
-    map_x_bin_lower = double(map_x_index)*1.0-Skymap_size;
-    map_y_bin_upper = double(map_y_index+1)*1.0-Skymap_size;
-    map_y_bin_lower = double(map_y_index)*1.0-Skymap_size;
+    map_x_bin_upper = double(map_x_index+1)*2.0*Skymap_size/double(Skymap_normalization_nbins)-Skymap_size;
+    map_x_bin_lower = double(map_x_index)*2.0*Skymap_size/double(Skymap_normalization_nbins)-Skymap_size;
+    map_y_bin_upper = double(map_y_index+1)*2.0*Skymap_size/double(Skymap_normalization_nbins)-Skymap_size;
+    map_y_bin_lower = double(map_y_index)*2.0*Skymap_size/double(Skymap_normalization_nbins)-Skymap_size;
 
     roi_name.clear();
     roi_ra.clear();
@@ -4719,9 +4719,9 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         std::cout << "===============================================================================" << std::endl;
         std::cout << "Prepare sub-group " << g_idx+1 << "/" << n_groups << std::endl;
         std::cout << "===============================================================================" << std::endl;
-        for (int x_idx=0;x_idx<4;x_idx++)
+        for (int x_idx=0;x_idx<Skymap_normalization_nbins;x_idx++)
         {
-            for (int y_idx=0;y_idx<4;y_idx++)
+            for (int y_idx=0;y_idx<Skymap_normalization_nbins;y_idx++)
             {
                 PrepareDarkData_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, input_theta2_cut_lower, input_theta2_cut_upper, isON, doImposter, GammaModel, g_idx, x_idx, y_idx);
             }
