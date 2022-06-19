@@ -187,6 +187,31 @@ if sys.argv[1]=='H1426_ON':
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['H1426V6_ON']
+if sys.argv[1]=='H1426_Imposter1':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['H1426V6_Imposter1']
+if sys.argv[1]=='H1426_Imposter2':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['H1426V6_Imposter2']
+if sys.argv[1]=='H1426_Imposter3':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['H1426V6_Imposter3']
+if sys.argv[1]=='H1426_Imposter4':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['H1426V6_Imposter4']
+if sys.argv[1]=='H1426_Imposter5':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['H1426V6_Imposter5']
     
 if sys.argv[1]=='PKS1424_OFF':
     ONOFF_tag = 'OFF'
@@ -406,6 +431,31 @@ if sys.argv[1]=='NGC1275_ON':
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['NGC1275V6_ON']
+if sys.argv[1]=='NGC1275_Imposter1':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['NGC1275V6_Imposter1']
+if sys.argv[1]=='NGC1275_Imposter2':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['NGC1275V6_Imposter2']
+if sys.argv[1]=='NGC1275_Imposter3':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['NGC1275V6_Imposter3']
+if sys.argv[1]=='NGC1275_Imposter4':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['NGC1275V6_Imposter4']
+if sys.argv[1]=='NGC1275_Imposter5':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['NGC1275V6_Imposter5']
     
 if sys.argv[1]=='SNR_G150p3Plus04p5_ON':
     ONOFF_tag = 'ON'
@@ -5136,81 +5186,64 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         fig.savefig("output_plots/%s_%s_E%sto%s.png"%(plotname,sys.argv[1],energy_bin_cut_low,energy_bin_cut_up),bbox_inches='tight')
         axbig.remove()
 
-        if sys.argv[1]=='MGRO_J1908_ON':
-            for bx in range(0,hist_flux_skymap_sum.GetNbinsX()):
-                for by in range(0,hist_flux_skymap_sum.GetNbinsY()):
-                    cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
-                    cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
-                    distance_sq = pow(cell_x-MapCenter_x,2) + pow(cell_y-MapCenter_y,2)
-                    #if distance_sq>distance_sq_limit: 
-                    #    hist_flux_skymap_sum.SetBinContent(bx+1,by+1,0.)
-                    #    hist_flux_syst_skymap_sum.SetBinContent(bx+1,by+1,0.)
-                    #    hist_data_skymap_sum.SetBinContent(bx+1,by+1,0.)
-                    #    hist_bkgd_skymap_sum.SetBinContent(bx+1,by+1,0.)
-                    #    hist_expo_skymap_sum.SetBinContent(bx+1,by+1,0.)
-                    #    hist_syst_skymap_sum.SetBinContent(bx+1,by+1,0.)
-                    #    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-                    #        hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,0.)
-                    #        hist_energy_flux_skymap[ebin].SetBinContent(bx+1,by+1,0.)
-                    #        hist_energy_flux_syst_skymap[ebin].SetBinContent(bx+1,by+1,0.)
-                    #        hist_cali_skymap[ebin].SetBinContent(bx+1,by+1,0.)
-                    #        hist_data_skymap[ebin].SetBinContent(bx+1,by+1,0.)
-                    #        hist_bkgd_skymap[ebin].SetBinContent(bx+1,by+1,0.)
-                    #        hist_expo_skymap[ebin].SetBinContent(bx+1,by+1,0.)
-                    #        hist_syst_skymap[ebin].SetBinContent(bx+1,by+1,0.)
-            center_radec = [287.05, 6.39] #3HWC J1908+063
-            for bx in range(0,hist_flux_skymap_sum.GetNbinsX()):
-                for by in range(0,hist_flux_skymap_sum.GetNbinsY()):
-                    hist_mask_skymap_sum.SetBinContent(bx+1,by+1,0.)
-                    cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
-                    cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
-                    distance_sq = pow(cell_x-center_radec[0],2) + pow(cell_y-center_radec[1],2)
-                    if distance_sq>distance_sq_limit: 
-                        hist_mask_skymap_sum.SetBinContent(bx+1,by+1,1.)
-            exclusion_radec = []
-            exclusion_radec += [[286.975, 6.03777777778]] #PSR J1907+0602
-            exclusion_radec += [[286.63, 7.3821666666666665]] #PSR J1906+0722
-            exclusion_radec += [[286.786, 6.498]] #G40.5-0.5
-            exclusion_radec += [[286.89166666666665, 7.133333333333334]] #G41.1-0.3
-            exclusion_radec += [[287.05, 6.39]] #3HWC J1908+063
-            exclusion_radec += [[288.404,4.930]] #SS 433 e1
-            exclusion_radec += [[287.654,5.037]] #SS 433 w1
-            for region in range(0,len(exclusion_radec)):
-                for bx in range(0,hist_flux_skymap_sum.GetNbinsX()):
-                    for by in range(0,hist_flux_skymap_sum.GetNbinsY()):
-                        cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
-                        cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
-                        distance_sq = pow(cell_x-exclusion_radec[region][0],2) + pow(cell_y-exclusion_radec[region][1],2)
-                        if distance_sq<pow(0.5,2): 
-                            hist_mask_skymap_sum.SetBinContent(bx+1,by+1,1.)
-            output_file = ROOT.TFile("output_fitting/J1908_skymap.root","recreate")
-            hist_mask_skymap_sum.Write()
-            hist_flux_skymap_sum.Write()
-            hist_flux_syst_skymap_sum.Write()
-            hist_data_skymap_sum.Write()
-            hist_bkgd_skymap_sum.Write()
-            hist_expo_skymap_sum.Write()
-            hist_syst_skymap_sum.Write()
-            for ebin in range(0,len(energy_bin)-1):
-                hist_energy_flux_skymap[ebin].Write()
-                hist_energy_flux_syst_skymap[ebin].Write()
-                hist_energy_flux_normsyst_skymap[ebin].Write()
-                hist_cali_skymap[ebin].Write()
-                hist_data_skymap[ebin].Write()
-                hist_bkgd_skymap[ebin].Write()
-                hist_expo_skymap[ebin].Write()
-                hist_syst_skymap[ebin].Write()
-                hist_normsyst_skymap[ebin].Write()
-            output_file.Close();
+        #if sys.argv[1]=='MGRO_J1908_ON':
+        #    for bx in range(0,hist_flux_skymap_sum.GetNbinsX()):
+        #        for by in range(0,hist_flux_skymap_sum.GetNbinsY()):
+        #            cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
+        #            cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
+        #            distance_sq = pow(cell_x-MapCenter_x,2) + pow(cell_y-MapCenter_y,2)
+        #    center_radec = [287.05, 6.39] #3HWC J1908+063
+        #    for bx in range(0,hist_flux_skymap_sum.GetNbinsX()):
+        #        for by in range(0,hist_flux_skymap_sum.GetNbinsY()):
+        #            hist_mask_skymap_sum.SetBinContent(bx+1,by+1,0.)
+        #            cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
+        #            cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
+        #            distance_sq = pow(cell_x-center_radec[0],2) + pow(cell_y-center_radec[1],2)
+        #            if distance_sq>distance_sq_limit: 
+        #                hist_mask_skymap_sum.SetBinContent(bx+1,by+1,1.)
+        #    exclusion_radec = []
+        #    exclusion_radec += [[286.975, 6.03777777778]] #PSR J1907+0602
+        #    exclusion_radec += [[286.63, 7.3821666666666665]] #PSR J1906+0722
+        #    exclusion_radec += [[286.786, 6.498]] #G40.5-0.5
+        #    exclusion_radec += [[286.89166666666665, 7.133333333333334]] #G41.1-0.3
+        #    exclusion_radec += [[287.05, 6.39]] #3HWC J1908+063
+        #    exclusion_radec += [[288.404,4.930]] #SS 433 e1
+        #    exclusion_radec += [[287.654,5.037]] #SS 433 w1
+        #    for region in range(0,len(exclusion_radec)):
+        #        for bx in range(0,hist_flux_skymap_sum.GetNbinsX()):
+        #            for by in range(0,hist_flux_skymap_sum.GetNbinsY()):
+        #                cell_x = hist_flux_skymap_sum.GetXaxis().GetBinCenter(bx+1)
+        #                cell_y = hist_flux_skymap_sum.GetYaxis().GetBinCenter(by+1)
+        #                distance_sq = pow(cell_x-exclusion_radec[region][0],2) + pow(cell_y-exclusion_radec[region][1],2)
+        #                if distance_sq<pow(0.5,2): 
+        #                    hist_mask_skymap_sum.SetBinContent(bx+1,by+1,1.)
+        #    output_file = ROOT.TFile("output_fitting/J1908_skymap.root","recreate")
+        #    hist_mask_skymap_sum.Write()
+        #    hist_flux_skymap_sum.Write()
+        #    hist_flux_syst_skymap_sum.Write()
+        #    hist_data_skymap_sum.Write()
+        #    hist_bkgd_skymap_sum.Write()
+        #    hist_expo_skymap_sum.Write()
+        #    hist_syst_skymap_sum.Write()
+        #    for ebin in range(0,len(energy_bin)-1):
+        #        hist_energy_flux_skymap[ebin].Write()
+        #        hist_energy_flux_syst_skymap[ebin].Write()
+        #        hist_energy_flux_normsyst_skymap[ebin].Write()
+        #        hist_cali_skymap[ebin].Write()
+        #        hist_data_skymap[ebin].Write()
+        #        hist_bkgd_skymap[ebin].Write()
+        #        hist_expo_skymap[ebin].Write()
+        #        hist_syst_skymap[ebin].Write()
+        #        hist_normsyst_skymap[ebin].Write()
+        #    output_file.Close();
 
-        if 'MGRO_J1908_Imposter' in sys.argv[1]:
-            output_file = ROOT.TFile("output_fitting/%s_skymap.root"%(sys.argv[1]),"recreate")
-            for ebin in range(0,len(energy_bin)-1):
-                hist_energy_flux_skymap[ebin].Write()
-                hist_energy_flux_syst_skymap[ebin].Write()
-                hist_data_skymap[ebin].Write()
-                hist_bkgd_skymap[ebin].Write()
-            output_file.Close();
+        output_file = ROOT.TFile("output_fitting/%s_skymap.root"%(sys.argv[1]),"recreate")
+        for ebin in range(0,len(energy_bin)-1):
+            hist_energy_flux_skymap[ebin].Write()
+            hist_energy_flux_syst_skymap[ebin].Write()
+            hist_data_skymap[ebin].Write()
+            hist_bkgd_skymap[ebin].Write()
+        output_file.Close();
 
     else:
 

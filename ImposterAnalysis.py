@@ -29,6 +29,24 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
 
     return CommonPlotFunctions.GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn)
 
+def FluxBiasCorrection(real_flux,imposter_fluxes, imposter_biases):
+
+    real_flux_correct = real_flux
+    imposter_fluxes_correct = imposter_fluxes
+    #return real_flux_correct, imposter_fluxes_correct
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        for binx in range(0,real_flux[ebin].GetNbinsX()):
+            for biny in range(0,real_flux[ebin].GetNbinsY()):
+                imposter_bias = 0.
+                for imposter in range(0,len(imposter_fluxes)):
+                    imposter_bias += imposter_biases[imposter][ebin].GetBinContent(binx+1,biny+1)/float(len(imposter_fluxes))
+                real_flux_old = real_flux_correct[ebin].GetBinContent(binx+1,biny+1)
+                real_flux_correct[ebin].SetBinContent(binx+1,biny+1,real_flux_old-imposter_bias)
+                for imposter in range(0,len(imposter_fluxes)):
+                    imposter_flux_old = imposter_fluxes_correct[imposter][ebin].GetBinContent(binx+1,biny+1)
+                    imposter_fluxes_correct[imposter][ebin].SetBinContent(binx+1,biny+1,imposter_flux_old-imposter_bias)
+    return real_flux_correct, imposter_fluxes_correct
+
 def MakeSignificanceMap():
 
     hist_real_data_skymap = []
@@ -44,7 +62,7 @@ def MakeSignificanceMap():
         hist_syst_err_skymap += [ROOT.TH2D("hist_syst_err_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
         hist_avg_bkgd_skymap += [ROOT.TH2D("hist_avg_bkgd_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
         hist_zscore_skymap += [ROOT.TH2D("hist_zscore_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-    InputFile = ROOT.TFile("output_fitting/J1908_skymap.root")
+    InputFile = ROOT.TFile("output_fitting/%s_ON_skymap.root"%(source_name))
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         HistName = "hist_data_skymap_%s"%(ebin)
         hist_real_data_skymap[ebin].Add(InputFile.Get(HistName))
@@ -54,22 +72,30 @@ def MakeSignificanceMap():
 
     hist_imposter_data_skymap = []
     hist_imposter_bkgd_skymap = []
+    hist_imposter_bias_skymap = []
     for imposter in range(0,5):
         hist_imposter_data_skymap_sublist = []
         hist_imposter_bkgd_skymap_sublist = []
+        hist_imposter_bias_skymap_sublist = []
         for ebin in range(0,len(energy_bin)-1):
             hist_imposter_data_skymap_sublist += [ROOT.TH2D("hist_imposter%s_data_skymap_E%s"%(imposter,ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
             hist_imposter_bkgd_skymap_sublist += [ROOT.TH2D("hist_imposter%s_bkgd_skymap_E%s"%(imposter,ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+            hist_imposter_bias_skymap_sublist += [ROOT.TH2D("hist_imposter%s_bias_skymap_E%s"%(imposter,ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
         hist_imposter_data_skymap += [hist_imposter_data_skymap_sublist]
         hist_imposter_bkgd_skymap += [hist_imposter_bkgd_skymap_sublist]
+        hist_imposter_bias_skymap += [hist_imposter_bias_skymap_sublist]
     for imposter in range(0,5):
-        InputFile = ROOT.TFile("output_fitting/MGRO_J1908_Imposter%s_skymap.root"%(imposter+1))
+        InputFile = ROOT.TFile("output_fitting/%s_Imposter%s_skymap.root"%(source_name,imposter+1))
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
             HistName = "hist_data_skymap_%s"%(ebin)
             hist_imposter_data_skymap[imposter][ebin].Add(InputFile.Get(HistName))
+            hist_imposter_bias_skymap[imposter][ebin].Add(InputFile.Get(HistName),-1.)
             HistName = "hist_bkgd_skymap_%s"%(ebin)
             hist_imposter_bkgd_skymap[imposter][ebin].Add(InputFile.Get(HistName))
+            hist_imposter_bias_skymap[imposter][ebin].Add(InputFile.Get(HistName))
         InputFile.Close()
+
+    hist_real_bkgd_skymap, hist_imposter_bkgd_skymap = FluxBiasCorrection(hist_real_bkgd_skymap, hist_imposter_bkgd_skymap, hist_imposter_bias_skymap)
 
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         for binx in range(0,hist_imposter_data_skymap[0][ebin].GetNbinsX()):
@@ -95,13 +121,18 @@ def MakeSignificanceMap():
         hist_zscore_skymap[ebin].Add(skymap)
 
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        hist_total_err_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_total_err_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_total_err_skymap_reflect,None,fig,'RA','Dec','total error','SkymapTotalErr_E%s.png'%(ebin))
-        hist_syst_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_syst_err_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_syst_skymap_reflect,None,fig,'RA','Dec','systematic error','SkymapSyst_E%s.png'%(ebin))
-        hist_avg_bkgd_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_avg_bkgd_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_avg_bkgd_skymap_reflect,None,fig,'RA','Dec','avg. bkg','SkymapBkgd_E%s.png'%(ebin))
+        #hist_total_err_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_total_err_skymap[ebin])
+        #CommonPlotFunctions.MatplotlibMap2D(hist_total_err_skymap_reflect,None,fig,'RA','Dec','total error','SkymapTotalErr_E%s.png'%(ebin))
+        #hist_syst_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_syst_err_skymap[ebin])
+        #CommonPlotFunctions.MatplotlibMap2D(hist_syst_skymap_reflect,None,fig,'RA','Dec','systematic error','SkymapSyst_E%s.png'%(ebin))
+        #hist_avg_bkgd_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_avg_bkgd_skymap[ebin])
+        #CommonPlotFunctions.MatplotlibMap2D(hist_avg_bkgd_skymap_reflect,None,fig,'RA','Dec','avg. bkg','SkymapBkgd_E%s.png'%(ebin))
         hist_zscore_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap[ebin])
+        #for binx in range(0,hist_zscore_skymap_reflect.GetNbinsX()):
+        #    for biny in range(0,hist_zscore_skymap_reflect.GetNbinsY()):
+        #        zscore = hist_zscore_skymap_reflect.GetBinContent(binx+1,biny+1)
+        #        if zscore>4.: hist_zscore_skymap_reflect.SetBinContent(binx+1,biny+1,4.)
+        #        if zscore<-4.: hist_zscore_skymap_reflect.SetBinContent(binx+1,biny+1,-4.)
         CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_reflect,None,fig,'RA','Dec','Z score','SkymapZscore_E%s.png'%(ebin))
 
 def power_law_func(x,a,b):
@@ -143,24 +174,10 @@ def GetFermiFluxJ1908(energy_index):
 
 def MakeFluxMap():
 
-    hist_real_flux_skymap = ROOT.TH2D("hist_real_flux_skymap","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
-    InputFile = ROOT.TFile("output_fitting/J1908_skymap.root")
-    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        HistName = "hist_energy_flux_skymap_%s"%(ebin)
-        hist_real_flux_skymap.Add(InputFile.Get(HistName))
-    InputFile.Close()
-
-    hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap)
-    CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,None,fig,'RA','Dec','$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux.png')
-
-def MakeSpectrum():
-
     hist_real_flux_skymap = []
-    hist_real_flux_syst_skymap = []
     for ebin in range(0,len(energy_bin)-1):
         hist_real_flux_skymap += [ROOT.TH2D("hist_real_flux_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-        hist_real_flux_syst_skymap += [ROOT.TH2D("hist_real_flux_syst_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
-    InputFile = ROOT.TFile("output_fitting/J1908_skymap.root")
+    InputFile = ROOT.TFile("output_fitting/%s_ON_skymap.root"%(source_name))
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         HistName = "hist_energy_flux_skymap_%s"%(ebin)
         hist_real_flux_skymap[ebin].Add(InputFile.Get(HistName))
@@ -173,21 +190,63 @@ def MakeSpectrum():
             hist_imposter_flux_skymap_sublist += [ROOT.TH2D("hist_imposter%s_flux_skymap_E%s"%(imposter,ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
         hist_imposter_flux_skymap += [hist_imposter_flux_skymap_sublist]
     for imposter in range(0,5):
-        InputFile = ROOT.TFile("output_fitting/MGRO_J1908_Imposter%s_skymap.root"%(imposter+1))
+        InputFile = ROOT.TFile("output_fitting/%s_Imposter%s_skymap.root"%(source_name,imposter+1))
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
             HistName = "hist_energy_flux_skymap_%s"%(ebin)
             hist_imposter_flux_skymap[imposter][ebin].Add(InputFile.Get(HistName))
         InputFile.Close()
 
-    #3HWC J1908+063, 287.05, 6.39
-    roi_x = 287.05
-    roi_y = 6.39
-    roi_r = 1.5
+    hist_real_flux_skymap, hist_imposter_flux_skymap = FluxBiasCorrection(hist_real_flux_skymap, hist_imposter_flux_skymap, hist_imposter_flux_skymap)
+
+    hist_real_flux_skymap_sum = ROOT.TH2D("hist_real_flux_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+    for ebin in range(0,len(energy_bin)-1):
+        hist_real_flux_skymap_sum.Add(hist_real_flux_skymap[ebin])
+
+    hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_sum)
+    CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,None,fig,'RA','Dec','$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux.png')
+
+    for ebin in range(0,len(energy_bin)-1):
+        hist_real_flux_skymap[ebin].Delete()
+    for imposter in range(0,5):
+        for ebin in range(0,len(energy_bin)-1):
+            hist_imposter_flux_skymap[imposter][ebin].Delete()
+
+def MakeSpectrum(roi_x,roi_y,roi_r):
+
+    hist_real_flux_skymap = []
+    hist_real_flux_syst_skymap = []
+    for ebin in range(0,len(energy_bin)-1):
+        hist_real_flux_skymap += [ROOT.TH2D("hist_real_flux_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+        hist_real_flux_syst_skymap += [ROOT.TH2D("hist_real_flux_syst_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    InputFile = ROOT.TFile("output_fitting/%s_ON_skymap.root"%(source_name))
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        HistName = "hist_energy_flux_skymap_%s"%(ebin)
+        hist_real_flux_skymap[ebin].Add(InputFile.Get(HistName))
+    InputFile.Close()
+
+    hist_imposter_flux_skymap = []
+    for imposter in range(0,5):
+        hist_imposter_flux_skymap_sublist = []
+        for ebin in range(0,len(energy_bin)-1):
+            hist_imposter_flux_skymap_sublist += [ROOT.TH2D("hist_imposter%s_flux_skymap_E%s"%(imposter,ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+        hist_imposter_flux_skymap += [hist_imposter_flux_skymap_sublist]
+    for imposter in range(0,5):
+        InputFile = ROOT.TFile("output_fitting/%s_Imposter%s_skymap.root"%(source_name,imposter+1))
+        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+            HistName = "hist_energy_flux_skymap_%s"%(ebin)
+            hist_imposter_flux_skymap[imposter][ebin].Add(InputFile.Get(HistName))
+        InputFile.Close()
+
+    hist_real_flux_skymap, hist_imposter_flux_skymap = FluxBiasCorrection(hist_real_flux_skymap, hist_imposter_flux_skymap, hist_imposter_flux_skymap)
+
     energy_axis, energy_error, real_flux, real_flux_stat_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_real_flux_skymap,hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r)
     imposter_flux_list = []
+    imposter_flux_err_list = []
     for imposter in range(0,5):
         energy_axis, energy_error, imposter_flux, imposter_flux_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_imposter_flux_skymap[imposter],hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r)
         imposter_flux_list += [imposter_flux]
+        imposter_flux_err_list += [imposter_flux_err]
+
     real_flux_syst_err = []
     for ebin in range(0,len(energy_axis)):
         syst_err = 0.
@@ -196,39 +255,67 @@ def MakeSpectrum():
         syst_err = pow(syst_err/5.,0.5)
         real_flux_syst_err += [syst_err]
 
-    log_energy = np.linspace(log10(1e2),log10(1e5),50)
-    xdata_ref = pow(10.,log_energy)
-    vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
-    ydata_hawc = pow(xdata_ref/1e3,energy_index_scale)*vectorize_f_hawc(xdata_ref)
-    # HAWC systematic uncertainty, The Astrophysical Journal 881, 134. Fig 13
-    HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index_scale)
-    Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index_scale)
+    if source_name=='MGRO_J1908':
+        log_energy = np.linspace(log10(1e2),log10(1e5),50)
+        xdata_ref = pow(10.,log_energy)
+        vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
+        ydata_hawc = pow(xdata_ref/1e3,energy_index_scale)*vectorize_f_hawc(xdata_ref)
+        # HAWC systematic uncertainty, The Astrophysical Journal 881, 134. Fig 13
+        HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index_scale)
+        Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index_scale)
 
     energy_axis = np.array(energy_axis)
     energy_error = np.array(energy_error)
     real_flux = np.array(real_flux)
     real_flux_stat_err = np.array(real_flux_stat_err)
     real_flux_syst_err = np.array(real_flux_syst_err)
+
     fig.clf()
     axbig = fig.add_subplot()
-    axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi',zorder=4)
-    axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC',zorder=3)
-    axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)',zorder=2)
-    axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r',zorder=1)
-    axbig.bar(energy_axis, 2.*real_flux_stat_err, bottom=real_flux-real_flux_stat_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
-    #axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='3HWC J1908+063')
-    axbig.errorbar(energy_axis,real_flux,real_flux_syst_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS',zorder=6)
+    cycol = cycle('krgbcmy')
+    for imposter in range(0,5):
+        next_color = next(cycol)
+        axbig.errorbar(energy_axis,imposter_flux_list[imposter],imposter_flux_err_list[imposter],xerr=energy_error,color=next_color,marker='_',ls='none')
+    axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=0.-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2)
+    axbig.set_xlabel('Energy [GeV]')
+    axbig.set_ylabel('$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]')
+    axbig.set_xscale('log')
+    plotname = 'ImposterSpectrum'
+    fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
+    axbig.remove()
+
+    fig.clf()
+    axbig = fig.add_subplot()
+    if source_name=='MGRO_J1908':
+        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi',zorder=4)
+        axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC',zorder=3)
+        axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)',zorder=2)
+        axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r',zorder=1)
+        axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
+        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS',zorder=6)
+    else:
+        axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2)
+        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS')
+
     axbig.set_xlabel('Energy [GeV]')
     axbig.set_ylabel('$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]')
     axbig.set_xscale('log')
     axbig.set_yscale('log')
     axbig.legend(loc='best')
-    plotname = 'Spectrum'
+    plotname = 'RealSpectrum'
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
     axbig.remove()
 
+    for ebin in range(0,len(energy_bin)-1):
+        hist_real_flux_skymap[ebin].Delete()
+    for imposter in range(0,5):
+        for ebin in range(0,len(energy_bin)-1):
+            hist_imposter_flux_skymap[imposter][ebin].Delete()
 
-InputFile = ROOT.TFile("output_fitting/MGRO_J1908_Imposter1_skymap.root")
+source_name = sys.argv[1]
+source_name = source_name.split('_ON')[0]
+
+InputFile = ROOT.TFile("output_fitting/%s_ON_skymap.root"%(source_name))
 HistName = "hist_data_skymap_0"
 nbins = InputFile.Get(HistName).GetNbinsX()
 MapEdge_left = InputFile.Get(HistName).GetXaxis().GetBinLowEdge(1)
@@ -247,4 +334,17 @@ MapPlot_upper = MapCenter_y+0.5*MapPlotSize
 
 MakeSignificanceMap()
 MakeFluxMap()
-MakeSpectrum()
+
+#3HWC J1908+063, 287.05, 6.39
+region_x = 287.05
+region_y = 6.39
+region_r = 1.5
+if source_name=='H1426':
+    region_x = 217.136
+    region_y = 42.673
+    region_r = 0.5
+if source_name=='NGC1275':
+    region_x = 49.950
+    region_y = 41.512
+    region_r = 0.5
+MakeSpectrum(region_x,region_y,region_r)
