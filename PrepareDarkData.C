@@ -87,6 +87,8 @@ double proj_x_roi = 0;
 double proj_y_roi = 0;
 double ra_sky = 0;
 double dec_sky = 0;
+double ra_sky_imposter = 0;
+double dec_sky_imposter = 0;
 double ra_sky_dark = 0;
 double dec_sky_dark = 0;
 double exposure_hours = 0.;
@@ -581,7 +583,7 @@ bool MCFoV() {
     //if (angular_dist>1.5) return false;
     return true;
 }
-bool FoV() {
+bool FoV(bool doImposter) {
 
     if (R2off>9.) return false;
     if (R2off<camera_theta2_cut_lower) return false;
@@ -598,6 +600,10 @@ bool FoV() {
     if (y>map_y_bin_upper) return false;
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     //if (CoincideWithGammaSources(ra_sky,dec_sky)) return false;
+    if (doImposter)
+    {
+        if (CoincideWithGammaSources(ra_sky_imposter,dec_sky_imposter)) return false;
+    } 
     
     vector<double> ss433_ra;
     vector<double> ss433_dec;
@@ -3050,6 +3056,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         tele_point_ra_dec = Data_runlist_RaDec[run];
         run_tele_point_ra = tele_point_ra_dec.first;
         run_tele_point_dec = tele_point_ra_dec.second;
+        pair<double,double> tele_point_ra_dec_imposter = std::make_pair(0,0);
+        if (doImposter) 
+        {
+            tele_point_ra_dec_imposter = GetRunRaDec(filename,int(Data_runlist[run].second));
+        }
 
         for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
@@ -3116,6 +3127,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     Phioff = atan2(Yoff,Xoff)+M_PI;
                     ra_sky = tele_point_ra_dec.first+Xoff_derot;
                     dec_sky = tele_point_ra_dec.second+Yoff_derot;
+                    if (doImposter)
+                    {
+                        ra_sky_imposter = tele_point_ra_dec_imposter.first+Xoff_derot;
+                        dec_sky_imposter = tele_point_ra_dec_imposter.second+Yoff_derot;
+                    }
                     //if (doRaster)
                     //{
                     //    double delta_phi = 2*M_PI*double(entry)/double(Dark_tree->GetEntries());
@@ -3194,6 +3210,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     Phioff = atan2(Yoff,Xoff)+M_PI;
                     ra_sky = tele_point_ra_dec.first+Xoff_derot;
                     dec_sky = tele_point_ra_dec.second+Yoff_derot;
+                    if (doImposter)
+                    {
+                        ra_sky_imposter = tele_point_ra_dec_imposter.first+Xoff_derot;
+                        dec_sky_imposter = tele_point_ra_dec_imposter.second+Yoff_derot;
+                    }
                     //if (doRaster)
                     //{
                     //    double delta_phi = 2*M_PI*double(entry)/double(Dark_tree->GetEntries());
@@ -3242,7 +3263,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                             Hist_OnDark_SR_R2off.at(energy).Fill(R2off,weight);
                             Hist_SRDark_Energy.at(energy).Fill(ErecS*1000.,weight);
                             Hist_SRDark_R2off.at(energy).Fill(R2off,weight);
-                            if (FoV())
+                            if (FoV(false))
                             {
                                 Hist_OnDark_SR_Skymap.at(energy).Fill(ra_sky,dec_sky,weight);
                                 Hist_OnDark_SR_Energy.at(energy).Fill(ErecS*1000.,weight);
@@ -3258,7 +3279,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
                         if (theta2_dark>source_theta2_cut)
                         {
-                            if (FoV())
+                            if (FoV(false))
                             {
                                 Hist_OnDark_MSCLW.at(nth_sample).at(energy).Fill(MSCL,MSCW,weight);
                             }
@@ -3328,6 +3349,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         tele_point_ra_dec = Data_runlist_RaDec[run];
         run_tele_point_ra = tele_point_ra_dec.first;
         run_tele_point_dec = tele_point_ra_dec.second;
+        pair<double,double> tele_point_ra_dec_imposter = std::make_pair(0,0);
+        if (doImposter) 
+        {
+            tele_point_ra_dec_imposter = GetRunRaDec(filename,int(Data_runlist[run].second));
+        }
 
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
@@ -3369,6 +3395,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
+            if (doImposter)
+            {
+                ra_sky_imposter = tele_point_ra_dec_imposter.first+Xoff_derot;
+                dec_sky_imposter = tele_point_ra_dec_imposter.second+Yoff_derot;
+            }
             //if (doRaster)
             //{
             //    double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
@@ -3444,6 +3475,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         tele_point_ra_dec = Data_runlist_RaDec[run];
         run_tele_point_ra = tele_point_ra_dec.first;
         run_tele_point_dec = tele_point_ra_dec.second;
+        pair<double,double> tele_point_ra_dec_imposter = std::make_pair(0,0);
+        if (doImposter) 
+        {
+            tele_point_ra_dec_imposter = GetRunRaDec(filename,int(Data_runlist[run].second));
+        }
 
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
@@ -3479,6 +3515,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
+            if (doImposter)
+            {
+                ra_sky_imposter = tele_point_ra_dec_imposter.first+Xoff_derot;
+                dec_sky_imposter = tele_point_ra_dec_imposter.second+Yoff_derot;
+            }
             //if (doRaster)
             //{
             //    double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
@@ -3554,6 +3595,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         tele_point_ra_dec = Data_runlist_RaDec[run];
         run_tele_point_ra = tele_point_ra_dec.first;
         run_tele_point_dec = tele_point_ra_dec.second;
+        pair<double,double> tele_point_ra_dec_imposter = std::make_pair(0,0);
+        if (doImposter) 
+        {
+            tele_point_ra_dec_imposter = GetRunRaDec(filename,int(Data_runlist[run].second));
+        }
 
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
@@ -3587,6 +3633,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
+            if (doImposter)
+            {
+                ra_sky_imposter = tele_point_ra_dec_imposter.first+Xoff_derot;
+                dec_sky_imposter = tele_point_ra_dec_imposter.second+Yoff_derot;
+            }
             //if (doRaster)
             //{
             //    double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
@@ -3647,7 +3698,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             int bin_ra = Hist_OnData_Expo_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
             int bin_dec = Hist_OnData_Expo_Skymap.at(energy).GetYaxis()->FindBin(dec_sky);
 
-            if (FoV())
+            if (FoV(doImposter))
             {
                 if (ControlSelectionTheta2())
                 {
@@ -3803,6 +3854,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         tele_point_ra_dec = Data_runlist_RaDec[run];
         run_tele_point_ra = tele_point_ra_dec.first;
         run_tele_point_dec = tele_point_ra_dec.second;
+        pair<double,double> tele_point_ra_dec_imposter = std::make_pair(0,0);
+        if (doImposter) 
+        {
+            tele_point_ra_dec_imposter = GetRunRaDec(filename,int(Data_runlist[run].second));
+        }
 
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
@@ -3967,6 +4023,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
+            if (doImposter)
+            {
+                ra_sky_imposter = tele_point_ra_dec_imposter.first+Xoff_derot;
+                dec_sky_imposter = tele_point_ra_dec_imposter.second+Yoff_derot;
+            }
             //if (doRaster)
             //{
             //    double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
@@ -3995,7 +4056,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             //if (pow(Xcore*Xcore+Ycore*Ycore,0.5)<100) continue;
             MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
             MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
-            if (FoV())
+            if (FoV(doImposter))
             {
                 if (SignalSelectionTheta2())
                 {
@@ -4039,6 +4100,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
+            if (doImposter)
+            {
+                ra_sky_imposter = tele_point_ra_dec_imposter.first+Xoff_derot;
+                dec_sky_imposter = tele_point_ra_dec_imposter.second+Yoff_derot;
+            }
             //if (doRaster)
             //{
             //    double delta_phi = 2*M_PI*double(entry)/double(Data_tree->GetEntries());
@@ -4086,7 +4152,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             Hist_Data_Elev_Skymap.Fill(ra_sky,dec_sky,tele_elev);
             Hist_Data_Azim_Skymap.Fill(ra_sky,dec_sky,tele_azim);
             Hist_Data_NSB_Skymap.Fill(ra_sky,dec_sky,NSB_thisrun);
-            if (FoV() || Data_runlist[run].first.find("Proton")!=std::string::npos)
+            if (FoV(doImposter) || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
                 Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW,weight);
                 if (SourceFoV())
@@ -4100,7 +4166,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             }
             if (!SignalSelectionTheta2())
             {
-                if (FoV())
+                if (FoV(doImposter))
                 {
                     Hist_OnData_EffArea_Skymap.at(energy).Fill(ra_sky,dec_sky,eff_area_weight);
                     Hist_OnData_ISR_Skymap.at(energy).Fill(ra_sky,dec_sky,weight);
@@ -4109,7 +4175,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             }
             if (SignalSelectionTheta2())
             {
-                if (FoV())
+                if (FoV(doImposter))
                 {
                     if (R2off<1.0*1.0)
                     {
