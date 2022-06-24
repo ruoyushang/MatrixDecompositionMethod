@@ -175,6 +175,36 @@ if sys.argv[1]=='1ES0229_ON':
     sample_list = []
     sample_list += ['1ES0229V6_ON']
     sample_list += ['1ES0229V5_ON']
+if sys.argv[1]=='1ES0229_Imposter1':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['1ES0229V6_Imposter1']
+    sample_list += ['1ES0229V5_Imposter1']
+if sys.argv[1]=='1ES0229_Imposter2':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['1ES0229V6_Imposter2']
+    sample_list += ['1ES0229V5_Imposter2']
+if sys.argv[1]=='1ES0229_Imposter3':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['1ES0229V6_Imposter3']
+    sample_list += ['1ES0229V5_Imposter3']
+if sys.argv[1]=='1ES0229_Imposter4':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['1ES0229V6_Imposter4']
+    sample_list += ['1ES0229V5_Imposter4']
+if sys.argv[1]=='1ES0229_Imposter5':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['1ES0229V6_Imposter5']
+    sample_list += ['1ES0229V5_Imposter5']
     
 if sys.argv[1]=='H1426_OFF':
     ONOFF_tag = 'OFF'
@@ -213,6 +243,105 @@ if sys.argv[1]=='H1426_Imposter5':
     sample_list = []
     sample_list += ['H1426V6_Imposter5']
     
+if sys.argv[1]=='Crab_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['CrabV6_ON']
+    sample_list += ['CrabV5_ON']
+if sys.argv[1]=='Crab_Imposter1':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['CrabV6_Imposter1']
+    sample_list += ['CrabV5_Imposter1']
+if sys.argv[1]=='Crab_Imposter2':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['CrabV6_Imposter2']
+    sample_list += ['CrabV5_Imposter2']
+if sys.argv[1]=='Crab_Imposter3':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['CrabV6_Imposter3']
+    sample_list += ['CrabV5_Imposter3']
+if sys.argv[1]=='Crab_Imposter4':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['CrabV6_Imposter4']
+    sample_list += ['CrabV5_Imposter4']
+if sys.argv[1]=='Crab_Imposter5':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['CrabV6_Imposter5']
+    sample_list += ['CrabV5_Imposter5']
+    
+if sys.argv[1]=='Crab_Offset_1p0_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p0_V6_ON']
+if sys.argv[1]=='Crab_Offset_1p0_Imposter1':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p0_V6_Imposter1']
+if sys.argv[1]=='Crab_Offset_1p0_Imposter2':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p0_V6_Imposter2']
+if sys.argv[1]=='Crab_Offset_1p0_Imposter3':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p0_V6_Imposter3']
+if sys.argv[1]=='Crab_Offset_1p0_Imposter4':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p0_V6_Imposter4']
+if sys.argv[1]=='Crab_Offset_1p0_Imposter5':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p0_V6_Imposter5']
+
+if sys.argv[1]=='Crab_Offset_1p5_ON':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p5_V6_ON']
+if sys.argv[1]=='Crab_Offset_1p5_Imposter1':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p5_V6_Imposter1']
+if sys.argv[1]=='Crab_Offset_1p5_Imposter2':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p5_V6_Imposter2']
+if sys.argv[1]=='Crab_Offset_1p5_Imposter3':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p5_V6_Imposter3']
+if sys.argv[1]=='Crab_Offset_1p5_Imposter4':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p5_V6_Imposter4']
+if sys.argv[1]=='Crab_Offset_1p5_Imposter5':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['Crab_Offset_1p5_V6_Imposter5']
+
 if sys.argv[1]=='PKS1424_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
@@ -299,46 +428,6 @@ if sys.argv[1]=='1ES0229_Model3':
     sample_list += ['1ES0229V6_Model03']
     sample_list += ['1ES0229V5_Model03']
     
-if sys.argv[1]=='Crab_Model1':
-    ONOFF_tag = 'OFF'
-    ONOFF_tag += '_Model1'
-    sample_list = []
-    sample_list += ['CrabV6_Model01']
-    sample_list += ['CrabV5_Model01']
-    sample_list += ['CrabV4_Model01']
-if sys.argv[1]=='Crab_Model2':
-    ONOFF_tag = 'OFF'
-    ONOFF_tag += '_Model2'
-    sample_list = []
-    sample_list += ['CrabV6_Model02']
-    sample_list += ['CrabV5_Model02']
-    sample_list += ['CrabV4_Model02']
-if sys.argv[1]=='Crab_Model3':
-    ONOFF_tag = 'OFF'
-    ONOFF_tag += '_Model3'
-    sample_list = []
-    sample_list += ['CrabV6_Model03']
-    sample_list += ['CrabV5_Model03']
-    sample_list += ['CrabV4_Model03']
-if sys.argv[1]=='Crab_Model4':
-    ONOFF_tag = 'OFF'
-    ONOFF_tag += '_Model4'
-    sample_list = []
-    sample_list += ['CrabV6_Model04']
-    sample_list += ['CrabV5_Model04']
-    sample_list += ['CrabV4_Model04']
-if sys.argv[1]=='Coma_Model5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model5'
-    sample_list = []
-    sample_list += ['ComaV6_Model05']
-    #sample_list += ['ComaV4_Model05']
-if sys.argv[1]=='Coma_Model6':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model6'
-    sample_list = []
-    sample_list += ['ComaV6_Model06']
-    #sample_list += ['ComaV4_Model06']
     
 if sys.argv[1]=='RBS0413_OFF':
     ONOFF_tag = 'OFF'
@@ -498,13 +587,6 @@ if sys.argv[1]=='M87_ON':
     sample_list += ['M87V6_ON']
     sample_list += ['M87V5_ON']
     
-if sys.argv[1]=='Crab_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['CrabV6_ON']
-    sample_list += ['CrabV5_ON']
-    #sample_list += ['CrabV4_ON']
 if sys.argv[1]=='Crab_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
@@ -512,17 +594,6 @@ if sys.argv[1]=='Crab_OFF':
     sample_list += ['CrabV6_OFF']
     sample_list += ['CrabV5_OFF']
     #sample_list += ['CrabV4_OFF']
-    
-if sys.argv[1]=='Crab_Offset_1p0_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p0_V6_ON']
-if sys.argv[1]=='Crab_Offset_1p5_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p5_V6_ON']
 
 if sys.argv[1]=='CrabRHV_ON':
     ONOFF_tag = 'ON'
@@ -564,8 +635,37 @@ if sys.argv[1]=='WComae_ON':
     sample_list = []
     sample_list += ['WComaeV6_ON']
     sample_list += ['WComaeV5_ON']
-    #sample_list += ['WComaeV4_ON']
     # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
+if sys.argv[1]=='WComae_Imposter1':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['WComaeV6_Imposter1']
+    sample_list += ['WComaeV5_Imposter1']
+if sys.argv[1]=='WComae_Imposter2':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['WComaeV6_Imposter2']
+    sample_list += ['WComaeV5_Imposter2']
+if sys.argv[1]=='WComae_Imposter3':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['WComaeV6_Imposter3']
+    sample_list += ['WComaeV5_Imposter3']
+if sys.argv[1]=='WComae_Imposter4':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['WComaeV6_Imposter4']
+    sample_list += ['WComaeV5_Imposter4']
+if sys.argv[1]=='WComae_Imposter5':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['WComaeV6_Imposter5']
+    sample_list += ['WComaeV5_Imposter5']
     
 if sys.argv[1]=='PSRB0355plus54_ON':
     ONOFF_tag = 'ON'
@@ -579,7 +679,36 @@ if sys.argv[1]=='IC443HotSpot_ON':
     sample_list = []
     sample_list += ['IC443HotSpotV6_ON']
     sample_list += ['IC443HotSpotV5_ON']
-    #sample_list += ['IC443HotSpotV4_ON']
+if sys.argv[1]=='IC443HotSpot_Imposter1':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['IC443HotSpotV6_Imposter1']
+    sample_list += ['IC443HotSpotV5_Imposter1']
+if sys.argv[1]=='IC443HotSpot_Imposter2':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['IC443HotSpotV6_Imposter2']
+    sample_list += ['IC443HotSpotV5_Imposter2']
+if sys.argv[1]=='IC443HotSpot_Imposter3':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['IC443HotSpotV6_Imposter3']
+    sample_list += ['IC443HotSpotV5_Imposter3']
+if sys.argv[1]=='IC443HotSpot_Imposter4':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['IC443HotSpotV6_Imposter4']
+    sample_list += ['IC443HotSpotV5_Imposter4']
+if sys.argv[1]=='IC443HotSpot_Imposter5':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['IC443HotSpotV6_Imposter5']
+    sample_list += ['IC443HotSpotV5_Imposter5']
     
 if sys.argv[1]=='Boomerang_ON':
     ONOFF_tag = 'ON'
@@ -621,12 +750,62 @@ if sys.argv[1]=='LHAASO_J1929_ON':
     sample_list = []
     sample_list += ['LHAASO_J1929_V6_ON']
     # this is a Tevatron
+if sys.argv[1]=='LHAASO_J1929_Imposter1':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1929_V6_Imposter1']
+if sys.argv[1]=='LHAASO_J1929_Imposter2':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1929_V6_Imposter2']
+if sys.argv[1]=='LHAASO_J1929_Imposter3':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1929_V6_Imposter3']
+if sys.argv[1]=='LHAASO_J1929_Imposter4':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1929_V6_Imposter4']
+if sys.argv[1]=='LHAASO_J1929_Imposter5':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1929_V6_Imposter5']
 if sys.argv[1]=='LHAASO_J1843_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['LHAASO_J1843_V6_ON']
     # this is a Tevatron
+if sys.argv[1]=='LHAASO_J1843_Imposter1':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1843_V6_Imposter1']
+if sys.argv[1]=='LHAASO_J1843_Imposter2':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1843_V6_Imposter2']
+if sys.argv[1]=='LHAASO_J1843_Imposter3':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1843_V6_Imposter3']
+if sys.argv[1]=='LHAASO_J1843_Imposter4':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1843_V6_Imposter4']
+if sys.argv[1]=='LHAASO_J1843_Imposter5':
+    ONOFF_tag = 'ON'
+    ONOFF_tag += '_Model0'
+    sample_list = []
+    sample_list += ['LHAASO_J1843_V6_Imposter5']
 if sys.argv[1]=='LHAASO_J1956_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
@@ -1000,18 +1179,7 @@ def ConvertGalacticToRaDec(l, b):
     return CommonPlotFunctions.ConvertGalacticToRaDec(l, b)
 
 def ConvertRaDecToGalactic(ra, dec):
-    delta = dec*ROOT.TMath.Pi()/180.
-    delta_G = 27.12825*ROOT.TMath.Pi()/180.
-    alpha = ra*ROOT.TMath.Pi()/180.
-    alpha_G = 192.85948*ROOT.TMath.Pi()/180.
-    l_NCP = 122.93192*ROOT.TMath.Pi()/180.
-    sin_b = ROOT.TMath.Sin(delta)*ROOT.TMath.Sin(delta_G)+ROOT.TMath.Cos(delta)*ROOT.TMath.Cos(delta_G)*ROOT.TMath.Cos(alpha-alpha_G)
-    cos_b = ROOT.TMath.Cos(ROOT.TMath.ASin(sin_b))
-    sin_l_NCP_m_l = ROOT.TMath.Cos(delta)*ROOT.TMath.Sin(alpha-alpha_G)/cos_b
-    cos_l_NCP_m_l = (ROOT.TMath.Cos(delta_G)*ROOT.TMath.Sin(delta)-ROOT.TMath.Sin(delta_G)*ROOT.TMath.Cos(delta)*ROOT.TMath.Cos(alpha-alpha_G))/cos_b
-    b = (ROOT.TMath.ASin(sin_b))*180./ROOT.TMath.Pi()
-    l = (l_NCP-ROOT.TMath.ATan2(sin_l_NCP_m_l,cos_l_NCP_m_l))*180./ROOT.TMath.Pi()
-    return l, b
+    return CommonPlotFunctions.ConvertRaDecToGalactic(ra, dec)
 
 def GetBrightStarInfo(file_path):
 
@@ -5043,106 +5211,106 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
     # spectral-index map
     hist_index_skymap = ROOT.TH2D("hist_index_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_chisq_skymap = ROOT.TH2D("hist_chisq_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    for binx in range(0,hist_index_skymap.GetNbinsX()):
-        for biny in range(0,hist_index_skymap.GetNbinsY()):
-            hist_index_skymap.SetBinContent(binx+1,biny+1,-99.)
-            hist_chisq_skymap.SetBinContent(binx+1,biny+1,-99.)
-            eaxis = []
-            fdata = []
-            error = []
-            for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-                eaxis += [energy_bin[ebin]]
-                fdata += [hist_flux_skymap[ebin].GetBinContent(binx+1,biny+1)]
-                error += [hist_flux_skymap[ebin].GetBinError(binx+1,biny+1)]
-            n_2sigma = 0.
-            for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-                data_content = hist_data_skymap[ebin].GetBinContent(binx+1,biny+1)
-                bkgd_content = hist_bkgd_skymap[ebin].GetBinContent(binx+1,biny+1)
-                data_error = hist_data_skymap[ebin].GetBinError(binx+1,biny+1)
-                bkgd_error = hist_bkgd_skymap[ebin].GetBinError(binx+1,biny+1)
-                total_error = pow(data_error*data_error+bkgd_error*bkgd_error,0.5)
-                if data_content==0.: continue
-                if (data_content-bkgd_content)/pow(data_content,0.5)>2.0: n_2sigma += 1
-            if n_2sigma<3: continue
-            start = (fdata[0]/pow(10,-12), -2.)
-            popt, pcov = curve_fit(power_law_func, np.array(eaxis), np.array(fdata), p0=start, sigma=np.array(error))
-            flux_fit = power_law_func(np.array(eaxis), *popt)
-            residual = np.array(fdata) - flux_fit
-            chisq = np.sum((residual/np.array(error))**2)
-            dof = len(eaxis)-2
-            hist_index_skymap.SetBinContent(binx+1,biny+1,popt[1])
-            hist_chisq_skymap.SetBinContent(binx+1,biny+1,chisq/dof)
-            if chisq/dof<4.: continue
-            ax.cla()
-            ax.plot(np.array(eaxis), power_law_func(np.array(eaxis), *popt),color='b')
-            ax.errorbar(eaxis, fdata, error, color='b', marker='s', ls='none')
-            ax.set_xscale('log')
-            ax.set_yscale('log')
-            plotname = 'Skymap_flux_fit_cell_%s_%s'%(binx,biny)
-            fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
-            ax.cla()
-    hist_index_skymap_reflect = reflectXaxis(hist_index_skymap)
-    hist_index_skymap_reflect.GetYaxis().SetTitle(title_y)
-    hist_index_skymap_reflect.GetXaxis().SetTitle(title_x)
-    hist_index_skymap_reflect.GetZaxis().SetTitle('spectral index')
-    hist_index_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
-    hist_index_skymap_reflect.SetMaximum(-2.)
-    hist_index_skymap_reflect.SetMinimum(-3.)
-    hist_index_skymap_reflect.Draw("COL4Z")
-    hist_contour_reflect.Draw("CONT3 same")
-    hist_index_skymap_reflect.GetXaxis().SetLabelOffset(999)
-    hist_index_skymap_reflect.GetXaxis().SetTickLength(0)
-    raLowerAxis.Draw()
-    mycircles = []
-    for nth_roi in range(0,len(roi_ra)):
-        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
-        mycircles[nth_roi].SetFillStyle(0)
-        mycircles[nth_roi].SetLineColor(2)
-        mycircles[nth_roi].SetLineWidth(2)
-        if nth_roi==0: continue
-        if (roi_name[nth_roi] in exclude_roi): continue
-        mycircles[nth_roi].Draw("same")
-    for star in range(0,len(other_star_markers)):
-        other_star_markers[star].Draw("same")
-        other_star_labels[star].Draw("same")
-    for star in range(0,len(bright_star_markers)):
-        bright_star_markers[star].Draw("same")
-        bright_star_labels[star].Draw("same")
-    #for star in range(0,len(faint_star_markers)):
-    #    faint_star_markers[star].Draw("same")
-    #    faint_star_labels[star].Draw("same")
-    canvas.SaveAs('output_plots/SkymapIndex_%s_%s.png'%(name,selection_tag))
-    hist_chisq_skymap_reflect = reflectXaxis(hist_chisq_skymap)
-    hist_chisq_skymap_reflect.GetYaxis().SetTitle(title_y)
-    hist_chisq_skymap_reflect.GetXaxis().SetTitle(title_x)
-    hist_chisq_skymap_reflect.GetZaxis().SetTitle('#chi^{2}/DoF')
-    hist_chisq_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
-    hist_chisq_skymap_reflect.SetMaximum(4.)
-    hist_chisq_skymap_reflect.SetMinimum(0.)
-    hist_chisq_skymap_reflect.Draw("COL4Z")
-    hist_contour_reflect.Draw("CONT3 same")
-    hist_chisq_skymap_reflect.GetXaxis().SetLabelOffset(999)
-    hist_chisq_skymap_reflect.GetXaxis().SetTickLength(0)
-    raLowerAxis.Draw()
-    mycircles = []
-    for nth_roi in range(0,len(roi_ra)):
-        mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
-        mycircles[nth_roi].SetFillStyle(0)
-        mycircles[nth_roi].SetLineColor(2)
-        mycircles[nth_roi].SetLineWidth(2)
-        if nth_roi==0: continue
-        if (roi_name[nth_roi] in exclude_roi): continue
-        mycircles[nth_roi].Draw("same")
-    for star in range(0,len(other_star_markers)):
-        other_star_markers[star].Draw("same")
-        other_star_labels[star].Draw("same")
-    for star in range(0,len(bright_star_markers)):
-        bright_star_markers[star].Draw("same")
-        bright_star_labels[star].Draw("same")
-    #for star in range(0,len(faint_star_markers)):
-    #    faint_star_markers[star].Draw("same")
-    #    faint_star_labels[star].Draw("same")
-    canvas.SaveAs('output_plots/SkymapChisq_%s_%s.png'%(name,selection_tag))
+    #for binx in range(0,hist_index_skymap.GetNbinsX()):
+    #    for biny in range(0,hist_index_skymap.GetNbinsY()):
+    #        hist_index_skymap.SetBinContent(binx+1,biny+1,-99.)
+    #        hist_chisq_skymap.SetBinContent(binx+1,biny+1,-99.)
+    #        eaxis = []
+    #        fdata = []
+    #        error = []
+    #        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+    #            eaxis += [energy_bin[ebin]]
+    #            fdata += [hist_flux_skymap[ebin].GetBinContent(binx+1,biny+1)]
+    #            error += [hist_flux_skymap[ebin].GetBinError(binx+1,biny+1)]
+    #        n_2sigma = 0.
+    #        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+    #            data_content = hist_data_skymap[ebin].GetBinContent(binx+1,biny+1)
+    #            bkgd_content = hist_bkgd_skymap[ebin].GetBinContent(binx+1,biny+1)
+    #            data_error = hist_data_skymap[ebin].GetBinError(binx+1,biny+1)
+    #            bkgd_error = hist_bkgd_skymap[ebin].GetBinError(binx+1,biny+1)
+    #            total_error = pow(data_error*data_error+bkgd_error*bkgd_error,0.5)
+    #            if data_content==0.: continue
+    #            if (data_content-bkgd_content)/pow(data_content,0.5)>2.0: n_2sigma += 1
+    #        if n_2sigma<3: continue
+    #        start = (fdata[0]/pow(10,-12), -2.)
+    #        popt, pcov = curve_fit(power_law_func, np.array(eaxis), np.array(fdata), p0=start, sigma=np.array(error))
+    #        flux_fit = power_law_func(np.array(eaxis), *popt)
+    #        residual = np.array(fdata) - flux_fit
+    #        chisq = np.sum((residual/np.array(error))**2)
+    #        dof = len(eaxis)-2
+    #        hist_index_skymap.SetBinContent(binx+1,biny+1,popt[1])
+    #        hist_chisq_skymap.SetBinContent(binx+1,biny+1,chisq/dof)
+    #        if chisq/dof<4.: continue
+    #        ax.cla()
+    #        ax.plot(np.array(eaxis), power_law_func(np.array(eaxis), *popt),color='b')
+    #        ax.errorbar(eaxis, fdata, error, color='b', marker='s', ls='none')
+    #        ax.set_xscale('log')
+    #        ax.set_yscale('log')
+    #        plotname = 'Skymap_flux_fit_cell_%s_%s'%(binx,biny)
+    #        fig.savefig("output_plots/%s_%s.png"%(plotname,selection_tag),bbox_inches='tight')
+    #        ax.cla()
+    #hist_index_skymap_reflect = reflectXaxis(hist_index_skymap)
+    #hist_index_skymap_reflect.GetYaxis().SetTitle(title_y)
+    #hist_index_skymap_reflect.GetXaxis().SetTitle(title_x)
+    #hist_index_skymap_reflect.GetZaxis().SetTitle('spectral index')
+    #hist_index_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
+    #hist_index_skymap_reflect.SetMaximum(-2.)
+    #hist_index_skymap_reflect.SetMinimum(-3.)
+    #hist_index_skymap_reflect.Draw("COL4Z")
+    #hist_contour_reflect.Draw("CONT3 same")
+    #hist_index_skymap_reflect.GetXaxis().SetLabelOffset(999)
+    #hist_index_skymap_reflect.GetXaxis().SetTickLength(0)
+    #raLowerAxis.Draw()
+    #mycircles = []
+    #for nth_roi in range(0,len(roi_ra)):
+    #    mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
+    #    mycircles[nth_roi].SetFillStyle(0)
+    #    mycircles[nth_roi].SetLineColor(2)
+    #    mycircles[nth_roi].SetLineWidth(2)
+    #    if nth_roi==0: continue
+    #    if (roi_name[nth_roi] in exclude_roi): continue
+    #    mycircles[nth_roi].Draw("same")
+    #for star in range(0,len(other_star_markers)):
+    #    other_star_markers[star].Draw("same")
+    #    other_star_labels[star].Draw("same")
+    #for star in range(0,len(bright_star_markers)):
+    #    bright_star_markers[star].Draw("same")
+    #    bright_star_labels[star].Draw("same")
+    ##for star in range(0,len(faint_star_markers)):
+    ##    faint_star_markers[star].Draw("same")
+    ##    faint_star_labels[star].Draw("same")
+    #canvas.SaveAs('output_plots/SkymapIndex_%s_%s.png'%(name,selection_tag))
+    #hist_chisq_skymap_reflect = reflectXaxis(hist_chisq_skymap)
+    #hist_chisq_skymap_reflect.GetYaxis().SetTitle(title_y)
+    #hist_chisq_skymap_reflect.GetXaxis().SetTitle(title_x)
+    #hist_chisq_skymap_reflect.GetZaxis().SetTitle('#chi^{2}/DoF')
+    #hist_chisq_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
+    #hist_chisq_skymap_reflect.SetMaximum(4.)
+    #hist_chisq_skymap_reflect.SetMinimum(0.)
+    #hist_chisq_skymap_reflect.Draw("COL4Z")
+    #hist_contour_reflect.Draw("CONT3 same")
+    #hist_chisq_skymap_reflect.GetXaxis().SetLabelOffset(999)
+    #hist_chisq_skymap_reflect.GetXaxis().SetTickLength(0)
+    #raLowerAxis.Draw()
+    #mycircles = []
+    #for nth_roi in range(0,len(roi_ra)):
+    #    mycircles += [ROOT.TEllipse(-1.*roi_ra[nth_roi],roi_dec[nth_roi],roi_radius_outer[nth_roi])]
+    #    mycircles[nth_roi].SetFillStyle(0)
+    #    mycircles[nth_roi].SetLineColor(2)
+    #    mycircles[nth_roi].SetLineWidth(2)
+    #    if nth_roi==0: continue
+    #    if (roi_name[nth_roi] in exclude_roi): continue
+    #    mycircles[nth_roi].Draw("same")
+    #for star in range(0,len(other_star_markers)):
+    #    other_star_markers[star].Draw("same")
+    #    other_star_labels[star].Draw("same")
+    #for star in range(0,len(bright_star_markers)):
+    #    bright_star_markers[star].Draw("same")
+    #    bright_star_labels[star].Draw("same")
+    ##for star in range(0,len(faint_star_markers)):
+    ##    faint_star_markers[star].Draw("same")
+    ##    faint_star_labels[star].Draw("same")
+    #canvas.SaveAs('output_plots/SkymapChisq_%s_%s.png'%(name,selection_tag))
 
 
     if doMWLMap:
@@ -5237,12 +5405,13 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         #        hist_normsyst_skymap[ebin].Write()
         #    output_file.Close();
 
-        output_file = ROOT.TFile("output_fitting/%s_skymap.root"%(sys.argv[1]),"recreate")
+        output_file = ROOT.TFile("output_fitting/%s_skymap_%s.root"%(sys.argv[1],folder_path),"recreate")
         for ebin in range(0,len(energy_bin)-1):
             hist_energy_flux_skymap[ebin].Write()
             hist_energy_flux_syst_skymap[ebin].Write()
             hist_data_skymap[ebin].Write()
             hist_bkgd_skymap[ebin].Write()
+            hist_expo_skymap[ebin].Write()
         output_file.Close();
 
     else:

@@ -25,25 +25,6 @@ energy_bin = CommonPlotFunctions.energy_bin
 energy_bin_cut_low = 0
 energy_bin_cut_up = 4
 
-def FluxBiasCorrection(real_flux,imposter_fluxes, imposter_biases):
-
-    real_flux_correct = real_flux
-    imposter_fluxes_correct = imposter_fluxes
-    #return real_flux_correct, imposter_fluxes_correct
-
-    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        for binx in range(0,real_flux[ebin].GetNbinsX()):
-            for biny in range(0,real_flux[ebin].GetNbinsY()):
-                imposter_bias = 0.
-                for imposter in range(0,len(imposter_fluxes)):
-                    imposter_bias += imposter_biases[imposter][ebin].GetBinContent(binx+1,biny+1)/float(len(imposter_fluxes))
-                real_flux_old = real_flux_correct[ebin].GetBinContent(binx+1,biny+1)
-                real_flux_correct[ebin].SetBinContent(binx+1,biny+1,real_flux_old-imposter_bias)
-                for imposter in range(0,len(imposter_fluxes)):
-                    imposter_flux_old = imposter_fluxes_correct[imposter][ebin].GetBinContent(binx+1,biny+1)
-                    imposter_fluxes_correct[imposter][ebin].SetBinContent(binx+1,biny+1,imposter_flux_old-imposter_bias)
-    return real_flux_correct, imposter_fluxes_correct
-
 def GetRelSystError(roi_x,roi_y,roi_r,roi_name):
 
     imposter_data_list = []
@@ -123,7 +104,6 @@ for source in range(0,len(source_name)):
     hist_imposter_data_skymap = []
     hist_imposter_bkgd_skymap = []
     hist_imposter_bias_skymap = []
-    hist_imposter_flux_skymap = []
     for imposter in range(0,5):
         hist_imposter_data_skymap_sublist = []
         hist_imposter_bkgd_skymap_sublist = []
@@ -137,7 +117,6 @@ for source in range(0,len(source_name)):
         hist_imposter_data_skymap += [hist_imposter_data_skymap_sublist]
         hist_imposter_bkgd_skymap += [hist_imposter_bkgd_skymap_sublist]
         hist_imposter_bias_skymap += [hist_imposter_bias_skymap_sublist]
-        hist_imposter_flux_skymap += [hist_imposter_flux_skymap_sublist]
     for imposter in range(0,5):
         InputFile = ROOT.TFile("output_fitting/%s_Imposter%s_skymap_%s.root"%(source_name[source],imposter+1,folder_name))
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
@@ -147,12 +126,7 @@ for source in range(0,len(source_name)):
             HistName = "hist_bkgd_skymap_%s"%(ebin)
             hist_imposter_bkgd_skymap[imposter][ebin].Add(InputFile.Get(HistName))
             hist_imposter_bias_skymap[imposter][ebin].Add(InputFile.Get(HistName))
-            HistName = "hist_energy_flux_skymap_%s"%(ebin)
-            hist_imposter_flux_skymap[imposter][ebin].Add(InputFile.Get(HistName))
         InputFile.Close()
-    
-    #hist_real_bkgd_skymap, hist_imposter_bkgd_skymap = FluxBiasCorrection(hist_real_bkgd_skymap, hist_imposter_bkgd_skymap, hist_imposter_bias_skymap)
-    #hist_real_flux_skymap, hist_imposter_flux_skymap = FluxBiasCorrection(hist_real_flux_skymap, hist_imposter_flux_skymap, hist_imposter_flux_skymap)
 
 
     region_x = MapCenter_x
@@ -161,17 +135,32 @@ for source in range(0,len(source_name)):
     region_name = 'Center'
     imposter_rel_syst_biglist += [GetRelSystError(region_x,region_y,region_r,region_name)]
 
+dist_mean = []
+dist_rms = []
 for ebin in range(0,len(energy_bin)-1):
-    hist_imposter_rel_syst = ROOT.TH1D("hist_imposter_rel_syst","",20,-0.05,0.05)
+    hist_imposter_rel_syst = ROOT.TH1D("hist_imposter_rel_syst","",200,-1.0,1.0)
+    mean = 0.
+    rms = 0.
+    n_measurements = 0.
     for source in range(0,len(source_name)):
         for imposter in range(0,5):
             rel_syst = imposter_rel_syst_biglist[source][imposter][ebin]
             hist_imposter_rel_syst.Fill(rel_syst)
+            mean += rel_syst
+            rms += rel_syst*rel_syst
+            n_measurements += 1.
+    mean = mean/n_measurements
+    rms = pow(rms/n_measurements,0.5)
+    print ('E %s, mean = %0.1f %%'%(energy_bin[ebin],mean*100.))
+    print ('E %s, rms = %0.1f %%'%(energy_bin[ebin],rms*100.))
+    dist_mean += [mean]
+    dist_rms += [rms]
 
     x_axis = []
     y_axis = []
     y_error = []
     for binx in range(0,hist_imposter_rel_syst.GetNbinsX()):
+        if hist_imposter_rel_syst.GetBinContent(binx+1)==0: continue
         x_axis += [hist_imposter_rel_syst.GetBinCenter(binx+1)]
         y_axis += [hist_imposter_rel_syst.GetBinContent(binx+1)]
         y_error += [pow(hist_imposter_rel_syst.GetBinContent(binx+1),0.5)]
