@@ -9,6 +9,8 @@ from astropy import units as my_unit
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
 from astropy.time import Time
+from astropy.io import fits
+from astropy.wcs import WCS
 from scipy import special
 from scipy import interpolate
 import scipy.stats as st
@@ -19,6 +21,7 @@ from itertools import cycle
 from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 
+folder_path = 'output_8x8'
 
 skymap_zoomin_scale = 1
 #skymap_zoomin_scale = 1.5
@@ -28,24 +31,25 @@ smooth_size_spectroscopy = 0.1
 #smooth_size_spectroscopy = 0.2
 #smooth_size_spectroscopy = 0.3
 
-#Smoothing = True
-Smoothing = False
+Smoothing = True
+#Smoothing = False
 
-#calibration_radius = 0.3
-calibration_radius = 0.2
+calibration_radius = 0.3
 
 energy_index_scale = 2
 
 Skymap_size = 2.
-#Skymap_nbins = 60
-#Skymap_nbins = 30
-Skymap_nbins = 15
-#Skymap_nbins = 6
+Skymap_nbins = 45
+#Skymap_nbins = 15
+#Skymap_nbins = 9
 #Skymap_nbins = 5
 #Skymap_nbins = 3
 
+Skymap_normalization_nbins = 1
+
 #elev_range = [35,45,55,65,75,85]
-elev_range = [45,65,85]
+elev_range = [45,70]
+#elev_range = [45,90]
 
 #energy_bin = []
 #energy_bin += [100]
@@ -138,6 +142,10 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
                 Hist_Smooth.SetBinError(bx1,by1,bin_error)
     if normalized:
         Hist_Smooth.Scale(1./Hist_Kernel.Integral())
+        for bx1 in range(1,Hist_Smooth.GetNbinsX()+1):
+            for by1 in range(1,Hist_Smooth.GetNbinsY()+1):
+                old_error = Hist_Old.GetBinError(bx1,by1)
+                Hist_Smooth.SetBinError(bx1,by1,old_error)
 
     return Hist_Smooth
 
@@ -341,6 +349,111 @@ def FindGalacticProjection(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integrati
     return profile, profile_err, theta2
 
 
+def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range):
+
+    global calibration_radius
+
+    n_bins_2d = Hist_Data_input.GetNbinsX()
+    #n_bins_1d = int(float(n_bins_2d)/3.)
+    n_bins_1d = int(float(n_bins_2d)/2.)
+    integration_range = 1.6
+
+    Hist_Profile_Theta2 = ROOT.TH1D("Hist_Profile_Theta2","",n_bins_1d,0,integration_range)
+    for br in range(0,Hist_Profile_Theta2.GetNbinsX()):
+        range_limit = Hist_Profile_Theta2.GetBinLowEdge(br+2)
+        range_limit_previous = Hist_Profile_Theta2.GetBinLowEdge(br+1)
+        slice_data = 0.
+        slice_data_err = 0.
+        slice_syst_err = 0.
+        for bx in range(0,Hist_Data_input.GetNbinsX()):
+            for by in range(0,Hist_Data_input.GetNbinsY()):
+                cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
+                cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
+                distance_sq = pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2)
+                data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
+                data_error = Hist_Data_input.GetBinError(bx+1,by+1)
+                syst_error = 0.
+                if Hist_Syst_input!=None:
+                    syst_error = Hist_Syst_input.GetBinContent(bx+1,by+1)
+                if distance_sq>=pow(range_limit_previous,2) and distance_sq<pow(range_limit,2):
+                    slice_data += data_content
+                    slice_data_err += data_error*data_error
+                    slice_syst_err += syst_error
+        slice_data_err = pow(slice_data_err,0.5)
+        if slice_data==0.: slice_data_err = 1.
+        Hist_Profile_Theta2.SetBinContent(br+1,slice_data)
+        Hist_Profile_Theta2.SetBinError(br+1,pow(slice_data_err*slice_data_err+slice_syst_err*slice_syst_err,0.5))
+
+
+    profile = []
+    profile_err = []
+    theta2 = []
+    theta2_err = []
+    for binx in range(0,Hist_Profile_Theta2.GetNbinsX()):
+        center = Hist_Profile_Theta2.GetBinCenter(binx+1)
+        range_limit = Hist_Profile_Theta2.GetBinLowEdge(binx+2)
+        range_limit_previous = Hist_Profile_Theta2.GetBinLowEdge(binx+1)
+        #solid_angle = 3.14*(range_limit*range_limit-range_limit_previous*range_limit_previous)
+        solid_angle = 2.*3.14*center*(range_limit-range_limit_previous)
+        profile_content = Hist_Profile_Theta2.GetBinContent(binx+1)/solid_angle
+        #profile_content = max(0.,profile_content)
+        profile_error = Hist_Profile_Theta2.GetBinError(binx+1)/solid_angle
+        if center>integration_range: continue
+        theta2 += [center]
+        theta2_err += [range_limit-range_limit_previous]
+        profile += [profile_content]
+        profile_err += [profile_error]
+
+    return profile, profile_err, theta2, theta2_err
+
+def SaveAsFITS(hist_map,fits_name):
+
+    map_nbins = hist_map.GetNbinsX()
+    MapEdge_left = hist_map.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = hist_map.GetXaxis().GetBinLowEdge(hist_map.GetNbinsX()+1)
+    MapEdge_lower = hist_map.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = hist_map.GetYaxis().GetBinLowEdge(hist_map.GetNbinsY()+1)
+    grid_z = np.zeros((map_nbins, map_nbins))
+    x_axis = np.linspace(MapEdge_left,MapEdge_right,map_nbins)
+    y_axis = np.linspace(MapEdge_lower,MapEdge_upper,map_nbins)
+    max_z = 0.
+    for ybin in range(0,len(y_axis)):
+        for xbin in range(0,len(x_axis)):
+            hist_bin_x = xbin+1
+            hist_bin_y = ybin+1
+            if hist_bin_x<1: continue
+            if hist_bin_y<1: continue
+            if hist_bin_x>hist_map.GetNbinsX(): continue
+            if hist_bin_y>hist_map.GetNbinsY(): continue
+            grid_z[ybin,xbin] = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+            if max_z<hist_map.GetBinContent(hist_bin_x,hist_bin_y):
+                max_z = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+
+    print ("Constructing WCS from a dictionary header:")
+    bin_ref_x = 2
+    bin_ref_y = 2
+    bin_ref_center_x = -1.*hist_map.GetXaxis().GetBinCenter(bin_ref_x)
+    bin_ref_center_y = hist_map.GetYaxis().GetBinCenter(bin_ref_y)
+    bin_delta_x = -1.*(hist_map.GetXaxis().GetBinCenter(2)-hist_map.GetXaxis().GetBinCenter(1))
+    bin_delta_y = hist_map.GetYaxis().GetBinCenter(2)-hist_map.GetYaxis().GetBinCenter(1)
+    header = {'NAXIS': 2,
+              'NAXIS1': map_nbins,
+              'CTYPE1': 'RA---TAN',
+              'CRVAL1': bin_ref_center_x,
+              'CRPIX1': bin_ref_x,
+              'CDELT1': bin_delta_x,
+              'NAXIS2': map_nbins,
+              'CTYPE2': 'DEC--TAN',
+              'CRVAL2': bin_ref_center_y,
+              'CRPIX2': bin_ref_y,
+              'CDELT2': bin_delta_y}
+    wcs = WCS(header)
+
+    outfile = 'output_plots/%s.fits'%(fits_name)
+    hdu = fits.PrimaryHDU(grid_z)
+    hdu.header.update(wcs.to_header())
+    hdu.writeto(outfile, overwrite=True)
+
 def FindExtension(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range):
 
     global calibration_radius
@@ -525,6 +638,25 @@ def GetRegionIntegral(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,roi_x,r
     flux_stat_err = pow(flux_stat_err,0.5)
     return flux_sum, flux_stat_err, flux_syst_err
 
+def GetRegionSpectrum_v2(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin_low,ebin_up,roi_x,roi_y,roi_r):
+
+    x_axis = []
+    x_error = []
+    y_axis = []
+    y_error = []
+    for ebin in range(ebin_low,ebin_up):
+        flux_sum = 0.
+        flux_stat_err = 0.
+        flux_syst_err = 0.
+        flux_sum, flux_stat_err, flux_syst_err = GetRegionIntegral(hist_data_skymap[ebin],hist_syst_skymap[ebin],hist_mask_skymap,roi_x,roi_y,roi_r)
+        x_axis += [0.5*(energy_bin[ebin]+energy_bin[ebin+1])]
+        x_error += [0.5*(energy_bin[ebin+1]-energy_bin[ebin])]
+        y_axis += [flux_sum]
+        #y_error += [pow(flux_stat_err*flux_stat_err+flux_syst_err*flux_syst_err,0.5)]
+        y_error += [flux_stat_err]
+
+    return x_axis, x_error, y_axis, y_error
+
 def GetRegionSpectrum(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin_low,ebin_up,roi_x,roi_y,roi_r):
 
     x_axis = []
@@ -696,6 +828,10 @@ def MatplotlibMultiMaps(hist_maps,fig,label_x,label_y,label_z,plotname):
 
 def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
 
+    isGalactic = False
+    if label_x=='gal. l':
+        isGalactic = True
+
     top = cm.get_cmap('Blues_r', 128) # r means reversed version
     bottom = cm.get_cmap('Oranges', 128)# combine it all
     newcolors = np.vstack((top(np.linspace(0, 1, 128)),bottom(np.linspace(0, 1, 128))))# create a new colormaps with a name of OrangeBlue
@@ -710,24 +846,14 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
 
     deg_per_bin = (MapEdge_right-MapEdge_left)/map_nbins
     nbins_per_deg = map_nbins/(MapEdge_right-MapEdge_left)
-    nbins_extend = int(0.*nbins_per_deg)
-    deg_extend = nbins_extend/nbins_per_deg
     x_axis = np.linspace(MapEdge_left,MapEdge_right,map_nbins)
-    x_axis_extend = np.linspace(MapEdge_left-deg_extend,MapEdge_right,map_nbins+nbins_extend)
-    x_axis_sparse = np.linspace(MapEdge_left-deg_extend,MapEdge_right,5)
+    x_axis_sparse = np.linspace(MapEdge_left,MapEdge_right,5)
     x_axis_reflect = ["{:6.2f}".format(-1.*i) for i in x_axis_sparse]
     y_axis = np.linspace(MapEdge_lower,MapEdge_upper,map_nbins)
-    grid_z = np.zeros((map_nbins, map_nbins+nbins_extend))
+    grid_z = np.zeros((map_nbins, map_nbins))
     max_z = 0.
     for ybin in range(0,len(y_axis)):
-        for xbin in range(0,len(x_axis_extend)):
-            #hist_bin_x = hist_map.GetXaxis().FindBin(x_axis_extend[xbin])
-            #hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
-            #print ('=========================================')
-            #print ('x_axis_extend[%s] = %s'%(xbin,x_axis_extend[xbin]))
-            #print ('y_axis[%s] = %s'%(ybin,y_axis[ybin]))
-            #print ('hist_bin_x = %s'%(hist_bin_x))
-            #print ('hist_bin_y = %s'%(hist_bin_y))
+        for xbin in range(0,len(x_axis)):
             hist_bin_x = xbin+1
             hist_bin_y = ybin+1
             if hist_bin_x<1: continue
@@ -739,11 +865,11 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
                 max_z = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
 
     levels = np.arange(3.0, 6.0, 1.0)
-    grid_contour = np.zeros((map_nbins, map_nbins+nbins_extend))
+    grid_contour = np.zeros((map_nbins, map_nbins))
     if not hist_contour==None:
         for ybin in range(0,len(y_axis)):
-            for xbin in range(0,len(x_axis_extend)):
-                hist_bin_x = hist_contour.GetXaxis().FindBin(x_axis_extend[xbin])
+            for xbin in range(0,len(x_axis)):
+                hist_bin_x = hist_contour.GetXaxis().FindBin(x_axis[xbin])
                 hist_bin_y = hist_contour.GetYaxis().FindBin(y_axis[ybin])
                 if hist_bin_x<1: continue
                 if hist_bin_y<1: continue
@@ -752,6 +878,10 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
                 grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)
 
     other_stars, other_star_coord = GetGammaSourceInfo() 
+    if isGalactic:
+        for star in range(0,len(other_stars)):
+            other_star_coord[star][0], other_star_coord[star][1] = ConvertRaDecToGalactic(other_star_coord[star][0], other_star_coord[star][1]) 
+
     other_star_labels = []
     other_star_markers = []
     star_range = 2.0
@@ -769,9 +899,12 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
     axbig = fig.add_subplot()
     axbig.set_xlabel(label_x)
     axbig.set_ylabel(label_y)
-    #im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()), vmin=-max_z, vmax=max_z)
-    im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()))
-    #axbig.contour(grid_contour, levels, colors='w', extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()))
+    if label_z=='Z score':
+        max_z = 5.
+        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()), vmin=-max_z, vmax=max_z)
+    else:
+        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()))
+    #axbig.contour(grid_contour, levels, colors='w', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()))
     #cbar = fig.colorbar(im,orientation="horizontal")
     cbar = fig.colorbar(im)
     cbar.set_label(label_z)
@@ -785,7 +918,9 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
         #    text_offset_x = -text_length
         #else: 
         #    text_offset_x = 0.1
-        plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k')
+        rotation_angle = 0.
+        if isGalactic: rotation_angle = 45.
+        plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k', rotation = rotation_angle)
     axbig.set_xticks(x_axis_sparse)
     axbig.set_xticklabels(x_axis_reflect)
     #axbig.legend(fontsize=7)

@@ -44,12 +44,7 @@ lowrank_tag = '_svd'
 #lowrank_tag = '_eigen'
 method_tag += lowrank_tag
 
-#folder_path = 'output_rhv'
-#folder_path = 'output_2x2'
-#folder_path = 'output_4x4'
-folder_path = 'output_8x8'
-#folder_path = 'output_16x16'
-#folder_path = 'output_test'
+folder_path = CommonPlotFunctions.folder_path
 
 energy_bin_cut_low = 0
 energy_bin_cut_up = 6
@@ -168,44 +163,18 @@ if sys.argv[1]=='1ES0229_OFF':
     sample_list = []
     sample_list += ['1ES0229V6_OFF']
     sample_list += ['1ES0229V5_OFF']
-    
-if sys.argv[1]=='1ES0229_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['1ES0229V6_ON']
-    sample_list += ['1ES0229V5_ON']
-if sys.argv[1]=='1ES0229_Imposter1':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['1ES0229V6_Imposter1']
-    sample_list += ['1ES0229V5_Imposter1']
-if sys.argv[1]=='1ES0229_Imposter2':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['1ES0229V6_Imposter2']
-    sample_list += ['1ES0229V5_Imposter2']
-if sys.argv[1]=='1ES0229_Imposter3':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['1ES0229V6_Imposter3']
-    sample_list += ['1ES0229V5_Imposter3']
-if sys.argv[1]=='1ES0229_Imposter4':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['1ES0229V6_Imposter4']
-    sample_list += ['1ES0229V5_Imposter4']
-if sys.argv[1]=='1ES0229_Imposter5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['1ES0229V6_Imposter5']
-    sample_list += ['1ES0229V5_Imposter5']
-    
+
+def PrepreSample():
+    global ONOFF_tag
+    global sample_list
+    for dt in range(0,len(data_type)):
+        if sys.argv[1]=='%s_%s'%(observation_name,data_type[dt]):
+            ONOFF_tag = 'ON'
+            ONOFF_tag += '_Model0'
+            sample_list = []
+            for de in range(0,len(data_epoch)):
+                sample_list += ['%s_%s'%(data_epoch[de],data_type[dt])]
+
 if sys.argv[1]=='H1426_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
@@ -217,31 +186,6 @@ if sys.argv[1]=='H1426_ON':
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['H1426V6_ON']
-if sys.argv[1]=='H1426_Imposter1':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['H1426V6_Imposter1']
-if sys.argv[1]=='H1426_Imposter2':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['H1426V6_Imposter2']
-if sys.argv[1]=='H1426_Imposter3':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['H1426V6_Imposter3']
-if sys.argv[1]=='H1426_Imposter4':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['H1426V6_Imposter4']
-if sys.argv[1]=='H1426_Imposter5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['H1426V6_Imposter5']
     
 if sys.argv[1]=='Crab_ON':
     ONOFF_tag = 'ON'
@@ -249,99 +193,17 @@ if sys.argv[1]=='Crab_ON':
     sample_list = []
     sample_list += ['CrabV6_ON']
     sample_list += ['CrabV5_ON']
-if sys.argv[1]=='Crab_Imposter1':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['CrabV6_Imposter1']
-    sample_list += ['CrabV5_Imposter1']
-if sys.argv[1]=='Crab_Imposter2':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['CrabV6_Imposter2']
-    sample_list += ['CrabV5_Imposter2']
-if sys.argv[1]=='Crab_Imposter3':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['CrabV6_Imposter3']
-    sample_list += ['CrabV5_Imposter3']
-if sys.argv[1]=='Crab_Imposter4':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['CrabV6_Imposter4']
-    sample_list += ['CrabV5_Imposter4']
-if sys.argv[1]=='Crab_Imposter5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['CrabV6_Imposter5']
-    sample_list += ['CrabV5_Imposter5']
     
 if sys.argv[1]=='Crab_Offset_1p0_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['Crab_Offset_1p0_V6_ON']
-if sys.argv[1]=='Crab_Offset_1p0_Imposter1':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p0_V6_Imposter1']
-if sys.argv[1]=='Crab_Offset_1p0_Imposter2':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p0_V6_Imposter2']
-if sys.argv[1]=='Crab_Offset_1p0_Imposter3':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p0_V6_Imposter3']
-if sys.argv[1]=='Crab_Offset_1p0_Imposter4':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p0_V6_Imposter4']
-if sys.argv[1]=='Crab_Offset_1p0_Imposter5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p0_V6_Imposter5']
-
 if sys.argv[1]=='Crab_Offset_1p5_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['Crab_Offset_1p5_V6_ON']
-if sys.argv[1]=='Crab_Offset_1p5_Imposter1':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p5_V6_Imposter1']
-if sys.argv[1]=='Crab_Offset_1p5_Imposter2':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p5_V6_Imposter2']
-if sys.argv[1]=='Crab_Offset_1p5_Imposter3':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p5_V6_Imposter3']
-if sys.argv[1]=='Crab_Offset_1p5_Imposter4':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p5_V6_Imposter4']
-if sys.argv[1]=='Crab_Offset_1p5_Imposter5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Crab_Offset_1p5_V6_Imposter5']
-
 if sys.argv[1]=='PKS1424_OFF':
     ONOFF_tag = 'OFF'
     ONOFF_tag += '_Model0'
@@ -520,31 +382,6 @@ if sys.argv[1]=='NGC1275_ON':
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['NGC1275V6_ON']
-if sys.argv[1]=='NGC1275_Imposter1':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['NGC1275V6_Imposter1']
-if sys.argv[1]=='NGC1275_Imposter2':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['NGC1275V6_Imposter2']
-if sys.argv[1]=='NGC1275_Imposter3':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['NGC1275V6_Imposter3']
-if sys.argv[1]=='NGC1275_Imposter4':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['NGC1275V6_Imposter4']
-if sys.argv[1]=='NGC1275_Imposter5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['NGC1275V6_Imposter5']
     
 if sys.argv[1]=='SNR_G150p3Plus04p5_ON':
     ONOFF_tag = 'ON'
@@ -636,79 +473,12 @@ if sys.argv[1]=='WComae_ON':
     sample_list += ['WComaeV6_ON']
     sample_list += ['WComaeV5_ON']
     # https://arxiv.org/pdf/2002.04119.pdf VERITAS observations of 1ES 1215+303 from 2008 December to 2017 May.
-if sys.argv[1]=='WComae_Imposter1':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['WComaeV6_Imposter1']
-    sample_list += ['WComaeV5_Imposter1']
-if sys.argv[1]=='WComae_Imposter2':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['WComaeV6_Imposter2']
-    sample_list += ['WComaeV5_Imposter2']
-if sys.argv[1]=='WComae_Imposter3':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['WComaeV6_Imposter3']
-    sample_list += ['WComaeV5_Imposter3']
-if sys.argv[1]=='WComae_Imposter4':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['WComaeV6_Imposter4']
-    sample_list += ['WComaeV5_Imposter4']
-if sys.argv[1]=='WComae_Imposter5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['WComaeV6_Imposter5']
-    sample_list += ['WComaeV5_Imposter5']
     
 if sys.argv[1]=='PSRB0355plus54_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'
     sample_list = []
     sample_list += ['PSRB0355plus54_V6_ON']
-
-if sys.argv[1]=='IC443HotSpot_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['IC443HotSpotV6_ON']
-    sample_list += ['IC443HotSpotV5_ON']
-if sys.argv[1]=='IC443HotSpot_Imposter1':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['IC443HotSpotV6_Imposter1']
-    sample_list += ['IC443HotSpotV5_Imposter1']
-if sys.argv[1]=='IC443HotSpot_Imposter2':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['IC443HotSpotV6_Imposter2']
-    sample_list += ['IC443HotSpotV5_Imposter2']
-if sys.argv[1]=='IC443HotSpot_Imposter3':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['IC443HotSpotV6_Imposter3']
-    sample_list += ['IC443HotSpotV5_Imposter3']
-if sys.argv[1]=='IC443HotSpot_Imposter4':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['IC443HotSpotV6_Imposter4']
-    sample_list += ['IC443HotSpotV5_Imposter4']
-if sys.argv[1]=='IC443HotSpot_Imposter5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['IC443HotSpotV6_Imposter5']
-    sample_list += ['IC443HotSpotV5_Imposter5']
     
 if sys.argv[1]=='Boomerang_ON':
     ONOFF_tag = 'ON'
@@ -744,74 +514,65 @@ if sys.argv[1]=='LHAASO_J0341_ON':
     sample_list = []
     sample_list += ['LHAASO_J0341_V6_ON']
     # this is a Tevatron
-if sys.argv[1]=='LHAASO_J1929_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1929_V6_ON']
-    # this is a Tevatron
-if sys.argv[1]=='LHAASO_J1929_Imposter1':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1929_V6_Imposter1']
-if sys.argv[1]=='LHAASO_J1929_Imposter2':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1929_V6_Imposter2']
-if sys.argv[1]=='LHAASO_J1929_Imposter3':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1929_V6_Imposter3']
-if sys.argv[1]=='LHAASO_J1929_Imposter4':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1929_V6_Imposter4']
-if sys.argv[1]=='LHAASO_J1929_Imposter5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1929_V6_Imposter5']
-if sys.argv[1]=='LHAASO_J1843_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1843_V6_ON']
-    # this is a Tevatron
-if sys.argv[1]=='LHAASO_J1843_Imposter1':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1843_V6_Imposter1']
-if sys.argv[1]=='LHAASO_J1843_Imposter2':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1843_V6_Imposter2']
-if sys.argv[1]=='LHAASO_J1843_Imposter3':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1843_V6_Imposter3']
-if sys.argv[1]=='LHAASO_J1843_Imposter4':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1843_V6_Imposter4']
-if sys.argv[1]=='LHAASO_J1843_Imposter5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1843_V6_Imposter5']
-if sys.argv[1]=='LHAASO_J1956_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['LHAASO_J1956_V6_ON']
-    # this is a Tevatron
+
+data_type = ['ON','Imposter1','Imposter2','Imposter3','Imposter4','Imposter5']
+
+observation_name = 'MGRO_J1908'
+data_epoch = ['MGRO_J1908_V5','MGRO_J1908_V6']
+if 'Crab' in sys.argv[1]:
+    observation_name = 'Crab'
+    data_epoch = ['CrabV5','CrabV6']
+if 'Crab_Offset_1p0' in sys.argv[1]:
+    observation_name = 'Crab_Offset_1p0'
+    data_epoch = ['Crab_Offset_1p0_V6']
+if 'Crab_Offset_1p5' in sys.argv[1]:
+    observation_name = 'Crab_Offset_1p5'
+    data_epoch = ['Crab_Offset_1p5_V6']
+if 'NGC1275' in sys.argv[1]:
+    observation_name = 'NGC1275'
+    data_epoch = ['NGC1275V6']
+if '1ES0229' in sys.argv[1]:
+    observation_name = '1ES0229'
+    data_epoch = ['1ES0229V5','1ES0229V6']
+if 'LHAASO_J1843' in sys.argv[1]:
+    observation_name = 'LHAASO_J1843'
+    data_epoch = ['LHAASO_J1843_V6']
+if 'LHAASO_J1929' in sys.argv[1]:
+    observation_name = 'LHAASO_J1929'
+    data_epoch = ['LHAASO_J1929_V6']
+if 'IC443HotSpot' in sys.argv[1]:
+    observation_name = 'IC443HotSpot'
+    data_epoch = ['IC443HotSpotV5','IC443HotSpotV6']
+if 'WComae' in sys.argv[1]:
+    observation_name = 'WComae'
+    data_epoch = ['WComaeV5','WComaeV6']
+if 'Geminga' in sys.argv[1]:
+    observation_name = 'Geminga'
+    data_epoch = ['GemingaV5','GemingaV6']
+if 'M82' in sys.argv[1]:
+    observation_name = 'M82'
+    data_epoch = ['M82V5','M82V6']
+if 'UrsaMajorII' in sys.argv[1]:
+    observation_name = 'UrsaMajorII'
+    data_epoch = ['UrsaMajorIIV6']
+if 'GammaCygni' in sys.argv[1]:
+    observation_name = 'GammaCygni'
+    data_epoch = ['GammaCygniV5','GammaCygniV6']
+if '1ES0502' in sys.argv[1]:
+    observation_name = '1ES0502'
+    data_epoch = ['1ES0502V5','1ES0502V6']
+if '3C273' in sys.argv[1]:
+    observation_name = '3C273'
+    data_epoch = ['3C273V5','3C273V6']
+if 'BLLac' in sys.argv[1]:
+    observation_name = 'BLLac'
+    data_epoch = ['BLLacV5','BLLacV6']
+if 'Draco' in sys.argv[1]:
+    observation_name = 'Draco'
+    data_epoch = ['DracoV5','DracoV6']
+
+PrepreSample()
+
 
 if sys.argv[1]=='Perseus_ON':
     ONOFF_tag = 'ON'
@@ -819,46 +580,6 @@ if sys.argv[1]=='Perseus_ON':
     sample_list = []
     sample_list += ['Perseus_V6_ON']
 
-if sys.argv[1]=='MGRO_J1908_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['MGRO_J1908_V6_ON']
-    sample_list += ['MGRO_J1908_V5_ON']
-    #sample_list += ['MGRO_J1908_V4_ON']
-    # this is a Tevatron
-
-if sys.argv[1]=='MGRO_J1908_Imposter1':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['MGRO_J1908_V6_Imposter1']
-    sample_list += ['MGRO_J1908_V5_Imposter1']
-if sys.argv[1]=='MGRO_J1908_Imposter2':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['MGRO_J1908_V6_Imposter2']
-    sample_list += ['MGRO_J1908_V5_Imposter2']
-if sys.argv[1]=='MGRO_J1908_Imposter3':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['MGRO_J1908_V6_Imposter3']
-    sample_list += ['MGRO_J1908_V5_Imposter3']
-if sys.argv[1]=='MGRO_J1908_Imposter4':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['MGRO_J1908_V6_Imposter4']
-    sample_list += ['MGRO_J1908_V5_Imposter4']
-if sys.argv[1]=='MGRO_J1908_Imposter5':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['MGRO_J1908_V6_Imposter5']
-    sample_list += ['MGRO_J1908_V5_Imposter5']
-    
 if sys.argv[1]=='SS433_ON':
     ONOFF_tag = 'ON'
     ONOFF_tag += '_Model0'

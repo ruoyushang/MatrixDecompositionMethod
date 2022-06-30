@@ -27,15 +27,15 @@ energy_bin_cut_up = int(sys.argv[3])
 
 def GetFluxCalibration(map_x,map_y,energy):
 
-    #return 1.
 
     binx = hist_real_data_skymap[0].GetXaxis().FindBin(map_x)
     biny = hist_real_data_skymap[0].GetYaxis().FindBin(map_y)
     data_count = hist_real_data_skymap[0].GetBinContent(binx,biny)
     if data_count==0.: return 0.
     
-    #flux_calibration = [3.715619485492126e-08, 3.4686074327294743e-09, 2.5491285892959776e-10, 1.6854055449950507e-11]
-    flux_calibration = [4.536180924151463e-09, 1.7280230340315672e-10, 3.827667186610526e-12, 6.91942141792165e-14]
+    #return 1.
+    # 9 bins
+    flux_calibration = [3.2538602333424753e-09, 1.280723442573218e-10, 2.7261479794937783e-12, 4.6984480245008585e-14]
 
     return flux_calibration[energy]
 
@@ -114,6 +114,11 @@ def MakeSignificanceMap():
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap_sum)
     CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,None,fig,'RA','Dec','Z score','SkymapZscore_Sum_%s'%(plot_tag))
 
+    CommonPlotFunctions.SaveAsFITS(hist_zscore_skymap_sum_reflect,'skymap_zscore_sum')
+
+def diffusion_func(x,A,d):
+    return A*1.22/(pow(3.14,1.5)*d*(x+0.06*d))*np.exp(-x*x/(d*d))
+
 def power_law_func(x,a,b):
     return a*pow(x*1./1000.,b)
 
@@ -155,6 +160,49 @@ def GetFermiFluxJ1908(energy_index):
 
     return energies, fluxes, flux_errs
 
+def GetFermiUpperLimitFluxGeminga(energy_index):
+    energies = [pow(10.,2.09),pow(10.,2.35),pow(10.,2.61),pow(10.,2.87)]
+    fluxes = [pow(10.,-7.35),pow(10.,-7.23),pow(10.,-7.34),pow(10.,-7.18)]
+    fluxes_err = [pow(10.,-7.35),pow(10.,-7.23),pow(10.,-7.34),pow(10.,-7.18)]
+
+    GeV_to_TeV = 1e-3
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]
+        fluxes[entry] = fluxes[entry]*GeV_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        fluxes_err[entry] = fluxes[entry]*0.3
+
+    return energies, fluxes, fluxes_err
+
+def GetFermiHAWCFluxGeminga(energy_index):
+    energies = [pow(10.,3.90),pow(10.,4.60)]
+    fluxes = [pow(10.,-8.13),pow(10.,-8.36)]
+    flux_errs = [0.,0.]
+    flux_errs_up = [pow(10.,-8.06),pow(10.,-8.30)]
+    flux_errs_low = [pow(10.,-8.24),pow(10.,-8.47)]
+
+    GeV_to_TeV = 1e-3
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]
+        fluxes[entry] = fluxes[entry]*GeV_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])*GeV_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
+def GetFermiFluxGeminga(energy_index):
+    energies = [pow(10.,1.03),pow(10.,1.30),pow(10.,1.56),pow(10.,1.82)]
+    fluxes = [pow(10.,-7.27),pow(10.,-7.29),pow(10.,-7.41),pow(10.,-7.35)]
+    flux_errs = [pow(10.,-7.27),pow(10.,-7.29),pow(10.,-7.41),pow(10.,-7.35)]
+    flux_errs_up = [pow(10.,-7.14),pow(10.,-7.16),pow(10.,-7.29),pow(10.,-7.23)]
+    flux_errs_low = [pow(10.,-7.46),pow(10.,-7.49),pow(10.,-7.58),pow(10.,-7.50)]
+
+    GeV_to_TeV = 1e-3
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]
+        fluxes[entry] = fluxes[entry]*GeV_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])*GeV_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
 def flux_ic443_func(x):
     # IC 443 https://arxiv.org/pdf/0905.3291.pdf
     #return 0.838*pow(10,-12)*pow(x*1./1000.,-2.99)
@@ -187,7 +235,7 @@ def ConvertRaDecToGalacticMap(hist_map_radec,hist_map_galactic):
 
 def SumFluxMap():
 
-    hist_real_flux_skymap_sum = ROOT.TH2D("hist_real_flux_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+    hist_real_flux_skymap_sum.Reset()
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         hist_real_flux_skymap_sum.Add(hist_real_flux_skymap[ebin])
 
@@ -200,6 +248,7 @@ def SumFluxMap():
     hist_real_flux_skymap_galactic_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_sum_galactic)
     CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_galactic_reflect,None,fig,'gal. l','gal. b','$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFluxGal_%s'%(plot_tag))
 
+    CommonPlotFunctions.SaveAsFITS(hist_real_flux_skymap_reflect,'skymap_flux_sum')
 
 def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
 
@@ -280,6 +329,10 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         ydata_veritas_paper = pow(xdata/1e3,energy_index_scale)*vectorize_f_veritas_paper(xdata)
         vectorize_f_hawc = np.vectorize(flux_ic443_hawc_func)
         ydata_hawc = pow(xdata/1e3,energy_index_scale)*vectorize_f_hawc(xdata)
+    if source_name=='Geminga':
+        HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetFermiHAWCFluxGeminga(energy_index_scale)
+        Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxGeminga(energy_index_scale)
+        Fermi_UL_energies, Fermi_UL_fluxes, Fermi_UL_err = GetFermiUpperLimitFluxGeminga(energy_index_scale)
 
     energy_axis = np.array(energy_axis)
     energy_error = np.array(energy_error)
@@ -336,6 +389,14 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         axbig.plot(xdata, ydata_crab,'r-',label='1508.06442', zorder=1)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2,zorder=2)
         axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (new)',zorder=3)
+    elif 'Geminga' in source_name:
+        axbig.plot(HAWC_energies, HAWC_fluxes,'g-',label='HAWC')
+        axbig.fill_between(HAWC_energies, np.array(HAWC_fluxes)-np.array(HAWC_flux_errs), np.array(HAWC_fluxes)+np.array(HAWC_flux_errs), alpha=0.2, color='g')
+        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='r',marker='_',ls='none',label='Fermi')
+        uplims = np.array([1,1,1,1], dtype=bool)
+        axbig.errorbar(Fermi_UL_energies,Fermi_UL_fluxes,Fermi_UL_err,color='r',marker='_',ls='none',uplims=uplims)
+        axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2,zorder=2)
+        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (new)',zorder=3)
     else:
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2)
         axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS')
@@ -349,7 +410,7 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     fig.savefig("output_plots/%s_%s.png"%(plotname,plot_tag),bbox_inches='tight')
     axbig.remove()
 
-def MakeExtensionProfile(roi_x,roi_y,roi_r,roi_name):
+def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name):
 
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindExtension_v2(hist_real_flux_skymap[ebin],hist_real_flux_syst_skymap[ebin],roi_x,roi_y,2.0)
@@ -374,10 +435,21 @@ def MakeExtensionProfile(roi_x,roi_y,roi_r,roi_name):
         real_profile_stat_err = np.array(real_profile_stat_err)
         real_profile_syst_err = np.array(real_profile_syst_err)
 
+        if fit_profile:
+            start = (real_profile[0], 0.5)
+            popt, pcov = curve_fit(diffusion_func,theta2,real_profile,p0=start,sigma=real_profile_stat_err)
+            profile_fit = diffusion_func(theta2, *popt)
+            residual = real_profile - profile_fit
+            chisq = np.sum((residual/real_profile_stat_err)**2)
+            dof = len(theta2)-2
+            print ('diffusion radius = %0.2f deg (chi2/dof = %0.2f)'%(popt[1],chisq/dof))
+
         fig.clf()
         axbig = fig.add_subplot()
         axbig.bar(theta2, 2.*real_profile_syst_err, bottom=real_profile-real_profile_syst_err, width=1.*theta2_err, color='b', align='center', alpha=0.2)
         axbig.errorbar(theta2,real_profile,real_profile_stat_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+        if fit_profile:
+            axbig.plot(theta2,diffusion_func(theta2,*popt),color='r')
         axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
         axbig.set_xlabel('angular distance from source [degree]')
         axbig.legend(loc='best')
@@ -398,11 +470,12 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, expo_map):
                 data_content = data_map[ebin].GetBinContent(binx+1,biny+1)
                 bkgd_content = bkgd_map[ebin].GetBinContent(binx+1,biny+1)
                 expo_content = expo_map[ebin].GetBinContent(binx+1,biny+1)
-                expo_content = max(expo_content,0.3*expo_content_max)
+                expo_content = max(expo_content,0.5*expo_content_max)
                 map_x = data_map[ebin].GetXaxis().GetBinCenter(binx+1)
                 map_y = data_map[ebin].GetYaxis().GetBinCenter(biny+1)
                 flux_calibration = GetFluxCalibration(map_x,map_y,ebin)
-                correction = flux_calibration*(skymap_bin_size_x*skymap_bin_size_y)/(3.14*calibration_radius*calibration_radius)
+                #correction = flux_calibration*(skymap_bin_size_x*skymap_bin_size_y)/(3.14*calibration_radius*calibration_radius)
+                correction = flux_calibration*map_bin_area/calibration_bin_area
                 stat_data_err = data_map[ebin].GetBinError(binx+1,biny+1)
                 stat_bkgd_err = bkgd_map[ebin].GetBinError(binx+1,biny+1)
                 flux_stat_err = pow(stat_data_err*stat_data_err+stat_bkgd_err*stat_bkgd_err,0.5)/expo_content*correction*pow(energy_bin[ebin]/1e3,energy_index_scale)
@@ -412,9 +485,7 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, expo_map):
 
 
 
-#folder_name = 'output_2x2'
-folder_name = 'output_8x8'
-#folder_name = 'output_test'
+folder_name = CommonPlotFunctions.folder_path
 source_name = sys.argv[1]
 source_name = source_name.split('_ON')[0]
 plot_tag = source_name+'_'+folder_name
@@ -436,7 +507,10 @@ MapPlot_right = MapCenter_x+0.5*MapPlotSize
 MapPlot_lower = MapCenter_y-0.5*MapPlotSize
 MapPlot_upper = MapCenter_y+0.5*MapPlotSize
 
+calibration_bin_area = pow(MapPlotSize/9.,2)
+map_bin_area = pow(MapPlotSize/float(nbins),2)
 
+hist_real_flux_skymap_sum = ROOT.TH2D("hist_real_flux_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_real_data_skymap = []
 hist_real_bkgd_skymap = []
 hist_real_expo_skymap = []
@@ -497,6 +571,7 @@ for imposter in range(0,5):
         data_norm = hist_imposter_data_skymap[imposter][ebin].Integral()
         bkgd_norm = hist_imposter_bkgd_skymap[imposter][ebin].Integral()
         hist_imposter_bias_skymap[imposter][ebin].Add(InputFile.Get(HistName),-1.*data_norm/bkgd_norm)
+        #hist_imposter_bias_skymap[imposter][ebin].Add(InputFile.Get(HistName),-1.)
     InputFile.Close()
 
 for ebin in range(0,len(energy_bin)-1):
@@ -536,19 +611,19 @@ if 'Crab' in source_name:
     region_r = CommonPlotFunctions.calibration_radius
     region_name = 'Center'
     MakeSpectrum(region_x,region_y,region_r,region_name)
-    MakeExtensionProfile(region_x,region_y,region_r,region_name)
+    MakeExtensionProfile(region_x,region_y,region_r,True,region_name)
 elif source_name=='MGRO_J1908':
     #3HWC J1908+063, 287.05, 6.39
     region_x = 287.05
     region_y = 6.39
     region_r = 1.5
     region_name = '3HWC'
-    MakeSpectrum(region_x,region_y,region_r,region_name)
-    MakeExtensionProfile(region_x,region_y,region_r,region_name)
     #PSR J1907+0602
     #region_x = 286.975
     #region_y = 6.03777777778
-    #region_r = 1.5
+    #region_r = 1.2
+    #region_name = 'PSR'
+    #PSR J1907+0602
     #North hot spot
     #region_x = 286.8
     #region_y = 7.1
@@ -557,13 +632,15 @@ elif source_name=='MGRO_J1908':
     #region_x = 288.404
     #region_y = 4.930
     #region_r = 0.3
+    MakeSpectrum(region_x,region_y,region_r,region_name)
+    MakeExtensionProfile(region_x,region_y,region_r,True,region_name)
 elif source_name=='IC443HotSpot':
     region_x = 94.213
     region_y = 22.503
     region_r = 0.5
     region_name = 'Center'
     MakeSpectrum(region_x,region_y,region_r,region_name)
-    MakeExtensionProfile(region_x,region_y,region_r,region_name)
+    MakeExtensionProfile(region_x,region_y,region_r,False,region_name)
 elif source_name=='WComae':
     # 1ES 1218+304
     region_x = 185.360
@@ -571,25 +648,25 @@ elif source_name=='WComae':
     region_r = 0.2
     region_name = '1ES1218'
     MakeSpectrum(region_x,region_y,region_r,region_name)
-    MakeExtensionProfile(region_x,region_y,region_r,region_name)
+    MakeExtensionProfile(region_x,region_y,region_r,False,region_name)
     # 1ES 1215+303
     region_x = 184.616
     region_y = 30.130
     region_r = 0.2
     region_name = '1ES1215'
     MakeSpectrum(region_x,region_y,region_r,region_name)
-    MakeExtensionProfile(region_x,region_y,region_r,region_name)
+    MakeExtensionProfile(region_x,region_y,region_r,False,region_name)
     # W Comae
     region_x = 185.382
     region_y = 28.233
     region_r = 0.2
     region_name = 'WComae'
     MakeSpectrum(region_x,region_y,region_r,region_name)
-    MakeExtensionProfile(region_x,region_y,region_r,region_name)
+    MakeExtensionProfile(region_x,region_y,region_r,False,region_name)
 else:
     region_x = MapCenter_x
     region_y = MapCenter_y
     region_r = 1.5
     region_name = 'Center'
     MakeSpectrum(region_x,region_y,region_r,region_name)
-    MakeExtensionProfile(region_x,region_y,region_r,region_name)
+    MakeExtensionProfile(region_x,region_y,region_r,False,region_name)
