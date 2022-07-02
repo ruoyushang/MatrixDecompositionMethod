@@ -107,8 +107,8 @@ double GammaScale = 0.;
 double MinChi2Unblind = 1e10;
 double current_energy = 0.;
 
-double optimiz_lower = -6.;
-double optimiz_upper = -3.;
+double optimiz_lower = -7.;
+double optimiz_upper = -0.;
 vector<double> max_chi2_diff2_position;
 
 //double svd_threshold = 1e-6; // size of singular value to be considered as nonzero.
@@ -3344,7 +3344,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         Hist_Rank4_MSCLW_Dark.push_back(TH2D("Hist_Rank4_MSCLW_Dark_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
 
         Hist_Dark_Optimization.push_back(TH1D("Hist_Dark_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv/2,0,N_bins_for_deconv/2));
-        Hist_Bkgd_Optimization.push_back(TH1D("Hist_Bkgd_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,optimiz_lower,optimiz_upper));
+        Hist_Bkgd_Optimization.push_back(TH1D("Hist_Bkgd_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,optimiz_lower,optimiz_upper));
         Hist_Bkgd_Optimization_beta.push_back(TH2D("Hist_Bkgd_Optimization_beta_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,0.,1.,10,0.,1.));
         Hist_Bkgd_OptimizationChi2_beta.push_back(TH2D("Hist_Bkgd_OptimizationChi2_beta_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,0.,1.,10,0.,1.));
         Hist_Bkgd_Chi2.push_back(TH1D("Hist_Bkgd_Chi2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,optimiz_lower,optimiz_upper));
@@ -3828,6 +3828,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             JacobiSVD<MatrixXd> svd_Moff(mtx_dark.real(), ComputeFullU | ComputeFullV);
             bool find_elbow = false;
             int max_rank = min(N_bins_for_deconv-1,3);
+            //int max_rank = min(N_bins_for_deconv-1,2);
             if (N_bins_for_deconv<4)
             {
                 max_rank = 1;
@@ -3945,9 +3946,12 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
                 mtx_data_bkgd = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,temp_alpha,temp_beta1,temp_beta2,std::make_pair(NumberOfEigenvectors_Stable,NumberOfEigenvectors_Stable),e).first;
                 double data_count = CountGammaRegion(mtx_data);
                 double bkgd_count = CountGammaRegion(mtx_data_bkgd);
+                double lambda_data_2 =  GetSingularValue(mtx_data, 1);
+                double lambda_bkgd_2 =  GetSingularValue(mtx_data_bkgd, 1);
                 if (data_count>0.)
                 {
-                    Hist_Bkgd_Optimization.at(e).SetBinContent(binx,abs(1.-bkgd_count/data_count));
+                    //Hist_Bkgd_Optimization.at(e).SetBinContent(binx,(1.-bkgd_count/data_count));
+                    Hist_Bkgd_Optimization.at(e).SetBinContent(binx,(1.-lambda_bkgd_2/lambda_data_2));
                 }
                 double chi2 = 0.;
                 for (int row=0;row<N_bins_for_deconv;row++)

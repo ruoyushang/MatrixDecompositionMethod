@@ -4,7 +4,7 @@ const int N_energy_bins = 4;
 //int N_bins_for_deconv = 16; // 8 should be the lowest bin number
 //double Log10_alpha[N_energy_bins] = {-4.5,-4.5,-4.5,-4.5};
 int N_bins_for_deconv = 8; // 8 should be the lowest bin number
-double Log10_alpha[N_energy_bins] = {-4.5,-4.5,-4.5,-4.5};
+double Log10_alpha[N_energy_bins] = {-2.5,-4.3,-4.,0.};
 //int N_bins_for_deconv = 4; // 8 should be the lowest bin number
 //double Log10_alpha[N_energy_bins] = {-3.5,-3.5,-3.5,-3.5};
 //int N_bins_for_deconv = 2; // 8 should be the lowest bin number
@@ -98,7 +98,7 @@ double MSCW_plot_upper = 3.;
 double MSCL_plot_upper = 3.;
 
 double Skymap_size = 2.;
-int Skymap_nbins = 60;
+int Skymap_nbins = 45;
 int Skymap_normalization_nbins = 1;
 
 double brightness_cut = 5.0;
