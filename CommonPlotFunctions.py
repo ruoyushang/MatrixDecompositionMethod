@@ -21,7 +21,8 @@ from itertools import cycle
 from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 
-folder_path = 'output_8x8'
+folder_path = 'output_test'
+#folder_path = 'output_8x8'
 
 skymap_zoomin_scale = 1
 #skymap_zoomin_scale = 1.5
@@ -31,16 +32,16 @@ smooth_size_spectroscopy = 0.1
 #smooth_size_spectroscopy = 0.2
 #smooth_size_spectroscopy = 0.3
 
-Smoothing = True
-#Smoothing = False
+#Smoothing = True
+Smoothing = False
 
 calibration_radius = 0.3
 
 energy_index_scale = 2
 
 Skymap_size = 2.
-Skymap_nbins = 45
-#Skymap_nbins = 15
+#Skymap_nbins = 45
+Skymap_nbins = 15
 #Skymap_nbins = 9
 #Skymap_nbins = 5
 #Skymap_nbins = 3
@@ -48,8 +49,8 @@ Skymap_nbins = 45
 Skymap_normalization_nbins = 1
 
 #elev_range = [35,45,55,65,75,85]
-elev_range = [45,70]
-#elev_range = [45,90]
+#elev_range = [45,70]
+elev_range = [45,90]
 
 #energy_bin = []
 #energy_bin += [100]
@@ -113,7 +114,7 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
 
     bin_size = Hist_Old.GetXaxis().GetBinCenter(2)-Hist_Old.GetXaxis().GetBinCenter(1)
     nbin_smooth = int(2*smooth_size/bin_size) + 1
-    central_bin = int(nbins/2)
+    central_bin = int(nbins/2) + 1
     for bx1 in range(1,Hist_Old.GetNbinsX()+1):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
             old_content = Hist_Old.GetBinContent(bx1,by1)
@@ -142,10 +143,10 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
                 Hist_Smooth.SetBinError(bx1,by1,bin_error)
     if normalized:
         Hist_Smooth.Scale(1./Hist_Kernel.Integral())
-        for bx1 in range(1,Hist_Smooth.GetNbinsX()+1):
-            for by1 in range(1,Hist_Smooth.GetNbinsY()+1):
-                old_error = Hist_Old.GetBinError(bx1,by1)
-                Hist_Smooth.SetBinError(bx1,by1,old_error)
+        #for bx1 in range(1,Hist_Smooth.GetNbinsX()+1):
+        #    for by1 in range(1,Hist_Smooth.GetNbinsY()+1):
+        #        old_error = Hist_Old.GetBinError(bx1,by1)
+        #        Hist_Smooth.SetBinError(bx1,by1,old_error)
 
     return Hist_Smooth
 
@@ -355,7 +356,7 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
     #n_bins_1d = int(float(n_bins_2d)/3.)
-    n_bins_1d = int(float(n_bins_2d)/2.)
+    n_bins_1d = min(8,int(float(n_bins_2d)/2.))
     integration_range = 1.6
 
     Hist_Profile_Theta2 = ROOT.TH1D("Hist_Profile_Theta2","",n_bins_1d,0,integration_range)
