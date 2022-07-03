@@ -568,28 +568,6 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     double TelElevation_avg = 0.;
     double TelAzimuth_avg = 0.;
 
-    //char run_number[50];
-    //sprintf(run_number, "%i", int(run));
-    //TFile*  input_file = TFile::Open(file_name.c_str());
-    //TTree* pointing_tree = nullptr;
-    //pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
-    //pointing_tree->SetBranchStatus("*",0);
-    //pointing_tree->SetBranchStatus("TelElevation",1);
-    //pointing_tree->SetBranchStatus("TelAzimuth",1);
-    //pointing_tree->SetBranchAddress("TelElevation",&TelElevation);
-    //pointing_tree->SetBranchAddress("TelAzimuth",&TelAzimuth);
-    //double total_entries = (double)pointing_tree->GetEntries();
-    //for (int entry=0;entry<total_entries;entry++)
-    //{
-    //    pointing_tree->GetEntry(entry);
-    //    TelElevation_avg += TelElevation;
-    //    TelAzimuth_avg += TelAzimuth;
-    //}
-    //TelElevation_avg = TelElevation_avg/total_entries;
-    //TelAzimuth_avg = TelAzimuth_avg/total_entries;
-    //input_file->Close();
-    //std::cout << "root file elev = " << TelElevation_avg << " azim = " << TelAzimuth_avg << std::endl;
-
     string line;
     char delimiter = ' ';
     string acc_runnumber = "";
@@ -650,6 +628,31 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     }
     else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
     //std::cout << "diag file elev = " << TelElevation_avg << " azim = " << TelAzimuth_avg << std::endl;
+    
+    if (!UseDBOnly)
+    {
+
+        if (!gSystem->AccessPathName(file_name.c_str()))
+        {
+            char run_number[50];
+            sprintf(run_number, "%i", int(run));
+            TFile*  input_file = TFile::Open(file_name.c_str());
+            TTree* pointing_tree = nullptr;
+            pointing_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/pointingDataReduced"));
+            pointing_tree->SetBranchStatus("*",0);
+            pointing_tree->SetBranchStatus("TelElevation",1);
+            pointing_tree->SetBranchStatus("TelAzimuth",1);
+            pointing_tree->SetBranchAddress("TelElevation",&TelElevation);
+            pointing_tree->SetBranchAddress("TelAzimuth",&TelAzimuth);
+            double total_entries = (double)pointing_tree->GetEntries();
+            pointing_tree->GetEntry(int(total_entries/2.));
+            TelElevation_avg = TelElevation;
+            TelAzimuth_avg = TelAzimuth;
+            input_file->Close();
+            //std::cout << "root file elev = " << TelElevation_avg << " azim = " << TelAzimuth_avg << std::endl;
+        }
+
+    }
 
     return std::make_pair(TelElevation_avg,TelAzimuth_avg);
 }
@@ -1254,6 +1257,7 @@ pair<double,double> GetRunRaDec(string file_name, int run)
             TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
             TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
             input_file->Close();
+
             std::cout << "root file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
         }
     }
@@ -1818,10 +1822,10 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
         OFF_runnumber.clear();
         OFF_exposure_hour.clear();
         bool continue_to_find_match = true;
-        double ratio_exposure = 2.0;
+        double ratio_exposure = 1.0;
         if (UseDBOnly)
         {
-            ratio_exposure = 4.0;
+            ratio_exposure = 2.0;
         }
         while (total_off_time<ratio_exposure*ON_exposure_hour && continue_to_find_match)
         {
@@ -2122,8 +2126,8 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
     int group_index = 0;
     //double exposure_hour_limit = 10.;
-    //double exposure_hour_limit = 20.;
-    double exposure_hour_limit = 30.;
+    double exposure_hour_limit = 20.;
+    //double exposure_hour_limit = 30.;
     //double exposure_hour_limit = 10000.;
     double exposure_hour_sum = 0.;
     for (int on_run=0;on_run<RunListTree.GetEntries();on_run++)

@@ -443,10 +443,10 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name.Contains("WComae"))
     {
-            //Source_RA = 185.382;
-            //    Source_Dec = 28.233;
-            Source_RA = (185.360+184.616)/2.;
-                Source_Dec = (30.191+30.130)/2.;
+            Source_RA = 185.360;
+                Source_Dec = 30.191;
+            //Source_RA = (185.360+184.616)/2.;
+            //    Source_Dec = (30.191+30.130)/2.;
     }
     if (source_name.Contains("1ES1218"))
     {
@@ -605,23 +605,23 @@ bool FoV(bool doImposter) {
         if (CoincideWithGammaSources(ra_sky_imposter,dec_sky_imposter)) return false;
     } 
     
-    vector<double> ss433_ra;
-    vector<double> ss433_dec;
-    ss433_ra.push_back(287.9565);
-    ss433_dec.push_back(4.9827);
-    ss433_ra.push_back(288.404);
-    ss433_dec.push_back(4.930);
-    ss433_ra.push_back(288.58);
-    ss433_dec.push_back(4.91);
-    ss433_ra.push_back(287.42);
-    ss433_dec.push_back(5.04);
-    for (int star=0;star<ss433_ra.size();star++)
-    {
-        double star_ra = ss433_ra.at(star);
-        double star_dec = ss433_dec.at(star);
-        double radius = pow((ra_sky-star_ra)*(ra_sky-star_ra)+(dec_sky-star_dec)*(dec_sky-star_dec),0.5);
-        if (radius<0.3) return false;
-    }
+    //vector<double> ss433_ra;
+    //vector<double> ss433_dec;
+    //ss433_ra.push_back(287.9565);
+    //ss433_dec.push_back(4.9827);
+    //ss433_ra.push_back(288.404);
+    //ss433_dec.push_back(4.930);
+    //ss433_ra.push_back(288.58);
+    //ss433_dec.push_back(4.91);
+    //ss433_ra.push_back(287.42);
+    //ss433_dec.push_back(5.04);
+    //for (int star=0;star<ss433_ra.size();star++)
+    //{
+    //    double star_ra = ss433_ra.at(star);
+    //    double star_dec = ss433_dec.at(star);
+    //    double radius = pow((ra_sky-star_ra)*(ra_sky-star_ra)+(dec_sky-star_dec)*(dec_sky-star_dec),0.5);
+    //    if (radius<0.3) return false;
+    //}
 
     return true;
 }
@@ -702,7 +702,7 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    ifstream myfile (SMI_AUX+"/diagnostics_20220111.txt");
+    ifstream myfile (SMI_AUX+"/diagnostics.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -1349,6 +1349,7 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     TelRAJ2000_tmp = TelRAJ2000*180./M_PI;
     TelDecJ2000_tmp = TelDecJ2000*180./M_PI;
     input_file->Close();
+
     //std::cout << "root file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
 
     //string line;
@@ -3022,6 +3023,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         pair<string,int> on_run_pair = std::make_pair("",ON_runnumber_ptr);
         Data_runlist.push_back(on_run_pair);
         pair<double,double> on_run_radec = std::make_pair(ON_pointing_RA_ptr,ON_pointing_Dec_ptr);
+        std::cout << "ON run RA = " << on_run_radec.first << ", Dec = " << on_run_radec.second << std::endl;
         Data_runlist_RaDec.push_back(on_run_radec);
         Data_exposure_hour.push_back(ON_exposure_hour_ptr);
         vector<vector<pair<string,int>>> off_run_vtr;
