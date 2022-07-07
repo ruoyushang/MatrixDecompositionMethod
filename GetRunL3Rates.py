@@ -1,14 +1,9 @@
 
 import os
-import sys,ROOT
+import sys
 import array
 import math
 from array import *
-from ROOT import *
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
-from scipy import special
 
 RunNumber = 0
 Elev = 0
@@ -52,8 +47,7 @@ Source_Elev = []
 Source_Azim = []
 Source_Livetime = []
 
-#inputFile = open('diagnostics.txt')
-inputFile = open('diagnostics_20211012.txt')
+inputFile = open('/gamma_raid/userspace/rshang/SMI_AUX/diagnostics.txt')
 for line in inputFile:
     if line.split(' ')[0]=="#": 
         #print 'this is a comment line'
@@ -72,6 +66,7 @@ for line in inputFile:
         #print 'this is a V2 line'
         V2 = True
     RunNumber = line.split(' ')[1-1]
+    #print ('RunNumber = %s'%(RunNumber))
     List_RunNumber += [int(RunNumber)]
     Elev = line.split(' ')[8-1]
     Azim = line.split(' ')[9-1]

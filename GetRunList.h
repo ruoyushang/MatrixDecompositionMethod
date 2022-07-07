@@ -6,6 +6,8 @@
 #include <fstream>
 #include <string>
 
+#include "NetflixParameters.h"
+
 vector<std::pair<string,int>> GetRunListFromFile(string source)
 {
     string line;
@@ -84,8 +86,14 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source.find("CrabV6") != std::string::npos) {
             list = GetRunListFromFile("CrabV6");
         }
-        if (source.find("Crab_Offset_V6") != std::string::npos) {
-            list = GetRunListFromFile("Crab_Offset_V6");
+        if (source.find("CrabRHVV6") != std::string::npos) {
+            list = GetRunListFromFile("CrabRHVV6");
+        }
+        if (source.find("Crab_Offset_1p0_V6") != std::string::npos) {
+            list = GetRunListFromFile("Crab_Offset_1p0_V6");
+        }
+        if (source.find("Crab_Offset_1p5_V6") != std::string::npos) {
+            list = GetRunListFromFile("Crab_Offset_1p5_V6");
         }
         if (source.find("SNR_G150p3Plus04p5_V6") != std::string::npos) {
             list = GetRunListFromFile("SNR_G150p3Plus04p5_V6");
@@ -168,6 +176,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source.find("1ES1741V6") != std::string::npos)
         {
             list = GetRunListFromFile("1ES1741V6");
+        }
+        if (source.find("MGRO_J2019_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("MGRO_J2019_V6");
         }
         if (source.find("MGRO_J1908_V6") != std::string::npos)
         {
@@ -269,48 +281,88 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("LHAASO_J2108_V6");
         }
+        if (source.find("LHAASO_J0341_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J0341_V6");
+        }
+        if (source.find("LHAASO_J1929_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J1929_V6");
+        }
+        if (source.find("LHAASO_J1843_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J1843_V6");
+        }
+        if (source.find("LHAASO_J1956_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J1956_V6");
+        }
+        if (source.find("Perseus_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("Perseus_V6");
+        }
         if (source.find("PSRB0355plus54_V6") != std::string::npos)
         {
             list = GetRunListFromFile("PSRB0355plus54_V6");
         }
+        if (source.find("UrsaMajorIIV6") != std::string::npos)
+        {
+            list = GetRunListFromFile("UrsaMajorIIV6");
+        }
         if (source=="OffRunsV6")
         {
-            list_temp = GetRunListFromFile("LowElevationDarkV6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("PKS1424V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("PG1553V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("SNR_G150p3Plus04p5_V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("3C273V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("1ES0502V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("DracoV6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("BLLacV6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("M82V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("Segue1V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("TriIIV6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("1ES1011V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("3C264V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("H1426V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("1ES0229V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("OJ287V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("1ES0647V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("NGC1275V6");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            if (RHVData)
+            {
+                list_temp = GetRunListFromFile("CrabRHV_OFF_V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("CrabRHV_OFF_042720222_V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+            }
+            else
+            {
+                list_temp = GetRunListFromFile("LowElevationDarkV6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("PKS1424V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("UrsaMajorIIV6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("PG1553V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("3C273V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("1ES0502V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("DracoV6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("BLLacV6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("M82V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("Segue1V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("TriIIV6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("1ES1011V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("3C264V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("H1426V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("1ES0229V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("OJ287V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("1ES0647V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("NGC1275V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("MGRO_J1908_OFF_V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("MGRO_J1908_Imposter_V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("MGRO_J1908_Imposter_V6_2022June");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+            }
             
             //list_temp = GetRunListFromFile("RBS0413V6");
             //list.insert(list.end(), list_temp.begin(), list_temp.end());
@@ -337,6 +389,9 @@ vector<std::pair<string,int>> GetRunList(string source) {
         }
         if (source.find("CTA1V5") != std::string::npos) {
             list = GetRunListFromFile("CTA1V5");
+        }
+        if (source.find("MGRO_J2019_V5") != std::string::npos) {
+            list = GetRunListFromFile("MGRO_J2019_V5");
         }
         if (source.find("MGRO_J1908_V5") != std::string::npos) {
             list = GetRunListFromFile("MGRO_J1908_V5");
@@ -469,6 +524,12 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list_temp = GetRunListFromFile("1ES0502V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("DracoV5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("MGRO_J1908_OFF_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("MGRO_J1908_Imposter_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("MGRO_J1908_Imposter_V5_2022June");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
         if (source.find("WComaeV4") != std::string::npos)

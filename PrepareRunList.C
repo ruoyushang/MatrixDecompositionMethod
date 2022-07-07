@@ -1116,6 +1116,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 185.360;
                 Source_Dec = 30.191;
     }
+    if (source_name.Contains("MGRO_J2019"))
+    {
+            Source_RA = 304.854166667;
+                Source_Dec = 36.8038888889;
+    }
     if (source_name.Contains("MGRO_J1908"))
     {
             //Source_RA = 286.975;
@@ -1324,8 +1329,10 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     int matched_runnumber = 0;
     double match_chi2 = 1e10;
     double threshold_dElev = 2.0;
-    double threshold_dAirmass = 0.2*threshold_scale;
-    double threshold_dNSB = 0.2*threshold_scale;
+    //double threshold_dAirmass = 0.2*threshold_scale;
+    //double threshold_dNSB = 0.2*threshold_scale;
+    double threshold_dAirmass = 0.1;
+    double threshold_dNSB = 0.4;
     double threshold_dL3Rate = 0.3;
     double threshold_dMJD = 3.*365.;
     for (int off_run=0;off_run<OFF_runnumber.size();off_run++)
@@ -2125,8 +2132,9 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::cout << __LINE__ << std::endl;
     std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
     int group_index = 0;
-    //double exposure_hour_limit = 10.;
-    double exposure_hour_limit = 20.;
+    //double exposure_hour_limit = 5.;
+    double exposure_hour_limit = 10.;
+    //double exposure_hour_limit = 20.;
     //double exposure_hour_limit = 30.;
     //double exposure_hour_limit = 10000.;
     double exposure_hour_sum = 0.;

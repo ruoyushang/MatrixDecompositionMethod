@@ -140,7 +140,9 @@ def electron_column_density_continuum(E_e_final_GeV,photon_location_x,photon_loc
     #electron_column_density = quad(electron_density_continuum, x_low, x_up, args=(photon_location_x,photon_location_y,t_age,E_e_final_GeV))[0]
     #electron_column_density = electron_column_density*pulsar_distance*3.14/180.
 
-    diff_length = diffusion_length(t_age,E_e_final_GeV) # pc
+    el_cooling_time = cooling_time(E_e_final_GeV) # year
+    diffusion_time = min(t_age,el_cooling_time)
+    diff_length = diffusion_length(diffusion_time,E_e_final_GeV) # pc
     integral_range_z_deg = 2.*diff_length/pulsar_distance*180./3.14 # degree
     integral_delta_z_deg = 0.1*integral_range_z_deg
     integral_delta_z_physical = integral_delta_z_deg*pulsar_distance*3.14/180.
@@ -221,7 +223,7 @@ def PlotAFunction(function,x_low,x_up,plot_name,logx=True,logy=True):
     axbig.plot(x_axis, y_axis,'k-')
     if logx: axbig.set_xscale('log')
     if logy: axbig.set_yscale('log')
-    fig.savefig("/gamma_raid/userspace/rshang/pulsar_models_output/%s_%s.png"%(plot_name,model_tag),bbox_inches='tight')
+    fig.savefig("%s/%s_%s.png"%(output_folder,plot_name,model_tag),bbox_inches='tight')
     axbig.remove()
 
 def PlotElectronColummnDensity(E_ph_GeV_low,E_ph_GeV_up,plot_tag):
@@ -235,12 +237,12 @@ def PlotElectronColummnDensity(E_ph_GeV_low,E_ph_GeV_up,plot_tag):
     source_location_initial = np.array([source_location_final[0]+source_ref_dx*source_travel_distance/source_ref_distance,source_location_final[1]+source_ref_dy*source_travel_distance/source_ref_distance])
 
     Source_RA = 286.975
-    Source_Dec = 6.269
-    Skymap_nbins = 60
-    MapEdge_left = Source_RA-3.
-    MapEdge_right = Source_RA+3.
-    MapEdge_lower = Source_Dec-3.
-    MapEdge_upper = Source_Dec+3.
+    Source_Dec = 6.03777777778
+    Skymap_nbins = 81
+    MapEdge_left = Source_RA-2.
+    MapEdge_right = Source_RA+2.
+    MapEdge_lower = Source_Dec-2.
+    MapEdge_upper = Source_Dec+2.
     pixel_size = ((MapEdge_right-MapEdge_left)/Skymap_nbins)*((MapEdge_upper-MapEdge_lower)/Skymap_nbins)
     hist_pulsar_skymap = ROOT.TH2D("hist_pulsar_skymap_%s"%(plot_tag),"",Skymap_nbins,MapEdge_left,MapEdge_right,Skymap_nbins,MapEdge_lower,MapEdge_upper)
 
@@ -252,7 +254,9 @@ def PlotElectronColummnDensity(E_ph_GeV_low,E_ph_GeV_up,plot_tag):
 
     total_cells = 0.
     for ybin in range(0,len(y_axis)):
+        z_bool_along_x_axis = []
         for xbin in range(0,len(x_axis)):
+            z_bool_along_x_axis += [0.]
             x = x_axis[xbin]
             y = y_axis[ybin]
             # ax + by + c = 0
@@ -275,27 +279,28 @@ def PlotElectronColummnDensity(E_ph_GeV_low,E_ph_GeV_up,plot_tag):
             el_cooling_time = cooling_time(E_e_GeV_avg) # year
             diffusion_time = min(pulsar_age_year,el_cooling_time)
             diffusion_length_at_t_now = diffusion_length(diffusion_time,E_e_GeV_avg)/pulsar_distance*180./3.14
-            if projected_x>2.*diffusion_length_at_t_now:
+            range_frac = 1.
+            if projected_x>range_frac*diffusion_length_at_t_now:
                 continue
             if projected_y_head<0.:
-                if abs(projected_y_head)>2.*diffusion_length_at_t_now:
+                if abs(projected_y_head)>range_frac*diffusion_length_at_t_now:
                     continue
             if projected_y_tail>0.:
-                if abs(projected_y_tail)>2.*diffusion_length_at_t_now:
+                if abs(projected_y_tail)>range_frac*diffusion_length_at_t_now:
                     continue
+            z_bool_along_x_axis[xbin] = 1.
             total_cells += 1.
+        grid_z_bool += [z_bool_along_x_axis]
     print ('need to compute %s cells.'%(total_cells))
 
 
     for ybin in range(0,len(y_axis)):
         z_along_x_axis = []
-        z_bool_along_x_axis = []
         for xbin in range(0,len(x_axis)):
             tic = time.perf_counter()
             x = x_axis[xbin]
             y = y_axis[ybin]
             z_along_x_axis += [0.]
-            z_bool_along_x_axis += [0.]
 
             # ax + by + c = 0
             b = 1.
@@ -320,26 +325,18 @@ def PlotElectronColummnDensity(E_ph_GeV_low,E_ph_GeV_up,plot_tag):
             el_cooling_time = cooling_time(E_e_GeV_avg) # year
             diffusion_time = min(pulsar_age_year,el_cooling_time)
             diffusion_length_at_t_now = diffusion_length(diffusion_time,E_e_GeV_avg)/pulsar_distance*180./3.14
-            if projected_x>2.*diffusion_length_at_t_now:
+            if grid_z_bool[ybin][xbin]==0.:
                 continue
-            if projected_y_head<0.:
-                if abs(projected_y_head)>2.*diffusion_length_at_t_now:
-                    continue
-            if projected_y_tail>0.:
-                if abs(projected_y_tail)>2.*diffusion_length_at_t_now:
-                    continue
 
             electron_column_density = electron_column_density_integrated(x,y,pulsar_age_year,E_ph_GeV_low,E_ph_GeV_up) # el/pc^2
             IC_photon_flux = electron_column_density*IC_photon_rate # ph/sec/cm^2
             z_along_x_axis[xbin] = IC_photon_flux
-            z_bool_along_x_axis[xbin] = 1.
             hist_pulsar_skymap.SetBinContent(xbin+1,ybin+1,IC_photon_flux)
             print ('%s, xbin = %s, ybin = %s, diffusion_length = %0.2f, IC_photon_flux = %0.2e'%(plot_tag,xbin,ybin,diffusion_length_at_t_now,IC_photon_flux))
             print ('projected_x = %0.2f'%(projected_x))
             toc = time.perf_counter()
             print(f"Calculated in {toc - tic:0.4f} seconds")
         grid_z += [z_along_x_axis]
-        grid_z_bool += [z_bool_along_x_axis]
 
     fig.clf()
     axbig = fig.add_subplot()
@@ -351,7 +348,7 @@ def PlotElectronColummnDensity(E_ph_GeV_low,E_ph_GeV_up,plot_tag):
     axbig.scatter(source_location_final[0], source_location_final[1], marker='^', c='r')
     axbig.scatter(source_location_initial[0], source_location_initial[1], marker='^', c='r')
     plotname = 'PhotonFlux_%s_%s'%(plot_tag,model_tag)
-    fig.savefig("/gamma_raid/userspace/rshang/pulsar_models_output/%s.png"%(plotname),bbox_inches='tight')
+    fig.savefig("%s/%s.png"%(output_folder,plotname),bbox_inches='tight')
     axbig.remove()
 
     fig.clf()
@@ -363,10 +360,10 @@ def PlotElectronColummnDensity(E_ph_GeV_low,E_ph_GeV_up,plot_tag):
     axbig.scatter(source_location_final[0], source_location_final[1], marker='^', c='r')
     axbig.scatter(source_location_initial[0], source_location_initial[1], marker='^', c='r')
     plotname = 'Bool_%s_%s'%(plot_tag,model_tag)
-    fig.savefig("/gamma_raid/userspace/rshang/pulsar_models_output/%s.png"%(plotname),bbox_inches='tight')
+    fig.savefig("%s/%s.png"%(output_folder,plotname),bbox_inches='tight')
     axbig.remove()
 
-    output_file = ROOT.TFile("/gamma_raid/userspace/rshang/pulsar_models_output/pulsar_skymap_%s.root"%(model_tag),"update")
+    output_file = ROOT.TFile("%s/pulsar_skymap_%s.root"%(output_folder,model_tag),"update")
     hist_pulsar_skymap.Write()
     output_file.Close()
 
@@ -392,7 +389,7 @@ U_B = 6.24*1e18/(8.*3.14*1e-7)*pow(mag_field*1e-6/1e4,2) # eV/m3
 
 #D0 = 8.2*1e26 # cm2/s
 D0 = float(D0_input)*1e26 # cm2/s
-alpha = 1/3
+alpha = 0.5
 #proper_velocity = 2000 #km/s
 proper_velocity = float(V0_input) #km/s
 km_to_pc = 3.24078e-14
@@ -400,20 +397,26 @@ year_to_sec = 365.*24.*60.*60.
 proper_velocity_pc_per_year = proper_velocity*km_to_pc*year_to_sec
 
 
-gamma_index = 2.
+#output_folder = '/gamma_raid/userspace/rshang/pulsar_models_2kpc_output'
+output_folder = '/gamma_raid/userspace/rshang/pulsar_models_3kpc_output'
+
+gamma_index = 2.0
 pulsar_age_year = 19.5*1e3 # year
+#pulsar_distance = 2.0*1000. # pc
 pulsar_distance = 3.2*1000. # pc
 PSR_head_x = 286.98
 PSR_head_y = 6.04
-travel_angle = 71.94
-tail_length = proper_velocity_pc_per_year*pulsar_age_year/pulsar_distance*180./3.14
-PSR_tail_x = tail_length*np.cos(travel_angle*3.14/180.)+PSR_head_x
-PSR_tail_y = tail_length*np.sin(travel_angle*3.14/180.)+PSR_head_y
+PSR_tail_x = 287.16
+PSR_tail_y = 6.16
+#travel_angle = 78.02
+#tail_length = proper_velocity_pc_per_year*pulsar_age_year/pulsar_distance*180./3.14
+#PSR_tail_x = tail_length*np.cos(travel_angle*3.14/180.)+PSR_head_x
+#PSR_tail_y = tail_length*np.sin(travel_angle*3.14/180.)+PSR_head_y
 
 Q0_normalization = injection_normalization()
 print ('Q0_normalization = %0.2e / year'%(Q0_normalization))
 
-output_file = ROOT.TFile("/gamma_raid/userspace/rshang/pulsar_models_output/pulsar_skymap_%s.root"%(model_tag),"recreate")
+output_file = ROOT.TFile("%s/pulsar_skymap_%s.root"%(output_folder,model_tag),"recreate")
 InfoTree = ROOT.TTree("InfoTree","info tree")
 var_pulsar_age_year = array('f', [0.])
 var_pulsar_distance = array('f', [0.])
@@ -441,13 +444,13 @@ InfoTree.Write()
 output_file.Close()
 
 fig, ax = plt.subplots()
-PlotAFunction(injection_spectrum_time_dep,1e3,1e5,'injection_spectrum')
-PlotAFunction(IC_photon_rate_per_electron,0.01,0.99,'IC_photon_rate_per_electron',logx=False,logy=False)
-PlotAFunction(E1_factor_hat_to_E_ph_GeV,0.,1.,'E1_factor_hat_to_E_ph_GeV',logx=False,logy=False)
-PlotAFunction(E_ph_GeV_to_E1_factor_hat,1e2,1e4,'E_ph_GeV_to_E1_factor_hat',logy=False)
-PlotAFunction(initial_electron_energy_at_cooling_time_frac,0.,0.8,'initial_electron_energy',logx=False,logy=False)
-#PlotElectronColummnDensity(100,251,'100_251')
-#PlotElectronColummnDensity(251,631,'251_631')
+#PlotAFunction(injection_spectrum_time_dep,1e3,1e5,'injection_spectrum')
+#PlotAFunction(IC_photon_rate_per_electron,0.01,0.99,'IC_photon_rate_per_electron',logx=False,logy=False)
+#PlotAFunction(E1_factor_hat_to_E_ph_GeV,0.,1.,'E1_factor_hat_to_E_ph_GeV',logx=False,logy=False)
+#PlotAFunction(E_ph_GeV_to_E1_factor_hat,1e2,1e4,'E_ph_GeV_to_E1_factor_hat',logy=False)
+#PlotAFunction(initial_electron_energy_at_cooling_time_frac,0.,0.8,'initial_electron_energy',logx=False,logy=False)
+PlotElectronColummnDensity(100,251,'100_251')
+PlotElectronColummnDensity(251,631,'251_631')
 PlotElectronColummnDensity(631,1585,'631_1585')
 PlotElectronColummnDensity(1585,3981,'1585_3981')
 PlotElectronColummnDensity(3981,10000,'3981_10000')
