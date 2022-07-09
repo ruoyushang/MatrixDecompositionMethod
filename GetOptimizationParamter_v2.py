@@ -25,39 +25,94 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a function will be non-type
 ROOT.gStyle.SetPaintTextFormat("0.3f")
-np.set_printoptions(precision=2)
+np.set_printoptions(precision=4)
 
 
-
+analysis_type = 'inclusive'
+#analysis_type = '1ES0229 OFF'
+#analysis_type = '1ES0229 Imposter'
+#analysis_type = 'UrsaMajorII OFF'
+#analysis_type = 'UrsaMajorII Imposter'
+#imposter_ID = 2
 
 sample_list = []
-sample_list += ['3C273V6_OFF']
-sample_list += ['3C273V5_OFF']
-sample_list += ['1ES0502V6_OFF']
-sample_list += ['1ES0502V5_OFF']
-sample_list += ['DracoV6_OFF']
-sample_list += ['DracoV5_OFF']
-sample_list += ['1ES0647V6_OFF']
-sample_list += ['1ES1011V6_OFF']
-sample_list += ['PKS1424V6_OFF']
-sample_list += ['PKS1424V5_OFF']
-sample_list += ['H1426V6_OFF']
-sample_list += ['NGC1275V6_OFF']
-sample_list += ['OJ287V6_OFF']
-sample_list += ['UrsaMajorIIV6_OFF']
-sample_list += ['BLLacV6_OFF']
-sample_list += ['BLLacV5_OFF']
-sample_list += ['RGBJ0710V5_OFF']
-sample_list += ['1ES0229V6_OFF']
-sample_list += ['1ES0229V5_OFF']
-sample_list += ['1ES0414V5_OFF']
-sample_list += ['PG1553V6_OFF']
-sample_list += ['PG1553V5_OFF']
-sample_list += ['Segue1V6_OFF']
-sample_list += ['Segue1V5_OFF']
-sample_list += ['M82V6_OFF']
-sample_list += ['M82V5_OFF']
-sample_list += ['SNR_G150p3Plus04p5_V6_OFF']
+
+if analysis_type=='inclusive':
+    ONOFF_tag = 'OFF'
+    sample_list += ['1ES0502V6_OFF']
+    sample_list += ['1ES0502V5_OFF']
+    sample_list += ['DracoV6_OFF']
+    sample_list += ['DracoV5_OFF']
+    sample_list += ['BLLacV6_OFF']
+    sample_list += ['BLLacV5_OFF']
+    sample_list += ['1ES0414V5_OFF']
+    sample_list += ['M82V6_OFF']
+    sample_list += ['M82V5_OFF']
+    sample_list += ['1ES0647V6_OFF']
+    sample_list += ['1ES1011V6_OFF']
+    sample_list += ['NGC1275V6_OFF']
+    sample_list += ['OJ287V6_OFF']
+    sample_list += ['RGBJ0710V5_OFF']
+    sample_list += ['Segue1V6_OFF']
+    sample_list += ['Segue1V5_OFF']
+    sample_list += ['3C264V6_OFF']
+    sample_list += ['PKS1424V6_OFF']
+    sample_list += ['PKS1424V5_OFF']
+    sample_list += ['H1426V6_OFF']
+    sample_list += ['UrsaMajorIIV6_OFF']
+    sample_list += ['PG1553V6_OFF']
+    sample_list += ['PG1553V5_OFF']
+    sample_list += ['1ES0229V6_OFF']
+    sample_list += ['1ES0229V5_OFF']
+    sample_list += ['3C273V6_OFF']
+    sample_list += ['3C273V5_OFF']
+if analysis_type=='1ES0229 OFF':
+    ONOFF_tag = 'OFF'
+    sample_list += ['1ES0229V6_OFF']
+    sample_list += ['1ES0229V5_OFF']
+if analysis_type=='1ES0229 Imposter':
+    ONOFF_tag = 'ON'
+    sample_list += ['1ES0229V6_Imposter%s'%(imposter_ID)]
+    sample_list += ['1ES0229V5_Imposter%s'%(imposter_ID)]
+if analysis_type=='UrsaMajorII OFF':
+    ONOFF_tag = 'OFF'
+    sample_list += ['UrsaMajorIIV6_OFF']
+if analysis_type=='UrsaMajorII Imposter':
+    ONOFF_tag = 'ON'
+    sample_list += ['UrsaMajorIIV6_Imposter%s'%(imposter_ID)]
+
+
+#ONOFF_tag = 'ON'
+#sample_list += ['UrsaMajorIIV6_Imposter1']
+#sample_list += ['UrsaMajorIIV6_Imposter2']
+#sample_list += ['UrsaMajorIIV6_Imposter3']
+#sample_list += ['UrsaMajorIIV6_Imposter4']
+#sample_list += ['UrsaMajorIIV6_Imposter5']
+#
+#ONOFF_tag = 'ON'
+#sample_list += ['PG1553V6_Imposter1']
+#sample_list += ['PG1553V6_Imposter2']
+#sample_list += ['PG1553V6_Imposter3']
+#sample_list += ['PG1553V6_Imposter4']
+#sample_list += ['PG1553V6_Imposter5']
+#sample_list += ['PG1553V5_Imposter1']
+#sample_list += ['PG1553V5_Imposter2']
+#sample_list += ['PG1553V5_Imposter3']
+#sample_list += ['PG1553V5_Imposter4']
+#sample_list += ['PG1553V5_Imposter5']
+#
+#ONOFF_tag = 'ON'
+#sample_list += ['3C273V6_Imposter1']
+#sample_list += ['3C273V6_Imposter2']
+#sample_list += ['3C273V6_Imposter3']
+#sample_list += ['3C273V6_Imposter4']
+#sample_list += ['3C273V6_Imposter5']
+#sample_list += ['3C273V5_Imposter1']
+#sample_list += ['3C273V5_Imposter2']
+#sample_list += ['3C273V5_Imposter3']
+#sample_list += ['3C273V5_Imposter4']
+#sample_list += ['3C273V5_Imposter5']
+#
 
 folder_path = CommonPlotFunctions.folder_path
 elev_range = CommonPlotFunctions.elev_range
@@ -77,7 +132,6 @@ method_tag = 'tight_mdm_default'
 lowrank_tag = '_svd'
 method_tag += lowrank_tag
 
-ONOFF_tag = 'OFF'
 ONOFF_tag += '_Model0'
 
 root_file_tags = []
@@ -93,12 +147,13 @@ def FindSourceIndex(source_name):
             return source
     return 0
 
-def GetMatrixCoefficients(hist_mtx):
+def GetMatrixCoefficients(hist_mtx,gamma_count):
 
     mtx_CDE = []
     for row in range(0,stable_rank):
         for col in range(0,stable_rank):
             mtx_CDE += [0.]
+    if gamma_count<100.: return mtx_CDE
     for row in range(0,stable_rank):
         for col in range(0,stable_rank):
             idx = row*stable_rank+col
@@ -108,19 +163,22 @@ def GetMatrixCoefficients(hist_mtx):
 
 def GetGammaCounts(file_path,ebin):
 
-    InputFile = ROOT.TFile(file_path)
-    NewInfoTree = InputFile.Get("NewInfoTree")
     data_gamma_count = ROOT.std.vector("double")(10)
     bkgd_gamma_count = ROOT.std.vector("double")(10)
     bkgd_rank0_gamma_count = ROOT.std.vector("double")(10)
     bkgd_rank1_gamma_count = ROOT.std.vector("double")(10)
     dark_gamma_count = ROOT.std.vector("double")(10)
+
+    InputFile = ROOT.TFile(file_path)
+    NewInfoTree = InputFile.Get("NewInfoTree")
     NewInfoTree.SetBranchAddress('data_gamma_count',ROOT.AddressOf(data_gamma_count))
     NewInfoTree.SetBranchAddress('bkgd_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
     NewInfoTree.SetBranchAddress('bkgd_rank0_gamma_count',ROOT.AddressOf(bkgd_rank0_gamma_count))
     NewInfoTree.SetBranchAddress('bkgd_rank1_gamma_count',ROOT.AddressOf(bkgd_rank1_gamma_count))
     NewInfoTree.SetBranchAddress('dark_gamma_count',ROOT.AddressOf(dark_gamma_count))
     NewInfoTree.GetEntry(0)
+
+    print ('Open %s, E%s, data_gamma_count = %s'%(file_path,ebin,data_gamma_count[ebin]))
 
     return data_gamma_count[ebin], bkgd_gamma_count[ebin], dark_gamma_count[ebin]
 
@@ -146,17 +204,10 @@ def GetOptimizationHistogram(file_path,ebin,hist_optimization):
     HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     hist_optimization.Add(InputFile.Get(HistName))
 
-def MakeMultipleFitPlot(ax,Hists,legends,colors,title_x,title_y):
+def gaussian_func(x,a,b,c):
+    return a*np.exp(-0.5*pow((x-b)/c,2))
 
-    func_gauss = []
-    for h in range(0,len(Hists)):
-        func_gauss += [ROOT.TF1("func_gauss_%s"%(h),"[0]*TMath::Gaus(x,[1],[2]*pow(2,0.5))",-1.0,1.0)]
-        func_gauss[h].SetParameters(Hists[h].Integral(),0,0.02)
-        Hists[h].Fit("func_gauss_%s"%(h),"N")
-        func_gauss[h].SetLineColor(colors[h])
-        func_gauss[h].Draw("E same")
-        #print ("func_gauss[%s].GetNDF() = %s"%(h,func_gauss[h].GetNDF()))
-        #print ("chi2/NDF = %s"%(func_gauss[h].GetChisquare()/func_gauss[h].GetNDF()))
+def MakeMultipleFitPlot(ax,Hists,legends,colors,title_x,title_y):
 
     hist_xdata = []
     hist_ydata = []
@@ -168,29 +219,20 @@ def MakeMultipleFitPlot(ax,Hists,legends,colors,title_x,title_y):
         for binx in range(0,Hists[entry].GetNbinsX()):
             xdata += [Hists[entry].GetBinCenter(binx+1)]
             ydata += [Hists[entry].GetBinContent(binx+1)]
-            error += [Hists[entry].GetBinError(binx+1)]
+            error += [max(1.,Hists[entry].GetBinError(binx+1))]
         hist_xdata += [xdata]
         hist_ydata += [ydata]
-        hist_error += [error]
-
-    func_xdata = []
-    func_ydata = []
-    for entry in range(0,len(Hists)):
-        xdata = []
-        ydata = []
-        error = []
-        for binx in range(0,200):
-            xdata += [-0.2+0.4/200.*binx]
-            ydata += [func_gauss[entry].Eval(-0.2+0.4/200.*binx)]
-        func_xdata += [xdata]
-        func_ydata += [ydata]
         hist_error += [error]
 
     cycol = cycle('brgcmk')
     for entry in range(0,len(Hists)):
         next_color = next(cycol)
+        #start = (50., 0., 0.1)
+        #popt, pcov = curve_fit(gaussian_func, np.array(hist_xdata[entry]), np.array(hist_ydata[entry]), p0=start, sigma=np.array(hist_error[entry]))
+        #xaxis = np.linspace(hist_xdata[entry][0],hist_xdata[entry][len(hist_xdata[entry])-1],50)
+        #ax.plot(xaxis, gaussian_func(np.array(xaxis), *popt),color=next_color)
+        #ax.errorbar(hist_xdata[entry], hist_ydata[entry], hist_error[entry], color=next_color, marker='s', ls='none', label='%s, $\mu = %0.3f$, $\sigma = %0.3f$'%(legends[entry],popt[1],popt[2]))
         ax.errorbar(hist_xdata[entry], hist_ydata[entry], hist_error[entry], color=next_color, marker='s', ls='none', label='%s'%(legends[entry]))
-        ax.plot(func_xdata[entry], func_ydata[entry], color=next_color)
 
     ax.legend(loc='best')
     ax.set_xlabel(title_x)
@@ -245,27 +287,55 @@ def PrincipalComponentAnalysis(list_var, ebin):
     for var in range(0,n_variables):
         chi2[var] = chi2[var]/mtx_var_rms[var]
 
-    mtx_var_norm = np.zeros((n_samples,n_variables))
+    mtx_var_data_norm = np.zeros((n_samples,n_variables))
+    mtx_var_bkgd_norm = np.zeros((n_samples,n_variables))
+    n_good_samples = 0
+    is_good_sample = []
     for sample in range(0,n_samples):
+        is_good_sample += [True]
+        chi2 = 0.
         for var in range(0,n_variables):
-            if mtx_var_rms[var]==0.:
-                mtx_var_norm[sample][var] = 0.
-            else:
-                mtx_var_norm[sample][var] = mtx_var_data[sample][var]/mtx_var_rms[var]
+            mtx_var_data_norm[sample][var] = mtx_var_data[sample][var]/mtx_var_rms[var]
+            mtx_var_bkgd_norm[sample][var] = mtx_var_bkgd[sample][var]/mtx_var_rms[var]
+            chi2 += pow(mtx_var_data_norm[sample][var],2)
+            if mtx_var_data_norm[sample][var]==0.:
+                is_good_sample[sample] = False
+        #if data_count[sample][ebin]<1000.:
+        #    is_good_sample[sample] = False
+        if chi2>25.:
+            is_good_sample[sample] = False
+        if is_good_sample[sample]:
+            n_good_samples += 1
 
-    mtx_cov = np.cov(mtx_var_norm, rowvar = False)
+    mtx_var_data_good = np.zeros((n_good_samples,n_variables))
+    mtx_var_bkgd_good = np.zeros((n_good_samples,n_variables))
+    good_sample = 0
+    for sample in range(0,n_samples):
+        if is_good_sample[sample]:
+            for var in range(0,n_variables):
+                mtx_var_data_good[good_sample][var] = mtx_var_data_norm[sample][var]
+                mtx_var_bkgd_good[good_sample][var] = mtx_var_bkgd_norm[sample][var]
+                if mtx_var_data_good[good_sample][var]==0.:
+                    mtx_var_data_good[good_sample][0] = 0
+                    mtx_var_data_good[good_sample][1] = 0
+                    mtx_var_bkgd_good[good_sample][0] = 0
+                    mtx_var_bkgd_good[good_sample][1] = 0
+            good_sample += 1
+
+    mtx_cov = np.cov(mtx_var_data_good, rowvar = False)
     eigen_values , eigen_vectors = np.linalg.eigh(mtx_cov)
     print ('E%s'%(ebin))
-    print ('eigen_values = \n {0}'.format(eigen_values))
-    print ('eigen_values ratio = \n {0}'.format(eigen_values[0]/eigen_values[n_variables-1]))
-    print ('mtx_var_rms = \n {0}'.format(mtx_var_rms))
-    print ('chi2 = \n {0}'.format(chi2))
-    print ('primary eigen_vectors = ')
-    for var in range(0,n_variables):
-        print ('({1},{2}) {0}'.format(eigen_vectors[n_variables-1][var],list_var[var][0],list_var[var][1]))
-    #print ('sencondary eigen_vectors = ')
-    #for var in range(0,n_variables):
-    #    print ('({1},{2}) {0}'.format(eigen_vectors[n_variables-2][var],list_var[var][0],list_var[var][1]))
+    if eigen_values[0]/eigen_values[n_variables-1]<1.0:
+        print ('eigen_values = \n {0}'.format(eigen_values))
+        print ('eigen_values ratio = \n {0}'.format(eigen_values[0]/eigen_values[n_variables-1]))
+        print ('mtx_var_rms = \n {0}'.format(mtx_var_rms))
+        print ('chi2 = \n {0}'.format(chi2))
+        print ('primary eigen_vectors = ')
+        for var in range(0,n_variables):
+            print ('({1},{2}) {0}'.format(eigen_vectors[n_variables-1][var],list_var[var][0],list_var[var][1]))
+        #print ('sencondary eigen_vectors = ')
+        #for var in range(0,n_variables):
+        #    print ('({1},{2}) {0}'.format(eigen_vectors[n_variables-2][var],list_var[var][0],list_var[var][1]))
     #return eigen_values[n_variables-1]/eigen_values[n_variables-2], chi2
 
 def MakeCorrelationPlot(list_var,ebin):
@@ -294,22 +364,49 @@ def MakeCorrelationPlot(list_var,ebin):
 
     mtx_var_data_norm = np.zeros((n_samples,n_variables))
     mtx_var_bkgd_norm = np.zeros((n_samples,n_variables))
+    n_good_samples = 0
+    is_good_sample = []
     for sample in range(0,n_samples):
+        is_good_sample += [True]
+        chi2 = 0.
         for var in range(0,n_variables):
             mtx_var_data_norm[sample][var] = mtx_var_data[sample][var]/mtx_var_rms[var]
             mtx_var_bkgd_norm[sample][var] = mtx_var_bkgd[sample][var]/mtx_var_rms[var]
+            chi2 += pow(mtx_var_data_norm[sample][var],2)
+            if mtx_var_data_norm[sample][var]==0.:
+                is_good_sample[sample] = False
+        #if data_count[sample][ebin]<1000.:
+        #    is_good_sample[sample] = False
+        if chi2>25.:
+            is_good_sample[sample] = False
+        if is_good_sample[sample]:
+            n_good_samples += 1
 
+    mtx_var_data_good = np.zeros((n_good_samples,n_variables))
+    mtx_var_bkgd_good = np.zeros((n_good_samples,n_variables))
+    good_sample = 0
+    for sample in range(0,n_samples):
+        if is_good_sample[sample]:
+            for var in range(0,n_variables):
+                mtx_var_data_good[good_sample][var] = mtx_var_data_norm[sample][var]
+                mtx_var_bkgd_good[good_sample][var] = mtx_var_bkgd_norm[sample][var]
+                if mtx_var_data_good[good_sample][var]==0.:
+                    mtx_var_data_good[good_sample][0] = 0
+                    mtx_var_data_good[good_sample][1] = 0
+                    mtx_var_bkgd_good[good_sample][0] = 0
+                    mtx_var_bkgd_good[good_sample][1] = 0
+            good_sample += 1
 
     plt.clf()
-    x_var = mtx_var_data_norm.transpose()[0]
-    y_var = mtx_var_data_norm.transpose()[1]
+    x_var = mtx_var_data_good.transpose()[0]
+    y_var = mtx_var_data_good.transpose()[1]
     plt.xlabel("$t_{%s,%s}$ (arbitrary unit)"%(par1_row,par1_col), fontsize=16)
     plt.ylabel("$t_{%s,%s}$ (arbitrary unit)"%(par2_row,par2_col), fontsize=16)
-    plt.scatter(x_var,y_var,color='b')
+    plt.scatter(x_var,y_var,color='b',alpha=0.2)
 
-    x_var = mtx_var_bkgd_norm.transpose()[0]
-    y_var = mtx_var_bkgd_norm.transpose()[1]
-    plt.scatter(x_var,y_var,color='r')
+    x_var = mtx_var_bkgd_good.transpose()[0]
+    y_var = mtx_var_bkgd_good.transpose()[1]
+    plt.scatter(x_var,y_var,color='r',alpha=0.2)
 
     plt.savefig("output_plots/par_correlation_%s%s_%s%s_E%s.png"%(par1_row,par1_col,par2_row,par2_col,ebin))
 
@@ -362,7 +459,7 @@ def LoopOverFiles():
                         mtx_CDE_data_E = []
                         mtx_CDE_bkgd_E = []
                         for eb in range(0,len(energy_bin)-1):
-                            Hist_Bkgd_Optimization_E += [ROOT.TH1D("Hist_Bkgd_Optimization_M%s_E%s"%(n_measurements,eb),"",20,optimiz_lower,optimiz_upper)]
+                            Hist_Bkgd_Optimization_E += [ROOT.TH1D("Hist_Bkgd_Optimization_M%s_E%s"%(n_measurements,eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb])]
                             Hist_Bkgd_Optimization_E[eb].Reset()
                             GetOptimizationHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Bkgd_Optimization_E[eb])
                             data, bkgd, dark = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
@@ -372,8 +469,8 @@ def LoopOverFiles():
                             Hist_Coeff_Data_E += [ROOT.TH2D("Hist_Coeff_Data_M%s_E%s"%(n_measurements,eb),"",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)]
                             Hist_Coeff_Bkgd_E += [ROOT.TH2D("Hist_Coeff_Bkgd_M%s_E%s"%(n_measurements,eb),"",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)]
                             GetCoefficientHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Coeff_Data_E[eb],Hist_Coeff_Bkgd_E[eb])
-                            mtx_data = GetMatrixCoefficients(Hist_Coeff_Data_E[eb])
-                            mtx_bkgd = GetMatrixCoefficients(Hist_Coeff_Bkgd_E[eb])
+                            mtx_data = GetMatrixCoefficients(Hist_Coeff_Data_E[eb],data)
+                            mtx_bkgd = GetMatrixCoefficients(Hist_Coeff_Bkgd_E[eb],data)
                             mtx_CDE_data_E += [mtx_data]
                             mtx_CDE_bkgd_E += [mtx_bkgd]
                         Hist_Bkgd_Optimization += [Hist_Bkgd_Optimization_E]
@@ -386,10 +483,11 @@ def LoopOverFiles():
                         mtx_CDE_bkgd += [mtx_CDE_bkgd_E]
                         n_measurements += 1
 
-optimiz_lower = -5.
-optimiz_upper = -0.
+optimiz_lower = [-4.,-4.5,-3.,-2.]
+optimiz_upper = [-2.,-2.5,-1.,-0.]
+optimiz_nbins = 20
 N_bins_for_deconv = 8
-stable_rank = 2
+stable_rank = 3
 
 n_measurements = 0
 FilePath_Folder = []
@@ -404,69 +502,98 @@ mtx_CDE_bkgd = []
 
 LoopOverFiles()
 
-Hist_Bkgd_Optimization_Mean = ROOT.TH1D("Hist_Bkgd_Optimization_Mean","",20,optimiz_lower,optimiz_upper)
+Hist_Bkgd_Optimization_Mean = []
 for eb in range(0,len(energy_bin)-1):
-    Hist_Bkgd_Optimization_Mean.Reset()
-    for binx in range(0,Hist_Bkgd_Optimization_Mean.GetNbinsX()):
+    Hist_Bkgd_Optimization_Mean += [ROOT.TH1D("Hist_Bkgd_Optimization_Mean_E%s"%(eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb])]
+for eb in range(0,len(energy_bin)-1):
+    Hist_Bkgd_Optimization_Mean[eb].Reset()
+    for binx in range(0,Hist_Bkgd_Optimization_Mean[eb].GetNbinsX()):
         mean = 0.
-        for entry in range(0,n_measurements-1):
+        n_entries = 0.
+        for entry in range(0,n_measurements):
+            if eb==0 and data_count[entry][eb]<1000.: continue
+            if eb==1 and data_count[entry][eb]<1000.: continue
             error = Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1)
             mean += error
-        mean = mean/float(n_measurements-1)
+            n_entries += 1.
+        mean = mean/n_entries
         rms = 0.
-        for entry in range(0,n_measurements-1):
+        n_entries = 0.
+        for entry in range(0,n_measurements):
+            if eb==0 and data_count[entry][eb]<1000.: continue
+            if eb==1 and data_count[entry][eb]<1000.: continue
             error = Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1)
-            rms += pow(error-mean,2)
-        rms = rms/float(n_measurements-1)
+            #rms += pow(error-mean,2)
+            rms += pow(error,2)
+            n_entries += 1.
+        rms = rms/n_entries
         rms = pow(rms,0.5)
-        Hist_Bkgd_Optimization_Mean.SetBinContent(binx+1,mean)
-        Hist_Bkgd_Optimization_Mean.SetBinError(binx+1,rms)
+        #Hist_Bkgd_Optimization_Mean[eb].SetBinContent(binx+1,mean)
+        #Hist_Bkgd_Optimization_Mean[eb].SetBinError(binx+1,rms)
+        Hist_Bkgd_Optimization_Mean[eb].SetBinContent(binx+1,rms)
     Hists = []
     colors = []
-    Hists += [Hist_Bkgd_Optimization_Mean]
+    Hists += [Hist_Bkgd_Optimization_Mean[eb]]
     colors += [1]
     #random_gen = ROOT.TRandom3()
-    #for entry in range(0,n_measurements-1):
+    #for entry in range(0,n_measurements):
     #    Hists += [Hist_Bkgd_Optimization[entry][eb]]
     #    colors += [int(random_gen.Uniform(29.,49.))]
     ax.cla()
-    MakeMultiplePlot(ax,Hists,colors,'log10 c','relative error','OptimizationAlpha_E%s%s'%(eb,folder_path),1e-3,0.1,False,False)
-    fig.savefig("output_plots/OptimizationAlpha_E%s%s.png"%(eb,folder_path))
+    MakeMultiplePlot(ax,Hists,colors,'log10 c','relative error','OptimizationAlpha_E%s_%s'%(eb,folder_path),1e-3,0.1,False,False)
+    fig.savefig("output_plots/OptimizationAlpha_E%s_%s.png"%(eb,folder_path))
 
 Hist_SystErrDist_MDM = []
 Hist_SystErrDist_Init = []
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E0","",11,-0.2,0.2)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E0","",11,-0.2,0.2)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E1","",11,-0.2,0.2)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E1","",11,-0.2,0.2)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E3","",11,-0.5,0.5)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E3","",11,-0.5,0.5)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E4","",11,-1.,1.)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E4","",11,-1.,1.)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E0","",21,-0.2,0.2)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E0","",21,-0.2,0.2)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E1","",21,-0.2,0.2)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E1","",21,-0.2,0.2)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E3","",21,-0.4,0.4)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E3","",21,-0.4,0.4)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E4","",21,-0.8,0.8)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E4","",21,-0.8,0.8)]
 for eb in range(0,len(energy_bin)-1):
     Hist_SystErrDist_MDM[eb].Reset()
     Hist_SystErrDist_Init[eb].Reset()
-    for entry in range(0,n_measurements-1):
+    MDM_mean = 0.
+    Init_mean = 0.
+    MDM_rms = 0.
+    Init_rms = 0.
+    n_entries = 0.
+    for entry in range(0,n_measurements):
         if data_count[entry][eb]==0.: continue
+        if eb==0 and data_count[entry][eb]<1000.: continue
+        if eb==1 and data_count[entry][eb]<1000.: continue
         Hist_SystErrDist_MDM[eb].Fill(1.-bkgd_count[entry][eb]/data_count[entry][eb])
         Hist_SystErrDist_Init[eb].Fill(1.-dark_count[entry][eb]/data_count[entry][eb])
+        MDM_mean += 1.-bkgd_count[entry][eb]/data_count[entry][eb]
+        Init_mean += 1.-dark_count[entry][eb]/data_count[entry][eb]
+        MDM_rms += pow(1.-bkgd_count[entry][eb]/data_count[entry][eb],2)
+        Init_rms += pow(1.-dark_count[entry][eb]/data_count[entry][eb],2)
+        n_entries += 1.
+    MDM_mean = MDM_mean/n_entries
+    Init_mean = Init_mean/n_entries
+    MDM_rms = pow(MDM_rms/n_entries,0.5)
+    Init_rms = pow(Init_rms/n_entries,0.5)
     Hists = []
     legends = []
     colors = []
     Hists += [Hist_SystErrDist_MDM[eb]]
-    legends += ['MIBE']
+    legends += ['%0.2f-%0.2f TeV, mean = %0.3f, sigma = %0.3f'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_mean,MDM_rms)]
+    #legends += ['matrix method, %0.2f-%0.2f TeV, mean = %0.3f, sigma = %0.3f'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_mean,MDM_rms)]
     colors += [1]
-    Hists += [Hist_SystErrDist_Init[eb]]
-    legends += ['Init']
-    colors += [2]
+    #Hists += [Hist_SystErrDist_Init[eb]]
+    #legends += ['initial matching, %0.2f-%0.2f TeV, mean = %0.3f, sigma = %0.3f'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,Init_mean,Init_rms)]
+    #colors += [2]
     ax.cla()
-    MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error','number of measurements')
-    fig.savefig("output_plots/SystErrDist_E%s.png"%(eb))
+    MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error $\epsilon$','number of measurements')
+    fig.savefig("output_plots/SystErrDist_E%s_%s.png"%(eb,folder_path))
 
 list_var_pair = []
 good_var_pair = []
 good_eigenvalue = []
-for eb in range(0,len(energy_bin)-1):
+for eb in range(1,2):
     for row1 in range(0,stable_rank):
         for col1 in range(0,stable_rank):
             for row2 in range(0,stable_rank):

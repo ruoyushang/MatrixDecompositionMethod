@@ -21,8 +21,10 @@ from itertools import cycle
 from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 
-folder_path = 'output_test'
-#folder_path = 'output_8x8'
+#folder_path = 'output_test'
+folder_path = 'output_8x8'
+#folder_path = 'output_80hrs'
+#folder_path = 'output_dEl0p4'
 
 skymap_zoomin_scale = 1
 #skymap_zoomin_scale = 1.5
@@ -40,9 +42,9 @@ calibration_radius = 0.3
 energy_index_scale = 2
 
 Skymap_size = 2.
-#Skymap_nbins = 45
-Skymap_nbins = 15
-#Skymap_nbins = 9
+Skymap_nbins = 45
+#Skymap_nbins = 15
+#Skymap_nbins = 9 # Crab calibration
 #Skymap_nbins = 5
 #Skymap_nbins = 3
 
@@ -356,7 +358,7 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
     #n_bins_1d = int(float(n_bins_2d)/3.)
-    n_bins_1d = min(8,int(float(n_bins_2d)/2.))
+    n_bins_1d = min(16,int(float(n_bins_2d)/2.))
     integration_range = 1.6
 
     Hist_Profile_Theta2 = ROOT.TH1D("Hist_Profile_Theta2","",n_bins_1d,0,integration_range)
@@ -902,10 +904,10 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
     axbig.set_ylabel(label_y)
     if label_z=='Z score':
         max_z = 5.
-        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()), vmin=-max_z, vmax=max_z)
+        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()), vmin=-max_z, vmax=max_z,zorder=0)
     else:
-        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()))
-    #axbig.contour(grid_contour, levels, colors='w', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()))
+        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=0)
+    axbig.contour(grid_contour, levels, colors='w', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=1)
     #cbar = fig.colorbar(im,orientation="horizontal")
     cbar = fig.colorbar(im)
     cbar.set_label(label_z)

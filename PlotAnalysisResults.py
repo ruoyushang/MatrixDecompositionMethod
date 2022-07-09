@@ -151,15 +151,36 @@ if 'PG1553' in sys.argv[1]:
 if 'OJ287' in sys.argv[1]:
     observation_name = 'OJ287'
     data_epoch = ['OJ287V6']
+if 'H1426' in sys.argv[1]:
+    observation_name = 'H1426'
+    data_epoch = ['H1426V6']
 if 'PKS1424' in sys.argv[1]:
     observation_name = 'PKS1424'
     data_epoch = ['PKS1424V5','PKS1424V6']
+if 'Segue1' in sys.argv[1]:
+    observation_name = 'Segue1'
+    data_epoch = ['Segue1V5','Segue1V6']
 if 'Boomerang' in sys.argv[1]:
     observation_name = 'Boomerang'
     data_epoch = ['BoomerangV5','BoomerangV6']
 if 'Tycho' in sys.argv[1]:
     observation_name = 'Tycho'
     data_epoch = ['TychoV5','TychoV6']
+if 'MGRO_J2019' in sys.argv[1]:
+    observation_name = 'MGRO_J2019'
+    data_epoch = ['MGRO_J2019_V5','MGRO_J2019_V6']
+if 'RGBJ0710' in sys.argv[1]:
+    observation_name = 'RGBJ0710'
+    data_epoch = ['RGBJ0710V5']
+if '1ES1011' in sys.argv[1]:
+    observation_name = '1ES1011'
+    data_epoch = ['1ES1011V6']
+if '1ES0647' in sys.argv[1]:
+    observation_name = '1ES0647'
+    data_epoch = ['1ES0647V6']
+if 'SNR_G150p3Plus04p5' in sys.argv[1]:
+    observation_name = 'SNR_G150p3Plus04p5'
+    data_epoch = ['SNR_G150p3Plus04p5_V6']
 
 PrepreSample()
 
