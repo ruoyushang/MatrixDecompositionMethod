@@ -1332,6 +1332,7 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     //double threshold_dAirmass = 0.2*threshold_scale;
     //double threshold_dNSB = 0.2*threshold_scale;
     double threshold_dAirmass = 0.1;
+    //double threshold_dAirmass = 0.4;
     double threshold_dNSB = 0.4;
     double threshold_dL3Rate = 0.3;
     double threshold_dMJD = 3.*365.;
@@ -2132,10 +2133,8 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::cout << __LINE__ << std::endl;
     std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
     int group_index = 0;
-    //double exposure_hour_limit = 5.;
     double exposure_hour_limit = 10.;
-    //double exposure_hour_limit = 20.;
-    //double exposure_hour_limit = 30.;
+    //double exposure_hour_limit = 80.;
     //double exposure_hour_limit = 10000.;
     double exposure_hour_sum = 0.;
     for (int on_run=0;on_run<RunListTree.GetEntries();on_run++)
