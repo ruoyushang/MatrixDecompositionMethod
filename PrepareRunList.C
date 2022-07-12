@@ -1324,7 +1324,7 @@ void SortingList(vector<pair<string,int>>* list, vector<double>* list_pointing)
     }
 }
 
-int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON_NSB, double ON_L3Rate, double ON_MJD, vector<int> OFF_runnumber, vector<pair<double,double>> OFF_pointing, vector<double> OFF_NSB, vector<double> OFF_L3Rate, vector<double> OFF_MJD, vector<int> exclusion_list, double threshold_scale) 
+int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON_NSB, double ON_L3Rate, double ON_MJD, vector<int> OFF_runnumber, vector<pair<double,double>> OFF_pointing, vector<double> OFF_NSB, vector<double> OFF_L3Rate, vector<double> OFF_MJD, vector<int> exclusion_list, bool isImposter) 
 {
     int matched_runnumber = 0;
     double match_chi2 = 1e10;
@@ -1334,6 +1334,12 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     double threshold_dAirmass = 0.1;
     //double threshold_dAirmass = 0.4;
     double threshold_dNSB = 0.4;
+    double threshold_dAzim = 180.;
+    if (!isImposter)
+    {
+        threshold_dAirmass = 0.2;
+        threshold_dNSB = 0.2;
+    }
     double threshold_dL3Rate = 0.3;
     double threshold_dMJD = 3.*365.;
     for (int off_run=0;off_run<OFF_runnumber.size();off_run++)
@@ -1367,6 +1373,10 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         //double chi2 = pow(delta_mjd,2);
         //double chi2 = pow(delta_l3rate,2);
         double chi2 = pow(delta_azim,2);
+        //if (!isImposter)
+        //{
+        //    chi2 = pow(delta_airmass,2);
+        //}
 
         if (chi2<match_chi2)
         {
@@ -1570,7 +1580,7 @@ void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_ru
             pair<double,double> ON_pointing = new_list_pointing[on_run];
             double on_run_MJD = double(GetRunMJD(ON_filename,ON_runnumber));
 
-            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, 2.); 
+            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, true); 
             if (matched_runnumber==0)
             {
                 std::cout << "ON run " << ON_runnumber << " failed to find an imposter." << std::endl;
@@ -1632,7 +1642,7 @@ void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_ru
         while (total_off_time<1.0*ON_exposure_hour && continue_to_find_match)
         {
 
-            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, 1.); 
+            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false); 
             if (matched_runnumber==0)
             {
                 std::cout << "Imposter run " << ON_runnumber << " failed to find a match." << std::endl;
@@ -1837,12 +1847,7 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
         }
         while (total_off_time<ratio_exposure*ON_exposure_hour && continue_to_find_match)
         {
-             double matching_threshold = 1.0;
-             if (RHVData)
-             {
-                 matching_threshold = 2.0;
-             }
-            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, matching_threshold); 
+            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false); 
             if (matched_runnumber==0)
             {
                 std::cout << "ON run " << ON_runnumber << " failed to find a match." << std::endl;
@@ -2133,6 +2138,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::cout << __LINE__ << std::endl;
     std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
     int group_index = 0;
+    //double exposure_hour_limit = 5.;
     double exposure_hour_limit = 10.;
     //double exposure_hour_limit = 80.;
     //double exposure_hour_limit = 10000.;
