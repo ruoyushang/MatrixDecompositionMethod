@@ -2290,61 +2290,30 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
     if (!isON) 
     {
-        roi_name.push_back("Control region r=0.5 deg");
+        roi_name.push_back("Central region");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(0.5);
-        roi_radius_outer.push_back(10.);
-
-        roi_name.push_back("Validation r=0.5 deg");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(0.5);
-
-        roi_name.push_back("Control region r=1.0 deg");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(1.);
-        roi_radius_outer.push_back(10.);
-
-        roi_name.push_back("Validation r=1.0 deg");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(0.);
+        roi_radius_inner.push_back(0.0);
         roi_radius_outer.push_back(1.0);
-
-        roi_name.push_back("Control region r=1.5 deg");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(1.5);
-        roi_radius_outer.push_back(10.);
-
-        roi_name.push_back("Validation r=1.5 deg");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(1.5);
-
-        roi_name.push_back("Control region r=2.0 deg");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(2.0);
-        roi_radius_outer.push_back(10.);
-
-        roi_name.push_back("Validation r=2.0 deg");
-        roi_ra.push_back(mean_tele_point_ra);
-        roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(0.);
-        roi_radius_outer.push_back(2.0);
-    }
-    else
-    {
 
         roi_name.push_back("Control region");
         roi_ra.push_back(mean_tele_point_ra);
         roi_dec.push_back(mean_tele_point_dec);
-        roi_radius_inner.push_back(0.);
+        roi_radius_inner.push_back(1.0);
+        roi_radius_outer.push_back(10.);
+    }
+    else
+    {
+        roi_name.push_back("Central region");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius_inner.push_back(0.0);
+        roi_radius_outer.push_back(1.0);
+
+        roi_name.push_back("Control region");
+        roi_ra.push_back(mean_tele_point_ra);
+        roi_dec.push_back(mean_tele_point_dec);
+        roi_radius_inner.push_back(1.0);
         roi_radius_outer.push_back(10.);
 
         if (TString(target).Contains("MGRO_J1908")) 
@@ -3735,102 +3704,48 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     //Hist_OnData_CR_Rcore.at(energy).Fill(pow(Xcore*Xcore+Ycore*Ycore,0.5),energy_weight);
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
-                        if (nth_roi>0 || !isON)
+                        if (RoIFoV(nth_roi)) 
                         {
-                            if (RoIFoV(nth_roi)) 
+                            Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,xyoff_weight);
+                            Hist_NormSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,xyoff_weight*norm_syst_err);
+                            double roi_bin_size = roi_radius_outer.at(nth_roi);
+                            int xybin_up = N_integration_radii-1;
+                            double bin_size_up = integration_radii[xybin_up];
+                            double bin_size_low = integration_radii[xybin_up-1];
+                            double shape_syst_err_intpl = shape_syst_err[xybin_up-1];
+                            for (int xybin=1;xybin<N_integration_radii;xybin++) 
                             {
-                                Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,xyoff_weight);
-                                Hist_NormSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,xyoff_weight*norm_syst_err);
-                                double roi_bin_size = roi_radius_outer.at(nth_roi);
-                                int xybin_up = N_integration_radii-1;
-                                double bin_size_up = integration_radii[xybin_up];
-                                double bin_size_low = integration_radii[xybin_up-1];
-                                double shape_syst_err_intpl = shape_syst_err[xybin_up-1];
-                                for (int xybin=1;xybin<N_integration_radii;xybin++) 
+                                double current_bin_size = integration_radii[xybin];
+                                if (current_bin_size>roi_bin_size)
                                 {
-                                    double current_bin_size = integration_radii[xybin];
-                                    if (current_bin_size>roi_bin_size)
-                                    {
-                                        xybin_up = xybin;
-                                        bin_size_up = integration_radii[xybin];
-                                        bin_size_low = integration_radii[xybin-1];
-                                        shape_syst_err_intpl = shape_syst_err[xybin_up-1] + (shape_syst_err[xybin_up]-shape_syst_err[xybin_up-1])/(bin_size_up-bin_size_low)*(roi_bin_size-bin_size_low);
-                                        break;
-                                    }
+                                    xybin_up = xybin;
+                                    bin_size_up = integration_radii[xybin];
+                                    bin_size_low = integration_radii[xybin-1];
+                                    shape_syst_err_intpl = shape_syst_err[xybin_up-1] + (shape_syst_err[xybin_up]-shape_syst_err[xybin_up-1])/(bin_size_up-bin_size_low)*(roi_bin_size-bin_size_low);
+                                    break;
                                 }
-                                Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,xyoff_weight*shape_syst_err_intpl);
-                                Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,xyoff_weight);
                             }
-                            theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                            Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,xyoff_weight);
-                            Hist_NormSyst_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,xyoff_weight*norm_syst_err);
-                            Hist_ShapeSyst_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,xyoff_weight*shape_syst_err[0]);
-                            proj_x_roi = 1.*(ra_sky-roi_ra.at(nth_roi))+0.*(dec_sky-roi_dec.at(nth_roi));
-                            proj_y_roi = 0.*(ra_sky-roi_ra.at(nth_roi))+1.*(dec_sky-roi_dec.at(nth_roi));
-                            if (roi_name.at(nth_roi)=="Geminga Pulsar")
-                            {
-                                proj_x_roi = cos(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+sin(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
-                                proj_y_roi = -sin(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+cos(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
-                            }
-                            if (abs(proj_y_roi)<roi_radius_outer.at(nth_roi))
-                            {
-                                Hist_OnData_CR_Skymap_RoI_X.at(nth_roi).at(energy).Fill(proj_x_roi,xyoff_weight);
-                            }
-                            if (abs(proj_x_roi)<roi_radius_outer.at(nth_roi))
-                            {
-                                Hist_OnData_CR_Skymap_RoI_Y.at(nth_roi).at(energy).Fill(proj_y_roi,xyoff_weight);
-                            }
+                            Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,xyoff_weight*shape_syst_err_intpl);
+                            Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,xyoff_weight);
                         }
-                        else
+                        theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
+                        Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,xyoff_weight);
+                        Hist_NormSyst_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,xyoff_weight*norm_syst_err);
+                        Hist_ShapeSyst_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,xyoff_weight*shape_syst_err[0]);
+                        proj_x_roi = 1.*(ra_sky-roi_ra.at(nth_roi))+0.*(dec_sky-roi_dec.at(nth_roi));
+                        proj_y_roi = 0.*(ra_sky-roi_ra.at(nth_roi))+1.*(dec_sky-roi_dec.at(nth_roi));
+                        if (roi_name.at(nth_roi)=="Geminga Pulsar")
                         {
-                            bool isRoI = false;
-                            for (int nth_roi2=1;nth_roi2<roi_ra.size();nth_roi2++)
-                            {
-                                if (RoIFoV(nth_roi2)) isRoI = true; 
-                            }
-                            if (!isRoI)
-                            {
-                                Hist_OnData_CR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,xyoff_weight);
-                                Hist_NormSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,xyoff_weight*norm_syst_err);
-                                double roi_bin_size = roi_radius_outer.at(nth_roi);
-                                int xybin_up = N_integration_radii-1;
-                                double bin_size_up = integration_radii[xybin_up];
-                                double bin_size_low = integration_radii[xybin_up-1];
-                                double shape_syst_err_intpl = shape_syst_err[xybin_up-1];
-                                for (int xybin=1;xybin<N_integration_radii;xybin++) 
-                                {
-                                    double current_bin_size = integration_radii[xybin];
-                                    if (current_bin_size>roi_bin_size)
-                                    {
-                                        xybin_up = xybin;
-                                        bin_size_up = integration_radii[xybin];
-                                        bin_size_low = integration_radii[xybin-1];
-                                        shape_syst_err_intpl = shape_syst_err[xybin_up-1] + (shape_syst_err[xybin_up]-shape_syst_err[xybin_up-1])/(bin_size_up-bin_size_low)*(roi_bin_size-bin_size_low);
-                                        break;
-                                    }
-                                }
-                                Hist_ShapeSyst_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,xyoff_weight*shape_syst_err_intpl);
-                                Hist_OnData_CR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,xyoff_weight);
-                            }
-                            theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                            Hist_OnData_CR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,xyoff_weight);
-                            Hist_NormSyst_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,xyoff_weight*norm_syst_err);
-                            Hist_ShapeSyst_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,xyoff_weight*shape_syst_err[0]);
-                            proj_x_roi = 1.*(ra_sky-roi_ra.at(nth_roi))+0.*(dec_sky-roi_dec.at(nth_roi));
-                            proj_y_roi = 0.*(ra_sky-roi_ra.at(nth_roi))+1.*(dec_sky-roi_dec.at(nth_roi));
-                            if (roi_name.at(nth_roi)=="Geminga Pulsar")
-                            {
-                                proj_x_roi = cos(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+sin(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
-                                proj_y_roi = -sin(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+cos(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
-                            }
-                            if (abs(proj_y_roi)<roi_radius_outer.at(nth_roi))
-                            {
-                                Hist_OnData_CR_Skymap_RoI_X.at(nth_roi).at(energy).Fill(proj_x_roi,xyoff_weight);
-                            }
-                            if (abs(proj_x_roi)<roi_radius_outer.at(nth_roi))
-                            {
-                                Hist_OnData_CR_Skymap_RoI_Y.at(nth_roi).at(energy).Fill(proj_y_roi,xyoff_weight);
-                            }
+                            proj_x_roi = cos(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+sin(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
+                            proj_y_roi = -sin(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+cos(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
+                        }
+                        if (abs(proj_y_roi)<roi_radius_outer.at(nth_roi))
+                        {
+                            Hist_OnData_CR_Skymap_RoI_X.at(nth_roi).at(energy).Fill(proj_x_roi,xyoff_weight);
+                        }
+                        if (abs(proj_x_roi)<roi_radius_outer.at(nth_roi))
+                        {
+                            Hist_OnData_CR_Skymap_RoI_Y.at(nth_roi).at(energy).Fill(proj_y_roi,xyoff_weight);
                         }
                     }
                 }
@@ -4211,60 +4126,27 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     }
                     for (int nth_roi=0;nth_roi<roi_ra.size();nth_roi++)
                     {
-                        if (nth_roi>0 || !isON)
+                        if (RoIFoV(nth_roi)) 
                         {
-                            if (RoIFoV(nth_roi)) 
-                            {
-                                Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight);
-                                Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,weight);
-                            }
-                            theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                            Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,weight);
-                            proj_x_roi = 1.*(ra_sky-roi_ra.at(nth_roi))+0.*(dec_sky-roi_dec.at(nth_roi));
-                            proj_y_roi = 0.*(ra_sky-roi_ra.at(nth_roi))+1.*(dec_sky-roi_dec.at(nth_roi));
-                            if (roi_name.at(nth_roi)=="Geminga Pulsar")
-                            {
-                                proj_x_roi = cos(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+sin(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
-                                proj_y_roi = -sin(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+cos(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
-                            }
-                            if (abs(proj_y_roi)<roi_radius_outer.at(nth_roi))
-                            {
-                                Hist_OnData_SR_Skymap_RoI_X.at(nth_roi).at(energy).Fill(proj_x_roi,weight);
-                            }
-                            if (abs(proj_x_roi)<roi_radius_outer.at(nth_roi))
-                            {
-                                Hist_OnData_SR_Skymap_RoI_Y.at(nth_roi).at(energy).Fill(proj_y_roi,weight);
-                            }
+                            Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight);
+                            Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,weight);
                         }
-                        else
+                        theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
+                        Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,weight);
+                        proj_x_roi = 1.*(ra_sky-roi_ra.at(nth_roi))+0.*(dec_sky-roi_dec.at(nth_roi));
+                        proj_y_roi = 0.*(ra_sky-roi_ra.at(nth_roi))+1.*(dec_sky-roi_dec.at(nth_roi));
+                        if (roi_name.at(nth_roi)=="Geminga Pulsar")
                         {
-                            bool isRoI = false;
-                            for (int nth_roi2=1;nth_roi2<roi_ra.size();nth_roi2++)
-                            {
-                                if (RoIFoV(nth_roi2)) isRoI = true; 
-                            }
-                            if (!isRoI)
-                            {
-                                Hist_OnData_SR_RoI_Energy.at(nth_roi).at(energy).Fill(ErecS*1000.,weight);
-                                Hist_OnData_SR_RoI_MJD.at(nth_roi).at(energy).Fill(MJD,weight);
-                            }
-                            theta2_roi = pow(ra_sky-roi_ra.at(nth_roi),2)+pow(dec_sky-roi_dec.at(nth_roi),2);
-                            Hist_OnData_SR_Skymap_RoI_Theta2.at(nth_roi).at(energy).Fill(theta2_roi,weight);
-                            proj_x_roi = 1.*(ra_sky-roi_ra.at(nth_roi))+0.*(dec_sky-roi_dec.at(nth_roi));
-                            proj_y_roi = 0.*(ra_sky-roi_ra.at(nth_roi))+1.*(dec_sky-roi_dec.at(nth_roi));
-                            if (roi_name.at(nth_roi)=="Geminga Pulsar")
-                            {
-                                proj_x_roi = cos(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+sin(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
-                                proj_y_roi = -sin(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+cos(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
-                            }
-                            if (abs(proj_y_roi)<roi_radius_outer.at(nth_roi))
-                            {
-                                Hist_OnData_SR_Skymap_RoI_X.at(nth_roi).at(energy).Fill(proj_x_roi,weight);
-                            }
-                            if (abs(proj_x_roi)<roi_radius_outer.at(nth_roi))
-                            {
-                                Hist_OnData_SR_Skymap_RoI_Y.at(nth_roi).at(energy).Fill(proj_y_roi,weight);
-                            }
+                            proj_x_roi = cos(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+sin(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
+                            proj_y_roi = -sin(atan2(97.,138.))*(ra_sky-roi_ra.at(nth_roi))+cos(atan2(97.,138.))*(dec_sky-roi_dec.at(nth_roi));
+                        }
+                        if (abs(proj_y_roi)<roi_radius_outer.at(nth_roi))
+                        {
+                            Hist_OnData_SR_Skymap_RoI_X.at(nth_roi).at(energy).Fill(proj_x_roi,weight);
+                        }
+                        if (abs(proj_x_roi)<roi_radius_outer.at(nth_roi))
+                        {
+                            Hist_OnData_SR_Skymap_RoI_Y.at(nth_roi).at(energy).Fill(proj_y_roi,weight);
                         }
                     }
                 }

@@ -1331,13 +1331,13 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     double threshold_dElev = 2.0;
     //double threshold_dAirmass = 0.2*threshold_scale;
     //double threshold_dNSB = 0.2*threshold_scale;
-    double threshold_dAirmass = 0.1;
+    double threshold_dAirmass = 0.1; // for J1908 anlaysis
     //double threshold_dAirmass = 0.4;
-    double threshold_dNSB = 0.4;
+    double threshold_dNSB = 0.4; // for J1908 analysis
     double threshold_dAzim = 180.;
     if (!isImposter)
     {
-        threshold_dAirmass = 0.2;
+        threshold_dAirmass = 0.1;
         threshold_dNSB = 0.2;
     }
     double threshold_dL3Rate = 0.3;
@@ -1358,12 +1358,26 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         double delta_nsb = abs(ON_NSB-OFF_NSB[off_run]);
         double delta_elev = abs(ON_pointing.first-OFF_pointing[off_run].first);
         double delta_airmass = abs(1./sin(ON_pointing.first*M_PI/180.)-1./sin(OFF_pointing[off_run].first*M_PI/180.));
+        double signed_delta_airmass = (1./sin(ON_pointing.first*M_PI/180.)-1./sin(OFF_pointing[off_run].first*M_PI/180.));
 
         double delta_azim = abs(ON_pointing.second-OFF_pointing[off_run].second);
         if (delta_azim>180.) delta_azim = 360.-delta_azim;
 
         if (delta_airmass>threshold_dAirmass) continue;
         if (delta_nsb>threshold_dNSB) continue;
+        if (!isImposter)
+        {
+            if (ON_runnumber % 2 == 0)
+            {
+                //if ((ON_NSB-OFF_NSB[off_run])<0.) continue;
+                if (signed_delta_airmass<0.) continue;
+            }
+            else
+            {
+                //if ((ON_NSB-OFF_NSB[off_run])>0.) continue;
+                if (signed_delta_airmass>0.) continue;
+            }
+        }
         //if (delta_l3rate/ON_L3Rate>threshold_dL3Rate) continue;
         //if (delta_elev>threshold_dElev) continue;
         //if (delta_mjd>threshold_dMJD) continue;
@@ -1372,7 +1386,7 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         //double chi2 = pow(delta_airmass,2);
         //double chi2 = pow(delta_mjd,2);
         //double chi2 = pow(delta_l3rate,2);
-        double chi2 = pow(delta_azim,2);
+        double chi2 = pow(delta_azim,2); // for J1908 analysis
         //if (!isImposter)
         //{
         //    chi2 = pow(delta_airmass,2);
@@ -2100,6 +2114,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
         if (TString(target).Contains("Imposter3")) iteration = 3;
         if (TString(target).Contains("Imposter4")) iteration = 4;
         if (TString(target).Contains("Imposter5")) iteration = 5;
+        if (TString(target).Contains("Imposter6")) iteration = 6;
         SelectImposterRunList(&RunListTree, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, iteration, source_ra_dec);
     }
 
@@ -2138,7 +2153,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::cout << __LINE__ << std::endl;
     std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
     int group_index = 0;
-    //double exposure_hour_limit = 5.;
+    //double exposure_hour_limit = 20.;
     double exposure_hour_limit = 10.;
     //double exposure_hour_limit = 80.;
     //double exposure_hour_limit = 10000.;
