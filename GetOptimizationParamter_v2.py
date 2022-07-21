@@ -27,15 +27,13 @@ ROOT.TH1.AddDirectory(False) # without this, the histograms returned from a func
 ROOT.gStyle.SetPaintTextFormat("0.3f")
 np.set_printoptions(precision=4)
 
+N_bins_for_deconv = CommonPlotFunctions.N_bins_for_deconv
+bin_blind = 6
+best_beta = 4
 
 analysis_type = 'inclusive'
-#analysis_type = '1ES0229 OFF'
-#analysis_type = '1ES0229 Imposter'
-#analysis_type = 'UrsaMajorII OFF'
-#analysis_type = 'UrsaMajorII Imposter'
-#analysis_type = 'MGRO_J1908 Imposter'
-#analysis_type = 'MGRO_J2019 Imposter'
-#imposter_ID = 2
+#analysis_type = 'SelectOFF'
+#analysis_type = 'SelectImposter'
 
 sample_list = []
 
@@ -63,35 +61,26 @@ if analysis_type=='inclusive':
     sample_list += ['PG1553V6_OFF']
     sample_list += ['PG1553V5_OFF']
     #sample_list += ['H1426V6_OFF']
-    sample_list += ['UrsaMajorIIV6_OFF']
     sample_list += ['1ES0229V6_OFF']
     sample_list += ['1ES0229V5_OFF']
     sample_list += ['PKS1424V6_OFF']
     sample_list += ['PKS1424V5_OFF']
-if analysis_type=='1ES0229 OFF':
+    sample_list += ['UrsaMajorIIV6_OFF']
+if analysis_type=='SelectOFF':
     ONOFF_tag = 'OFF'
     sample_list += ['1ES0229V6_OFF']
     sample_list += ['1ES0229V5_OFF']
-if analysis_type=='1ES0229 Imposter':
-    ONOFF_tag = 'ON'
-    sample_list += ['1ES0229V6_Imposter%s'%(imposter_ID)]
-    sample_list += ['1ES0229V5_Imposter%s'%(imposter_ID)]
-if analysis_type=='UrsaMajorII OFF':
-    ONOFF_tag = 'OFF'
     sample_list += ['UrsaMajorIIV6_OFF']
-if analysis_type=='UrsaMajorII Imposter':
-    ONOFF_tag = 'ON'
-    sample_list += ['UrsaMajorIIV6_Imposter%s'%(imposter_ID)]
-if analysis_type=='MGRO_J1908 Imposter':
-    ONOFF_tag = 'ON'
-    for imposter_ID in range(0,5):
-        sample_list += ['MGRO_J1908_V6_Imposter%s'%(imposter_ID)]
-        sample_list += ['MGRO_J1908_V5_Imposter%s'%(imposter_ID)]
-if analysis_type=='MGRO_J2019 Imposter':
+    sample_list += ['PG1553V6_OFF']
+    sample_list += ['PG1553V5_OFF']
+if analysis_type=='SelectImposter':
     ONOFF_tag = 'ON'
     for imposter_ID in range(0,5):
-        sample_list += ['MGRO_J2019_V6_Imposter%s'%(imposter_ID)]
-        sample_list += ['MGRO_J2019_V5_Imposter%s'%(imposter_ID)]
+        sample_list += ['1ES0229V6_Imposter%s'%(imposter_ID)]
+        sample_list += ['1ES0229V5_Imposter%s'%(imposter_ID)]
+        sample_list += ['UrsaMajorIIV6_Imposter%s'%(imposter_ID)]
+        sample_list += ['PG1553V6_Imposter%s'%(imposter_ID)]
+        sample_list += ['PG1553V5_Imposter%s'%(imposter_ID)]
 
 
 #ONOFF_tag = 'ON'
@@ -391,6 +380,9 @@ def MakeCorrelationPlot(list_var,ebin):
                 is_good_sample[sample] = False
         #if data_count[sample][ebin]<500.:
         #    is_good_sample[sample] = False
+        if ebin==0 or ebin==1:
+            if plot_rank!=0 and data_rank[sample][ebin]!=plot_rank:
+                is_good_sample[sample] = False
         if chi2>25.:
             is_good_sample[sample] = False
         if is_good_sample[sample]:
@@ -475,7 +467,7 @@ def LoopOverFiles():
                         mtx_CDE_data_E = []
                         mtx_CDE_bkgd_E = []
                         for eb in range(0,len(energy_bin)-1):
-                            Hist_Bkgd_Optimization_E += [ROOT.TH1D("Hist_Bkgd_Optimization_M%s_E%s"%(n_measurements,eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb])]
+                            Hist_Bkgd_Optimization_E += [ROOT.TH2D("Hist_Bkgd_Optimization_M%s_E%s"%(n_measurements,eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb],N_bins_for_deconv,0,N_bins_for_deconv)]
                             Hist_Bkgd_Optimization_E[eb].Reset()
                             GetOptimizationHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Bkgd_Optimization_E[eb])
                             rank, data, bkgd, dark = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
@@ -501,14 +493,13 @@ def LoopOverFiles():
                         mtx_CDE_bkgd += [mtx_CDE_bkgd_E]
                         n_measurements += 1
 
-optimiz_lower = [-4.,-5.,-4.,-4.]
-optimiz_upper = [-2.,-3.,-2.,-2.]
+optimiz_lower = [-1.,-1.,-1.,-1.]
+optimiz_upper = [1.,1.,1.,1.]
 optimiz_nbins = 20
-N_bins_for_deconv = 8
 stable_rank = 3
 
 n_measurements = 0
-plot_rank = 2
+plot_rank = 0
 FilePath_Folder = []
 Hist_Bkgd_Optimization = []
 data_rank = []
@@ -525,28 +516,39 @@ LoopOverFiles()
 Hist_Bkgd_Optimization_Mean = []
 for eb in range(0,len(energy_bin)-1):
     Hist_Bkgd_Optimization_Mean += [ROOT.TH1D("Hist_Bkgd_Optimization_Mean_E%s"%(eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb])]
+Hist_Bkgd_Optimization_Abs = []
+for entry in range(0,n_measurements):
+    Hist_Bkgd_Optimization_Abs_E = []
+    for eb in range(0,len(energy_bin)-1):
+        Hist_Bkgd_Optimization_Abs_E += [ROOT.TH1D("Hist_Bkgd_Optimization_Abs_E%s"%(eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb])]
+    Hist_Bkgd_Optimization_Abs += [Hist_Bkgd_Optimization_Abs_E]
 for eb in range(0,len(energy_bin)-1):
     Hist_Bkgd_Optimization_Mean[eb].Reset()
     for binx in range(0,Hist_Bkgd_Optimization_Mean[eb].GetNbinsX()):
         mean = 0.
         n_entries = 0.
         for entry in range(0,n_measurements):
-            if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
-            if eb==0 and data_count[entry][eb]<1000.: continue
+            if eb==0 or eb==1:
+                if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
+            if eb==0 and data_count[entry][eb]<2000.: continue
             if eb==1 and data_count[entry][eb]<500.: continue
-            error = Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1)
+            print ("Hist_Bkgd_Optimization[entry][eb] = %s"%(Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1,best_beta+bin_blind)))
+            error = Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1,best_beta+bin_blind)
+            #Hist_Bkgd_Optimization_Abs[entry][eb].SetBinContent(binx+1,best_beta+bin_blind,error)
+            Hist_Bkgd_Optimization_Abs[entry][eb].SetBinContent(binx+1,best_beta+bin_blind,abs(error))
             mean += error
             n_entries += 1.
         mean = mean/n_entries
         rms = 0.
         n_entries = 0.
         for entry in range(0,n_measurements):
-            if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
-            if eb==0 and data_count[entry][eb]<1000.: continue
+            if eb==0 or eb==1:
+                if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
+            if eb==0 and data_count[entry][eb]<2000.: continue
             if eb==1 and data_count[entry][eb]<500.: continue
-            error = Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1)
-            rms += pow(error-mean,2)
-            #rms += pow(error,2)
+            error = Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1,best_beta+bin_blind)
+            #rms += pow(error-mean,2)
+            rms += pow(error,2)
             n_entries += 1.
         rms = rms/n_entries
         rms = pow(rms,0.5)
@@ -559,11 +561,11 @@ for eb in range(0,len(energy_bin)-1):
     colors += [1]
     #random_gen = ROOT.TRandom3()
     #for entry in range(0,n_measurements):
-    #    Hists += [Hist_Bkgd_Optimization[entry][eb]]
+    #    Hists += [Hist_Bkgd_Optimization_Abs[entry][eb]]
     #    colors += [int(random_gen.Uniform(29.,49.))]
     ax.cla()
     MakeMultiplePlot(ax,Hists,colors,'log10 c','relative error','OptimizationAlpha_E%s_%s'%(eb,folder_path),1e-3,0.1,False,False)
-    fig.savefig("output_plots/OptimizationAlpha_E%s_%s.png"%(eb,folder_path))
+    fig.savefig("output_plots/OptimizationAlpha_E%s_Beta%s_%s.png"%(eb,best_beta,folder_path))
 
 Hist_SystErrDist_MDM = []
 Hist_SystErrDist_Init = []
@@ -584,9 +586,10 @@ for eb in range(0,len(energy_bin)-1):
     Init_rms = 0.
     n_entries = 0.
     for entry in range(0,n_measurements):
-        if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
+        if eb==0 or eb==1:
+            if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
         if data_count[entry][eb]==0.: continue
-        if eb==0 and data_count[entry][eb]<1000.: continue
+        if eb==0 and data_count[entry][eb]<2000.: continue
         if eb==1 and data_count[entry][eb]<500.: continue
         Hist_SystErrDist_MDM[eb].Fill(1.-bkgd_count[entry][eb]/data_count[entry][eb])
         Hist_SystErrDist_Init[eb].Fill(1.-dark_count[entry][eb]/data_count[entry][eb])
@@ -611,12 +614,12 @@ for eb in range(0,len(energy_bin)-1):
     colors += [2]
     ax.cla()
     MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error $\epsilon$','number of measurements')
-    fig.savefig("output_plots/SystErrDist_E%s_%s.png"%(eb,folder_path))
+    fig.savefig("output_plots/SystErrDist_E%s_%s_%s.png"%(eb,analysis_type,folder_path))
 
 list_var_pair = []
 good_var_pair = []
 good_eigenvalue = []
-for eb in range(2,3):
+for eb in range(1,2):
     for row1 in range(0,stable_rank):
         for col1 in range(0,stable_rank):
             for row2 in range(0,stable_rank):

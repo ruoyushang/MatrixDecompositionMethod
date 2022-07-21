@@ -21,10 +21,25 @@ from itertools import cycle
 from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 
-#folder_path = 'output_test'
-folder_path = 'output_8x8'
+folder_path = 'output_test'
+#folder_path = 'output_8x8'
+#folder_path = 'output_5hrs'
+#folder_path = 'output_20hrs'
 #folder_path = 'output_80hrs'
 #folder_path = 'output_dEl0p4'
+
+#N_bins_for_deconv = 16
+N_bins_for_deconv = 10
+#N_bins_for_deconv = 8
+gamma_hadron_dim_ratio_w = 1.
+gamma_hadron_dim_ratio_l = 1.
+
+#N_bins_for_deconv = 9
+#gamma_hadron_dim_ratio_w = 2.
+#gamma_hadron_dim_ratio_l = 2.
+
+MSCW_blind_cut = 0.6
+MSCL_blind_cut = 0.6
 
 skymap_zoomin_scale = 1
 #skymap_zoomin_scale = 1.5
@@ -50,24 +65,41 @@ Skymap_nbins = 45
 
 Skymap_normalization_nbins = 1
 
-#elev_range = [35,45,55,65,75,85]
 #elev_range = [45,70]
 elev_range = [45,90]
+#elev_range = [70,90]
+#elev_range = [50,70]
+#elev_range = [30,50]
 
-#energy_bin = []
-#energy_bin += [100]
-#energy_bin += [251]
-#energy_bin += [631]
-#energy_bin += [1585]
-#energy_bin += [3981]
-#energy_bin += [10000]
-#energy_bin += [25118]
 energy_bin = []
 energy_bin += [100]
 energy_bin += [316]
 energy_bin += [1000]
 energy_bin += [3162]
 energy_bin += [10000]
+#energy_bin = []
+#energy_bin += [100]
+#energy_bin += [178]
+#energy_bin += [316]
+#energy_bin += [562]
+#energy_bin += [1000]
+#energy_bin += [3162]
+#energy_bin += [10000]
+
+energy_fine_bin = []
+energy_fine_bin += [pow(10,2.0)]
+energy_fine_bin += [pow(10,2.5)]
+energy_fine_bin += [pow(10,3.0)]
+energy_fine_bin += [pow(10,3.5)]
+energy_fine_bin += [pow(10,4.0)]
+#energy_fine_bin = []
+#energy_fine_bin += [pow(10,2.0)]
+#energy_fine_bin += [pow(10,2.25)]
+#energy_fine_bin += [pow(10,2.5)]
+#energy_fine_bin += [pow(10,2.75)]
+#energy_fine_bin += [pow(10,3.0)]
+#energy_fine_bin += [pow(10,3.5)]
+#energy_fine_bin += [pow(10,4.0)]
 
 def Hist2DIntegralAndError(Hist):
 
@@ -94,6 +126,64 @@ def reflectXaxis(hist):
             hT.SetBinContent( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinContent( binx, biny ) )
             hT.SetBinError( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinError( binx, biny ) )
     return hT
+
+def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
+
+    bin_size = Hist_Old.GetXaxis().GetBinCenter(2)-Hist_Old.GetXaxis().GetBinCenter(1)
+    if bin_size>smooth_size: 
+        Hist_Smooth.Reset()
+        Hist_Smooth.Add(Hist_Old)
+        return
+
+    nbins = Hist_Old.GetNbinsX()
+    MapEdge_left = Hist_Old.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = Hist_Old.GetXaxis().GetBinLowEdge(Hist_Old.GetNbinsX()+1)
+    map_size = (MapEdge_right-MapEdge_left)/2.
+    Hist_Kernel = ROOT.TH2D("Hist_Kernel","",nbins,-map_size,map_size,nbins,-map_size,map_size)
+    Hist_Kernel.Reset()
+    for bx1 in range(1,Hist_Old.GetNbinsX()+1):
+        for by1 in range(1,Hist_Old.GetNbinsY()+1):
+            cell_x = Hist_Kernel.GetXaxis().GetBinCenter(bx1)
+            cell_y = Hist_Kernel.GetYaxis().GetBinCenter(by1)
+            distance = pow(cell_x*cell_x+cell_y*cell_y,0.5)
+            bin_content = ROOT.TMath.Gaus(distance,0,smooth_size)
+            Hist_Kernel.SetBinContent(bx1,by1,bin_content)
+    #print ('Hist_Kernel.Integral() = %s'%(Hist_Kernel.Integral()))
+
+    nbin_smooth = int(2*smooth_size/bin_size) + 1
+    central_bin = int(nbins/2) + 1
+    for bx1 in range(1,Hist_Old.GetNbinsX()+1):
+        for by1 in range(1,Hist_Old.GetNbinsY()+1):
+            old_content = Hist_Old.GetBinContent(bx1,by1)
+            old_error = Hist_Old.GetBinError(bx1,by1)
+            bin_content = 0
+            bin_error = 0
+            for bx2 in range(bx1-nbin_smooth,bx1+nbin_smooth):
+                for by2 in range(by1-nbin_smooth,by1+nbin_smooth):
+                    if bx2<1: 
+                        continue
+                    if by2<1: 
+                        continue
+                    if bx2>Hist_Old.GetNbinsX(): 
+                        continue
+                    if by2>Hist_Old.GetNbinsY(): 
+                        continue
+                    bin_content += Hist_Kernel.GetBinContent(bx2-bx1+central_bin,by2-by1+central_bin)*Hist_Old.GetBinContent(bx2,by2)
+                    if not addLinearly:
+                        bin_error += Hist_Kernel.GetBinContent(bx2-bx1+central_bin,by2-by1+central_bin)*pow(Hist_Old.GetBinError(bx2,by2),2)
+                    else:
+                        bin_error += Hist_Kernel.GetBinContent(bx2-bx1+central_bin,by2-by1+central_bin)*Hist_Old.GetBinError(bx2,by2)
+            Hist_Smooth.SetBinContent(bx1,by1,bin_content)
+            if not addLinearly:
+                Hist_Smooth.SetBinError(bx1,by1,pow(bin_error,0.5))
+            else:
+                Hist_Smooth.SetBinError(bx1,by1,bin_error)
+    if normalized:
+        Hist_Smooth.Scale(1./Hist_Kernel.Integral())
+        #for bx1 in range(1,Hist_Smooth.GetNbinsX()+1):
+        #    for by1 in range(1,Hist_Smooth.GetNbinsY()+1):
+        #        old_error = Hist_Old.GetBinError(bx1,by1)
+        #        Hist_Smooth.SetBinError(bx1,by1,old_error)
 
 def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
 
@@ -357,7 +447,8 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
     global calibration_radius
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
-    #n_bins_1d = int(float(n_bins_2d)/3.)
+    #n_bins_1d = 3
+    #n_bins_1d = min(8,int(float(n_bins_2d)/2.))
     n_bins_1d = min(16,int(float(n_bins_2d)/2.))
     integration_range = 1.6
 
@@ -907,6 +998,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()), vmin=-max_z, vmax=max_z,zorder=0)
     else:
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=0)
+        #im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()), vmin=-2.2e-12, vmax=5.2e-12,zorder=0)
     axbig.contour(grid_contour, levels, colors='w', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=1)
     #cbar = fig.colorbar(im,orientation="horizontal")
     cbar = fig.colorbar(im)

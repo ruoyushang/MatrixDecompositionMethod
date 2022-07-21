@@ -37,6 +37,12 @@ elev_range = CommonPlotFunctions.elev_range
 energy_index_scale = CommonPlotFunctions.energy_index_scale
 Smoothing = CommonPlotFunctions.Smoothing
 Skymap_normalization_nbins = CommonPlotFunctions.Skymap_normalization_nbins
+N_bins_for_deconv = CommonPlotFunctions.N_bins_for_deconv
+energy_fine_bin = CommonPlotFunctions.energy_fine_bin
+gamma_hadron_dim_ratio_w = CommonPlotFunctions.gamma_hadron_dim_ratio_w
+gamma_hadron_dim_ratio_l = CommonPlotFunctions.gamma_hadron_dim_ratio_l
+MSCW_blind_cut = CommonPlotFunctions.MSCW_blind_cut
+MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 
 method_tag = 'tight_mdm_default'
 
@@ -94,6 +100,18 @@ data_epoch = ['MGRO_J1908_V5','MGRO_J1908_V6']
 if 'Crab' in sys.argv[1]:
     observation_name = 'Crab'
     data_epoch = ['CrabV5','CrabV6']
+if 'Crab_Elev70' in sys.argv[1]:
+    observation_name = 'Crab_Elev70'
+    data_epoch = ['Crab_Elev70_V5','Crab_Elev70_V6']
+    elev_range = [70,90]
+if 'Crab_Elev50' in sys.argv[1]:
+    observation_name = 'Crab_Elev50'
+    data_epoch = ['Crab_Elev50_V5','Crab_Elev50_V6']
+    elev_range = [50,70]
+if 'Crab_Elev30' in sys.argv[1]:
+    observation_name = 'Crab_Elev30'
+    data_epoch = ['Crab_Elev30_V5','Crab_Elev30_V6']
+    elev_range = [30,50]
 if 'Crab_Offset_1p0' in sys.argv[1]:
     observation_name = 'Crab_Offset_1p0'
     data_epoch = ['Crab_Offset_1p0_V6']
@@ -300,17 +318,14 @@ selection_tag = root_file_tags[0]
 PercentCrab = ''
 
 
-N_bins_for_deconv = 8
-gamma_hadron_dim_ratio_w = 1.
-gamma_hadron_dim_ratio_l = 1.
-MSCW_blind_cut = 0.6
-MSCL_blind_cut = 0.6
-MSCW_chi2_upper = -0.6
-MSCL_chi2_upper = -0.6
-MSCW_plot_lower = -0.6
-MSCL_plot_lower = -0.6
-MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
-MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
+MSCW_chi2_upper = -0.5
+MSCL_chi2_upper = -0.5
+MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))+MSCW_blind_cut
+MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))+MSCL_blind_cut
+MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))-MSCW_blind_cut
+MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))-MSCL_blind_cut
+#MSCW_plot_lower = -0.5
+#MSCL_plot_lower = -0.5
 ErecS_lower_cut = 0
 ErecS_upper_cut = 0
 
@@ -357,35 +372,6 @@ energy_syst += [0.080]
 energy_syst += [0.095]
 energy_syst += [0.095]
 
-#energy_fine_bin = []
-#energy_fine_bin += [pow(10,2.0)]
-#energy_fine_bin += [pow(10,2.2)]
-#energy_fine_bin += [pow(10,2.4)]
-#energy_fine_bin += [pow(10,2.6)]
-#energy_fine_bin += [pow(10,2.8)]
-#energy_fine_bin += [pow(10,3.0)]
-#energy_fine_bin += [pow(10,3.2)]
-#energy_fine_bin += [pow(10,3.4)]
-#energy_fine_bin += [pow(10,3.6)]
-#energy_fine_bin += [pow(10,3.8)]
-#energy_fine_bin += [pow(10,4.0)]
-#energy_fine_bin += [pow(10,4.2)]
-#energy_fine_bin += [pow(10,4.4)]
-
-#energy_fine_bin = []
-#energy_fine_bin += [pow(10,2.0)]
-#energy_fine_bin += [pow(10,2.4)]
-#energy_fine_bin += [pow(10,2.8)]
-#energy_fine_bin += [pow(10,3.2)]
-#energy_fine_bin += [pow(10,3.6)]
-#energy_fine_bin += [pow(10,4.0)]
-#energy_fine_bin += [pow(10,4.4)]
-energy_fine_bin = []
-energy_fine_bin += [pow(10,2.0)]
-energy_fine_bin += [pow(10,2.5)]
-energy_fine_bin += [pow(10,3.0)]
-energy_fine_bin += [pow(10,3.5)]
-energy_fine_bin += [pow(10,4.0)]
 
 elev_bins = [25,35,45,55,65,75,85]
 MJD_bins = [53613,55074,56535,57996,59457]
@@ -811,10 +797,10 @@ def GetShowerHistogramsFromFile(FilePath):
     MSCL_blind_cut = InfoTree.MSCL_cut_blind
     MSCW_chi2_upper = InfoTree.MSCW_chi2_upper
     MSCL_chi2_upper = InfoTree.MSCL_chi2_upper
-    bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_plot_lower)
-    bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut)-1
-    bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_plot_lower)
-    bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut)-1
+    bin_lower_x = Hist2D_OnData.GetXaxis().FindBin(-1.*MSCL_blind_cut+0.01)-1
+    bin_upper_x = Hist2D_OnData.GetXaxis().FindBin(MSCL_blind_cut+0.01)-1
+    bin_lower_y = Hist2D_OnData.GetYaxis().FindBin(-1.*MSCW_blind_cut+0.01)-1
+    bin_upper_y = Hist2D_OnData.GetYaxis().FindBin(MSCW_blind_cut+0.01)-1
 
     ErecS_lower_cut_int = int(ErecS_lower_cut)
     ErecS_upper_cut_int = int(ErecS_upper_cut)
@@ -910,7 +896,6 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist_Bkgd_Chi2.Reset()
     Hist_Bkgd_Chi2_Diff.Reset()
     Hist_Bkgd_Chi2_Diff2.Reset()
-    Hist_Bkgd_Optimization.Reset()
     Hist_Bkgd_Converge_Blind.Reset()
     Hist_Bkgd_Converge_Unblind.Reset()
     Hist1D_Data_Rank0_LeftVector.Reset()
@@ -945,8 +930,6 @@ def GetShowerHistogramsFromFile(FilePath):
     Hist_Bkgd_Chi2_Diff.Add(InputFile.Get(HistName))
     HistName = "Hist_Bkgd_Chi2_Diff2_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Bkgd_Chi2_Diff2.Add(InputFile.Get(HistName))
-    HistName = "Hist_Bkgd_Optimization_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_Bkgd_Optimization.Add(InputFile.Get(HistName))
     HistName = "Hist_Bkgd_Converge_Blind_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Bkgd_Converge_Blind.Add(InputFile.Get(HistName))
     HistName = "Hist_Bkgd_Converge_Unblind_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -1005,7 +988,6 @@ def GetShowerHistogramsFromFile(FilePath):
     #MakeOneHistPlot(Hist_Bkgd_Chi2,'log10 #alpha','#chi^{2} in CR','Bkgd_Chi2_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
     #MakeOneHistPlot(Hist_Bkgd_Chi2_Diff,'log10 #alpha','#chi^{2} 1st derivative in CR','Bkgd_Chi2_Diff_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
     #MakeOneHistPlot(Hist_Bkgd_Chi2_Diff2,'log10 #alpha','#chi^{2} 2nd derivative in CR','Bkgd_Chi2_Diff2_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
-    #MakeOneHistPlot(Hist_Bkgd_Optimization,'log10 #alpha','abs(N_{#gamma}-N_{model})/N_{#gamma}','Bkgd_Optimization_%s_%s'%(sample_list[0],ErecS_lower_cut_int),False)
 
     #Hists = []
     #legends = []
@@ -3372,6 +3354,8 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
     Hist_OnBkgd_Skymap.Reset()
     Hist_OnBkgd_Skymap.Add(InputFile.Get(HistName))
     Hist_Bkgd_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
+    HistName = "Hist_OnRFoV_CR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_Rfov_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
     #Hist_Expo_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
     HistName = "Hist_NormSyst_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Skymap_Syst_Norm.Reset()
@@ -3620,7 +3604,7 @@ def GetEffectiveAreaWeight(map_x,map_y,hist_effarea,hist_expo,exposure_hours,ebi
 
 def GetFluxCalibration(map_x,map_y,energy):
 
-    #return 1.
+    return 1.
 
     binx = Hist_Data_Skymap.GetXaxis().FindBin(map_x)
     biny = Hist_Data_Skymap.GetYaxis().FindBin(map_y)
@@ -3645,7 +3629,7 @@ def GetFluxCalibration(map_x,map_y,energy):
     return flux_calibration[energy]
 
 
-def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,hist_syst,hist_expo,hist_effarea,title_x,title_y,name,zoomin_scale):
+def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist_normsyst,hist_syst,hist_expo,hist_effarea,title_x,title_y,name,zoomin_scale):
 
     global calibration
     global calibration_radius
@@ -3761,6 +3745,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
     hist_syst_skymap = []
     hist_normsyst_skymap = []
     hist_bkgd_skymap = []
+    hist_rfov_skymap = []
     hist_effarea_skymap = []
     hist_expo_skymap = []
     hist_expo_rebin_skymap = []
@@ -3776,6 +3761,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         hist_syst_skymap += [ROOT.TH2D("hist_syst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_normsyst_skymap += [ROOT.TH2D("hist_normsyst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_bkgd_skymap += [ROOT.TH2D("hist_bkgd_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_rfov_skymap += [ROOT.TH2D("hist_rfov_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_effarea_skymap += [ROOT.TH2D("hist_effarea_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_expo_skymap += [ROOT.TH2D("hist_expo_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_expo_rebin_skymap += [ROOT.TH2D("hist_expo_rebin_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
@@ -3804,6 +3790,12 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
                 new_error = hist_bkgd[ebin].GetBinError(bx+1,by+1)
                 old_error = hist_bkgd_skymap[ebin].GetBinError(bx2,by2)
                 hist_bkgd_skymap[ebin].SetBinError(bx2,by2,pow(new_error*new_error+old_error*old_error,0.5))
+                new_content = hist_rfov[ebin].GetBinContent(bx+1,by+1)
+                old_content = hist_rfov_skymap[ebin].GetBinContent(bx2,by2)
+                hist_rfov_skymap[ebin].SetBinContent(bx2,by2,old_content+new_content)
+                new_error = hist_rfov[ebin].GetBinError(bx+1,by+1)
+                old_error = hist_rfov_skymap[ebin].GetBinError(bx2,by2)
+                hist_rfov_skymap[ebin].SetBinError(bx2,by2,pow(new_error*new_error+old_error*old_error,0.5))
                 new_content = hist_effarea[ebin].GetBinContent(bx+1,by+1)
                 old_content = hist_effarea_skymap[ebin].GetBinContent(bx2,by2)
                 hist_effarea_skymap[ebin].SetBinContent(bx2,by2,old_content+new_content)
@@ -3817,6 +3809,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
         if not Smoothing:
             continue
         hist_bkgd_skymap[ebin] = Smooth2DMap(hist_bkgd_skymap[ebin],smooth_size_spectroscopy,False,True)
+        hist_rfov_skymap[ebin] = Smooth2DMap(hist_rfov_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_data_skymap[ebin] = Smooth2DMap(hist_data_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_effarea_skymap[ebin] = Smooth2DMap(hist_effarea_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_expo_skymap[ebin] = Smooth2DMap(hist_expo_skymap[ebin],smooth_size_spectroscopy,False,True)
@@ -4743,6 +4736,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_normsyst,
             hist_energy_flux_syst_skymap[ebin].Write()
             hist_data_skymap[ebin].Write()
             hist_bkgd_skymap[ebin].Write()
+            hist_rfov_skymap[ebin].Write()
             hist_expo_skymap[ebin].Write()
         output_file.Close();
 
@@ -6865,9 +6859,9 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
                 Hist_SumSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,pow(norm_syst*norm_syst+shape_syst*shape_syst,0.5))
 
 
-    slice_center_x = roi_ra[1]
-    slice_center_y = roi_dec[1]
-    slice_radius = roi_radius_outer[1]
+    slice_center_x = roi_ra[0]
+    slice_center_y = roi_dec[0]
+    slice_radius = roi_radius_outer[0]
     first_bin_x = 0 
     last_bin_x = -1
     first_bin_y = 0 
@@ -6910,7 +6904,6 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
     Syst_MDM = energy_syst[energy_bin_cut_low]
     #CalculateSystError_v3()
 
-    #PlotsStackedHistograms('%s%s'%(source_list[0],PercentCrab))
     PlotsStackedHistograms('%s%s'%(source_list[0],selection_tag))
     print ('finish stacked plots.')
     print ('selection_tag = %s'%(selection_tag))
@@ -6921,7 +6914,7 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
 
     event_rate = Hist_OnBkgd_Energy_CamCenter_Sum.Integral()/exposure_hours*(smooth_size_spectroscopy*smooth_size_spectroscopy)/(3.14*1.0*1.0)
 
-    Hist_IndexMap = MakeSpectrumIndexSkymap(exposure_hours,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_NormSyst_Energy_Skymap,Hist_SumSyst_Energy_Skymap,Hist_Expo_Energy_Skymap,Hist_EffArea_Energy_Skymap,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
+    Hist_IndexMap = MakeSpectrumIndexSkymap(exposure_hours,Hist_Data_Energy_Skymap,Hist_Bkgd_Energy_Skymap,Hist_Rfov_Energy_Skymap,Hist_NormSyst_Energy_Skymap,Hist_SumSyst_Energy_Skymap,Hist_Expo_Energy_Skymap,Hist_EffArea_Energy_Skymap,'RA','Dec','%s%s_RaDec'%(source_name,PercentCrab),skymap_zoomin_scale)
 
     fig.clf()
     axbig = fig.add_subplot()
@@ -7053,8 +7046,12 @@ for source in range(0,len(sample_list)):
     MakeOneHistPlot(Hist_L3Rate,'L3 rate','number of runs','L3Rate_%s'%(sample_list[source]),False)
 
 print ('analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut))
-MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-MSCW_plot_lower)+MSCW_blind_cut
-MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-MSCL_plot_lower)+MSCL_blind_cut
+MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))+MSCW_blind_cut
+MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))+MSCL_blind_cut
+MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))-MSCW_blind_cut
+MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))-MSCL_blind_cut
+#MSCW_plot_lower = -0.5
+#MSCL_plot_lower = -0.5
 print ('plot range: MSCL = %s, MSCW = %s'%(MSCL_plot_upper,MSCW_plot_upper))
 print ('N_bins_for_deconv = %d'%(N_bins_for_deconv))
 
@@ -7131,7 +7128,6 @@ optimiz_upper = -1.
 Hist_Bkgd_Chi2 = ROOT.TH1D("Hist_Bkgd_Chi2","",50,optimiz_lower,optimiz_upper)
 Hist_Bkgd_Chi2_Diff = ROOT.TH1D("Hist_Bkgd_Chi2_Diff","",50,optimiz_lower,optimiz_upper)
 Hist_Bkgd_Chi2_Diff2 = ROOT.TH1D("Hist_Bkgd_Chi2_Diff2","",50,optimiz_lower,optimiz_upper)
-Hist_Bkgd_Optimization = ROOT.TH1D("Hist_Bkgd_Optimization","",50,optimiz_lower,optimiz_upper)
 Hist_Bkgd_Converge_Blind = ROOT.TH1D("Hist_Bkgd_Converge_Blind","",n_iterations,0,n_iterations)
 Hist_Bkgd_Converge_Unblind = ROOT.TH1D("Hist_Bkgd_Converge_Unblind","",n_iterations,0,n_iterations)
 Hist_VVV_Eigenvalues = ROOT.TH1D("Hist_VVV_Eigenvalues","",N_bins_for_deconv*N_bins_for_deconv,0,N_bins_for_deconv*N_bins_for_deconv)
@@ -7230,6 +7226,7 @@ Hist_EffArea_Energy_Skymap = []
 Hist_Expo_Energy_Skymap = []
 Hist_Data_Energy_Skymap = []
 Hist_Bkgd_Energy_Skymap = []
+Hist_Rfov_Energy_Skymap = []
 for ebin in range(0,len(energy_bin)-1):
     Hist_SumSyst_Energy_Skymap += [ROOT.TH2D("Hist_SumSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_NormSyst_Energy_Skymap += [ROOT.TH2D("Hist_NormSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
@@ -7237,6 +7234,7 @@ for ebin in range(0,len(energy_bin)-1):
     Hist_Expo_Energy_Skymap += [ROOT.TH2D("Hist_Expo_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_Data_Energy_Skymap += [ROOT.TH2D("Hist_Data_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_Bkgd_Energy_Skymap += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+    Hist_Rfov_Energy_Skymap += [ROOT.TH2D("Hist_Rfov_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_ShapeSyst_Energy_Skymap_ThisBin = []
     for xy_bin in range(0,len(integration_radii)):
         Hist_ShapeSyst_Energy_Skymap_ThisBin += [ROOT.TH2D("Hist_ShapeSyst_Energy_Skymap_%s_%s"%(ebin,xy_bin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
