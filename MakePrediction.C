@@ -1259,12 +1259,12 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             //double region_weight = 1./(min_distance+1.);
             double weight = 1.;
             //weight = stat_weight;
-            //if (isBlind)
-            //{
-            //    //if (idx_i>=binx_blind_upper_global+beta) continue;
-            //    //if (idx_j>=biny_blind_upper_global+beta) continue;
-            //    if (idx_i>=binx_blind_upper_global && idx_j>=biny_blind_upper_global) continue;
-            //}
+            if (isBlind)
+            {
+                if (idx_i>=binx_blind_upper_global+beta) continue;
+                if (idx_j>=biny_blind_upper_global+beta) continue;
+                //if (idx_i>=binx_blind_upper_global && idx_j>=biny_blind_upper_global) continue;
+            }
             vtr_Delta(idx_u) = weight*(mtx_data_input-mtx_init_comp)(idx_i,idx_j);
             if (isBlind)
             {
@@ -1289,7 +1289,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
                         if (kth_entry>entry_size || nth_entry>entry_size) continue;
                         //if (kth_entry>active_rank && nth_entry>active_rank) continue;
                         //if (kth_entry<active_rank || nth_entry<active_rank) continue;
-                        //if (kth_entry==1 && nth_entry==1) continue;
+                        //if (kth_entry==2 && nth_entry==2) continue;
                         if (kth_entry==nth_entry) continue;
                         if (RegularizationType==7)
                         {
@@ -2930,8 +2930,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
                 if (svd_Moff.singularValues()(max_rank)==0.) continue;
                 std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank) << std::endl;
                 //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<2.0)
-                //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<3.0)
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<5.0)
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<3.0)
+                //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<5.0)
                 {
                     find_elbow = true;
                 }
@@ -3251,6 +3251,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         double data_replace_redu_count = CountGammaRegion(mtx_data_replace_truncate);
         double epsilon_replace_redu  = data_replace_redu_count/data_full_count -1.;
         std::cout << "N^{ON} = " << data_full_count << ", N^{Swap}_{3} = " << data_replace_redu_count << ", epsilon^{Swap}_{3} = " << epsilon_replace_redu << std::endl;
+
         MatrixXcd mtx_bkgd_truncate = GetTruncatedMatrix(mtx_data_bkgd, NumberOfEigenvectors_Stable);
         double best_full_count = CountGammaRegion(mtx_data_best);
         double bkgd_full_count = CountGammaRegion(mtx_data_bkgd);
@@ -3289,6 +3290,13 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         //double vvv_noswap_redu_count = CountGammaRegion(mtx_vvv_noswap_truncate);
         //double epsilon_vvv_noswap_redu  = vvv_noswap_redu_count/data_full_count -1.;
         //std::cout << "N^{ON} = " << data_full_count << ", N^{Pert}_{3} = " << vvv_noswap_redu_count << ", epsilon^{Pert}_{3} = " << epsilon_vvv_noswap_redu << std::endl;
+
+        double rofv_epsilon = 0.;
+        if (Hist_OnRFoV_CR_Energy.at(e).Integral()>0.)
+        {
+            rofv_epsilon = 1.-Hist_OnData_CR_Energy.at(e).Integral()/Hist_OnRFoV_CR_Energy.at(e).Integral();
+        }
+        std::cout << "Ring count = " << Hist_OnRFoV_CR_Energy.at(e).Integral() << ", Bkgd count = " << Hist_OnData_CR_Energy.at(e).Integral() << ", epsilon = " << rofv_epsilon << std::endl;
 
 
         JacobiSVD<MatrixXd> svd_data(mtx_data.real(), ComputeFullU | ComputeFullV);
