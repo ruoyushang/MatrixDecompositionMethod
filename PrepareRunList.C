@@ -2153,8 +2153,8 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::cout << __LINE__ << std::endl;
     std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
     int group_index = 0;
-    //double exposure_hour_limit = 20.;
-    double exposure_hour_limit = 10.;
+    //double exposure_hour_limit = 10.;
+    double exposure_hour_limit = 20.;
     //double exposure_hour_limit = 80.;
     //double exposure_hour_limit = 10000.;
     double exposure_hour_sum = 0.;

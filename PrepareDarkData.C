@@ -638,7 +638,7 @@ bool SourceFoV() {
     
     double x = ra_sky-mean_tele_point_ra;
     double y = dec_sky-mean_tele_point_dec;
-    if ((x*x+y*y)>0.2*0.2) return false;
+    if ((x*x+y*y)>0.3*0.3) return false;
     return true;
 }
 bool SourceRingFoV() {
@@ -649,8 +649,8 @@ bool SourceRingFoV() {
     
     double x = ra_sky-mean_tele_point_ra;
     double y = dec_sky-mean_tele_point_dec;
-    if ((x*x+y*y)<0.2*0.2) return false;
-    if ((x*x+y*y)>2.*0.2*0.2) return false;
+    if ((x*x+y*y)<0.3*0.3) return false;
+    if ((x*x+y*y)>2.*0.3*0.3) return false;
     return true;
 }
 bool RoIFoV(int which_roi) {
@@ -2072,9 +2072,9 @@ void GetBrightStars()
 bool SignalSelectionTheta2()
 {
     if (MSCW>MSCW_cut_blind) return false;
-    if (MSCW<MSCW_plot_lower) return false;
+    if (MSCW<-1.*MSCW_cut_blind) return false;
     if (MSCL>MSCL_cut_blind) return false;
-    if (MSCL<MSCL_plot_lower) return false;
+    if (MSCL<-1.*MSCL_cut_blind) return false;
     return true;
 }
 bool ControlSelectionTheta2()
@@ -2659,8 +2659,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+        MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+        MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
 
         Hist_OnData_Incl_CR_Zenith.push_back(TH1D("Hist_OnData_Incl_CR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
@@ -2734,8 +2736,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
         int XYoff_bins = 36;
 
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+        MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+        MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
 
         Hist_OnData_MSCLW.push_back(TH2D("Hist_Stage1_OnData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -2810,8 +2814,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
-            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+            MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+            MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
             N_bins_for_deconv = N_bins_for_deconv_func_E[e];
 
             Hist_OnDark_OneSample_MSCLW.push_back(TH2D("Hist_Stage1_OnDark_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -2911,8 +2917,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
-            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+            MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+            MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
             N_bins_for_deconv = N_bins_for_deconv_func_E[e];
 
             Hist_OnData_OneRoI_SR_RoI_Energy.push_back(TH1D("Hist_Stage1_OnData_SR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
@@ -4208,8 +4216,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind;
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+        MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+        MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
 
         Hist_GammaMC_MSCLW.push_back(TH2D("Hist_Stage1_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));

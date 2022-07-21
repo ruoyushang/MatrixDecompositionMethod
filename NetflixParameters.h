@@ -15,7 +15,7 @@
 //const int N_energy_fine_bins = 4;
 //double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.5),pow(10,3.0),pow(10,3.5),pow(10,4.0)};
 
-int N_bins_for_deconv = 8; // 8 should be the lowest bin number
+int N_bins_for_deconv = 10; // 8 should be the lowest bin number
 
 const int N_energy_bins = 4;
 double Log10_alpha[N_energy_bins] = {-0.5,-0.5,-0.1,1.};
@@ -55,12 +55,14 @@ bool UseRegularization = true;
 bool AcceptanceCorrection = false;
 bool ExposureCorrection = false;
 
+double MSCW_plot_upper = 3.;
+double MSCL_plot_upper = 3.;
 double MSCW_plot_lower = -0.5;
 double MSCL_plot_lower = -0.5;
 
 char output_file_tag[50] = "tight";
-double MSCW_cut_moderate = 0.5;
-double MSCL_cut_moderate = 0.5;
+double MSCW_cut_moderate = 0.6;
+double MSCL_cut_moderate = 0.6;
 
 bool UseTruncatedONData = false;
 bool UseMinChi2 = false;
@@ -107,8 +109,6 @@ double MSCW_cut_blind = 1.0;
 double MSCL_cut_blind = 1.0;
 double MSCW_chi2_upper = 3.;
 double MSCL_chi2_upper = 3.;
-double MSCW_plot_upper = 3.;
-double MSCL_plot_upper = 3.;
 
 double Skymap_size = 2.;
 int Skymap_nbins = 45;
