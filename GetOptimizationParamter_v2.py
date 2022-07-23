@@ -28,29 +28,30 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 np.set_printoptions(precision=4)
 
 N_bins_for_deconv = CommonPlotFunctions.N_bins_for_deconv
-bin_blind = 6
-best_beta = 4
+
+n_measures_per_entry = 1
 
 analysis_type = 'inclusive'
+#analysis_type = 'south'
+#analysis_type = 'north'
 #analysis_type = 'SelectOFF'
-#analysis_type = 'SelectImposter'
+
+observing_condition = 'all'
+#observing_condition = 'north'
+#observing_condition = 'south'
+#observing_condition = 'eastwest'
+#observing_condition = 'sza'
+#observing_condition = 'lza'
 
 sample_list = []
+ONOFF_tag_sample = 'OFF'
+imposter_list = []
+ONOFF_tag_imposter = 'OFF'
 
 if analysis_type=='inclusive':
-    ONOFF_tag = 'OFF'
-    sample_list += ['1ES0502V6_OFF']
-    sample_list += ['1ES0502V5_OFF']
-    sample_list += ['DracoV6_OFF']
-    sample_list += ['DracoV5_OFF']
-    sample_list += ['BLLacV6_OFF']
-    sample_list += ['BLLacV5_OFF']
+    ONOFF_tag_sample = 'OFF'
     sample_list += ['1ES0414V5_OFF']
-    sample_list += ['M82V6_OFF']
-    sample_list += ['M82V5_OFF']
     sample_list += ['1ES0647V6_OFF']
-    sample_list += ['1ES1011V6_OFF']
-    sample_list += ['NGC1275V6_OFF']
     sample_list += ['OJ287V6_OFF']
     sample_list += ['RGBJ0710V5_OFF']
     sample_list += ['Segue1V6_OFF']
@@ -60,60 +61,69 @@ if analysis_type=='inclusive':
     sample_list += ['3C273V5_OFF']
     sample_list += ['PG1553V6_OFF']
     sample_list += ['PG1553V5_OFF']
-    #sample_list += ['H1426V6_OFF']
     sample_list += ['1ES0229V6_OFF']
     sample_list += ['1ES0229V5_OFF']
     sample_list += ['PKS1424V6_OFF']
     sample_list += ['PKS1424V5_OFF']
     sample_list += ['UrsaMajorIIV6_OFF']
-if analysis_type=='SelectOFF':
-    ONOFF_tag = 'OFF'
-    sample_list += ['1ES0229V6_OFF']
-    sample_list += ['1ES0229V5_OFF']
+    sample_list += ['H1426V6_OFF']
+    sample_list += ['NGC1275V6_OFF']
+    sample_list += ['DracoV6_OFF']
+    sample_list += ['DracoV5_OFF']
+    sample_list += ['BLLacV6_OFF']
+    sample_list += ['BLLacV5_OFF']
+    sample_list += ['1ES0502V6_OFF']
+    sample_list += ['1ES0502V5_OFF']
+    sample_list += ['M82V6_OFF']
+    sample_list += ['M82V5_OFF']
+    sample_list += ['1ES1011V6_OFF']
+if analysis_type=='north':
+    ONOFF_tag_sample = 'OFF'
     sample_list += ['UrsaMajorIIV6_OFF']
+    sample_list += ['H1426V6_OFF']
+    sample_list += ['NGC1275V6_OFF']
+    sample_list += ['DracoV6_OFF']
+    sample_list += ['DracoV5_OFF']
+    sample_list += ['BLLacV6_OFF']
+    sample_list += ['BLLacV5_OFF']
+    sample_list += ['1ES0502V6_OFF']
+    sample_list += ['1ES0502V5_OFF']
+    sample_list += ['M82V6_OFF']
+    sample_list += ['M82V5_OFF']
+    sample_list += ['1ES1011V6_OFF']
+if analysis_type=='south':
+    ONOFF_tag_sample = 'OFF'
+    sample_list += ['1ES0414V5_OFF']
+    sample_list += ['1ES0647V6_OFF']
+    sample_list += ['OJ287V6_OFF']
+    sample_list += ['RGBJ0710V5_OFF']
+    sample_list += ['Segue1V6_OFF']
+    sample_list += ['Segue1V5_OFF']
+    sample_list += ['3C264V6_OFF']
+    sample_list += ['3C273V6_OFF']
+    sample_list += ['3C273V5_OFF']
     sample_list += ['PG1553V6_OFF']
     sample_list += ['PG1553V5_OFF']
-if analysis_type=='SelectImposter':
-    ONOFF_tag = 'ON'
+    sample_list += ['1ES0229V6_OFF']
+    sample_list += ['1ES0229V5_OFF']
+    sample_list += ['PKS1424V6_OFF']
+    sample_list += ['PKS1424V5_OFF']
+if analysis_type=='SelectOFF':
+    ONOFF_tag_sample = 'OFF'
+    sample_list += ['UrsaMajorIIV6_OFF']
+    sample_list += ['1ES0229V6_OFF']
+    sample_list += ['1ES0229V5_OFF']
+    sample_list += ['PG1553V6_OFF']
+    sample_list += ['PG1553V5_OFF']
+    ONOFF_tag_imposter = 'ON'
     for imposter_ID in range(0,5):
-        sample_list += ['1ES0229V6_Imposter%s'%(imposter_ID)]
-        sample_list += ['1ES0229V5_Imposter%s'%(imposter_ID)]
-        sample_list += ['UrsaMajorIIV6_Imposter%s'%(imposter_ID)]
-        sample_list += ['PG1553V6_Imposter%s'%(imposter_ID)]
-        sample_list += ['PG1553V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['UrsaMajorIIV6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['1ES0229V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['1ES0229V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['PG1553V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['PG1553V5_Imposter%s'%(imposter_ID)]
 
 
-#ONOFF_tag = 'ON'
-#sample_list += ['UrsaMajorIIV6_Imposter1']
-#sample_list += ['UrsaMajorIIV6_Imposter2']
-#sample_list += ['UrsaMajorIIV6_Imposter3']
-#sample_list += ['UrsaMajorIIV6_Imposter4']
-#sample_list += ['UrsaMajorIIV6_Imposter5']
-#
-#ONOFF_tag = 'ON'
-#sample_list += ['PG1553V6_Imposter1']
-#sample_list += ['PG1553V6_Imposter2']
-#sample_list += ['PG1553V6_Imposter3']
-#sample_list += ['PG1553V6_Imposter4']
-#sample_list += ['PG1553V6_Imposter5']
-#sample_list += ['PG1553V5_Imposter1']
-#sample_list += ['PG1553V5_Imposter2']
-#sample_list += ['PG1553V5_Imposter3']
-#sample_list += ['PG1553V5_Imposter4']
-#sample_list += ['PG1553V5_Imposter5']
-#
-#ONOFF_tag = 'ON'
-#sample_list += ['3C273V6_Imposter1']
-#sample_list += ['3C273V6_Imposter2']
-#sample_list += ['3C273V6_Imposter3']
-#sample_list += ['3C273V6_Imposter4']
-#sample_list += ['3C273V6_Imposter5']
-#sample_list += ['3C273V5_Imposter1']
-#sample_list += ['3C273V5_Imposter2']
-#sample_list += ['3C273V5_Imposter3']
-#sample_list += ['3C273V5_Imposter4']
-#sample_list += ['3C273V5_Imposter5']
-#
 
 folder_path = CommonPlotFunctions.folder_path
 elev_range = CommonPlotFunctions.elev_range
@@ -133,18 +143,21 @@ method_tag = 'tight_mdm_default'
 lowrank_tag = '_svd'
 method_tag += lowrank_tag
 
-ONOFF_tag += '_Model0'
+ONOFF_tag_sample += '_Model0'
+ONOFF_tag_imposter += '_Model0'
 
-root_file_tags = []
+sample_file_tags = []
+imposter_file_tags = []
 for elev in range(0,len(elev_range)-1):
     elev_tag = '_TelElev%sto%s'%(elev_range[elev],elev_range[elev+1])
     for u in range(0,len(theta2_bins)-1):
         theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
-        root_file_tags += [method_tag+elev_tag+theta2_tag+'_'+ONOFF_tag]
+        sample_file_tags += [method_tag+elev_tag+theta2_tag+'_'+ONOFF_tag_sample]
+        imposter_file_tags += [method_tag+elev_tag+theta2_tag+'_'+ONOFF_tag_imposter]
 
-def FindSourceIndex(source_name):
-    for source in range(0,len(sample_list)):
-        if source_name==sample_list[source]:
+def FindSourceIndex(source_name,the_list):
+    for source in range(0,len(the_list)):
+        if source_name==the_list[source]:
             return source
     return 0
 
@@ -161,6 +174,19 @@ def GetMatrixCoefficients(hist_mtx,gamma_count):
             content = hist_mtx.GetBinContent(row+1,col+1)
             mtx_CDE[idx] = content
     return mtx_CDE
+
+def GetObservingCondition(file_path):
+
+    InputFile = ROOT.TFile(file_path)
+    InfoTree = InputFile.Get("InfoTree")
+    InfoTree.GetEntry(0)
+    mean_elev = InfoTree.mean_elev
+    mean_azim = InfoTree.mean_azim
+    mean_nsb = InfoTree.mean_nsb
+
+    print ('Open %s, mean_azim = %0.2f'%(file_path,mean_azim))
+
+    return mean_elev, mean_azim, mean_nsb
 
 def GetGammaCounts(file_path,ebin):
 
@@ -414,7 +440,7 @@ def MakeCorrelationPlot(list_var,ebin):
     y_var = mtx_var_bkgd_good.transpose()[1]
     plt.scatter(x_var,y_var,color='r',alpha=0.2)
 
-    plt.savefig("output_plots/par_correlation_%s%s_%s%s_E%s.png"%(par1_row,par1_col,par2_row,par2_col,ebin))
+    plt.savefig("output_plots/par_correlation_%s%s_%s%s_E%s_%s_%s.png"%(par1_row,par1_col,par2_row,par2_col,ebin,analysis_type,observing_condition))
 
 
 def LoopOverFiles():
@@ -425,7 +451,12 @@ def LoopOverFiles():
     global data_count
     global bkgd_count
     global dark_count
+    global imposter_data_rank
+    global imposter_data_count
+    global imposter_bkgd_count
+    global imposter_dark_count
     global n_measurements
+    global n_imposter_measurements
     global Hist_Coeff_Data
     global Hist_Coeff_Bkgd
     global mtx_CDE_data
@@ -433,12 +464,12 @@ def LoopOverFiles():
 
     n_measurements = 0
     for source in range(0,len(sample_list)):
-        source_idx = FindSourceIndex(sample_list[source])
-        for elev in range(0,len(root_file_tags)):
+        source_idx = FindSourceIndex(sample_list[source],sample_list)
+        for elev in range(0,len(sample_file_tags)):
             file_exists = True
             n_groups = 0
             while file_exists:
-                SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,0,0)+".root"
+                SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(sample_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,0,0)+".root"
                 print ('Read file: %s'%(SourceFilePath))
                 if os.path.exists(SourceFilePath):
                     n_groups += 1
@@ -449,7 +480,7 @@ def LoopOverFiles():
             for x_idx in range(0,Skymap_normalization_nbins):
                 for y_idx in range(0,Skymap_normalization_nbins):
                     for g_idx in range(0,n_groups):
-                        SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
+                        SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(sample_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
                         FilePath_Folder += [SourceFilePath]
                         print ('Get %s...'%(FilePath_Folder[len(FilePath_Folder)-1]))
                         if not os.path.isfile(FilePath_Folder[len(FilePath_Folder)-1]): 
@@ -457,6 +488,17 @@ def LoopOverFiles():
                             continue
                         else:
                             print ('Found a file.')
+                        mean_elev, mean_azim, mean_nsb = GetObservingCondition(FilePath_Folder[len(FilePath_Folder)-1])
+                        if observing_condition=='north':
+                            if abs(mean_azim-0.)>45.: continue
+                        if observing_condition=='south':
+                            if abs(mean_azim-180.)>45.: continue
+                        if observing_condition=='eastwest':
+                            if abs(mean_azim-0.)<45. or abs(mean_azim-180.)<45.: continue
+                        if observing_condition=='sza':
+                            if mean_elev<65.: continue
+                        if observing_condition=='lza':
+                            if mean_elev>65.: continue
                         Hist_Bkgd_Optimization_E = []
                         rank_E = []
                         data_count_E = []
@@ -467,7 +509,7 @@ def LoopOverFiles():
                         mtx_CDE_data_E = []
                         mtx_CDE_bkgd_E = []
                         for eb in range(0,len(energy_bin)-1):
-                            Hist_Bkgd_Optimization_E += [ROOT.TH2D("Hist_Bkgd_Optimization_M%s_E%s"%(n_measurements,eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb],N_bins_for_deconv,0,N_bins_for_deconv)]
+                            Hist_Bkgd_Optimization_E += [ROOT.TH2D("Hist_Bkgd_Optimization_M%s_E%s"%(n_measurements,eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb],optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb])]
                             Hist_Bkgd_Optimization_E[eb].Reset()
                             GetOptimizationHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Bkgd_Optimization_E[eb])
                             rank, data, bkgd, dark = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
@@ -493,12 +535,58 @@ def LoopOverFiles():
                         mtx_CDE_bkgd += [mtx_CDE_bkgd_E]
                         n_measurements += 1
 
-optimiz_lower = [-1.,-1.,-1.,-1.]
-optimiz_upper = [1.,1.,1.,1.]
-optimiz_nbins = 20
-stable_rank = 3
+    n_imposter_measurements = 0
+    for source in range(0,len(imposter_list)):
+        source_idx = FindSourceIndex(imposter_list[source],imposter_list)
+        for elev in range(0,len(imposter_file_tags)):
+            file_exists = True
+            n_groups = 0
+            while file_exists:
+                SourceFilePath = "%s/Netflix_"%(folder_path)+imposter_list[source_idx]+"_%s"%(imposter_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,0,0)+".root"
+                print ('Read file: %s'%(SourceFilePath))
+                if os.path.exists(SourceFilePath):
+                    n_groups += 1
+                    print ('file exists.')
+                else:
+                    file_exists = False
+                    print ('file does not exist.')
+            for x_idx in range(0,Skymap_normalization_nbins):
+                for y_idx in range(0,Skymap_normalization_nbins):
+                    for g_idx in range(0,n_groups):
+                        SourceFilePath = "%s/Netflix_"%(folder_path)+imposter_list[source_idx]+"_%s"%(imposter_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
+                        FilePath_Folder += [SourceFilePath]
+                        print ('Get %s...'%(FilePath_Folder[len(FilePath_Folder)-1]))
+                        if not os.path.isfile(FilePath_Folder[len(FilePath_Folder)-1]): 
+                            print ('Found no file!!')
+                            continue
+                        else:
+                            print ('Found a file.')
+                        rank_E = []
+                        data_count_E = []
+                        bkgd_count_E = []
+                        dark_count_E = []
+                        for eb in range(0,len(energy_bin)-1):
+                            rank, data, bkgd, dark = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
+                            rank_E += [rank]
+                            data_count_E += [data]
+                            bkgd_count_E += [bkgd]
+                            dark_count_E += [dark]
+                        imposter_data_rank += [rank_E]
+                        imposter_data_count += [data_count_E]
+                        imposter_bkgd_count += [bkgd_count_E]
+                        imposter_dark_count += [dark_count_E]
+                        n_imposter_measurements += 1
+
+
+#optimiz_lower = [-1.,-1.,-1.,-1.]
+#optimiz_upper = [1.,1.,1.,1.]
+optimiz_lower = [-5.,-5.,-5.,-5.]
+optimiz_upper = [5.,5.,5.,5.]
+optimiz_nbins = 10
+stable_rank = 2
 
 n_measurements = 0
+n_imposter_measurements = 0
 plot_rank = 0
 FilePath_Folder = []
 Hist_Bkgd_Optimization = []
@@ -506,6 +594,10 @@ data_rank = []
 data_count = []
 bkgd_count = []
 dark_count = []
+imposter_data_rank = []
+imposter_data_count = []
+imposter_bkgd_count = []
+imposter_dark_count = []
 Hist_Coeff_Data = []
 Hist_Coeff_Bkgd = []
 mtx_CDE_data = []
@@ -515,57 +607,25 @@ LoopOverFiles()
 
 Hist_Bkgd_Optimization_Mean = []
 for eb in range(0,len(energy_bin)-1):
-    Hist_Bkgd_Optimization_Mean += [ROOT.TH1D("Hist_Bkgd_Optimization_Mean_E%s"%(eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb])]
-Hist_Bkgd_Optimization_Abs = []
-for entry in range(0,n_measurements):
-    Hist_Bkgd_Optimization_Abs_E = []
-    for eb in range(0,len(energy_bin)-1):
-        Hist_Bkgd_Optimization_Abs_E += [ROOT.TH1D("Hist_Bkgd_Optimization_Abs_E%s"%(eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb])]
-    Hist_Bkgd_Optimization_Abs += [Hist_Bkgd_Optimization_Abs_E]
+    Hist_Bkgd_Optimization_Mean += [ROOT.TH2D("Hist_Bkgd_Optimization_Mean_E%s"%(eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb],optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb])]
 for eb in range(0,len(energy_bin)-1):
     Hist_Bkgd_Optimization_Mean[eb].Reset()
     for binx in range(0,Hist_Bkgd_Optimization_Mean[eb].GetNbinsX()):
-        mean = 0.
-        n_entries = 0.
-        for entry in range(0,n_measurements):
-            if eb==0 or eb==1:
-                if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
-            if eb==0 and data_count[entry][eb]<2000.: continue
-            if eb==1 and data_count[entry][eb]<500.: continue
-            print ("Hist_Bkgd_Optimization[entry][eb] = %s"%(Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1,best_beta+bin_blind)))
-            error = Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1,best_beta+bin_blind)
-            #Hist_Bkgd_Optimization_Abs[entry][eb].SetBinContent(binx+1,best_beta+bin_blind,error)
-            Hist_Bkgd_Optimization_Abs[entry][eb].SetBinContent(binx+1,best_beta+bin_blind,abs(error))
-            mean += error
-            n_entries += 1.
-        mean = mean/n_entries
-        rms = 0.
-        n_entries = 0.
-        for entry in range(0,n_measurements):
-            if eb==0 or eb==1:
-                if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
-            if eb==0 and data_count[entry][eb]<2000.: continue
-            if eb==1 and data_count[entry][eb]<500.: continue
-            error = Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1,best_beta+bin_blind)
-            #rms += pow(error-mean,2)
-            rms += pow(error,2)
-            n_entries += 1.
-        rms = rms/n_entries
-        rms = pow(rms,0.5)
-        #Hist_Bkgd_Optimization_Mean[eb].SetBinContent(binx+1,mean)
-        #Hist_Bkgd_Optimization_Mean[eb].SetBinError(binx+1,rms)
-        Hist_Bkgd_Optimization_Mean[eb].SetBinContent(binx+1,rms)
-    Hists = []
-    colors = []
-    Hists += [Hist_Bkgd_Optimization_Mean[eb]]
-    colors += [1]
-    #random_gen = ROOT.TRandom3()
-    #for entry in range(0,n_measurements):
-    #    Hists += [Hist_Bkgd_Optimization_Abs[entry][eb]]
-    #    colors += [int(random_gen.Uniform(29.,49.))]
-    ax.cla()
-    MakeMultiplePlot(ax,Hists,colors,'log10 c','relative error','OptimizationAlpha_E%s_%s'%(eb,folder_path),1e-3,0.1,False,False)
-    fig.savefig("output_plots/OptimizationAlpha_E%s_Beta%s_%s.png"%(eb,best_beta,folder_path))
+        for biny in range(0,Hist_Bkgd_Optimization_Mean[eb].GetNbinsY()):
+            rms = 0.
+            n_entries = 0.
+            for entry in range(0,n_measurements):
+                if eb==0 or eb==1:
+                    if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
+                if eb==0 and data_count[entry][eb]<2000.: continue
+                if eb==1 and data_count[entry][eb]<500.: continue
+                error = Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1,biny+1)
+                rms += pow(error,2)
+                n_entries += 1.
+            rms = rms/n_entries
+            rms = pow(rms,0.5)
+            Hist_Bkgd_Optimization_Mean[eb].SetBinContent(binx+1,biny+1,rms)
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Bkgd_Optimization_Mean[eb],fig,'log10 alpha','log10 beta','RMS of epsilon','Optimization_E%s_%s_%s'%(eb,analysis_type,observing_condition))
 
 Hist_SystErrDist_MDM = []
 Hist_SystErrDist_Init = []
@@ -577,6 +637,17 @@ Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E3","",21,-0.4,0.4)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E3","",21,-0.4,0.4)]
 Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E4","",21,-0.8,0.8)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E4","",21,-0.8,0.8)]
+Hist_Imposter_SystErrDist_MDM = []
+Hist_Imposter_SystErrDist_Init = []
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E0","",21,-0.2,0.2)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E0","",21,-0.2,0.2)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E1","",21,-0.2,0.2)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E1","",21,-0.2,0.2)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E3","",21,-0.4,0.4)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E3","",21,-0.4,0.4)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E4","",21,-0.8,0.8)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E4","",21,-0.8,0.8)]
+
 for eb in range(0,len(energy_bin)-1):
     Hist_SystErrDist_MDM[eb].Reset()
     Hist_SystErrDist_Init[eb].Reset()
@@ -585,36 +656,92 @@ for eb in range(0,len(energy_bin)-1):
     MDM_rms = 0.
     Init_rms = 0.
     n_entries = 0.
+    n_measures = 0.
+    data_count_n_measures = 0.
+    bkgd_count_n_measures = 0.
+    dark_count_n_measures = 0.
     for entry in range(0,n_measurements):
         if eb==0 or eb==1:
             if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
         if data_count[entry][eb]==0.: continue
         if eb==0 and data_count[entry][eb]<2000.: continue
         if eb==1 and data_count[entry][eb]<500.: continue
-        Hist_SystErrDist_MDM[eb].Fill(1.-bkgd_count[entry][eb]/data_count[entry][eb])
-        Hist_SystErrDist_Init[eb].Fill(1.-dark_count[entry][eb]/data_count[entry][eb])
-        MDM_mean += 1.-bkgd_count[entry][eb]/data_count[entry][eb]
-        Init_mean += 1.-dark_count[entry][eb]/data_count[entry][eb]
-        MDM_rms += pow(1.-bkgd_count[entry][eb]/data_count[entry][eb],2)
-        Init_rms += pow(1.-dark_count[entry][eb]/data_count[entry][eb],2)
-        n_entries += 1.
+        n_measures += 1.
+        data_count_n_measures += data_count[entry][eb]
+        bkgd_count_n_measures += bkgd_count[entry][eb]
+        dark_count_n_measures += dark_count[entry][eb]
+        if n_measures==n_measures_per_entry:
+            Hist_SystErrDist_MDM[eb].Fill(1.-bkgd_count_n_measures/data_count_n_measures)
+            Hist_SystErrDist_Init[eb].Fill(1.-dark_count_n_measures/data_count_n_measures)
+            MDM_mean += 1.-bkgd_count_n_measures/data_count_n_measures
+            Init_mean += 1.-dark_count_n_measures/data_count_n_measures
+            MDM_rms += pow(1.-bkgd_count_n_measures/data_count_n_measures,2)
+            Init_rms += pow(1.-dark_count_n_measures/data_count_n_measures,2)
+            n_entries += 1.
+            n_measures = 0.
+            data_count_n_measures = 0.
+            bkgd_count_n_measures = 0.
+            dark_count_n_measures = 0.
     MDM_mean = MDM_mean/n_entries
     Init_mean = Init_mean/n_entries
     MDM_rms = pow(MDM_rms/n_entries,0.5)
     Init_rms = pow(Init_rms/n_entries,0.5)
+
+    Hist_Imposter_SystErrDist_MDM[eb].Reset()
+    Hist_Imposter_SystErrDist_Init[eb].Reset()
+    MDM_mean_imposter = 0.
+    Init_mean_imposter = 0.
+    MDM_rms_imposter = 0.
+    Init_rms_imposter = 0.
+    n_entries_imposter = 0.
+    n_measures = 0.
+    data_count_n_measures = 0.
+    bkgd_count_n_measures = 0.
+    dark_count_n_measures = 0.
+    for entry in range(0,n_imposter_measurements):
+        if eb==0 or eb==1:
+            if plot_rank!=0 and imposter_data_rank[entry][eb]!=plot_rank: continue
+        if imposter_data_count[entry][eb]==0.: continue
+        if eb==0 and imposter_data_count[entry][eb]<2000.: continue
+        if eb==1 and imposter_data_count[entry][eb]<500.: continue
+        n_measures += 1.
+        data_count_n_measures += imposter_data_count[entry][eb]
+        bkgd_count_n_measures += imposter_bkgd_count[entry][eb]
+        dark_count_n_measures += imposter_dark_count[entry][eb]
+        if n_measures==n_measures_per_entry:
+            Hist_Imposter_SystErrDist_MDM[eb].Fill(1.-bkgd_count_n_measures/data_count_n_measures,1./5.)
+            Hist_Imposter_SystErrDist_Init[eb].Fill(1.-dark_count_n_measures/data_count_n_measures,1./5.)
+            MDM_mean_imposter += 1.-bkgd_count_n_measures/data_count_n_measures
+            Init_mean_imposter += 1.-dark_count_n_measures/data_count_n_measures
+            MDM_rms_imposter += pow(1.-bkgd_count_n_measures/data_count_n_measures,2)
+            Init_rms_imposter += pow(1.-dark_count_n_measures/data_count_n_measures,2)
+            n_entries_imposter += 1.
+            n_measures = 0.
+            data_count_n_measures = 0.
+            bkgd_count_n_measures = 0.
+            dark_count_n_measures = 0.
+    if n_entries_imposter>0.:
+        MDM_mean_imposter = MDM_mean_imposter/n_entries_imposter
+        Init_mean_imposter = Init_mean_imposter/n_entries_imposter
+        MDM_rms_imposter = pow(MDM_rms_imposter/n_entries_imposter,0.5)
+        Init_rms_imposter = pow(Init_rms_imposter/n_entries_imposter,0.5)
+
     Hists = []
     legends = []
     colors = []
     Hists += [Hist_SystErrDist_MDM[eb]]
-    legends += ['%0.2f-%0.2f TeV, mean = %0.3f, sigma = %0.3f'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_mean,MDM_rms)]
-    #legends += ['matrix method, %0.2f-%0.2f TeV, mean = %0.3f, sigma = %0.3f'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_mean,MDM_rms)]
+    legends += ['%0.2f-%0.2f TeV, ON data, sigma = %0.3f'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_rms)]
     colors += [1]
     Hists += [Hist_SystErrDist_Init[eb]]
-    legends += ['initial matching, mean = %0.3f, sigma = %0.3f'%(Init_mean,Init_rms)]
+    legends += ['initial matching, sigma = %0.3f'%(Init_rms)]
     colors += [2]
-    ax.cla()
-    MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error $\epsilon$','number of measurements')
-    fig.savefig("output_plots/SystErrDist_E%s_%s_%s.png"%(eb,analysis_type,folder_path))
+    #Hists += [Hist_Imposter_SystErrDist_MDM[eb]]
+    #legends += ['mimic data (entries scaled by 1/5), sigma = %0.3f'%(MDM_rms_imposter)]
+    #colors += [2]
+    fig.clf()
+    ax = fig.add_subplot()
+    MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error $\epsilon$','number of entries')
+    fig.savefig("output_plots/SystErrDist_E%s_M%s_%s_%s_%s.png"%(eb,n_measures_per_entry,analysis_type,observing_condition,folder_path))
 
 list_var_pair = []
 good_var_pair = []
