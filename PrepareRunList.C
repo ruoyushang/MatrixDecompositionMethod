@@ -1337,8 +1337,9 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     double threshold_dAzim = 180.;
     if (!isImposter)
     {
-        threshold_dAirmass = 0.1;
-        threshold_dNSB = 0.2;
+        threshold_dAirmass = 0.2;
+        threshold_dNSB = 0.3;
+        threshold_dAzim = 45.;
     }
     double threshold_dL3Rate = 0.3;
     double threshold_dMJD = 3.*365.;
@@ -1367,17 +1368,9 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         if (delta_nsb>threshold_dNSB) continue;
         if (!isImposter)
         {
-            if (ON_runnumber % 2 == 0)
-            {
-                //if ((ON_NSB-OFF_NSB[off_run])<0.) continue;
-                if (signed_delta_airmass<0.) continue;
-            }
-            else
-            {
-                //if ((ON_NSB-OFF_NSB[off_run])>0.) continue;
-                if (signed_delta_airmass>0.) continue;
-            }
+            if (delta_azim>threshold_dAzim) continue;
         }
+
         //if (delta_l3rate/ON_L3Rate>threshold_dL3Rate) continue;
         //if (delta_elev>threshold_dElev) continue;
         //if (delta_mjd>threshold_dMJD) continue;
@@ -1387,10 +1380,11 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         //double chi2 = pow(delta_mjd,2);
         //double chi2 = pow(delta_l3rate,2);
         double chi2 = pow(delta_azim,2); // for J1908 analysis
-        //if (!isImposter)
-        //{
-        //    chi2 = pow(delta_airmass,2);
-        //}
+        if (!isImposter)
+        {
+            //chi2 = pow(delta_nsb,2);
+            chi2 = pow(delta_airmass,2);
+        }
 
         if (chi2<match_chi2)
         {
@@ -2153,8 +2147,9 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::cout << __LINE__ << std::endl;
     std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
     int group_index = 0;
-    //double exposure_hour_limit = 10.;
-    double exposure_hour_limit = 20.;
+    //double exposure_hour_limit = 5.;
+    double exposure_hour_limit = 10.;
+    //double exposure_hour_limit = 20.;
     //double exposure_hour_limit = 80.;
     //double exposure_hour_limit = 10000.;
     double exposure_hour_sum = 0.;

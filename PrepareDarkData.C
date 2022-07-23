@@ -92,6 +92,10 @@ double dec_sky_imposter = 0;
 double ra_sky_dark = 0;
 double dec_sky_dark = 0;
 double exposure_hours = 0.;
+double shower_count = 0.;
+double mean_elev = 0.;
+double mean_azim = 0.;
+double mean_nsb = 0.;
 double exposure_hours_usable = 0.;
 double exposure_hours_ref = 0.;
 int MJD_Start = 2147483647;
@@ -2632,6 +2636,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     //    roi_radius_outer.push_back(bright_star_radius_cut);
     //}
 
+    shower_count = 0.;
+    mean_elev = 0.;
+    mean_azim = 0.;
+    mean_nsb = 0.;
     TH1D Hist_Elev = TH1D("Hist_Elev","",N_elev_bins,elev_bins);
     TH1D Hist_MJD = TH1D("Hist_MJD","",N_MJD_bins,MJD_bins);
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
@@ -4075,6 +4083,12 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             //double eff_area_weight = (eff_area*exposure_thisrun*3600.*(energy_bins[energy+1]-energy_bins[energy])/1000.);
             double eff_area_weight = (eff_area*(energy_bins[energy+1]-energy_bins[energy])/1000.);
 
+            shower_count += 1.;
+            mean_elev += tele_elev;
+            double shifted_azim = tele_azim+90.;
+            if (shifted_azim>360.) shifted_azim = shifted_azim-360.;
+            mean_azim += shifted_azim;
+            mean_nsb += NSB_thisrun;
             Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,tele_elev);
             Hist_Data_ElevAzim.Fill(tele_azim,tele_elev);
@@ -4456,6 +4470,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     //    std::cout << "Hist_GammaData_MSCLW.at(e).Integral() = " << Hist_GammaData_MSCLW.at(e).Integral() << std::endl;
     //}
 
+    mean_elev = mean_elev/shower_count;
+    mean_azim = mean_azim/shower_count;
+    mean_azim = mean_azim-90.;  // north will be around +/- 0 and sourth will be around +/- 180
+    mean_nsb = mean_nsb/shower_count;
 
     TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root","recreate");
 
@@ -4465,6 +4483,9 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     InfoTree.Branch("MSCL_cut_blind",&MSCL_cut_blind,"MSCL_cut_blind/D");
     InfoTree.Branch("MSCW_plot_lower",&MSCW_plot_lower,"MSCW_plot_lower/D");
     InfoTree.Branch("MSCL_plot_lower",&MSCL_plot_lower,"MSCL_plot_lower/D");
+    InfoTree.Branch("mean_elev",&mean_elev,"mean_elev/D");
+    InfoTree.Branch("mean_azim",&mean_azim,"mean_azim/D");
+    InfoTree.Branch("mean_nsb",&mean_nsb,"mean_nsb/D");
     InfoTree.Branch("exposure_hours",&exposure_hours,"exposure_hours/D");
     InfoTree.Branch("exposure_hours_usable",&exposure_hours_usable,"exposure_hours_usable/D");
     InfoTree.Branch("exposure_hours_ref",&exposure_hours_ref,"exposure_hours_ref/D");
