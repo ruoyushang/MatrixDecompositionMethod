@@ -21,22 +21,20 @@ from itertools import cycle
 from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 
-folder_path = 'output_test'
-#folder_path = 'output_8x8'
+#folder_path = 'output_test'
 #folder_path = 'output_5hrs'
+#folder_path = 'output_10hrs'
 #folder_path = 'output_20hrs'
 #folder_path = 'output_80hrs'
-#folder_path = 'output_dEl0p4'
+#folder_path = 'output_FreeNSB'
+#folder_path = 'output_FreeAzim'
+folder_path = 'output_radialcorrect'
 
 #N_bins_for_deconv = 16
 N_bins_for_deconv = 10
 #N_bins_for_deconv = 8
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
-
-#N_bins_for_deconv = 9
-#gamma_hadron_dim_ratio_w = 2.
-#gamma_hadron_dim_ratio_l = 2.
 
 MSCW_blind_cut = 0.6
 MSCL_blind_cut = 0.6
@@ -450,6 +448,7 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
     #n_bins_1d = 3
     #n_bins_1d = min(8,int(float(n_bins_2d)/2.))
     n_bins_1d = min(16,int(float(n_bins_2d)/2.))
+    #integration_range = 0.8
     integration_range = 1.6
 
     Hist_Profile_Theta2 = ROOT.TH1D("Hist_Profile_Theta2","",n_bins_1d,0,integration_range)
@@ -917,6 +916,56 @@ def MatplotlibMultiMaps(hist_maps,fig,label_x,label_y,label_z,plotname):
     axbig.set_xticks(x_axis_sparse)
     axbig.set_xticklabels(x_axis_reflect)
     #axbig.legend(fontsize=7)
+    fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
+    axbig.remove()
+
+def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname):
+
+    top = cm.get_cmap('Blues_r', 128) # r means reversed version
+    bottom = cm.get_cmap('Oranges', 128)# combine it all
+    newcolors = np.vstack((top(np.linspace(0, 1, 128)),bottom(np.linspace(0, 1, 128))))# create a new colormaps with a name of OrangeBlue
+    orange_blue = ListedColormap(newcolors, name='OrangeBlue')
+    colormap = 'coolwarm'
+
+    map_nbins = hist_map.GetNbinsX()
+    MapEdge_left = hist_map.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = hist_map.GetXaxis().GetBinLowEdge(hist_map.GetNbinsX()+1)
+    MapEdge_lower = hist_map.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = hist_map.GetYaxis().GetBinLowEdge(hist_map.GetNbinsY()+1)
+
+    deg_per_bin = (MapEdge_right-MapEdge_left)/map_nbins
+    nbins_per_deg = map_nbins/(MapEdge_right-MapEdge_left)
+    x_axis = np.linspace(MapEdge_left,MapEdge_right,map_nbins)
+    y_axis = np.linspace(MapEdge_lower,MapEdge_upper,map_nbins)
+    grid_z = np.zeros((map_nbins, map_nbins))
+    max_z = 0.
+    for ybin in range(0,len(y_axis)):
+        for xbin in range(0,len(x_axis)):
+            hist_bin_x = xbin+1
+            hist_bin_y = ybin+1
+            if hist_bin_x<1: continue
+            if hist_bin_y<1: continue
+            if hist_bin_x>hist_map.GetNbinsX(): continue
+            if hist_bin_y>hist_map.GetNbinsY(): continue
+            grid_z[ybin,xbin] = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+            if max_z<hist_map.GetBinContent(hist_bin_x,hist_bin_y):
+                max_z = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+
+    fig.clf()
+    axbig = fig.add_subplot()
+    axbig.set_xlabel(label_x)
+    axbig.set_ylabel(label_y)
+    im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=0)
+    cbar = fig.colorbar(im)
+    cbar.set_label(label_z)
+    
+    if 'Matrix' in plotname:
+        x1, y1 = [-0.6, -0.6], [-0.6, 0.6]
+        x2, y2 = [-0.6, 0.6],  [0.6, 0.6]
+        x3, y3 = [0.6, 0.6],  [0.6, -0.6]
+        x4, y4 = [0.6, -0.6],  [-0.6, -0.6]
+        plt.plot(x1, y1, x2, y2, x3, y3, x4, y4, color='k')
+
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
     axbig.remove()
 

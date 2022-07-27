@@ -28,20 +28,27 @@ ROOT.gStyle.SetPaintTextFormat("0.3f")
 np.set_printoptions(precision=4)
 
 N_bins_for_deconv = CommonPlotFunctions.N_bins_for_deconv
+gamma_hadron_dim_ratio_w = CommonPlotFunctions.gamma_hadron_dim_ratio_w
+gamma_hadron_dim_ratio_l = CommonPlotFunctions.gamma_hadron_dim_ratio_l
+MSCW_blind_cut = CommonPlotFunctions.MSCW_blind_cut
+MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 
-n_measures_per_entry = 1
+n_measures_per_entry = 10
 
 analysis_type = 'inclusive'
-#analysis_type = 'south'
-#analysis_type = 'north'
 #analysis_type = 'SelectOFF'
+#analysis_type='UrsaMajorII'
+#analysis_type='1ES0229'
+#analysis_type='PG1553'
 
-observing_condition = 'all'
-#observing_condition = 'north'
+#observing_condition = 'all'
+observing_condition = 'north'
 #observing_condition = 'south'
 #observing_condition = 'eastwest'
 #observing_condition = 'sza'
 #observing_condition = 'lza'
+#observing_condition = 'hnsb'
+#observing_condition = 'lnsb'
 
 sample_list = []
 ONOFF_tag_sample = 'OFF'
@@ -77,37 +84,6 @@ if analysis_type=='inclusive':
     sample_list += ['M82V6_OFF']
     sample_list += ['M82V5_OFF']
     sample_list += ['1ES1011V6_OFF']
-if analysis_type=='north':
-    ONOFF_tag_sample = 'OFF'
-    sample_list += ['UrsaMajorIIV6_OFF']
-    sample_list += ['H1426V6_OFF']
-    sample_list += ['NGC1275V6_OFF']
-    sample_list += ['DracoV6_OFF']
-    sample_list += ['DracoV5_OFF']
-    sample_list += ['BLLacV6_OFF']
-    sample_list += ['BLLacV5_OFF']
-    sample_list += ['1ES0502V6_OFF']
-    sample_list += ['1ES0502V5_OFF']
-    sample_list += ['M82V6_OFF']
-    sample_list += ['M82V5_OFF']
-    sample_list += ['1ES1011V6_OFF']
-if analysis_type=='south':
-    ONOFF_tag_sample = 'OFF'
-    sample_list += ['1ES0414V5_OFF']
-    sample_list += ['1ES0647V6_OFF']
-    sample_list += ['OJ287V6_OFF']
-    sample_list += ['RGBJ0710V5_OFF']
-    sample_list += ['Segue1V6_OFF']
-    sample_list += ['Segue1V5_OFF']
-    sample_list += ['3C264V6_OFF']
-    sample_list += ['3C273V6_OFF']
-    sample_list += ['3C273V5_OFF']
-    sample_list += ['PG1553V6_OFF']
-    sample_list += ['PG1553V5_OFF']
-    sample_list += ['1ES0229V6_OFF']
-    sample_list += ['1ES0229V5_OFF']
-    sample_list += ['PKS1424V6_OFF']
-    sample_list += ['PKS1424V5_OFF']
 if analysis_type=='SelectOFF':
     ONOFF_tag_sample = 'OFF'
     sample_list += ['UrsaMajorIIV6_OFF']
@@ -115,11 +91,45 @@ if analysis_type=='SelectOFF':
     sample_list += ['1ES0229V5_OFF']
     sample_list += ['PG1553V6_OFF']
     sample_list += ['PG1553V5_OFF']
+    sample_list += ['PKS1424V6_OFF']
+    sample_list += ['PKS1424V5_OFF']
+    sample_list += ['3C273V6_OFF']
+    sample_list += ['3C273V5_OFF']
+    sample_list += ['Segue1V6_OFF']
+    sample_list += ['Segue1V5_OFF']
     ONOFF_tag_imposter = 'ON'
     for imposter_ID in range(0,5):
         imposter_list += ['UrsaMajorIIV6_Imposter%s'%(imposter_ID)]
         imposter_list += ['1ES0229V6_Imposter%s'%(imposter_ID)]
         imposter_list += ['1ES0229V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['PG1553V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['PG1553V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['PKS1424V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['PKS1424V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['3C273V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['3C273V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['Segue1V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['Segue1V5_Imposter%s'%(imposter_ID)]
+if analysis_type=='UrsaMajorII':
+    ONOFF_tag_sample = 'OFF'
+    sample_list += ['UrsaMajorIIV6_OFF']
+    ONOFF_tag_imposter = 'ON'
+    for imposter_ID in range(0,5):
+        imposter_list += ['UrsaMajorIIV6_Imposter%s'%(imposter_ID)]
+if analysis_type=='1ES0229':
+    ONOFF_tag_sample = 'OFF'
+    sample_list += ['1ES0229V6_OFF']
+    sample_list += ['1ES0229V5_OFF']
+    ONOFF_tag_imposter = 'ON'
+    for imposter_ID in range(0,5):
+        imposter_list += ['1ES0229V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['1ES0229V5_Imposter%s'%(imposter_ID)]
+if analysis_type=='PG1553':
+    ONOFF_tag_sample = 'OFF'
+    sample_list += ['PG1553V6_OFF']
+    sample_list += ['PG1553V5_OFF']
+    ONOFF_tag_imposter = 'ON'
+    for imposter_ID in range(0,5):
         imposter_list += ['PG1553V6_Imposter%s'%(imposter_ID)]
         imposter_list += ['PG1553V5_Imposter%s'%(imposter_ID)]
 
@@ -222,6 +232,18 @@ def GetCoefficientHistogram(file_path,ebin,hist_data,hist_bkgd):
     hist_data.Add(InputFile.Get(HistName))
     HistName = "Hist_Coeff_Bkgd_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     hist_bkgd.Add(InputFile.Get(HistName))
+
+def GetShowerShapeHistogram(file_path,ebin,hist_data,hist_dark):
+
+    InputFile = ROOT.TFile(file_path)
+    ErecS_lower_cut = energy_bin[ebin]
+    ErecS_upper_cut = energy_bin[ebin+1]
+    ErecS_lower_cut_int = int(ErecS_lower_cut)
+    ErecS_upper_cut_int = int(ErecS_upper_cut)
+    HistName = "Hist_OnData_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    hist_data.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnDark_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    hist_dark.Add(InputFile.Get(HistName))
 
 def GetOptimizationHistogram(file_path,ebin,hist_optimization):
 
@@ -447,6 +469,7 @@ def LoopOverFiles():
 
     global FilePath_Folder
     global Hist_Bkgd_Optimization
+    global Hist_Data_ShowerShape
     global data_rank
     global data_count
     global bkgd_count
@@ -499,6 +522,10 @@ def LoopOverFiles():
                             if mean_elev<65.: continue
                         if observing_condition=='lza':
                             if mean_elev>65.: continue
+                        if observing_condition=='hnsb':
+                            if mean_nsb<5.: continue
+                        if observing_condition=='lnsb':
+                            if mean_nsb>5.: continue
                         Hist_Bkgd_Optimization_E = []
                         rank_E = []
                         data_count_E = []
@@ -509,7 +536,8 @@ def LoopOverFiles():
                         mtx_CDE_data_E = []
                         mtx_CDE_bkgd_E = []
                         for eb in range(0,len(energy_bin)-1):
-                            Hist_Bkgd_Optimization_E += [ROOT.TH2D("Hist_Bkgd_Optimization_M%s_E%s"%(n_measurements,eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb],optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb])]
+                            GetShowerShapeHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Data_ShowerShape[eb],Hist_Dark_ShowerShape[eb])
+                            Hist_Bkgd_Optimization_E += [ROOT.TH2D("Hist_Bkgd_Optimization_M%s_E%s"%(n_measurements,eb),"",optimiz_nbins,optimiz_alpha_lower[eb],optimiz_alpha_upper[eb],optimiz_nbins,optimiz_beta_lower[eb],optimiz_beta_upper[eb])]
                             Hist_Bkgd_Optimization_E[eb].Reset()
                             GetOptimizationHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Bkgd_Optimization_E[eb])
                             rank, data, bkgd, dark = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
@@ -578,10 +606,14 @@ def LoopOverFiles():
                         n_imposter_measurements += 1
 
 
-#optimiz_lower = [-1.,-1.,-1.,-1.]
-#optimiz_upper = [1.,1.,1.,1.]
-optimiz_lower = [-5.,-5.,-5.,-5.]
-optimiz_upper = [5.,5.,5.,5.]
+optimiz_alpha_lower = [-1.5,-1.5,-1.5,-1.5]
+optimiz_alpha_upper = [1.5,1.5,1.5,1.5]
+optimiz_beta_lower = [-1.5,-1.5,-1.5,-1.5]
+optimiz_beta_upper = [1.5,1.5,1.5,1.5]
+#optimiz_alpha_lower = [-2.,-1.5,-1.,-0.]
+#optimiz_alpha_upper = [-1.,-0.5,0.,1.]
+#optimiz_beta_lower = [-2.5,-3.5,-1.5,-2.]
+#optimiz_beta_upper = [-1.5,-2.5,-0.5,-1.]
 optimiz_nbins = 10
 stable_rank = 2
 
@@ -603,11 +635,28 @@ Hist_Coeff_Bkgd = []
 mtx_CDE_data = []
 mtx_CDE_bkgd = []
 
+MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))+MSCW_blind_cut
+MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))+MSCL_blind_cut
+MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))-MSCW_blind_cut
+MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))-MSCL_blind_cut
+Hist_Data_ShowerShape = []
+Hist_Dark_ShowerShape = []
+Hist_Diff_ShowerShape = []
+for eb in range(0,len(energy_bin)-1):
+    Hist_Data_ShowerShape += [ROOT.TH2D("Hist_Data_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+    Hist_Dark_ShowerShape += [ROOT.TH2D("Hist_Dark_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+    Hist_Diff_ShowerShape += [ROOT.TH2D("Hist_Diff_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+
 LoopOverFiles()
+
+for eb in range(0,len(energy_bin)-1):
+    Hist_Diff_ShowerShape[eb].Add(Hist_Data_ShowerShape[eb])
+    Hist_Diff_ShowerShape[eb].Add(Hist_Dark_ShowerShape[eb],-1.)
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrix_E%s_%s_%s_%s'%(eb,analysis_type,observing_condition,folder_path))
 
 Hist_Bkgd_Optimization_Mean = []
 for eb in range(0,len(energy_bin)-1):
-    Hist_Bkgd_Optimization_Mean += [ROOT.TH2D("Hist_Bkgd_Optimization_Mean_E%s"%(eb),"",optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb],optimiz_nbins,optimiz_lower[eb],optimiz_upper[eb])]
+    Hist_Bkgd_Optimization_Mean += [ROOT.TH2D("Hist_Bkgd_Optimization_Mean_E%s"%(eb),"",optimiz_nbins,optimiz_alpha_lower[eb],optimiz_alpha_upper[eb],optimiz_nbins,optimiz_beta_lower[eb],optimiz_beta_upper[eb])]
 for eb in range(0,len(energy_bin)-1):
     Hist_Bkgd_Optimization_Mean[eb].Reset()
     for binx in range(0,Hist_Bkgd_Optimization_Mean[eb].GetNbinsX()):
@@ -625,7 +674,7 @@ for eb in range(0,len(energy_bin)-1):
             rms = rms/n_entries
             rms = pow(rms,0.5)
             Hist_Bkgd_Optimization_Mean[eb].SetBinContent(binx+1,biny+1,rms)
-    CommonPlotFunctions.MatplotlibHist2D(Hist_Bkgd_Optimization_Mean[eb],fig,'log10 alpha','log10 beta','RMS of epsilon','Optimization_E%s_%s_%s'%(eb,analysis_type,observing_condition))
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Bkgd_Optimization_Mean[eb],fig,'log10 a','log10 b','RMS of epsilon','Optimization_E%s_%s_%s'%(eb,analysis_type,observing_condition))
 
 Hist_SystErrDist_MDM = []
 Hist_SystErrDist_Init = []
@@ -730,14 +779,16 @@ for eb in range(0,len(energy_bin)-1):
     legends = []
     colors = []
     Hists += [Hist_SystErrDist_MDM[eb]]
-    legends += ['%0.2f-%0.2f TeV, ON data, sigma = %0.3f'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_rms)]
+    legends += ['%0.2f-%0.2f TeV, ON data, $\sigma = %0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_rms,MDM_rms/pow(n_entries,0.5))]
     colors += [1]
-    Hists += [Hist_SystErrDist_Init[eb]]
-    legends += ['initial matching, sigma = %0.3f'%(Init_rms)]
-    colors += [2]
-    #Hists += [Hist_Imposter_SystErrDist_MDM[eb]]
-    #legends += ['mimic data (entries scaled by 1/5), sigma = %0.3f'%(MDM_rms_imposter)]
-    #colors += [2]
+    if analysis_type=='inclusive':
+        Hists += [Hist_SystErrDist_Init[eb]]
+        legends += ['initial matching, $\sigma = %0.3f \pm %0.3f$'%(Init_rms,Init_rms/pow(n_entries,0.5))]
+        colors += [2]
+    else:
+        Hists += [Hist_Imposter_SystErrDist_MDM[eb]]
+        legends += ['mimic data (entries scaled by 1/5), $\sigma = %0.3f \pm %0.3f$'%(MDM_rms_imposter,MDM_rms_imposter/pow(n_entries_imposter,0.5))]
+        colors += [2]
     fig.clf()
     ax = fig.add_subplot()
     MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error $\epsilon$','number of entries')

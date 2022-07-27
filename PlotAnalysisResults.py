@@ -151,6 +151,9 @@ if 'GammaCygni' in sys.argv[1]:
 if '1ES0502' in sys.argv[1]:
     observation_name = '1ES0502'
     data_epoch = ['1ES0502V5','1ES0502V6']
+if '1ES0414' in sys.argv[1]:
+    observation_name = '1ES0414'
+    data_epoch = ['1ES0414V5']
 if '3C273' in sys.argv[1]:
     observation_name = '3C273'
     data_epoch = ['3C273V5','3C273V6']
@@ -3336,8 +3339,8 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
     HistName = "Hist_Data_ElevAzim"
     Hist_ElevAzim.Add(InputFile.Get(HistName))
 
-    #HistName = "Hist_OnData_EffArea_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    #Hist_EffArea_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
+    HistName = "Hist_OnData_EffArea_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    Hist_EffArea_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_ISR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Expo_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_SR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
@@ -4356,6 +4359,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
     canvas.SaveAs('output_plots/SkymapZscoreGal_%s_E%sto%s.png'%(sys.argv[1],energy_bin_cut_low,energy_bin_cut_up))
 
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        hist_effarea_skymap[ebin].Divide(hist_expo_skymap[ebin])
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         hist_effarea_skymap_reflect = reflectXaxis(hist_effarea_skymap[ebin])
         CommonPlotFunctions.MatplotlibMap2D(hist_effarea_skymap_reflect,None,fig,'RA','Dec','effective area','SkymapEffArea_%s_E%s.png'%(sys.argv[1],ebin))
 
@@ -4730,15 +4735,18 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
         #        hist_normsyst_skymap[ebin].Write()
         #    output_file.Close();
 
-        output_file = ROOT.TFile("output_fitting/%s_skymap_%s.root"%(sys.argv[1],folder_path),"recreate")
-        for ebin in range(0,len(energy_bin)-1):
-            hist_energy_flux_skymap[ebin].Write()
-            hist_energy_flux_syst_skymap[ebin].Write()
-            hist_data_skymap[ebin].Write()
-            hist_bkgd_skymap[ebin].Write()
-            hist_rfov_skymap[ebin].Write()
-            hist_expo_skymap[ebin].Write()
-        output_file.Close();
+        if int(sys.argv[2])==0 and int(sys.argv[3])==len(energy_bin)-1:
+            output_file = ROOT.TFile("output_fitting/%s_skymap_%s.root"%(sys.argv[1],folder_path),"recreate")
+            hist_expo_hours_skymap.Write()
+            for ebin in range(0,len(energy_bin)-1):
+                hist_energy_flux_skymap[ebin].Write()
+                hist_energy_flux_syst_skymap[ebin].Write()
+                hist_data_skymap[ebin].Write()
+                hist_bkgd_skymap[ebin].Write()
+                hist_rfov_skymap[ebin].Write()
+                hist_expo_skymap[ebin].Write()
+                hist_effarea_skymap[ebin].Write()
+            output_file.Close();
 
     else:
 
@@ -5718,11 +5726,11 @@ def Make2DProjectionPlot(Hist_Data,xtitle,ytitle,name,doProj):
 def MatrixDecompositionDemo(name):
 
     canvas = ROOT.TCanvas("canvas","canvas", 200, 10, 600, 600)
-    pad3 = ROOT.TPad("pad3","pad3",0,0.85,1,1)
+    pad3 = ROOT.TPad("pad3","pad3",0,0.90,1,1)
     pad3.SetBottomMargin(0.0)
     pad3.SetTopMargin(0.03)
     pad3.SetBorderMode(1)
-    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.85)
+    pad1 = ROOT.TPad("pad1","pad1",0,0,1,0.90)
     pad1.SetBottomMargin(0.15)
     pad1.SetRightMargin(0.15)
     pad1.SetLeftMargin(0.15)
@@ -5731,21 +5739,19 @@ def MatrixDecompositionDemo(name):
     pad1.Draw()
     pad3.Draw()
 
-    line1 = ROOT.TLine(MSCL_plot_lower,MSCW_blind_cut,MSCL_blind_cut,MSCW_blind_cut)
-    line1.SetLineStyle(1)
+    line1 = ROOT.TLine(-MSCL_blind_cut,MSCW_blind_cut,MSCL_blind_cut,MSCW_blind_cut)
+    line1.SetLineStyle(10)
     line1.SetLineColor(2)
     line1.SetLineWidth(2)
-    line2 = ROOT.TLine(MSCL_blind_cut,MSCW_plot_lower,MSCL_blind_cut,MSCW_blind_cut)
-    line2.SetLineStyle(1)
+    line2 = ROOT.TLine(MSCL_blind_cut,-MSCW_blind_cut,MSCL_blind_cut,MSCW_blind_cut)
+    line2.SetLineStyle(10)
     line2.SetLineColor(2)
     line2.SetLineWidth(2)
-    space_x = 0.5*(MSCL_blind_cut-MSCL_plot_lower)
-    space_y = 0.5*(MSCW_blind_cut-MSCW_plot_lower)
-    line3 = ROOT.TLine(MSCL_plot_lower,MSCW_blind_cut+space_y,MSCL_blind_cut+space_x,MSCW_blind_cut+space_y)
+    line3 = ROOT.TLine(-MSCL_blind_cut,-MSCW_blind_cut,MSCL_blind_cut,-MSCW_blind_cut)
     line3.SetLineStyle(10)
     line3.SetLineColor(2)
     line3.SetLineWidth(2)
-    line4 = ROOT.TLine(MSCL_blind_cut+space_x,MSCW_plot_lower,MSCL_blind_cut+space_x,MSCW_blind_cut+space_y)
+    line4 = ROOT.TLine(-MSCL_blind_cut,-MSCW_blind_cut,-MSCL_blind_cut,MSCW_blind_cut)
     line4.SetLineStyle(10)
     line4.SetLineColor(2)
     line4.SetLineWidth(2)
@@ -6024,8 +6030,8 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrDark.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
-    #line3.Draw("same")
-    #line4.Draw("same")
+    line3.Draw("same")
+    line4.Draw("same")
     canvas.SaveAs('output_plots/ErrorDark_%s_%s.png'%(name,selection_tag))
 
     Hist2D_ErrBkgd = ROOT.TH2D("Hist2D_ErrBkgd","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
@@ -6082,16 +6088,18 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrBkgd.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
+    line3.Draw("same")
+    line4.Draw("same")
     canvas.SaveAs('output_plots/ErrorBkgd_%s_%s.png'%(name,selection_tag))
 
     Hist2D_ErrRing = ROOT.TH2D("Hist2D_ErrRing","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
     Hist2D_ErrRing.Add(Hist2D_OnData_Point_Sum)
     Hist2D_ErrRing.Add(Hist2D_OnData_Ring_Sum,-1)
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.25,'M^{ON}-M^{Ring}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'M^{ON}-M^{Ring}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
     pad1.cd()
     Hist2D_ErrRing.SetMaximum(Hist2D_ErrDark.GetMaximum());
     Hist2D_ErrRing.SetMinimum(Hist2D_ErrDark.GetMinimum());
@@ -6100,7 +6108,39 @@ def MatrixDecompositionDemo(name):
     Hist2D_ErrRing.Draw("COL4Z")
     line1.Draw("same")
     line2.Draw("same")
+    line3.Draw("same")
+    line4.Draw("same")
     canvas.SaveAs('output_plots/ErrorRing_%s_%s.png'%(name,selection_tag))
+
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'M^{ON}-M^{Ring}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    pad1.cd()
+    Hist2D_OnData_Point_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_OnData_Point_Sum.GetXaxis().SetTitle('scaled length')
+    Hist2D_OnData_Point_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
+    line3.Draw("same")
+    line4.Draw("same")
+    canvas.SaveAs('output_plots/MatrixPoint_%s_%s.png'%(name,selection_tag))
+
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'M^{ON}-M^{Ring}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    pad1.cd()
+    Hist2D_OnData_Ring_Sum.GetYaxis().SetTitle('scaled width')
+    Hist2D_OnData_Ring_Sum.GetXaxis().SetTitle('scaled length')
+    Hist2D_OnData_Ring_Sum.Draw("COL4Z")
+    line1.Draw("same")
+    line2.Draw("same")
+    line3.Draw("same")
+    line4.Draw("same")
+    canvas.SaveAs('output_plots/MatrixRing_%s_%s.png'%(name,selection_tag))
 
     #norm_data_sr = Hist_OnData_SR_XYoff_Sum.Integral()
     #Hist_OnData_SR_XYoff_Sum.Scale(1./norm_data_sr)
@@ -7159,10 +7199,10 @@ Hist1D_Dark_Rank3_RightVector = ROOT.TH1D("Hist1D_Dark_Rank3_RightVector","",N_b
 
 Hist_OnData_SR_XYoff_Sum = ROOT.TH2D("Hist_OnData_SR_XYoff_Sum","",12,-3,3,12,-3,3)
 Hist_OnData_SR_XYoff = ROOT.TH2D("Hist_OnData_SR_XYoff","",12,-3,3,12,-3,3)
-Hist_OnDark_SR_XYoff_Sum = ROOT.TH2D("Hist_OnDark_SR_XYoff_Sum","",12,-3,3,12,-3,3)
-Hist_OnDark_SR_XYoff = ROOT.TH2D("Hist_OnDark_SR_XYoff","",12,-3,3,12,-3,3)
-Hist_OnData_CR_XYoff_Sum = ROOT.TH2D("Hist_OnData_CR_XYoff_Sum","",12,-3,3,12,-3,3)
-Hist_OnData_CR_XYoff = ROOT.TH2D("Hist_OnData_CR_XYoff","",12,-3,3,12,-3,3)
+Hist_OnDark_SR_XYoff_Sum = ROOT.TH2D("Hist_OnDark_SR_XYoff_Sum","",30,-3,3,30,-3,3)
+Hist_OnDark_SR_XYoff = ROOT.TH2D("Hist_OnDark_SR_XYoff","",30,-3,3,30,-3,3)
+Hist_OnData_CR_XYoff_Sum = ROOT.TH2D("Hist_OnData_CR_XYoff_Sum","",30,-3,3,30,-3,3)
+Hist_OnData_CR_XYoff = ROOT.TH2D("Hist_OnData_CR_XYoff","",30,-3,3,30,-3,3)
 Hist_OnData_R2off_Sum = ROOT.TH1D("Hist_OnData_R2off_Sum","",36,0,9)
 Hist_OnData_ISR_R2off_Sum = ROOT.TH1D("Hist_OnData_ISR_R2off_Sum","",36,0,9)
 Hist_OnData_Yoff_Sum = ROOT.TH1D("Hist_OnData_Yoff_Sum","",30,-3,3)
