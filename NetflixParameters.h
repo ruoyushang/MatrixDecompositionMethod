@@ -20,8 +20,10 @@ int N_bins_for_deconv = 10; // 8 should be the lowest bin number
 const int N_energy_bins = 4;
 double Log10_alpha[N_energy_bins] = {1.0,1.0,-0.3,-1.0};
 double Log10_beta[N_energy_bins] = {0.1,-0.1,-0.1,-0.0};
-double optimiz_lower[N_energy_bins] = {-1.,-1.,-1.,-1.};
-double optimiz_upper[N_energy_bins] = {1.,1.,1.,1.};
+double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5};
+double optimiz_alpha_upper[N_energy_bins] = {1.5,1.5,1.5,1.5};
+double optimiz_beta_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5};
+double optimiz_beta_upper[N_energy_bins] = {1.5,1.5,1.5,1.5};
 int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
 double energy_bins[N_energy_bins+1] = {100.,316.,1000.,3162.,10000.};
 double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.};
@@ -52,7 +54,15 @@ bool EigenDecomposition = false;
 bool UseRegularization = true;
 //bool UseRegularization = false;
 
-bool AcceptanceCorrection = false;
+//int AcceptanceCorrection = 1;  // RaDec weight
+//int AcceptanceCorrection = 2;  // XYoff weight
+int AcceptanceCorrection = 3;  // Roff weight  // default
+
+int MatchingSelection = 0; // default
+//int MatchingSelection = 1; // free elevation
+//int MatchingSelection = 2; // free azimuth
+//int MatchingSelection = 3; // free NSB
+
 bool ExposureCorrection = false;
 
 double MSCW_plot_upper = 3.;

@@ -1287,11 +1287,12 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
                     {
                         if (kth_entry>entry_size && nth_entry>entry_size) continue;
                         if (kth_entry>entry_size || nth_entry>entry_size) continue;
+                        //if (kth_entry>entry_size+1 || nth_entry>entry_size+1) continue;
                         //if (kth_entry>active_rank && nth_entry>active_rank) continue;
                         //if (kth_entry<active_rank || nth_entry<active_rank) continue;
-                        //if (kth_entry==3 && nth_entry==3) continue;
+                        //if (kth_entry==1 && nth_entry==1) continue;
                         //if (kth_entry==nth_entry) continue;
-                        //if (kth_entry+nth_entry>4) continue;
+                        //if (kth_entry+nth_entry>entry_size+2) continue;
                         if (RegularizationType==7)
                         {
                             if (kth_entry>=3 && nth_entry>=3) continue;
@@ -1368,7 +1369,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
         //    idx_n1 = 3-1;
         //    idx_v1 = idx_k1*size_n + idx_n1;
         //    idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-        //    mtx_Constraint(idx_u1,idx_v1) = 1.;
+        //    mtx_Constraint(idx_u1,idx_v1) = beta;
         //}
 
         //if (energy_bins[ebin]>=316. && energy_bins[ebin]<1000.)
@@ -2369,12 +2370,12 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         Hist_Rank4_MSCLW_Dark.push_back(TH2D("Hist_Rank4_MSCLW_Dark_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
 
         Hist_Dark_Optimization.push_back(TH1D("Hist_Dark_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv/2,0,N_bins_for_deconv/2));
-        Hist_Bkgd_Optimization.push_back(TH2D("Hist_Bkgd_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",optimiz_nbins,optimiz_lower[e],optimiz_upper[e],optimiz_nbins,optimiz_lower[e],optimiz_upper[e]));
+        Hist_Bkgd_Optimization.push_back(TH2D("Hist_Bkgd_Optimization_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",optimiz_nbins,optimiz_alpha_lower[e],optimiz_alpha_upper[e],optimiz_nbins,optimiz_beta_lower[e],optimiz_beta_upper[e]));
         Hist_Bkgd_Optimization_beta.push_back(TH2D("Hist_Bkgd_Optimization_beta_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,0.,1.,10,0.,1.));
         Hist_Bkgd_OptimizationChi2_beta.push_back(TH2D("Hist_Bkgd_OptimizationChi2_beta_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",10,0.,1.,10,0.,1.));
-        Hist_Bkgd_Chi2.push_back(TH1D("Hist_Bkgd_Chi2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",optimiz_nbins,optimiz_lower[e],optimiz_upper[e]));
-        Hist_Bkgd_Chi2_Diff.push_back(TH1D("Hist_Bkgd_Chi2_Diff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",optimiz_nbins,optimiz_lower[e],optimiz_upper[e]));
-        Hist_Bkgd_Chi2_Diff2.push_back(TH1D("Hist_Bkgd_Chi2_Diff2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",optimiz_nbins,optimiz_lower[e],optimiz_upper[e]));
+        Hist_Bkgd_Chi2.push_back(TH1D("Hist_Bkgd_Chi2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",optimiz_nbins,optimiz_alpha_lower[e],optimiz_alpha_upper[e]));
+        Hist_Bkgd_Chi2_Diff.push_back(TH1D("Hist_Bkgd_Chi2_Diff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",optimiz_nbins,optimiz_alpha_lower[e],optimiz_alpha_upper[e]));
+        Hist_Bkgd_Chi2_Diff2.push_back(TH1D("Hist_Bkgd_Chi2_Diff2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",optimiz_nbins,optimiz_alpha_lower[e],optimiz_alpha_upper[e]));
         Hist_Bkgd_Converge_Blind.push_back(TH1D("Hist_Bkgd_Converge_Blind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
         Hist_Bkgd_Converge_Unblind.push_back(TH1D("Hist_Bkgd_Converge_Unblind_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",n_iterations,0,n_iterations));
 
@@ -2514,7 +2515,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         Hist_OnData_ISR_R2off.push_back(TH1D("Hist_OnData_ISR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
         Hist_OnData_CR_Yoff.push_back(TH1D("Hist_OnData_CR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_OnData_CR_Xoff.push_back(TH1D("Hist_OnData_CR_Xoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
-        Hist_OnData_CR_XYoff.push_back(TH2D("Hist_OnData_CR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
+        Hist_OnData_CR_XYoff.push_back(TH2D("Hist_OnData_CR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3,30,-3,3));
         Hist_OnData_CR_Yoff_Raw.push_back(TH1D("Hist_OnData_CR_Yoff_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_OnRFoV_CR_Skymap_Theta2.push_back(TH1D("Hist_OnRFoV_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnDark_CR_Skymap_Theta2.push_back(TH1D("Hist_OnDark_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
@@ -2859,8 +2860,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
                 if (svd_Moff.singularValues()(max_rank)==0.) continue;
                 std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank) << std::endl;
                 //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<2.0)
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<3.0)
-                //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<5.0)
+                //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<3.0)
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<5.0)
                 {
                     find_elbow = true;
                 }
