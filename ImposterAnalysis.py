@@ -27,7 +27,7 @@ energy_bin_cut_low = int(sys.argv[2])
 energy_bin_cut_up = int(sys.argv[3])
 doImposter = int(sys.argv[4])
 
-n_imposters = 5
+n_imposters = 6
 
 correct_bias = True
 #correct_bias = False
@@ -51,7 +51,10 @@ def GetFluxCalibration(map_x,map_y,energy):
 def GetEffectiveAreaCorrection(energy):
 
     #return 1.
-    flux_calibration = [9.386080061991214, 2.0834714135836507, 2.4432710106703546, 2.344873358260945]
+    #SZA
+    flux_calibration = [3.6804804261099933, 2.149839707519784, 2.324098510374783, 2.111044788767092]
+    #LZA
+    #flux_calibration = [9.386080061991214, 2.0834714135836507, 2.4432710106703546, 2.344873358260945]
     return flux_calibration[energy]
 
 def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
@@ -133,6 +136,24 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
     CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapZscore_Sum_%s'%(plot_tag))
 
     CommonPlotFunctions.SaveAsFITS(hist_zscore_skymap_sum_reflect,'skymap_zscore_sum_%s'%(plot_tag))
+    hist_zscore_skymap_sum_reflect.Delete()
+
+    hist_imposter_zscore_skymap_sum = []
+    for imposter in range(0,n_imposters):
+        hist_imposter_zscore_skymap_sum += [ROOT.TH2D("hist_imposter_zscore_skymap_sum_%s"%(imposter),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_mimic_data_skymap_sum = ROOT.TH2D("hist_mimic_data_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+    hist_mimic_bkgd_skymap_sum = ROOT.TH2D("hist_mimic_bkgd_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+    for imposter in range(0,n_imposters):
+        hist_mimic_data_skymap_sum.Reset()
+        hist_mimic_bkgd_skymap_sum.Reset()
+        hist_zscore_skymap_sum.Reset()
+        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+            hist_mimic_data_skymap_sum.Add(hist_mimic_data_skymap[imposter][ebin])
+            hist_mimic_bkgd_skymap_sum.Add(hist_mimic_bkgd_skymap[imposter][ebin])
+        hist_zscore_skymap_sum.Add(GetSignificanceMap(hist_mimic_data_skymap_sum,hist_mimic_bkgd_skymap_sum,hist_real_syst_skymap_sum,False))
+        hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap_sum)
+        CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapZscore_Imposter%s_Sum_%s'%(imposter,plot_tag))
+        hist_zscore_skymap_sum_reflect.Delete()
 
 def diffusion_func(x,A,d):
     return A*1.22/(pow(3.14,1.5)*d*(x+0.06*d))*np.exp(-x*x/(d*d))
@@ -144,6 +165,7 @@ def power_law_func(x,a,b):
     return a*pow(x*1./1000.,b)
 
 def flux_crab_func(x):
+    # TeV^{-1}cm^{-2}s^{-1}
     # Crab https://arxiv.org/pdf/1508.06442.pdf
     return 37.5*pow(10,-12)*pow(x*1./1000.,-2.467-0.16*log(x/1000.))
 
@@ -151,6 +173,11 @@ def flux_1es0229_func(x):
     # TeV^{-1}cm^{-2}s^{-1}
     # https://articles.adsabs.harvard.edu/pdf/2013ICRC...33.1003C
     return 5.54*pow(10,-13)*pow(x*1./1000.,-2.59)
+
+def flux_mgro_j2019_func(x):
+    # TeV^{-1}cm^{-2}s^{-1}
+    # https://arxiv.org/pdf/1404.1841.pdf
+    return 8.1*pow(10,-14)*pow(x*1./5000.,-1.75)
 
 def flux_hawc_j1908_func(x):
     # MGRO J1908  TeV^{-1}cm^{-2}s^{-1}
@@ -283,9 +310,9 @@ def SumFluxMap():
     hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_smooth_sum)
     CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_%s'%(plot_tag))
 
-    for imposter in range(0,n_imposters):
-        hist_imposter_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_imposter_flux_skymap_smooth_sum[imposter])
-        CommonPlotFunctions.MatplotlibMap2D(hist_imposter_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_Imposter%s_%s'%(imposter,plot_tag))
+    #for imposter in range(0,n_imposters):
+    #    hist_imposter_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_imposter_flux_skymap_smooth_sum[imposter])
+    #    CommonPlotFunctions.MatplotlibMap2D(hist_imposter_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_Imposter%s_%s'%(imposter,plot_tag))
 
     MapCenter_l, MapCenter_b = ConvertRaDecToGalactic(MapCenter_x, MapCenter_y)
     hist_real_flux_skymap_sum_galactic = ROOT.TH2D("hist_real_flux_skymap_sum_galactic","",nbins,MapCenter_l-0.5*MapPlotSize,MapCenter_l+0.5*MapPlotSize,nbins,MapCenter_b-0.5*MapPlotSize,MapCenter_b+0.5*MapPlotSize)
@@ -393,6 +420,11 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         xdata = pow(10.,log_energy)
         vectorize_f_veritas_paper = np.vectorize(flux_1es0229_func)
         ydata_veritas_paper = pow(xdata/1e3,energy_index_scale)*vectorize_f_veritas_paper(xdata)
+    if source_name=='MGRO_J2019':
+        log_energy = np.linspace(log10(1e2),log10(1e4),50)
+        xdata = pow(10.,log_energy)
+        vectorize_f_veritas_paper = np.vectorize(flux_mgro_j2019_func)
+        ydata_veritas_paper = pow(xdata/1e3,energy_index_scale)*vectorize_f_veritas_paper(xdata)
 
     imposter_flux_crab_unit = []
     imposter_flux_err_crab_unit = []
@@ -486,6 +518,10 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         axbig.plot(xdata, ydata_veritas_paper,'r-',label='VERITAS (2013ICRC)',zorder=1)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2,zorder=3)
         axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (new)',zorder=4)
+    elif source_name=='MGRO_J2019':
+        axbig.plot(xdata, ydata_veritas_paper,'r-',label='VERITAS (ApJ 788 p78, 2014)',zorder=1)
+        axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2,zorder=3)
+        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (new)',zorder=4)
     elif 'Crab' in source_name:
         axbig.plot(xdata, ydata_crab,'r-',label='1508.06442', zorder=1)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2,zorder=2)
@@ -528,10 +564,10 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
             brightness_syst_err = y_axis_syst_err[eb][rb]
             flux += brightness*2.*3.14*radius*delta_r
             flux_stat_err += pow(brightness_stat_err*2.*3.14*radius*delta_r,2)
-            flux_syst_err += brightness_syst_err*2.*3.14*radius*delta_r
+            flux_syst_err += pow(brightness_syst_err*2.*3.14*radius*delta_r,2)
         real_flux[eb] = flux
         real_flux_stat_err[eb] = pow(flux_stat_err,0.5)
-        real_flux_syst_err[eb] = flux_syst_err
+        real_flux_syst_err[eb] = pow(flux_syst_err,0.5)
 
     vectorize_f_crab = np.vectorize(flux_crab_func)
     xdata_array = []
@@ -799,10 +835,16 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, expo_map, aeff_map):
                 ##correction = flux_calibration*(skymap_bin_size_x*skymap_bin_size_y)/(3.14*calibration_radius*calibration_radius)
                 #correction = flux_calibration*map_bin_area/calibration_bin_area
 
+                if aeff_content==0.: continue
+                offset_cut = 0.3 # nominal
+                #offset_cut = 1.0 # upper limit
+                #offset_cut = 0.1 # lower limit
                 if expo_content_max>20.:
-                    if expo_content<0.3*expo_content_max: continue
+                    if expo_content<offset_cut*expo_content_max:
+                        expo_content = offset_cut*expo_content_max
                 else:
                     expo_content = expo_content_max
+
                 expo_content = expo_content*3600.
                 Aeff_correct = GetEffectiveAreaCorrection(ebin)
                 correction = Aeff_correct*1./(aeff_content*100.*100.)
@@ -882,9 +924,9 @@ for ebin in range(0,len(energy_bin)-1):
     if use_rfov:
         HistName = "hist_rfov_skymap_%s"%(ebin)
     hist_real_bkgd_skymap[ebin].Add(InputFile.Get(HistName))
-    #HistName = "hist_expo_skymap_%s"%(ebin)
+    #HistName = "hist_expo_hour_skymap_%s"%(ebin)
     #HistName = "hist_bkgd_skymap_%s"%(ebin)
-    HistName = "hist_expo_hours_skymap"
+    HistName = "hist_expo_hour_skymap_sum"
     hist_real_expo_skymap[ebin].Add(InputFile.Get(HistName))
     HistName = "hist_effarea_skymap_%s"%(ebin)
     hist_real_Aeff_skymap[ebin].Add(InputFile.Get(HistName))
@@ -947,9 +989,9 @@ if doImposter==1:
             HistName = "hist_data_skymap_%s"%(ebin)
             hist_imposter_data_skymap[imposter][ebin].Add(InputFile.Get(HistName))
             hist_imposter_bias_skymap[imposter][ebin].Add(InputFile.Get(HistName))
-            #HistName = "hist_expo_skymap_%s"%(ebin)
+            #HistName = "hist_expo_hour_skymap_%s"%(ebin)
             #HistName = "hist_bkgd_skymap_%s"%(ebin)
-            HistName = "hist_expo_hours_skymap"
+            HistName = "hist_expo_hour_skymap_sum"
             hist_imposter_expo_skymap[imposter][ebin].Add(InputFile.Get(HistName))
             HistName = "hist_effarea_skymap_%s"%(ebin)
             hist_imposter_Aeff_skymap[imposter][ebin].Add(InputFile.Get(HistName))
@@ -991,6 +1033,14 @@ if doImposter==1:
             CommonPlotFunctions.Smooth2DMap_v2(hist_imposter_expo_skymap[imposter][ebin],hist_imposter_expo_skymap_smooth[imposter][ebin],smooth_size,False,True)
             CommonPlotFunctions.Smooth2DMap_v2(hist_imposter_Aeff_skymap[imposter][ebin],hist_imposter_Aeff_skymap_smooth[imposter][ebin],smooth_size,False,True)
 
+#for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+#    hist_Aeff_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_Aeff_skymap[ebin])
+#    CommonPlotFunctions.MatplotlibMap2D(hist_Aeff_skymap_reflect,None,fig,'RA','Dec','$cm^{2}$','SkymapEffArea_E%s_%s'%(ebin,plot_tag))
+#    hist_Aeff_skymap_reflect.Delete()
+for ebin in range(energy_bin_cut_low,energy_bin_cut_low+1):
+    hist_expo_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_expo_skymap_smooth[ebin])
+    CommonPlotFunctions.MatplotlibMap2D(hist_expo_skymap_reflect,None,fig,'RA','Dec','Exposure [hrs]','SkymapExpo_E%s_%s'%(ebin,plot_tag))
+    hist_expo_skymap_reflect.Delete()
 
 MakeFluxMap(hist_real_flux_skymap, hist_real_data_skymap, hist_real_bkgd_skymap, hist_real_expo_skymap, hist_real_Aeff_skymap)
 MakeFluxMap(hist_real_flux_skymap_smooth, hist_real_data_skymap_smooth, hist_real_bkgd_skymap_smooth, hist_real_expo_skymap_smooth, hist_real_Aeff_skymap_smooth)
@@ -1089,6 +1139,22 @@ elif source_name=='WComae':
     #region_name = 'WComae'
     #MakeSpectrum(region_x,region_y,region_r,region_name)
     #MakeExtensionProfile(region_x,region_y,region_r,0,region_name)
+elif source_name=='MGRO_J2019':
+    #region_x = MapCenter_x
+    #region_y = MapCenter_y
+    #region_r = 1.0
+    #region_name = 'Center'
+    region_x = 304.85
+    region_y = 36.80
+    MakeSpectrum(region_x,region_y,region_r,region_name)
+    MakeExtensionProfile(region_x,region_y,region_r,0,region_name)
+elif source_name=='Geminga':
+    region_x = MapCenter_x
+    region_y = MapCenter_y
+    region_r = 2.0
+    region_name = 'Center'
+    MakeSpectrum(region_x,region_y,region_r,region_name)
+    MakeExtensionProfile(region_x,region_y,region_r,0,region_name)
 else:
     region_x = MapCenter_x
     region_y = MapCenter_y

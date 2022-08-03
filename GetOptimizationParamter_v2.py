@@ -33,7 +33,7 @@ gamma_hadron_dim_ratio_l = CommonPlotFunctions.gamma_hadron_dim_ratio_l
 MSCW_blind_cut = CommonPlotFunctions.MSCW_blind_cut
 MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 
-n_measures_per_entry = 10
+n_measures_per_entry = 4
 
 analysis_type = 'inclusive'
 #analysis_type = 'SelectOFF'
@@ -42,8 +42,8 @@ analysis_type = 'inclusive'
 #analysis_type='PG1553'
 
 #observing_condition = 'all'
-observing_condition = 'north'
-#observing_condition = 'south'
+#observing_condition = 'north'
+observing_condition = 'south'
 #observing_condition = 'eastwest'
 #observing_condition = 'sza'
 #observing_condition = 'lza'
@@ -203,23 +203,27 @@ def GetGammaCounts(file_path,ebin):
     dark_stable_rank = ROOT.std.vector("int")(10)
     data_gamma_count = ROOT.std.vector("double")(10)
     bkgd_gamma_count = ROOT.std.vector("double")(10)
-    bkgd_rank0_gamma_count = ROOT.std.vector("double")(10)
-    bkgd_rank1_gamma_count = ROOT.std.vector("double")(10)
     dark_gamma_count = ROOT.std.vector("double")(10)
+    rank0_gamma_count = ROOT.std.vector("double")(10)
+    rank1_gamma_count = ROOT.std.vector("double")(10)
+    rank2_gamma_count = ROOT.std.vector("double")(10)
+    rank3_gamma_count = ROOT.std.vector("double")(10)
 
     InputFile = ROOT.TFile(file_path)
     NewInfoTree = InputFile.Get("NewInfoTree")
     NewInfoTree.SetBranchAddress('dark_stable_rank',ROOT.AddressOf(dark_stable_rank))
     NewInfoTree.SetBranchAddress('data_gamma_count',ROOT.AddressOf(data_gamma_count))
     NewInfoTree.SetBranchAddress('bkgd_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
-    NewInfoTree.SetBranchAddress('bkgd_rank0_gamma_count',ROOT.AddressOf(bkgd_rank0_gamma_count))
-    NewInfoTree.SetBranchAddress('bkgd_rank1_gamma_count',ROOT.AddressOf(bkgd_rank1_gamma_count))
     NewInfoTree.SetBranchAddress('dark_gamma_count',ROOT.AddressOf(dark_gamma_count))
+    NewInfoTree.SetBranchAddress('rank0_gamma_count',ROOT.AddressOf(rank0_gamma_count))
+    NewInfoTree.SetBranchAddress('rank1_gamma_count',ROOT.AddressOf(rank1_gamma_count))
+    NewInfoTree.SetBranchAddress('rank2_gamma_count',ROOT.AddressOf(rank2_gamma_count))
+    NewInfoTree.SetBranchAddress('rank3_gamma_count',ROOT.AddressOf(rank3_gamma_count))
     NewInfoTree.GetEntry(0)
 
     print ('Open %s, E%s, data_gamma_count = %s'%(file_path,ebin,data_gamma_count[ebin]))
 
-    return dark_stable_rank[ebin], data_gamma_count[ebin], bkgd_gamma_count[ebin], dark_gamma_count[ebin]
+    return dark_stable_rank[ebin], data_gamma_count[ebin], bkgd_gamma_count[ebin], dark_gamma_count[ebin], rank0_gamma_count[ebin], rank1_gamma_count[ebin], rank2_gamma_count[ebin]
 
 def GetCoefficientHistogram(file_path,ebin,hist_data,hist_bkgd):
 
@@ -233,7 +237,7 @@ def GetCoefficientHistogram(file_path,ebin,hist_data,hist_bkgd):
     HistName = "Hist_Coeff_Bkgd_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     hist_bkgd.Add(InputFile.Get(HistName))
 
-def GetShowerShapeHistogram(file_path,ebin,hist_data,hist_dark):
+def GetShowerShapeHistogram(file_path,ebin,hist_data,hist_dark,hist_bkgd):
 
     InputFile = ROOT.TFile(file_path)
     ErecS_lower_cut = energy_bin[ebin]
@@ -244,6 +248,18 @@ def GetShowerShapeHistogram(file_path,ebin,hist_data,hist_dark):
     hist_data.Add(InputFile.Get(HistName))
     HistName = "Hist_OnDark_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     hist_dark.Add(InputFile.Get(HistName))
+    HistName = "Hist_OnBkgd_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    hist_bkgd.Add(InputFile.Get(HistName))
+
+def GetSingularValueHistogram(file_path,ebin,hist_optimization):
+
+    InputFile = ROOT.TFile(file_path)
+    ErecS_lower_cut = energy_bin[ebin]
+    ErecS_upper_cut = energy_bin[ebin+1]
+    ErecS_lower_cut_int = int(ErecS_lower_cut)
+    ErecS_upper_cut_int = int(ErecS_upper_cut)
+    HistName = "Hist_Data_Eigenvalues_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    hist_optimization.Add(InputFile.Get(HistName))
 
 def GetOptimizationHistogram(file_path,ebin,hist_optimization):
 
@@ -468,12 +484,16 @@ def MakeCorrelationPlot(list_var,ebin):
 def LoopOverFiles():
 
     global FilePath_Folder
+    global Hist_Data_Eigenvalues
     global Hist_Bkgd_Optimization
     global Hist_Data_ShowerShape
     global data_rank
     global data_count
     global bkgd_count
     global dark_count
+    global rank0_count
+    global rank1_count
+    global rank2_count
     global imposter_data_rank
     global imposter_data_count
     global imposter_bkgd_count
@@ -526,25 +546,35 @@ def LoopOverFiles():
                             if mean_nsb<5.: continue
                         if observing_condition=='lnsb':
                             if mean_nsb>5.: continue
+                        Hist_Data_Eigenvalues_E = []
                         Hist_Bkgd_Optimization_E = []
                         rank_E = []
                         data_count_E = []
                         bkgd_count_E = []
                         dark_count_E = []
+                        rank0_count_E = []
+                        rank1_count_E = []
+                        rank2_count_E = []
                         Hist_Coeff_Data_E = []
                         Hist_Coeff_Bkgd_E = []
                         mtx_CDE_data_E = []
                         mtx_CDE_bkgd_E = []
                         for eb in range(0,len(energy_bin)-1):
-                            GetShowerShapeHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Data_ShowerShape[eb],Hist_Dark_ShowerShape[eb])
+                            GetShowerShapeHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Data_ShowerShape[eb],Hist_Dark_ShowerShape[eb],Hist_Bkgd_ShowerShape[eb])
+                            Hist_Data_Eigenvalues_E += [ROOT.TH1D("Hist_Data_Eigenvalues_M%s_E%s"%(n_measurements,eb),"",N_bins_for_deconv,0,N_bins_for_deconv)]
+                            Hist_Data_Eigenvalues_E[eb].Reset()
+                            GetSingularValueHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Data_Eigenvalues_E[eb])
                             Hist_Bkgd_Optimization_E += [ROOT.TH2D("Hist_Bkgd_Optimization_M%s_E%s"%(n_measurements,eb),"",optimiz_nbins,optimiz_alpha_lower[eb],optimiz_alpha_upper[eb],optimiz_nbins,optimiz_beta_lower[eb],optimiz_beta_upper[eb])]
                             Hist_Bkgd_Optimization_E[eb].Reset()
                             GetOptimizationHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Bkgd_Optimization_E[eb])
-                            rank, data, bkgd, dark = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
+                            rank, data, bkgd, dark, rank0, rank1, rank2 = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
                             rank_E += [rank]
                             data_count_E += [data]
                             bkgd_count_E += [bkgd]
                             dark_count_E += [dark]
+                            rank0_count_E += [rank0]
+                            rank1_count_E += [rank1]
+                            rank2_count_E += [rank2]
                             Hist_Coeff_Data_E += [ROOT.TH2D("Hist_Coeff_Data_M%s_E%s"%(n_measurements,eb),"",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)]
                             Hist_Coeff_Bkgd_E += [ROOT.TH2D("Hist_Coeff_Bkgd_M%s_E%s"%(n_measurements,eb),"",N_bins_for_deconv,0,N_bins_for_deconv,N_bins_for_deconv,0,N_bins_for_deconv)]
                             GetCoefficientHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Coeff_Data_E[eb],Hist_Coeff_Bkgd_E[eb])
@@ -552,11 +582,15 @@ def LoopOverFiles():
                             mtx_bkgd = GetMatrixCoefficients(Hist_Coeff_Bkgd_E[eb],data)
                             mtx_CDE_data_E += [mtx_data]
                             mtx_CDE_bkgd_E += [mtx_bkgd]
+                        Hist_Data_Eigenvalues += [Hist_Data_Eigenvalues_E]
                         Hist_Bkgd_Optimization += [Hist_Bkgd_Optimization_E]
                         data_rank += [rank_E]
                         data_count += [data_count_E]
                         bkgd_count += [bkgd_count_E]
                         dark_count += [dark_count_E]
+                        rank0_count += [rank0_count_E]
+                        rank1_count += [rank1_count_E]
+                        rank2_count += [rank2_count_E]
                         Hist_Coeff_Data += [Hist_Coeff_Data_E]
                         Hist_Coeff_Bkgd += [Hist_Coeff_Bkgd_E]
                         mtx_CDE_data += [mtx_CDE_data_E]
@@ -594,7 +628,7 @@ def LoopOverFiles():
                         bkgd_count_E = []
                         dark_count_E = []
                         for eb in range(0,len(energy_bin)-1):
-                            rank, data, bkgd, dark = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
+                            rank, data, bkgd, dark, rank0, rank1, rank2 = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
                             rank_E += [rank]
                             data_count_E += [data]
                             bkgd_count_E += [bkgd]
@@ -610,10 +644,6 @@ optimiz_alpha_lower = [-1.5,-1.5,-1.5,-1.5]
 optimiz_alpha_upper = [1.5,1.5,1.5,1.5]
 optimiz_beta_lower = [-1.5,-1.5,-1.5,-1.5]
 optimiz_beta_upper = [1.5,1.5,1.5,1.5]
-#optimiz_alpha_lower = [-2.,-1.5,-1.,-0.]
-#optimiz_alpha_upper = [-1.,-0.5,0.,1.]
-#optimiz_beta_lower = [-2.5,-3.5,-1.5,-2.]
-#optimiz_beta_upper = [-1.5,-2.5,-0.5,-1.]
 optimiz_nbins = 10
 stable_rank = 2
 
@@ -621,11 +651,15 @@ n_measurements = 0
 n_imposter_measurements = 0
 plot_rank = 0
 FilePath_Folder = []
+Hist_Data_Eigenvalues = []
 Hist_Bkgd_Optimization = []
 data_rank = []
 data_count = []
 bkgd_count = []
 dark_count = []
+rank0_count = []
+rank1_count = []
+rank2_count = []
 imposter_data_rank = []
 imposter_data_count = []
 imposter_bkgd_count = []
@@ -641,18 +675,107 @@ MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_
 MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))-MSCL_blind_cut
 Hist_Data_ShowerShape = []
 Hist_Dark_ShowerShape = []
+Hist_Bkgd_ShowerShape = []
 Hist_Diff_ShowerShape = []
 for eb in range(0,len(energy_bin)-1):
     Hist_Data_ShowerShape += [ROOT.TH2D("Hist_Data_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist_Dark_ShowerShape += [ROOT.TH2D("Hist_Dark_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+    Hist_Bkgd_ShowerShape += [ROOT.TH2D("Hist_Bkgd_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist_Diff_ShowerShape += [ROOT.TH2D("Hist_Diff_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
 
 LoopOverFiles()
 
 for eb in range(0,len(energy_bin)-1):
+    Hist_Diff_ShowerShape[eb].Reset()
     Hist_Diff_ShowerShape[eb].Add(Hist_Data_ShowerShape[eb])
     Hist_Diff_ShowerShape[eb].Add(Hist_Dark_ShowerShape[eb],-1.)
-    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrix_E%s_%s_%s_%s'%(eb,analysis_type,observing_condition,folder_path))
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrixDark_E%s_%s_%s_%s'%(eb,analysis_type,observing_condition,folder_path))
+    Hist_Diff_ShowerShape[eb].Reset()
+    Hist_Diff_ShowerShape[eb].Add(Hist_Data_ShowerShape[eb])
+    Hist_Diff_ShowerShape[eb].Add(Hist_Bkgd_ShowerShape[eb],-1.)
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrixBkgd_E%s_%s_%s_%s'%(eb,analysis_type,observing_condition,folder_path))
+
+Hist_Data_Eigenvalues_Mean = []
+for eb in range(0,len(energy_bin)-1):
+    Hist_Data_Eigenvalues_Mean += [ROOT.TH1D("Hist_Data_Eigenvalues_%s"%(eb),"",N_bins_for_deconv,0,N_bins_for_deconv)]
+for eb in range(0,len(energy_bin)-1):
+    Hist_Data_Eigenvalues_Mean[eb].Reset()
+    for binx in range(0,Hist_Data_Eigenvalues_Mean[eb].GetNbinsX()):
+        singularvalue_avg = 0.
+        n_entries = 0.
+        for entry in range(0,n_measurements):
+            if eb==0 or eb==1:
+                if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
+            if eb==0 and data_count[entry][eb]<2000.: continue
+            if eb==1 and data_count[entry][eb]<500.: continue
+            if data_count[entry][eb]<10.: continue
+            singularvalue = Hist_Data_Eigenvalues[entry][eb].GetBinContent(binx+1)
+            singularvalue_avg += singularvalue
+            n_entries += 1.
+        singularvalue_avg = singularvalue_avg/n_entries
+        Hist_Data_Eigenvalues_Mean[eb].SetBinContent(binx+1,singularvalue_avg)
+energy_dependent_singularvalue = []
+for eb in range(0,len(energy_bin)-1):
+    singularvalue_array = []
+    for binx in range(0,Hist_Data_Eigenvalues_Mean[eb].GetNbinsX()):
+        singularvalue_array += [Hist_Data_Eigenvalues_Mean[eb].GetBinContent(binx+1)]
+    energy_dependent_singularvalue += [singularvalue_array]
+plt.clf()
+fig, ax = plt.subplots()
+plt.xlabel("rank $n$", fontsize=18)
+plt.ylabel("singular value $\sigma_{n}$", fontsize=18)
+plt.yscale('log')
+for entry in range(0,len(energy_dependent_singularvalue)):
+    plt.plot(energy_dependent_singularvalue[entry],marker='.',label='%s-%s GeV'%(energy_bin[entry],energy_bin[entry+1]))
+ax.legend(loc='best')
+plt.savefig("output_plots/MatrixSingularValue.png")
+
+energy_array = np.array(energy_bin)
+energy_dependent_rank0 = []
+energy_dependent_rank1 = []
+energy_dependent_rank2 = []
+energy_dependent_stat = []
+for eb in range(0,len(energy_bin)-1):
+    epsilon_rank0_avg = 0.
+    epsilon_rank1_avg = 0.
+    epsilon_rank2_avg = 0.
+    epsilon_stat_avg = 0.
+    n_entries = 0.
+    for entry in range(0,n_measurements):
+        if eb==0 or eb==1:
+            if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
+        if eb==0 and data_count[entry][eb]<2000.: continue
+        if eb==1 and data_count[entry][eb]<500.: continue
+        if data_count[entry][eb]<10.: continue
+        epsilon_rank0 = (data_count[entry][eb]-rank0_count[entry][eb])/data_count[entry][eb]
+        epsilon_rank1 = (data_count[entry][eb]-rank1_count[entry][eb])/data_count[entry][eb]
+        epsilon_rank2 = (data_count[entry][eb]-rank2_count[entry][eb])/data_count[entry][eb]
+        epsilon_rank0_avg += epsilon_rank0*epsilon_rank0
+        epsilon_rank1_avg += epsilon_rank1*epsilon_rank1
+        epsilon_rank2_avg += epsilon_rank2*epsilon_rank2
+        epsilon_stat_avg += pow(pow(data_count[entry][eb],0.5)/data_count[entry][eb],2)
+        n_entries += 1.
+    epsilon_rank0_avg = pow(epsilon_rank0_avg/n_entries,0.5)
+    epsilon_rank1_avg = pow(epsilon_rank1_avg/n_entries,0.5)
+    epsilon_rank2_avg = pow(epsilon_rank2_avg/n_entries,0.5)
+    epsilon_stat_avg = pow(epsilon_stat_avg/n_entries,0.5)
+    energy_dependent_rank0 += [epsilon_rank0_avg]
+    energy_dependent_rank1 += [epsilon_rank1_avg]
+    energy_dependent_rank2 += [epsilon_rank2_avg]
+    energy_dependent_stat += [epsilon_stat_avg]
+plt.clf()
+fig, ax = plt.subplots()
+plt.xlabel("Energy [GeV]", fontsize=18)
+plt.ylabel("RMS of $\\epsilon$", fontsize=18)
+plt.yscale('log')
+plt.xscale('log')
+plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank0,marker='.',label='$n \leq 0$')
+plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank1,marker='.',label='$n \leq 1$')
+#plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank2,marker='.',label='$n \leq 2$')
+plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_stat,marker='.',label='stat. unc.')
+ax.legend(loc='best')
+plt.savefig("output_plots/RankErrors.png")
+
 
 Hist_Bkgd_Optimization_Mean = []
 for eb in range(0,len(energy_bin)-1):
@@ -668,13 +791,14 @@ for eb in range(0,len(energy_bin)-1):
                     if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
                 if eb==0 and data_count[entry][eb]<2000.: continue
                 if eb==1 and data_count[entry][eb]<500.: continue
+                if data_count[entry][eb]<10.: continue
                 error = Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1,biny+1)
                 rms += pow(error,2)
                 n_entries += 1.
             rms = rms/n_entries
             rms = pow(rms,0.5)
             Hist_Bkgd_Optimization_Mean[eb].SetBinContent(binx+1,biny+1,rms)
-    CommonPlotFunctions.MatplotlibHist2D(Hist_Bkgd_Optimization_Mean[eb],fig,'log10 a','log10 b','RMS of epsilon','Optimization_E%s_%s_%s'%(eb,analysis_type,observing_condition))
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Bkgd_Optimization_Mean[eb],fig,'log10 $\\beta_{11}$','log10 $\\beta_{22}$','RMS of $\\epsilon$','Optimization_E%s_%s_%s'%(eb,analysis_type,observing_condition))
 
 Hist_SystErrDist_MDM = []
 Hist_SystErrDist_Init = []
@@ -715,6 +839,7 @@ for eb in range(0,len(energy_bin)-1):
         if data_count[entry][eb]==0.: continue
         if eb==0 and data_count[entry][eb]<2000.: continue
         if eb==1 and data_count[entry][eb]<500.: continue
+        if data_count[entry][eb]<10.: continue
         n_measures += 1.
         data_count_n_measures += data_count[entry][eb]
         bkgd_count_n_measures += bkgd_count[entry][eb]
@@ -753,6 +878,7 @@ for eb in range(0,len(energy_bin)-1):
         if imposter_data_count[entry][eb]==0.: continue
         if eb==0 and imposter_data_count[entry][eb]<2000.: continue
         if eb==1 and imposter_data_count[entry][eb]<500.: continue
+        if data_count[entry][eb]<10.: continue
         n_measures += 1.
         data_count_n_measures += imposter_data_count[entry][eb]
         bkgd_count_n_measures += imposter_bkgd_count[entry][eb]
@@ -779,15 +905,15 @@ for eb in range(0,len(energy_bin)-1):
     legends = []
     colors = []
     Hists += [Hist_SystErrDist_MDM[eb]]
-    legends += ['%0.2f-%0.2f TeV, ON data, $\sigma = %0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_rms,MDM_rms/pow(n_entries,0.5))]
+    legends += ['%0.2f-%0.2f TeV, ON data, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_rms,MDM_rms/pow(n_entries,0.5))]
     colors += [1]
     if analysis_type=='inclusive':
         Hists += [Hist_SystErrDist_Init[eb]]
-        legends += ['initial matching, $\sigma = %0.3f \pm %0.3f$'%(Init_rms,Init_rms/pow(n_entries,0.5))]
+        legends += ['initial matching, RMS = $%0.3f \pm %0.3f$'%(Init_rms,Init_rms/pow(n_entries,0.5))]
         colors += [2]
     else:
         Hists += [Hist_Imposter_SystErrDist_MDM[eb]]
-        legends += ['mimic data (entries scaled by 1/5), $\sigma = %0.3f \pm %0.3f$'%(MDM_rms_imposter,MDM_rms_imposter/pow(n_entries_imposter,0.5))]
+        legends += ['mimic data (entries scaled by 1/5), RMS = $%0.3f \pm %0.3f$'%(MDM_rms_imposter,MDM_rms_imposter/pow(n_entries_imposter,0.5))]
         colors += [2]
     fig.clf()
     ax = fig.add_subplot()

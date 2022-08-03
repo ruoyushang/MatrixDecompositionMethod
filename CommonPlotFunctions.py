@@ -22,13 +22,15 @@ from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 
 #folder_path = 'output_test'
-#folder_path = 'output_5hrs'
+#folder_path = 'output_2hrs'
+folder_path = 'output_5hrs'
 #folder_path = 'output_10hrs'
 #folder_path = 'output_20hrs'
 #folder_path = 'output_80hrs'
 #folder_path = 'output_FreeNSB'
 #folder_path = 'output_FreeAzim'
-folder_path = 'output_radialcorrect'
+#folder_path = 'output_FreeElev'
+#folder_path = 'output_radialcorrect'
 
 #N_bins_for_deconv = 16
 N_bins_for_deconv = 10
@@ -445,7 +447,7 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
     global calibration_radius
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
-    #n_bins_1d = 3
+    #n_bins_1d = 4
     #n_bins_1d = min(8,int(float(n_bins_2d)/2.))
     n_bins_1d = min(16,int(float(n_bins_2d)/2.))
     #integration_range = 0.8

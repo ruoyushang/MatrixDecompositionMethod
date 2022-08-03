@@ -93,7 +93,7 @@ def PrepreSample():
                 sample_list += ['%s_%s'%(data_epoch[de],data_type[dt])]
     
 
-data_type = ['OFF','ON','Imposter1','Imposter2','Imposter3','Imposter4','Imposter5']
+data_type = ['OFF','ON','Imposter1','Imposter2','Imposter3','Imposter4','Imposter5','Imposter6']
 
 observation_name = 'MGRO_J1908'
 data_epoch = ['MGRO_J1908_V5','MGRO_J1908_V6']
@@ -3071,7 +3071,7 @@ def NormalizeEnergyHistograms(FilePath):
     #        Hist_OnData_RoI_MJD[nth_roi].Reset()
     #        Hist_OnBkgd_RoI_MJD[nth_roi].Reset()
 
-def NormalizeTheta2Histograms(FilePath):
+def NormalizeTheta2Histograms(FilePath,ebin):
 
     global MSCW_blind_cut
     global MSCL_blind_cut
@@ -3095,6 +3095,7 @@ def NormalizeTheta2Histograms(FilePath):
     HistName = "Hist_OnData_CR_XYoff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnData_CR_XYoff.Reset()
     Hist_OnData_CR_XYoff.Add(InputFile.Get(HistName))
+    Hist_Data_CR_XYoff[ebin].Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_SR_Yoff_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnData_Yoff.Reset()
     Hist_OnData_Yoff.Add(InputFile.Get(HistName))
@@ -3335,9 +3336,13 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
     HistName = "Hist_Data_NSB_Skymap"
     Hist_Data_NSB_Skymap.Add(InputFile.Get(HistName))
     HistName = "Hist_Data_ElevNSB"
-    Hist_ElevNSB.Add(InputFile.Get(HistName))
+    Hist_Data_ElevNSB.Add(InputFile.Get(HistName))
     HistName = "Hist_Data_ElevAzim"
-    Hist_ElevAzim.Add(InputFile.Get(HistName))
+    Hist_Data_ElevAzim.Add(InputFile.Get(HistName))
+    HistName = "Hist_Dark_ElevNSB"
+    Hist_Dark_ElevNSB.Add(InputFile.Get(HistName))
+    HistName = "Hist_Dark_ElevAzim"
+    Hist_Dark_ElevAzim.Add(InputFile.Get(HistName))
 
     HistName = "Hist_OnData_EffArea_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_EffArea_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
@@ -3751,6 +3756,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
     hist_rfov_skymap = []
     hist_effarea_skymap = []
     hist_expo_skymap = []
+    hist_expo_hour_skymap = []
     hist_expo_rebin_skymap = []
     for ebin in range(0,len(energy_bin)-1):
         hist_flux_skymap += [ROOT.TH2D("hist_flux_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
@@ -3767,6 +3773,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
         hist_rfov_skymap += [ROOT.TH2D("hist_rfov_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_effarea_skymap += [ROOT.TH2D("hist_effarea_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_expo_skymap += [ROOT.TH2D("hist_expo_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_expo_hour_skymap += [ROOT.TH2D("hist_expo_hour_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
         hist_expo_rebin_skymap += [ROOT.TH2D("hist_expo_rebin_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
     for ebin in range(0,len(energy_bin)-1):
         for bx in range(0,hist_data[0].GetNbinsX()):
@@ -3973,119 +3980,119 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
         if doUpperLimit:
             axbig.fill_between(list_eaxis[nth_roi], list_zeros[nth_roi], list_error[nth_roi], alpha=0.2, color='r')
 
-    if doReferenceFlux and len(list_eaxis[0])>=1:
-        log_energy = np.linspace(log10(list_eaxis[0][0]),log10(list_eaxis[0][len(list_eaxis[0])-1]),50)
-        xdata = pow(10.,log_energy)
-        for nth_roi in range(0,len(list_fdata)):
-            if 'Crab' in legends[nth_roi]:
-                if not doReferenceFlux: 
-                    continue
-                vectorize_f = np.vectorize(flux_crab_func)
-                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'r-',label='1508.06442')
-                xdata_array = []
-                for binx in range(0,len(list_fdata[nth_roi])):
-                    xdata_array += [list_eaxis[nth_roi][binx]]
-                ydata = pow(np.array(xdata_array)/1e3,energy_index)*vectorize_f(xdata_array)
-                calibration_new = []
-                for binx in range(0,len(list_fdata[nth_roi])):
-                    if list_fdata[nth_roi][binx]>0.:
-                        calibration_new += [ydata[binx]/list_fdata[nth_roi][binx]]
-                    else:
-                        calibration_new += [0.]
-                print ('=======================================================================')
-                print ('new flux_calibration = %s'%(calibration_new))
-                print ('=======================================================================')
-                doReferenceFlux = False
-            if 'VHE region' in legends[nth_roi]:
-                vectorize_f = np.vectorize(flux_veritas_j1908_func)
-                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'r-',label='1404.7185 (VERITAS)')
-            if 'HAWC region' in legends[nth_roi]:
-                log_energy = np.linspace(log10(1e2),log10(1e5),50)
-                xdata_ref = pow(10.,log_energy)
-                vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
-                ydata_hawc = pow(xdata_ref/1e3,energy_index)*vectorize_f_hawc(xdata_ref)
-                axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)')
-                axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r')
-                # HAWC systematic uncertainty, The Astrophysical Journal 881, 134. Fig 13
-                #vectorize_f = np.vectorize(flux_veritas_j1908_func)
-                #ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                #axbig.plot(xdata, ydata,'b-',label='1404.7185 (VERITAS)')
-                #vectorize_f = np.vectorize(flux_hess_j1908_func)
-                #ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                #axbig.plot(xdata, ydata,'g-',label='0904.3409 (HESS)')
-                HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index)
-                Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index)
-                axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi')
-                axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC')
-            if 'IC 443' in legends[nth_roi]:
-                vectorize_f = np.vectorize(flux_ic443_func)
-                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'r-',label='0905.3291')
-                vectorize_f = np.vectorize(flux_ic443_hawc_func)
-                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'g-',label='2007.08582 (HAWC)')
-            if '1ES 1218+304' in legends[nth_roi]:
-                vectorize_f = np.vectorize(flux_1es1218_func)
-                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'r-',label='0810.0301')
-            if 'Geminga Pulsar' in legends[nth_roi]:
-                #log_energy = np.linspace(log10(3.2e3),log10(93e3),50)
-                #xdata_ref = pow(10.,log_energy)
-                #vectorize_f = np.vectorize(flux_geminga_func)
-                #ydata = pow(xdata_ref/1e3,energy_index)*vectorize_f(xdata_ref)
-                #axbig.plot(xdata_ref, ydata,'r-',label='HAWC')
-                #axbig.fill_between(xdata_ref, ydata-0.17*ydata, ydata+0.34*ydata, alpha=0.2, color='r')
-                HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetFermiHAWCFluxGeminga(energy_index)
-                axbig.plot(HAWC_energies, HAWC_fluxes,'g-',label='HAWC')
-                axbig.fill_between(HAWC_energies, np.array(HAWC_fluxes)-np.array(HAWC_flux_errs), np.array(HAWC_fluxes)+np.array(HAWC_flux_errs), alpha=0.2, color='g')
-                Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxGeminga(energy_index)
-                axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='r',marker='_',ls='none',label='Fermi')
-                Fermi_UL_energies, Fermi_UL_fluxes, Fermi_UL_err = GetFermiUpperLimitFluxGeminga(energy_index)
-                uplims = np.array([1,1,1,1], dtype=bool)
-                axbig.errorbar(Fermi_UL_energies,Fermi_UL_fluxes,Fermi_UL_err,color='r',marker='_',ls='none',uplims=uplims)
-            if 'J1856+0245' in legends[nth_roi]:
-                vectorize_f = np.vectorize(flux_j1857_func)
-                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'r-',label='From Aleksic et al. (2014)')
-            if 'J2019+407' in legends[nth_roi]:
-                vectorize_f = np.vectorize(flux_veritas_gamma_cygni_func)
-                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'r-',label='From Weinstein et al. (2012)')
-            if 'Boomerang' in legends[nth_roi]:
-                vectorize_f = np.vectorize(flux_veritas_boomerang_func)
-                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'r-',label='2005.13699')
-            if 'J1929+1745' in legends[nth_roi]:
-                vectorize_f = np.vectorize(flux_2hwc_J1928_point_func)
-                hawc_log_energy = np.linspace(log10(2000.),log10(56000.),50)
-                hawc_xdata = pow(10.,hawc_log_energy)
-                ydata = pow(hawc_xdata/1e3,energy_index)*vectorize_f(hawc_xdata)
-                axbig.plot(hawc_xdata, ydata,'r-',label='2HWC J1928+177 (point-like)')
-            if 'J1843-0338' in legends[nth_roi]:
-                vectorize_f = np.vectorize(flux_2hwc_J1844_point_func)
-                hawc_log_energy = np.linspace(log10(2000.),log10(56000.),50)
-                hawc_xdata = pow(10.,hawc_log_energy)
-                ydata = pow(hawc_xdata/1e3,energy_index)*vectorize_f(hawc_xdata)
-                axbig.plot(hawc_xdata, ydata,'r-',label='2HWC J1844-032 (point-like)')
-                vectorize_f = np.vectorize(flux_2hwc_J1844_extend_func)
-                hawc_log_energy = np.linspace(log10(2000.),log10(56000.),50)
-                hawc_xdata = pow(10.,hawc_log_energy)
-                ydata = pow(hawc_xdata/1e3,energy_index)*vectorize_f(hawc_xdata)
-                axbig.plot(hawc_xdata, ydata,'m-',label='2HWC J1844-032 (0.6-deg ext.)')
-                vectorize_f = np.vectorize(flux_hess_J1843_func)
-                ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
-                axbig.plot(xdata, ydata,'g-',label='HESS J1843-033')
+    #if doReferenceFlux and len(list_eaxis[0])>=1:
+    #    log_energy = np.linspace(log10(list_eaxis[0][0]),log10(list_eaxis[0][len(list_eaxis[0])-1]),50)
+    #    xdata = pow(10.,log_energy)
+    #    for nth_roi in range(0,len(list_fdata)):
+    #        if 'Crab' in legends[nth_roi]:
+    #            if not doReferenceFlux: 
+    #                continue
+    #            vectorize_f = np.vectorize(flux_crab_func)
+    #            ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+    #            axbig.plot(xdata, ydata,'r-',label='1508.06442')
+    #            xdata_array = []
+    #            for binx in range(0,len(list_fdata[nth_roi])):
+    #                xdata_array += [list_eaxis[nth_roi][binx]]
+    #            ydata = pow(np.array(xdata_array)/1e3,energy_index)*vectorize_f(xdata_array)
+    #            calibration_new = []
+    #            for binx in range(0,len(list_fdata[nth_roi])):
+    #                if list_fdata[nth_roi][binx]>0.:
+    #                    calibration_new += [ydata[binx]/list_fdata[nth_roi][binx]]
+    #                else:
+    #                    calibration_new += [0.]
+    #            print ('=======================================================================')
+    #            print ('new flux_calibration = %s'%(calibration_new))
+    #            print ('=======================================================================')
+    #            doReferenceFlux = False
+    #        if 'VHE region' in legends[nth_roi]:
+    #            vectorize_f = np.vectorize(flux_veritas_j1908_func)
+    #            ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+    #            axbig.plot(xdata, ydata,'r-',label='1404.7185 (VERITAS)')
+    #        if 'HAWC region' in legends[nth_roi]:
+    #            log_energy = np.linspace(log10(1e2),log10(1e5),50)
+    #            xdata_ref = pow(10.,log_energy)
+    #            vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
+    #            ydata_hawc = pow(xdata_ref/1e3,energy_index)*vectorize_f_hawc(xdata_ref)
+    #            axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)')
+    #            axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r')
+    #            # HAWC systematic uncertainty, The Astrophysical Journal 881, 134. Fig 13
+    #            #vectorize_f = np.vectorize(flux_veritas_j1908_func)
+    #            #ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+    #            #axbig.plot(xdata, ydata,'b-',label='1404.7185 (VERITAS)')
+    #            #vectorize_f = np.vectorize(flux_hess_j1908_func)
+    #            #ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+    #            #axbig.plot(xdata, ydata,'g-',label='0904.3409 (HESS)')
+    #            HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index)
+    #            Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index)
+    #            axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi')
+    #            axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC')
+    #        if 'IC 443' in legends[nth_roi]:
+    #            vectorize_f = np.vectorize(flux_ic443_func)
+    #            ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+    #            axbig.plot(xdata, ydata,'r-',label='0905.3291')
+    #            vectorize_f = np.vectorize(flux_ic443_hawc_func)
+    #            ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+    #            axbig.plot(xdata, ydata,'g-',label='2007.08582 (HAWC)')
+    #        if '1ES 1218+304' in legends[nth_roi]:
+    #            vectorize_f = np.vectorize(flux_1es1218_func)
+    #            ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+    #            axbig.plot(xdata, ydata,'r-',label='0810.0301')
+    #        if 'Geminga Pulsar' in legends[nth_roi]:
+    #            #log_energy = np.linspace(log10(3.2e3),log10(93e3),50)
+    #            #xdata_ref = pow(10.,log_energy)
+    #            #vectorize_f = np.vectorize(flux_geminga_func)
+    #            #ydata = pow(xdata_ref/1e3,energy_index)*vectorize_f(xdata_ref)
+    #            #axbig.plot(xdata_ref, ydata,'r-',label='HAWC')
+    #            #axbig.fill_between(xdata_ref, ydata-0.17*ydata, ydata+0.34*ydata, alpha=0.2, color='r')
+    #            HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetFermiHAWCFluxGeminga(energy_index)
+    #            axbig.plot(HAWC_energies, HAWC_fluxes,'g-',label='HAWC')
+    #            axbig.fill_between(HAWC_energies, np.array(HAWC_fluxes)-np.array(HAWC_flux_errs), np.array(HAWC_fluxes)+np.array(HAWC_flux_errs), alpha=0.2, color='g')
+    #            Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxGeminga(energy_index)
+    #            axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='r',marker='_',ls='none',label='Fermi')
+    #            Fermi_UL_energies, Fermi_UL_fluxes, Fermi_UL_err = GetFermiUpperLimitFluxGeminga(energy_index)
+    #            uplims = np.array([1,1,1,1], dtype=bool)
+    #            axbig.errorbar(Fermi_UL_energies,Fermi_UL_fluxes,Fermi_UL_err,color='r',marker='_',ls='none',uplims=uplims)
+    #        if 'J1856+0245' in legends[nth_roi]:
+    #            vectorize_f = np.vectorize(flux_j1857_func)
+    #            ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+    #            axbig.plot(xdata, ydata,'r-',label='From Aleksic et al. (2014)')
+    #        if 'J2019+407' in legends[nth_roi]:
+    #            vectorize_f = np.vectorize(flux_veritas_gamma_cygni_func)
+    #            ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+    #            axbig.plot(xdata, ydata,'r-',label='From Weinstein et al. (2012)')
+    #        if 'Boomerang' in legends[nth_roi]:
+    #            vectorize_f = np.vectorize(flux_veritas_boomerang_func)
+    #            ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+    #            axbig.plot(xdata, ydata,'r-',label='2005.13699')
+    #        if 'J1929+1745' in legends[nth_roi]:
+    #            vectorize_f = np.vectorize(flux_2hwc_J1928_point_func)
+    #            hawc_log_energy = np.linspace(log10(2000.),log10(56000.),50)
+    #            hawc_xdata = pow(10.,hawc_log_energy)
+    #            ydata = pow(hawc_xdata/1e3,energy_index)*vectorize_f(hawc_xdata)
+    #            axbig.plot(hawc_xdata, ydata,'r-',label='2HWC J1928+177 (point-like)')
+    #        if 'J1843-0338' in legends[nth_roi]:
+    #            vectorize_f = np.vectorize(flux_2hwc_J1844_point_func)
+    #            hawc_log_energy = np.linspace(log10(2000.),log10(56000.),50)
+    #            hawc_xdata = pow(10.,hawc_log_energy)
+    #            ydata = pow(hawc_xdata/1e3,energy_index)*vectorize_f(hawc_xdata)
+    #            axbig.plot(hawc_xdata, ydata,'r-',label='2HWC J1844-032 (point-like)')
+    #            vectorize_f = np.vectorize(flux_2hwc_J1844_extend_func)
+    #            hawc_log_energy = np.linspace(log10(2000.),log10(56000.),50)
+    #            hawc_xdata = pow(10.,hawc_log_energy)
+    #            ydata = pow(hawc_xdata/1e3,energy_index)*vectorize_f(hawc_xdata)
+    #            axbig.plot(hawc_xdata, ydata,'m-',label='2HWC J1844-032 (0.6-deg ext.)')
+    #            vectorize_f = np.vectorize(flux_hess_J1843_func)
+    #            ydata = pow(xdata/1e3,energy_index)*vectorize_f(xdata)
+    #            axbig.plot(xdata, ydata,'g-',label='HESS J1843-033')
 
-    axbig.legend(loc='best')
-    axbig.set_xlabel('Energy [GeV]')
-    axbig.set_ylabel('$E^{%s}$ Flux [$\mathrm{TeV}^{%s}\mathrm{cm}^{-2}\mathrm{s}^{-1}$]'%(energy_index,-1+energy_index))
-    axbig.set_xscale('log')
-    axbig.set_yscale('log')
-    plotname = 'FluxFromMap'
-    fig.savefig("output_plots/%s_%s.png"%(plotname,sys.argv[1]),bbox_inches='tight')
-    axbig.remove()
+    #axbig.legend(loc='best')
+    #axbig.set_xlabel('Energy [GeV]')
+    #axbig.set_ylabel('$E^{%s}$ Flux [$\mathrm{TeV}^{%s}\mathrm{cm}^{-2}\mathrm{s}^{-1}$]'%(energy_index,-1+energy_index))
+    #axbig.set_xscale('log')
+    #axbig.set_yscale('log')
+    #plotname = 'FluxFromMap'
+    #fig.savefig("output_plots/%s_%s.png"%(plotname,sys.argv[1]),bbox_inches='tight')
+    #axbig.remove()
 
     # energy inclusive histograms
     hist_data_skymap_sum = ROOT.TH2D("hist_data_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
@@ -4242,26 +4249,38 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
     hist_nsb_skymap_reflect = reflectXaxis(hist_nsb_skymap)
     hist_nsb_skymap_reflect.Draw("COL4Z")
     canvas.SaveAs('output_plots/SkymapNSB_%s_%s.png'%(name,selection_tag))
-    Hist_ElevNSB.Draw("COL4Z")
-    canvas.SaveAs('output_plots/ElevNSB_%s_%s.png'%(name,selection_tag))
-    Hist_ElevAzim.Draw("COL4Z")
-    canvas.SaveAs('output_plots/ElevAzim_%s_%s.png'%(name,selection_tag))
+    Hist_Data_ElevNSB.Draw("COL4Z")
+    canvas.SaveAs('output_plots/ElevNSB_Data_%s_%s.png'%(name,selection_tag))
+    Hist_Data_ElevAzim.Draw("COL4Z")
+    canvas.SaveAs('output_plots/ElevAzim_Data_%s_%s.png'%(name,selection_tag))
+    Hist_Dark_ElevNSB.Draw("COL4Z")
+    canvas.SaveAs('output_plots/ElevNSB_Dark_%s_%s.png'%(name,selection_tag))
+    Hist_Dark_ElevAzim.Draw("COL4Z")
+    canvas.SaveAs('output_plots/ElevAzim_Dark_%s_%s.png'%(name,selection_tag))
 
-    hist_expo_hours_skymap = ROOT.TH2D("hist_expo_hours_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_expo_hours_skymap.Add(hist_bkgd_skymap_sum)
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        hist_expo_hour_skymap[ebin].Reset()
+        hist_expo_hour_skymap[ebin].Add(hist_bkgd_skymap[ebin])
+        bin_size_0 = hist_bkgd_skymap[ebin].GetXaxis().GetBinLowEdge(2)-hist_bkgd_skymap[ebin].GetXaxis().GetBinLowEdge(1)
+        bin_size_1 = Hist_Data_CR_XYoff[ebin].GetXaxis().GetBinLowEdge(2)-Hist_Data_CR_XYoff[ebin].GetXaxis().GetBinLowEdge(1)
+        bkgd_rate = Hist_Data_CR_XYoff[ebin].GetMaximum()*(bin_size_0*bin_size_0)/(exposure_hours*bin_size_1*bin_size_1)
+        hist_expo_hour_skymap[ebin].Scale(1./bkgd_rate)
+
+    hist_expo_hour_skymap_sum = ROOT.TH2D("hist_expo_hour_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_expo_hour_skymap_sum.Add(hist_bkgd_skymap_sum)
     bin_size_0 = hist_bkgd_skymap_sum.GetXaxis().GetBinLowEdge(2)-hist_bkgd_skymap_sum.GetXaxis().GetBinLowEdge(1)
     bin_size_1 = Hist_OnData_CR_XYoff_Sum.GetXaxis().GetBinLowEdge(2)-Hist_OnData_CR_XYoff_Sum.GetXaxis().GetBinLowEdge(1)
     bkgd_rate = Hist_OnData_CR_XYoff_Sum.GetMaximum()*(bin_size_0*bin_size_0)/(exposure_hours*bin_size_1*bin_size_1)
-    hist_expo_hours_skymap.Scale(1./bkgd_rate)
-    hist_expo_hours_skymap_reflect = reflectXaxis(hist_expo_hours_skymap)
-    hist_expo_hours_skymap_reflect.GetYaxis().SetTitle(title_y)
-    hist_expo_hours_skymap_reflect.GetXaxis().SetTitle(title_x)
-    hist_expo_hours_skymap_reflect.GetZaxis().SetTitle('exposure [hour]')
-    hist_expo_hours_skymap_reflect.GetZaxis().SetTitleOffset(title_offset)
-    hist_expo_hours_skymap_reflect.Draw("COL4Z")
+    hist_expo_hour_skymap_sum.Scale(1./bkgd_rate)
+    hist_expo_hour_skymap_sum_reflect = reflectXaxis(hist_expo_hour_skymap_sum)
+    hist_expo_hour_skymap_sum_reflect.GetYaxis().SetTitle(title_y)
+    hist_expo_hour_skymap_sum_reflect.GetXaxis().SetTitle(title_x)
+    hist_expo_hour_skymap_sum_reflect.GetZaxis().SetTitle('exposure [hour]')
+    hist_expo_hour_skymap_sum_reflect.GetZaxis().SetTitleOffset(title_offset)
+    hist_expo_hour_skymap_sum_reflect.Draw("COL4Z")
     #hist_contour_reflect.Draw("CONT3 same")
-    hist_expo_hours_skymap_reflect.GetXaxis().SetLabelOffset(999)
-    hist_expo_hours_skymap_reflect.GetXaxis().SetTickLength(0)
+    hist_expo_hour_skymap_sum_reflect.GetXaxis().SetLabelOffset(999)
+    hist_expo_hour_skymap_sum_reflect.GetXaxis().SetTickLength(0)
     raLowerAxis.Draw()
     for star in range(0,len(other_star_markers)):
         other_star_markers[star].Draw("same")
@@ -4737,7 +4756,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
 
         if int(sys.argv[2])==0 and int(sys.argv[3])==len(energy_bin)-1:
             output_file = ROOT.TFile("output_fitting/%s_skymap_%s.root"%(sys.argv[1],folder_path),"recreate")
-            hist_expo_hours_skymap.Write()
+            hist_expo_hour_skymap_sum.Write()
             for ebin in range(0,len(energy_bin)-1):
                 hist_energy_flux_skymap[ebin].Write()
                 hist_energy_flux_syst_skymap[ebin].Write()
@@ -4745,6 +4764,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
                 hist_bkgd_skymap[ebin].Write()
                 hist_rfov_skymap[ebin].Write()
                 hist_expo_skymap[ebin].Write()
+                hist_expo_hour_skymap[ebin].Write()
                 hist_effarea_skymap[ebin].Write()
             output_file.Close();
 
@@ -5835,166 +5855,166 @@ def MatrixDecompositionDemo(name):
     canvas.SaveAs('output_plots/Coeff_C_data_%s_%s.png'%(name,selection_tag))
     pad1.SetLogz(0)
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#delta H_{ij} coefficents' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    pad1.SetLogz()
-    #Hist2D_U_Proj_Sum.SetMaximum(1e-1);
-    #Hist2D_U_Proj_Sum.SetMinimum(1e-4);
-    Hist2D_U_Proj_Sum.GetYaxis().SetTitle('y')
-    Hist2D_U_Proj_Sum.GetXaxis().SetTitle('x')
-    Hist2D_U_Proj_Sum.Draw("COL4Z")
-    canvas.SaveAs('output_plots/Coeff_U_proj_%s_%s.png'%(name,selection_tag))
-    pad1.SetLogz(0)
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.20,'#delta H_{ij} coefficents' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #pad1.SetLogz()
+    ##Hist2D_U_Proj_Sum.SetMaximum(1e-1);
+    ##Hist2D_U_Proj_Sum.SetMinimum(1e-4);
+    #Hist2D_U_Proj_Sum.GetYaxis().SetTitle('y')
+    #Hist2D_U_Proj_Sum.GetXaxis().SetTitle('x')
+    #Hist2D_U_Proj_Sum.Draw("COL4Z")
+    #canvas.SaveAs('output_plots/Coeff_U_proj_%s_%s.png'%(name,selection_tag))
+    #pad1.SetLogz(0)
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.20,'#delta H_{ij} coefficents' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    pad1.SetLogz()
-    #Hist2D_V_Proj_Sum.SetMaximum(1e-1);
-    #Hist2D_V_Proj_Sum.SetMinimum(1e-4);
-    Hist2D_V_Proj_Sum.GetYaxis().SetTitle('y')
-    Hist2D_V_Proj_Sum.GetXaxis().SetTitle('x')
-    Hist2D_V_Proj_Sum.Draw("COL4Z")
-    canvas.SaveAs('output_plots/Coeff_V_proj_%s_%s.png'%(name,selection_tag))
-    pad1.SetLogz(0)
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.20,'#delta H_{ij} coefficents' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #pad1.SetLogz()
+    ##Hist2D_V_Proj_Sum.SetMaximum(1e-1);
+    ##Hist2D_V_Proj_Sum.SetMinimum(1e-4);
+    #Hist2D_V_Proj_Sum.GetYaxis().SetTitle('y')
+    #Hist2D_V_Proj_Sum.GetXaxis().SetTitle('x')
+    #Hist2D_V_Proj_Sum.Draw("COL4Z")
+    #canvas.SaveAs('output_plots/Coeff_V_proj_%s_%s.png'%(name,selection_tag))
+    #pad1.SetLogz(0)
 
-    pad3.Clear()
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{1} #sigma_{k} u_{k} v_{k}^{T}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_Rank0_Data_Sum.GetYaxis().SetTitle('scaled width')
-    Hist2D_Rank0_Data_Sum.GetXaxis().SetTitle('scaled length')
-    Hist2D_Rank0_Data_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
-    canvas.SaveAs('output_plots/Rank0_Data_%s_%s.png'%(name,selection_tag))
+    #pad3.Clear()
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{1} #sigma_{k} u_{k} v_{k}^{T}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_Rank0_Data_Sum.GetYaxis().SetTitle('scaled width')
+    #Hist2D_Rank0_Data_Sum.GetXaxis().SetTitle('scaled length')
+    #Hist2D_Rank0_Data_Sum.Draw("COL4Z")
+    #line1.Draw("same")
+    #line2.Draw("same")
+    #canvas.SaveAs('output_plots/Rank0_Data_%s_%s.png'%(name,selection_tag))
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{1} u_{1} v_{1}^{T}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_Rank0_Dark_Sum.GetYaxis().SetTitle('scaled width')
-    Hist2D_Rank0_Dark_Sum.GetXaxis().SetTitle('scaled length')
-    Hist2D_Rank0_Dark_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
-    canvas.SaveAs('output_plots/Rank0_Dark_%s_%s.png'%(name,selection_tag))
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{1} u_{1} v_{1}^{T}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_Rank0_Dark_Sum.GetYaxis().SetTitle('scaled width')
+    #Hist2D_Rank0_Dark_Sum.GetXaxis().SetTitle('scaled length')
+    #Hist2D_Rank0_Dark_Sum.Draw("COL4Z")
+    #line1.Draw("same")
+    #line2.Draw("same")
+    #canvas.SaveAs('output_plots/Rank0_Dark_%s_%s.png'%(name,selection_tag))
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{2} #sigma_{k} u_{k} v_{k}^{T}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_Rank1_Data_Sum.GetYaxis().SetTitle('scaled width')
-    Hist2D_Rank1_Data_Sum.GetXaxis().SetTitle('scaled length')
-    Hist2D_Rank1_Data_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
-    canvas.SaveAs('output_plots/Rank1_Data_%s_%s.png'%(name,selection_tag))
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{2} #sigma_{k} u_{k} v_{k}^{T}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_Rank1_Data_Sum.GetYaxis().SetTitle('scaled width')
+    #Hist2D_Rank1_Data_Sum.GetXaxis().SetTitle('scaled length')
+    #Hist2D_Rank1_Data_Sum.Draw("COL4Z")
+    #line1.Draw("same")
+    #line2.Draw("same")
+    #canvas.SaveAs('output_plots/Rank1_Data_%s_%s.png'%(name,selection_tag))
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{2} u_{2} v_{2}^{T}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_Rank1_Dark_Sum.GetYaxis().SetTitle('scaled width')
-    Hist2D_Rank1_Dark_Sum.GetXaxis().SetTitle('scaled length')
-    Hist2D_Rank1_Dark_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
-    canvas.SaveAs('output_plots/Rank1_Dark_%s_%s.png'%(name,selection_tag))
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{2} u_{2} v_{2}^{T}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_Rank1_Dark_Sum.GetYaxis().SetTitle('scaled width')
+    #Hist2D_Rank1_Dark_Sum.GetXaxis().SetTitle('scaled length')
+    #Hist2D_Rank1_Dark_Sum.Draw("COL4Z")
+    #line1.Draw("same")
+    #line2.Draw("same")
+    #canvas.SaveAs('output_plots/Rank1_Dark_%s_%s.png'%(name,selection_tag))
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{3} #sigma_{k} u_{k} v_{k}^{T}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_Rank2_Data_Sum.GetYaxis().SetTitle('scaled width')
-    Hist2D_Rank2_Data_Sum.GetXaxis().SetTitle('scaled length')
-    Hist2D_Rank2_Data_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
-    canvas.SaveAs('output_plots/Rank2_Data_%s_%s.png'%(name,selection_tag))
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{3} #sigma_{k} u_{k} v_{k}^{T}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_Rank2_Data_Sum.GetYaxis().SetTitle('scaled width')
+    #Hist2D_Rank2_Data_Sum.GetXaxis().SetTitle('scaled length')
+    #Hist2D_Rank2_Data_Sum.Draw("COL4Z")
+    #line1.Draw("same")
+    #line2.Draw("same")
+    #canvas.SaveAs('output_plots/Rank2_Data_%s_%s.png'%(name,selection_tag))
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{3} u_{3} v_{3}^{T}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_Rank2_Dark_Sum.GetYaxis().SetTitle('scaled width')
-    Hist2D_Rank2_Dark_Sum.GetXaxis().SetTitle('scaled length')
-    Hist2D_Rank2_Dark_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
-    canvas.SaveAs('output_plots/Rank2_Dark_%s_%s.png'%(name,selection_tag))
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{3} u_{3} v_{3}^{T}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_Rank2_Dark_Sum.GetYaxis().SetTitle('scaled width')
+    #Hist2D_Rank2_Dark_Sum.GetXaxis().SetTitle('scaled length')
+    #Hist2D_Rank2_Dark_Sum.Draw("COL4Z")
+    #line1.Draw("same")
+    #line2.Draw("same")
+    #canvas.SaveAs('output_plots/Rank2_Dark_%s_%s.png'%(name,selection_tag))
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{4} #sigma_{k} u_{k} v_{k}^{T}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_Rank3_Data_Sum.GetYaxis().SetTitle('scaled width')
-    Hist2D_Rank3_Data_Sum.GetXaxis().SetTitle('scaled length')
-    Hist2D_Rank3_Data_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
-    canvas.SaveAs('output_plots/Rank3_Data_%s_%s.png'%(name,selection_tag))
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'#sum_{k=1}^{4} #sigma_{k} u_{k} v_{k}^{T}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_Rank3_Data_Sum.GetYaxis().SetTitle('scaled width')
+    #Hist2D_Rank3_Data_Sum.GetXaxis().SetTitle('scaled length')
+    #Hist2D_Rank3_Data_Sum.Draw("COL4Z")
+    #line1.Draw("same")
+    #line2.Draw("same")
+    #canvas.SaveAs('output_plots/Rank3_Data_%s_%s.png'%(name,selection_tag))
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{4} u_{4} v_{4}^{T}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_Rank3_Dark_Sum.GetYaxis().SetTitle('scaled width')
-    Hist2D_Rank3_Dark_Sum.GetXaxis().SetTitle('scaled length')
-    Hist2D_Rank3_Dark_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
-    canvas.SaveAs('output_plots/Rank3_Dark_%s_%s.png'%(name,selection_tag))
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{4} u_{4} v_{4}^{T}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_Rank3_Dark_Sum.GetYaxis().SetTitle('scaled width')
+    #Hist2D_Rank3_Dark_Sum.GetXaxis().SetTitle('scaled length')
+    #Hist2D_Rank3_Dark_Sum.Draw("COL4Z")
+    #line1.Draw("same")
+    #line2.Draw("same")
+    #canvas.SaveAs('output_plots/Rank3_Dark_%s_%s.png'%(name,selection_tag))
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.25,'M^{ON} - #sum_{k=1}^{5} #sigma_{k} u_{k} v_{k}^{T}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_Rank4_Data_Sum.GetYaxis().SetTitle('scaled width')
-    Hist2D_Rank4_Data_Sum.GetXaxis().SetTitle('scaled length')
-    Hist2D_Rank4_Data_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
-    canvas.SaveAs('output_plots/Rank4_Data_%s_%s.png'%(name,selection_tag))
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'M^{ON} - #sum_{k=1}^{5} #sigma_{k} u_{k} v_{k}^{T}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_Rank4_Data_Sum.GetYaxis().SetTitle('scaled width')
+    #Hist2D_Rank4_Data_Sum.GetXaxis().SetTitle('scaled length')
+    #Hist2D_Rank4_Data_Sum.Draw("COL4Z")
+    #line1.Draw("same")
+    #line2.Draw("same")
+    #canvas.SaveAs('output_plots/Rank4_Data_%s_%s.png'%(name,selection_tag))
 
-    pad3.cd()
-    lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{5} u_{5} v_{5}^{T}' )
-    lumilab1.SetNDC()
-    lumilab1.SetTextSize(0.25)
-    lumilab1.Draw()
-    pad1.cd()
-    Hist2D_Rank4_Dark_Sum.GetYaxis().SetTitle('scaled width')
-    Hist2D_Rank4_Dark_Sum.GetXaxis().SetTitle('scaled length')
-    Hist2D_Rank4_Dark_Sum.Draw("COL4Z")
-    line1.Draw("same")
-    line2.Draw("same")
-    canvas.SaveAs('output_plots/Rank4_Dark_%s_%s.png'%(name,selection_tag))
+    #pad3.cd()
+    #lumilab1 = ROOT.TLatex(0.15,0.25,'#sigma_{5} u_{5} v_{5}^{T}' )
+    #lumilab1.SetNDC()
+    #lumilab1.SetTextSize(0.25)
+    #lumilab1.Draw()
+    #pad1.cd()
+    #Hist2D_Rank4_Dark_Sum.GetYaxis().SetTitle('scaled width')
+    #Hist2D_Rank4_Dark_Sum.GetXaxis().SetTitle('scaled length')
+    #Hist2D_Rank4_Dark_Sum.Draw("COL4Z")
+    #line1.Draw("same")
+    #line2.Draw("same")
+    #canvas.SaveAs('output_plots/Rank4_Dark_%s_%s.png'%(name,selection_tag))
 
     Hist2D_ErrDark = ROOT.TH2D("Hist2D_ErrDark","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
     Hist2D_ErrDark.Add(Hist2D_OnData_Sum)
@@ -6872,7 +6892,7 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
                             StackShowerHistograms()
                             NormalizeEnergyHistograms(FilePath_List[len(FilePath_List)-1])
                             StackEnergyHistograms()
-                            NormalizeTheta2Histograms(FilePath_List[len(FilePath_List)-1])
+                            NormalizeTheta2Histograms(FilePath_List[len(FilePath_List)-1],e)
                             StackTheta2Histograms()
                             NormalizeSkyMapHistograms(FilePath_List[len(FilePath_List)-1],e)
                             StackSkymapHistograms(e)
@@ -6942,9 +6962,8 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
     GetSourceInfo(FilePath_List)
 
     Syst_MDM = energy_syst[energy_bin_cut_low]
-    #CalculateSystError_v3()
 
-    PlotsStackedHistograms('%s%s'%(source_list[0],selection_tag))
+    #PlotsStackedHistograms('%s%s'%(source_list[0],selection_tag))
     print ('finish stacked plots.')
     print ('selection_tag = %s'%(selection_tag))
 
@@ -7256,8 +7275,10 @@ Hist_Data_Skymap = ROOT.TH2D("Hist_Data_Skymap","",Skymap_nbins,source_ra-Skymap
 Hist_Data_Elev_Skymap = ROOT.TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_Data_Azim_Skymap = ROOT.TH2D("Hist_Data_Azim_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_Data_NSB_Skymap = ROOT.TH2D("Hist_Data_NSB_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_ElevNSB = ROOT.TH2D("Hist_ElevNSB","",20,0,10,18,0,90)
-Hist_ElevAzim = ROOT.TH2D("Hist_ElevAzim","",18,0,360,18,0,90)
+Hist_Data_ElevNSB = ROOT.TH2D("Hist_Data_ElevNSB","",20,0,10,18,0,90)
+Hist_Data_ElevAzim = ROOT.TH2D("Hist_Data_ElevAzim","",18,0,360,18,0,90)
+Hist_Dark_ElevNSB = ROOT.TH2D("Hist_Dark_ElevNSB","",20,0,10,18,0,90)
+Hist_Dark_ElevAzim = ROOT.TH2D("Hist_Dark_ElevAzim","",18,0,360,18,0,90)
 
 Hist_SumSyst_Energy_Skymap = []
 Hist_NormSyst_Energy_Skymap = []
@@ -7267,6 +7288,7 @@ Hist_Expo_Energy_Skymap = []
 Hist_Data_Energy_Skymap = []
 Hist_Bkgd_Energy_Skymap = []
 Hist_Rfov_Energy_Skymap = []
+Hist_Data_CR_XYoff = []
 for ebin in range(0,len(energy_bin)-1):
     Hist_SumSyst_Energy_Skymap += [ROOT.TH2D("Hist_SumSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_NormSyst_Energy_Skymap += [ROOT.TH2D("Hist_NormSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
@@ -7274,6 +7296,7 @@ for ebin in range(0,len(energy_bin)-1):
     Hist_Expo_Energy_Skymap += [ROOT.TH2D("Hist_Expo_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_Data_Energy_Skymap += [ROOT.TH2D("Hist_Data_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_Bkgd_Energy_Skymap += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+    Hist_Data_CR_XYoff += [ROOT.TH2D("Hist_OnData_CR_XYoff_%s"%(ebin),"",30,-3,3,30,-3,3)]
     Hist_Rfov_Energy_Skymap += [ROOT.TH2D("Hist_Rfov_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
     Hist_ShapeSyst_Energy_Skymap_ThisBin = []
     for xy_bin in range(0,len(integration_radii)):
