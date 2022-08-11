@@ -1,52 +1,42 @@
 
-//int N_bins_for_deconv = 9; // 8 should be the lowest bin number
-//
+
+int N_bins_for_deconv = 12; // 8 should be the lowest bin number
+
 //const int N_energy_bins = 4;
-//double Log10_alpha[N_energy_bins] = {0.,0.,0.,0.};
-//int best_beta[N_energy_bins] = {2,2,4,6};
-//double optimiz_lower[N_energy_bins] = {-1.,-1.,-1.,-1.};
-//double optimiz_upper[N_energy_bins] = {1.,1.,1.,1.};
+//double Log10_alpha[N_energy_bins] = {1.0,1.0,-0.3,-1.0};
+//double Log10_beta[N_energy_bins] = {0.1,-0.1,-0.1,-0.0};
+//double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5};
+//double optimiz_alpha_upper[N_energy_bins] = {1.5,1.5,1.5,1.5};
+//double optimiz_beta_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5};
+//double optimiz_beta_upper[N_energy_bins] = {1.5,1.5,1.5,1.5};
 //int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
 //double energy_bins[N_energy_bins+1] = {100.,316.,1000.,3162.,10000.};
-//double gamma_hadron_dim_ratio_w[N_energy_bins] = {2.,2.,2.,2.};
-//double gamma_hadron_dim_ratio_l[N_energy_bins] = {2.,2.,2.,2.};
+//double gamma_hadron_dim_ratio_w = 1.;
+//double gamma_hadron_dim_ratio_l = 1.;
 //double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0};
 //double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0};
 //const int N_energy_fine_bins = 4;
 //double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.5),pow(10,3.0),pow(10,3.5),pow(10,4.0)};
 
-int N_bins_for_deconv = 10; // 8 should be the lowest bin number
+const int N_energy_bins = 6;
+double Log10_alpha[N_energy_bins] = {1.0, 1.0,-1.0,0.0,0.0,0.0};
+double Log10_beta[N_energy_bins] =  {1.0,-0.2, 0.2,0.0,0.0,0.0};
+double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
+double optimiz_alpha_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5,1.5};
+double optimiz_beta_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
+double optimiz_beta_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5,1.5};
+int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
+double energy_bins[N_energy_bins+1] = {200.,398.,794.,1585.,3162.,6310.,12589.};
+double gamma_hadron_dim_ratio_w = 1.;
+double gamma_hadron_dim_ratio_l = 1.;
+double gamma_hadron_low_end = 0.;
+double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
+double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
+const int N_energy_fine_bins = 6;
+double energy_fine_bins[N_energy_fine_bins+1] = {200.,398.,794.,1585.,3162.,6310.,12589.};
 
-const int N_energy_bins = 4;
-double Log10_alpha[N_energy_bins] = {1.0,1.0,-0.3,-1.0};
-double Log10_beta[N_energy_bins] = {0.1,-0.1,-0.1,-0.0};
-double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5};
-double optimiz_alpha_upper[N_energy_bins] = {1.5,1.5,1.5,1.5};
-double optimiz_beta_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5};
-double optimiz_beta_upper[N_energy_bins] = {1.5,1.5,1.5,1.5};
-int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
-double energy_bins[N_energy_bins+1] = {100.,316.,1000.,3162.,10000.};
-double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.};
-double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.};
-double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0};
-double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0};
-const int N_energy_fine_bins = 4;
-double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.5),pow(10,3.0),pow(10,3.5),pow(10,4.0)};
 
-//const int N_energy_bins = 6;
-//double Log10_alpha[N_energy_bins] = {-3.5,-1.5,-3.5,-3.2,-2.75,-2.0};
-//int best_beta[N_energy_bins] = {3,3,3,4,4,4};
-//double optimiz_lower[N_energy_bins] = {-4.,-3.,-4.,-4.,-4.,-3.};
-//double optimiz_upper[N_energy_bins] = {-2.,-1.,-2.,-2.,-2.,-1.};
-//int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
-//double energy_bins[N_energy_bins+1] = {100.,178.,316.,562.,1000.,3162.,10000.};
-//double gamma_hadron_dim_ratio_w[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
-//double gamma_hadron_dim_ratio_l[N_energy_bins] = {1.,1.,1.,1.,1.,1.};
-//double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
-//double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
-//const int N_energy_fine_bins = 6;
-//double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.25),pow(10,2.5),pow(10,2.75),pow(10,3.0),pow(10,3.5),pow(10,4.0)};
-
+bool UseDL3Tree = false;
 bool UseDBOnly = false;
 bool RHVData = false;
 bool EigenDecomposition = false;
@@ -54,9 +44,9 @@ bool EigenDecomposition = false;
 bool UseRegularization = true;
 //bool UseRegularization = false;
 
-//int AcceptanceCorrection = 1;  // RaDec weight
+int AcceptanceCorrection = 1;  // RaDec weight
 //int AcceptanceCorrection = 2;  // XYoff weight
-int AcceptanceCorrection = 3;  // Roff weight  // default
+//int AcceptanceCorrection = 3;  // Roff weight  // default
 
 int MatchingSelection = 0; // default
 //int MatchingSelection = 1; // free elevation
@@ -64,6 +54,8 @@ int MatchingSelection = 0; // default
 //int MatchingSelection = 3; // free NSB
 
 bool ExposureCorrection = false;
+
+int nbins_fitting = 4;
 
 double MSCW_plot_upper = 3.;
 double MSCL_plot_upper = 3.;

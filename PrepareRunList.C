@@ -1338,8 +1338,8 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     if (!isImposter)
     {
         threshold_dAirmass = 0.2; // default 
-        threshold_dNSB = 0.3; // default 
-        threshold_dAzim = 45.; // default 
+        threshold_dNSB = 0.5; // default 
+        threshold_dAzim = 22.5; // default 
 
         if (MatchingSelection==1)
         {
@@ -1605,6 +1605,7 @@ void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_ru
             double on_run_MJD = double(GetRunMJD(ON_filename,ON_runnumber));
 
             int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, true); 
+            //int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false); 
             if (matched_runnumber==0)
             {
                 std::cout << "ON run " << ON_runnumber << " failed to find an imposter." << std::endl;
@@ -2163,6 +2164,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::cout << __LINE__ << std::endl;
     std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
     int group_index = 0;
+    //double exposure_hour_limit = 2.;
     double exposure_hour_limit = 5.;
     //double exposure_hour_limit = 10.;
     //double exposure_hour_limit = 20.;

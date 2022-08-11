@@ -1425,6 +1425,39 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     return std::make_pair(TelRAJ2000_tmp,TelDecJ2000_tmp);
 }
 
+void SetEventDisplayDL3TreeBranch(TTree* Data_tree)
+{
+    Data_tree->SetBranchStatus("*",0);
+    Data_tree->SetBranchStatus("Xoff",1);
+    Data_tree->SetBranchStatus("Yoff",1);
+    Data_tree->SetBranchStatus("Xderot",1);
+    Data_tree->SetBranchStatus("Yderot",1);
+    Data_tree->SetBranchStatus("Erec",1);
+    Data_tree->SetBranchStatus("Erec_Err",1);
+    Data_tree->SetBranchStatus("MSCW",1);
+    Data_tree->SetBranchStatus("MSCL",1);
+    Data_tree->SetBranchStatus("NImages",1);
+    Data_tree->SetBranchStatus("XCore",1);
+    Data_tree->SetBranchStatus("YCore",1);
+    Data_tree->SetBranchStatus("EmissionHeight",1);
+    Data_tree->SetBranchStatus("timeOfDay",1);
+    Data_tree->SetBranchStatus("MJD",1);
+    Data_tree->SetBranchAddress("Xoff",&Xoff);
+    Data_tree->SetBranchAddress("Yoff",&Yoff);
+    Data_tree->SetBranchAddress("Xderot",&Xoff_derot);
+    Data_tree->SetBranchAddress("Yoff_derot",&Yoff_derot);
+    Data_tree->SetBranchAddress("Erec",&ErecS);
+    Data_tree->SetBranchAddress("Erec_Err",&EChi2S);
+    Data_tree->SetBranchAddress("MSCW",&MSCW);
+    Data_tree->SetBranchAddress("MSCL",&MSCL);
+    Data_tree->SetBranchAddress("NImages",&NImages);
+    Data_tree->SetBranchAddress("XCore",&Xcore);
+    Data_tree->SetBranchAddress("YCore",&Ycore);
+    Data_tree->SetBranchAddress("EmissionHeight",&EmissionHeight);
+    Data_tree->SetBranchAddress("timeOfDay",&Time);
+    Data_tree->SetBranchAddress("MJD",&MJD);
+}
+
 void SetEventDisplayTreeBranch(TTree* Data_tree)
 {
     Data_tree->SetBranchStatus("*",0);
@@ -1486,7 +1519,7 @@ void GetRunCosmicRayAcceptance(string file_name, int run, TH2D* hist_input)
         Yoff = 0;
         event_tree->GetEntry(entry);
         if (!SelectNImages()) continue;
-        if (SizeSecondMax<SizeSecondMax_Cut) continue;
+        if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
         if (MSCW<0.7 && MSCL<0.7) continue;
         hist_acc.Fill(Xoff,Yoff);
     }
@@ -1635,50 +1668,6 @@ void SortingList(vector<pair<string,int>>* list, vector<double>* list_pointing)
         }
     }
 }
-vector<pair<string,int>> SelectONRunList(vector<pair<string,int>> Data_runlist, double Elev_cut_lower, double Elev_cut_upper, int MJD_start_cut, int MJD_end_cut)
-{
-    std::cout << "initial runs = " << Data_runlist.size() << std::endl;
-    vector<pair<string,int>> new_list;
-    vector<double> new_list_pointing;
-    for (int run=0;run<Data_runlist.size();run++)
-    {
-        if (RunTypeCategory(Data_runlist[run].second,true)!=0) 
-        {
-            std::cout << int(Data_runlist[run].second) << " category rejected." << std::endl;
-            continue;
-        }
-        char run_number[50];
-        char Data_observation[50];
-        sprintf(run_number, "%i", int(Data_runlist[run].second));
-        sprintf(Data_observation, "%s", Data_runlist[run].first.c_str());
-        double NSB_thisrun = GetRunPedestalVar(int(Data_runlist[run].second));
-        string filename;
-        filename = TString(SMI_INPUT+"/"+string(run_number)+".anasum.root");
-
-        if (!PointingSelection(filename,int(Data_runlist[run].second),Elev_cut_lower,Elev_cut_upper))
-        {
-            //std::cout << int(Data_runlist[run].second) << " pointing rejected." << std::endl;
-            continue;
-        }
-        if (!MJDSelection(filename,int(Data_runlist[run].second),MJD_start_cut,MJD_end_cut)) 
-        {
-            std::cout << int(Data_runlist[run].second) << " MJD rejected." << std::endl;
-            continue;
-        }
-        double L3_rate = GetRunL3Rate(Data_runlist[run].second);
-        if (L3_rate<150.)
-        {
-            std::cout << int(Data_runlist[run].second) << " L3 rate rejected." << std::endl;
-            continue;
-        }
-
-        new_list.push_back(std::make_pair(Data_runlist[run].first,Data_runlist[run].second));
-        new_list_pointing.push_back(GetRunElevAzim(filename,int(Data_runlist[run].second)).first);
-    }
-    std::cout << "selected runs = " << new_list.size() << std::endl;
-    if (new_list.size()>1) SortingList(&new_list, &new_list_pointing);
-    return new_list;
-}
 
 double GetHistogramChi2(TH2D* hist_1, TH2D* hist_2)
 {
@@ -1695,320 +1684,6 @@ double GetHistogramChi2(TH2D* hist_1, TH2D* hist_2)
         }
     }
     return chi2/dof;
-}
-
-vector<vector<vector<pair<string,int>>>> SelectDarkRunList(vector<pair<string,int>> ON_runlist, vector<pair<string,int>> OFF_runlist_input, double tel_elev_lower, double tel_elev_upper, bool nsb_reweight)
-{
-
-    int nsb_bins = 1;
-    if (nsb_reweight) nsb_bins = 20;
-    TH2D Hist_OnData_ElevNSB = TH2D("Hist_OnData_ElevNSB","",nsb_bins,0,10,18,0,90);
-    TH2D Hist_OffData_ElevNSB = TH2D("Hist_OffData_ElevNSB","",nsb_bins,0,10,18,0,90);
-
-    std::cout << "Load ON run info" << std::endl;
-    vector<pair<double,double>> ON_pointing;
-    vector<pair<double,double>> ON_pointing_radec;
-    vector<double> ON_count;
-    vector<double> ON_time;
-    vector<vector<double>> Dark_count;
-    vector<double> ON_NSB;
-    vector<double> ON_MJD;
-    vector<double> ON_L3Rate;
-    for (int on_run=0;on_run<ON_runlist.size();on_run++)
-    {
-        char ON_runnumber[50];
-        char ON_observation[50];
-        sprintf(ON_runnumber, "%i", int(ON_runlist[on_run].second));
-        sprintf(ON_observation, "%s", ON_runlist[on_run].first.c_str());
-        string ON_filename;
-        ON_filename = TString(SMI_INPUT+"/"+string(ON_runnumber)+".anasum.root");
-        if (TString(ON_observation).Contains("Proton")) ON_pointing.push_back(std::make_pair(70,0));
-        else ON_pointing.push_back(GetRunElevAzim(ON_filename,int(ON_runlist[on_run].second)));
-        if (TString(ON_observation).Contains("Proton")) ON_pointing_radec.push_back(std::make_pair(0,0));
-        else ON_pointing_radec.push_back(GetRunRaDec(ON_filename,int(ON_runlist[on_run].second)));
-        double NSB_thisrun = GetRunPedestalVar(int(ON_runlist[on_run].second));
-        ON_NSB.push_back(NSB_thisrun);
-        double exposure_thisrun = GetRunUsableTime(ON_filename,ON_runlist[on_run].second);
-        ON_time.push_back(exposure_thisrun);
-        ON_MJD.push_back(GetRunMJD(ON_filename,int(ON_runlist[on_run].second)));
-        ON_L3Rate.push_back(GetRunL3Rate(ON_runlist[on_run].second));
-        ON_count.push_back(exposure_thisrun*GetRunL3Rate(ON_runlist[on_run].second));
-        if (MJD<MJD_Start) MJD_Start = MJD;
-        if (MJD>MJD_End) MJD_End = MJD;
-        Hist_OnData_ElevNSB.Fill(ON_NSB[ON_NSB.size()-1],ON_pointing[ON_pointing.size()-1].first,exposure_thisrun);
-    }
-
-    std::cout << "Load OFF run info" << std::endl;
-    vector<pair<string,int>> OFF_runlist;
-    vector<pair<double,double>> OFF_pointing;
-    vector<pair<double,double>> OFF_pointing_radec;
-    vector<double> OFF_time;
-    vector<double> OFF_MJD;
-    vector<double> OFF_L3Rate;
-    vector<double> OFF_NSB;
-    for (int off_run=0;off_run<OFF_runlist_input.size();off_run++)
-    {
-        //std::cout << "Load OFF run " << OFF_runlist_input[off_run].second << std::endl;
-        char OFF_runnumber[50];
-        char OFF_observation[50];
-        sprintf(OFF_runnumber, "%i", int(OFF_runlist_input[off_run].second));
-        sprintf(OFF_observation, "%s", OFF_runlist_input[off_run].first.c_str());
-        string OFF_filename;
-        OFF_filename = TString(SMI_INPUT+"/"+string(OFF_runnumber)+".anasum.root");
-        double run_elevation = GetRunElevAzim(OFF_filename,int(OFF_runlist_input[off_run].second)).first;
-        if (run_elevation<tel_elev_lower-5.) continue;
-        if (run_elevation>tel_elev_upper+5.) continue;
-        OFF_runlist.push_back(OFF_runlist_input[off_run]);
-        if (TString(OFF_observation).Contains("Proton")) OFF_pointing.push_back(std::make_pair(70,0));
-        else OFF_pointing.push_back(GetRunElevAzim(OFF_filename,int(OFF_runlist_input[off_run].second)));
-        if (TString(OFF_observation).Contains("Proton")) OFF_pointing_radec.push_back(std::make_pair(0,0));
-        else OFF_pointing_radec.push_back(GetRunRaDec(OFF_filename,int(OFF_runlist_input[off_run].second)));
-        double NSB_thisrun = GetRunPedestalVar(int(OFF_runlist_input[off_run].second));
-        OFF_NSB.push_back(NSB_thisrun);
-        double exposure_thisrun = GetRunUsableTime(OFF_filename,OFF_runlist_input[off_run].second);
-        OFF_time.push_back(exposure_thisrun);
-        OFF_MJD.push_back(GetRunMJD(OFF_filename,int(OFF_runlist_input[off_run].second)));
-        OFF_L3Rate.push_back(GetRunL3Rate(OFF_runlist_input[off_run].second));
-        Hist_OffData_ElevNSB.Fill(OFF_NSB[OFF_NSB.size()-1],OFF_pointing[OFF_pointing.size()-1].first,exposure_thisrun);
-    }
-
-    std::cout << "Select matched runs" << std::endl;
-    vector<vector<vector<pair<string,int>>>> new_list;
-    for (int on_run=0;on_run<ON_runlist.size();on_run++)
-    {
-        vector<vector<pair<string,int>>> the_samples;
-        vector<double> Dark_count_thisrun;
-        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
-        {
-            vector<pair<string,int>> the_runs;
-            the_samples.push_back(the_runs);
-            Dark_count_thisrun.push_back(0.);
-        }
-        new_list.push_back(the_samples);
-        Dark_count.push_back(Dark_count_thisrun);
-    }
-    vector<pair<double,double>> ON_pointing_radec_new;
-    TH2D hist_on_acc = TH2D("hist_on_acc","",8,-2,2,8,-2,2);
-    TH2D hist_off_acc = TH2D("hist_off_acc","",8,-2,2,8,-2,2);
-    for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
-    {
-        std::cout << "Complete " << nth_sample << "/" << n_dark_samples << std::endl;
-        double total_dNSB_chi2 = 0.;
-        double total_dElev_chi2 = 0.;
-        double total_dMJD_chi2 = 0.;
-        double total_dL3Rate_chi2 = 0.;
-        double dNSB_chi2 = 0.;
-        double dElev_chi2 = 0.;
-        double dMJD_chi2 = 0.;
-        double dL3Rate_chi2 = 0.;
-        for (int on_run=0;on_run<ON_runlist.size();on_run++)
-        {
-            hist_on_acc.Reset();
-            char ON_runnumber[50];
-            sprintf(ON_runnumber, "%i", int(ON_runlist[on_run].second));
-            string ON_filename;
-            ON_filename = TString(SMI_INPUT+"/"+string(ON_runnumber)+".anasum.root");
-            //GetRunCosmicRayAcceptance(ON_filename, int(ON_runlist[on_run].second), &hist_on_acc);
-            std::cout << "finding matches for " << on_run << "/" << ON_runlist.size() << " runs..." << std::endl;
-            std::cout << "ON_pointing[on_run].first = " << ON_pointing[on_run].first << std::endl;
-            std::cout << "ON_count[on_run] = " << ON_count[on_run] << std::endl;
-            std::cout << "ON_time[on_run] = " << ON_time[on_run] << std::endl;
-            std::cout << "ON_L3Rate[on_run] = " << ON_L3Rate[on_run] << std::endl;
-            std::cout << "ON_NSB[on_run] = " << ON_NSB[on_run] << std::endl;
-            int number_of_search = 0;
-            double accumulated_count = 0.;
-            double offset_NSB = 0.;
-            double offset_Elev = 0.;
-            double threshold_dNSB = 0.5;
-            double threshold_dElev = 2.0;
-            double threshold_dAzim = 45.;
-            double threshold_dMJD = 3.*365.;
-            double threshold_dL3Rate = 0.3;
-            double threshold_dTime = 15.*60.;
-            while (accumulated_count<2.0*ON_count[on_run])
-            {
-                pair<string,int> best_match;
-                pair<double,double> best_pointing;
-                double best_chi2 = 1e10;
-                int best_off_run = 0;
-                double best_count = 0.;
-                bool found_match = false;
-                for (int off_run=0;off_run<OFF_runlist.size();off_run++)
-                {
-
-                    if (RunTypeCategory(OFF_runlist[off_run].second,false)!=0) continue;
-                    double diff_ra = ON_pointing_radec[on_run].first-OFF_pointing_radec[off_run].first;
-                    double diff_dec = ON_pointing_radec[on_run].second-OFF_pointing_radec[off_run].second;
-                    if ((diff_ra*diff_ra+diff_dec*diff_dec)<10.*10.) continue;
-
-                    //M87
-                    double M87_RA = 187.70593076;
-                    double M87_Dec = 12.3911232939;
-                    diff_ra = M87_RA-OFF_pointing_radec[off_run].first;
-                    diff_dec = M87_Dec-OFF_pointing_radec[off_run].second;
-                    if ((diff_ra*diff_ra+diff_dec*diff_dec)<10.*10.) continue;
-
-                    if (ON_runlist[on_run].first.find("Proton")==std::string::npos)
-                    {
-                        if (ON_runlist[on_run].first.compare(OFF_runlist[off_run].first) == 0) continue;
-                    }
-                    bool already_used_run = false;
-                    for (int on_run2=0;on_run2<ON_runlist.size();on_run2++)
-                    {
-                        if (int(ON_runlist[on_run2].second)==int(OFF_runlist[off_run].second)) already_used_run = true; // this OFF run is in ON runlist
-                    }
-                    for (int nth_other_sample=0;nth_other_sample<n_dark_samples;nth_other_sample++)
-                    {
-                        for (int new_run=0;new_run<new_list.at(on_run).at(nth_other_sample).size();new_run++)
-                        {
-                            if (int(new_list.at(on_run).at(nth_other_sample)[new_run].second)==int(OFF_runlist[off_run].second)) already_used_run = true;
-                        }
-                    }
-                    if (already_used_run) continue;
-
-                    double delta_azimuth = abs(ON_pointing[on_run].second-OFF_pointing[off_run].second);
-                    if (delta_azimuth>180.) delta_azimuth = 360.-delta_azimuth;
-
-                    double chi2 = 0.;
-                    found_match = true;
-                    //chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first+offset_Elev,2);
-                    chi2 = pow(delta_azimuth,2);
-                    //chi2 = pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2);
-                    //chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run]-offset_NSB,2);
-                    if (pow(ON_pointing[on_run].first-OFF_pointing[off_run].first+offset_Elev,2)>threshold_dElev*threshold_dElev)
-                    {
-                        found_match = false;
-                        continue;
-                    }
-                    //if (pow(delta_azimuth,2)>threshold_dAzim*threshold_dAzim)
-                    //{
-                    //    found_match = false;
-                    //    continue;
-                    //}
-                    if (pow(ON_NSB[on_run]-OFF_NSB[off_run]-offset_NSB,2)>threshold_dNSB*threshold_dNSB)
-                    {
-                        found_match = false;
-                        continue;
-                    }
-                    if (pow(ON_MJD[on_run]-OFF_MJD[off_run],2)>threshold_dMJD*threshold_dMJD)
-                    {
-                        found_match = false;
-                        continue;
-                    }
-                    if (pow((ON_L3Rate[on_run]-OFF_L3Rate[off_run])/ON_L3Rate[on_run],2)>threshold_dL3Rate*threshold_dL3Rate)
-                    {
-                        found_match = false;
-                        continue;
-                    }
-                    if (pow(ON_time[on_run]-OFF_time[off_run],2)>threshold_dTime*threshold_dTime)
-                    {
-                        found_match = false;
-                        continue;
-                    }
-
-                    hist_off_acc.Reset();
-                    char OFF_runnumber[50];
-                    sprintf(OFF_runnumber, "%i", int(OFF_runlist[off_run].second));
-                    string OFF_filename;
-                    OFF_filename = TString(SMI_INPUT+"/"+string(OFF_runnumber)+".anasum.root");
-                    //GetRunCosmicRayAcceptance(OFF_filename, int(OFF_runlist[off_run].second), &hist_off_acc);
-                    //std::cout << "hist_on_acc.Integral() = " << hist_on_acc.Integral() << std::endl;
-                    //std::cout << "hist_off_acc.Integral() = " << hist_off_acc.Integral() << std::endl;
-                    //double on_off_scale = hist_on_acc.Integral()/hist_off_acc.Integral();
-                    //hist_off_acc.Scale(on_off_scale);
-                    //double chi2_acc = GetHistogramChi2(&hist_on_acc, &hist_off_acc);
-                    //std::cout << "chi2_acc = " << chi2_acc << std::endl;
-                    //chi2 = chi2_acc;
-
-                    if (found_match && best_chi2>chi2)
-                    {
-                        best_chi2 = chi2;
-                        best_match = OFF_runlist[off_run];
-                        best_pointing = OFF_pointing[off_run];
-                        best_off_run = off_run;
-                        best_count = OFF_time[off_run]*OFF_L3Rate[off_run];
-                        dElev_chi2 = pow(ON_pointing[on_run].first-OFF_pointing[off_run].first,2);
-                        dNSB_chi2 = pow(ON_NSB[on_run]-OFF_NSB[off_run],2);
-                        dMJD_chi2 = pow(ON_MJD[on_run]-OFF_MJD[off_run],2);
-                        dL3Rate_chi2 = pow(ON_L3Rate[on_run]-OFF_L3Rate[off_run],2);
-                    }
-                    //if (best_chi2<1.0) break;
-                }
-                if (best_chi2<1e10) 
-                {
-                    std::cout << on_run << "/" << ON_runlist.size() << ", found a match " << best_match.first << " " << best_match.second << ", best_chi2 = " << best_chi2 << std::endl;
-                    //std::cout << "OFF_pointing[off_run].first = " << OFF_pointing[best_off_run].first << std::endl;
-                    //std::cout << "OFF_time[off_run] = " << OFF_time[best_off_run] << std::endl;
-                    //std::cout << "OFF_L3Rate[off_run] = " << OFF_L3Rate[best_off_run] << std::endl;
-                    //std::cout << "OFF_NSB[off_run] = " << OFF_NSB[best_off_run] << std::endl;
-                    new_list.at(on_run).at(nth_sample).push_back(best_match);
-                    ON_pointing_radec_new.push_back(ON_pointing_radec[on_run]);
-                    n_good_matches += 1;
-                    accumulated_count += best_count;
-                    total_dNSB_chi2 += dNSB_chi2;
-                    total_dElev_chi2 += dElev_chi2;
-                    total_dMJD_chi2 += dMJD_chi2;
-                    total_dL3Rate_chi2 += dL3Rate_chi2;
-                }
-                else
-                {
-                    // searched whole OFF list and found no match.
-                    number_of_search += 1;
-                    std::cout << on_run << "/" << ON_runlist.size() << ", number_of_search = " << number_of_search << std::endl;
-                    if (number_of_search>=1)
-                    {
-                        std::cout << "couldn't find a matched run, relax time cuts." << std::endl;
-                        threshold_dMJD += 10.0*365.;
-                        threshold_dTime += 5.0*60.;
-                    }
-                    if (number_of_search>=2)
-                    {
-                        std::cout << "couldn't find a matched run, relax elevation and NSB cuts." << std::endl;
-                        threshold_dNSB += 0.5;
-                        threshold_dElev += 2.;
-                    }
-                    if (number_of_search>=3)
-                    {
-                        std::cout << "couldn't find a matched run for " << int(ON_runlist[on_run].second) << ", break." << std::endl;
-                        std::cout << "ON run elevation " << ON_pointing[on_run].first << ", azimuth " << ON_pointing[on_run].second << ", NSB " << ON_NSB[on_run] << std::endl; 
-                        break;
-                        std::cout << "couldn't find a matched run, relax all cuts." << std::endl;
-                        threshold_dNSB += 10.;
-                        threshold_dElev += 10.;
-                        threshold_dMJD += 10.0*365.;
-                        threshold_dL3Rate += 0.3;
-                        threshold_dTime += 5.0*60.;
-                    }
-                }
-            }
-            Dark_count.at(on_run).at(nth_sample) = accumulated_count;
-        }
-        total_dNSB_chi2 = pow(total_dNSB_chi2/double(OFF_runlist.size()),0.5);
-        total_dElev_chi2 = pow(total_dElev_chi2/double(OFF_runlist.size()),0.5);
-        total_dMJD_chi2 = pow(total_dMJD_chi2/double(OFF_runlist.size()),0.5);
-        total_dL3Rate_chi2 = pow(total_dL3Rate_chi2/double(OFF_runlist.size()),0.5);
-        std::cout << "total_dNSB_chi2 = " << total_dNSB_chi2 << std::endl;
-        std::cout << "total_dElev_chi2 = " << total_dElev_chi2 << std::endl;
-        std::cout << "total_dMJD_chi2 = " << total_dMJD_chi2 << std::endl;
-        std::cout << "total_dL3Rate_chi2 = " << total_dL3Rate_chi2 << std::endl;
-    }
-    for (int on_run=0;on_run<ON_runlist.size();on_run++)
-    {
-        vector<double> Dark_weight_thisrun;
-        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
-        {
-            double weight = 0.;
-            if (Dark_count.at(on_run).at(nth_sample)>0.)
-            {
-                weight = ON_count.at(on_run)/Dark_count.at(on_run).at(nth_sample);
-            }
-            Dark_weight_thisrun.push_back(weight);
-        }
-        Dark_weight.push_back(Dark_weight_thisrun);
-    }
-
-    return new_list;
-
 }
 
 
@@ -2093,8 +1768,8 @@ bool ControlSelectionTheta2()
     //if (MSCW<MSCW_cut_blind) return false;
     //if (MSCL>MSCL_cut_blind) return false;
     //double boundary = 1.0;
-    //if (MSCL>boundary*gamma_hadron_dim_ratio_l[0]*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
-    //if (MSCW>boundary*gamma_hadron_dim_ratio_w[0]*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
+    //if (MSCL>boundary*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-MSCL_plot_lower)+MSCL_cut_blind) return false;
+    //if (MSCW>boundary*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-MSCW_plot_lower)+MSCW_cut_blind) return false;
     return true;
 }
 
@@ -2667,10 +2342,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-        MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-        MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+        MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+        MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
 
         Hist_OnData_Incl_CR_Zenith.push_back(TH1D("Hist_OnData_Incl_CR_Zenith_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",45,0,90));
@@ -2744,10 +2419,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
         int XYoff_bins = 36;
 
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-        MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-        MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+        MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+        MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
 
         Hist_OnData_MSCLW.push_back(TH2D("Hist_Stage1_OnData_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -2822,10 +2497,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-            MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-            MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+            MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+            MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
             N_bins_for_deconv = N_bins_for_deconv_func_E[e];
 
             Hist_OnDark_OneSample_MSCLW.push_back(TH2D("Hist_Stage1_OnDark_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -2933,10 +2608,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             char e_up[50];
             sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-            MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-            MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+            MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+            MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
             N_bins_for_deconv = N_bins_for_deconv_func_E[e];
 
             Hist_OnData_OneRoI_SR_RoI_Energy.push_back(TH1D("Hist_Stage1_OnData_SR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
@@ -3154,7 +2829,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     if (elevation>=N_elev_bins) continue;
                     if (!SelectNImages()) continue;
                     if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
-                    if (SizeSecondMax<SizeSecondMax_Cut) continue;
+                    if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
                     //if (EmissionHeight<6.) continue;
                     double shower_depth = GetShowerDepth(EmissionHeight,tele_elev_off);
                     //if (shower_depth>4.) continue;
@@ -3237,7 +2912,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     if (elevation>=N_elev_bins) continue;
                     if (!SelectNImages()) continue;
                     if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
-                    if (SizeSecondMax<SizeSecondMax_Cut) continue;
+                    if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
                     //if (EmissionHeight<6.) continue;
                     double shower_depth = GetShowerDepth(EmissionHeight,tele_elev_off);
                     //if (shower_depth>4.) continue;
@@ -3246,9 +2921,9 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     //if (R2off>4.) continue;
                     MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
                     MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
-                    Hist_Dark_ShowerDirection.Fill(Shower_Az,Shower_Ze);
+                    Hist_Dark_ShowerDirection.Fill(tele_azim_off,tele_elev_off);
                     Hist_Dark_ElevNSB.Fill(NSB_thisrun,tele_elev_off);
-                    Hist_Dark_ElevAzim.Fill(NSB_thisrun,tele_azim_off);
+                    Hist_Dark_ElevAzim.Fill(tele_azim_off,tele_elev_off);
                     double run_weight = Data_exposure_hour[run]/Dark_exposure_hour.at(run).at(nth_sample)[off_run];
                     double weight = run_weight;
                     //if (theta2_dark<source_theta2_cut && SignalSelectionTheta2()) weight = run_weight*source_weight.at(energy);
@@ -3425,7 +3100,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
-            if (SizeSecondMax<SizeSecondMax_Cut) continue;
+            if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
             //if (EmissionHeight<6.) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
@@ -3556,7 +3231,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
-            if (SizeSecondMax<SizeSecondMax_Cut) continue;
+            if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
             //if (EmissionHeight<6.) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
@@ -3685,7 +3360,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
-            if (SizeSecondMax<SizeSecondMax_Cut) continue;
+            if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
             //if (EmissionHeight<6.) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
@@ -3760,7 +3435,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     }
                     Hist_OnData_CR_Skymap_Galactic.at(energy).Fill(evt_l_b.first,evt_l_b.second,acceptance_weight);
                     Hist_OnData_CR_Energy.at(energy).Fill(ErecS*1000.,acceptance_weight);
-                    Hist_OnData_CR_Zenith.at(energy).Fill(Shower_Ze,acceptance_weight);
+                    Hist_OnData_CR_Zenith.at(energy).Fill(tele_elev,acceptance_weight);
                     //Hist_OnData_CR_Height.at(energy).Fill(EmissionHeight,energy_weight);
                     //Hist_OnData_CR_Depth.at(energy).Fill(shower_depth,energy_weight);
                     //Hist_OnData_CR_Rcore.at(energy).Fill(pow(Xcore*Xcore+Ycore*Ycore,0.5),energy_weight);
@@ -4032,7 +3707,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
-            if (SizeSecondMax<SizeSecondMax_Cut) continue;
+            if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
             //if (EmissionHeight<6.) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
@@ -4109,7 +3784,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
-            if (SizeSecondMax<SizeSecondMax_Cut) continue;
+            if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
             //if (EmissionHeight<6.) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
@@ -4135,7 +3810,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (shifted_azim>360.) shifted_azim = shifted_azim-360.;
             mean_azim += shifted_azim;
             mean_nsb += NSB_thisrun;
-            Hist_Data_ShowerDirection.Fill(Shower_Az,Shower_Ze);
+            Hist_Data_ShowerDirection.Fill(tele_azim,tele_elev);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,tele_elev);
             Hist_Data_ElevAzim.Fill(tele_azim,tele_elev);
             Hist_Data_Skymap.Fill(ra_sky,dec_sky);
@@ -4179,7 +3854,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     Hist_OnData_SR_Skymap.at(energy).Fill(ra_sky,dec_sky,weight);
                     Hist_OnData_SR_Skymap_Galactic.at(energy).Fill(evt_l_b.first,evt_l_b.second,weight);
                     Hist_OnData_SR_Energy.at(energy).Fill(ErecS*1000.,weight);
-                    Hist_OnData_SR_Zenith.at(energy).Fill(Shower_Ze,weight);
+                    Hist_OnData_SR_Zenith.at(energy).Fill(tele_elev,weight);
                     if (SourceFoV())
                     {
                         Hist_OnData_SR_Height.at(energy).Fill(EmissionHeight,weight);
@@ -4263,7 +3938,6 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     std::cout << "prepare photon template" << std::endl;
     vector<pair<string,int>> PhotonMC_runlist = GetRunList("Photon");
     vector<pair<string,int>> PhotonData_runlist = GetRunList("CrabV5");
-    //PhotonData_runlist = SelectONRunList(PhotonData_runlist,TelElev_lower,TelElev_upper,0,0);
     
     vector<TH2D> Hist_GammaMC_MSCLW;
     vector<TH2D> Hist_GammaData_MSCLW;
@@ -4276,10 +3950,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-        MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-        MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+        MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+        MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
 
         Hist_GammaMC_MSCLW.push_back(TH2D("Hist_Stage1_GammaMC_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));

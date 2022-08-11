@@ -1261,9 +1261,8 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             //weight = stat_weight;
             //if (isBlind)
             //{
-            //    if (idx_i>=binx_blind_upper_global+beta) continue;
-            //    if (idx_j>=biny_blind_upper_global+beta) continue;
-            //    //if (idx_i>=binx_blind_upper_global && idx_j>=biny_blind_upper_global) continue;
+            //    if (idx_i>=binx_blind_upper_global+nbins_fitting) continue;
+            //    if (idx_j>=biny_blind_upper_global+nbins_fitting) continue;
             //}
             vtr_Delta(idx_u) = weight*(mtx_data_input-mtx_init_comp)(idx_i,idx_j);
             if (isBlind)
@@ -1286,13 +1285,14 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
                     if (isBlind)
                     {
                         if (kth_entry>entry_size && nth_entry>entry_size) continue;
-                        if (kth_entry>entry_size || nth_entry>entry_size) continue;
+                        //if (kth_entry>entry_size || nth_entry>entry_size) continue;
+                        if (kth_entry+nth_entry>entry_size+2) continue;
+                        //
                         //if (kth_entry>entry_size+1 || nth_entry>entry_size+1) continue;
                         //if (kth_entry>active_rank && nth_entry>active_rank) continue;
                         //if (kth_entry<active_rank || nth_entry<active_rank) continue;
                         //if (kth_entry==1 && nth_entry==1) continue;
                         //if (kth_entry==nth_entry) continue;
-                        //if (kth_entry+nth_entry>entry_size+2) continue;
                         if (RegularizationType==7)
                         {
                             if (kth_entry>=3 && nth_entry>=3) continue;
@@ -1354,6 +1354,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
             mtx_A(idx_u1,idx_v1) = alpha;
+            //mtx_A(idx_u1,idx_v1) = pow(10.,1.);
         }
         if (entry_size>=2)
         {
@@ -1362,15 +1363,86 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
             mtx_A(idx_u1,idx_v1) = beta;
+            //mtx_A(idx_u1,idx_v1) = pow(10.,0.);
         }
-        //if (entry_size>=3)
+
+        //if (entry_size>=2)
         //{
-        //    idx_k1 = 3-1;
-        //    idx_n1 = 3-1;
+        //    idx_k1 = 1-1;
+        //    idx_n1 = 2-1;
+        //    idx_k2 = 1-1;
+        //    idx_n2 = 1-1;
+        //    ratio_1 = -0.6848599368384153;
+        //    ratio_2 = -0.7286747332751985;
+        //    variance_1 = 0.0185;
+        //    variance_2 = 0.0059;
         //    idx_v1 = idx_k1*size_n + idx_n1;
-        //    idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-        //    mtx_Constraint(idx_u1,idx_v1) = beta;
+        //    idx_v2 = idx_k2*size_n + idx_n2;
+        //    idx_u1 = idx_v1;
+        //    sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
+        //    sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
+        //    sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
+        //    sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
+        //    if (idx_k1!=idx_n1)
+        //    {
+        //        coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
+        //    }
+        //    else
+        //    {
+        //        coeff_1 = mtx_S_dark(0,0)*(1./sigma_k1);
+        //    }
+        //    if (idx_k2!=idx_n2)
+        //    {
+        //        coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
+        //    }
+        //    else
+        //    {
+        //        coeff_2 = mtx_S_dark(0,0)*(1./sigma_k2);
+        //    }
+        //    mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
+        //    mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
+        //    //mtx_A(idx_u1,idx_v1) = alpha*coeff_1*1./(ratio_1*variance_1);
+        //    //mtx_A(idx_u1,idx_v2) = -1.*alpha*coeff_2*1./(ratio_2*variance_2);
         //}
+        //if (entry_size>=2)
+        //{
+        //    idx_k1 = 2-1;
+        //    idx_n1 = 1-1;
+        //    idx_k2 = 2-1;
+        //    idx_n2 = 2-1;
+        //    ratio_1 = 0.7042724430969776;
+        //    ratio_2 = 0.7099298034976518;
+        //    variance_1 = 0.0391;
+        //    variance_2 = 0.0675;
+        //    idx_v1 = idx_k1*size_n + idx_n1;
+        //    idx_v2 = idx_k2*size_n + idx_n2;
+        //    idx_u1 = idx_v1;
+        //    sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
+        //    sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
+        //    sigma_k2 = mtx_S_dark(idx_k2,idx_k2);
+        //    sigma_n2 = mtx_S_dark(idx_n2,idx_n2);
+        //    if (idx_k1!=idx_n1)
+        //    {
+        //        coeff_1 = mtx_S_dark(0,0)*((1./sigma_k1-1./sigma_n1)/(sigma_n1/sigma_k1-sigma_k1/sigma_n1));
+        //    }
+        //    else
+        //    {
+        //        coeff_1 = mtx_S_dark(0,0)*(1./sigma_k1);
+        //    }
+        //    if (idx_k2!=idx_n2)
+        //    {
+        //        coeff_2 = mtx_S_dark(0,0)*((1./sigma_k2-1./sigma_n2)/(sigma_n2/sigma_k2-sigma_k2/sigma_n2));
+        //    }
+        //    else
+        //    {
+        //        coeff_2 = mtx_S_dark(0,0)*(1./sigma_k2);
+        //    }
+        //    mtx_Constraint(idx_u1,idx_v1) = coeff_1*1./(ratio_1*variance_1);
+        //    mtx_Constraint(idx_u1,idx_v2) = -1.*coeff_2*1./(ratio_2*variance_2);
+        //    //mtx_A(idx_u1,idx_v1) = beta*coeff_1*1./(ratio_1*variance_1);
+        //    //mtx_A(idx_u1,idx_v2) = -1.*beta*coeff_2*1./(ratio_2*variance_2);
+        //}
+
 
         //if (energy_bins[ebin]>=316. && energy_bins[ebin]<1000.)
         //{
@@ -1611,13 +1683,13 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
                 mtx_D(idx_k,idx_n) = (vtr_t(idx_kn)/sigma_n+vtr_t(idx_nk)/sigma_k)/(sigma_n/sigma_k-sigma_k/sigma_n); 
                 if (idx_k>idx_n)
                 {
-                    if (kth_entry<=NumberOfEigenvectors_Stable && nth_entry<=NumberOfEigenvectors_Stable)
-                    {
-                        mtx_CDE(idx_k,idx_n) = mtx_C(idx_k,idx_n);
-                        mtx_CDE(idx_n,idx_k) = mtx_D(idx_k,idx_n);
-                    }
-                    //mtx_CDE(idx_k,idx_n) = mtx_C(idx_k,idx_n);
-                    //mtx_CDE(idx_n,idx_k) = mtx_D(idx_k,idx_n);
+                    //if (kth_entry<=NumberOfEigenvectors_Stable && nth_entry<=NumberOfEigenvectors_Stable)
+                    //{
+                    //    mtx_CDE(idx_k,idx_n) = mtx_C(idx_k,idx_n);
+                    //    mtx_CDE(idx_n,idx_k) = mtx_D(idx_k,idx_n);
+                    //}
+                    mtx_CDE(idx_k,idx_n) = mtx_C(idx_k,idx_n);
+                    mtx_CDE(idx_n,idx_k) = mtx_D(idx_k,idx_n);
                 }
             }
             else
@@ -1953,8 +2025,8 @@ void NormalizeDarkMatrix(TH2D* hist_data, TH2D* hist_dark, double beta)
         {
             if (binx<binx_blind && biny<biny_blind) continue;
             //if (binx<binx_blind || biny<biny_blind) continue;
-            //if (binx>=binx_blind+normalization_bins) continue;
-            //if (biny>=biny_blind+normalization_bins) continue;
+            //if (binx>=binx_blind+nbins_fitting) continue;
+            //if (biny>=biny_blind+nbins_fitting) continue;
             //if (binx>=binx_blind) continue;
             Data_CR_Integral += hist_data->GetBinContent(binx,biny);
             Dark_CR_Integral += hist_dark->GetBinContent(binx,biny);
@@ -2180,10 +2252,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             current_energy = energy_bins[e];
 
 
-            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-            MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-            MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+            MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+            MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
             N_bins_for_deconv = N_bins_for_deconv_func_E[e];
             ResetMatrixDimension();
 
@@ -2203,10 +2275,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         current_energy = energy_bins[e];
 
 
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-        MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-        MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+        MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+        MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
         ResetMatrixDimension();
 
@@ -2250,10 +2322,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             current_energy = energy_bins[e];
 
 
-            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-            MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-            MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+            MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+            MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
             N_bins_for_deconv = N_bins_for_deconv_func_E[e];
             ResetMatrixDimension();
 
@@ -2332,10 +2404,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         current_energy = energy_bins[e];
 
 
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-        MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-        MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+        MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+        MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
         ResetMatrixDimension();
 
@@ -2431,10 +2503,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         current_energy = energy_bins[e];
 
 
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-        MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-        MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+        MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+        MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
         ResetMatrixDimension();
 
@@ -2494,10 +2566,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
 
         int XYoff_bins = 36;
 
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-        MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-        MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+        MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+        MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
         ResetMatrixDimension();
 
@@ -2588,10 +2660,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             current_energy = energy_bins[e];
 
 
-            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-            MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-            MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+            MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+            MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
             N_bins_for_deconv = N_bins_for_deconv_func_E[e];
             ResetMatrixDimension();
 
@@ -2615,10 +2687,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             current_energy = energy_bins[e];
 
 
-            MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-            MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-            MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-            MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+            MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+            MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+            MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+            MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
             N_bins_for_deconv = N_bins_for_deconv_func_E[e];
             ResetMatrixDimension();
 
@@ -2659,10 +2731,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         current_energy = energy_bins[e];
 
 
-        MSCW_plot_upper = gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
-        MSCL_plot_upper = gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
-        MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w[e]*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
-        MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l[e]*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
+        MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))+MSCW_cut_blind;
+        MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
+        MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
+        MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
         N_bins_for_deconv = N_bins_for_deconv_func_E[e];
         ResetMatrixDimension();
 
@@ -2861,7 +2933,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
                 std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank) << std::endl;
                 //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<2.0)
                 //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<3.0)
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<5.0)
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<4.0)
+                //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<5.0)
                 {
                     find_elbow = true;
                 }
