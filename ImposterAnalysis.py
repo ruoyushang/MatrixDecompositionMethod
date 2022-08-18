@@ -51,10 +51,14 @@ def GetFluxCalibration(map_x,map_y,energy):
 def GetEffectiveAreaCorrection(energy):
 
     #return 1.
+
     #SZA
-    flux_calibration = [3.6804804261099933, 2.149839707519784, 2.324098510374783, 2.111044788767092]
+    #flux_calibration = [3.6804804261099933, 2.149839707519784, 2.324098510374783, 2.111044788767092]
+    #flux_calibration = [1.1322594844821785, 1.6092011092857377, 1.8464241310866323, 1.8720466874839645, 1.9135915421954204, 1.7407060559258778]
     #LZA
     #flux_calibration = [9.386080061991214, 2.0834714135836507, 2.4432710106703546, 2.344873358260945]
+    flux_calibration = [1.6932426930099356, 1.4135753876998944, 1.6760188662529696, 1.847970753395675, 1.9016082639420058, 1.7233699081066682]
+
     return flux_calibration[energy]
 
 def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
@@ -195,6 +199,79 @@ def GetHAWCFluxJ1908(energy_index):
         energies[entry] = energies[entry]/1e9
         fluxes[entry] = fluxes[entry]*erg_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
         flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])*erg_to_TeV/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
+def GetHAWCFluxJ2019(energy_index):
+    #https://arxiv.org/pdf/1909.08609.pdf
+    energies = [pow(10.,12.230),pow(10.,12.412),pow(10.,12.613),pow(10.,12.807),pow(10.,13.034),pow(10.,13.286),pow(10.,13.538),pow(10.,13.771),pow(10.,14.009)]
+    fluxes = [pow(10.,-11.659),pow(10.,-11.389),pow(10.,-11.420),pow(10.,-11.345),pow(10.,-11.324),pow(10.,-11.358),pow(10.,-11.642),pow(10.,-11.752),pow(10.,-11.827)]
+    flux_errs = [pow(10.,-11.659),pow(10.,-11.389),pow(10.,-11.420),pow(10.,-11.345),pow(10.,-11.324),pow(10.,-11.358),pow(10.,-11.642),pow(10.,-11.752),pow(10.,-11.827)]
+    flux_errs_up = [pow(10.,-11.540),pow(10.,-11.338),pow(10.,-11.372),pow(10.,-11.314),pow(10.,-11.300),pow(10.,-11.335),pow(10.,-11.598),pow(10.,-11.690),pow(10.,-11.741)]
+    flux_errs_low = [pow(10.,-11.820),pow(10.,-11.447),pow(10.,-11.482),pow(10.,-11.379),pow(10.,-11.348),pow(10.,-11.382),pow(10.,-11.694),pow(10.,-11.827),pow(10.,-11.936)]
+
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]/1e9
+        fluxes[entry] = fluxes[entry]/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
+def GetVeritasFluxJ2019(energy_index):
+
+    #https://arxiv.org/pdf/1805.05989.pdf
+    # integration radius = 0.23 deg
+    energies = [pow(10.,2.75),pow(10.,3.),pow(10.,3.25),pow(10.,3.5),pow(10.,3.75),pow(10.,4.0),pow(10.,4.25),pow(10.,4.5)]
+    fluxes = [pow(10.,-12.291),pow(10.,-12.175),pow(10.,-11.980),pow(10.,-11.832),pow(10.,-11.868),pow(10.,-12.097),pow(10.,-11.982),pow(10.,-12.270)]
+    flux_errs = [pow(10.,-12.291),pow(10.,-12.175),pow(10.,-11.980),pow(10.,-11.832),pow(10.,-11.868),pow(10.,-12.097),pow(10.,-11.982),pow(10.,-12.270)]
+    flux_errs_up = [pow(10.,-11.982),pow(10.,-12.046),pow(10.,-11.895),pow(10.,-11.763),pow(10.,-11.771),pow(10.,-11.936),pow(10.,-11.812),pow(10.,-12.029)]
+    flux_errs_low = [pow(10.,-13.299),pow(10.,-12.362),pow(10.,-12.087),pow(10.,-11.919),pow(10.,-11.995),pow(10.,-12.355),pow(10.,-12.270),pow(10.,-12.861)]
+
+    for entry in range(0,len(energies)):
+        fluxes[entry] = fluxes[entry]/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
+def GetTibetASFluxJ2227(energy_index):
+    energies = [pow(10.,0.824),pow(10.,1.032),pow(10.,1.207),pow(10.,1.441),pow(10.,1.659),pow(10.,1.861),pow(10.,2.062)]
+    fluxes = [pow(10.,-11.218),pow(10.,-11.206),pow(10.,-11.502),pow(10.,-11.549),pow(10.,-11.904),pow(10.,-11.968),pow(10.,-12.526)]
+    flux_errs = [pow(10.,-11.218),pow(10.,-11.206),pow(10.,-11.502),pow(10.,-11.549),pow(10.,-11.904),pow(10.,-11.968),pow(10.,-12.526)]
+    flux_errs_up = [pow(10.,-10.979),pow(10.,-11.049),pow(10.,-11.343),pow(10.,-11.444),pow(10.,-11.764),pow(10.,-11.834),pow(10.,-12.238)]
+    flux_errs_low = [pow(10.,-11.761),pow(10.,-11.441),pow(10.,-11.764),pow(10.,-11.694),pow(10.,-12.084),pow(10.,-12.116),pow(10.,-12.933)]
+
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]*1e3
+        fluxes[entry] = fluxes[entry]/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
+def GetFermiFluxJ2227(energy_index):
+    energies = [pow(10.,-2.299),pow(10.,-1.851),pow(10.,-1.409),pow(10.,-0.961),pow(10.,-0.513)]
+    fluxes = [pow(10.,-12.343),pow(10.,-12.142),pow(10.,-12.200),pow(10.,-11.959),pow(10.,-11.950)]
+    flux_errs = [pow(10.,-12.343),pow(10.,-12.142),pow(10.,-12.200),pow(10.,-11.959),pow(10.,-11.950)]
+    flux_errs_up = [pow(10.,-12.180),pow(10.,-12.020),pow(10.,-12.040),pow(10.,-11.779),pow(10.,-11.700)]
+    flux_errs_low = [pow(10.,-12.619),pow(10.,-12.305),pow(10.,-12.470),pow(10.,-12.267),pow(10.,-12.598)]
+
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]*1e3
+        fluxes[entry] = fluxes[entry]/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
+def GetVeritasFluxJ2227(energy_index):
+    energies = [pow(10.,0.008),pow(10.,0.200),pow(10.,0.402),pow(10.,0.721),pow(10.,1.180)]
+    fluxes = [pow(10.,-11.619),pow(10.,-11.688),pow(10.,-11.709),pow(10.,-11.950),pow(10.,-11.738)]
+    flux_errs = [pow(10.,-12.343),pow(10.,-12.142),pow(10.,-12.200),pow(10.,-11.959),pow(10.,-11.950)]
+    flux_errs_up = [pow(10.,-11.424),pow(10.,-11.505),pow(10.,-11.590),pow(10.,-11.744),pow(10.,-11.543)]
+    flux_errs_low = [pow(10.,-11.889),pow(10.,-11.901),pow(10.,-11.927),pow(10.,-12.418),pow(10.,-12.078)]
+
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]*1e3
+        fluxes[entry] = (1./1.62)*fluxes[entry]/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = (1./1.62)*0.5*(flux_errs_up[entry]-flux_errs_low[entry])/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
 
     return energies, fluxes, flux_errs
 
@@ -404,6 +481,13 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         # HAWC systematic uncertainty, The Astrophysical Journal 881, 134. Fig 13
         HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index_scale)
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index_scale)
+    if source_name=='MGRO_J2019':
+        HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ2019(energy_index_scale)
+        OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ2019(energy_index_scale)
+    if source_name=='Boomerang':
+        TAS_energies, TAS_fluxes, TAS_flux_errs = GetTibetASFluxJ2227(energy_index_scale)
+        Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ2227(energy_index_scale)
+        OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ2227(energy_index_scale)
     if source_name=='IC443HotSpot':
         log_energy = np.linspace(log10(1e2),log10(1e4),50)
         xdata = pow(10.,log_energy)
@@ -509,6 +593,17 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r',zorder=1)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
         axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS',zorder=6)
+    elif source_name=='MGRO_J2019':
+        axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='eHWC J2019+368',zorder=1)
+        axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='g',marker='s',ls='none',label='VER J2019+368',zorder=3)
+        axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
+        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',zorder=6)
+    elif source_name=='Boomerang':
+        axbig.errorbar(TAS_energies,TAS_fluxes,TAS_flux_errs,color='r',marker='s',ls='none',label='Tibet AS',zorder=1)
+        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi',zorder=2)
+        axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS(2009)',zorder=3)
+        axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
+        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',zorder=6)
     elif source_name=='IC443HotSpot':
         axbig.plot(xdata, ydata_veritas_paper,'r-',label='VERITAS (0905.3291)',zorder=1)
         axbig.plot(xdata, ydata_hawc,'g-',label='HAWC (2007.08582)',zorder=2)
@@ -516,10 +611,6 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (new)',zorder=4)
     elif source_name=='1ES0229':
         axbig.plot(xdata, ydata_veritas_paper,'r-',label='VERITAS (2013ICRC)',zorder=1)
-        axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2,zorder=3)
-        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (new)',zorder=4)
-    elif source_name=='MGRO_J2019':
-        axbig.plot(xdata, ydata_veritas_paper,'r-',label='VERITAS (ApJ 788 p78, 2014)',zorder=1)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2,zorder=3)
         axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (new)',zorder=4)
     elif 'Crab' in source_name:
@@ -596,6 +687,13 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
         # HAWC systematic uncertainty, The Astrophysical Journal 881, 134. Fig 13
         HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index_scale)
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index_scale)
+    if source_name=='MGRO_J2019':
+        HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ2019(energy_index_scale)
+        OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ2019(energy_index_scale)
+    if source_name=='Boomerang':
+        TAS_energies, TAS_fluxes, TAS_flux_errs = GetTibetASFluxJ2227(energy_index_scale)
+        Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ2227(energy_index_scale)
+        OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ2227(energy_index_scale)
     if source_name=='IC443HotSpot':
         log_energy = np.linspace(log10(1e2),log10(1e4),50)
         xdata = pow(10.,log_energy)
@@ -622,6 +720,17 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
         axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r',zorder=1)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
         axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS',zorder=6)
+    elif source_name=='MGRO_J2019':
+        axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='eHWC J2019+368',zorder=1)
+        axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='g',marker='s',ls='none',label='VER J2019+368',zorder=3)
+        axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
+        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',zorder=6)
+    elif source_name=='Boomerang':
+        axbig.errorbar(TAS_energies,TAS_fluxes,TAS_flux_errs,color='r',marker='s',ls='none',label='Tibet AS',zorder=1)
+        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi',zorder=2)
+        axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS(2009)',zorder=3)
+        axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
+        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',zorder=6)
     elif source_name=='IC443HotSpot':
         axbig.plot(xdata, ydata_veritas_paper,'r-',label='VERITAS (0905.3291)',zorder=1)
         axbig.plot(xdata, ydata_hawc,'g-',label='HAWC (2007.08582)',zorder=2)
@@ -1010,7 +1119,7 @@ if correct_bias:
         for imposter in range(0,n_imposters):
             hist_real_bias_skymap[ebin].Add(hist_imposter_bias_skymap[imposter][ebin],1./float(n_imposters))
     for ebin in range(0,len(energy_bin)-1):
-        if ebin>=2: continue
+        if ebin>=3: continue
         hist_real_bkgd_skymap[ebin].Add(hist_real_bias_skymap[ebin])
         for imposter in range(0,n_imposters):
             hist_imposter_bkgd_skymap[imposter][ebin].Add(hist_real_bias_skymap[ebin])
@@ -1140,12 +1249,11 @@ elif source_name=='WComae':
     #MakeSpectrum(region_x,region_y,region_r,region_name)
     #MakeExtensionProfile(region_x,region_y,region_r,0,region_name)
 elif source_name=='MGRO_J2019':
-    #region_x = MapCenter_x
-    #region_y = MapCenter_y
-    #region_r = 1.0
-    #region_name = 'Center'
     region_x = 304.85
     region_y = 36.80
+    region_r = 1.0
+    #region_r = 0.23
+    region_name = 'VER J2019+368'
     MakeSpectrum(region_x,region_y,region_r,region_name)
     MakeExtensionProfile(region_x,region_y,region_r,0,region_name)
 elif source_name=='Geminga':
@@ -1153,6 +1261,20 @@ elif source_name=='Geminga':
     region_y = MapCenter_y
     region_r = 2.0
     region_name = 'Center'
+    MakeSpectrum(region_x,region_y,region_r,region_name)
+    MakeExtensionProfile(region_x,region_y,region_r,0,region_name)
+elif source_name=='HESS_J1825':
+    region_x = 276.460
+    region_y = -13.400
+    region_r = 1.0
+    region_name = '2HWC J1825-134'
+    MakeSpectrum(region_x,region_y,region_r,region_name)
+    MakeExtensionProfile(region_x,region_y,region_r,0,region_name)
+elif source_name=='Boomerang':
+    region_x = 336.9958333
+    region_y = 60.8769444
+    region_r = 1.0
+    region_name = 'Boomerang'
     MakeSpectrum(region_x,region_y,region_r,region_name)
     MakeExtensionProfile(region_x,region_y,region_r,0,region_name)
 else:

@@ -30,10 +30,11 @@ np.set_printoptions(precision=4)
 N_bins_for_deconv = CommonPlotFunctions.N_bins_for_deconv
 gamma_hadron_dim_ratio_w = CommonPlotFunctions.gamma_hadron_dim_ratio_w
 gamma_hadron_dim_ratio_l = CommonPlotFunctions.gamma_hadron_dim_ratio_l
+gamma_hadron_low_end = CommonPlotFunctions.gamma_hadron_low_end
 MSCW_blind_cut = CommonPlotFunctions.MSCW_blind_cut
 MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 
-n_measures_per_entry = 4
+n_measures_per_entry = 20
 
 analysis_type = 'inclusive'
 #analysis_type = 'SelectOFF'
@@ -41,9 +42,9 @@ analysis_type = 'inclusive'
 #analysis_type='1ES0229'
 #analysis_type='PG1553'
 
-#observing_condition = 'all'
+observing_condition = 'all'
 #observing_condition = 'north'
-observing_condition = 'south'
+#observing_condition = 'south'
 #observing_condition = 'eastwest'
 #observing_condition = 'sza'
 #observing_condition = 'lza'
@@ -640,10 +641,14 @@ def LoopOverFiles():
                         n_imposter_measurements += 1
 
 
-optimiz_alpha_lower = [-1.5,-1.5,-1.5,-1.5]
-optimiz_alpha_upper = [1.5,1.5,1.5,1.5]
-optimiz_beta_lower = [-1.5,-1.5,-1.5,-1.5]
-optimiz_beta_upper = [1.5,1.5,1.5,1.5]
+#optimiz_alpha_lower = [-1.5,-1.5,-1.5,-1.5]
+#optimiz_alpha_upper = [1.5,1.5,1.5,1.5]
+#optimiz_beta_lower = [-1.5,-1.5,-1.5,-1.5]
+#optimiz_beta_upper = [1.5,1.5,1.5,1.5]
+optimiz_alpha_lower = [-1.5,-1.5,-1.5,-1.5,-1.5,-1.5]
+optimiz_alpha_upper = [1.5,1.5,1.5,1.5,1.5,1.5]
+optimiz_beta_lower = [-1.5,-1.5,-1.5,-1.5,-1.5,-1.5]
+optimiz_beta_upper = [1.5,1.5,1.5,1.5,1.5,1.5]
 optimiz_nbins = 10
 stable_rank = 2
 
@@ -671,8 +676,8 @@ mtx_CDE_bkgd = []
 
 MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))+MSCW_blind_cut
 MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))+MSCL_blind_cut
-MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))-MSCW_blind_cut
-MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))-MSCL_blind_cut
+MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))-MSCW_blind_cut
+MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))-MSCL_blind_cut
 Hist_Data_ShowerShape = []
 Hist_Dark_ShowerShape = []
 Hist_Bkgd_ShowerShape = []
@@ -806,20 +811,28 @@ Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E0","",21,-0.2,0.2)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E0","",21,-0.2,0.2)]
 Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E1","",21,-0.2,0.2)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E1","",21,-0.2,0.2)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E3","",21,-0.4,0.4)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E3","",21,-0.4,0.4)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E2","",21,-0.4,0.4)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E2","",21,-0.4,0.4)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E3","",21,-0.8,0.8)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E3","",21,-0.8,0.8)]
 Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E4","",21,-0.8,0.8)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E4","",21,-0.8,0.8)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E5","",21,-0.8,0.8)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E5","",21,-0.8,0.8)]
 Hist_Imposter_SystErrDist_MDM = []
 Hist_Imposter_SystErrDist_Init = []
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E0","",21,-0.2,0.2)]
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E0","",21,-0.2,0.2)]
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E1","",21,-0.2,0.2)]
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E1","",21,-0.2,0.2)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E2","",21,-0.4,0.4)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E2","",21,-0.4,0.4)]
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E3","",21,-0.4,0.4)]
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E3","",21,-0.4,0.4)]
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E4","",21,-0.8,0.8)]
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E4","",21,-0.8,0.8)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E5","",21,-0.8,0.8)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E5","",21,-0.8,0.8)]
 
 for eb in range(0,len(energy_bin)-1):
     Hist_SystErrDist_MDM[eb].Reset()

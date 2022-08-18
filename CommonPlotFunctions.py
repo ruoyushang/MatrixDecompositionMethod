@@ -23,20 +23,23 @@ from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 
 #folder_path = 'output_test'
 #folder_path = 'output_2hrs'
-folder_path = 'output_5hrs'
+#folder_path = 'output_5hrs'
 #folder_path = 'output_10hrs'
 #folder_path = 'output_20hrs'
-#folder_path = 'output_80hrs'
+#folder_path = 'output_4x4'
+#folder_path = 'output_8x8'
+folder_path = 'output_12x12'
 #folder_path = 'output_FreeNSB'
 #folder_path = 'output_FreeAzim'
 #folder_path = 'output_FreeElev'
 #folder_path = 'output_radialcorrect'
 
-#N_bins_for_deconv = 16
-N_bins_for_deconv = 10
+#N_bins_for_deconv = 4
 #N_bins_for_deconv = 8
+N_bins_for_deconv = 12
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
+gamma_hadron_low_end = 0.
 
 MSCW_blind_cut = 0.6
 MSCL_blind_cut = 0.6
@@ -65,41 +68,12 @@ Skymap_nbins = 45
 
 Skymap_normalization_nbins = 1
 
-#elev_range = [45,70]
 elev_range = [45,90]
-#elev_range = [70,90]
-#elev_range = [50,70]
-#elev_range = [30,50]
+#elev_range = [35,45]
 
-energy_bin = []
-energy_bin += [100]
-energy_bin += [316]
-energy_bin += [1000]
-energy_bin += [3162]
-energy_bin += [10000]
-#energy_bin = []
-#energy_bin += [100]
-#energy_bin += [178]
-#energy_bin += [316]
-#energy_bin += [562]
-#energy_bin += [1000]
-#energy_bin += [3162]
-#energy_bin += [10000]
-
-energy_fine_bin = []
-energy_fine_bin += [pow(10,2.0)]
-energy_fine_bin += [pow(10,2.5)]
-energy_fine_bin += [pow(10,3.0)]
-energy_fine_bin += [pow(10,3.5)]
-energy_fine_bin += [pow(10,4.0)]
-#energy_fine_bin = []
-#energy_fine_bin += [pow(10,2.0)]
-#energy_fine_bin += [pow(10,2.25)]
-#energy_fine_bin += [pow(10,2.5)]
-#energy_fine_bin += [pow(10,2.75)]
-#energy_fine_bin += [pow(10,3.0)]
-#energy_fine_bin += [pow(10,3.5)]
-#energy_fine_bin += [pow(10,4.0)]
+#energy_bin = [100.,316.,1000.,3162.,10000.]
+energy_bin = [200.,398.,794.,1585.,3162.,6310.,12589.]
+energy_fine_bin = energy_bin
 
 def Hist2DIntegralAndError(Hist):
 
@@ -448,8 +422,8 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
     #n_bins_1d = 4
-    #n_bins_1d = min(8,int(float(n_bins_2d)/2.))
-    n_bins_1d = min(16,int(float(n_bins_2d)/2.))
+    n_bins_1d = min(8,int(float(n_bins_2d)/2.))
+    #n_bins_1d = min(16,int(float(n_bins_2d)/2.))
     #integration_range = 0.8
     integration_range = 1.6
 

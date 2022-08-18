@@ -41,6 +41,7 @@ N_bins_for_deconv = CommonPlotFunctions.N_bins_for_deconv
 energy_fine_bin = CommonPlotFunctions.energy_fine_bin
 gamma_hadron_dim_ratio_w = CommonPlotFunctions.gamma_hadron_dim_ratio_w
 gamma_hadron_dim_ratio_l = CommonPlotFunctions.gamma_hadron_dim_ratio_l
+gamma_hadron_low_end = CommonPlotFunctions.gamma_hadron_low_end
 MSCW_blind_cut = CommonPlotFunctions.MSCW_blind_cut
 MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 
@@ -190,6 +191,9 @@ if 'Tycho' in sys.argv[1]:
 if 'MGRO_J2019' in sys.argv[1]:
     observation_name = 'MGRO_J2019'
     data_epoch = ['MGRO_J2019_V5','MGRO_J2019_V6']
+if 'HESS_J1825' in sys.argv[1]:
+    observation_name = 'HESS_J1825'
+    data_epoch = ['HESS_J1825_V6']
 if 'RGBJ0710' in sys.argv[1]:
     observation_name = 'RGBJ0710'
     data_epoch = ['RGBJ0710V5']
@@ -325,8 +329,8 @@ MSCW_chi2_upper = -0.5
 MSCL_chi2_upper = -0.5
 MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))+MSCW_blind_cut
 MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))+MSCL_blind_cut
-MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))-MSCW_blind_cut
-MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))-MSCL_blind_cut
+MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))-MSCW_blind_cut
+MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))-MSCL_blind_cut
 #MSCW_plot_lower = -0.5
 #MSCL_plot_lower = -0.5
 ErecS_lower_cut = 0
@@ -4263,8 +4267,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
         hist_expo_hour_skymap[ebin].Add(hist_bkgd_skymap[ebin])
         bin_size_0 = hist_bkgd_skymap[ebin].GetXaxis().GetBinLowEdge(2)-hist_bkgd_skymap[ebin].GetXaxis().GetBinLowEdge(1)
         bin_size_1 = Hist_Data_CR_XYoff[ebin].GetXaxis().GetBinLowEdge(2)-Hist_Data_CR_XYoff[ebin].GetXaxis().GetBinLowEdge(1)
-        bkgd_rate = Hist_Data_CR_XYoff[ebin].GetMaximum()*(bin_size_0*bin_size_0)/(exposure_hours*bin_size_1*bin_size_1)
-        hist_expo_hour_skymap[ebin].Scale(1./bkgd_rate)
+        #bkgd_rate = Hist_Data_CR_XYoff[ebin].GetMaximum()*(bin_size_0*bin_size_0)/(exposure_hours*bin_size_1*bin_size_1)
+        #hist_expo_hour_skymap[ebin].Scale(1./bkgd_rate)
 
     hist_expo_hour_skymap_sum = ROOT.TH2D("hist_expo_hour_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_expo_hour_skymap_sum.Add(hist_bkgd_skymap_sum)
@@ -4764,7 +4768,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
                 hist_bkgd_skymap[ebin].Write()
                 hist_rfov_skymap[ebin].Write()
                 hist_expo_skymap[ebin].Write()
-                hist_expo_hour_skymap[ebin].Write()
+                #hist_expo_hour_skymap[ebin].Write()
                 hist_effarea_skymap[ebin].Write()
             output_file.Close();
 
@@ -7107,8 +7111,8 @@ for source in range(0,len(sample_list)):
 print ('analysis cut: MSCL = %s, MSCW = %s'%(MSCL_blind_cut,MSCW_blind_cut))
 MSCW_plot_upper = gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))+MSCW_blind_cut
 MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))+MSCL_blind_cut
-MSCW_plot_lower = -0.5*gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))-MSCW_blind_cut
-MSCL_plot_lower = -0.5*gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))-MSCL_blind_cut
+MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_blind_cut-(-1.*MSCW_blind_cut))-MSCW_blind_cut
+MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))-MSCL_blind_cut
 #MSCW_plot_lower = -0.5
 #MSCL_plot_lower = -0.5
 print ('plot range: MSCL = %s, MSCW = %s'%(MSCL_plot_upper,MSCW_plot_upper))
