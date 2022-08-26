@@ -37,6 +37,41 @@ def ConvertRaDecToGalactic(ra, dec):
     l = (l_NCP-ROOT.TMath.ATan2(sin_l_NCP_m_l,cos_l_NCP_m_l))*180./ROOT.TMath.Pi()
     return l, b
 
+def HMS2deg(ra='', dec=''):
+    RA, DEC, rs, ds = '', '', 1, 1
+    if dec:
+        D, M, S = [float(i) for i in dec.split(':')]
+        if str(D)[0] == '-':
+            ds, D = -1, abs(D)
+        deg = D + (M/60) + (S/3600)
+        DEC = '{0}'.format(deg*ds)
+    if ra:
+        H, M, S = [float(i) for i in ra.split(':')]
+        if str(H)[0] == '-':
+            rs, H = -1, abs(H)
+        deg = (H*15) + (M/4) + (S/240)
+        RA = '{0}'.format(deg*rs)           
+    if ra and dec:
+        return (RA, DEC)
+    else:
+        return RA or DEC
+
+def ReadTargetListFromFile(file_path):
+    source_ra = []
+    source_dec = []
+    inputFile = open(file_path)
+    for line in inputFile:
+        target_name = line.split(' ')[0]
+        target_ra = line.split(' ')[1]
+        target_dec = line.split(' ')[2]
+        print ('target_name = %s'%(target_name))
+        print ('target_ra = %s'%(target_ra))
+        print ('target_dec = %s'%(target_dec))
+        print ('Source_RA = %0.3f'%(float(HMS2deg(target_ra,target_dec)[0])))
+        print ('Source_Dec = %0.3f'%(float(HMS2deg(target_ra,target_dec)[1])))
+        source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
+        source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
+    return source_ra, source_dec
 
 ## galactic center
 #target_ra = 266.415
@@ -51,16 +86,16 @@ def ConvertRaDecToGalactic(ra, dec):
 #range_dec = 3.0
 
 # MGRO J1908
-#target_ra = 286.975
-#target_dec = 6.269
-#range_ra = 3.0
-#range_dec = 3.0
+#target_ra = 287.05
+#target_dec = 6.39
+#range_ra = 2.0
+#range_dec = 2.0
 
 # Draco dSph
-target_ra = 260.059729167
-target_dec = 57.9212194444
-range_ra = 2.0
-range_dec = 2.0
+#target_ra = 260.059729167
+#target_dec = 57.9212194444
+#range_ra = 2.0
+#range_dec = 2.0
 
 # 1ES 0502+675
 #target_ra = 76.9839421535
@@ -378,8 +413,8 @@ range_dec = 2.0
 # HESS J1825-137
 #target_ra = 276.37
 #target_dec = -13.83
-#range_ra = 3.0
-#range_dec = 3.0
+#range_ra = 2.0
+#range_dec = 2.0
 
 # Perseus cluster
 #target_ra = 49.9466666667
@@ -399,39 +434,117 @@ range_dec = 2.0
 #range_ra = 5.0
 #range_dec = 5.0
 
-# SNR G150.3+4.5
-#target_ra = 67.82
-#target_dec = 55.89
 #range_ra = 2.0
 #range_dec = 2.0
 
 # LHAASO J2108+5157
-#target_ra = 317.15
+#target_ra = 317.00
 #target_dec = 51.95
+# LHAASO J0341+5258
+#target_ra = 55.34
+#target_dec = 52.97
+# LHAASO J2226+6057
+#target_ra = 336.5
+#target_dec = 60.95
+# LHAASO J2032+4102
+#target_ra = 308.
+#target_dec = 41.03
+# LHAASO J2018+3651
+#target_ra = 304.5
+#target_dec = 36.85
+# LHAASO J1956+2845
+#target_ra = 299.05
+#target_dec = 28.75
+# LHAASO J1929+1745
+#target_ra = 292.25
+#target_dec = 17.75
+# LHAASO J1849-0003
+#target_ra = 282.25
+#target_dec = -0.05
+# LHAASO J1843-0338
+#target_ra = 280.75
+#target_dec = -3.63
+# LHAASO J0621+3755
+#target_ra = 95.47
+#target_dec = 37.92
+# LHAASO J1839-0545
+#target_ra = 279.75
+#target_dec = -5.75
+# LHAASO J1825-1326
+#target_ra = 276.25
+#target_dec = -13.43
+# Hercules
+#target_ra = 280.6
+#target_dec = 15.7
+# Aquila Rift
+#target_ra = 267.6
+#target_dec = -3.72
+# Monoceros
+#target_ra = 92.3
+#target_dec = -6.8
+# Ophiuchi
+#target_ra = 247.5
+#target_dec = -23.5
+# Perseus
+#target_ra = 52.9
+#target_dec = 30.9
+# Orion
+#target_ra = 87.3
+#target_dec = -3.6
+# Taurus
+#target_ra = 66.5
+#target_dec = 26.2
 #range_ra = 2.0
 #range_dec = 2.0
 
-# Ursa Major II
-#target_ra = 132.875
-#target_dec = 63.13
-#range_ra = 2.0
-#range_dec = 2.0
+target_ra = []
+target_dec = []
+
+## Ursa Major II
+#target_ra += [132.875]
+#target_dec += [63.13]
+## SNR G150.3+4.5
+#target_ra += [67.82]
+#target_dec += [55.89]
+## HESS J1849-000
+#target_ra += [279.37]
+#target_dec += [-6.96]
+
+target_ra, target_dec = ReadTargetListFromFile('ATNF_pulsar_list.txt')
+
+range_ra = 2.0
+range_dec = 2.0
+
 
 search_for_on_data = True
 #search_for_on_data = False
+
+plot_tag = 'OFF'
+if search_for_on_data:
+    plot_tag = 'ON'
 
 V4 = False
 V5 = False
 V6 = True
 
+Galactic_observation = True
+#Galactic_observation = False
+
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
 
+search_north = 0 # north+south
+#search_north = 1 # north
+#search_north = 2 # south
 Search_Range_Elev = [0.,90.]
 Search_Range_Azim = [0.,360.]
 Search_Range_PedVar_DC = [0.,10.]
+#Search_Range_PedVar_DC = [0.,5.]
+#Search_Range_PedVar_DC = [5.,6.]
+#Search_Range_PedVar_DC = [6.,10.]
 
-#Search_Range_RA = [216.-2,216.+2]
+#Search_Range_Elev = [20.,30.]
+#Search_Range_RA = [60.,75.]
 #Search_Range_Dec = [22.-4,22.+4.]
 
 # Ursa Major II
@@ -500,7 +613,7 @@ Source_Livetime = []
 #        Source_Azim += [0.]
 #        Source_Livetime += [0.]
 
-inputFile = open('diagnostics_20220111.txt')
+inputFile = open('diagnostics.txt')
 for line in inputFile:
     if line.split(' ')[0]=="#": 
         #print 'this is a comment line'
@@ -593,82 +706,81 @@ List_Used_NSB = []
 
 if search_for_on_data:
 
-    for entry in range(0,len(List_RunNumber)):
-    
-        RunNumber = List_RunNumber[entry]
-        Name = List_Name[entry]
-        offset = List_Offset[entry]
-        MJD = List_MJD[entry]
-        Elev = List_Elev[entry]
-        Azim = List_Azim[entry]
-        T1_RA = List_T1_RA[entry]
-        T1_Dec = List_T1_Dec[entry]
-        PedVar_DC = List_PedVar_DC[entry]
-        PedVar_PE = List_PedVar_PE[entry]
-        FIR_Mean = List_FIR_Mean[entry]
-        FIR_RMS = List_FIR_RMS[entry]
-        L3_rate = List_L3_rate[entry]
-        Livetime = List_Livetime[entry]
-    
-        if int(RunNumber)<46642:
-            if not V4: continue
-        if int(RunNumber)>=46642 and int(RunNumber)<63373:
-            if not V5: continue
-        if int(RunNumber)>=63373:
-            if not V6: continue
-    
-        if Elev<Search_Range_Elev[0]: continue
-        if Elev>Search_Range_Elev[1]: continue
-        if Azim<Search_Range_Azim[0]: continue
-        if Azim>Search_Range_Azim[1]: continue
-        if PedVar_DC<Search_Range_PedVar_DC[0]: continue
-        if PedVar_DC>Search_Range_PedVar_DC[1]: continue
+    for target in range(0,len(target_ra)):
 
-        #if MJD<59480: continue
+        for entry in range(0,len(List_RunNumber)):
+        
+            RunNumber = List_RunNumber[entry]
+            Name = List_Name[entry]
+            offset = List_Offset[entry]
+            MJD = List_MJD[entry]
+            Elev = List_Elev[entry]
+            Azim = List_Azim[entry]
+            T1_RA = List_T1_RA[entry]
+            T1_Dec = List_T1_Dec[entry]
+            PedVar_DC = List_PedVar_DC[entry]
+            PedVar_PE = List_PedVar_PE[entry]
+            FIR_Mean = List_FIR_Mean[entry]
+            FIR_RMS = List_FIR_RMS[entry]
+            L3_rate = List_L3_rate[entry]
+            Livetime = List_Livetime[entry]
+        
+            if int(RunNumber)<46642:
+                if not V4: continue
+            if int(RunNumber)>=46642 and int(RunNumber)<63373:
+                if not V5: continue
+            if int(RunNumber)>=63373:
+                if not V6: continue
+        
+            if Elev<Search_Range_Elev[0]: continue
+            if Elev>Search_Range_Elev[1]: continue
+            if Azim<Search_Range_Azim[0]: continue
+            if Azim>Search_Range_Azim[1]: continue
+            if PedVar_DC<Search_Range_PedVar_DC[0]: continue
+            if PedVar_DC>Search_Range_PedVar_DC[1]: continue
 
-        if L3_rate<150.: continue
-        #if L3_rate>450.: continue
-        if Livetime<5.: continue
-        #if Livetime<20.: continue
-    
-        if abs(float(T1_RA)-target_ra)>range_ra: continue
-        if abs(float(T1_Dec)-target_dec)>range_dec: continue
-        distance_to_source = pow(pow(float(T1_RA)-target_ra,2)+pow(float(T1_Dec)-target_dec,2),0.5)
-        #if distance_to_source<0.4: continue
-        #if distance_to_source<0.8: continue
-        #if distance_to_source<1.1: continue
-        #if distance_to_source>2.0: continue
-        #if not 'wobble0.7' in offset: continue
-        #if not 'geminga-' in Name: continue
+            #if MJD<59480: continue
 
-        DoNotUse = False
-        for entry2 in range(0,len(Source_RunNumber)):
-            if int(Source_RunNumber[entry2])==int(RunNumber): DoNotUse = True
-        if DoNotUse: continue
-    
-        print ('RunNumber %s, L3_rate %s, Livetime %s, Elev %s, RA %s, Dec %s, offset %s'%(RunNumber,L3_rate,Livetime,Elev,T1_RA,T1_Dec, offset))
-    
-        List_Used += [RunNumber]
-        List_Used_Exposure += [Livetime/60.]
-        List_Used_RA += [T1_RA]
-        List_Used_Dec += [T1_Dec]
-        List_Used_Elev += [Elev]
-        List_Used_Azim += [Azim]
-        List_Used_NSB += [PedVar_DC]
+            if L3_rate<250.: continue
+            #if L3_rate<150.: continue # RHV
+            #if L3_rate>450.: continue
+            if Livetime<5.: continue
+            #if Livetime<20.: continue
+        
+            if abs(float(T1_RA)-target_ra[target])>range_ra: continue
+            if abs(float(T1_Dec)-target_dec[target])>range_dec: continue
+            distance_to_source = pow(pow(float(T1_RA)-target_ra[target],2)+pow(float(T1_Dec)-target_dec[target],2),0.5)
+            #if distance_to_source<0.4: continue
+            #if distance_to_source<0.8: continue
+            #if distance_to_source<1.1: continue
+            #if distance_to_source>2.0: continue
+            #if not 'wobble1' in offset: continue
+            #if not 'geminga-' in Name: continue
+            #if int(RunNumber)<=99358: continue
 
-        Total_Livetime += Livetime/60.
+            DoNotUse = False
+            for entry2 in range(0,len(Source_RunNumber)):
+                if int(Source_RunNumber[entry2])==int(RunNumber): DoNotUse = True
+            if DoNotUse: continue
+        
+            print ('RunNumber %s, L3_rate %s, Livetime %s, Elev %s, RA %s, Dec %s, offset %s'%(RunNumber,L3_rate,Livetime,Elev,T1_RA,T1_Dec, offset))
+        
+            List_Used += [RunNumber]
+            List_Used_Exposure += [Livetime/60.]
+            List_Used_RA += [T1_RA]
+            List_Used_Dec += [T1_Dec]
+            List_Used_Elev += [Elev]
+            List_Used_Azim += [Azim]
+            List_Used_NSB += [PedVar_DC]
+
+            Total_Livetime += Livetime/60.
 
 else: 
 
     List_Produced = []
-    #inputFile = open('temp_output.txt')
-    #for line in inputFile:
-    #    if not 'root' in line: continue
-    #    line_segments = line.split('.')
-    #    RunNumber = line_segments[len(line_segments)-2]
-    #    List_Produced += [RunNumber]
 
     for entry in range(0,len(List_RunNumber)):
+
         RunNumber = List_RunNumber[entry]
         Elev = List_Elev[entry]
         Azim = List_Azim[entry]
@@ -684,7 +796,9 @@ else:
         PedVar_PE = List_PedVar_PE[entry]
         L3_rate = List_L3_rate[entry]
         Livetime = List_Livetime[entry]
-        if L3_rate<150.: continue
+
+        if L3_rate<250.: continue
+        #if L3_rate<150.: continue # RHV
         #if L3_rate>450.: continue
         if Livetime<15.: continue
         if int(RunNumber)<46642:
@@ -694,10 +808,48 @@ else:
         if int(RunNumber)>=63373:
             if not V6: continue
 
-        if abs(float(T1_RA)-target_ra)<10. and abs(float(T1_Dec)-target_dec)<10.: continue
-        if abs(float(T2_RA)-target_ra)<10. and abs(float(T2_Dec)-target_dec)<10.: continue
-        if abs(float(T3_RA)-target_ra)<10. and abs(float(T3_Dec)-target_dec)<10.: continue
-        if abs(float(T4_RA)-target_ra)<10. and abs(float(T4_Dec)-target_dec)<10.: continue
+        if not (T1_RA==0. and T1_Dec==0.):
+            gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
+            if Galactic_observation:
+                if abs(gal_b)>10.: continue
+            else:
+                if abs(gal_b)<10.: continue
+            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if GetDistance(T1_RA,T1_Dec,83.633,22.014)<3.: continue  # Crab
+            if GetDistance(T1_RA,T1_Dec,166.079,38.195)<3.: continue  # Mrk 421
+            if GetDistance(T1_RA,T1_Dec,98.117,17.367)<3.: continue  # Geminga
+        elif not (T2_RA==0. and T2_Dec==0.):
+            gal_l, gal_b = ConvertRaDecToGalactic(T2_RA,T2_Dec)
+            if Galactic_observation:
+                if abs(gal_b)>10.: continue
+            else:
+                if abs(gal_b)<10.: continue
+            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if GetDistance(T2_RA,T2_Dec,83.633,22.014)<3.: continue  # Crab
+            if GetDistance(T2_RA,T2_Dec,166.079,38.195)<3.: continue  # Mrk 421
+            if GetDistance(T2_RA,T2_Dec,98.117,17.367)<3.: continue  # Geminga
+        elif not (T3_RA==0. and T3_Dec==0.):
+            gal_l, gal_b = ConvertRaDecToGalactic(T3_RA,T3_Dec)
+            if Galactic_observation:
+                if abs(gal_b)>10.: continue
+            else:
+                if abs(gal_b)<10.: continue
+            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if GetDistance(T3_RA,T3_Dec,83.633,22.014)<3.: continue  # Crab
+            if GetDistance(T3_RA,T3_Dec,166.079,38.195)<3.: continue  # Mrk 421
+            if GetDistance(T3_RA,T3_Dec,98.117,17.367)<3.: continue  # Geminga
+        elif not (T4_RA==0. and T4_Dec==0.):
+            gal_l, gal_b = ConvertRaDecToGalactic(T4_RA,T4_Dec)
+            if Galactic_observation:
+                if abs(gal_b)>10.: continue
+            else:
+                if abs(gal_b)<10.: continue
+            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if GetDistance(T4_RA,T4_Dec,83.633,22.014)<3.: continue  # Crab
+            if GetDistance(T4_RA,T4_Dec,166.079,38.195)<3.: continue  # Mrk 421
+            if GetDistance(T4_RA,T4_Dec,98.117,17.367)<3.: continue  # Geminga
+        else: continue # there is no pointing info
+
         if (T1_RA<Search_Range_RA[0]): continue
         if (T1_RA>Search_Range_RA[1]): continue
         if (T1_Dec<Search_Range_Dec[0]): continue
@@ -714,40 +866,15 @@ else:
         if (T4_RA>Search_Range_RA[1]): continue
         if (T4_Dec<Search_Range_Dec[0]): continue
         if (T4_Dec>Search_Range_Dec[1]): continue
-        if not (T1_RA==0. and T1_Dec==0.):
-            gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
-            if abs(gal_b)<10.: continue
-            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-            if GetDistance(T1_RA,T1_Dec,83.633,22.014)<3.: continue  # Crab
-            if GetDistance(T1_RA,T1_Dec,166.079,38.195)<3.: continue  # Mrk 421
-            if GetDistance(T1_RA,T1_Dec,98.117,17.367)<3.: continue  # Geminga
-        elif not (T2_RA==0. and T2_Dec==0.):
-            gal_l, gal_b = ConvertRaDecToGalactic(T2_RA,T2_Dec)
-            if abs(gal_b)<10.: continue
-            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-            if GetDistance(T2_RA,T2_Dec,83.633,22.014)<3.: continue  # Crab
-            if GetDistance(T2_RA,T2_Dec,166.079,38.195)<3.: continue  # Mrk 421
-            if GetDistance(T2_RA,T2_Dec,98.117,17.367)<3.: continue  # Geminga
-        elif not (T3_RA==0. and T3_Dec==0.):
-            gal_l, gal_b = ConvertRaDecToGalactic(T3_RA,T3_Dec)
-            if abs(gal_b)<10.: continue
-            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-            if GetDistance(T3_RA,T3_Dec,83.633,22.014)<3.: continue  # Crab
-            if GetDistance(T3_RA,T3_Dec,166.079,38.195)<3.: continue  # Mrk 421
-            if GetDistance(T3_RA,T3_Dec,98.117,17.367)<3.: continue  # Geminga
-        elif not (T4_RA==0. and T4_Dec==0.):
-            gal_l, gal_b = ConvertRaDecToGalactic(T4_RA,T4_Dec)
-            if abs(gal_b)<10.: continue
-            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-            if GetDistance(T4_RA,T4_Dec,83.633,22.014)<3.: continue  # Crab
-            if GetDistance(T4_RA,T4_Dec,166.079,38.195)<3.: continue  # Mrk 421
-            if GetDistance(T4_RA,T4_Dec,98.117,17.367)<3.: continue  # Geminga
-        else: continue # there is no pointing info
 
         if Elev<Search_Range_Elev[0]: continue
         if Elev>Search_Range_Elev[1]: continue
         if Azim<Search_Range_Azim[0]: continue
         if Azim>Search_Range_Azim[1]: continue
+        if search_north==1:
+            if Azim>180.-90. and Azim<180.+90.: continue
+        if search_north==2:
+            if Azim<180.-90. or Azim>180.+90.: continue
         if PedVar_DC<Search_Range_PedVar_DC[0]: continue
         if PedVar_DC>Search_Range_PedVar_DC[1]: continue
         already_used = False
@@ -765,121 +892,6 @@ else:
         List_Used_NSB += [PedVar_DC]
 
         Total_Livetime += Livetime/60.
-    
-    #n_matches = 2
-    #for nth_sample in range(0,n_matches):
-    #    for entry2 in range(0,len(Source_RunNumber)):
-    #        found_matches = 0
-    #        entry_in_list = 0
-    #        if int(Source_RunNumber[entry2])<=36398: continue
-    #        for entry in range(0,len(List_RunNumber)):
-    #            RunNumber = List_RunNumber[entry]
-    #            if int(Source_RunNumber[entry2])==int(RunNumber):
-    #                entry_in_list = entry
-    #        for entry in range(0,len(List_RunNumber)):
-    #            if found_matches>=1: continue
-    #            for direction in range(0,2):
-    #                entry_plus = 0
-    #                if direction==0: entry_plus = entry_in_list+entry+1
-    #                else: entry_plus = entry_in_list-entry-1
-    #                if entry_plus<0: continue
-    #                if entry_plus>=len(List_RunNumber): continue
-    #                RunNumber = List_RunNumber[entry_plus]
-    #                Elev = List_Elev[entry_plus]
-    #                Azim = List_Azim[entry_plus]
-    #                T1_RA = List_T1_RA[entry_plus]
-    #                T1_Dec = List_T1_Dec[entry_plus]
-    #                T2_RA = List_T2_RA[entry_plus]
-    #                T2_Dec = List_T2_Dec[entry_plus]
-    #                T3_RA = List_T3_RA[entry_plus]
-    #                T3_Dec = List_T3_Dec[entry_plus]
-    #                T4_RA = List_T4_RA[entry_plus]
-    #                T4_Dec = List_T4_Dec[entry_plus]
-    #                PedVar_DC = List_PedVar_DC[entry_plus]
-    #                PedVar_PE = List_PedVar_PE[entry_plus]
-    #                L3_rate = List_L3_rate[entry_plus]
-    #                Livetime = List_Livetime[entry_plus]
-    #                if L3_rate<150.: continue
-    #                #if L3_rate>450.: continue
-    #                if Livetime<15.: continue
-    #                if V4:
-    #                    if int(RunNumber)<=36398: continue
-    #                    if int(RunNumber)>=46642: continue
-    #                if V5:
-    #                    if int(RunNumber)<46642: continue
-    #                    if int(RunNumber)>=63373: continue
-    #                if V6:
-    #                    if int(RunNumber)<63373: continue
-    #                if abs(float(T1_RA)-target_ra)<10. and abs(float(T1_Dec)-target_dec)<10.: continue
-    #                if abs(float(T2_RA)-target_ra)<10. and abs(float(T2_Dec)-target_dec)<10.: continue
-    #                if abs(float(T3_RA)-target_ra)<10. and abs(float(T3_Dec)-target_dec)<10.: continue
-    #                if abs(float(T4_RA)-target_ra)<10. and abs(float(T4_Dec)-target_dec)<10.: continue
-    #                if (T1_RA<Search_Range_RA[0]): continue
-    #                if (T1_RA>Search_Range_RA[1]): continue
-    #                if (T1_Dec<Search_Range_Dec[0]): continue
-    #                if (T1_Dec>Search_Range_Dec[1]): continue
-    #                if (T2_RA<Search_Range_RA[0]): continue
-    #                if (T2_RA>Search_Range_RA[1]): continue
-    #                if (T2_Dec<Search_Range_Dec[0]): continue
-    #                if (T2_Dec>Search_Range_Dec[1]): continue
-    #                if (T3_RA<Search_Range_RA[0]): continue
-    #                if (T3_RA>Search_Range_RA[1]): continue
-    #                if (T3_Dec<Search_Range_Dec[0]): continue
-    #                if (T3_Dec>Search_Range_Dec[1]): continue
-    #                if (T4_RA<Search_Range_RA[0]): continue
-    #                if (T4_RA>Search_Range_RA[1]): continue
-    #                if (T4_Dec<Search_Range_Dec[0]): continue
-    #                if (T4_Dec>Search_Range_Dec[1]): continue
-    #                if not (T1_RA==0. and T1_Dec==0.):
-    #                    gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
-    #                    if abs(gal_b)<10.: continue
-    #                    #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-    #                    if GetDistance(T1_RA,T1_Dec,83.633,22.014)<3.: continue  # Crab
-    #                    if GetDistance(T1_RA,T1_Dec,166.079,38.195)<3.: continue  # Mrk 421
-    #                    if GetDistance(T1_RA,T1_Dec,98.117,17.367)<3.: continue  # Geminga
-    #                elif not (T2_RA==0. and T2_Dec==0.):
-    #                    gal_l, gal_b = ConvertRaDecToGalactic(T2_RA,T2_Dec)
-    #                    if abs(gal_b)<10.: continue
-    #                    #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-    #                    if GetDistance(T2_RA,T2_Dec,83.633,22.014)<3.: continue  # Crab
-    #                    if GetDistance(T2_RA,T2_Dec,166.079,38.195)<3.: continue  # Mrk 421
-    #                    if GetDistance(T2_RA,T2_Dec,98.117,17.367)<3.: continue  # Geminga
-    #                elif not (T3_RA==0. and T3_Dec==0.):
-    #                    gal_l, gal_b = ConvertRaDecToGalactic(T3_RA,T3_Dec)
-    #                    if abs(gal_b)<10.: continue
-    #                    #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-    #                    if GetDistance(T3_RA,T3_Dec,83.633,22.014)<3.: continue  # Crab
-    #                    if GetDistance(T3_RA,T3_Dec,166.079,38.195)<3.: continue  # Mrk 421
-    #                    if GetDistance(T3_RA,T3_Dec,98.117,17.367)<3.: continue  # Geminga
-    #                elif not (T4_RA==0. and T4_Dec==0.):
-    #                    gal_l, gal_b = ConvertRaDecToGalactic(T4_RA,T4_Dec)
-    #                    if abs(gal_b)<10.: continue
-    #                    #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
-    #                    if GetDistance(T4_RA,T4_Dec,83.633,22.014)<3.: continue  # Crab
-    #                    if GetDistance(T4_RA,T4_Dec,166.079,38.195)<3.: continue  # Mrk 421
-    #                    if GetDistance(T4_RA,T4_Dec,98.117,17.367)<3.: continue  # Geminga
-    #                else: continue # there is no pointing info
-    #                #if abs(Livetime-Source_Livetime[entry2])/Source_Livetime[entry2]>0.5: continue
-    #                #if abs(Elev-Source_Elev[entry2])>4.: continue
-    #                #if abs(PedVar_DC-Source_PedVar_DC[entry2])>1.0: continue
-    #                if Elev<Search_Elev[0]: continue
-    #                if Elev>Search_Elev[1]: continue
-    #                if PedVar_DC<Search_PedVar_DC[0]: continue
-    #                if PedVar_DC>Search_PedVar_DC[1]: continue
-    #                already_used = False
-    #                #for entry3 in range(0,len(List_Produced)):
-    #                #    if int(List_Produced[entry3])==int(RunNumber): 
-    #                #        print 'RunNumber %s is in the List_Produced'%(RunNumber)
-    #                #        already_used = True
-    #                for entry3 in range(0,len(List_Used)):
-    #                    if int(List_Used[entry3])==int(RunNumber): 
-    #                        already_used = True
-    #                if already_used: continue
-    #                List_Used += [RunNumber]
-    #                List_Used_RA += [T1_RA]
-    #                List_Used_Dec += [T1_Dec]
-    #                found_matches += 1
-    #                print 'Size of the list: %s / %s'%(len(List_Used),n_matches*len(Source_RunNumber))
 
         
 for entry in range(0,len(List_Used)):
@@ -891,51 +903,56 @@ plt.clf()
 fig, ax = plt.subplots()
 w = 4
 n = math.ceil((max(List_Used_RA) - min(List_Used_RA))/w)
+n = max(n,1)
 plt.hist(List_Used_RA, bins=n)
 ax.axis('on')
 ax.set_xlabel('RA')
 ax.set_ylabel('counts')
-plt.savefig("output_plots/RunRA.png")
+plt.savefig("output_plots/RunRA_%s.png"%(plot_tag))
 
 plt.clf()
 fig, ax = plt.subplots()
 w = 4
 n = math.ceil((max(List_Used_Dec) - min(List_Used_Dec))/w)
+n = max(n,1)
 plt.hist(List_Used_Dec, bins=n)
 ax.axis('on')
 ax.set_xlabel('Dec')
 ax.set_ylabel('counts')
-plt.savefig("output_plots/RunDec.png")
+plt.savefig("output_plots/RunDec_%s.png"%(plot_tag))
 
 plt.clf()
 fig, ax = plt.subplots()
 w = 4
 n = math.ceil((max(List_Used_Elev) - min(List_Used_Elev))/w)
+n = max(n,1)
 plt.hist(List_Used_Elev, bins=n)
 ax.axis('on')
 ax.set_xlabel('Elev')
 ax.set_ylabel('counts')
-plt.savefig("output_plots/RunElev.png")
+plt.savefig("output_plots/RunElev_%s.png"%(plot_tag))
 
 plt.clf()
 fig, ax = plt.subplots()
 w = 4
 n = math.ceil((max(List_Used_Azim) - min(List_Used_Azim))/w)
+n = max(n,1)
 plt.hist(List_Used_Azim, bins=n)
 ax.axis('on')
 ax.set_xlabel('Azim')
 ax.set_ylabel('counts')
-plt.savefig("output_plots/RunAzim.png")
+plt.savefig("output_plots/RunAzim_%s.png"%(plot_tag))
 
 plt.clf()
 fig, ax = plt.subplots()
 w = 0.2
 n = math.ceil((max(List_Used_NSB) - min(List_Used_NSB))/w)
+n = max(n,1)
 plt.hist(List_Used_NSB, bins=n)
 ax.axis('on')
 ax.set_xlabel('NSB')
 ax.set_ylabel('counts')
-plt.savefig("output_plots/RunNSB.png")
+plt.savefig("output_plots/RunNSB_%s.png"%(plot_tag))
 
 plt.clf()
 fig, ax = plt.subplots()
@@ -949,24 +966,26 @@ for i in range(len(xbins)-1):
 ax.axis('on')
 ax.set_xlabel('RA')
 ax.set_ylabel('Dec')
-plt.savefig("output_plots/RunRADec.png")
+plt.savefig("output_plots/RunRADec_%s.png"%(plot_tag))
 
+elev_bins = 7
+azim_bins = 9
 plt.clf()
 fig, ax = plt.subplots()
-hist, xbins, ybins, im = plt.hist2d(List_Used_Elev, List_Used_Azim, weights=List_Used_Exposure, range = [[0,90], [0,360]], bins=(18,18), cmap=plt.cm.Greys)
+hist, xbins, ybins, im = plt.hist2d(List_Used_Azim, List_Used_Elev, weights=List_Used_Exposure, range = [[0,360], [20,90]], bins=(azim_bins,elev_bins), cmap=plt.cm.Greys)
 plt.colorbar()
 for i in range(len(xbins)-1):
     for j in range(len(ybins)-1):
         if hist[i,j]>30:
             print ("counts %s, Elev %s, Azim %s"%(hist[i,j],xbins[i],ybins[j]))
 ax.axis('on')
-ax.set_xlabel('Elev')
-ax.set_ylabel('Azim')
-plt.savefig("output_plots/RunElevAzim.png")
+ax.set_xlabel('Azim')
+ax.set_ylabel('Elev')
+plt.savefig("output_plots/RunElevAzim_%s.png"%(plot_tag))
 
 plt.clf()
 fig, ax = plt.subplots()
-hist, xbins, ybins, im = plt.hist2d(List_Used_Elev, List_Used_NSB, range = [[0,90], [2,10]], bins=(18,16), cmap=plt.cm.Greys)
+hist, xbins, ybins, im = plt.hist2d(List_Used_Elev, List_Used_NSB, range = [[0,90], [3,8]], bins=(18,10), cmap=plt.cm.Greys)
 plt.colorbar()
 for i in range(len(xbins)-1):
     for j in range(len(ybins)-1):
@@ -975,107 +994,109 @@ for i in range(len(xbins)-1):
 ax.axis('on')
 ax.set_xlabel('Elev')
 ax.set_ylabel('NSB')
-plt.savefig("output_plots/RunElevNSB.png")
+plt.savefig("output_plots/RunElevNSB_%s.png"%(plot_tag))
 
 if search_for_on_data:
 
-    inputFile = open('TeVCat_RaDec_w_Names.txt')
-    other_stars = []
-    other_star_ra = []
-    other_star_dec = []
-    for line in inputFile:
-        gamma_source_name = line.split(',')[0]
-        gamma_source_ra = float(line.split(',')[1])
-        gamma_source_dec = float(line.split(',')[2])
-        distance = pow(gamma_source_ra-target_ra,2)+pow(gamma_source_dec-target_dec,2)
-        if distance>2.*2.: continue
-        near_a_source = False
-        for entry in range(0,len(other_stars)):
-            distance = pow(gamma_source_ra-other_star_ra[entry],2)+pow(gamma_source_dec-other_star_dec[entry],2)
-            if distance<0.3*0.3:
-                near_a_source = True
-        if not near_a_source and not '%' in gamma_source_name:
-            other_stars += [gamma_source_name]
-            other_star_ra += [gamma_source_ra]
-            other_star_dec += [gamma_source_dec]
+    for target in range(0,len(target_ra)):
 
-    other_star_ra_flipped = []
-    for entry in range(0,len(other_star_ra)):
-        other_star_ra_flipped += [-1.*other_star_ra[entry]]
+        inputFile = open('TeVCat_RaDec_w_Names.txt')
+        other_stars = []
+        other_star_ra = []
+        other_star_dec = []
+        for line in inputFile:
+            gamma_source_name = line.split(',')[0]
+            gamma_source_ra = float(line.split(',')[1])
+            gamma_source_dec = float(line.split(',')[2])
+            distance = pow(gamma_source_ra-target_ra[target],2)+pow(gamma_source_dec-target_dec[target],2)
+            if distance>2.*2.: continue
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_ra[entry],2)+pow(gamma_source_dec-other_star_dec[entry],2)
+                if distance<0.3*0.3:
+                    near_a_source = True
+            if not near_a_source and not '%' in gamma_source_name:
+                other_stars += [gamma_source_name]
+                other_star_ra += [gamma_source_ra]
+                other_star_dec += [gamma_source_dec]
 
-    List_Proposed_RA = []
-    List_Proposed_Dec = []
-    List_Proposed_Exposure = []
-    # winter
-    #List_Proposed_RA += [286.6]
-    #List_Proposed_Dec += [6.9]
-    #List_Proposed_Exposure += [10.]
-    #List_Proposed_RA += [286.6]
-    #List_Proposed_Dec += [6.2]
-    #List_Proposed_Exposure += [5.]
-    ## summer
-    #List_Proposed_RA += [286.6]
-    #List_Proposed_Dec += [6.9]
-    #List_Proposed_Exposure += [5.]
-    #List_Proposed_RA += [288.]
-    #List_Proposed_Dec += [6.2]
-    #List_Proposed_Exposure += [5.]
-    #List_Proposed_RA += [287.3]
-    #List_Proposed_Dec += [5.5]
-    #List_Proposed_Exposure += [0.]
-    #List_Proposed_RA += [287.3]
-    #List_Proposed_Dec += [6.9]
-    #List_Proposed_Exposure += [5.]
-    #List_Proposed_RA += [286.6]
-    #List_Proposed_Dec += [6.2]
-    #List_Proposed_Exposure += [5.]
+        other_star_ra_flipped = []
+        for entry in range(0,len(other_star_ra)):
+            other_star_ra_flipped += [-1.*other_star_ra[entry]]
 
-    List_Used_RA_Flipped = []
-    for entry in range(0,len(List_Used_RA)):
-        List_Used_RA_Flipped += [-1.*List_Used_RA[entry]]
-    List_Proposed_RA_Flipped = []
-    for entry in range(0,len(List_Proposed_RA)):
-        List_Proposed_RA_Flipped += [-1.*List_Proposed_RA[entry]]
+        List_Proposed_RA = []
+        List_Proposed_Dec = []
+        List_Proposed_Exposure = []
+        # winter
+        #List_Proposed_RA += [286.6]
+        #List_Proposed_Dec += [6.9]
+        #List_Proposed_Exposure += [10.]
+        #List_Proposed_RA += [286.6]
+        #List_Proposed_Dec += [6.2]
+        #List_Proposed_Exposure += [5.]
+        ## summer
+        #List_Proposed_RA += [286.6]
+        #List_Proposed_Dec += [6.9]
+        #List_Proposed_Exposure += [5.]
+        #List_Proposed_RA += [288.]
+        #List_Proposed_Dec += [6.2]
+        #List_Proposed_Exposure += [5.]
+        #List_Proposed_RA += [287.3]
+        #List_Proposed_Dec += [5.5]
+        #List_Proposed_Exposure += [0.]
+        #List_Proposed_RA += [287.3]
+        #List_Proposed_Dec += [6.9]
+        #List_Proposed_Exposure += [5.]
+        #List_Proposed_RA += [286.6]
+        #List_Proposed_Dec += [6.2]
+        #List_Proposed_Exposure += [5.]
 
-    delta = 0.02
-    x = np.arange(-target_ra-3.0, -target_ra+3.0, delta)
-    y = np.arange(target_dec-3.0, target_dec+3.0, delta)
-    X, Y = np.meshgrid(x, y)
-    Z = 0.*gaussian_2d(X, Y, 0., 0., 1., 1.)
-    for run in range(0,len(List_Used_RA_Flipped)):
-        Z += List_Used_Exposure[run]*gaussian_2d(X, Y, List_Used_RA_Flipped[run], List_Used_Dec[run], 1., 1.)
-    for run in range(0,len(List_Proposed_RA_Flipped)):
-        Z += List_Proposed_Exposure[run]*gaussian_2d(X, Y, List_Proposed_RA_Flipped[run], List_Proposed_Dec[run], 1., 1.)
-    
-    # Create a contour plot with labels using default colors.  The
-    # inline argument to clabel will control whether the labels are draw
-    # over the line segments of the contour, removing the lines beneath
-    # the label
-    plt.clf()
-    CS = plt.contour(X, Y, Z)
-    plt.scatter(other_star_ra_flipped, other_star_dec, s=80, c='black', marker="+")
-    for star in range(0,len(other_stars)):
-        plt.text(other_star_ra_flipped[star],other_star_dec[star]+0.2,other_stars[star])
-    plt.clabel(CS, inline=1, fontsize=10)
-    #plt.title('Simplest default with labels')
-    plt.savefig("output_plots/ExposureMap.png")
+        List_Used_RA_Flipped = []
+        for entry in range(0,len(List_Used_RA)):
+            List_Used_RA_Flipped += [-1.*List_Used_RA[entry]]
+        List_Proposed_RA_Flipped = []
+        for entry in range(0,len(List_Proposed_RA)):
+            List_Proposed_RA_Flipped += [-1.*List_Proposed_RA[entry]]
 
-    plt.clf()
-    fig, ax = plt.subplots()
-    hist, xbins, ybins, im = plt.hist2d(List_Used_RA_Flipped, List_Used_Dec, weights=List_Used_Exposure, range=[[-target_ra-3.0,-target_ra+3.0],[target_dec-3.0, target_dec+3.0]], bins=(60,60), cmap=plt.cm.Reds)
-    plt.colorbar()
-    ax.axis('on')
-    ax.set_xlabel('RA')
-    ax.set_ylabel('Dec')
-    plt.scatter(other_star_ra_flipped, other_star_dec, s=80, c='black', marker="+")
-    plt.scatter(List_Proposed_RA_Flipped, List_Proposed_Dec, s=80, c='red', marker="o")
-    circle1 = plt.Circle((-286.65, 7.05), 0.3, color='r', fill=False)
-    ax.add_patch(circle1)
-    for star in range(0,len(other_stars)):
-        plt.text(-1.*other_star_ra[star],other_star_dec[star]+0.2,other_stars[star])
-    plt.clabel(CS, inline=1, fontsize=10)
-    plt.savefig("output_plots/PointingMap.png")
-    for i in range(len(xbins)-1):
-        for j in range(len(ybins)-1):
-            if hist[i,j]>5.:
-                print ("counts %s, RA %s, Dec %s"%(hist[i,j],xbins[i],ybins[j]))
+        delta = 0.02
+        x = np.arange(-target_ra[target]-3.0, -target_ra[target]+3.0, delta)
+        y = np.arange(target_dec[target]-3.0, target_dec[target]+3.0, delta)
+        X, Y = np.meshgrid(x, y)
+        Z = 0.*gaussian_2d(X, Y, 0., 0., 1., 1.)
+        for run in range(0,len(List_Used_RA_Flipped)):
+            Z += List_Used_Exposure[run]*gaussian_2d(X, Y, List_Used_RA_Flipped[run], List_Used_Dec[run], 1., 1.)
+        for run in range(0,len(List_Proposed_RA_Flipped)):
+            Z += List_Proposed_Exposure[run]*gaussian_2d(X, Y, List_Proposed_RA_Flipped[run], List_Proposed_Dec[run], 1., 1.)
+        
+        # Create a contour plot with labels using default colors.  The
+        # inline argument to clabel will control whether the labels are draw
+        # over the line segments of the contour, removing the lines beneath
+        # the label
+        plt.clf()
+        CS = plt.contour(X, Y, Z)
+        plt.scatter(other_star_ra_flipped, other_star_dec, s=80, c='black', marker="+")
+        for star in range(0,len(other_stars)):
+            plt.text(other_star_ra_flipped[star],other_star_dec[star]+0.2,other_stars[star])
+        plt.clabel(CS, inline=1, fontsize=10)
+        #plt.title('Simplest default with labels')
+        plt.savefig("output_plots/ExposureMap_%s_%s.png"%(plot_tag,target+1))
+
+        plt.clf()
+        fig, ax = plt.subplots()
+        hist, xbins, ybins, im = plt.hist2d(List_Used_RA_Flipped, List_Used_Dec, weights=List_Used_Exposure, range=[[-target_ra[target]-3.0,-target_ra[target]+3.0],[target_dec[target]-3.0, target_dec[target]+3.0]], bins=(60,60), cmap=plt.cm.Reds)
+        plt.colorbar()
+        ax.axis('on')
+        ax.set_xlabel('RA')
+        ax.set_ylabel('Dec')
+        plt.scatter(other_star_ra_flipped, other_star_dec, s=80, c='black', marker="+")
+        plt.scatter(List_Proposed_RA_Flipped, List_Proposed_Dec, s=80, c='red', marker="o")
+        circle1 = plt.Circle((-286.65, 7.05), 0.3, color='r', fill=False)
+        ax.add_patch(circle1)
+        for star in range(0,len(other_stars)):
+            plt.text(-1.*other_star_ra[star],other_star_dec[star]+0.2,other_stars[star])
+        plt.clabel(CS, inline=1, fontsize=10)
+        plt.savefig("output_plots/PointingMap_%s_%s.png"%(plot_tag,target+1))
+        for i in range(len(xbins)-1):
+            for j in range(len(ybins)-1):
+                if hist[i,j]>5.:
+                    print ("counts %s, RA %s, Dec %s"%(hist[i,j],xbins[i],ybins[j]))
