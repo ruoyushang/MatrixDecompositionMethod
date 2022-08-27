@@ -1335,11 +1335,23 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     //double threshold_dAirmass = 0.4;
     double threshold_dNSB = 0.4; // for J1908 analysis
     double threshold_dAzim = 180.;
+
+    threshold_dAirmass = 0.3; // default, do not use for J1908 
+    threshold_dNSB = 1.0; // default, do not use for J1908
+    threshold_dAzim = 22.5; // default, do not use for J1908
     if (!isImposter)
     {
         threshold_dAirmass = 0.2; // default 
         threshold_dNSB = 0.5; // default 
         threshold_dAzim = 22.5; // default 
+
+        // relaxed for LZA source, do not use!
+        //if (UseDL3Tree)
+        //{
+        //    threshold_dAirmass = 0.3; 
+        //    threshold_dNSB = 1.0; 
+        //    threshold_dAzim = 22.5;
+        //}
 
         if (MatchingSelection==1)
         {
@@ -1379,6 +1391,8 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
 
         if (delta_airmass>threshold_dAirmass) continue;
         if (delta_nsb>threshold_dNSB) continue;
+
+        if (delta_azim>threshold_dAzim) continue; //default, do not use for J1908
         if (!isImposter)
         {
             if (delta_azim>threshold_dAzim) continue;
@@ -1393,6 +1407,8 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         //double chi2 = pow(delta_mjd,2);
         //double chi2 = pow(delta_l3rate,2);
         double chi2 = pow(delta_azim,2); // for J1908 analysis
+
+        chi2 = pow(delta_airmass,2);  // default, do not use for J1908
         if (!isImposter)
         {
             chi2 = pow(delta_airmass,2);  // default
@@ -2164,12 +2180,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::cout << __LINE__ << std::endl;
     std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
     int group_index = 0;
-    //double exposure_hour_limit = 2.;
-    double exposure_hour_limit = 5.;
-    //double exposure_hour_limit = 10.;
-    //double exposure_hour_limit = 20.;
-    //double exposure_hour_limit = 80.;
-    //double exposure_hour_limit = 10000.;
+    double exposure_hour_limit = exposure_limit;
     double exposure_hour_sum = 0.;
     for (int on_run=0;on_run<RunListTree.GetEntries();on_run++)
     {

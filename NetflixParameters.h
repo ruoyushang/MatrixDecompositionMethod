@@ -1,5 +1,7 @@
 
 
+//int N_bins_for_deconv = 4; // 8 should be the lowest bin number
+//int N_bins_for_deconv = 8; // 8 should be the lowest bin number
 int N_bins_for_deconv = 12; // 8 should be the lowest bin number
 
 //const int N_energy_bins = 4;
@@ -36,10 +38,13 @@ const int N_energy_fine_bins = 6;
 double energy_fine_bins[N_energy_fine_bins+1] = {200.,398.,794.,1585.,3162.,6310.,12589.};
 
 
-bool UseDL3Tree = false;
+bool UseDL3Tree = true;
 bool UseDBOnly = false;
 bool RHVData = false;
 bool EigenDecomposition = false;
+
+double exposure_limit = 5.; // default
+//double exposure_limit = 1000.;
 
 bool UseRegularization = true;
 //bool UseRegularization = false;

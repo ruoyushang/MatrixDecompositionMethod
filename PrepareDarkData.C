@@ -1432,8 +1432,8 @@ void SetEventDisplayDL3TreeBranch(TTree* Data_tree)
     Data_tree->SetBranchStatus("Yoff",1);
     Data_tree->SetBranchStatus("Xderot",1);
     Data_tree->SetBranchStatus("Yderot",1);
-    Data_tree->SetBranchStatus("Erec",1);
-    Data_tree->SetBranchStatus("Erec_Err",1);
+    Data_tree->SetBranchStatus("Energy",1);
+    Data_tree->SetBranchStatus("Energy_Err",1);
     Data_tree->SetBranchStatus("MSCW",1);
     Data_tree->SetBranchStatus("MSCL",1);
     Data_tree->SetBranchStatus("NImages",1);
@@ -1445,9 +1445,9 @@ void SetEventDisplayDL3TreeBranch(TTree* Data_tree)
     Data_tree->SetBranchAddress("Xoff",&Xoff);
     Data_tree->SetBranchAddress("Yoff",&Yoff);
     Data_tree->SetBranchAddress("Xderot",&Xoff_derot);
-    Data_tree->SetBranchAddress("Yoff_derot",&Yoff_derot);
-    Data_tree->SetBranchAddress("Erec",&ErecS);
-    Data_tree->SetBranchAddress("Erec_Err",&EChi2S);
+    Data_tree->SetBranchAddress("Yderot",&Yoff_derot);
+    Data_tree->SetBranchAddress("Energy",&ErecS);
+    Data_tree->SetBranchAddress("Energy_Err",&EChi2S);
     Data_tree->SetBranchAddress("MSCW",&MSCW);
     Data_tree->SetBranchAddress("MSCL",&MSCL);
     Data_tree->SetBranchAddress("NImages",&NImages);
@@ -1507,7 +1507,18 @@ void GetRunCosmicRayAcceptance(string file_name, int run, TH2D* hist_input)
     TFile*  input_file = TFile::Open(file_name.c_str());
     TTree* event_tree = nullptr;
     event_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/data_on"));
-    SetEventDisplayTreeBranch(event_tree);
+    if (UseDL3Tree)
+    {
+        event_tree = (TTree*) input_file->Get(TString("run_"+string(run_number)+"/stereo/DL3EventTree"));
+    }
+    if (UseDL3Tree)
+    {
+        SetEventDisplayDL3TreeBranch(event_tree);
+    }
+    else
+    {
+        SetEventDisplayTreeBranch(event_tree);
+    }
     for (int entry=0;entry<event_tree->GetEntries();entry++) 
     {
         ErecS = 0;
@@ -2754,13 +2765,24 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                 TFile*  dark_input_file = TFile::Open(filename_dark.c_str());
                 TH1* i_hEffAreaP = ( TH1* )getEffAreaHistogram(dark_input_file,Dark_runlist.at(run).at(nth_sample)[off_run].second, 0.5);
                 TString root_file = "run_"+string(run_number)+"/stereo/data_on";
+                if (UseDL3Tree)
+                {
+                    root_file = "run_"+string(run_number)+"/stereo/DL3EventTree";
+                }
                 TTree* Dark_tree = (TTree*) dark_input_file->Get(root_file);
                 if (!Dark_tree)
                 {
                     std::cout << "TTree does not exist: " << root_file << std::endl;
                     continue;
                 }
-                SetEventDisplayTreeBranch(Dark_tree);
+                if (UseDL3Tree)
+                {
+                    SetEventDisplayDL3TreeBranch(Dark_tree);
+                }
+                else
+                {
+                    SetEventDisplayTreeBranch(Dark_tree);
+                }
                 vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Dark_runlist.at(run).at(nth_sample)[off_run].second);
 
                 pair<double,double> dark_tele_point_ra_dec = std::make_pair(0,0);
@@ -3037,13 +3059,24 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
+        if (UseDL3Tree)
+        {
+            root_file = "run_"+string(run_number)+"/stereo/DL3EventTree";
+        }
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
         if (!Data_tree)
         {
             std::cout << "TTree does not exist: " << root_file << std::endl;
             continue;
         }
-        SetEventDisplayTreeBranch(Data_tree);
+        if (UseDL3Tree)
+        {
+            SetEventDisplayDL3TreeBranch(Data_tree);
+        }
+        else
+        {
+            SetEventDisplayTreeBranch(Data_tree);
+        }
         std::cout << "Get time cuts for run " << run_number << std::endl;
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
         std::cout << "Get elev. and azim. for run " << run_number << std::endl;
@@ -3174,13 +3207,24 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
+        if (UseDL3Tree)
+        {
+            root_file = "run_"+string(run_number)+"/stereo/DL3EventTree";
+        }
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
         if (!Data_tree)
         {
             std::cout << "TTree does not exist: " << root_file << std::endl;
             continue;
         }
-        SetEventDisplayTreeBranch(Data_tree);
+        if (UseDL3Tree)
+        {
+            SetEventDisplayDL3TreeBranch(Data_tree);
+        }
+        else
+        {
+            SetEventDisplayTreeBranch(Data_tree);
+        }
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
         double tele_elev = GetRunElevAzim(filename,int(Data_runlist[run].second)).first;
 
@@ -3305,13 +3349,24 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
+        if (UseDL3Tree)
+        {
+            root_file = "run_"+string(run_number)+"/stereo/DL3EventTree";
+        }
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
         if (!Data_tree)
         {
             std::cout << "TTree does not exist: " << root_file << std::endl;
             continue;
         }
-        SetEventDisplayTreeBranch(Data_tree);
+        if (UseDL3Tree)
+        {
+            SetEventDisplayDL3TreeBranch(Data_tree);
+        }
+        else
+        {
+            SetEventDisplayTreeBranch(Data_tree);
+        }
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
         double tele_elev = GetRunElevAzim(filename,int(Data_runlist[run].second)).first;
         Data_tree->GetEntry(0);
@@ -3521,13 +3576,24 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
         TFile*  input_file = TFile::Open(filename.c_str());
         TString root_file = "run_"+string(run_number)+"/stereo/data_on";
+        if (UseDL3Tree)
+        {
+            root_file = "run_"+string(run_number)+"/stereo/DL3EventTree";
+        }
         TTree* Data_tree = (TTree*) input_file->Get(root_file);
         if (!Data_tree)
         {
             std::cout << "TTree does not exist: " << root_file << std::endl;
             continue;
         }
-        SetEventDisplayTreeBranch(Data_tree);
+        if (UseDL3Tree)
+        {
+            SetEventDisplayDL3TreeBranch(Data_tree);
+        }
+        else
+        {
+            SetEventDisplayTreeBranch(Data_tree);
+        }
         vector<pair<double,double>> timecut_thisrun = GetRunTimecuts(Data_runlist[run].second);
 
         double NSB_thisrun = GetRunPedestalVar(int(Data_runlist[run].second));
