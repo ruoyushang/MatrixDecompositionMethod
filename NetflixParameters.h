@@ -21,8 +21,8 @@ int N_bins_for_deconv = 12; // 8 should be the lowest bin number
 //double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.5),pow(10,3.0),pow(10,3.5),pow(10,4.0)};
 
 const int N_energy_bins = 6;
-double Log10_alpha[N_energy_bins] = {1.0, 1.0,-1.0,0.0,0.0,0.0};
-double Log10_beta[N_energy_bins] =  {1.0,-0.2, 0.2,0.0,0.0,0.0};
+double Log10_alpha[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
+double Log10_beta[N_energy_bins] =  {0.0,0.0,0.0,0.0,0.0,0.0};
 double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
 double optimiz_alpha_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5,1.5};
 double optimiz_beta_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};

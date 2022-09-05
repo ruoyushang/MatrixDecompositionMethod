@@ -649,7 +649,7 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
             TelElevation_avg = TelElevation;
             TelAzimuth_avg = TelAzimuth;
             input_file->Close();
-            //std::cout << "root file elev = " << TelElevation_avg << " azim = " << TelAzimuth_avg << std::endl;
+            std::cout << "root file elev = " << TelElevation_avg << " azim = " << TelAzimuth_avg << std::endl;
         }
 
     }
@@ -1038,6 +1038,21 @@ pair<double,double> GetSourceRaDec(TString source_name)
     {
             Source_RA = 132.875;
                 Source_Dec = 63.13;
+    }
+    if (source_name.Contains("PSR_J0248_p6021"))
+    {
+            Source_RA = 42.077571;
+                Source_Dec = 60.359644;
+    }
+    if (source_name.Contains("PSR_J0633_p0632"))
+    {
+            Source_RA = 98.43421;
+                Source_Dec = 6.5430;
+    }
+    if (source_name.Contains("LSI_p61_303"))
+    {
+            Source_RA = 40.1416667;
+                Source_Dec = 61.2569444;
     }
     if (source_name.Contains("LHAASO_J2108"))
     {
@@ -1892,6 +1907,10 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
             if (matched_runnumber==0)
             {
                 std::cout << "ON run " << ON_runnumber << " failed to find a match." << std::endl;
+                std::cout << "ON run elev = " << ON_pointing.first << std::endl;
+                std::cout << "ON run azim = " << ON_pointing.second << std::endl;
+                std::cout << "ON run NSB = " << on_run_NSB << std::endl;
+                std::cout << "ON run L3 rate = " << ON_L3Rate << std::endl;
                 OFF_runnumber.push_back(0);
                 OFF_exposure_hour.push_back(0);
                 continue_to_find_match = false;
@@ -2135,6 +2154,9 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     }
     else
     {
+        if (TString(target).Contains("MGRO_J1908"))
+        {
+        }
         int iteration = 1;
         if (TString(target).Contains("Imposter1")) iteration = 1;
         if (TString(target).Contains("Imposter2")) iteration = 2;
@@ -2182,6 +2204,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     int group_index = 0;
     double exposure_hour_limit = exposure_limit;
     double exposure_hour_sum = 0.;
+    int usable_runs = 0;
     for (int on_run=0;on_run<RunListTree.GetEntries();on_run++)
     {
         sprintf(group_tag, "_G%d", group_index);
@@ -2194,6 +2217,11 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
         OFF_runnumber = *OFF_runnumber_ptr;
         OFF_exposure_hour = *OFF_exposure_hour_ptr;
         RunListTree_subgroup.Fill();
+
+        if (OFF_runnumber.at(0)!=0)
+        {
+            usable_runs += 1;
+        }
 
         exposure_hour_sum += ON_exposure_hour;
         
@@ -2210,7 +2238,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     }
 
     std::cout << "initial runs = " << Data_runlist_init.size() << std::endl;
-    std::cout << "selected runs = " << RunListTree.GetEntries() << std::endl;
+    std::cout << "usable runs = " << usable_runs << std::endl;
     std::cout << "Done." << std::endl;
 
 }
