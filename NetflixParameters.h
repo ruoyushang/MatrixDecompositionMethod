@@ -70,6 +70,8 @@ double MSCL_plot_lower = -0.5;
 char output_file_tag[50] = "tight";
 double MSCW_cut_moderate = 0.6;
 double MSCL_cut_moderate = 0.6;
+double EmissionHeight_cut = 0.;
+//double EmissionHeight_cut = 6.;
 
 bool UseTruncatedONData = false;
 bool UseMinChi2 = false;

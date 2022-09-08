@@ -2877,7 +2877,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     if (!SelectNImages()) continue;
                     if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
                     if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
-                    if (EmissionHeight<6.) continue;
+                    if (EmissionHeight<EmissionHeight_cut) continue;
                     double shower_depth = GetShowerDepth(EmissionHeight,tele_elev_off);
                     //if (shower_depth>4.) continue;
                     if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
@@ -2960,7 +2960,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     if (!SelectNImages()) continue;
                     if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
                     if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
-                    if (EmissionHeight<6.) continue;
+                    if (EmissionHeight<EmissionHeight_cut) continue;
                     double shower_depth = GetShowerDepth(EmissionHeight,tele_elev_off);
                     //if (shower_depth>4.) continue;
                     if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
@@ -3159,7 +3159,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (!SelectNImages()) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
             if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
-            if (EmissionHeight<6.) continue;
+            if (EmissionHeight<EmissionHeight_cut) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
@@ -3301,7 +3301,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (!SelectNImages()) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
             if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
-            if (EmissionHeight<6.) continue;
+            if (EmissionHeight<EmissionHeight_cut) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
@@ -3441,7 +3441,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (!SelectNImages()) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
             if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
-            if (EmissionHeight<6.) continue;
+            if (EmissionHeight<EmissionHeight_cut) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
@@ -3799,7 +3799,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (!SelectNImages()) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
             if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
-            if (EmissionHeight<6.) continue;
+            if (EmissionHeight<EmissionHeight_cut) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
@@ -3876,7 +3876,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (!SelectNImages()) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
             if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
-            if (EmissionHeight<6.) continue;
+            if (EmissionHeight<EmissionHeight_cut) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
             //if (shower_depth>4.) continue;
             if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
@@ -4229,7 +4229,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     //        if (energy>=N_energy_bins) continue;
     //        if (!SelectNImages()) continue;
     //        if (SizeSecondMax<400.) continue;
-    //        if (EmissionHeight<6.) continue;
+    //        if (EmissionHeight<EmissionHeight_cut) continue;
     //        if (pow(Xcore*Xcore+Ycore*Ycore,0.5)>350) continue;
     //        MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
     //        MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);

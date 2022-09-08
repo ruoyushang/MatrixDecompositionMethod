@@ -1476,7 +1476,7 @@ bool CheckBrightGammaRaySource(double input_ra, double input_dec)
     return false;
 }
 
-void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, int MJD_start_cut, int MJD_end_cut, int iteration, pair<double,double> source_ra_dec)
+void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, int MJD_start_cut, int MJD_end_cut, int iteration, pair<double,double> source_ra_dec)
 {
     std::cout << "initial runs = " << Data_runlist.size() << std::endl;
 
@@ -1609,6 +1609,7 @@ void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_ru
     std::cout << "ON runs = " << new_list.size() << std::endl;
     for (int trial=0;trial<iteration;trial++)
     {
+        if (root_file_name.Contains("MGRO_J1908")) continue;
         for (int on_run=0;on_run<new_list.size();on_run++)
         {
             ON_runnumber = new_list.at(on_run);
@@ -1652,6 +1653,42 @@ void SelectImposterRunList(TTree * RunListTree, vector<pair<string,int>> Data_ru
                 exclusion_list.push_back(matched_runnumber);
             }
         }
+    }
+    if (root_file_name.Contains("MGRO_J1908"))
+    {
+
+        TFile InputRunListFile("/gamma_raid/userspace/rshang/SMI_output/output_db_search/j1908_1000hrs_bin/"+root_file_name);
+        TTree* RunListTree_ptr = nullptr;
+        RunListTree_ptr = (TTree*) InputRunListFile.Get("RunListTree_subgroup");
+        RunListTree_ptr->SetBranchStatus("*", 0);
+        RunListTree_ptr->SetBranchStatus("ON_runnumber", 1);
+        RunListTree_ptr->SetBranchStatus("ON_pointing_RA", 1);
+        RunListTree_ptr->SetBranchStatus("ON_pointing_Dec", 1);
+        RunListTree_ptr->SetBranchStatus("ON_exposure_hour", 1);
+        RunListTree_ptr->SetBranchStatus("OFF_runnumber", 1);
+        RunListTree_ptr->SetBranchStatus("OFF_exposure_hour", 1);
+        int ON_runnumber_ptr;
+        RunListTree_ptr->SetBranchAddress("ON_runnumber",&ON_runnumber_ptr);
+        double ON_exposure_hour_ptr;
+        RunListTree_ptr->SetBranchAddress("ON_exposure_hour",&ON_exposure_hour_ptr);
+        double ON_pointing_RA_ptr;
+        RunListTree_ptr->SetBranchAddress("ON_pointing_RA",&ON_pointing_RA_ptr);
+        double ON_pointing_Dec_ptr;
+        RunListTree_ptr->SetBranchAddress("ON_pointing_Dec",&ON_pointing_Dec_ptr);
+        vector<int>* OFF_runnumber_ptr = new std::vector<int>(10);
+        RunListTree_ptr->SetBranchAddress("OFF_runnumber",&OFF_runnumber_ptr);
+        vector<double>* OFF_exposure_hour_ptr = new std::vector<double>(10);
+        RunListTree_ptr->SetBranchAddress("OFF_exposure_hour",&OFF_exposure_hour_ptr);
+
+        for (int on_run=0;on_run<RunListTree_ptr->GetEntries();on_run++)
+        {
+            RunListTree_ptr->GetEntry(on_run);
+            if (OFF_runnumber_ptr->size()==0) continue;
+            if (OFF_runnumber_ptr->at(0)==0) continue;
+            imposter_list.push_back(ON_runnumber_ptr);
+            imposter_list_radec.push_back(std::make_pair(ON_pointing_RA_ptr,ON_pointing_Dec_ptr));
+        }
+
     }
 
 
@@ -2154,9 +2191,6 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     }
     else
     {
-        if (TString(target).Contains("MGRO_J1908"))
-        {
-        }
         int iteration = 1;
         if (TString(target).Contains("Imposter1")) iteration = 1;
         if (TString(target).Contains("Imposter2")) iteration = 2;
@@ -2164,7 +2198,8 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
         if (TString(target).Contains("Imposter4")) iteration = 4;
         if (TString(target).Contains("Imposter5")) iteration = 5;
         if (TString(target).Contains("Imposter6")) iteration = 6;
-        SelectImposterRunList(&RunListTree, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, iteration, source_ra_dec);
+        TString root_file_name = "Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+"_G0.root";
+        SelectImposterRunList(&RunListTree, root_file_name, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, iteration, source_ra_dec);
     }
 
     RunListTree.SetBranchStatus("*", 0);
