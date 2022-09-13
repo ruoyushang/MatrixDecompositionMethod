@@ -27,10 +27,10 @@ energy_bin_cut_low = int(sys.argv[2])
 energy_bin_cut_up = int(sys.argv[3])
 doImposter = int(sys.argv[4])
 
-n_imposters = 6
+n_imposters = 3
 
-correct_bias = True
-#correct_bias = False
+#correct_bias = True
+correct_bias = False
 #use_rfov = True
 use_rfov = False
 
@@ -57,7 +57,9 @@ def GetEffectiveAreaCorrection(energy):
     #flux_calibration = [1.1322594844821785, 1.6092011092857377, 1.8464241310866323, 1.8720466874839645, 1.9135915421954204, 1.7407060559258778]
     #LZA
     #flux_calibration = [9.386080061991214, 2.0834714135836507, 2.4432710106703546, 2.344873358260945]
-    flux_calibration = [1.6932426930099356, 1.4135753876998944, 1.6760188662529696, 1.847970753395675, 1.9016082639420058, 1.7233699081066682]
+    #flux_calibration = [1.6932426930099356, 1.4135753876998944, 1.6760188662529696, 1.847970753395675, 1.9016082639420058, 1.7233699081066682]
+    # v487
+    flux_calibration = [0.5608790644732815, 0.7337945517068324, 0.8843346151625342, 1.0572521823716194, 1.1823658477601502, 1.5160947558902769]
 
     return flux_calibration[energy]
 
@@ -130,14 +132,16 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
         #hist_avg_bkgd_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_avg_bkgd_skymap[ebin])
         #CommonPlotFunctions.MatplotlibMap2D(hist_avg_bkgd_skymap_reflect,None,fig,'RA','Dec','avg. bkg','SkymapBkgd_E%s'%(ebin))
         hist_zscore_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_reflect,None,fig,'RA','Dec','Z score','SkymapZscore_E%s_%s'%(ebin,plot_tag))
+        CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_reflect,None,fig,'RA','Dec','Z score','SkymapZscore_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r)
         hist_excess_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_excess_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_excess_skymap_reflect,None,fig,'RA','Dec','excess count','SkymapExcess_E%s_%s'%(ebin,plot_tag))
+        CommonPlotFunctions.MatplotlibMap2D(hist_excess_skymap_reflect,None,fig,'RA','Dec','excess count','SkymapExcess_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r)
+        hist_on_bkgd_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_on_bkgd_skymap[ebin])
+        CommonPlotFunctions.MatplotlibMap2D(hist_on_bkgd_skymap_reflect,None,fig,'RA','Dec','excess count','SkymapBkgdCnt_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r)
 
     hist_real_zscore_skymap_sum.Reset()
     hist_real_zscore_skymap_sum.Add(hist_zscore_skymap_sum)
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap_sum)
-    CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapZscore_Sum_%s'%(plot_tag))
+    CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapZscore_Sum_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r)
 
     CommonPlotFunctions.SaveAsFITS(hist_zscore_skymap_sum_reflect,'skymap_zscore_sum_%s'%(plot_tag))
     hist_zscore_skymap_sum_reflect.Delete()
@@ -156,7 +160,7 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
             hist_mimic_bkgd_skymap_sum.Add(hist_mimic_bkgd_skymap[imposter][ebin])
         hist_zscore_skymap_sum.Add(GetSignificanceMap(hist_mimic_data_skymap_sum,hist_mimic_bkgd_skymap_sum,hist_real_syst_skymap_sum,False))
         hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap_sum)
-        CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapZscore_Imposter%s_Sum_%s'%(imposter,plot_tag))
+        CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapZscore_Imposter%s_Sum_%s'%(imposter,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r)
         hist_zscore_skymap_sum_reflect.Delete()
 
 def diffusion_func(x,A,d):
@@ -213,6 +217,35 @@ def GetHawcDiffusionFluxJ1908(energy_index):
         energies[entry] = energies[entry]*1e3
         fluxes[entry] = fluxes[entry]/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
         flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
+def GetHessFluxJ1908(energy_index):
+    energies = [pow(10.,-0.332),pow(10.,0.022),pow(10.,0.396),pow(10.,0.769),pow(10.,1.124),pow(10.,1.478)]
+    fluxes = [pow(10.,-10.981),pow(10.,-10.967),pow(10.,-11.057),pow(10.,-11.169),pow(10.,-11.188),pow(10.,-11.386)]
+    flux_errs = [pow(10.,-0.332),pow(10.,0.022),pow(10.,0.396),pow(10.,0.769),pow(10.,1.124),pow(10.,1.478)]
+    flux_errs_up = [pow(10.,-10.895),pow(10.,-10.916),pow(10.,-11.003),pow(10.,-11.101),pow(10.,-11.101),pow(10.,-11.264)]
+    flux_errs_low = [pow(10.,-11.086),pow(10.,-11.010),pow(10.,-11.126),pow(10.,-11.264),pow(10.,-11.292),pow(10.,-11.556)]
+
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]*1e3
+        fluxes[entry] = fluxes[entry]/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
+def GetVeritasFluxJ1908(energy_index):
+    energies = [pow(10.,-0.270),pow(10.,-0.126),pow(10.,0.022),pow(10.,0.175),pow(10.,0.323),pow(10.,0.467),pow(10.,0.618),pow(10.,0.776),pow(10.,0.922),pow(10.,1.070),pow(10.,1.219)]
+    fluxes = [pow(10.,-11.061),pow(10.,-11.028),pow(10.,-11.036),pow(10.,-11.097),pow(10.,-11.448),pow(10.,-11.166),pow(10.,-11.213),pow(10.,-11.068),pow(10.,-11.209),pow(10.,-11.231),pow(10.,-11.318)]
+    flux_errs = [pow(10.,-0.270),pow(10.,-0.126),pow(10.,0.022),pow(10.,0.175),pow(10.,0.323),pow(10.,0.467),pow(10.,0.618),pow(10.,0.776),pow(10.,0.922),pow(10.,1.070),pow(10.,1.219)]
+    flux_errs_up = [pow(10.,-10.952),pow(10.,-10.960),pow(10.,-10.974),pow(10.,-11.028),pow(10.,-11.303),pow(10.,-11.083),pow(10.,-11.112),pow(10.,-10.974),pow(10.,-11.083),pow(10.,-11.097),pow(10.,-11.141)]
+    flux_errs_low = [pow(10.,-11.245),pow(10.,-11.155),pow(10.,-11.137),pow(10.,-11.195),pow(10.,-11.661),pow(10.,-11.282),pow(10.,-11.339),pow(10.,-11.162),pow(10.,-11.372),pow(10.,-11.408),pow(10.,-11.538)]
+
+    scale_factor = 1./2.03
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]*1e3
+        fluxes[entry] = fluxes[entry]*scale_factor/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])*scale_factor/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
 
     return energies, fluxes, flux_errs
 
@@ -408,6 +441,20 @@ def GetFermiFluxJ1825(energy_index):
 
     return energies, fluxes, flux_errs
 
+def GetLHAASOFluxJ2108(energy_index):
+    energies = [pow(10.,1.300),pow(10.,1.500),pow(10.,1.699),pow(10.,1.901),pow(10.,2.100),pow(10.,2.301)]
+    fluxes = [pow(10.,-12.318),pow(10.,-12.357),pow(10.,-12.515),pow(10.,-12.665),pow(10.,-12.685),pow(10.,-13.521)]
+    flux_errs = [pow(10.,1.300),pow(10.,1.500),pow(10.,1.699),pow(10.,1.901),pow(10.,2.100),pow(10.,2.301)]
+    flux_errs_up = [pow(10.,-12.123),pow(10.,-12.252),pow(10.,-12.420),pow(10.,-12.560),pow(10.,-12.561),pow(10.,-13.132)]
+    flux_errs_low = [pow(10.,-12.658),pow(10.,-12.495),pow(10.,-12.639),pow(10.,-12.803),pow(10.,-12.831),pow(10.,-14.030)]
+
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]*1e3
+        fluxes[entry] = fluxes[entry]/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
 def GetFermiFluxJ1908(energy_index):
     energies = [pow(10.,10.6),pow(10.,10.86),pow(10.,11.12),pow(10.,11.37)]
     fluxes = [pow(10.,-11.31),pow(10.,-11.29),pow(10.,-11.12),pow(10.,-10.88)]
@@ -506,6 +553,10 @@ def SumFluxMap():
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         hist_real_flux_skymap_smooth_sum.Add(hist_real_flux_skymap_smooth[ebin])
 
+    hist_bkgd_flux_skymap_sum.Reset()
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        hist_bkgd_flux_skymap_sum.Add(hist_bkgd_flux_skymap[ebin])
+
     for imposter in range(0,n_imposters):
         hist_imposter_flux_skymap_sum[imposter].Reset()
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
@@ -522,6 +573,12 @@ def SumFluxMap():
     if source_name=='MGRO_J2019':
         text_angle = 45.
     CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r,rotation_angle=text_angle)
+
+    hist_bkgd_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_bkgd_flux_skymap_sum)
+    text_angle = 0.
+    if source_name=='MGRO_J2019':
+        text_angle = 45.
+    CommonPlotFunctions.MatplotlibMap2D(hist_bkgd_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapBkgdFlux_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r,rotation_angle=text_angle)
 
     #for imposter in range(0,n_imposters):
     #    hist_imposter_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_imposter_flux_skymap_smooth_sum[imposter])
@@ -579,7 +636,7 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         imposter_s2b_list += [imposter_s2b]
         imposter_s2b_err_list += [imposter_s2b_err]
 
-    real_s2b_syst_err = []
+    real_rel_syst_err = []
     for ebin in range(0,len(energy_axis)):
         syst_err = 0.
         for imposter in range(0,n_imposters):
@@ -588,7 +645,14 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
             syst_err = pow(syst_err/float(n_imposters-1),0.5)
         else:
             syst_err = pow(syst_err/float(n_imposters),0.5)
-        real_s2b_syst_err += [syst_err]
+        real_rel_syst_err += [syst_err]
+
+    energy_axis, energy_error, real_data, real_data_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_real_data_skymap,hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r)
+
+    real_rel_stat_err = []
+    for ebin in range(0,len(energy_axis)):
+        if real_data[ebin]==0.: continue
+        real_rel_stat_err += [1./pow(real_data[ebin],0.5)]
 
     vectorize_f_crab = np.vectorize(flux_crab_func)
     xdata_array = []
@@ -615,7 +679,10 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
         ydata_hawc = pow(xdata_ref/1e3,energy_index_scale)*vectorize_f_hawc(xdata_ref)
         # HAWC systematic uncertainty, The Astrophysical Journal 881, 134. Fig 13
-        HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index_scale)
+        #HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index_scale)
+        HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHawcDiffusionFluxJ1908(energy_index_scale)
+        HESS_energies, HESS_fluxes, HESS_flux_errs = GetHessFluxJ1908(energy_index_scale)
+        OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ1908(energy_index_scale)
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index_scale)
         LHAASO_energies, LHAASO_fluxes, LHAASO_flux_errs = GetLHAASOFluxJ1908(energy_index_scale)
     if source_name=='MGRO_J2019':
@@ -633,6 +700,8 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1825(energy_index_scale)
         LHAASO_energies, LHAASO_fluxes, LHAASO_flux_errs = GetLHAASOFluxJ1825(energy_index_scale)
         HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1825(energy_index_scale)
+    if source_name=='LHAASO_J2108':
+        LHAASO_energies, LHAASO_fluxes, LHAASO_flux_errs = GetLHAASOFluxJ2108(energy_index_scale)
     if source_name=='IC443HotSpot':
         log_energy = np.linspace(log10(1e2),log10(1e4),50)
         xdata = pow(10.,log_energy)
@@ -682,6 +751,10 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
             flux_stat_crab_unit += [0.]
             flux_syst_crab_unit += [0.]
     print ('=======================================================================')
+    print ('Relative errors')
+    for binx in range(0,len(energy_axis)):
+        print ('+/- %0.3f (stat) +/- %0.3f (syst)'%(real_rel_stat_err[binx],real_rel_syst_err[binx]))
+    print ('=======================================================================')
     print ('Data flux in Crab unit')
     for binx in range(0,len(energy_axis)):
         print ('%0.3f +/- %0.3f (stat) +/- %0.3f (syst)'%(flux_crab_unit[binx],flux_stat_crab_unit[binx],flux_syst_crab_unit[binx]))
@@ -695,9 +768,26 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     energy_axis = np.array(energy_axis)
     energy_error = np.array(energy_error)
     real_flux = np.array(real_flux)
+    real_flux_UL = np.array(real_flux)
     real_flux_stat_err = np.array(real_flux_stat_err)
     real_flux_syst_err = np.array(real_flux_syst_err)
-    real_s2b_syst_err = np.array(real_s2b_syst_err)
+    real_rel_syst_err = np.array(real_rel_syst_err)
+
+    uplims = []
+    zscore = []
+    for eb in range(0,len(energy_axis)):
+        zscore += [real_flux[eb]/pow(pow(real_flux_stat_err[eb],2)+pow(real_flux_syst_err[eb],2),0.5)]
+        uplims += [0.]
+        #if zscore[eb]<2.:
+        #    uplims += [1.]
+        #    real_flux_UL[eb] = 2.*pow(pow(real_flux_stat_err[eb],2)+pow(real_flux_syst_err[eb],2),0.5)
+        #else:
+        #    uplims += [0.]
+        #uplims += [1.]
+        #ratio_syst_2_stat_err = 20.
+        #real_flux_UL[eb] = 2.*pow(pow(real_flux_stat_err[eb],2)+pow(ratio_syst_2_stat_err*real_flux_stat_err[eb],2),0.5)
+    zscore = np.array(zscore)
+    uplims = np.array(uplims, dtype=bool)
 
     fig.clf()
     axbig = fig.add_subplot()
@@ -719,9 +809,9 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     for imposter in range(0,n_imposters):
         next_color = next(cycol)
         axbig.errorbar(energy_axis,imposter_s2b_list[imposter],imposter_s2b_err_list[imposter],xerr=energy_error,color=next_color,marker='_',ls='none')
-    axbig.bar(energy_axis, 2.*real_s2b_syst_err, bottom=0.-real_s2b_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2)
+    axbig.bar(energy_axis, 2.*real_rel_syst_err, bottom=0.-real_rel_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2)
     for ebin in range(0,len(energy_axis)):
-        axbig.text(energy_axis[ebin]-0.5*energy_error[ebin], 2.*real_s2b_syst_err[len(real_s2b_syst_err)-1], '%0.1f %%'%(real_s2b_syst_err[ebin]*100.))
+        axbig.text(energy_axis[ebin]-0.5*energy_error[ebin], 2.*real_rel_syst_err[len(real_rel_syst_err)-1], '%0.1f %%'%(real_rel_syst_err[ebin]*100.))
     axbig.set_xlabel('Energy [GeV]')
     axbig.set_ylabel('relative error')
     axbig.set_xscale('log')
@@ -732,13 +822,18 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     fig.clf()
     axbig = fig.add_subplot()
     if source_name=='MGRO_J1908':
-        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi',zorder=4)
+
+        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='b',marker='s',ls='none',label='Fermi',zorder=4)
         axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC',zorder=3)
+        axbig.errorbar(HESS_energies,HESS_fluxes,HESS_flux_errs,color='g',marker='s',ls='none',label='HESS',zorder=2)
+        axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS',zorder=1)
         axbig.errorbar(LHAASO_energies,LHAASO_fluxes,LHAASO_flux_errs,color='m',marker='s',ls='none',label='LHAASO',zorder=7)
-        axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)',zorder=2)
-        axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r',zorder=1)
+
+        #axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)',zorder=2)
+        #axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r',zorder=1)
+
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
-        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS',zorder=6)
+        axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',uplims=uplims,zorder=6)
     elif source_name=='HESS_J1825':
         axbig.errorbar(HESS_0p8_energies,HESS_0p8_fluxes,HESS_0p8_flux_errs,color='r',marker='s',ls='none',label='HESS 0.8-deg',zorder=1)
         axbig.errorbar(HESS_0p4_energies,HESS_0p4_fluxes,HESS_0p4_flux_errs,color='g',marker='s',ls='none',label='HESS 0.4-deg',zorder=2)
@@ -746,33 +841,39 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         axbig.errorbar(LHAASO_energies,LHAASO_fluxes,LHAASO_flux_errs,color='m',marker='s',ls='none',label='LHAASO',zorder=4)
         axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='y',marker='s',ls='none',label='HAWC',zorder=5)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=6)
-        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',zorder=7)
+        axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',uplims=uplims,zorder=7)
     elif source_name=='MGRO_J2019':
         axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='eHWC J2019+368',zorder=1)
         axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='g',marker='s',ls='none',label='VER J2019+368',zorder=2)
         #axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='b',marker='s',ls='none',label='Fermi',zorder=3)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
-        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',zorder=6)
+        axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',uplims=uplims,zorder=6)
     elif source_name=='Boomerang':
         axbig.errorbar(LHAASO_energies,LHAASO_fluxes,LHAASO_flux_errs,color='m',marker='s',ls='none',label='LHAASO',zorder=4)
         axbig.errorbar(TAS_energies,TAS_fluxes,TAS_flux_errs,color='r',marker='s',ls='none',label='Tibet AS',zorder=1)
         axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi',zorder=2)
         axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS(2009)',zorder=3)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
-        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',zorder=6)
+        axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',uplims=uplims,zorder=6)
+    elif source_name=='LHAASO_J2108':
+        axbig.errorbar(LHAASO_energies,LHAASO_fluxes,LHAASO_flux_errs,color='m',marker='s',ls='none',label='LHAASO',zorder=4)
+        axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
+        axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='b',marker='_',ls='none',label='VERITAS (30 hrs)',uplims=uplims,zorder=6)
+        #axbig.errorbar(energy_axis,real_flux_UL*(1./pow(4.,0.5)),real_flux_stat_err,xerr=energy_error,color='g',marker='_',ls='none',label='VERITAS (120 hrs)',uplims=uplims,zorder=6)
+        #axbig.errorbar(energy_axis,real_flux_UL*(1./pow(12.,0.5)),real_flux_stat_err,xerr=energy_error,color='r',marker='_',ls='none',label='VERITAS (360 hrs)',uplims=uplims,zorder=6)
     elif source_name=='IC443HotSpot':
         axbig.plot(xdata, ydata_veritas_paper,'r-',label='VERITAS (0905.3291)',zorder=1)
         axbig.plot(xdata, ydata_hawc,'g-',label='HAWC (2007.08582)',zorder=2)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2,zorder=3)
-        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (new)',zorder=4)
+        axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',uplims=uplims,zorder=4)
     elif source_name=='1ES0229':
         axbig.plot(xdata, ydata_veritas_paper,'r-',label='VERITAS (2013ICRC)',zorder=1)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2,zorder=3)
-        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (new)',zorder=4)
+        axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',uplims=uplims,zorder=4)
     elif 'Crab' in source_name:
         axbig.plot(xdata, ydata_crab,'r-',label='1508.06442', zorder=1)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2,zorder=2)
-        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (new)',zorder=3)
+        axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',uplims=uplims,zorder=3)
     elif 'Geminga' in source_name:
         axbig.plot(HAWC_energies, HAWC_fluxes,'g-',label='HAWC')
         axbig.fill_between(HAWC_energies, np.array(HAWC_fluxes)-np.array(HAWC_flux_errs), np.array(HAWC_fluxes)+np.array(HAWC_flux_errs), alpha=0.2, color='g')
@@ -780,10 +881,10 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         uplims = np.array([1,1,1,1], dtype=bool)
         axbig.errorbar(Fermi_UL_energies,Fermi_UL_fluxes,Fermi_UL_err,color='r',marker='_',ls='none',uplims=uplims)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2,zorder=2)
-        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (new)',zorder=3)
+        axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',uplims=uplims,zorder=3)
     else:
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2)
-        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS')
+        axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS',uplims=uplims)
 
     axbig.set_xlabel('Energy [GeV]')
     axbig.set_ylabel('$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]')
@@ -793,6 +894,38 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     plotname = 'RealSpectrum_%s'%(roi_name)
     fig.savefig("output_plots/%s_%s.png"%(plotname,plot_tag),bbox_inches='tight')
     axbig.remove()
+
+    energy_axis, energy_error, bkgd_flux, bkgd_flux_stat_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_bkgd_flux_skymap,hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r)
+    fig.clf()
+    axbig = fig.add_subplot()
+    axbig.errorbar(energy_axis,bkgd_flux,bkgd_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='bkg flux')
+    axbig.set_xlabel('Energy [GeV]')
+    axbig.set_ylabel('$E^{2}$ Flux [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]')
+    axbig.set_xscale('log')
+    axbig.set_yscale('log')
+    axbig.legend(loc='best')
+    plotname = 'BkgdSpectrum_%s'%(roi_name)
+    fig.savefig("output_plots/%s_%s.png"%(plotname,plot_tag),bbox_inches='tight')
+    axbig.remove()
+
+    fig.clf()
+    axbig = fig.add_subplot()
+    axbig.step(energy_axis, zscore, where='mid', color='b')
+    axbig.set_xlabel('Energy [GeV]')
+    axbig.set_ylabel('Z score')
+    axbig.set_xscale('log')
+    axbig.legend(loc='best')
+    plotname = 'ZscoreSpectrum_%s'%(roi_name)
+    fig.savefig("output_plots/%s_%s.png"%(plotname,plot_tag),bbox_inches='tight')
+    axbig.remove()
+
+    eff_area = []
+    for eb in range(0,len(hist_real_Aeff_skymap)):
+        eff_area += [hist_real_Aeff_skymap[eb].GetMaximum()]
+    print ('+++++++++++++++++++++++++++++++++++++++++++++++++++++')
+    print ('energy_axis = %s'%(energy_axis))
+    print ('bkgd_flux = %s'%(bkgd_flux))
+    print ('eff_area = %s'%(eff_area))
 
 def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err,y_axis_syst_err,flux_norm):
 
@@ -842,7 +975,10 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
         vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
         ydata_hawc = pow(xdata_ref/1e3,energy_index_scale)*vectorize_f_hawc(xdata_ref)
         # HAWC systematic uncertainty, The Astrophysical Journal 881, 134. Fig 13
-        HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index_scale)
+        #HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index_scale)
+        HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHawcDiffusionFluxJ1908(energy_index_scale)
+        HESS_energies, HESS_fluxes, HESS_flux_errs = GetHessFluxJ1908(energy_index_scale)
+        OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ1908(energy_index_scale)
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index_scale)
         LHAASO_energies, LHAASO_fluxes, LHAASO_flux_errs = GetLHAASOFluxJ1908(energy_index_scale)
     if source_name=='MGRO_J2019':
@@ -860,6 +996,8 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1825(energy_index_scale)
         LHAASO_energies, LHAASO_fluxes, LHAASO_flux_errs = GetLHAASOFluxJ1825(energy_index_scale)
         HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1825(energy_index_scale)
+    if source_name=='LHAASO_J2108':
+        LHAASO_energies, LHAASO_fluxes, LHAASO_flux_errs = GetLHAASOFluxJ2108(energy_index_scale)
     if source_name=='IC443HotSpot':
         log_energy = np.linspace(log10(1e2),log10(1e4),50)
         xdata = pow(10.,log_energy)
@@ -880,13 +1018,15 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
     fig.clf()
     axbig = fig.add_subplot()
     if source_name=='MGRO_J1908':
-        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='g',marker='s',ls='none',label='Fermi',zorder=4)
+        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='b',marker='s',ls='none',label='Fermi',zorder=4)
         axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC',zorder=3)
+        axbig.errorbar(HESS_energies,HESS_fluxes,HESS_flux_errs,color='g',marker='s',ls='none',label='HESS',zorder=2)
+        axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS',zorder=1)
         axbig.errorbar(LHAASO_energies,LHAASO_fluxes,LHAASO_flux_errs,color='m',marker='s',ls='none',label='LHAASO',zorder=7)
-        axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)',zorder=2)
-        axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r',zorder=1)
+        #axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)',zorder=2)
+        #axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r',zorder=1)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
-        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS',zorder=6)
+        axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',zorder=6)
     elif source_name=='HESS_J1825':
         axbig.errorbar(HESS_0p8_energies,HESS_0p8_fluxes,HESS_0p8_flux_errs,color='r',marker='s',ls='none',label='HESS 0.8-deg',zorder=1)
         axbig.errorbar(HESS_0p4_energies,HESS_0p4_fluxes,HESS_0p4_flux_errs,color='g',marker='s',ls='none',label='HESS 0.4-deg',zorder=2)
@@ -908,6 +1048,10 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
         axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS(2009)',zorder=3)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
         axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',zorder=6)
+    elif source_name=='LHAASO_J2108':
+        axbig.errorbar(LHAASO_energies,LHAASO_fluxes,LHAASO_flux_errs,color='m',marker='s',ls='none',label='LHAASO',zorder=4)
+        axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
+        axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',uplims=uplims,zorder=6)
     elif source_name=='IC443HotSpot':
         axbig.plot(xdata, ydata_veritas_paper,'r-',label='VERITAS (0905.3291)',zorder=1)
         axbig.plot(xdata, ydata_hawc,'g-',label='HAWC (2007.08582)',zorder=2)
@@ -1125,8 +1269,8 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, expo_map, aeff_map):
                 ##correction = flux_calibration*(skymap_bin_size_x*skymap_bin_size_y)/(3.14*calibration_radius*calibration_radius)
                 #correction = flux_calibration*map_bin_area/calibration_bin_area
 
-                if aeff_content<10000.: continue
-                offset_cut = 0.3 # nominal
+                if aeff_content<10.: continue
+                #offset_cut = 0.3 # nominal
                 #offset_cut = 0.5
                 #offset_cut = 1.0 # upper limit
                 #offset_cut = 0.1 # lower limit
@@ -1135,15 +1279,16 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, expo_map, aeff_map):
                 #        expo_content = offset_cut*expo_content_max
                 #else:
                 #    expo_content = expo_content_max
-                if source_name=='HESS_J1825':
-                    if expo_content<2.5: continue
+                if expo_content_max<7.:
+                    if expo_content<expo_content_max*0.3: continue
                 else:
-                    if expo_content<10.0: continue
+                    if expo_content<7.0: continue
+                    #if expo_content<60.0: continue
 
                 expo_content = expo_content*3600.
                 Aeff_correct = GetEffectiveAreaCorrection(ebin)
                 correction = Aeff_correct*1./(aeff_content*100.*100.)
-                #correction = Aeff_correct*1./(aeff_content*100.*100.*(energy_bin[ebin+1]-energy_bin[ebin])/1000.)
+                #correction = Aeff_correct
 
                 stat_data_err = data_map[ebin].GetBinError(binx+1,biny+1)
                 stat_bkgd_err = bkgd_map[ebin].GetBinError(binx+1,biny+1)
@@ -1186,6 +1331,7 @@ map_bin_area = pow(MapPlotSize/float(nbins),2)
 hist_real_zscore_skymap_sum = ROOT.TH2D("hist_real_zscore_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_real_flux_skymap_sum = ROOT.TH2D("hist_real_flux_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_real_flux_skymap_smooth_sum = ROOT.TH2D("hist_real_flux_skymap_smooth_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
+hist_bkgd_flux_skymap_sum = ROOT.TH2D("hist_bkgd_flux_skymap_sum","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_real_data_skymap = []
 hist_real_bkgd_skymap = []
 hist_real_data_skymap_smooth = []
@@ -1198,6 +1344,8 @@ hist_real_bias_skymap = []
 hist_real_flux_skymap = []
 hist_real_flux_skymap_smooth = []
 hist_real_flux_syst_skymap = []
+hist_bkgd_flux_skymap = []
+hist_null_skymap = []
 for ebin in range(0,len(energy_bin)-1):
     hist_real_data_skymap += [ROOT.TH2D("hist_real_data_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
     hist_real_bkgd_skymap += [ROOT.TH2D("hist_real_bkgd_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
@@ -1211,6 +1359,8 @@ for ebin in range(0,len(energy_bin)-1):
     hist_real_flux_skymap += [ROOT.TH2D("hist_real_flux_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
     hist_real_flux_skymap_smooth += [ROOT.TH2D("hist_real_flux_skymap_smooth_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
     hist_real_flux_syst_skymap += [ROOT.TH2D("hist_real_flux_syst_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_bkgd_flux_skymap += [ROOT.TH2D("hist_bkgd_flux_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
+    hist_null_skymap += [ROOT.TH2D("hist_null_skymap_E%s"%(ebin),"",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)]
 InputFile = ROOT.TFile("output_fitting/%s_ON_skymap_%s.root"%(source_name,folder_name))
 for ebin in range(0,len(energy_bin)-1):
     HistName = "hist_data_skymap_%s"%(ebin)
@@ -1315,6 +1465,36 @@ else:
 if use_rfov:
     plot_tag += '_rfov'
 
+if 'Crab' in source_name:
+    region_x = MapCenter_x
+    region_y = MapCenter_y
+    region_r = CommonPlotFunctions.calibration_radius
+    ring_r = region_r*2.
+    for ebin in range(0,len(energy_bin)-1):
+        nbins_ring = 0.
+        total_bkgd_ring = 0.
+        total_expo_ring = 0.
+        for binx in range(0,hist_real_bkgd_skymap[ebin].GetNbinsX()):
+            for biny in range(0,hist_real_bkgd_skymap[ebin].GetNbinsY()):
+                cell_x = hist_real_bkgd_skymap[ebin].GetXaxis().GetBinCenter(binx+1)
+                cell_y = hist_real_bkgd_skymap[ebin].GetYaxis().GetBinCenter(biny+1)
+                distance_to_center = pow(pow(region_x-cell_x,2)+pow(region_y-cell_y,2),0.5)
+                if distance_to_center>region_r and distance_to_center<ring_r:
+                    nbins_ring += 1.
+                    total_bkgd_ring += hist_real_bkgd_skymap[ebin].GetBinContent(binx+1,biny+1)
+                    total_expo_ring += hist_real_expo_skymap[ebin].GetBinContent(binx+1,biny+1)
+        avg_bkgd_ring = total_bkgd_ring/nbins_ring
+        avg_expo_ring = total_expo_ring/nbins_ring
+        for binx in range(0,hist_real_bkgd_skymap[ebin].GetNbinsX()):
+            for biny in range(0,hist_real_bkgd_skymap[ebin].GetNbinsY()):
+                cell_x = hist_real_bkgd_skymap[ebin].GetXaxis().GetBinCenter(binx+1)
+                cell_y = hist_real_bkgd_skymap[ebin].GetYaxis().GetBinCenter(biny+1)
+                distance_to_center = pow(pow(region_x-cell_x,2)+pow(region_y-cell_y,2),0.5)
+                if distance_to_center<region_r:
+                    hist_real_bkgd_skymap[ebin].SetBinContent(binx+1,biny+1,avg_bkgd_ring)
+                    hist_real_expo_skymap[ebin].SetBinContent(binx+1,biny+1,avg_expo_ring)
+
+
 for ebin in range(0,len(energy_bin)-1):
     CommonPlotFunctions.Smooth2DMap_v2(hist_real_data_skymap[ebin],hist_real_data_skymap_smooth[ebin],smooth_size,False,True)
     CommonPlotFunctions.Smooth2DMap_v2(hist_real_bkgd_skymap[ebin],hist_real_bkgd_skymap_smooth[ebin],smooth_size,False,True)
@@ -1337,6 +1517,7 @@ for ebin in range(energy_bin_cut_low,energy_bin_cut_low+1):
     CommonPlotFunctions.MatplotlibMap2D(hist_expo_skymap_reflect,None,fig,'RA','Dec','Exposure [hrs]','SkymapExpo_E%s_%s'%(ebin,plot_tag))
     hist_expo_skymap_reflect.Delete()
 
+MakeFluxMap(hist_bkgd_flux_skymap, hist_real_bkgd_skymap, hist_null_skymap, hist_real_expo_skymap, hist_real_Aeff_skymap)
 MakeFluxMap(hist_real_flux_skymap, hist_real_data_skymap, hist_real_bkgd_skymap, hist_real_expo_skymap, hist_real_Aeff_skymap)
 MakeFluxMap(hist_real_flux_skymap_smooth, hist_real_data_skymap_smooth, hist_real_bkgd_skymap_smooth, hist_real_expo_skymap_smooth, hist_real_Aeff_skymap_smooth)
 if doImposter==1:
@@ -1344,8 +1525,6 @@ if doImposter==1:
         MakeFluxMap(hist_imposter_flux_skymap[imposter], hist_imposter_data_skymap[imposter], hist_imposter_bkgd_skymap[imposter], hist_imposter_expo_skymap[imposter], hist_imposter_Aeff_skymap[imposter])
         MakeFluxMap(hist_imposter_flux_skymap_smooth[imposter], hist_imposter_data_skymap_smooth[imposter], hist_imposter_bkgd_skymap_smooth[imposter], hist_imposter_expo_skymap_smooth[imposter], hist_imposter_Aeff_skymap_smooth[imposter])
 
-
-MakeSignificanceMap(hist_real_data_skymap_smooth,hist_real_bkgd_skymap_smooth,hist_imposter_data_skymap_smooth,hist_imposter_bkgd_skymap_smooth)
 
 if 'Crab' in source_name:
     region_x = MapCenter_x
@@ -1364,7 +1543,7 @@ elif source_name=='MGRO_J1908':
     #PSR J1907+0602
     #region_x = 286.975
     #region_y = 6.03777777778
-    #region_r = 1.2
+    #region_r = 1.5
     #region_name = 'PSR'
     #PSR J1907+0602
     #North hot spot
@@ -1466,8 +1645,8 @@ elif source_name=='HESS_J1825':
 elif source_name=='Boomerang':
     region_x = 336.9958333
     region_y = 60.8769444
-    #region_r = 0.8
-    region_r = 0.32
+    region_r = 1.0
+    #region_r = 0.32
     region_name = 'Boomerang'
     SumFluxMap()
     MakeSpectrum(region_x,region_y,region_r,region_name)
@@ -1475,8 +1654,14 @@ elif source_name=='Boomerang':
 else:
     region_x = MapCenter_x
     region_y = MapCenter_y
-    region_r = 2.0
+    #region_r = 0.15
+    #region_r = 0.27
+    #region_r = 0.5
+    region_r = 1.0
     region_name = 'Center'
     SumFluxMap()
     MakeSpectrum(region_x,region_y,region_r,region_name)
     MakeExtensionProfile(region_x,region_y,region_r,0,region_name)
+
+MakeSignificanceMap(hist_real_data_skymap_smooth,hist_real_bkgd_skymap_smooth,hist_imposter_data_skymap_smooth,hist_imposter_bkgd_skymap_smooth)
+

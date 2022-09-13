@@ -131,6 +131,27 @@ if 'LHAASO_J1843' in sys.argv[1]:
 if 'LHAASO_J1929' in sys.argv[1]:
     observation_name = 'LHAASO_J1929'
     data_epoch = ['LHAASO_J1929_V6']
+if 'LHAASO_J2108' in sys.argv[1]:
+    observation_name = 'LHAASO_J2108'
+    data_epoch = ['LHAASO_J2108_V6']
+if 'PSR_J1930_p1852' in sys.argv[1]:
+    observation_name = 'PSR_J1930_p1852'
+    data_epoch = ['PSR_J1930_p1852_V6']
+if 'PSR_J2022_p3842' in sys.argv[1]:
+    observation_name = 'PSR_J2022_p3842'
+    data_epoch = ['PSR_J2022_p3842_V6']
+if 'PSR_J0248_p6021' in sys.argv[1]:
+    observation_name = 'PSR_J0248_p6021'
+    data_epoch = ['PSR_J0248_p6021_V6']
+if 'PSR_J0023_p09' in sys.argv[1]:
+    observation_name = 'PSR_J0023_p09'
+    data_epoch = ['PSR_J0023_p09_V6']
+if 'PSR_J0633_p0632' in sys.argv[1]:
+    observation_name = 'PSR_J0633_p0632'
+    data_epoch = ['PSR_J0633_p0632_V6']
+if 'LSI_p61_303' in sys.argv[1]:
+    observation_name = 'LSI_p61_303'
+    data_epoch = ['LSI_p61_303_V6']
 if 'IC443HotSpot' in sys.argv[1]:
     observation_name = 'IC443HotSpot'
     data_epoch = ['IC443HotSpotV5','IC443HotSpotV6']
@@ -4267,8 +4288,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
         hist_expo_hour_skymap[ebin].Add(hist_bkgd_skymap[ebin])
         bin_size_0 = hist_bkgd_skymap[ebin].GetXaxis().GetBinLowEdge(2)-hist_bkgd_skymap[ebin].GetXaxis().GetBinLowEdge(1)
         bin_size_1 = Hist_Data_CR_XYoff[ebin].GetXaxis().GetBinLowEdge(2)-Hist_Data_CR_XYoff[ebin].GetXaxis().GetBinLowEdge(1)
-        #bkgd_rate = Hist_Data_CR_XYoff[ebin].GetMaximum()*(bin_size_0*bin_size_0)/(exposure_hours*bin_size_1*bin_size_1)
-        #hist_expo_hour_skymap[ebin].Scale(1./bkgd_rate)
+        bkgd_rate = Hist_Data_CR_XYoff[ebin].GetMaximum()*(bin_size_0*bin_size_0)/(exposure_hours*bin_size_1*bin_size_1)
+        hist_expo_hour_skymap[ebin].Scale(1./bkgd_rate)
 
     hist_expo_hour_skymap_sum = ROOT.TH2D("hist_expo_hour_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_expo_hour_skymap_sum.Add(hist_bkgd_skymap_sum)
@@ -4768,7 +4789,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
                 hist_bkgd_skymap[ebin].Write()
                 hist_rfov_skymap[ebin].Write()
                 hist_expo_skymap[ebin].Write()
-                #hist_expo_hour_skymap[ebin].Write()
+                hist_expo_hour_skymap[ebin].Write()
                 hist_effarea_skymap[ebin].Write()
             output_file.Close();
 
@@ -6967,9 +6988,11 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
 
     Syst_MDM = energy_syst[energy_bin_cut_low]
 
+    #############################################################
     #PlotsStackedHistograms('%s%s'%(source_list[0],selection_tag))
     print ('finish stacked plots.')
     print ('selection_tag = %s'%(selection_tag))
+    #############################################################
 
     #MakeRankResidualPlots('%s%s'%(source_list[0],PercentCrab))
 

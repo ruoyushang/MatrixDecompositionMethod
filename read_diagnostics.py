@@ -56,464 +56,121 @@ def HMS2deg(ra='', dec=''):
     else:
         return RA or DEC
 
-def ReadTargetListFromFile(file_path):
+def ReadSNRTargetListFromFile(file_path):
+    source_name = []
     source_ra = []
     source_dec = []
     inputFile = open(file_path)
     for line in inputFile:
-        target_name = line.split(' ')[0]
-        target_ra = line.split(' ')[1]
-        target_dec = line.split(' ')[2]
-        print ('target_name = %s'%(target_name))
-        print ('target_ra = %s'%(target_ra))
-        print ('target_dec = %s'%(target_dec))
-        print ('Source_RA = %0.3f'%(float(HMS2deg(target_ra,target_dec)[0])))
-        print ('Source_Dec = %0.3f'%(float(HMS2deg(target_ra,target_dec)[1])))
+        if line[0]=="#": continue
+        target_l = line.split(',')[0].strip(" ")
+        target_b = line.split(',')[1].strip(" ")
+        target_name = "G"+target_l+target_b
+        target_ra = line.split(',')[2].strip(" ")
+        target_dec = line.split(',')[3].strip(" ")
+        source_name += [target_name]
         source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
         source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
-    return source_ra, source_dec
-
-## galactic center
-#target_ra = 266.415
-#target_dec = -29.006
-#range_ra = 2.0
-#range_dec = 2.0
-
-# W Comae
-#target_ra = 185.382083333
-#target_dec = 28.2330555556
-#range_ra = 3.0
-#range_dec = 3.0
-
-# MGRO J1908
-#target_ra = 287.05
-#target_dec = 6.39
-#range_ra = 2.0
-#range_dec = 2.0
-
-# Draco dSph
-#target_ra = 260.059729167
-#target_dec = 57.9212194444
-#range_ra = 2.0
-#range_dec = 2.0
-
-# 1ES 0502+675
-#target_ra = 76.9839421535
-#target_dec = 67.6234172932
-#range_ra = 2.0
-#range_dec = 2.0
-
-# 1ES 0414+009
-#target_ra = 64.221
-#target_dec = 1.089
-#range_ra = 2.0
-#range_dec = 2.0
-
-# 3C 273
-#target_ra = 187.277915345
-#target_dec = 2.05238856846
-#range_ra = 2.0
-#range_dec = 2.0
-
-# IC 443
-#target_ra = 94.511
-#target_dec = 22.660
-#range_ra = 2.0
-#range_dec = 2.0
-
-# Segue 1
-#target_ra = 151.917
-#target_dec = 16.767
-#range_ra = 1.0
-#range_dec = 1.0
-
-# OJ 287
-#target_ra = 133.704583333
-#target_dec = 20.0996916667
-#range_ra = 1.0
-#range_dec = 1.0
-
-## 2HWC J1928
-#target_ra = 292.15
-#target_dec = 17.78
-#range_ra = 2.0
-#range_dec = 2.0
-
-## 2HWC J1953
-#target_ra = 298.26
-#target_dec = 29.48
-#range_ra = 2.0
-#range_dec = 2.0
-
-## Cygnus
-#target_ra = 304.645958333
-#target_dec = 36.8333333333
-#range_ra = 1.0
-#range_dec = 1.0
-
-# Gamma-Cygni
-#target_ra = 305.557091
-#target_dec = 40.256679166666665
-#range_ra = 2.0
-#range_dec = 2.0
-
-# Crab
-#target_ra = 83.6332083333
-#target_dec = 22.0144722222
-#range_ra = 3.0
-#range_dec = 3.0
-
-# Geminga
-#target_ra = 98.1166666667
-#target_dec = 17.3666666667
-#range_ra = 2.0
-#range_dec = 2.0
-
-# MGRO J2031+41
-#target_ra = 307.18
-#target_dec = 41.31
-#range_ra = 2.0
-#range_dec = 2.0
-
-# 1ES 0229
-#target_ra = 38.2216666667
-#target_dec = 20.2725
-#range_ra = 1.0
-#range_dec = 1.0
-
-# H 1426+428
-#target_ra = 217.135870833
-#target_dec = 42.6725138889
-#range_ra = 1.0
-#range_dec = 1.0
-
-# PKS 1424
-#target_ra = 216.75
-#target_dec = 23.7833333333
-#range_ra = 1.0
-#range_dec = 1.0
-
-# 3C 264
-#target_ra = 176.270870833
-#target_dec = 19.60631666673
-#range_ra = 1.0
-#range_dec = 1.0
-
-# PG 1553
-#target_ra = 238.93625
-#target_dec = 11.1947222222
-#range_ra = 1.0
-#range_dec = 1.0
-
-# 1ES 1011
-#target_ra = 153.767245833
-#target_dec = 49.4335305556
-#range_ra = 1.0
-#range_dec = 1.0
-
-# RBS 0413
-#target_ra = 49.9458333333
-#target_dec = 18.7616666667
-#range_ra = 1.0
-#range_dec = 1.0
-
-# 1ES 0647
-#target_ra = 102.693708333
-#target_dec = 25.0498944444
-#range_ra = 1.0
-#range_dec = 1.0
-
-# 1ES 0806+524
-#target_ra = 122.495833333
-#target_dec = 52.3166666667
-#range_ra = 1.0
-#range_dec = 1.0
-
-# S5 0716+714
-#target_ra = 110.4725
-#target_dec = 71.3433333333
-#range_ra = 1.0
-#range_dec = 1.0
-
-# Markarian 180
-#target_ra = 174.11
-#target_dec = 70.1575
-#range_ra = 1.0
-#range_dec = 1.0
-
-# 1ES 1727+502
-#target_ra = 262.0775
-#target_dec = 50.2194444444
-#range_ra = 1.0
-#range_dec = 1.0
-
-# Mrk 421
-#target_ra = 166.079166667
-#target_dec = 38.1947222222
-#range_ra = 1.0
-#range_dec = 1.0
-
-# 3C 66A
-#target_ra = 35.6733333333
-#target_dec = 43.0431944444
-#range_ra = 1.0
-#range_dec = 1.0
-
-# RGB J0710  # deep in V5
-#target_ra = 107.61
-#target_dec = 59.15
-#range_ra = 1.0
-#range_dec = 1.0
-
-
-# VER J0521+211
-#target_ra = 80.4375
-#target_dec = 21.2142777778
-#range_ra = 1.0
-#range_dec = 1.0
-
-# 1ES 0502+675
-#target_ra = 76.9841666667
-#target_dec = 67.6233333333
-#range_ra = 2.0
-#range_dec = 2.0
-
-# RX J0648.7+1516
-#target_ra = 102.19
-#target_dec = 15.27
-#range_ra = 1.0
-#range_dec = 1.0
-
-# 1ES 1727+502
-#target_ra = 262.0775
-#target_dec = 50.2194444444
-#range_ra = 1.0
-#range_dec = 1.0
-
-# Coma
-#target_ra = 194.952916667
-#target_dec = 27.9805555556
-#range_ra = 4.0
-#range_dec = 4.0
-
-## M 82
-#target_ra = 148.969583333
-#target_dec = 69.6794444444
-#range_ra = 1.0
-#range_dec = 1.0
-
-# Boomerang
-#target_ra = 337.183333333
-#target_dec = 61.1666666667
-#range_ra = 2.0
-#range_dec = 2.0
-
-# NGC 1275
-#target_ra = 49.9504166667
-#target_dec = 41.5116666667
-#range_ra = 2.0
-#range_dec = 2.0
-
-# CTA1
-#target_ra = 1.60833333333
-#target_dec = 72.9836111111
-#range_ra = 2.0
-#range_dec = 2.0
-
-# BL Lac
-#target_ra = 330.680416667
-#target_dec = 42.2777777778
-#range_ra = 2.0
-#range_dec = 2.0
-
-# VER J2019+407
-#target_ra = 305.02
-#target_dec = 40.7572222222
-#range_ra = 2.0
-#range_dec = 2.0
-
-# SNR G150.3+4.5
-#target_ra = 66.5
-#target_dec = 55.0
-#range_ra = 4.0
-#range_dec = 4.0
-
-# VER J2019+368
-#target_ra = 304.854166667
-#target_dec = 36.8038888889
-#range_ra = 2.0
-#range_dec = 2.0
-
-# Cas A
-#target_ra = 350.8075
-#target_dec = 58.8072222222
-#range_ra = 2.0
-#range_dec = 2.0
-
-# Something near Boomerang
-#target_ra = 340.5
-#target_dec = 61.0
-#range_ra = 2.0
-#range_dec = 2.0
-
-## HESS J1857+026
-#target_ra = 284.295833333
-#target_dec = 2.66666666667 
-#range_ra = 2.0
-#range_dec = 2.0
-
-## Tycho
-#target_ra = 6.34
-#target_dec = 64.13
-#range_ra = 2.0
-#range_dec = 2.0
-
-## HESS J1844-030
-#target_ra = 281.17175
-#target_dec = -3.09294444444
-#range_ra = 2.0
-#range_dec = 2.0
-
-## HESS J1912+101
-#target_ra = 288.204166667
-#target_dec = 10.1516666667
-#range_ra = 2.0
-#range_dec = 2.0
-
-## HESS J1852-000
-#target_ra = 283.058333333
-#target_dec = 0.0988888888889
-#range_ra = 2.0
-#range_dec = 2.0
-
-# 3HWC J1928+178
-#target_ra = 292.10
-#target_dec = 17.82
-#range_ra = 2.0
-#range_dec = 2.0
-
-# PSR J0030+0451
-#target_ra = 7.61428208333
-#target_dec = 4.86103055556
-#range_ra = 3.0
-#range_dec = 3.0
-
-# PSR B0355+54
-#target_ra = 59.72083333333333
-#target_dec = 54.22027777777778
-#range_ra = 2.0
-#range_dec = 2.0
-
-# PSR B0114+58
-#target_ra = 19.4110875
-#target_dec = 59.2439972222
-#range_ra = 3.0
-#range_dec = 3.0
-
-# HESS J1825-137
-#target_ra = 276.37
-#target_dec = -13.83
-#range_ra = 2.0
-#range_dec = 2.0
-
-# Perseus cluster
-#target_ra = 49.9466666667
-#target_dec = 41.5130555556
-#range_ra = 2.0
-#range_dec = 2.0
-
-# M 31
-#target_ra = 10.6847083333
-#target_dec = 41.26875
-#range_ra = 3.0
-#range_dec = 3.0
-
-# Virgo Cluster (M 87)
-#target_ra = 187.70593076
-#target_dec = 12.3911232939
-#range_ra = 5.0
-#range_dec = 5.0
-
-#range_ra = 2.0
-#range_dec = 2.0
-
-# LHAASO J2108+5157
-#target_ra = 317.00
-#target_dec = 51.95
-# LHAASO J0341+5258
-#target_ra = 55.34
-#target_dec = 52.97
-# LHAASO J2226+6057
-#target_ra = 336.5
-#target_dec = 60.95
-# LHAASO J2032+4102
-#target_ra = 308.
-#target_dec = 41.03
-# LHAASO J2018+3651
-#target_ra = 304.5
-#target_dec = 36.85
-# LHAASO J1956+2845
-#target_ra = 299.05
-#target_dec = 28.75
-# LHAASO J1929+1745
-#target_ra = 292.25
-#target_dec = 17.75
-# LHAASO J1849-0003
-#target_ra = 282.25
-#target_dec = -0.05
-# LHAASO J1843-0338
-#target_ra = 280.75
-#target_dec = -3.63
-# LHAASO J0621+3755
-#target_ra = 95.47
-#target_dec = 37.92
-# LHAASO J1839-0545
-#target_ra = 279.75
-#target_dec = -5.75
-# LHAASO J1825-1326
-#target_ra = 276.25
-#target_dec = -13.43
-# Hercules
-#target_ra = 280.6
-#target_dec = 15.7
-# Aquila Rift
-#target_ra = 267.6
-#target_dec = -3.72
-# Monoceros
-#target_ra = 92.3
-#target_dec = -6.8
-# Ophiuchi
-#target_ra = 247.5
-#target_dec = -23.5
-# Perseus
-#target_ra = 52.9
-#target_dec = 30.9
-# Orion
-#target_ra = 87.3
-#target_dec = -3.6
-# Taurus
-#target_ra = 66.5
-#target_dec = 26.2
-#range_ra = 2.0
-#range_dec = 2.0
-
+    return source_name, source_ra, source_dec
+
+def ReadATNFTargetListFromFileForPlot(file_path):
+    source_name = []
+    source_ra = []
+    source_dec = []
+    source_dist = []
+    source_age = []
+    source_edot = []
+    inputFile = open(file_path)
+    for line in inputFile:
+        if line[0]=="#": continue
+        target_name = line.split(',')[0].strip(" ")
+        target_ra = line.split(',')[1].strip(" ")
+        target_dec = line.split(',')[2].strip(" ")
+        #print ('target_ra = %s'%(target_ra))
+        #print ('target_dec = %s'%(target_dec))
+        target_dist = float(line.split(',')[3].strip(" "))
+        target_age = float(line.split(',')[4].strip(" "))
+        target_edot = float(line.split(',')[5].strip(" "))
+        target_brightness = float(target_edot)/pow(float(target_dist),2)
+        if target_brightness<1e33 and target_edot<1e34: continue
+        #if target_dist<7.0: continue
+        if target_dist>4.0: continue
+        #if target_dist>2.0: continue
+        #if target_age<1e4: continue
+        source_name += [target_name]
+        source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
+        source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
+        source_dist += [target_dist]
+        source_age += [target_age]
+        source_edot += [target_edot]
+    return source_name, source_ra, source_dec
+
+def ReadATNFTargetListFromFile(file_path):
+    source_name = []
+    source_ra = []
+    source_dec = []
+    source_dist = []
+    source_age = []
+    source_edot = []
+    inputFile = open(file_path)
+    for line in inputFile:
+        if line[0]=="#": continue
+        target_name = line.split(',')[0].strip(" ")
+        target_ra = line.split(',')[1].strip(" ")
+        target_dec = line.split(',')[2].strip(" ")
+        #print ('target_ra = %s'%(target_ra))
+        #print ('target_dec = %s'%(target_dec))
+        target_dist = float(line.split(',')[3].strip(" "))
+        target_age = float(line.split(',')[4].strip(" "))
+        target_edot = float(line.split(',')[5].strip(" "))
+        target_brightness = float(target_edot)/pow(float(target_dist),2)
+
+        if target_brightness<1e33 and target_edot<1e34: continue
+        #if target_dist<7.0: continue
+        #if target_dist>2.0: continue
+        #if target_age<1e4: continue
+
+        #ra_deg = float(HMS2deg(target_ra,target_dec)[0])
+        #dec_deg = float(HMS2deg(target_ra,target_dec)[1])
+        #gal_l, gal_b = ConvertRaDecToGalactic(ra_deg,dec_deg)
+        #if abs(gal_b)<5.: continue
+
+        source_name += [target_name]
+        source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
+        source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
+        source_dist += [target_dist]
+        source_age += [target_age]
+        source_edot += [target_edot]
+    return source_name, source_ra, source_dec
+
+
+target_name = []
 target_ra = []
 target_dec = []
 
-## Ursa Major II
-#target_ra += [132.875]
-#target_dec += [63.13]
-## SNR G150.3+4.5
-#target_ra += [67.82]
-#target_dec += [55.89]
-## HESS J1849-000
-#target_ra += [279.37]
-#target_dec += [-6.96]
+#target_name += ["Crab"]
+#target_ra += [83.6332083333]
+#target_dec += [22.0144722222]
 
-target_ra, target_dec = ReadTargetListFromFile('ATNF_pulsar_list.txt')
+#target_name += ["Geminga"]
+#target_ra += [98.117]
+#target_dec += [17.367]
+#target_name += ["VER J2019+407"]
+#target_ra += [305.020]
+#target_dec += [40.757]
+#target_name += ["MGRO J1908+06"]
+#target_ra += [286.975]
+#target_dec += [6.269]
+#target_name += ["Boomerang"]
+#target_ra += [337.183]
+#target_dec += [61.167]
 
-range_ra = 2.0
-range_dec = 2.0
+#target_name, target_ra, target_dec = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+target_name, target_ra, target_dec = ReadATNFTargetListFromFile('single_pulsar_list.txt')
+#target_ra, target_dec = ReadSNRTargetListFromFile('SNR_list.txt')
+
+range_ra = 1.5
+range_dec = 1.5
 
 
 search_for_on_data = True
@@ -523,12 +180,13 @@ plot_tag = 'OFF'
 if search_for_on_data:
     plot_tag = 'ON'
 
-V4 = False
-V5 = False
-V6 = True
+#epoch = 'V4'
+#epoch = 'V5'
+epoch = 'V6'
 
-Galactic_observation = True
-#Galactic_observation = False
+gal_b_cut = 5.
+#Galactic_observation = True
+Galactic_observation = False
 
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
@@ -538,18 +196,15 @@ search_north = 0 # north+south
 #search_north = 2 # south
 Search_Range_Elev = [0.,90.]
 Search_Range_Azim = [0.,360.]
-Search_Range_PedVar_DC = [0.,10.]
+Search_Range_PedVar_DC = [3.,10.]
 #Search_Range_PedVar_DC = [0.,5.]
 #Search_Range_PedVar_DC = [5.,6.]
 #Search_Range_PedVar_DC = [6.,10.]
 
-#Search_Range_Elev = [20.,30.]
-#Search_Range_RA = [60.,75.]
-#Search_Range_Dec = [22.-4,22.+4.]
+#Search_Range_Elev = [45.,90.]
+#Search_Range_RA = [0.,50.]
+#Search_Range_Dec = [0,90.]
 
-# Ursa Major II
-#Search_Center_RA = 132.
-#Search_Center_Dec = 62.
 
 #Search_Range_RA = [Search_Center_RA-4.,Search_Center_RA+4.]
 #Search_Range_Dec = [Search_Center_Dec-4.,Search_Center_Dec+4.]
@@ -726,11 +381,11 @@ if search_for_on_data:
             Livetime = List_Livetime[entry]
         
             if int(RunNumber)<46642:
-                if not V4: continue
+                if not epoch=='V4': continue
             if int(RunNumber)>=46642 and int(RunNumber)<63373:
-                if not V5: continue
+                if not epoch=='V5': continue
             if int(RunNumber)>=63373:
-                if not V6: continue
+                if not epoch=='V6': continue
         
             if Elev<Search_Range_Elev[0]: continue
             if Elev>Search_Range_Elev[1]: continue
@@ -741,8 +396,11 @@ if search_for_on_data:
 
             #if MJD<59480: continue
 
-            if L3_rate<250.: continue
-            #if L3_rate<150.: continue # RHV
+            if epoch=='V6':
+                if L3_rate<250.: continue
+                #if L3_rate<150.: continue # RHV
+            else:
+                if L3_rate<150.: continue
             #if L3_rate>450.: continue
             if Livetime<5.: continue
             #if Livetime<20.: continue
@@ -754,6 +412,7 @@ if search_for_on_data:
             #if distance_to_source<0.8: continue
             #if distance_to_source<1.1: continue
             #if distance_to_source>2.0: continue
+            #if 'wobble1' in offset: continue
             #if not 'wobble1' in offset: continue
             #if not 'geminga-' in Name: continue
             #if int(RunNumber)<=99358: continue
@@ -802,18 +461,18 @@ else:
         #if L3_rate>450.: continue
         if Livetime<15.: continue
         if int(RunNumber)<46642:
-            if not V4: continue
+            if not epoch=='V4': continue
         if int(RunNumber)>=46642 and int(RunNumber)<63373:
-            if not V5: continue
+            if not epoch=='V5': continue
         if int(RunNumber)>=63373:
-            if not V6: continue
+            if not epoch=='V6': continue
 
         if not (T1_RA==0. and T1_Dec==0.):
             gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
             if Galactic_observation:
-                if abs(gal_b)>10.: continue
+                if abs(gal_b)>gal_b_cut: continue
             else:
-                if abs(gal_b)<10.: continue
+                if abs(gal_b)<gal_b_cut: continue
             #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
             if GetDistance(T1_RA,T1_Dec,83.633,22.014)<3.: continue  # Crab
             if GetDistance(T1_RA,T1_Dec,166.079,38.195)<3.: continue  # Mrk 421
@@ -821,9 +480,9 @@ else:
         elif not (T2_RA==0. and T2_Dec==0.):
             gal_l, gal_b = ConvertRaDecToGalactic(T2_RA,T2_Dec)
             if Galactic_observation:
-                if abs(gal_b)>10.: continue
+                if abs(gal_b)>gal_b_cut: continue
             else:
-                if abs(gal_b)<10.: continue
+                if abs(gal_b)<gal_b_cut: continue
             #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
             if GetDistance(T2_RA,T2_Dec,83.633,22.014)<3.: continue  # Crab
             if GetDistance(T2_RA,T2_Dec,166.079,38.195)<3.: continue  # Mrk 421
@@ -831,9 +490,9 @@ else:
         elif not (T3_RA==0. and T3_Dec==0.):
             gal_l, gal_b = ConvertRaDecToGalactic(T3_RA,T3_Dec)
             if Galactic_observation:
-                if abs(gal_b)>10.: continue
+                if abs(gal_b)>gal_b_cut: continue
             else:
-                if abs(gal_b)<10.: continue
+                if abs(gal_b)<gal_b_cut: continue
             #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
             if GetDistance(T3_RA,T3_Dec,83.633,22.014)<3.: continue  # Crab
             if GetDistance(T3_RA,T3_Dec,166.079,38.195)<3.: continue  # Mrk 421
@@ -841,9 +500,9 @@ else:
         elif not (T4_RA==0. and T4_Dec==0.):
             gal_l, gal_b = ConvertRaDecToGalactic(T4_RA,T4_Dec)
             if Galactic_observation:
-                if abs(gal_b)>10.: continue
+                if abs(gal_b)>gal_b_cut: continue
             else:
-                if abs(gal_b)<10.: continue
+                if abs(gal_b)<gal_b_cut: continue
             #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
             if GetDistance(T4_RA,T4_Dec,83.633,22.014)<3.: continue  # Crab
             if GetDistance(T4_RA,T4_Dec,166.079,38.195)<3.: continue  # Mrk 421
@@ -909,6 +568,7 @@ ax.axis('on')
 ax.set_xlabel('RA')
 ax.set_ylabel('counts')
 plt.savefig("output_plots/RunRA_%s.png"%(plot_tag))
+plt.close(fig)
 
 plt.clf()
 fig, ax = plt.subplots()
@@ -920,6 +580,7 @@ ax.axis('on')
 ax.set_xlabel('Dec')
 ax.set_ylabel('counts')
 plt.savefig("output_plots/RunDec_%s.png"%(plot_tag))
+plt.close(fig)
 
 plt.clf()
 fig, ax = plt.subplots()
@@ -931,6 +592,7 @@ ax.axis('on')
 ax.set_xlabel('Elev')
 ax.set_ylabel('counts')
 plt.savefig("output_plots/RunElev_%s.png"%(plot_tag))
+plt.close(fig)
 
 plt.clf()
 fig, ax = plt.subplots()
@@ -942,6 +604,7 @@ ax.axis('on')
 ax.set_xlabel('Azim')
 ax.set_ylabel('counts')
 plt.savefig("output_plots/RunAzim_%s.png"%(plot_tag))
+plt.close(fig)
 
 plt.clf()
 fig, ax = plt.subplots()
@@ -953,11 +616,38 @@ ax.axis('on')
 ax.set_xlabel('NSB')
 ax.set_ylabel('counts')
 plt.savefig("output_plots/RunNSB_%s.png"%(plot_tag))
+plt.close(fig)
 
 plt.clf()
 fig, ax = plt.subplots()
 hist, xbins, ybins, im = plt.hist2d(List_Used_RA, List_Used_Dec, range = [[0,360], [-90,90]], bins=(90, 45), cmap=plt.cm.Greys)
 plt.colorbar()
+max_cnt = 0.
+max_ra = 0.
+max_dec = 0.
+for i in range(len(xbins)-1):
+    for j in range(len(ybins)-1):
+        if hist[i,j]>max_cnt:
+            max_cnt = hist[i,j]
+            max_ra = xbins[i]
+            max_dec = ybins[j]
+min_dist = 1e10;
+plot_ra = 0.
+plot_dec = 0.
+plot_name = ''
+inputFile = open('TeVCat_RaDec_w_Names.txt')
+for line in inputFile:
+    gamma_source_name = line.split(',')[0]
+    gamma_source_ra = float(line.split(',')[1])
+    gamma_source_dec = float(line.split(',')[2])
+    distance = pow(gamma_source_ra-max_ra,2)+pow(gamma_source_dec-max_dec,2)
+    if distance<min_dist:
+        min_dist = distance
+        plot_name = gamma_source_name
+        plot_ra = gamma_source_ra
+        plot_dec = gamma_source_dec
+plt.text(plot_ra,plot_dec,plot_name,color='red')
+print ('source with deepest exposure: %s, RA = %0.2f, Dec = %0.2f'%(plot_name,plot_ra,plot_dec))
 for i in range(len(xbins)-1):
     for j in range(len(ybins)-1):
         if hist[i,j]>30:
@@ -967,6 +657,7 @@ ax.axis('on')
 ax.set_xlabel('RA')
 ax.set_ylabel('Dec')
 plt.savefig("output_plots/RunRADec_%s.png"%(plot_tag))
+plt.close(fig)
 
 elev_bins = 7
 azim_bins = 9
@@ -982,6 +673,7 @@ ax.axis('on')
 ax.set_xlabel('Azim')
 ax.set_ylabel('Elev')
 plt.savefig("output_plots/RunElevAzim_%s.png"%(plot_tag))
+plt.close(fig)
 
 plt.clf()
 fig, ax = plt.subplots()
@@ -995,15 +687,62 @@ ax.axis('on')
 ax.set_xlabel('Elev')
 ax.set_ylabel('NSB')
 plt.savefig("output_plots/RunElevNSB_%s.png"%(plot_tag))
+plt.close(fig)
 
 if search_for_on_data:
 
     for target in range(0,len(target_ra)):
 
-        inputFile = open('TeVCat_RaDec_w_Names.txt')
         other_stars = []
         other_star_ra = []
         other_star_dec = []
+        other_stars += [target_name[target]]
+        other_star_ra += [target_ra[target]]
+        other_star_dec += [target_dec[target]]
+
+        psr_name, psr_ra, psr_dec = ReadATNFTargetListFromFileForPlot('ATNF_pulsar_list.txt')
+        for psr in range(0,len(psr_name)):
+            gamma_source_name = psr_name[psr]
+            gamma_source_ra = psr_ra[psr]
+            gamma_source_dec = psr_dec[psr]
+            distance = pow(gamma_source_ra-target_ra[target],2)+pow(gamma_source_dec-target_dec[target],2)
+            if distance>2.*2.: continue
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_ra[entry],2)+pow(gamma_source_dec-other_star_dec[entry],2)
+                if distance<0.2*0.2:
+                    near_a_source = True
+            if not near_a_source:
+                other_stars += [gamma_source_name]
+                other_star_ra += [gamma_source_ra]
+                other_star_dec += [gamma_source_dec]
+            else:
+                other_stars += [gamma_source_name]
+                other_star_ra += [gamma_source_ra]
+                other_star_dec += [gamma_source_dec]
+
+        snr_name, snr_ra, snr_dec = ReadSNRTargetListFromFile('SNR_list.txt')
+        for snr in range(0,len(snr_name)):
+            gamma_source_name = snr_name[snr]
+            gamma_source_ra = snr_ra[snr]
+            gamma_source_dec = snr_dec[snr]
+            distance = pow(gamma_source_ra-target_ra[target],2)+pow(gamma_source_dec-target_dec[target],2)
+            if distance>2.*2.: continue
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_ra[entry],2)+pow(gamma_source_dec-other_star_dec[entry],2)
+                if distance<0.2*0.2:
+                    near_a_source = True
+            if not near_a_source:
+                other_stars += [gamma_source_name]
+                other_star_ra += [gamma_source_ra]
+                other_star_dec += [gamma_source_dec]
+            else:
+                other_stars += [gamma_source_name]
+                other_star_ra += [gamma_source_ra]
+                other_star_dec += [gamma_source_dec]
+
+        inputFile = open('TeVCat_RaDec_w_Names.txt')
         for line in inputFile:
             gamma_source_name = line.split(',')[0]
             gamma_source_ra = float(line.split(',')[1])
@@ -1073,13 +812,17 @@ if search_for_on_data:
         # over the line segments of the contour, removing the lines beneath
         # the label
         plt.clf()
+        fig, ax = plt.subplots()
         CS = plt.contour(X, Y, Z)
         plt.scatter(other_star_ra_flipped, other_star_dec, s=80, c='black', marker="+")
         for star in range(0,len(other_stars)):
             plt.text(other_star_ra_flipped[star],other_star_dec[star]+0.2,other_stars[star])
+        mytext = plt.text(other_star_ra_flipped[0],other_star_dec[0]+0.2,other_stars[0],color='r')
+        mytext.set_bbox(dict(facecolor='white', alpha=0.7))
         plt.clabel(CS, inline=1, fontsize=10)
         #plt.title('Simplest default with labels')
         plt.savefig("output_plots/ExposureMap_%s_%s.png"%(plot_tag,target+1))
+        plt.close(fig)
 
         plt.clf()
         fig, ax = plt.subplots()
@@ -1096,6 +839,7 @@ if search_for_on_data:
             plt.text(-1.*other_star_ra[star],other_star_dec[star]+0.2,other_stars[star])
         plt.clabel(CS, inline=1, fontsize=10)
         plt.savefig("output_plots/PointingMap_%s_%s.png"%(plot_tag,target+1))
+        plt.close(fig)
         for i in range(len(xbins)-1):
             for j in range(len(ybins)-1):
                 if hist[i,j]>5.:

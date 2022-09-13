@@ -21,14 +21,14 @@ from itertools import cycle
 from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 
-#folder_path = 'output_test'
+folder_path = 'output_test'
 #folder_path = 'output_2hrs'
 #folder_path = 'output_5hrs'
 #folder_path = 'output_10hrs'
 #folder_path = 'output_20hrs'
 #folder_path = 'output_4x4'
 #folder_path = 'output_8x8'
-folder_path = 'output_12x12'
+#folder_path = 'output_12x12'
 #folder_path = 'output_FreeNSB'
 #folder_path = 'output_FreeAzim'
 #folder_path = 'output_FreeElev'
@@ -55,14 +55,14 @@ smooth_size_spectroscopy = 0.1
 #Smoothing = True
 Smoothing = False
 
-calibration_radius = 0.3
+calibration_radius = 0.5 # need to be larger than the PSF and smaller than the integration radius
 
 energy_index_scale = 2
 
 Skymap_size = 2.
 Skymap_nbins = 45
-#Skymap_nbins = 15
-#Skymap_nbins = 9 # Crab calibration
+#Skymap_nbins = 15 
+#Skymap_nbins = 9 # Crab calibration 
 #Skymap_nbins = 5
 #Skymap_nbins = 3
 
@@ -945,7 +945,7 @@ def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname):
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
     axbig.remove()
 
-def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
+def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,roi_x=0.,roi_y=0.,roi_r=0.,rotation_angle=0.):
 
     isGalactic = False
     if label_x=='gal. l':
@@ -1011,8 +1011,8 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
         #if '#' in other_stars[star]: continue
         other_star_markers += [[-other_star_coord[star][0],other_star_coord[star][1]]]
         other_star_labels += ['%s'%(other_stars[star])]
-    print ('len(other_stars) = %s'%len(other_stars))
-    print ('len(other_star_markers) = %s'%len(other_star_markers))
+    #print ('len(other_stars) = %s'%len(other_stars))
+    #print ('len(other_star_markers) = %s'%len(other_star_markers))
 
     fig.clf()
     axbig = fig.add_subplot()
@@ -1038,9 +1038,10 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname):
         #    text_offset_x = -text_length
         #else: 
         #    text_offset_x = 0.1
-        rotation_angle = 0.
-        if isGalactic: rotation_angle = 45.
         plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k', rotation = rotation_angle)
+    if roi_r>0.:
+        mycircle = plt.Circle((-roi_x, roi_y), roi_r, color='b', fill=False)
+        axbig.add_patch(mycircle)
     axbig.set_xticks(x_axis_sparse)
     axbig.set_xticklabels(x_axis_reflect)
     #axbig.legend(fontsize=7)
