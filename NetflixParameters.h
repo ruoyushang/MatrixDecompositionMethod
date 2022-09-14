@@ -39,11 +39,12 @@ double energy_fine_bins[N_energy_fine_bins+1] = {200.,398.,794.,1585.,3162.,6310
 
 
 bool UseDL3Tree = true;
-bool UseDBOnly = false;
 bool RHVData = false;
 bool EigenDecomposition = false;
 
+bool UseDBOnly = false;
 double exposure_limit = 5.; // default
+//bool UseDBOnly = true;
 //double exposure_limit = 1000.;
 
 bool UseRegularization = true;
@@ -70,8 +71,8 @@ double MSCL_plot_lower = -0.5;
 char output_file_tag[50] = "tight";
 double MSCW_cut_moderate = 0.6;
 double MSCL_cut_moderate = 0.6;
-double EmissionHeight_cut = 0.;
-//double EmissionHeight_cut = 6.;
+//double EmissionHeight_cut = 0.;
+double EmissionHeight_cut = 8.;
 
 bool UseTruncatedONData = false;
 bool UseMinChi2 = false;
