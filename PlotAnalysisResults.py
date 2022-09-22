@@ -56,8 +56,8 @@ folder_path = CommonPlotFunctions.folder_path
 energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
+#theta2_bins = [0,3]
 theta2_bins = [0,4]
-#theta2_bins = [0,1,2,4]
 
 #distance_sq_limit = 3.24
 distance_sq_limit = 2.56
@@ -134,6 +134,9 @@ if 'LHAASO_J1929' in sys.argv[1]:
 if 'LHAASO_J2108' in sys.argv[1]:
     observation_name = 'LHAASO_J2108'
     data_epoch = ['LHAASO_J2108_V6']
+if 'PSR_J2238_p5903' in sys.argv[1]:
+    observation_name = 'PSR_J2238_p5903'
+    data_epoch = ['PSR_J2238_p5903_V6']
 if 'PSR_J1930_p1852' in sys.argv[1]:
     observation_name = 'PSR_J1930_p1852'
     data_epoch = ['PSR_J1930_p1852_V6']
@@ -161,12 +164,21 @@ if 'WComae' in sys.argv[1]:
 if 'Geminga' in sys.argv[1]:
     observation_name = 'Geminga'
     data_epoch = ['GemingaV5','GemingaV6']
+if 'CasA' in sys.argv[1]:
+    observation_name = 'CasA'
+    data_epoch = ['CasAV6']
 if 'M82' in sys.argv[1]:
     observation_name = 'M82'
     data_epoch = ['M82V5','M82V6']
 if 'UrsaMajorII' in sys.argv[1]:
     observation_name = 'UrsaMajorII'
     data_epoch = ['UrsaMajorIIV6']
+if 'UrsaMinor' in sys.argv[1]:
+    observation_name = 'UrsaMinor'
+    data_epoch = ['UrsaMinorV5','UrsaMinorV6']
+if 'RGB_J0710_p591' in sys.argv[1]:
+    observation_name = 'RGB_J0710_p591'
+    data_epoch = ['RGB_J0710_p591_V5','RGB_J0710_p591_V6']
 if 'GammaCygni' in sys.argv[1]:
     observation_name = 'GammaCygni'
     data_epoch = ['GammaCygniV5','GammaCygniV6']
@@ -215,9 +227,6 @@ if 'MGRO_J2019' in sys.argv[1]:
 if 'HESS_J1825' in sys.argv[1]:
     observation_name = 'HESS_J1825'
     data_epoch = ['HESS_J1825_V6']
-if 'RGBJ0710' in sys.argv[1]:
-    observation_name = 'RGBJ0710'
-    data_epoch = ['RGBJ0710V5']
 if '1ES1011' in sys.argv[1]:
     observation_name = '1ES1011'
     data_epoch = ['1ES1011V6']

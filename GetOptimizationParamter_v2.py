@@ -34,13 +34,12 @@ gamma_hadron_low_end = CommonPlotFunctions.gamma_hadron_low_end
 MSCW_blind_cut = CommonPlotFunctions.MSCW_blind_cut
 MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 
+#n_measures_per_entry = 5
 n_measures_per_entry = 20
 
-analysis_type = 'inclusive'
-#analysis_type = 'SelectOFF'
-#analysis_type='UrsaMajorII'
-#analysis_type='1ES0229'
-#analysis_type='PG1553'
+analysis_type = 'RBM'
+#analysis_type = 'Matrix'
+#analysis_type = 'Mimic'
 
 observing_condition = 'all'
 #observing_condition = 'north'
@@ -51,17 +50,17 @@ observing_condition = 'all'
 #observing_condition = 'hnsb'
 #observing_condition = 'lnsb'
 
+
 sample_list = []
 ONOFF_tag_sample = 'OFF'
 imposter_list = []
 ONOFF_tag_imposter = 'OFF'
 
-if analysis_type=='inclusive':
+if analysis_type=='Matrix' or analysis_type=='RBM':
     ONOFF_tag_sample = 'OFF'
     sample_list += ['1ES0414V5_OFF']
     sample_list += ['1ES0647V6_OFF']
     sample_list += ['OJ287V6_OFF']
-    sample_list += ['RGBJ0710V5_OFF']
     sample_list += ['Segue1V6_OFF']
     sample_list += ['Segue1V5_OFF']
     sample_list += ['3C264V6_OFF']
@@ -73,66 +72,52 @@ if analysis_type=='inclusive':
     sample_list += ['1ES0229V5_OFF']
     sample_list += ['PKS1424V6_OFF']
     sample_list += ['PKS1424V5_OFF']
-    sample_list += ['UrsaMajorIIV6_OFF']
+    sample_list += ['RGB_J0710_p591_V6_OFF'] # north 
+    sample_list += ['RGB_J0710_p591_V5_OFF'] # north
+    sample_list += ['UrsaMajorIIV6_OFF'] # north
+    sample_list += ['UrsaMinorV6_OFF'] # north
+    sample_list += ['UrsaMinorV5_OFF'] # north
+    sample_list += ['H1426V6_OFF'] # north
+    sample_list += ['NGC1275V6_OFF'] # north
+    sample_list += ['DracoV6_OFF'] # north
+    sample_list += ['DracoV5_OFF'] # north
+    sample_list += ['BLLacV6_OFF'] # north
+    sample_list += ['BLLacV5_OFF'] # north
+    sample_list += ['1ES0502V6_OFF'] # north
+    sample_list += ['1ES0502V5_OFF'] # north
+    sample_list += ['M82V6_OFF'] # north
+    sample_list += ['M82V5_OFF'] # north
+    sample_list += ['1ES1011V6_OFF'] # north
+if analysis_type=='Mimic' and observing_condition=='north':
+    ONOFF_tag_sample = 'OFF'
     sample_list += ['H1426V6_OFF']
     sample_list += ['NGC1275V6_OFF']
     sample_list += ['DracoV6_OFF']
     sample_list += ['DracoV5_OFF']
-    sample_list += ['BLLacV6_OFF']
-    sample_list += ['BLLacV5_OFF']
-    sample_list += ['1ES0502V6_OFF']
-    sample_list += ['1ES0502V5_OFF']
-    sample_list += ['M82V6_OFF']
-    sample_list += ['M82V5_OFF']
-    sample_list += ['1ES1011V6_OFF']
-if analysis_type=='SelectOFF':
+    ONOFF_tag_imposter = 'ON'
+    for imposter_ID in range(0,5):
+        imposter_list += ['H1426V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['NGC1275V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['DracoV6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['DracoV5_Imposter%s'%(imposter_ID)]
+if analysis_type=='Mimic' and observing_condition=='south':
     ONOFF_tag_sample = 'OFF'
-    sample_list += ['UrsaMajorIIV6_OFF']
     sample_list += ['1ES0229V6_OFF']
     sample_list += ['1ES0229V5_OFF']
-    sample_list += ['PG1553V6_OFF']
-    sample_list += ['PG1553V5_OFF']
-    sample_list += ['PKS1424V6_OFF']
-    sample_list += ['PKS1424V5_OFF']
     sample_list += ['3C273V6_OFF']
     sample_list += ['3C273V5_OFF']
     sample_list += ['Segue1V6_OFF']
     sample_list += ['Segue1V5_OFF']
+    sample_list += ['1ES0414V5_OFF']
     ONOFF_tag_imposter = 'ON'
     for imposter_ID in range(0,5):
-        imposter_list += ['UrsaMajorIIV6_Imposter%s'%(imposter_ID)]
         imposter_list += ['1ES0229V6_Imposter%s'%(imposter_ID)]
         imposter_list += ['1ES0229V5_Imposter%s'%(imposter_ID)]
-        imposter_list += ['PG1553V6_Imposter%s'%(imposter_ID)]
-        imposter_list += ['PG1553V5_Imposter%s'%(imposter_ID)]
-        imposter_list += ['PKS1424V6_Imposter%s'%(imposter_ID)]
-        imposter_list += ['PKS1424V5_Imposter%s'%(imposter_ID)]
         imposter_list += ['3C273V6_Imposter%s'%(imposter_ID)]
         imposter_list += ['3C273V5_Imposter%s'%(imposter_ID)]
         imposter_list += ['Segue1V6_Imposter%s'%(imposter_ID)]
         imposter_list += ['Segue1V5_Imposter%s'%(imposter_ID)]
-if analysis_type=='UrsaMajorII':
-    ONOFF_tag_sample = 'OFF'
-    sample_list += ['UrsaMajorIIV6_OFF']
-    ONOFF_tag_imposter = 'ON'
-    for imposter_ID in range(0,5):
-        imposter_list += ['UrsaMajorIIV6_Imposter%s'%(imposter_ID)]
-if analysis_type=='1ES0229':
-    ONOFF_tag_sample = 'OFF'
-    sample_list += ['1ES0229V6_OFF']
-    sample_list += ['1ES0229V5_OFF']
-    ONOFF_tag_imposter = 'ON'
-    for imposter_ID in range(0,5):
-        imposter_list += ['1ES0229V6_Imposter%s'%(imposter_ID)]
-        imposter_list += ['1ES0229V5_Imposter%s'%(imposter_ID)]
-if analysis_type=='PG1553':
-    ONOFF_tag_sample = 'OFF'
-    sample_list += ['PG1553V6_OFF']
-    sample_list += ['PG1553V5_OFF']
-    ONOFF_tag_imposter = 'ON'
-    for imposter_ID in range(0,5):
-        imposter_list += ['PG1553V6_Imposter%s'%(imposter_ID)]
-        imposter_list += ['PG1553V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['1ES0414V5_Imposter%s'%(imposter_ID)]
 
 
 
@@ -213,8 +198,14 @@ def GetGammaCounts(file_path,ebin):
     InputFile = ROOT.TFile(file_path)
     NewInfoTree = InputFile.Get("NewInfoTree")
     NewInfoTree.SetBranchAddress('dark_stable_rank',ROOT.AddressOf(dark_stable_rank))
-    NewInfoTree.SetBranchAddress('data_gamma_count',ROOT.AddressOf(data_gamma_count))
-    NewInfoTree.SetBranchAddress('bkgd_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
+    if analysis_type=='RBM':
+        NewInfoTree.SetBranchAddress('roi_data_gamma_count',ROOT.AddressOf(data_gamma_count))
+    else:
+        NewInfoTree.SetBranchAddress('data_gamma_count',ROOT.AddressOf(data_gamma_count))
+    if analysis_type=='RBM':
+        NewInfoTree.SetBranchAddress('roi_rbm_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
+    else:
+        NewInfoTree.SetBranchAddress('bkgd_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
     NewInfoTree.SetBranchAddress('dark_gamma_count',ROOT.AddressOf(dark_gamma_count))
     NewInfoTree.SetBranchAddress('rank0_gamma_count',ROOT.AddressOf(rank0_gamma_count))
     NewInfoTree.SetBranchAddress('rank1_gamma_count',ROOT.AddressOf(rank1_gamma_count))
@@ -711,13 +702,15 @@ for eb in range(0,len(energy_bin)-1):
         for entry in range(0,n_measurements):
             if eb==0 or eb==1:
                 if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
-            if eb==0 and data_count[entry][eb]<2000.: continue
-            if eb==1 and data_count[entry][eb]<500.: continue
-            if data_count[entry][eb]<10.: continue
+            #if analysis_type!='RBM':
+            #    if eb==0 and data_count[entry][eb]<2000.: continue
+            #    if eb==1 and data_count[entry][eb]<500.: continue
+            #if data_count[entry][eb]<10.: continue
             singularvalue = Hist_Data_Eigenvalues[entry][eb].GetBinContent(binx+1)
             singularvalue_avg += singularvalue
             n_entries += 1.
-        singularvalue_avg = singularvalue_avg/n_entries
+        if n_entries>0.:
+            singularvalue_avg = singularvalue_avg/n_entries
         Hist_Data_Eigenvalues_Mean[eb].SetBinContent(binx+1,singularvalue_avg)
 energy_dependent_singularvalue = []
 for eb in range(0,len(energy_bin)-1):
@@ -747,10 +740,11 @@ for eb in range(0,len(energy_bin)-1):
     epsilon_stat_avg = 0.
     n_entries = 0.
     for entry in range(0,n_measurements):
-        if eb==0 or eb==1:
-            if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
-        if eb==0 and data_count[entry][eb]<2000.: continue
-        if eb==1 and data_count[entry][eb]<500.: continue
+        #if eb==0 or eb==1:
+        #    if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
+        if analysis_type!='RBM':
+            if eb==0 and data_count[entry][eb]<2000.: continue
+            if eb==1 and data_count[entry][eb]<500.: continue
         if data_count[entry][eb]<10.: continue
         epsilon_rank0 = (data_count[entry][eb]-rank0_count[entry][eb])/data_count[entry][eb]
         epsilon_rank1 = (data_count[entry][eb]-rank1_count[entry][eb])/data_count[entry][eb]
@@ -760,10 +754,11 @@ for eb in range(0,len(energy_bin)-1):
         epsilon_rank2_avg += epsilon_rank2*epsilon_rank2
         epsilon_stat_avg += pow(pow(data_count[entry][eb],0.5)/data_count[entry][eb],2)
         n_entries += 1.
-    epsilon_rank0_avg = pow(epsilon_rank0_avg/n_entries,0.5)
-    epsilon_rank1_avg = pow(epsilon_rank1_avg/n_entries,0.5)
-    epsilon_rank2_avg = pow(epsilon_rank2_avg/n_entries,0.5)
-    epsilon_stat_avg = pow(epsilon_stat_avg/n_entries,0.5)
+    if n_entries>0.:
+        epsilon_rank0_avg = pow(epsilon_rank0_avg/n_entries,0.5)
+        epsilon_rank1_avg = pow(epsilon_rank1_avg/n_entries,0.5)
+        epsilon_rank2_avg = pow(epsilon_rank2_avg/n_entries,0.5)
+        epsilon_stat_avg = pow(epsilon_stat_avg/n_entries,0.5)
     energy_dependent_rank0 += [epsilon_rank0_avg]
     energy_dependent_rank1 += [epsilon_rank1_avg]
     energy_dependent_rank2 += [epsilon_rank2_avg]
@@ -781,6 +776,52 @@ plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_stat,marker='.',labe
 ax.legend(loc='best')
 plt.savefig("output_plots/RankErrors.png")
 
+energy_array = np.array(energy_bin)
+energy_dependent_bkgd = []
+energy_dependent_syst = []
+energy_dependent_stat = []
+for eb in range(0,len(energy_bin)-1):
+    epsilon_bkgd_avg = 0.
+    epsilon_stat_avg = 0.
+    n_entries = 0.
+    n_measures = 0.
+    data_cnt_sum = 0.
+    bkgd_cnt_sum = 0.
+    for entry in range(0,n_measurements):
+        #if analysis_type!='RBM':
+        #    if eb==0 and data_count[entry][eb]<2000.: continue
+        #    if eb==1 and data_count[entry][eb]<500.: continue
+        #if data_count[entry][eb]<10.: continue
+        n_measures += 1.
+        data_cnt_sum += data_count[entry][eb]
+        bkgd_cnt_sum += bkgd_count[entry][eb]
+        if n_measures==n_measures_per_entry:
+            if data_cnt_sum<10.: continue
+            epsilon_bkgd = (data_cnt_sum-bkgd_cnt_sum)/data_cnt_sum
+            epsilon_bkgd_avg += epsilon_bkgd*epsilon_bkgd
+            epsilon_stat_avg += pow(pow(data_cnt_sum,0.5)/data_cnt_sum,2)
+            n_measures = 0.
+            data_cnt_sum = 0.
+            bkgd_cnt_sum = 0.
+            n_entries += 1.
+    if n_entries>0.:
+        epsilon_bkgd_avg = pow(epsilon_bkgd_avg/n_entries,0.5)
+        epsilon_stat_avg = pow(epsilon_stat_avg/n_entries,0.5)
+    energy_dependent_bkgd += [epsilon_bkgd_avg]
+    energy_dependent_syst += [pow(max(0.,pow(epsilon_bkgd_avg,2)-pow(epsilon_stat_avg,2)),0.5)]
+    energy_dependent_stat += [epsilon_stat_avg]
+plt.clf()
+fig, ax = plt.subplots()
+plt.xlabel("Energy [GeV]", fontsize=18)
+plt.ylabel("RMS of $\\epsilon$", fontsize=18)
+plt.yscale('log')
+plt.xscale('log')
+plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_bkgd,marker='.',label='syst.+stat. unc.')
+plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_stat,marker='.',label='stat. unc.')
+plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_syst,marker='.',label='syst. unc.')
+ax.legend(loc='best')
+plt.savefig("output_plots/SystVsStatErrors_M%s_%s.png"%(n_measures_per_entry,analysis_type))
+
 
 Hist_Bkgd_Optimization_Mean = []
 for eb in range(0,len(energy_bin)-1):
@@ -794,14 +835,16 @@ for eb in range(0,len(energy_bin)-1):
             for entry in range(0,n_measurements):
                 if eb==0 or eb==1:
                     if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
-                if eb==0 and data_count[entry][eb]<2000.: continue
-                if eb==1 and data_count[entry][eb]<500.: continue
-                if data_count[entry][eb]<10.: continue
+                #if analysis_type!='RBM':
+                #    if eb==0 and data_count[entry][eb]<2000.: continue
+                #    if eb==1 and data_count[entry][eb]<500.: continue
+                #if data_count[entry][eb]<10.: continue
                 error = Hist_Bkgd_Optimization[entry][eb].GetBinContent(binx+1,biny+1)
                 rms += pow(error,2)
                 n_entries += 1.
-            rms = rms/n_entries
-            rms = pow(rms,0.5)
+            if n_entries>0.:
+                rms = rms/n_entries
+                rms = pow(rms,0.5)
             Hist_Bkgd_Optimization_Mean[eb].SetBinContent(binx+1,biny+1,rms)
     CommonPlotFunctions.MatplotlibHist2D(Hist_Bkgd_Optimization_Mean[eb],fig,'log10 $\\beta_{11}$','log10 $\\beta_{22}$','RMS of $\\epsilon$','Optimization_E%s_%s_%s'%(eb,analysis_type,observing_condition))
 
@@ -811,12 +854,12 @@ Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E0","",21,-0.2,0.2)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E0","",21,-0.2,0.2)]
 Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E1","",21,-0.2,0.2)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E1","",21,-0.2,0.2)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E2","",21,-0.4,0.4)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E2","",21,-0.4,0.4)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E3","",21,-0.8,0.8)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E3","",21,-0.8,0.8)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E4","",21,-0.8,0.8)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E4","",21,-0.8,0.8)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E2","",21,-0.2,0.2)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E2","",21,-0.2,0.2)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E3","",21,-0.4,0.4)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E3","",21,-0.4,0.4)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E4","",21,-0.4,0.4)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E4","",21,-0.4,0.4)]
 Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E5","",21,-0.8,0.8)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E5","",21,-0.8,0.8)]
 Hist_Imposter_SystErrDist_MDM = []
@@ -825,12 +868,12 @@ Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E0","
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E0","",21,-0.2,0.2)]
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E1","",21,-0.2,0.2)]
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E1","",21,-0.2,0.2)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E2","",21,-0.4,0.4)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E2","",21,-0.4,0.4)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E2","",21,-0.2,0.2)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E2","",21,-0.2,0.2)]
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E3","",21,-0.4,0.4)]
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E3","",21,-0.4,0.4)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E4","",21,-0.8,0.8)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E4","",21,-0.8,0.8)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E4","",21,-0.4,0.4)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E4","",21,-0.4,0.4)]
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E5","",21,-0.8,0.8)]
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E5","",21,-0.8,0.8)]
 
@@ -850,9 +893,10 @@ for eb in range(0,len(energy_bin)-1):
         if eb==0 or eb==1:
             if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
         if data_count[entry][eb]==0.: continue
-        if eb==0 and data_count[entry][eb]<2000.: continue
-        if eb==1 and data_count[entry][eb]<500.: continue
-        if data_count[entry][eb]<10.: continue
+        #if analysis_type!='RBM':
+        #    if eb==0 and data_count[entry][eb]<2000.: continue
+        #    if eb==1 and data_count[entry][eb]<500.: continue
+        #if data_count[entry][eb]<10.: continue
         n_measures += 1.
         data_count_n_measures += data_count[entry][eb]
         bkgd_count_n_measures += bkgd_count[entry][eb]
@@ -889,16 +933,17 @@ for eb in range(0,len(energy_bin)-1):
         if eb==0 or eb==1:
             if plot_rank!=0 and imposter_data_rank[entry][eb]!=plot_rank: continue
         if imposter_data_count[entry][eb]==0.: continue
-        if eb==0 and imposter_data_count[entry][eb]<2000.: continue
-        if eb==1 and imposter_data_count[entry][eb]<500.: continue
-        if data_count[entry][eb]<10.: continue
+        #if analysis_type!='RBM':
+        #    if eb==0 and imposter_data_count[entry][eb]<2000.: continue
+        #    if eb==1 and imposter_data_count[entry][eb]<500.: continue
+        #if imposter_data_count[entry][eb]<10.: continue
         n_measures += 1.
         data_count_n_measures += imposter_data_count[entry][eb]
         bkgd_count_n_measures += imposter_bkgd_count[entry][eb]
         dark_count_n_measures += imposter_dark_count[entry][eb]
         if n_measures==n_measures_per_entry:
-            Hist_Imposter_SystErrDist_MDM[eb].Fill(1.-bkgd_count_n_measures/data_count_n_measures,1./5.)
-            Hist_Imposter_SystErrDist_Init[eb].Fill(1.-dark_count_n_measures/data_count_n_measures,1./5.)
+            Hist_Imposter_SystErrDist_MDM[eb].Fill(1.-bkgd_count_n_measures/data_count_n_measures,n_measurements/n_imposter_measurements)
+            Hist_Imposter_SystErrDist_Init[eb].Fill(1.-dark_count_n_measures/data_count_n_measures,n_measurements/n_imposter_measurements)
             MDM_mean_imposter += 1.-bkgd_count_n_measures/data_count_n_measures
             Init_mean_imposter += 1.-dark_count_n_measures/data_count_n_measures
             MDM_rms_imposter += pow(1.-bkgd_count_n_measures/data_count_n_measures,2)
@@ -920,11 +965,11 @@ for eb in range(0,len(energy_bin)-1):
     Hists += [Hist_SystErrDist_MDM[eb]]
     legends += ['%0.2f-%0.2f TeV, ON data, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_rms,MDM_rms/pow(n_entries,0.5))]
     colors += [1]
-    if analysis_type=='inclusive':
+    if analysis_type=='Matrix':
         Hists += [Hist_SystErrDist_Init[eb]]
         legends += ['initial matching, RMS = $%0.3f \pm %0.3f$'%(Init_rms,Init_rms/pow(n_entries,0.5))]
         colors += [2]
-    else:
+    elif analysis_type=='Mimic':
         Hists += [Hist_Imposter_SystErrDist_MDM[eb]]
         legends += ['mimic data (entries scaled by 1/5), RMS = $%0.3f \pm %0.3f$'%(MDM_rms_imposter,MDM_rms_imposter/pow(n_entries_imposter,0.5))]
         colors += [2]

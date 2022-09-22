@@ -422,8 +422,8 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
     #n_bins_1d = 4
-    n_bins_1d = min(8,int(float(n_bins_2d)/2.))
-    #n_bins_1d = min(16,int(float(n_bins_2d)/2.))
+    #n_bins_1d = min(8,int(float(n_bins_2d)/2.))
+    n_bins_1d = min(16,int(float(n_bins_2d)/2.))
     #integration_range = 0.8
     integration_range = 1.6
 
