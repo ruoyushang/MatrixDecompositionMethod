@@ -164,9 +164,21 @@ target_dec = []
 #target_name += ["Boomerang"]
 #target_ra += [337.183]
 #target_dec += [61.167]
+#target_name += ["Cas A"]
+#target_ra += [350.8075000]
+#target_dec += [58.8072222]
+#target_name += ["Ursa Minor"]
+#target_ra += [227.2854167]
+#target_dec += [67.2225000]
+#target_name += ["RGB J0710+591"]
+#target_ra += [107.6100000]
+#target_dec += [59.1500000]
+target_name += ["LHAASO J2032+4102"]
+target_ra += [308.0500000]
+target_dec += [41.0500000]
 
 #target_name, target_ra, target_dec = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
-target_name, target_ra, target_dec = ReadATNFTargetListFromFile('single_pulsar_list.txt')
+#target_name, target_ra, target_dec = ReadATNFTargetListFromFile('single_pulsar_list.txt')
 #target_ra, target_dec = ReadSNRTargetListFromFile('SNR_list.txt')
 
 range_ra = 1.5
@@ -201,7 +213,7 @@ Search_Range_PedVar_DC = [3.,10.]
 #Search_Range_PedVar_DC = [5.,6.]
 #Search_Range_PedVar_DC = [6.,10.]
 
-#Search_Range_Elev = [45.,90.]
+#Search_Range_Elev = [0.,35.]
 #Search_Range_RA = [0.,50.]
 #Search_Range_Dec = [0,90.]
 
@@ -355,6 +367,8 @@ List_Used = []
 List_Used_Exposure = []
 List_Used_RA = []
 List_Used_Dec = []
+List_Used_Gal_l = []
+List_Used_Gal_b = []
 List_Used_Elev = []
 List_Used_Azim = []
 List_Used_NSB = []
@@ -428,6 +442,9 @@ if search_for_on_data:
             List_Used_Exposure += [Livetime/60.]
             List_Used_RA += [T1_RA]
             List_Used_Dec += [T1_Dec]
+            gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
+            List_Used_Gal_l += [gal_l]
+            List_Used_Gal_b += [gal_b]
             List_Used_Elev += [Elev]
             List_Used_Azim += [Azim]
             List_Used_NSB += [PedVar_DC]
@@ -546,6 +563,9 @@ else:
         List_Used_Exposure += [Livetime/60.]
         List_Used_RA += [T1_RA]
         List_Used_Dec += [T1_Dec]
+        gal_l, gal_b = ConvertRaDecToGalactic(T1_RA,T1_Dec)
+        List_Used_Gal_l += [gal_l]
+        List_Used_Gal_b += [gal_b]
         List_Used_Elev += [Elev]
         List_Used_Azim += [Azim]
         List_Used_NSB += [PedVar_DC]
@@ -657,6 +677,16 @@ ax.axis('on')
 ax.set_xlabel('RA')
 ax.set_ylabel('Dec')
 plt.savefig("output_plots/RunRADec_%s.png"%(plot_tag))
+plt.close(fig)
+
+plt.clf()
+fig, ax = plt.subplots()
+hist, xbins, ybins, im = plt.hist2d(List_Used_Gal_l, List_Used_Gal_b, range = [[0,360], [-10,10]], bins=(90, 20), cmap=plt.cm.Greys)
+plt.colorbar()
+ax.axis('on')
+ax.set_xlabel('gal. l')
+ax.set_ylabel('gal. b')
+plt.savefig("output_plots/RunGalCoord_%s.png"%(plot_tag))
 plt.close(fig)
 
 elev_bins = 7
