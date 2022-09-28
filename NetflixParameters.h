@@ -42,10 +42,11 @@ bool UseDL3Tree = true;
 bool RHVData = false;
 bool EigenDecomposition = false;
 
-bool UseDBOnly = false;
-double exposure_limit = 5.; // default
-//bool UseDBOnly = true;
-//double exposure_limit = 1000.;
+//bool UseDBOnly = false;
+//double exposure_limit = 5.; // default
+//double exposure_limit = 50.;
+bool UseDBOnly = true;
+double exposure_limit = 1000.;
 
 bool UseRegularization = true;
 //bool UseRegularization = false;
@@ -63,16 +64,15 @@ bool ExposureCorrection = false;
 
 int nbins_fitting = 4;
 
-double MSCW_plot_upper = 3.;
-double MSCL_plot_upper = 3.;
-double MSCW_plot_lower = -0.5;
-double MSCL_plot_lower = -0.5;
-
 char output_file_tag[50] = "tight";
 double MSCW_cut_moderate = 0.6;
 double MSCL_cut_moderate = 0.6;
 //double EmissionHeight_cut = 0.;
-double EmissionHeight_cut = 8.;
+double EmissionHeight_cut = 6.;
+
+//double ring_radius_inner = 0.5;
+double ring_radius_inner = 1.0;
+//double ring_radius_inner = 1.5;
 
 bool UseTruncatedONData = false;
 bool UseMinChi2 = false;
@@ -97,7 +97,7 @@ double MSCW_cut_loose = 0.9;
 double MSCL_cut_loose = 1.0;
 double camera_theta2_cut_lower = 0.;
 double camera_theta2_cut_upper = 1.;
-double source_theta2_cut = 0.09;
+double source_theta_cut = 0.2;
 
 int n_dark_samples = 1;
 const int N_elev_bins = 5;
@@ -114,6 +114,11 @@ const int N_NSB_bins = 5;
 double NSB_bins[N_NSB_bins+1] = {3,4,5,6,7,8};
 const int N_azim_bins = 5;
 double azim_bins[N_azim_bins+1] = {0,45,135,225,315,360};
+
+double MSCW_plot_upper = 3.;
+double MSCL_plot_upper = 3.;
+double MSCW_plot_lower = -0.5;
+double MSCL_plot_lower = -0.5;
 
 double MSCW_cut_blind = 1.0;
 double MSCL_cut_blind = 1.0;

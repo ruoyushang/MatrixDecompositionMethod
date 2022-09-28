@@ -117,6 +117,8 @@ double svd_threshold = 1e-20; // size of singular value to be considered as nonz
 double svd_threshold_scale = 1.0;
 
 vector<int> dark_stable_rank;
+vector<double> roi_data_gamma_count;
+vector<double> roi_rbm_gamma_count;
 vector<double> data_gamma_count;
 vector<double> data_antigamma_count;
 vector<double> dark_sigma_rank0;
@@ -965,6 +967,24 @@ MatrixXcd SortEigenvectors(VectorXcd eigenval, MatrixXcd mtx_r, MatrixXcd mtx_l)
     return mtx_l_output;
 }
 
+double CountGammaRegionFromMap(TH2D* hist, double roi_x, double roi_y, double roi_r)
+{
+    double count = 0.;
+    for (int binx=0;binx<hist->GetNbinsX();binx++)
+    {
+        for (int biny=0;biny<hist->GetNbinsY();biny++)
+        {
+            double map_x = hist->GetXaxis()->GetBinCenter(binx+1);
+            double map_y = hist->GetYaxis()->GetBinCenter(biny+1);
+            double distance = pow(pow(map_x-roi_x,2)+pow(map_y-roi_y,2),0.5);
+            if (distance<roi_r)
+            {
+                count += hist->GetBinContent(binx+1,biny+1);
+            }
+        }
+    }
+    return count;
+}
 double CountGammaRegion(MatrixXcd mtx_input)
 {
     double count = 0.;
@@ -2062,7 +2082,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     TString ONOFF_tag;
     if (isON) 
     {
-        source_theta2_cut = 0.;
+        source_theta_cut = 0.;
         ONOFF_tag = "ON";
     }
     else
@@ -2085,24 +2105,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     sprintf(elev_cut_tag, "_TelElev%dto%d%s", int(TelElev_lower), int(TelElev_upper), Azim_region.c_str());
     MSCW_cut_blind = MSCW_cut_moderate;
     MSCL_cut_blind = MSCL_cut_moderate;
-    //if (TString(target).Contains("Crab"))
-    //{
-    //    if (source_theta2_cut==0.)
-    //    {
-    //        MSCW_cut_blind = MSCW_cut_loose;
-    //        MSCL_cut_blind = MSCL_cut_loose;
-    //    }
-    //}
-    //if (TString(target).Contains("Mrk421"))
-    //{
-    //    if (source_theta2_cut==0.)
-    //    {
-    //        MSCW_cut_blind = MSCW_cut_loose;
-    //        MSCL_cut_blind = MSCL_cut_loose;
-    //    }
-    //}
 
     dark_stable_rank.clear();
+    roi_data_gamma_count.clear();
+    roi_rbm_gamma_count.clear();
     data_gamma_count.clear();
     data_antigamma_count.clear();
     dark_sigma_rank0.clear();
@@ -2173,6 +2179,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     vector<double>* Data_runlist_L3Rate_ptr = new std::vector<double>(10);
     vector<double>* Data_runlist_NSB_ptr = new std::vector<double>(10);
     vector<string>* roi_name_ptr = new std::vector<string>(10);
+    vector<double>* roi_ra_ptr = new std::vector<double>(10);
+    vector<double>* roi_dec_ptr = new std::vector<double>(10);
     vector<double>* roi_radius_inner_ptr = new std::vector<double>(10);
     vector<double>* roi_radius_outer_ptr = new std::vector<double>(10);
     TString regularization_name;
@@ -2224,6 +2232,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     InfoTree_ptr->SetBranchAddress("Data_runlist_L3Rate",&Data_runlist_L3Rate_ptr);
     InfoTree_ptr->SetBranchAddress("Data_runlist_NSB",&Data_runlist_NSB_ptr);
     InfoTree_ptr->SetBranchAddress("roi_name",&roi_name_ptr);
+    InfoTree_ptr->SetBranchAddress("roi_ra",&roi_ra_ptr);
+    InfoTree_ptr->SetBranchAddress("roi_dec",&roi_dec_ptr);
     InfoTree_ptr->SetBranchAddress("roi_radius_inner",&roi_radius_inner_ptr);
     InfoTree_ptr->SetBranchAddress("roi_radius_outer",&roi_radius_outer_ptr);
     InfoTree_ptr->GetEntry(0);
@@ -2549,6 +2559,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     vector<TH2D> Hist_OnData_ISR_Skymap;
     vector<TH2D> Hist_OnData_SR_Skymap;
     vector<TH2D> Hist_OnData_CR_Skymap;
+    vector<TH2D> Hist_OnData_RBM_Skymap;
     vector<TH2D> Hist_NormSyst_Skymap;
     vector<vector<TH2D>> Hist_ShapeSyst_Skymap;
     vector<TH2D> Hist_OnRFoV_CR_Skymap;
@@ -2595,6 +2606,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         Hist_OnData_ISR_Skymap.push_back(TH2D("Hist_OnData_ISR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_SR_Skymap.push_back(TH2D("Hist_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_OnData_CR_Skymap.push_back(TH2D("Hist_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnData_RBM_Skymap.push_back(TH2D("Hist_OnData_RBM_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
         Hist_NormSyst_Skymap.push_back(TH2D("Hist_NormSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
 
         vector<TH2D> Hist_ShapeSyst_Skymap_ThisBin;
@@ -2813,6 +2825,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         hist_name  = "Hist_Stage1_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_OnData_CR_Skymap.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         Hist_OnRFoV_CR_Skymap.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
+        hist_name  = "Hist_Stage1_OnData_RBM_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+        Hist_OnData_RBM_Skymap.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_NormSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_NormSyst_Skymap.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         for (int xybin=0;xybin<N_integration_radii;xybin++) 
@@ -3265,6 +3279,14 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         double bkgd_redu_count = CountGammaRegion(mtx_bkgd_truncate);
         double epsilon_bkgd_redu  = bkgd_redu_count/data_full_count -1.;
         std::cout << "N^{ON} = " << data_full_count << ", N^{Chi2}_{3} = " << bkgd_redu_count << ", epsilon^{Chi2}_{3} = " << epsilon_bkgd_redu << std::endl;
+
+        double data_roi_count = CountGammaRegionFromMap(&Hist_OnData_SR_Skymap.at(e), roi_ra_ptr->at(0), roi_dec_ptr->at(0), roi_radius_outer_ptr->at(0));
+        //double rbm_roi_count = CountGammaRegionFromMap(&Hist_OnData_RBM_Skymap.at(e), roi_ra_ptr->at(0), roi_dec_ptr->at(0), roi_radius_outer_ptr->at(0));
+        double rbm_roi_count = CountGammaRegionFromMap(&Hist_OnRFoV_CR_Skymap.at(e), roi_ra_ptr->at(0), roi_dec_ptr->at(0), roi_radius_outer_ptr->at(0));
+        roi_data_gamma_count.push_back(data_roi_count);
+        roi_rbm_gamma_count.push_back(rbm_roi_count);
+        std::cout << "data_roi_count = " << data_roi_count << ", rbm_roi_count = " << rbm_roi_count << std::endl;
+
         dark_stable_rank.push_back(NumberOfEigenvectors_Stable);
         data_gamma_count.push_back(data_full_count);
         data_antigamma_count.push_back(data_full_antigamma_count);
@@ -3501,6 +3523,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     NewInfoTree.Branch("Zenith_mean_dark",&Zenith_mean_dark,"Zenith_mean_dark/D");
     NewInfoTree.Branch("Zenith_RMS_dark",&Zenith_RMS_dark,"Zenith_RMS_dark/D");
     NewInfoTree.Branch("max_chi2_diff2_position","std::vector<double>",&max_chi2_diff2_position);
+    NewInfoTree.Branch("roi_data_gamma_count","std::vector<double>",&roi_data_gamma_count);
+    NewInfoTree.Branch("roi_rbm_gamma_count","std::vector<double>",&roi_rbm_gamma_count);
     NewInfoTree.Branch("data_gamma_count","std::vector<double>",&data_gamma_count);
     NewInfoTree.Branch("data_antigamma_count","std::vector<double>",&data_antigamma_count);
     NewInfoTree.Branch("dark_stable_rank","std::vector<int>",&dark_stable_rank);
@@ -3674,6 +3698,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         Hist_OnData_ISR_Skymap.at(e).Write();
         Hist_OnData_SR_Skymap.at(e).Write();
         Hist_OnData_CR_Skymap.at(e).Write();
+        Hist_OnData_RBM_Skymap.at(e).Write();
         Hist_NormSyst_Skymap.at(e).Write();
         for (int xybin=0;xybin<N_integration_radii;xybin++) 
         {
@@ -3708,7 +3733,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     TString ONOFF_tag;
     if (isON) 
     {
-        source_theta2_cut = 0.;
+        source_theta_cut = 0.;
         ONOFF_tag = "ON";
     }
     else

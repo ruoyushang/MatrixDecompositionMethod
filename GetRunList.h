@@ -15,338 +15,348 @@ pair<double,double> GetSourceRaDec(TString source_name)
     if (source_name.Contains("PSR_J2238_p5903"))
     {
             Source_RA = 339.6177917;
-                Source_Dec = 59.0613333;
+            Source_Dec = 59.0613333;
     }
     if (source_name.Contains("PSR_J1930_p1852"))
     {
             Source_RA = 292.62554;
-                Source_Dec = 18.87058;
+            Source_Dec = 18.87058;
     }
     if (source_name.Contains("PSR_J2022_p3842"))
     {
             Source_RA = 305.59037;
-                Source_Dec = 38.704117;
+            Source_Dec = 38.704117;
     }
     if (source_name.Contains("PSR_J0023_p09"))
     {
             Source_RA = 5.82032291;
-                Source_Dec = 9.38996121;
+            Source_Dec = 9.38996121;
     }
     if (source_name.Contains("PSR_J0248_p6021"))
     {
             Source_RA = 42.077571;
-                Source_Dec = 60.359644;
+            Source_Dec = 60.359644;
     }
     if (source_name.Contains("PSR_J0633_p0632"))
     {
             Source_RA = 98.43421;
-                Source_Dec = 6.5430;
+            Source_Dec = 6.5430;
     }
     if (source_name.Contains("LSI_p61_303"))
     {
             Source_RA = 40.1416667;
-                Source_Dec = 61.2569444;
+            Source_Dec = 61.2569444;
     }
     if (source_name.Contains("SgrA"))
     {
             Source_RA = 266.415;
-                Source_Dec = -29.006;
+            Source_Dec = -29.006;
     }
     if (source_name.Contains("Geminga"))
     {
             Source_RA = 98.476;
-                Source_Dec = 17.770;
+            Source_Dec = 17.770;
     }
     if (source_name.Contains("PKS1441"))
     {
             Source_RA = 220.987;
-                Source_Dec = 25.029;
+            Source_Dec = 25.029;
     }
     if (source_name.Contains("MS1221"))
     {
             Source_RA = 186.101;
-                Source_Dec = 24.607;
+            Source_Dec = 24.607;
     }
     if (source_name.Contains("Tycho"))
     {
             Source_RA = 6.340;
-                Source_Dec = 64.130;
+            Source_Dec = 64.130;
     }
     if (source_name.Contains("CTA1"))
     {
             Source_RA = 1.608;
-                Source_Dec = 72.984;
+            Source_Dec = 72.984;
     }
     if (source_name.Contains("S3_1227"))
     {
             Source_RA = 187.559;
-                Source_Dec = 25.302;
+            Source_Dec = 25.302;
     }
     if (source_name.Contains("SNR_G150p3Plus04p5"))
     {
             Source_RA = 67.82;
-                Source_Dec = 55.89;
+            Source_Dec = 55.89;
     }
     if (source_name.Contains("Crab"))
     {
             Source_RA = 83.633;
-                Source_Dec = 22.014;
+            Source_Dec = 22.014;
     }
     if (source_name.Contains("Mrk421"))
     {
             Source_RA = 166.079;
-                Source_Dec = 38.195;
+            Source_Dec = 38.195;
     }
     if (source_name.Contains("H1426"))
     {
             Source_RA = 217.136;
-                Source_Dec = 42.673;
+            Source_Dec = 42.673;
     }
     if (source_name.Contains("1ES0229"))
     {
             Source_RA = 38.222;
-                Source_Dec = 20.273;
+            Source_Dec = 20.273;
     }
     if (source_name.Contains("PKS1424"))
     {
             Source_RA = 216.750;
-                Source_Dec = 23.783;
+            Source_Dec = 23.783;
     }
     if (source_name.Contains("3C264"))
     {
             Source_RA = 176.271;
-                Source_Dec = 19.606;
+            Source_Dec = 19.606;
     }
     if (source_name.Contains("OJ287"))
     {
             Source_RA = 133.705;
-                Source_Dec = 20.100;
+            Source_Dec = 20.100;
     }
     if (source_name.Contains("RBS0413"))
     {
             Source_RA = 49.946;
-                Source_Dec = 18.762;
+            Source_Dec = 18.762;
     }
     if (source_name.Contains("PG1553"))
     {
             Source_RA = 238.936;
-                Source_Dec = 11.195;
+            Source_Dec = 11.195;
     }
     if (source_name.Contains("Segue1"))
     {
             Source_RA = 151.767;
-                Source_Dec = 16.082;
+            Source_Dec = 16.082;
     }
     if (source_name.Contains("Coma"))
     {
             Source_RA = 194.953;
-                Source_Dec = 27.981;
+            Source_Dec = 27.981;
     }
     if (source_name.Contains("1ES1011"))
     {
             Source_RA = 153.767;
-                Source_Dec = 49.434;
+            Source_Dec = 49.434;
     }
     if (source_name.Contains("NGC1275"))
     {
             Source_RA = 49.950;
-                Source_Dec = 41.512;
+            Source_Dec = 41.512;
     }
     if (source_name.Contains("1ES0647"))
     {
             Source_RA = 102.694;
-                Source_Dec = 25.050;
+            Source_Dec = 25.050;
     }
     if (source_name.Contains("TriII"))
     {
             Source_RA = 34.32861263958333;
-                Source_Dec = 36.0;
+            Source_Dec = 36.0;
     }
     if (source_name.Contains("1ES1440"))
     {
             Source_RA = 220.701;
-                Source_Dec = 12.011;
+            Source_Dec = 12.011;
     }
     if (source_name.Contains("1ES1741"))
     {
             Source_RA = 266.005;
-                Source_Dec = 19.546;
+            Source_Dec = 19.546;
     }
     if (source_name.Contains("IC443HotSpot"))
     {
             //Source_RA = 94.511;
-            //    Source_Dec = 22.660;
+            //Source_Dec = 22.660;
             Source_RA = 94.213;
-                Source_Dec = 22.503;
-    }
-    if (source_name.Contains("RGBJ0710"))
-    {
-            Source_RA = 107.610;
-                Source_Dec = 59.150;
+            Source_Dec = 22.503;
     }
     if (source_name.Contains("CasA"))
     {
             Source_RA = 350.808;
-                Source_Dec = 58.807;
+            Source_Dec = 58.807;
     }
     if (source_name.Contains("M82"))
     {
             Source_RA = 148.970;
-                Source_Dec = 69.679;
+            Source_Dec = 69.679;
     }
     if (source_name.Contains("M87"))
     {
             Source_RA = 187.70593076;
-                Source_Dec = 12.3911232939;
+            Source_Dec = 12.3911232939;
     }
     if (source_name.Contains("Boomerang"))
     {
             Source_RA = 337.183333333;
-                Source_Dec = 61.1666666667;
+            Source_Dec = 61.1666666667;
     }
     if (source_name.Contains("BLLac"))
     {
             Source_RA = 330.680416667;
-                Source_Dec = 42.2777777778;
+            Source_Dec = 42.2777777778;
     }
     if (source_name.Contains("UrsaMajorII"))
     {
             Source_RA = 132.875;
-                Source_Dec = 63.13;
+            Source_Dec = 63.13;
+    }
+    if (source_name.Contains("UrsaMinor"))
+    {
+            Source_RA = 227.2854167;
+            Source_Dec = 67.2225000;
+    }
+    if (source_name.Contains("RGB_J0710_p591"))
+    {
+            Source_RA = 107.6100000;
+            Source_Dec = 59.1500000;
+    }
+    if (source_name.Contains("LHAASO_J2032"))
+    {
+            Source_RA = 308.0500000;
+            Source_Dec = 41.0500000;
     }
     if (source_name.Contains("LHAASO_J2108"))
     {
             Source_RA = 317.15;
-                Source_Dec = 51.95;
+            Source_Dec = 51.95;
     }
     if (source_name.Contains("LHAASO_J0341"))
     {
             Source_RA = 55.34;
-                Source_Dec = 52.97;
+            Source_Dec = 52.97;
     }
     if (source_name.Contains("LHAASO_J1929"))
     {
             Source_RA = 292.25;
-                Source_Dec = 17.75;
+            Source_Dec = 17.75;
     }
     if (source_name.Contains("LHAASO_J1843"))
     {
             Source_RA = 280.75;
-                Source_Dec = -3.63;
+            Source_Dec = -3.63;
     }
     if (source_name.Contains("LHAASO_J1956"))
     {
             Source_RA = 299.05;
-                Source_Dec = 28.75;
+            Source_Dec = 28.75;
     }
     if (source_name.Contains("Perseus"))
     {
             Source_RA = 52.9;
-                Source_Dec = 30.9;
+            Source_Dec = 30.9;
     }
     if (source_name.Contains("PSRB0355plus54"))
     {
             Source_RA = 59.72083333333333;
-                Source_Dec = 54.22027777777778;
+            Source_Dec = 54.22027777777778;
     }
     if (source_name.Contains("1ES0414"))
     {
             Source_RA = 64.2206666667;
-                Source_Dec = 1.089;
+            Source_Dec = 1.089;
     }
     if (source_name.Contains("3C273"))
     {
             Source_RA = 187.277915345;
-                Source_Dec = 2.05238856846;
+            Source_Dec = 2.05238856846;
     }
     if (source_name.Contains("1ES0502"))
     {
             Source_RA = 76.9839421535;
-                Source_Dec = 67.6234172932;
+            Source_Dec = 67.6234172932;
     }
     if (source_name.Contains("Draco"))
     {
             Source_RA = 260.059729167;
-                Source_Dec = 57.9212194444;
+            Source_Dec = 57.9212194444;
     }
     if (source_name.Contains("GammaCygni"))
     {
             Source_RA = 305.557091;
-                Source_Dec = 40.256679166666665;
+            Source_Dec = 40.256679166666665;
     }
     if (source_name.Contains("G079"))
     {
             Source_RA = 308.119;
-                Source_Dec = 40.328;
+            Source_Dec = 40.328;
     }
     if (source_name.Contains("WComae"))
     {
             //Source_RA = 185.382;
-            //    Source_Dec = 28.233;
+            //Source_Dec = 28.233;
             Source_RA = (185.360+184.616)/2.;
-                Source_Dec = (30.191+30.130)/2.;
+            Source_Dec = (30.191+30.130)/2.;
     }
     if (source_name.Contains("1ES1218"))
     {
             Source_RA = 185.360;
-                Source_Dec = 30.191;
+            Source_Dec = 30.191;
     }
     if (source_name.Contains("MGRO_J2019"))
     {
             Source_RA = 304.854166667;
-                Source_Dec = 36.8038888889;
+            Source_Dec = 36.8038888889;
     }
     if (source_name.Contains("MGRO_J1908"))
     {
             //Source_RA = 286.975;
-            //    Source_Dec = 6.269;
+            //Source_Dec = 6.269;
             Source_RA = 286.975;
-                Source_Dec = 6.03777777778;
+            Source_Dec = 6.03777777778;
     }
     if (source_name.Contains("SS433"))
     {
             Source_RA = 287.9565;
-                Source_Dec = 4.98272222222;
+            Source_Dec = 4.98272222222;
     }
     if (source_name.Contains("MAGIC_J1857"))
     {
             Source_RA = 284.303;
-                Source_Dec = 2.729;
+            Source_Dec = 2.729;
     }
     if (source_name.Contains("MGRO_J2031"))
     {
             Source_RA = 308.041666667;
-                Source_Dec = 41.4594444444;
+            Source_Dec = 41.4594444444;
     }
     if (source_name.Contains("HESS_J1825"))
     {
             Source_RA = 276.37;
-                Source_Dec = -13.83;
+            Source_Dec = -13.83;
     }
     if (source_name.Contains("Cygnus"))
     {
             Source_RA = 304.646;
-                Source_Dec = 36.833;
+            Source_Dec = 36.833;
     }
     if (source_name.Contains("2HWC_J1953"))
     {
             Source_RA = 298.260;
-                Source_Dec = 29.480;
+            Source_Dec = 29.480;
     }
     if (source_name.Contains("2HWC_J1930"))
     {
             Source_RA = 292.150;
-                Source_Dec = 17.780;
+            Source_Dec = 17.780;
     }
     if (source_name=="Proton")
     {
             Source_RA = 0.;
-                Source_Dec = 0.;
+            Source_Dec = 0.;
     }
     if (source_name=="Proton_NSB750")
     {
             Source_RA = 0.;
-                Source_Dec = 0.;
+            Source_Dec = 0.;
     }
     return std::make_pair(Source_RA,Source_Dec);
 }
@@ -502,10 +512,6 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source.find("G079") != std::string::npos)
         {
             list = GetRunListFromFile("G079");
-        }
-        if (source.find("RGBJ0710") != std::string::npos)
-        {
-            list = GetRunListFromFile("RGBJ0710");
         }
         if (source.find("Mrk421") != std::string::npos)
         {
@@ -663,6 +669,18 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("PSR_J0248_p6021_V6");
         }
+        if (source.find("LHAASO_J2032_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J2032_V6");
+        }
+        if (source.find("LHAASO_J2032_Baseline_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J2032_Baseline_V6");
+        }
+        if (source.find("LHAASO_J2032_Fall2017_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J2032_Fall2017_V6");
+        }
         if (source.find("LHAASO_J2108_V6") != std::string::npos)
         {
             list = GetRunListFromFile("LHAASO_J2108_V6");
@@ -695,6 +713,14 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("UrsaMajorIIV6");
         }
+        if (source.find("UrsaMinorV6") != std::string::npos)
+        {
+            list = GetRunListFromFile("UrsaMinorV6");
+        }
+        if (source.find("RGB_J0710_p591_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("RGB_J0710_p591_V6");
+        }
         if (source.find("PSR_J0023_p09_V6") != std::string::npos)
         {
             list = GetRunListFromFile("PSR_J0023_p09_V6");
@@ -720,11 +746,19 @@ vector<std::pair<string,int>> GetRunList(string source) {
             {
                 if (UseDL3Tree)
                 {
+                    list_temp = GetRunListFromFile("CasA_Imposter_V6");
+                    list.insert(list.end(), list_temp.begin(), list_temp.end());
                     list_temp = GetRunListFromFile("HESS_J1825_Imposter_V6_DQM");
                     list.insert(list.end(), list_temp.begin(), list_temp.end());
                     list_temp = GetRunListFromFile("HESS_J1825_OFF_V6");
                     list.insert(list.end(), list_temp.begin(), list_temp.end());
                     list_temp = GetRunListFromFile("MGRO_J1908_Imposter_V6_DL3");
+                    list.insert(list.end(), list_temp.begin(), list_temp.end());
+                    list_temp = GetRunListFromFile("UrsaMinorV6");
+                    list.insert(list.end(), list_temp.begin(), list_temp.end());
+                    list_temp = GetRunListFromFile("RGB_J0710_p591_V6");
+                    list.insert(list.end(), list_temp.begin(), list_temp.end());
+                    list_temp = GetRunListFromFile("LHAASO_J2032_Imposter_V6");
                     list.insert(list.end(), list_temp.begin(), list_temp.end());
                 }
                 list_temp = GetRunListFromFile("LowElevationDarkV6");
@@ -792,6 +826,14 @@ vector<std::pair<string,int>> GetRunList(string source) {
             //list.insert(list.end(), list_temp.begin(), list_temp.end());
             //list_temp = GetRunListFromFile("H1426_MatchedDark_V6");
             //list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("UrsaMinorV5") != std::string::npos)
+        {
+            list = GetRunListFromFile("UrsaMinorV5");
+        }
+        if (source.find("RGB_J0710_p591_V5") != std::string::npos)
+        {
+            list = GetRunListFromFile("RGB_J0710_p591_V5");
         }
         if (source.find("Mrk421V5") != std::string::npos)
         {
@@ -896,10 +938,6 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("1ES0414V5");
         }
-        if (source.find("RGBJ0710V5") != std::string::npos)
-        {
-            list = GetRunListFromFile("RGBJ0710V5");
-        }
         if (source.find("PKS1424V5") != std::string::npos)
         {
             list = GetRunListFromFile("PKS1424V5");
@@ -940,11 +978,17 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("DracoV5");
         }
+        if (source.find("LHAASO_J2032_V5") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J2032_V5");
+        }
+        if (source.find("LHAASO_J2032_Baseline_V5") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J2032_Baseline_V5");
+        }
         if (source=="OffRunsV5")
         {
             list_temp = GetRunListFromFile("BLLacV5");
-            list.insert(list.end(), list_temp.begin(), list_temp.end());
-            list_temp = GetRunListFromFile("RGBJ0710V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("PKS1424V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
@@ -980,6 +1024,12 @@ vector<std::pair<string,int>> GetRunList(string source) {
             if (UseDL3Tree)
             {
                 list_temp = GetRunListFromFile("MGRO_J1908_Imposter_V5_DL3");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("UrsaMinorV5");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("RGB_J0710_p591_V5");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("LHAASO_J2032_Imposter_V5");
                 list.insert(list.end(), list_temp.begin(), list_temp.end());
             }
         }

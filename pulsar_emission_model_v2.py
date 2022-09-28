@@ -236,9 +236,10 @@ def PlotElectronColummnDensity(E_ph_GeV_low,E_ph_GeV_up,plot_tag):
     source_ref_distance = pow(source_ref_dx*source_ref_dx+source_ref_dy*source_ref_dy,0.5)
     source_location_initial = np.array([source_location_final[0]+source_ref_dx*source_travel_distance/source_ref_distance,source_location_final[1]+source_ref_dy*source_travel_distance/source_ref_distance])
 
+    #PSR J1907+0602
     Source_RA = 286.975
     Source_Dec = 6.03777777778
-    Skymap_nbins = 81
+    Skymap_nbins = 45
     MapEdge_left = Source_RA-2.
     MapEdge_right = Source_RA+2.
     MapEdge_lower = Source_Dec-2.
@@ -369,8 +370,8 @@ def PlotElectronColummnDensity(E_ph_GeV_low,E_ph_GeV_up,plot_tag):
 
 
 D0_input = sys.argv[1]
-V0_input = sys.argv[2]
-model_tag = sys.argv[3]
+#V0_input = sys.argv[2]
+model_tag = sys.argv[2]
 
 E_cmb = 6.6*1e-4 # eV
 m_e = 0.511*1e6 # eV
@@ -387,15 +388,6 @@ mag_field = 3. # muG
 #mag_field = 6. # muG
 U_B = 6.24*1e18/(8.*3.14*1e-7)*pow(mag_field*1e-6/1e4,2) # eV/m3
 
-#D0 = 8.2*1e26 # cm2/s
-D0 = float(D0_input)*1e26 # cm2/s
-alpha = 0.5
-#proper_velocity = 2000 #km/s
-proper_velocity = float(V0_input) #km/s
-km_to_pc = 3.24078e-14
-year_to_sec = 365.*24.*60.*60.
-proper_velocity_pc_per_year = proper_velocity*km_to_pc*year_to_sec
-
 
 #output_folder = '/gamma_raid/userspace/rshang/pulsar_models_2kpc_output'
 output_folder = '/gamma_raid/userspace/rshang/pulsar_models_3kpc_output'
@@ -404,10 +396,31 @@ gamma_index = 2.0
 pulsar_age_year = 19.5*1e3 # year
 #pulsar_distance = 2.0*1000. # pc
 pulsar_distance = 3.2*1000. # pc
-PSR_head_x = 286.98
-PSR_head_y = 6.04
-PSR_tail_x = 287.16
-PSR_tail_y = 6.16
+
+#PSR J1907+0602
+PSR_head_x = 286.975
+PSR_head_y = 6.03777777778
+#PSR J1907+0602
+PSR_tail_x = 286.975+0.01
+PSR_tail_y = 6.03777777778+0.01
+#G40.5-0.5
+#PSR_tail_x = 286.786
+#PSR_tail_y = 6.498
+
+#D0 = 8.2*1e26 # cm2/s
+D0 = float(D0_input)*1e26 # cm2/s
+print ('D0_input = %0.2f 1e26 cm2/s'%(float(D0_input)))
+alpha = 0.5
+#proper_velocity = 2000 #km/s
+#proper_velocity = float(V0_input) #km/s
+km_to_pc = 3.24078e-14
+year_to_sec = 365.*24.*60.*60.
+#proper_velocity_pc_per_year = proper_velocity*km_to_pc*year_to_sec
+source_travel_distance = pow(pow(PSR_head_x-PSR_tail_x,2)+pow(PSR_head_y-PSR_tail_y,2),0.5)
+proper_velocity_pc_per_year = source_travel_distance/pulsar_age_year*pulsar_distance*3.14/180.
+proper_velocity = proper_velocity_pc_per_year/(km_to_pc*year_to_sec)
+print ('proper_velocity = %0.2f km/s'%(proper_velocity))
+
 #travel_angle = 78.02
 #tail_length = proper_velocity_pc_per_year*pulsar_age_year/pulsar_distance*180./3.14
 #PSR_tail_x = tail_length*np.cos(travel_angle*3.14/180.)+PSR_head_x
@@ -449,10 +462,8 @@ fig, ax = plt.subplots()
 #PlotAFunction(E1_factor_hat_to_E_ph_GeV,0.,1.,'E1_factor_hat_to_E_ph_GeV',logx=False,logy=False)
 #PlotAFunction(E_ph_GeV_to_E1_factor_hat,1e2,1e4,'E_ph_GeV_to_E1_factor_hat',logy=False)
 #PlotAFunction(initial_electron_energy_at_cooling_time_frac,0.,0.8,'initial_electron_energy',logx=False,logy=False)
-PlotElectronColummnDensity(100,251,'100_251')
-PlotElectronColummnDensity(251,631,'251_631')
-PlotElectronColummnDensity(631,1585,'631_1585')
-PlotElectronColummnDensity(1585,3981,'1585_3981')
-PlotElectronColummnDensity(3981,10000,'3981_10000')
-PlotElectronColummnDensity(10000,25118,'10000_25118')
+#energy_bin = [200.,398.,794.,1585.,3162.,6310.,12589.]
+energy_bin = [794.,1585.]
+for ebin in range(0,len(energy_bin)-1):
+    PlotElectronColummnDensity(energy_bin[ebin],energy_bin[ebin+1],'%s_%s'%(energy_bin[ebin],energy_bin[ebin+1]))
 

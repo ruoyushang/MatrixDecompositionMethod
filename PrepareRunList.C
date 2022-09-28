@@ -1027,15 +1027,17 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     //double threshold_dAirmass = 0.4;
     double threshold_dNSB = 0.4; // for J1908 analysis
     double threshold_dAzim = 180.;
+    double threshold_dMJD = 2.*365.;
 
     threshold_dAirmass = 0.3; // default, do not use for J1908 
     threshold_dNSB = 1.0; // default, do not use for J1908
-    threshold_dAzim = 22.5; // default, do not use for J1908
+    threshold_dAzim = 45.; // default, do not use for J1908
     if (!isImposter)
     {
         threshold_dAirmass = 0.2; // default 
         threshold_dNSB = 0.5; // default 
         threshold_dAzim = 22.5; // default 
+        threshold_dMJD = 100.*365.;
 
         // relaxed for LZA source, do not use!
         //if (UseDL3Tree)
@@ -1059,7 +1061,6 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         }
     }
     double threshold_dL3Rate = 0.3;
-    double threshold_dMJD = 3.*365.;
     for (int off_run=0;off_run<OFF_runnumber.size();off_run++)
     {
         bool do_not_use = false;
@@ -1090,9 +1091,9 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
             if (delta_azim>threshold_dAzim) continue;
         }
 
+        if (delta_mjd>threshold_dMJD) continue;
         //if (delta_l3rate/ON_L3Rate>threshold_dL3Rate) continue;
         //if (delta_elev>threshold_dElev) continue;
-        //if (delta_mjd>threshold_dMJD) continue;
         //
         //double chi2 = pow(delta_nsb,2); // matrix method doesn't make good prediction when dNSB is large.
         //double chi2 = pow(delta_airmass,2);
@@ -1836,7 +1837,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     TString ONOFF_tag;
     if (isON) 
     {
-        source_theta2_cut = 0.;
+        source_theta_cut = 0.;
         ONOFF_tag = "ON";
     }
     else
