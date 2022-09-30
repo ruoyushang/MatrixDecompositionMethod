@@ -119,12 +119,24 @@ if 'Crab_Offset_1p0' in sys.argv[1]:
 if 'Crab_Offset_1p5' in sys.argv[1]:
     observation_name = 'Crab_Offset_1p5'
     data_epoch = ['Crab_Offset_1p5_V6']
+if 'CrabRHV' in sys.argv[1]:
+    observation_name = 'CrabRHV'
+    data_epoch = ['CrabRHV_V6']
 if 'NGC1275' in sys.argv[1]:
     observation_name = 'NGC1275'
     data_epoch = ['NGC1275V6']
 if '1ES0229' in sys.argv[1]:
     observation_name = '1ES0229'
     data_epoch = ['1ES0229V5','1ES0229V6']
+if 'LHAASO_J2032' in sys.argv[1]:
+    observation_name = 'LHAASO_J2032'
+    data_epoch = ['LHAASO_J2032_V6','LHAASO_J2032_V5']
+if 'LHAASO_J2032_Fall2017' in sys.argv[1]:
+    observation_name = 'LHAASO_J2032_Fall2017'
+    data_epoch = ['LHAASO_J2032_Fall2017_V6','LHAASO_J2032_Fall2017_V5']
+if 'LHAASO_J2032_Baseline' in sys.argv[1]:
+    observation_name = 'LHAASO_J2032_Baseline'
+    data_epoch = ['LHAASO_J2032_Baseline_V6','LHAASO_J2032_Baseline_V5']
 if 'LHAASO_J1843' in sys.argv[1]:
     observation_name = 'LHAASO_J1843'
     data_epoch = ['LHAASO_J1843_V6']
@@ -3369,6 +3381,8 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
     Hist_Data_Azim_Skymap.Add(InputFile.Get(HistName))
     HistName = "Hist_Data_NSB_Skymap"
     Hist_Data_NSB_Skymap.Add(InputFile.Get(HistName))
+    HistName = "Hist_Data_MJD_Skymap"
+    Hist_Data_MJD_Skymap.Add(InputFile.Get(HistName))
     HistName = "Hist_Data_ElevNSB"
     Hist_Data_ElevNSB.Add(InputFile.Get(HistName))
     HistName = "Hist_Data_ElevAzim"
@@ -4267,22 +4281,27 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
     hist_rel_syst_skymap_sum_reflect.GetXaxis().SetLabelOffset(999)
     hist_rel_syst_skymap_sum_reflect.GetXaxis().SetTickLength(0)
     raLowerAxis.Draw()
+    Hist_Data_Elev_Skymap.Divide(Hist_Data_Skymap)
+    Hist_Data_Azim_Skymap.Divide(Hist_Data_Skymap)
+    Hist_Data_NSB_Skymap.Divide(Hist_Data_Skymap)
+    Hist_Data_MJD_Skymap.Divide(Hist_Data_Skymap)
     canvas.SaveAs('output_plots/SkymapRelSyst_%s_%s.png'%(name,selection_tag))
     hist_elev_skymap = Hist_Data_Elev_Skymap.Clone()
-    hist_elev_skymap.Divide(Hist_Data_Skymap)
     hist_elev_skymap_reflect = reflectXaxis(hist_elev_skymap)
     hist_elev_skymap_reflect.Draw("COL4Z")
     canvas.SaveAs('output_plots/SkymapElev_%s_%s.png'%(name,selection_tag))
     hist_azim_skymap = Hist_Data_Azim_Skymap.Clone()
-    hist_azim_skymap.Divide(Hist_Data_Skymap)
     hist_azim_skymap_reflect = reflectXaxis(hist_azim_skymap)
     hist_azim_skymap_reflect.Draw("COL4Z")
     canvas.SaveAs('output_plots/SkymapAzim_%s_%s.png'%(name,selection_tag))
     hist_nsb_skymap = Hist_Data_NSB_Skymap.Clone()
-    hist_nsb_skymap.Divide(Hist_Data_Skymap)
     hist_nsb_skymap_reflect = reflectXaxis(hist_nsb_skymap)
     hist_nsb_skymap_reflect.Draw("COL4Z")
     canvas.SaveAs('output_plots/SkymapNSB_%s_%s.png'%(name,selection_tag))
+    hist_mjd_skymap = Hist_Data_MJD_Skymap.Clone()
+    hist_mjd_skymap_reflect = reflectXaxis(hist_mjd_skymap)
+    hist_mjd_skymap_reflect.Draw("COL4Z")
+    canvas.SaveAs('output_plots/SkymapMJD_%s_%s.png'%(name,selection_tag))
     Hist_Data_ElevNSB.Draw("COL4Z")
     canvas.SaveAs('output_plots/ElevNSB_Data_%s_%s.png'%(name,selection_tag))
     Hist_Data_ElevAzim.Draw("COL4Z")
@@ -4790,6 +4809,10 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
 
         if int(sys.argv[2])==0 and int(sys.argv[3])==len(energy_bin)-1:
             output_file = ROOT.TFile("output_fitting/%s_skymap_%s.root"%(sys.argv[1],folder_path),"recreate")
+            Hist_Data_Elev_Skymap.Write()
+            Hist_Data_Azim_Skymap.Write()
+            Hist_Data_NSB_Skymap.Write()
+            Hist_Data_MJD_Skymap.Write()
             hist_expo_hour_skymap_sum.Write()
             for ebin in range(0,len(energy_bin)-1):
                 hist_energy_flux_skymap[ebin].Write()
@@ -7311,6 +7334,7 @@ Hist_Data_Skymap = ROOT.TH2D("Hist_Data_Skymap","",Skymap_nbins,source_ra-Skymap
 Hist_Data_Elev_Skymap = ROOT.TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_Data_Azim_Skymap = ROOT.TH2D("Hist_Data_Azim_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_Data_NSB_Skymap = ROOT.TH2D("Hist_Data_NSB_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_Data_MJD_Skymap = ROOT.TH2D("Hist_Data_MJD_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
 Hist_Data_ElevNSB = ROOT.TH2D("Hist_Data_ElevNSB","",20,0,10,18,0,90)
 Hist_Data_ElevAzim = ROOT.TH2D("Hist_Data_ElevAzim","",18,0,360,18,0,90)
 Hist_Dark_ElevNSB = ROOT.TH2D("Hist_Dark_ElevNSB","",20,0,10,18,0,90)

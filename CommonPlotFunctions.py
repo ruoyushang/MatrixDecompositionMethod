@@ -945,7 +945,7 @@ def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname):
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
     axbig.remove()
 
-def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,roi_x=0.,roi_y=0.,roi_r=0.,rotation_angle=0.):
+def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,roi_x=0.,roi_y=0.,roi_r=0.,rotation_angle=0.,fill_gaps=False):
 
     isGalactic = False
     if label_x=='gal. l':
@@ -969,6 +969,38 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     x_axis_sparse = np.linspace(MapEdge_left,MapEdge_right,5)
     x_axis_reflect = ["{:6.2f}".format(-1.*i) for i in x_axis_sparse]
     y_axis = np.linspace(MapEdge_lower,MapEdge_upper,map_nbins)
+
+    mean_z = 0.
+    rms_z = 0.
+    n_bins = 0.
+    for ybin in range(0,len(y_axis)):
+        for xbin in range(0,len(x_axis)):
+            hist_bin_x = hist_map.GetXaxis().FindBin(x_axis[xbin])
+            hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
+            if hist_bin_x<1: continue
+            if hist_bin_y<1: continue
+            if hist_bin_x>hist_map.GetNbinsX(): continue
+            if hist_bin_y>hist_map.GetNbinsY(): continue
+            if hist_map.GetBinContent(hist_bin_x,hist_bin_y)==0.: continue
+            mean_z += hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+            n_bins += 1.
+    if n_bins>0.:
+        mean_z = mean_z/n_bins
+    for ybin in range(0,len(y_axis)):
+        for xbin in range(0,len(x_axis)):
+            hist_bin_x = hist_map.GetXaxis().FindBin(x_axis[xbin])
+            hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
+            if hist_bin_x<1: continue
+            if hist_bin_y<1: continue
+            if hist_bin_x>hist_map.GetNbinsX(): continue
+            if hist_bin_y>hist_map.GetNbinsY(): continue
+            if hist_map.GetBinContent(hist_bin_x,hist_bin_y)==0.: continue
+            rms_z += pow(hist_map.GetBinContent(hist_bin_x,hist_bin_y)-mean_z,2)
+            n_bins += 1.
+    if n_bins>0.:
+        rms_z = rms_z/n_bins
+        rms_z = pow(rms_z,0.5)
+
     grid_z = np.zeros((map_nbins, map_nbins))
     max_z = 0.
     for ybin in range(0,len(y_axis)):
@@ -980,12 +1012,18 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
             if hist_bin_x>hist_map.GetNbinsX(): continue
             if hist_bin_y>hist_map.GetNbinsY(): continue
             grid_z[ybin,xbin] = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+            #if fill_gaps and grid_z[ybin,xbin]==0.:
+            #    grid_z[ybin,xbin] = mean_z
             if max_z<hist_map.GetBinContent(hist_bin_x,hist_bin_y):
                 max_z = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
 
     levels = np.arange(3.0, 6.0, 1.0)
+
     grid_contour = np.zeros((map_nbins, map_nbins))
     if not hist_contour==None:
+        max_z_contour = 5.0
+        if label_z!='Z score' and max_z_contour>0.:
+            levels = np.arange(3.0*max_z/max_z_contour, 6.0*max_z/max_z_contour, 1.0*max_z/max_z_contour)
         for ybin in range(0,len(y_axis)):
             for xbin in range(0,len(x_axis)):
                 hist_bin_x = hist_contour.GetXaxis().FindBin(x_axis[xbin])
@@ -995,7 +1033,8 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
                 if hist_bin_x>hist_contour.GetNbinsX(): continue
                 if hist_bin_y>hist_contour.GetNbinsY(): continue
                 grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)
-
+                if label_z!='Z score' and max_z_contour>0.:
+                    grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)*max_z/max_z_contour
     other_stars, other_star_coord = GetGammaSourceInfo() 
     if isGalactic:
         for star in range(0,len(other_stars)):
@@ -1020,10 +1059,13 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     axbig.set_ylabel(label_y)
     if label_z=='Z score':
         max_z = 5.
-        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()), vmin=-max_z, vmax=max_z,zorder=0)
+        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=-max_z,vmax=max_z,zorder=0)
+    elif fill_gaps:
+        max_z = mean_z+3.*rms_z
+        min_z = mean_z-3.*rms_z
+        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
     else:
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=0)
-        #im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()), vmin=-2.2e-12, vmax=5.2e-12,zorder=0)
     axbig.contour(grid_contour, levels, colors='w', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=1)
     #cbar = fig.colorbar(im,orientation="horizontal")
     cbar = fig.colorbar(im)
@@ -1041,6 +1083,12 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k', rotation = rotation_angle)
     if roi_r>0.:
         mycircle = plt.Circle((-roi_x, roi_y), roi_r, color='b', fill=False)
+        axbig.add_patch(mycircle)
+    if 'J1908' in plotname:
+        mycircle = plt.Circle((-286.975, 6.038), 0.43, color='g', fill=False) # PSR J1907+0602
+        axbig.add_patch(mycircle)
+        mycircle = plt.Circle((-286.786, 6.498), 0.39, color='r', fill=False) # SNR GG40.5-0.5
+        #mycircle = plt.Circle((-286.786, 6.498), 0.12, color='r', fill=False) # SNR GG40.5-0.5
         axbig.add_patch(mycircle)
     axbig.set_xticks(x_axis_sparse)
     axbig.set_xticklabels(x_axis_reflect)

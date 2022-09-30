@@ -161,9 +161,9 @@ target_dec = []
 #target_name += ["MGRO J1908+06"]
 #target_ra += [286.975]
 #target_dec += [6.269]
-#target_name += ["Boomerang"]
-#target_ra += [337.183]
-#target_dec += [61.167]
+target_name += ["Boomerang"]
+target_ra += [337.183]
+target_dec += [61.167]
 #target_name += ["Cas A"]
 #target_ra += [350.8075000]
 #target_dec += [58.8072222]
@@ -173,13 +173,17 @@ target_dec = []
 #target_name += ["RGB J0710+591"]
 #target_ra += [107.6100000]
 #target_dec += [59.1500000]
-target_name += ["LHAASO J2032+4102"]
-target_ra += [308.0500000]
-target_dec += [41.0500000]
+#target_name += ["LHAASO J2032+4102"]
+#target_ra += [308.0500000]
+#target_dec += [41.0500000]
+#target_name += ["LHAASO J0621+3755"]
+#target_ra += [95.47]
+#target_dec += [37.92]
 
 #target_name, target_ra, target_dec = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
 #target_name, target_ra, target_dec = ReadATNFTargetListFromFile('single_pulsar_list.txt')
-#target_ra, target_dec = ReadSNRTargetListFromFile('SNR_list.txt')
+#target_name, target_ra, target_dec = ReadSNRTargetListFromFile('SNR_list.txt')
+#target_name, target_ra, target_dec = ReadSNRTargetListFromFile('single_SNR_list.txt')
 
 range_ra = 1.5
 range_dec = 1.5
@@ -187,6 +191,9 @@ range_dec = 1.5
 
 search_for_on_data = True
 #search_for_on_data = False
+
+#search_for_rhv = True
+search_for_rhv = False
 
 plot_tag = 'OFF'
 if search_for_on_data:
@@ -212,6 +219,8 @@ Search_Range_PedVar_DC = [3.,10.]
 #Search_Range_PedVar_DC = [0.,5.]
 #Search_Range_PedVar_DC = [5.,6.]
 #Search_Range_PedVar_DC = [6.,10.]
+if search_for_rhv:
+    Search_Range_PedVar_DC = [0.,4.5] #RHV
 
 #Search_Range_Elev = [0.,35.]
 #Search_Range_RA = [0.,50.]
@@ -411,8 +420,11 @@ if search_for_on_data:
             #if MJD<59480: continue
 
             if epoch=='V6':
-                if L3_rate<250.: continue
-                #if L3_rate<150.: continue # RHV
+                if search_for_rhv: 
+                    if L3_rate>280.: continue # RHV
+                    #if L3_rate<50.: continue # RHV
+                else:
+                    if L3_rate<250.: continue
             else:
                 if L3_rate<150.: continue
             #if L3_rate>450.: continue
@@ -451,7 +463,8 @@ if search_for_on_data:
 
             Total_Livetime += Livetime/60.
 
-else: 
+
+if not search_for_on_data:
 
     List_Produced = []
 
@@ -473,9 +486,14 @@ else:
         L3_rate = List_L3_rate[entry]
         Livetime = List_Livetime[entry]
 
-        if L3_rate<250.: continue
-        #if L3_rate<150.: continue # RHV
-        #if L3_rate>450.: continue
+        if epoch=='V6':
+            if search_for_rhv: 
+                if L3_rate>280.: continue # RHV
+                #if L3_rate<50.: continue # RHV
+            else:
+                if L3_rate<250.: continue
+        else:
+            if L3_rate<150.: continue
         if Livetime<15.: continue
         if int(RunNumber)<46642:
             if not epoch=='V4': continue
