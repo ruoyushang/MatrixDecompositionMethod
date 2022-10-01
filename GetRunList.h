@@ -466,8 +466,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source.find("H1426V6") != std::string::npos) {
             list = GetRunListFromFile("H1426V6");
         }
-        if (source.find("CrabRHVV6") != std::string::npos) {
-            list = GetRunListFromFile("CrabRHVV6");
+        if (source.find("CrabRHV_V6") != std::string::npos) {
+            list = GetRunListFromFile("CrabRHV_V6");
         }
         if (source.find("Crab_Offset_1p0_V6") != std::string::npos) {
             list = GetRunListFromFile("Crab_Offset_1p0_V6");
@@ -737,9 +737,7 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             if (RHVData)
             {
-                list_temp = GetRunListFromFile("CrabRHV_OFF_V6");
-                list.insert(list.end(), list_temp.begin(), list_temp.end());
-                list_temp = GetRunListFromFile("CrabRHV_OFF_042720222_V6");
+                list_temp = GetRunListFromFile("CrabRHV_Imposter_V6");
                 list.insert(list.end(), list_temp.begin(), list_temp.end());
             }
             else

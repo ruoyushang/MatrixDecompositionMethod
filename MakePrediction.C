@@ -2063,7 +2063,7 @@ void NormalizeDarkMatrix(TH2D* hist_data, TH2D* hist_dark, double beta)
         hist_dark->Scale(0.);
     }
 }
-void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel, int group_index, int map_x_index, int map_y_index)
+void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel, int group_index, int map_x_index, int map_y_index)
 {
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
@@ -2093,10 +2093,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     sprintf(char_SignalStrength, "%i", GammaModel);
     ONOFF_tag += TString("_Model")+TString(char_SignalStrength);
 
-    if (MJD_start_cut!=0 || MJD_end_cut!=0)
-    {
-        sprintf(mjd_cut_tag, "_MJD%dto%d", MJD_start_cut, MJD_end_cut);
-    }
     camera_theta2_cut_lower = input_theta2_cut_lower;
     camera_theta2_cut_upper = input_theta2_cut_upper;
     sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
@@ -2158,6 +2154,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     TH2D Hist_Data_Elev_Skymap = TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
     TH2D Hist_Data_Azim_Skymap = TH2D("Hist_Data_Azim_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
     TH2D Hist_Data_NSB_Skymap = TH2D("Hist_Data_NSB_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
+    TH2D Hist_Data_MJD_Skymap = TH2D("Hist_Data_MJD_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
     TH2D Hist_Dark_ElevAzim = TH2D("Hist_Dark_ElevAzim","",18,0,360,18,0,90);
     TH1D Hist_EffArea = TH1D("Hist_EffArea","",N_energy_fine_bins,energy_fine_bins);
 
@@ -2207,6 +2204,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     Hist_Data_Azim_Skymap.Add( (TH2D*)InputDataFile.Get(hist_name) );
     hist_name  = "Hist_Data_NSB_Skymap";
     Hist_Data_NSB_Skymap.Add( (TH2D*)InputDataFile.Get(hist_name) );
+    hist_name  = "Hist_Data_MJD_Skymap";
+    Hist_Data_MJD_Skymap.Add( (TH2D*)InputDataFile.Get(hist_name) );
     hist_name  = "Hist_Dark_ElevAzim";
     Hist_Dark_ElevAzim.Add( (TH2D*)InputDataFile.Get(hist_name) );
     hist_name  = "Hist_EffArea";
@@ -3565,6 +3564,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     Hist_Data_Elev_Skymap.Write();
     Hist_Data_Azim_Skymap.Write();
     Hist_Data_NSB_Skymap.Write();
+    Hist_Data_MJD_Skymap.Write();
     Hist_EffArea.Write();
     for (int e=0;e<N_energy_bins;e++)
     {
@@ -3718,7 +3718,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
 
 }
 
-void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel)
+void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel)
 {
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
@@ -3744,10 +3744,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     sprintf(char_SignalStrength, "%i", GammaModel);
     ONOFF_tag += TString("_Model")+TString(char_SignalStrength);
 
-    if (MJD_start_cut!=0 || MJD_end_cut!=0)
-    {
-        sprintf(mjd_cut_tag, "_MJD%dto%d", MJD_start_cut, MJD_end_cut);
-    }
     camera_theta2_cut_lower = input_theta2_cut_lower;
     camera_theta2_cut_upper = input_theta2_cut_upper;
     sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
@@ -3783,7 +3779,7 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
         {
             for (int y_idx=0;y_idx<Skymap_normalization_nbins;y_idx++)
             {
-                MakePrediction_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, input_theta2_cut_lower, input_theta2_cut_upper, isON, GammaModel, g_idx, x_idx, y_idx);
+                MakePrediction_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, input_theta2_cut_lower, input_theta2_cut_upper, isON, GammaModel, g_idx, x_idx, y_idx);
             }
         }
     }

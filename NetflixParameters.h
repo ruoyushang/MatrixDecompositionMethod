@@ -39,14 +39,15 @@ double energy_fine_bins[N_energy_fine_bins+1] = {200.,398.,794.,1585.,3162.,6310
 
 
 bool UseDL3Tree = true;
-bool RHVData = false;
+bool RHVData = true;
+//bool RHVData = false;
 bool EigenDecomposition = false;
 
-//bool UseDBOnly = false;
-//double exposure_limit = 5.; // default
+bool UseDBOnly = false;
+double exposure_limit = 5.; // default
 //double exposure_limit = 50.;
-bool UseDBOnly = true;
-double exposure_limit = 1000.;
+//bool UseDBOnly = true;
+//double exposure_limit = 1000.;
 
 bool UseRegularization = true;
 //bool UseRegularization = false;
@@ -59,6 +60,7 @@ int MatchingSelection = 0; // default
 //int MatchingSelection = 1; // free elevation
 //int MatchingSelection = 2; // free azimuth
 //int MatchingSelection = 3; // free NSB
+//int MatchingSelection = 4; // free MJD
 
 bool ExposureCorrection = false;
 
@@ -69,6 +71,9 @@ double MSCW_cut_moderate = 0.6;
 double MSCL_cut_moderate = 0.6;
 //double EmissionHeight_cut = 0.;
 double EmissionHeight_cut = 6.;
+
+int MJD_start_cut = 0;
+int MJD_end_cut = 0;
 
 //double ring_radius_inner = 0.5;
 double ring_radius_inner = 1.0;

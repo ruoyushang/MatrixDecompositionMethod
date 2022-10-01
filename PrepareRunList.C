@@ -221,19 +221,12 @@ int RunTypeCategory(int run_number, bool doPrint)
                 }
                 if (acc_runtype=="science" || acc_runtype=="NULL" || acc_runtype=="None")
                 {
+                    // this category also contains RHV data! the DB is messy...
                     runtype = 0;
-                    if (RHVData)
-                    {
-                        runtype = 1;
-                    }
                 }
                 else if (acc_runtype=="reducedhv")
                 {
                     runtype = 1;
-                    //if (doPrint)
-                    //{
-                    //    std::cout << "Run " << run_number << " rejected. Run Type " << acc_runtype << std::endl;
-                    //}
                     if (RHVData)
                     {
                         runtype = 0;
@@ -962,7 +955,7 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     return std::make_pair(TelRAJ2000_tmp,TelDecJ2000_tmp);
 }
 
-bool MJDSelection(string file_name,int run, int MJD_start_cut, int MJD_end_cut)
+bool MJDSelection(string file_name,int run)
 {
     if (MJD_start_cut==0 && MJD_end_cut==0) return true;
     //if (run>100000) return true;
@@ -1032,12 +1025,13 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     threshold_dAirmass = 0.3; // default, do not use for J1908 
     threshold_dNSB = 1.0; // default, do not use for J1908
     threshold_dAzim = 45.; // default, do not use for J1908
+    threshold_dMJD = 2.*365.;
     if (!isImposter)
     {
         threshold_dAirmass = 0.2; // default 
         threshold_dNSB = 0.5; // default 
         threshold_dAzim = 22.5; // default 
-        threshold_dMJD = 100.*365.;
+        threshold_dMJD = 2.*365.;
 
         // relaxed for LZA source, do not use!
         //if (UseDL3Tree)
@@ -1059,8 +1053,12 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         {
             threshold_dNSB = 1000.;
         }
+        if (MatchingSelection==4)
+        {
+            threshold_dMJD = 100.*365.;
+        }
     }
-    double threshold_dL3Rate = 0.3;
+    double threshold_dL3Rate = 50.;
     for (int off_run=0;off_run<OFF_runnumber.size();off_run++)
     {
         bool do_not_use = false;
@@ -1092,7 +1090,10 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         }
 
         if (delta_mjd>threshold_dMJD) continue;
-        //if (delta_l3rate/ON_L3Rate>threshold_dL3Rate) continue;
+        if (RHVData)
+        {
+            if (delta_l3rate>threshold_dL3Rate) continue;
+        }
         //if (delta_elev>threshold_dElev) continue;
         //
         //double chi2 = pow(delta_nsb,2); // matrix method doesn't make good prediction when dNSB is large.
@@ -1154,7 +1155,7 @@ bool CheckBrightGammaRaySource(double input_ra, double input_dec)
     return false;
 }
 
-void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, int MJD_start_cut, int MJD_end_cut, int iteration, pair<double,double> source_ra_dec)
+void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, int iteration, pair<double,double> source_ra_dec)
 {
     std::cout << "initial runs = " << Data_runlist.size() << std::endl;
 
@@ -1184,7 +1185,7 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
             //std::cout << int(Data_runlist[run].second) << " pointing rejected." << std::endl;
             continue;
         }
-        if (!MJDSelection(filename,int(Data_runlist[run].second),MJD_start_cut,MJD_end_cut)) 
+        if (!MJDSelection(filename,int(Data_runlist[run].second))) 
         {
             //std::cout << int(Data_runlist[run].second) << " MJD rejected." << std::endl;
             continue;
@@ -1442,7 +1443,7 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
 
 }
 
-void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, int MJD_start_cut, int MJD_end_cut, pair<double,double> source_ra_dec)
+void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, pair<double,double> source_ra_dec)
 {
     std::cout << "initial runs = " << Data_runlist.size() << std::endl;
 
@@ -1473,7 +1474,7 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
             //std::cout << int(Data_runlist[run].second) << " pointing rejected." << std::endl;
             continue;
         }
-        if (!MJDSelection(filename,int(Data_runlist[run].second),MJD_start_cut,MJD_end_cut)) 
+        if (!MJDSelection(filename,int(Data_runlist[run].second))) 
         {
             //std::cout << int(Data_runlist[run].second) << " MJD rejected." << std::endl;
             continue;
@@ -1808,7 +1809,7 @@ vector<std::pair<string,int>> GetDBRunList(string epoch, double elev_low, double
 
 }
 
-void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel)
+void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel)
 {
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
@@ -1818,10 +1819,6 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
 
     TH1::SetDefaultSumw2();
 
-    if (MJD_start_cut!=0 || MJD_end_cut!=0)
-    {
-        sprintf(mjd_cut_tag, "_MJD%dto%d", MJD_start_cut, MJD_end_cut);
-    }
     camera_theta2_cut_lower = input_theta2_cut_lower;
     camera_theta2_cut_upper = input_theta2_cut_upper;
     sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
@@ -1874,7 +1871,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     TTree RunListTree("RunListTree","ON data runn list tree");
     if (!doImposter)
     {
-        SelectONRunList(&RunListTree, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, source_ra_dec);
+        SelectONRunList(&RunListTree, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, source_ra_dec);
     }
     else
     {
@@ -1886,7 +1883,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
         if (TString(target).Contains("Imposter5")) iteration = 5;
         if (TString(target).Contains("Imposter6")) iteration = 6;
         TString root_file_name = "Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+"_G0.root";
-        SelectImposterRunList(&RunListTree, root_file_name, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, iteration, source_ra_dec);
+        SelectImposterRunList(&RunListTree, root_file_name, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, iteration, source_ra_dec);
     }
 
     RunListTree.SetBranchStatus("*", 0);

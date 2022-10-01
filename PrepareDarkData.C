@@ -1361,7 +1361,7 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
 
     return std::make_pair(TelElevation_avg,TelAzimuth_avg);
 }
-bool MJDSelection(string file_name,int run, int MJD_start_cut, int MJD_end_cut)
+bool MJDSelection(string file_name,int run)
 {
     if (MJD_start_cut==0 && MJD_end_cut==0) return true;
     if (run>100000) return true;
@@ -1557,7 +1557,7 @@ void Smooth2DMap(TH2D* hist, double smooth_size)
 
 }
 
-void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel, int group_index, int map_x_index, int map_y_index)
+void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel, int group_index, int map_x_index, int map_y_index)
 {
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
@@ -1643,10 +1643,6 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     }
 
 
-    if (MJD_start_cut!=0 || MJD_end_cut!=0)
-    {
-        sprintf(mjd_cut_tag, "_MJD%dto%d", MJD_start_cut, MJD_end_cut);
-    }
     camera_theta2_cut_lower = input_theta2_cut_lower;
     camera_theta2_cut_upper = input_theta2_cut_upper;
     sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
@@ -2047,6 +2043,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     TH2D Hist_Data_Elev_Skymap = TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
     TH2D Hist_Data_Azim_Skymap = TH2D("Hist_Data_Azim_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
     TH2D Hist_Data_NSB_Skymap = TH2D("Hist_Data_NSB_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
+    TH2D Hist_Data_MJD_Skymap = TH2D("Hist_Data_MJD_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
 
     vector<TH1D> Hist_OnData_Incl_CR_Zenith;
     vector<TH1D> Hist_OnDark_Incl_CR_Zenith;
@@ -3594,6 +3591,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             Hist_Data_Elev_Skymap.Fill(ra_sky,dec_sky,tele_elev);
             Hist_Data_Azim_Skymap.Fill(ra_sky,dec_sky,tele_azim);
             Hist_Data_NSB_Skymap.Fill(ra_sky,dec_sky,NSB_thisrun);
+            Hist_Data_MJD_Skymap.Fill(ra_sky,dec_sky,double(MJD));
             if (FoV(doImposter) || Data_runlist[run].first.find("Proton")!=std::string::npos)
             {
                 Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW,weight);
@@ -4166,6 +4164,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     Hist_Data_Elev_Skymap.Write();
     Hist_Data_Azim_Skymap.Write();
     Hist_Data_NSB_Skymap.Write();
+    Hist_Data_MJD_Skymap.Write();
     Hist_EffArea.Write();
     for (int e=0;e<N_energy_bins;e++) 
     {
@@ -4257,7 +4256,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     std::cout << "Done." << std::endl;
 }
 
-void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, int MJD_start_cut, int MJD_end_cut, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel)
+void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel)
 {
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
@@ -4265,10 +4264,6 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     SMI_DIR = string(std::getenv("SMI_DIR"));
     SMI_AUX = string(std::getenv("SMI_AUX"));
 
-    if (MJD_start_cut!=0 || MJD_end_cut!=0)
-    {
-        sprintf(mjd_cut_tag, "_MJD%dto%d", MJD_start_cut, MJD_end_cut);
-    }
     camera_theta2_cut_lower = input_theta2_cut_lower;
     camera_theta2_cut_upper = input_theta2_cut_upper;
     sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
@@ -4323,7 +4318,7 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
         {
             for (int y_idx=0;y_idx<Skymap_normalization_nbins;y_idx++)
             {
-                PrepareDarkData_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, MJD_start_cut, MJD_end_cut, input_theta2_cut_lower, input_theta2_cut_upper, isON, doImposter, GammaModel, g_idx, x_idx, y_idx);
+                PrepareDarkData_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, input_theta2_cut_lower, input_theta2_cut_upper, isON, doImposter, GammaModel, g_idx, x_idx, y_idx);
             }
         }
     }
