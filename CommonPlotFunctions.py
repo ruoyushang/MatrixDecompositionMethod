@@ -60,16 +60,16 @@ calibration_radius = 0.5 # need to be larger than the PSF and smaller than the i
 
 energy_index_scale = 2
 
-#doGalacticCoord = True
-#Skymap_size_x = 4.
-#Skymap_nbins_x = 90
-#Skymap_size_y = 2.
-#Skymap_nbins_y = 45
-doGalacticCoord = False
-Skymap_size_x = 2.
-Skymap_nbins_x = 45
+doGalacticCoord = True
+Skymap_size_x = 4.
+Skymap_nbins_x = 90
 Skymap_size_y = 2.
 Skymap_nbins_y = 45
+#doGalacticCoord = False
+#Skymap_size_x = 2.
+#Skymap_nbins_x = 45
+#Skymap_size_y = 2.
+#Skymap_nbins_y = 45
 #Skymap_nbins = 15 
 #Skymap_nbins = 9 # Crab calibration 
 #Skymap_nbins = 5
@@ -113,16 +113,17 @@ def reflectXaxis(hist):
 def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
 
     bin_size = Hist_Old.GetXaxis().GetBinCenter(2)-Hist_Old.GetXaxis().GetBinCenter(1)
-    if bin_size>smooth_size: 
+    if bin_size>smooth_size or doGalacticCoord: 
         Hist_Smooth.Reset()
         Hist_Smooth.Add(Hist_Old)
         return
 
-    nbins = Hist_Old.GetNbinsX()
+    nbins_x = Hist_Old.GetNbinsX()
+    nbins_y = Hist_Old.GetNbinsY()
     MapEdge_left = Hist_Old.GetXaxis().GetBinLowEdge(1)
     MapEdge_right = Hist_Old.GetXaxis().GetBinLowEdge(Hist_Old.GetNbinsX()+1)
     map_size = (MapEdge_right-MapEdge_left)/2.
-    Hist_Kernel = ROOT.TH2D("Hist_Kernel","",nbins,-map_size,map_size,nbins,-map_size,map_size)
+    Hist_Kernel = ROOT.TH2D("Hist_Kernel","",nbins_x,-map_size,map_size,nbins_y,-map_size,map_size)
     Hist_Kernel.Reset()
     for bx1 in range(1,Hist_Old.GetNbinsX()+1):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
@@ -134,7 +135,7 @@ def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
     #print ('Hist_Kernel.Integral() = %s'%(Hist_Kernel.Integral()))
 
     nbin_smooth = int(2*smooth_size/bin_size) + 1
-    central_bin = int(nbins/2) + 1
+    central_bin = int(nbins_x/2) + 1
     for bx1 in range(1,Hist_Old.GetNbinsX()+1):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
             old_content = Hist_Old.GetBinContent(bx1,by1)
