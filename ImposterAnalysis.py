@@ -1147,6 +1147,112 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
     fig.savefig("output_plots/%s_%s.png"%(plotname,plot_tag),bbox_inches='tight')
     axbig.remove()
 
+def MakeGalacticProfile():
+
+    r_axis_allE = []
+    y_axis_allE = []
+    y_axis_stat_err_allE = []
+    y_axis_syst_err_allE = []
+    norm_allE = []
+    norm_err_allE = []
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_real_flux_skymap[ebin],hist_real_flux_syst_skymap[ebin])
+        imposter_profile_list = []
+        imposter_profile_err_list = []
+        for imposter in range(0,n_imposters):
+            imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_imposter_flux_skymap[imposter][ebin],hist_real_flux_syst_skymap[ebin])
+            imposter_profile_list += [imposter_profile]
+            imposter_profile_err_list += [imposter_profile_stat_err]
+
+        real_profile_syst_err = []
+        for ubin in range(0,len(theta2)):
+            syst_err = 0.
+            for imposter in range(0,n_imposters):
+                syst_err += pow(imposter_profile_list[imposter][ubin],2)
+            if correct_bias:
+                syst_err = pow(syst_err/float(n_imposters-1),0.5)
+            else:
+                syst_err = pow(syst_err/float(n_imposters),0.5)
+            real_profile_syst_err += [syst_err]
+
+        theta2 = np.array(theta2)
+        theta2_err = np.array(theta2_err)
+        real_profile = np.array(real_profile)
+        real_profile_stat_err = np.array(real_profile_stat_err)
+        real_profile_syst_err = np.array(real_profile_syst_err)
+        real_profile_total_err = []
+        for ubin in range(0,len(theta2)):
+            stat_err = real_profile_stat_err[ubin]
+            syst_err = real_profile_syst_err[ubin]
+            real_profile_total_err += [pow(stat_err*stat_err+syst_err*syst_err,0.5)]
+        real_profile_total_err = np.array(real_profile_total_err)
+
+        fig.clf()
+        axbig = fig.add_subplot()
+        axbig.bar(theta2, 2.*real_profile_syst_err, bottom=-real_profile_syst_err, width=1.*theta2_err, color='b', align='center', alpha=0.2)
+        axbig.errorbar(theta2,real_profile,real_profile_stat_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
+        axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
+        axbig.set_xlabel('Gal. b [degree]')
+        axbig.legend(loc='best')
+        plotname = 'ProfileVsGalb'
+        fig.savefig("output_plots/%s_E%s_%s.png"%(plotname,ebin,plot_tag),bbox_inches='tight')
+        axbig.remove()
+
+    real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_real_flux_skymap_sum,hist_real_flux_syst_skymap[0])
+    imposter_profile_list = []
+    imposter_profile_err_list = []
+    for imposter in range(0,n_imposters):
+        imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_imposter_flux_skymap_sum[imposter],hist_real_flux_syst_skymap[0])
+        imposter_profile_list += [imposter_profile]
+        imposter_profile_err_list += [imposter_profile_stat_err]
+
+    real_profile_syst_err = []
+    for ubin in range(0,len(theta2)):
+        syst_err = 0.
+        for imposter in range(0,n_imposters):
+            syst_err += pow(imposter_profile_list[imposter][ubin],2)
+        if correct_bias:
+            syst_err = pow(syst_err/float(n_imposters-1),0.5)
+        else:
+            syst_err = pow(syst_err/float(n_imposters),0.5)
+        real_profile_syst_err += [syst_err]
+
+    theta2 = np.array(theta2)
+    theta2_err = np.array(theta2_err)
+    real_profile = np.array(real_profile)
+    real_profile_stat_err = np.array(real_profile_stat_err)
+    real_profile_syst_err = np.array(real_profile_syst_err)
+    real_profile_total_err = []
+    for ubin in range(0,len(theta2)):
+        stat_err = real_profile_stat_err[ubin]
+        syst_err = real_profile_syst_err[ubin]
+        real_profile_total_err += [pow(stat_err*stat_err+syst_err*syst_err,0.5)]
+    real_profile_total_err = np.array(real_profile_total_err)
+
+    fig.clf()
+    axbig = fig.add_subplot()
+    axbig.bar(theta2, 2.*real_profile_syst_err, bottom=-real_profile_syst_err, width=1.*theta2_err, color='b', align='center', alpha=0.2)
+    axbig.errorbar(theta2,real_profile,real_profile_stat_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
+    axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
+    axbig.set_xlabel('Gal. b [degree]')
+    axbig.legend(loc='best')
+    plotname = 'ProfileVsGalb'
+    fig.savefig("output_plots/%s_sum_%s.png"%(plotname,plot_tag),bbox_inches='tight')
+    axbig.remove()
+
+    fig.clf()
+    axbig = fig.add_subplot()
+    cycol = cycle('rgbcmy')
+    axbig.bar(theta2, 2.*real_profile_syst_err, bottom=-real_profile_syst_err, width=1.*theta2_err, color='b', align='center', alpha=0.2)
+    for imposter in range(0,n_imposters):
+        next_color = next(cycol)
+        axbig.errorbar(theta2,imposter_profile_list[imposter],imposter_profile_err_list[imposter],color=next_color,marker='s',ls='none')
+    axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
+    axbig.set_xlabel('Gal. b [degree]')
+    plotname = 'ProfileVsGalb_Imposter'
+    fig.savefig("output_plots/%s_sum_%s.png"%(plotname,plot_tag),bbox_inches='tight')
+    axbig.remove()
+
 def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name):
 
     r_axis_allE = []
@@ -1354,7 +1460,7 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, expo_map, aeff_map):
                 if expo_content_max<20.:
                     if expo_content<expo_content_max*0.3: continue
                 else:
-                    if expo_content<20.0: continue
+                    if expo_content<expo_content_max*0.2: continue
 
                 expo_content = expo_content*3600.
                 Aeff_correct = GetEffectiveAreaCorrection(ebin)
@@ -1398,6 +1504,11 @@ MapPlot_upper = MapCenter_y+0.5*MapPlotSize
 
 calibration_bin_area = pow(MapPlotSize/9.,2)
 map_bin_area = pow(MapPlotSize/float(nbins),2)
+
+print ('MapEdge_left = %0.2f'%(MapEdge_left))
+print ('MapEdge_right = %0.2f'%(MapEdge_right))
+print ('MapEdge_lower = %0.2f'%(MapEdge_lower))
+print ('MapEdge_upper = %0.2f'%(MapEdge_upper))
 
 hist_real_elev_skymap = ROOT.TH2D("hist_real_elev_skymap","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
 hist_real_azim_skymap = ROOT.TH2D("hist_real_azim_skymap","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_lower,MapEdge_upper)
@@ -1804,5 +1915,6 @@ else:
     MakeSpectrum(region_x,region_y,region_r,region_name)
     MakeExtensionProfile(region_x,region_y,region_r,0,region_name)
 
+MakeGalacticProfile()
 MakeSignificanceMap(hist_real_data_skymap_smooth,hist_real_bkgd_skymap_smooth,hist_imposter_data_skymap_smooth,hist_imposter_bkgd_skymap_smooth)
 

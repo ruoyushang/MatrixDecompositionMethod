@@ -3,6 +3,7 @@ import os
 import sys,ROOT
 import array
 import math
+import csv
 from array import *
 from ROOT import *
 from astropy import units as u
@@ -55,6 +56,32 @@ def HMS2deg(ra='', dec=''):
         return (RA, DEC)
     else:
         return RA or DEC
+
+def ReadSNRTargetListFromCSVFile():
+    source_name = []
+    source_ra = []
+    source_dec = []
+    with open('SNRcat20221001-SNR.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+        for row in reader:
+            if len(row)==0: continue
+            if '#' in row[0]: continue
+            target_name = row[0]
+            target_min_dist = row[13]
+            if target_min_dist=='':
+                target_min_dist = '1000'
+            if float(target_min_dist)>6.: continue
+            target_ra = row[19]
+            target_dec = row[20]
+            source_name += [target_name]
+            source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
+            source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
+            print('target_min_dist = %s'%(target_min_dist))
+            print('source_name = %s'%(source_name[len(source_name)-1]))
+            print('source_ra = %0.2f'%(source_ra[len(source_ra)-1]))
+            print('source_dec = %0.2f'%(source_dec[len(source_dec)-1]))
+            print(row)
+    return source_name, source_ra, source_dec
 
 def ReadSNRTargetListFromFile(file_path):
     source_name = []
@@ -126,7 +153,7 @@ def ReadATNFTargetListFromFile(file_path):
         target_brightness = float(target_edot)/pow(float(target_dist),2)
 
         if target_brightness<1e33 and target_edot<1e34: continue
-        #if target_dist<7.0: continue
+        if target_dist>6.0: continue
         #if target_dist>2.0: continue
         #if target_age<1e4: continue
 
@@ -161,9 +188,9 @@ target_dec = []
 #target_name += ["MGRO J1908+06"]
 #target_ra += [286.975]
 #target_dec += [6.269]
-target_name += ["Boomerang"]
-target_ra += [337.183]
-target_dec += [61.167]
+#target_name += ["Boomerang"]
+#target_ra += [337.183]
+#target_dec += [61.167]
 #target_name += ["Cas A"]
 #target_ra += [350.8075000]
 #target_dec += [58.8072222]
@@ -180,17 +207,20 @@ target_dec += [61.167]
 #target_ra += [95.47]
 #target_dec += [37.92]
 
-#target_name, target_ra, target_dec = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+target_name, target_ra, target_dec = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
 #target_name, target_ra, target_dec = ReadATNFTargetListFromFile('single_pulsar_list.txt')
-#target_name, target_ra, target_dec = ReadSNRTargetListFromFile('SNR_list.txt')
-#target_name, target_ra, target_dec = ReadSNRTargetListFromFile('single_SNR_list.txt')
+#target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromFile('SNR_list.txt')
+target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
+target_name += target_snr_name
+target_ra += target_snr_ra
+target_dec += target_snr_dec
 
 range_ra = 1.5
 range_dec = 1.5
 
 
-search_for_on_data = True
-#search_for_on_data = False
+#search_for_on_data = True
+search_for_on_data = False
 
 #search_for_rhv = True
 search_for_rhv = False
@@ -204,11 +234,16 @@ if search_for_on_data:
 epoch = 'V6'
 
 gal_b_cut = 5.
-#Galactic_observation = True
-Galactic_observation = False
+Galactic_observation = True
+#Galactic_observation = False
 
 Search_Range_RA = [0.,360.]
 Search_Range_Dec = [-90.,90.]
+
+Search_Range_Gal_l = [0.,360.]
+Search_Range_Gal_b = [-90.,90.]
+#Search_Range_Gal_l = [150.,200.]
+#Search_Range_Gal_b = [-90.,90.]
 
 search_north = 0 # north+south
 #search_north = 1 # north
@@ -486,6 +521,12 @@ if not search_for_on_data:
         L3_rate = List_L3_rate[entry]
         Livetime = List_Livetime[entry]
 
+        near_a_source = False
+        for target in range(0,len(target_ra)):
+            if abs(float(T1_RA)-target_ra[target])<range_ra and abs(float(T1_Dec)-target_dec[target])<range_dec:
+                near_a_source = True
+        if near_a_source: continue
+
         if epoch=='V6':
             if search_for_rhv: 
                 if L3_rate>280.: continue # RHV
@@ -508,7 +549,10 @@ if not search_for_on_data:
                 if abs(gal_b)>gal_b_cut: continue
             else:
                 if abs(gal_b)<gal_b_cut: continue
-            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if abs(gal_l)<Search_Range_Gal_l[0]: continue
+            if abs(gal_l)>Search_Range_Gal_l[1]: continue
+            if abs(gal_b)<Search_Range_Gal_b[0]: continue
+            if abs(gal_b)>Search_Range_Gal_b[1]: continue
             if GetDistance(T1_RA,T1_Dec,83.633,22.014)<3.: continue  # Crab
             if GetDistance(T1_RA,T1_Dec,166.079,38.195)<3.: continue  # Mrk 421
             if GetDistance(T1_RA,T1_Dec,98.117,17.367)<3.: continue  # Geminga
@@ -518,7 +562,10 @@ if not search_for_on_data:
                 if abs(gal_b)>gal_b_cut: continue
             else:
                 if abs(gal_b)<gal_b_cut: continue
-            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if abs(gal_l)<Search_Range_Gal_l[0]: continue
+            if abs(gal_l)>Search_Range_Gal_l[1]: continue
+            if abs(gal_b)<Search_Range_Gal_b[0]: continue
+            if abs(gal_b)>Search_Range_Gal_b[1]: continue
             if GetDistance(T2_RA,T2_Dec,83.633,22.014)<3.: continue  # Crab
             if GetDistance(T2_RA,T2_Dec,166.079,38.195)<3.: continue  # Mrk 421
             if GetDistance(T2_RA,T2_Dec,98.117,17.367)<3.: continue  # Geminga
@@ -528,7 +575,10 @@ if not search_for_on_data:
                 if abs(gal_b)>gal_b_cut: continue
             else:
                 if abs(gal_b)<gal_b_cut: continue
-            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if abs(gal_l)<Search_Range_Gal_l[0]: continue
+            if abs(gal_l)>Search_Range_Gal_l[1]: continue
+            if abs(gal_b)<Search_Range_Gal_b[0]: continue
+            if abs(gal_b)>Search_Range_Gal_b[1]: continue
             if GetDistance(T3_RA,T3_Dec,83.633,22.014)<3.: continue  # Crab
             if GetDistance(T3_RA,T3_Dec,166.079,38.195)<3.: continue  # Mrk 421
             if GetDistance(T3_RA,T3_Dec,98.117,17.367)<3.: continue  # Geminga
@@ -538,7 +588,10 @@ if not search_for_on_data:
                 if abs(gal_b)>gal_b_cut: continue
             else:
                 if abs(gal_b)<gal_b_cut: continue
-            #if abs(gal_b)<10. and abs(gal_l-180.)>20.: continue
+            if abs(gal_l)<Search_Range_Gal_l[0]: continue
+            if abs(gal_l)>Search_Range_Gal_l[1]: continue
+            if abs(gal_b)<Search_Range_Gal_b[0]: continue
+            if abs(gal_b)>Search_Range_Gal_b[1]: continue
             if GetDistance(T4_RA,T4_Dec,83.633,22.014)<3.: continue  # Crab
             if GetDistance(T4_RA,T4_Dec,166.079,38.195)<3.: continue  # Mrk 421
             if GetDistance(T4_RA,T4_Dec,98.117,17.367)<3.: continue  # Geminga

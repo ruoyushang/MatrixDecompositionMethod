@@ -37,8 +37,8 @@ MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 #n_measures_per_entry = 5
 n_measures_per_entry = 20
 
-analysis_type = 'RBM'
-#analysis_type = 'Matrix'
+#analysis_type = 'RBM'
+analysis_type = 'Matrix'
 #analysis_type = 'Mimic'
 
 observing_condition = 'all'

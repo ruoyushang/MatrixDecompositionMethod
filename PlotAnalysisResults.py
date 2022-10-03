@@ -29,13 +29,16 @@ np.set_printoptions(precision=2)
 
 skymap_zoomin_scale = CommonPlotFunctions.skymap_zoomin_scale
 smooth_size_spectroscopy = CommonPlotFunctions.smooth_size_spectroscopy
-Skymap_size = CommonPlotFunctions.Skymap_size
-Skymap_nbins = CommonPlotFunctions.Skymap_nbins
+Skymap_size_x = CommonPlotFunctions.Skymap_size_x
+Skymap_size_y = CommonPlotFunctions.Skymap_size_y
+Skymap_nbins_x = CommonPlotFunctions.Skymap_nbins_x
+Skymap_nbins_y = CommonPlotFunctions.Skymap_nbins_y
 energy_bin = CommonPlotFunctions.energy_bin
 calibration_radius = CommonPlotFunctions.calibration_radius
 elev_range = CommonPlotFunctions.elev_range
 energy_index_scale = CommonPlotFunctions.energy_index_scale
 Smoothing = CommonPlotFunctions.Smoothing
+doGalacticCoord = CommonPlotFunctions.doGalacticCoord
 Skymap_normalization_nbins = CommonPlotFunctions.Skymap_normalization_nbins
 N_bins_for_deconv = CommonPlotFunctions.N_bins_for_deconv
 energy_fine_bin = CommonPlotFunctions.energy_fine_bin
@@ -721,7 +724,7 @@ def GetSourceInfo(file_list):
     global Zenith_mean_data
     global NSB_RMS_data
     global Zenith_RMS_data
-    global Skymap_size
+    #global Skymap_size
     #global Skymap_nbins
     global source_ra
     global source_dec
@@ -775,10 +778,13 @@ def GetSourceInfo(file_list):
         MSCL_chi2_upper = InfoTree.MSCL_chi2_upper
         #MSCW_plot_lower = InfoTree.MSCW_plot_lower
         #MSCL_plot_lower = InfoTree.MSCL_plot_lower
-        Skymap_size = InfoTree.Skymap_size
+        #Skymap_size = InfoTree.Skymap_size
         #Skymap_nbins = InfoTree.Skymap_nbins
         source_ra = InfoTree.mean_tele_point_ra
         source_dec = InfoTree.mean_tele_point_dec
+        if doGalacticCoord:
+            source_ra = InfoTree.mean_tele_point_l
+            source_dec = InfoTree.mean_tele_point_b
         source_l = InfoTree.mean_tele_point_l
         source_b = InfoTree.mean_tele_point_b
         if '_X0_Y0' in file_list[path]:
@@ -3807,22 +3813,22 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
     hist_expo_hour_skymap = []
     hist_expo_rebin_skymap = []
     for ebin in range(0,len(energy_bin)-1):
-        hist_flux_skymap += [ROOT.TH2D("hist_flux_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_energy_flux_skymap += [ROOT.TH2D("hist_energy_flux_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_energy_flux_syst_skymap += [ROOT.TH2D("hist_energy_flux_syst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_energy_flux_normsyst_skymap += [ROOT.TH2D("hist_energy_flux_normsyst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_zscore_skymap += [ROOT.TH2D("hist_zscore_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_excess_skymap += [ROOT.TH2D("hist_excess_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_cali_skymap += [ROOT.TH2D("hist_cali_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_data_skymap += [ROOT.TH2D("hist_data_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_syst_skymap += [ROOT.TH2D("hist_syst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_normsyst_skymap += [ROOT.TH2D("hist_normsyst_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_bkgd_skymap += [ROOT.TH2D("hist_bkgd_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_rfov_skymap += [ROOT.TH2D("hist_rfov_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_effarea_skymap += [ROOT.TH2D("hist_effarea_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_expo_skymap += [ROOT.TH2D("hist_expo_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_expo_hour_skymap += [ROOT.TH2D("hist_expo_hour_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
-        hist_expo_rebin_skymap += [ROOT.TH2D("hist_expo_rebin_skymap_%s"%(ebin),"",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_flux_skymap += [ROOT.TH2D("hist_flux_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_energy_flux_skymap += [ROOT.TH2D("hist_energy_flux_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_energy_flux_syst_skymap += [ROOT.TH2D("hist_energy_flux_syst_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_energy_flux_normsyst_skymap += [ROOT.TH2D("hist_energy_flux_normsyst_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_zscore_skymap += [ROOT.TH2D("hist_zscore_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_excess_skymap += [ROOT.TH2D("hist_excess_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_cali_skymap += [ROOT.TH2D("hist_cali_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_data_skymap += [ROOT.TH2D("hist_data_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_syst_skymap += [ROOT.TH2D("hist_syst_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_normsyst_skymap += [ROOT.TH2D("hist_normsyst_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_bkgd_skymap += [ROOT.TH2D("hist_bkgd_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_rfov_skymap += [ROOT.TH2D("hist_rfov_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_effarea_skymap += [ROOT.TH2D("hist_effarea_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_expo_skymap += [ROOT.TH2D("hist_expo_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_expo_hour_skymap += [ROOT.TH2D("hist_expo_hour_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
+        hist_expo_rebin_skymap += [ROOT.TH2D("hist_expo_rebin_skymap_%s"%(ebin),"",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)]
     for ebin in range(0,len(energy_bin)-1):
         for bx in range(0,hist_data[0].GetNbinsX()):
             for by in range(0,hist_data[0].GetNbinsY()):
@@ -4143,16 +4149,16 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
     #axbig.remove()
 
     # energy inclusive histograms
-    hist_data_skymap_sum = ROOT.TH2D("hist_data_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_bkgd_skymap_sum = ROOT.TH2D("hist_bkgd_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_effarea_skymap_sum = ROOT.TH2D("hist_effarea_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_expo_skymap_sum = ROOT.TH2D("hist_expo_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_syst_skymap_sum = ROOT.TH2D("hist_syst_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_rate_skymap_sum = ROOT.TH2D("hist_rate_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_mask_skymap_sum = ROOT.TH2D("hist_mask_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_flux_skymap_sum = ROOT.TH2D("hist_flux_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_flux_syst_skymap_sum = ROOT.TH2D("hist_flux_syst_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_expected_all_gamma_ray_skymap = ROOT.TH2D("hist_expected_all_gamma_ray_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_data_skymap_sum = ROOT.TH2D("hist_data_skymap_sum","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_bkgd_skymap_sum = ROOT.TH2D("hist_bkgd_skymap_sum","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_effarea_skymap_sum = ROOT.TH2D("hist_effarea_skymap_sum","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_expo_skymap_sum = ROOT.TH2D("hist_expo_skymap_sum","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_syst_skymap_sum = ROOT.TH2D("hist_syst_skymap_sum","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_rate_skymap_sum = ROOT.TH2D("hist_rate_skymap_sum","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_mask_skymap_sum = ROOT.TH2D("hist_mask_skymap_sum","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_flux_skymap_sum = ROOT.TH2D("hist_flux_skymap_sum","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_flux_syst_skymap_sum = ROOT.TH2D("hist_flux_syst_skymap_sum","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_expected_all_gamma_ray_skymap = ROOT.TH2D("hist_expected_all_gamma_ray_skymap","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     for ebin in range(0,len(energy_bin)-1):
         for bx in range(0,hist_data_skymap[0].GetNbinsX()):
             for by in range(0,hist_data_skymap[0].GetNbinsY()):
@@ -4319,7 +4325,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
         bkgd_rate = Hist_Data_CR_XYoff[ebin].GetMaximum()*(bin_size_0*bin_size_0)/(exposure_hours*bin_size_1*bin_size_1)
         hist_expo_hour_skymap[ebin].Scale(1./bkgd_rate)
 
-    hist_expo_hour_skymap_sum = ROOT.TH2D("hist_expo_hour_skymap_sum","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_expo_hour_skymap_sum = ROOT.TH2D("hist_expo_hour_skymap_sum","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_expo_hour_skymap_sum.Add(hist_bkgd_skymap_sum)
     bin_size_0 = hist_bkgd_skymap_sum.GetXaxis().GetBinLowEdge(2)-hist_bkgd_skymap_sum.GetXaxis().GetBinLowEdge(1)
     bin_size_1 = Hist_OnData_CR_XYoff_Sum.GetXaxis().GetBinLowEdge(2)-Hist_OnData_CR_XYoff_Sum.GetXaxis().GetBinLowEdge(1)
@@ -4400,7 +4406,7 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
     canvas.SaveAs('output_plots/SkymapFlux_%s_%s.png'%(name,selection_tag))
     CommonPlotFunctions.MatplotlibMap2D(hist_flux_skymap_sum_reflect,None,fig,'RA','Dec','flux','SkymapFlux2_%s_%s.png'%(name,selection_tag))
 
-    hist_zscore_skymap_galactic = ROOT.TH2D("hist_zscore_skymap_galactic","",int(Skymap_nbins/zoomin_scale),source_l-MapSize_x/zoomin_scale,source_l+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),source_b-MapSize_y/zoomin_scale,source_b+MapSize_y/zoomin_scale)
+    hist_zscore_skymap_galactic = ROOT.TH2D("hist_zscore_skymap_galactic","",int(Skymap_nbins_x/zoomin_scale),source_l-MapSize_x/zoomin_scale,source_l+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),source_b-MapSize_y/zoomin_scale,source_b+MapSize_y/zoomin_scale)
     #ConvertRaDecToGalacticMap(hist_zscore_skymap_sum,hist_zscore_skymap_galactic)
     ConvertRaDecToGalacticMap(hist_flux_skymap_sum,hist_zscore_skymap_galactic)
     hist_zscore_skymap_galactic_reflect = reflectXaxis(hist_zscore_skymap_galactic)
@@ -4611,8 +4617,8 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
 
 
     # spectral-index map
-    hist_index_skymap = ROOT.TH2D("hist_index_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
-    hist_chisq_skymap = ROOT.TH2D("hist_chisq_skymap","",int(Skymap_nbins/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_index_skymap = ROOT.TH2D("hist_index_skymap","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
+    hist_chisq_skymap = ROOT.TH2D("hist_chisq_skymap","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     #for binx in range(0,hist_index_skymap.GetNbinsX()):
     #    for biny in range(0,hist_index_skymap.GetNbinsY()):
     #        hist_index_skymap.SetBinContent(binx+1,biny+1,-99.)
@@ -7051,9 +7057,9 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
 
     Hist_Syst_Energy_Skymap_Sum = []
     for xy_bin in range(0,len(integration_radii)):
-        Hist_Syst_Energy_Skymap_Sum += [ROOT.TH2D("Hist_Syst_Energy_Skymap_Sum_%s"%(xy_bin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-    Hist_Data_Energy_Skymap_Sum = ROOT.TH2D("Hist_Data_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-    Hist_Bkgd_Energy_Skymap_Sum = ROOT.TH2D("Hist_Bkgd_Energy_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+        Hist_Syst_Energy_Skymap_Sum += [ROOT.TH2D("Hist_Syst_Energy_Skymap_Sum_%s"%(xy_bin),"",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)]
+    Hist_Data_Energy_Skymap_Sum = ROOT.TH2D("Hist_Data_Energy_Skymap_Sum","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+    Hist_Bkgd_Energy_Skymap_Sum = ROOT.TH2D("Hist_Bkgd_Energy_Skymap_Sum","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
     for ebin in range(0,len(energy_bin)-1):
         Hist_Data_Energy_Skymap_Sum.Add(Hist_Data_Energy_Skymap[ebin])
         Hist_Bkgd_Energy_Skymap_Sum.Add(Hist_Bkgd_Energy_Skymap[ebin])
@@ -7330,11 +7336,11 @@ Hist_OnBkgd_Rcore_Sum = ROOT.TH1D("Hist_OnBkgd_Rcore_Sum","",25,0,500.)
 Hist_OnData_Rcore = ROOT.TH1D("Hist_OnData_Rcore","",25,0,500.)
 Hist_OnBkgd_Rcore = ROOT.TH1D("Hist_OnBkgd_Rcore","",25,0,500.)
 
-Hist_Data_Skymap = ROOT.TH2D("Hist_Data_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_Data_Elev_Skymap = ROOT.TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_Data_Azim_Skymap = ROOT.TH2D("Hist_Data_Azim_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_Data_NSB_Skymap = ROOT.TH2D("Hist_Data_NSB_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_Data_MJD_Skymap = ROOT.TH2D("Hist_Data_MJD_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_Data_Skymap = ROOT.TH2D("Hist_Data_Skymap","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_Data_Elev_Skymap = ROOT.TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_Data_Azim_Skymap = ROOT.TH2D("Hist_Data_Azim_Skymap","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_Data_NSB_Skymap = ROOT.TH2D("Hist_Data_NSB_Skymap","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_Data_MJD_Skymap = ROOT.TH2D("Hist_Data_MJD_Skymap","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
 Hist_Data_ElevNSB = ROOT.TH2D("Hist_Data_ElevNSB","",20,0,10,18,0,90)
 Hist_Data_ElevAzim = ROOT.TH2D("Hist_Data_ElevAzim","",18,0,360,18,0,90)
 Hist_Dark_ElevNSB = ROOT.TH2D("Hist_Dark_ElevNSB","",20,0,10,18,0,90)
@@ -7350,49 +7356,49 @@ Hist_Bkgd_Energy_Skymap = []
 Hist_Rfov_Energy_Skymap = []
 Hist_Data_CR_XYoff = []
 for ebin in range(0,len(energy_bin)-1):
-    Hist_SumSyst_Energy_Skymap += [ROOT.TH2D("Hist_SumSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-    Hist_NormSyst_Energy_Skymap += [ROOT.TH2D("Hist_NormSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-    Hist_EffArea_Energy_Skymap += [ROOT.TH2D("Hist_EffArea_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-    Hist_Expo_Energy_Skymap += [ROOT.TH2D("Hist_Expo_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-    Hist_Data_Energy_Skymap += [ROOT.TH2D("Hist_Data_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
-    Hist_Bkgd_Energy_Skymap += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+    Hist_SumSyst_Energy_Skymap += [ROOT.TH2D("Hist_SumSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)]
+    Hist_NormSyst_Energy_Skymap += [ROOT.TH2D("Hist_NormSyst_Energy_Skymap_%s"%(ebin),"",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)]
+    Hist_EffArea_Energy_Skymap += [ROOT.TH2D("Hist_EffArea_Energy_Skymap_%s"%(ebin),"",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)]
+    Hist_Expo_Energy_Skymap += [ROOT.TH2D("Hist_Expo_Energy_Skymap_%s"%(ebin),"",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)]
+    Hist_Data_Energy_Skymap += [ROOT.TH2D("Hist_Data_Energy_Skymap_%s"%(ebin),"",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)]
+    Hist_Bkgd_Energy_Skymap += [ROOT.TH2D("Hist_Bkgd_Energy_Skymap_%s"%(ebin),"",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)]
     Hist_Data_CR_XYoff += [ROOT.TH2D("Hist_OnData_CR_XYoff_%s"%(ebin),"",30,-3,3,30,-3,3)]
-    Hist_Rfov_Energy_Skymap += [ROOT.TH2D("Hist_Rfov_Energy_Skymap_%s"%(ebin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+    Hist_Rfov_Energy_Skymap += [ROOT.TH2D("Hist_Rfov_Energy_Skymap_%s"%(ebin),"",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)]
     Hist_ShapeSyst_Energy_Skymap_ThisBin = []
     for xy_bin in range(0,len(integration_radii)):
-        Hist_ShapeSyst_Energy_Skymap_ThisBin += [ROOT.TH2D("Hist_ShapeSyst_Energy_Skymap_%s_%s"%(ebin,xy_bin),"",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)]
+        Hist_ShapeSyst_Energy_Skymap_ThisBin += [ROOT.TH2D("Hist_ShapeSyst_Energy_Skymap_%s_%s"%(ebin,xy_bin),"",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)]
     Hist_ShapeSyst_Energy_Skymap += [Hist_ShapeSyst_Energy_Skymap_ThisBin]
 
-Hist_bkgd_global = ROOT.TH2D("Hist_bkgd_global","",int(Skymap_nbins/skymap_zoomin_scale),source_ra-Skymap_size/skymap_zoomin_scale,source_ra+Skymap_size/skymap_zoomin_scale,int(Skymap_nbins/skymap_zoomin_scale),source_dec-Skymap_size/skymap_zoomin_scale,source_dec+Skymap_size/skymap_zoomin_scale)
-Hist_MWL_global = ROOT.TH2D("Hist_MWL_global","",int(Skymap_nbins/skymap_zoomin_scale),source_ra-Skymap_size/skymap_zoomin_scale,source_ra+Skymap_size/skymap_zoomin_scale,int(Skymap_nbins/skymap_zoomin_scale),source_dec-Skymap_size/skymap_zoomin_scale,source_dec+Skymap_size/skymap_zoomin_scale)
+Hist_bkgd_global = ROOT.TH2D("Hist_bkgd_global","",int(Skymap_nbins_x/skymap_zoomin_scale),source_ra-Skymap_size_x/skymap_zoomin_scale,source_ra+Skymap_size_x/skymap_zoomin_scale,int(Skymap_nbins_y/skymap_zoomin_scale),source_dec-Skymap_size_y/skymap_zoomin_scale,source_dec+Skymap_size_y/skymap_zoomin_scale)
+Hist_MWL_global = ROOT.TH2D("Hist_MWL_global","",int(Skymap_nbins_x/skymap_zoomin_scale),source_ra-Skymap_size_x/skymap_zoomin_scale,source_ra+Skymap_size_x/skymap_zoomin_scale,int(Skymap_nbins_y/skymap_zoomin_scale),source_dec-Skymap_size_y/skymap_zoomin_scale,source_dec+Skymap_size_y/skymap_zoomin_scale)
 
-Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnDark_Skymap = ROOT.TH2D("Hist_OnDark_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnData_Skymap_Sum = ROOT.TH2D("Hist_OnData_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnDark_Skymap_Sum = ROOT.TH2D("Hist_OnDark_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_Norm = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_Norm","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_Shape = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_Shape","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_RBM = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_RBM","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size,Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnData_Skymap_Galactic = ROOT.TH2D("Hist_OnData_Skymap_Galactic","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnData_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_Skymap_Galactic_Sum","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sum","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic_Syst_MDM = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst_MDM","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
-Hist_OnBkgd_Skymap_Galactic_Syst_RBM = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst_RBM","",Skymap_nbins,source_l-Skymap_size,source_l+Skymap_size,Skymap_nbins,source_b-Skymap_size,source_b+Skymap_size)
+Hist_OnData_Skymap = ROOT.TH2D("Hist_OnData_Skymap","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnDark_Skymap = ROOT.TH2D("Hist_OnDark_Skymap","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnBkgd_Skymap = ROOT.TH2D("Hist_OnBkgd_Skymap","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnData_Skymap_Sum = ROOT.TH2D("Hist_OnData_Skymap_Sum","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnDark_Skymap_Sum = ROOT.TH2D("Hist_OnDark_Skymap_Sum","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnBkgd_Skymap_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Sum","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnBkgd_Skymap_Syst_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_Sum","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnBkgd_Skymap_Syst_Norm = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_Norm","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnBkgd_Skymap_Syst_Shape = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_Shape","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnBkgd_Skymap_Syst_RBM = ROOT.TH2D("Hist_OnBkgd_Skymap_Syst_RBM","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x,Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnData_Skymap_Galactic = ROOT.TH2D("Hist_OnData_Skymap_Galactic","",Skymap_nbins_x,source_l-Skymap_size_x,source_l+Skymap_size_x,Skymap_nbins_y,source_b-Skymap_size_y,source_b+Skymap_size_y)
+Hist_OnBkgd_Skymap_Galactic = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic","",Skymap_nbins_x,source_l-Skymap_size_x,source_l+Skymap_size_x,Skymap_nbins_y,source_b-Skymap_size_y,source_b+Skymap_size_y)
+Hist_OnData_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnData_Skymap_Galactic_Sum","",Skymap_nbins_x,source_l-Skymap_size_x,source_l+Skymap_size_x,Skymap_nbins_y,source_b-Skymap_size_y,source_b+Skymap_size_y)
+Hist_OnBkgd_Skymap_Galactic_Sum = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Sum","",Skymap_nbins_x,source_l-Skymap_size_x,source_l+Skymap_size_x,Skymap_nbins_y,source_b-Skymap_size_y,source_b+Skymap_size_y)
+Hist_OnBkgd_Skymap_Galactic_Syst_MDM = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst_MDM","",Skymap_nbins_x,source_l-Skymap_size_x,source_l+Skymap_size_x,Skymap_nbins_y,source_b-Skymap_size_y,source_b+Skymap_size_y)
+Hist_OnBkgd_Skymap_Galactic_Syst_RBM = ROOT.TH2D("Hist_OnBkgd_Skymap_Galactic_Syst_RBM","",Skymap_nbins_x,source_l-Skymap_size_x,source_l+Skymap_size_x,Skymap_nbins_y,source_b-Skymap_size_y,source_b+Skymap_size_y)
 
-Hist_OnData_Skymap_ProjX_Sum = ROOT.TH1D("Hist_OnData_Skymap_ProjX_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size)
-Hist_OnDark_Skymap_ProjX_Sum = ROOT.TH1D("Hist_OnDark_Skymap_ProjX_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size)
-Hist_OnBkgd_Skymap_ProjX_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_ProjX_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_ProjX = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjX","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_ProjX_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjX_Sum","",Skymap_nbins,source_ra-Skymap_size,source_ra+Skymap_size)
-Hist_OnData_Skymap_ProjY_Sum = ROOT.TH1D("Hist_OnData_Skymap_ProjY_Sum","",Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnDark_Skymap_ProjY_Sum = ROOT.TH1D("Hist_OnDark_Skymap_ProjY_Sum","",Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_ProjY_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_ProjY_Sum","",Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_ProjY = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjY","",Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
-Hist_OnBkgd_Skymap_Syst_ProjY_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjY_Sum","",Skymap_nbins,source_dec-Skymap_size,source_dec+Skymap_size)
+Hist_OnData_Skymap_ProjX_Sum = ROOT.TH1D("Hist_OnData_Skymap_ProjX_Sum","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x)
+Hist_OnDark_Skymap_ProjX_Sum = ROOT.TH1D("Hist_OnDark_Skymap_ProjX_Sum","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x)
+Hist_OnBkgd_Skymap_ProjX_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_ProjX_Sum","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x)
+Hist_OnBkgd_Skymap_Syst_ProjX = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjX","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x)
+Hist_OnBkgd_Skymap_Syst_ProjX_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjX_Sum","",Skymap_nbins_x,source_ra-Skymap_size_x,source_ra+Skymap_size_x)
+Hist_OnData_Skymap_ProjY_Sum = ROOT.TH1D("Hist_OnData_Skymap_ProjY_Sum","",Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnDark_Skymap_ProjY_Sum = ROOT.TH1D("Hist_OnDark_Skymap_ProjY_Sum","",Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnBkgd_Skymap_ProjY_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_ProjY_Sum","",Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnBkgd_Skymap_Syst_ProjY = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjY","",Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
+Hist_OnBkgd_Skymap_Syst_ProjY_Sum = ROOT.TH1D("Hist_OnBkgd_Skymap_Syst_ProjY_Sum","",Skymap_nbins_y,source_dec-Skymap_size_y,source_dec+Skymap_size_y)
 
 Hist_SystErr_MSCL = ROOT.TH1D("Hist_SystErr_MSCL","",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper)
 Hist_SystErr_MSCW = ROOT.TH1D("Hist_SystErr_MSCW","",N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)
