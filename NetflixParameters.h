@@ -39,9 +39,19 @@ double energy_fine_bins[N_energy_fine_bins+1] = {200.,398.,794.,1585.,3162.,6310
 
 
 bool UseDL3Tree = true;
-bool RHVData = true;
-//bool RHVData = false;
-bool EigenDecomposition = false;
+//bool RHVData = true;
+bool RHVData = false;
+
+bool UseGalacticCoord = true;
+double Skymap_size_x = 4.;
+int Skymap_nbins_x = 90;
+double Skymap_size_y = 2.;
+int Skymap_nbins_y = 45;
+//bool UseGalacticCoord = false;
+//double Skymap_size_x = 2.;
+//int Skymap_nbins_x = 45;
+//double Skymap_size_y = 2.;
+//int Skymap_nbins_y = 45;
 
 bool UseDBOnly = false;
 double exposure_limit = 5.; // default
@@ -52,9 +62,9 @@ double exposure_limit = 5.; // default
 bool UseRegularization = true;
 //bool UseRegularization = false;
 
-int AcceptanceCorrection = 1;  // RaDec weight
-//int AcceptanceCorrection = 2;  // XYoff weight
-//int AcceptanceCorrection = 3;  // Roff weight  // default
+//int AcceptanceCorrection = 1;  // RaDec weight  // default
+int AcceptanceCorrection = 2;  // XYoff weight
+//int AcceptanceCorrection = 3;  // Roff weight
 
 int MatchingSelection = 0; // default
 //int MatchingSelection = 1; // free elevation
@@ -130,8 +140,6 @@ double MSCL_cut_blind = 1.0;
 double MSCW_chi2_upper = 3.;
 double MSCL_chi2_upper = 3.;
 
-double Skymap_size = 2.;
-int Skymap_nbins = 45;
 int Skymap_normalization_nbins = 1;
 
 double brightness_cut = 5.0;

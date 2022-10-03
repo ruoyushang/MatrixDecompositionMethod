@@ -2143,6 +2143,14 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     mean_tele_point_l = tele_point_l_b.first;
     mean_tele_point_b = tele_point_l_b.second;
 
+    map_center_x = mean_tele_point_ra;
+    map_center_y = mean_tele_point_dec;
+    if (UseGalacticCoord)
+    {
+        map_center_x = mean_tele_point_l;
+        map_center_y = mean_tele_point_b;
+    }
+
     GetBrightStars();
 
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
@@ -2150,11 +2158,11 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     TH2D Hist_Data_ElevNSB = TH2D("Hist_Data_ElevNSB","",20,0,10,18,0,90);
     TH2D Hist_Dark_ElevNSB = TH2D("Hist_Dark_ElevNSB","",20,0,10,18,0,90);
     TH2D Hist_Data_ElevAzim = TH2D("Hist_Data_ElevAzim","",18,0,360,18,0,90);
-    TH2D Hist_Data_Skymap = TH2D("Hist_Data_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
-    TH2D Hist_Data_Elev_Skymap = TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
-    TH2D Hist_Data_Azim_Skymap = TH2D("Hist_Data_Azim_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
-    TH2D Hist_Data_NSB_Skymap = TH2D("Hist_Data_NSB_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
-    TH2D Hist_Data_MJD_Skymap = TH2D("Hist_Data_MJD_Skymap","",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size);
+    TH2D Hist_Data_Skymap = TH2D("Hist_Data_Skymap","",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y);
+    TH2D Hist_Data_Elev_Skymap = TH2D("Hist_Data_Elev_Skymap","",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y);
+    TH2D Hist_Data_Azim_Skymap = TH2D("Hist_Data_Azim_Skymap","",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y);
+    TH2D Hist_Data_NSB_Skymap = TH2D("Hist_Data_NSB_Skymap","",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y);
+    TH2D Hist_Data_MJD_Skymap = TH2D("Hist_Data_MJD_Skymap","",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y);
     TH2D Hist_Dark_ElevAzim = TH2D("Hist_Dark_ElevAzim","",18,0,360,18,0,90);
     TH1D Hist_EffArea = TH1D("Hist_EffArea","",N_energy_fine_bins,energy_fine_bins);
 
@@ -2182,10 +2190,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     vector<double>* roi_radius_outer_ptr = new std::vector<double>(10);
     TString regularization_name;
     regularization_name  = "../Regularization_svd.root";
-    if (EigenDecomposition)
-    {
-        regularization_name  = "../Regularization_eigen.root";
-    }
     TFile RegularizationFile(regularization_name);
     TFile InputDataFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root");
 
@@ -2601,28 +2605,28 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         Hist_OnData_CR_Yoff_Raw.push_back(TH1D("Hist_OnData_CR_Yoff_Raw_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_OnRFoV_CR_Skymap_Theta2.push_back(TH1D("Hist_OnRFoV_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
         Hist_OnDark_CR_Skymap_Theta2.push_back(TH1D("Hist_OnDark_CR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
-        Hist_OnData_EffArea_Skymap.push_back(TH2D("Hist_OnData_EffArea_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_OnData_ISR_Skymap.push_back(TH2D("Hist_OnData_ISR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_OnData_SR_Skymap.push_back(TH2D("Hist_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_OnData_CR_Skymap.push_back(TH2D("Hist_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_OnData_RBM_Skymap.push_back(TH2D("Hist_OnData_RBM_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_NormSyst_Skymap.push_back(TH2D("Hist_NormSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnData_EffArea_Skymap.push_back(TH2D("Hist_OnData_EffArea_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
+        Hist_OnData_ISR_Skymap.push_back(TH2D("Hist_OnData_ISR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
+        Hist_OnData_SR_Skymap.push_back(TH2D("Hist_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
+        Hist_OnData_CR_Skymap.push_back(TH2D("Hist_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
+        Hist_OnData_RBM_Skymap.push_back(TH2D("Hist_OnData_RBM_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
+        Hist_NormSyst_Skymap.push_back(TH2D("Hist_NormSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
 
         vector<TH2D> Hist_ShapeSyst_Skymap_ThisBin;
         for (int xybin=0;xybin<N_integration_radii;xybin++) 
         {
             char xybin_tag[50];
             sprintf(xybin_tag,"Bin%i",xybin);
-            Hist_ShapeSyst_Skymap_ThisBin.push_back(TH2D("Hist_ShapeSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up)+TString("_")+TString(xybin_tag),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+            Hist_ShapeSyst_Skymap_ThisBin.push_back(TH2D("Hist_ShapeSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up)+TString("_")+TString(xybin_tag),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
         }
         Hist_ShapeSyst_Skymap.push_back(Hist_ShapeSyst_Skymap_ThisBin);
 
-        Hist_OnRFoV_CR_Skymap.push_back(TH2D("Hist_OnRFoV_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
-        Hist_OnDark_SR_Skymap.push_back(TH2D("Hist_OnDark_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,mean_tele_point_ra-Skymap_size,mean_tele_point_ra+Skymap_size,Skymap_nbins,mean_tele_point_dec-Skymap_size,mean_tele_point_dec+Skymap_size));
+        Hist_OnRFoV_CR_Skymap.push_back(TH2D("Hist_OnRFoV_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
+        Hist_OnDark_SR_Skymap.push_back(TH2D("Hist_OnDark_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
 
-        Hist_OnData_SR_Skymap_Galactic.push_back(TH2D("Hist_OnData_SR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,Skymap_nbins,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
-        Hist_OnData_CR_Skymap_Galactic.push_back(TH2D("Hist_OnData_CR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,Skymap_nbins,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
-        Hist_OnRFoV_CR_Skymap_Galactic.push_back(TH2D("Hist_OnRFoV_CR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins,tele_point_l_b.first-Skymap_size,tele_point_l_b.first+Skymap_size,Skymap_nbins,tele_point_l_b.second-Skymap_size,tele_point_l_b.second+Skymap_size));
+        Hist_OnData_SR_Skymap_Galactic.push_back(TH2D("Hist_OnData_SR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,tele_point_l_b.first-Skymap_size_x,tele_point_l_b.first+Skymap_size_x,Skymap_nbins_y,tele_point_l_b.second-Skymap_size_y,tele_point_l_b.second+Skymap_size_y));
+        Hist_OnData_CR_Skymap_Galactic.push_back(TH2D("Hist_OnData_CR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,tele_point_l_b.first-Skymap_size_x,tele_point_l_b.first+Skymap_size_x,Skymap_nbins_y,tele_point_l_b.second-Skymap_size_y,tele_point_l_b.second+Skymap_size_y));
+        Hist_OnRFoV_CR_Skymap_Galactic.push_back(TH2D("Hist_OnRFoV_CR_Skymap_Galactic_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,tele_point_l_b.first-Skymap_size_x,tele_point_l_b.first+Skymap_size_x,Skymap_nbins_y,tele_point_l_b.second-Skymap_size_y,tele_point_l_b.second+Skymap_size_y));
 
     }
 
@@ -3346,16 +3350,13 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         //    Hist_GammaRegion_Contribution.at(e).SetBinContent(col+1,pow((data_count_gamma-temp_count_gamma)/data_count_gamma,2));
         //}
 
-        if (!EigenDecomposition)
-        {
-            RegularizationType = 0;
-            WeightingType = 0;
-            double temp_alpha = 0.;
-            double temp_beta = 0.;
-            SetInitialSpectralvectors(binx_blind_upper_global,biny_blind_upper_global,mtx_dark);
-            mtx_coeff_data = NuclearNormMinimization(mtx_dark, mtx_data, mtx_dark, 1, N_bins_for_deconv, false,temp_alpha,temp_beta,N_bins_for_deconv,e).second;
-            mtx_coeff_bkgd = NuclearNormMinimization(mtx_dark, mtx_data_bkgd, mtx_dark, 1, N_bins_for_deconv, false,temp_alpha,temp_beta,N_bins_for_deconv,e).second;
-        }
+        RegularizationType = 0;
+        WeightingType = 0;
+        double temp_alpha = 0.;
+        double temp_beta = 0.;
+        SetInitialSpectralvectors(binx_blind_upper_global,biny_blind_upper_global,mtx_dark);
+        mtx_coeff_data = NuclearNormMinimization(mtx_dark, mtx_data, mtx_dark, 1, N_bins_for_deconv, false,temp_alpha,temp_beta,N_bins_for_deconv,e).second;
+        mtx_coeff_bkgd = NuclearNormMinimization(mtx_dark, mtx_data_bkgd, mtx_dark, 1, N_bins_for_deconv, false,temp_alpha,temp_beta,N_bins_for_deconv,e).second;
 
         //mtx_coeff_data = AverageNoiseVectors(mtx_coeff_data);
         fill2DHistogram(&Hist_Coeff_Data.at(e),mtx_coeff_data);
@@ -3367,46 +3368,24 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         std::cout << "mtx_coeff_bkgd:" << std::endl;
         std::cout << mtx_coeff_bkgd.block(0,0,print_size,print_size) << std::endl;
 
-        if (EigenDecomposition)
+        //JacobiSVD<MatrixXd> svd_dark(mtx_dark.real(), ComputeFullU | ComputeFullV);
+        mtx_eigenvector_dark = svd_dark.matrixU();
+        mtx_eigenvector_inv_dark = svd_dark.matrixV().transpose();
+        //JacobiSVD<MatrixXd> svd_data(mtx_data.real(), ComputeFullU | ComputeFullV);
+        mtx_eigenvector_data = svd_data.matrixU();
+        mtx_eigenvector_inv_data = svd_data.matrixV().transpose();
+        for (int i=0;i<mtx_data.cols();i++)
         {
-            eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
-            eigensolver_data = ComplexEigenSolver<MatrixXcd>(mtx_data);
-            mtx_eigenvector_dark = eigensolver_dark.eigenvectors();
-            mtx_eigenvector_inv_dark = eigensolver_dark.eigenvectors().inverse();
-            mtx_eigenvector_data = eigensolver_data.eigenvectors();
-            mtx_eigenvector_inv_data = eigensolver_data.eigenvectors().inverse();
-            for (int i=0;i<mtx_data.cols();i++)
+            for (int j=0;j<mtx_data.rows();j++)
             {
-                for (int j=0;j<mtx_data.rows();j++)
+                if (i==j) 
                 {
-                    if (i==j) 
-                    {
-                        mtx_eigenval_data_redu(i,j) = eigensolver_data.eigenvalues()(i);
-                        mtx_eigenval_dark_redu(i,j) = eigensolver_dark.eigenvalues()(i);
-                    }
+                    mtx_eigenval_data_redu(i,j) = svd_data.singularValues()(i);
+                    mtx_eigenval_dark_redu(i,j) = svd_dark.singularValues()(i);
                 }
             }
         }
-        else
-        {
-            JacobiSVD<MatrixXd> svd_dark(mtx_dark.real(), ComputeFullU | ComputeFullV);
-            mtx_eigenvector_dark = svd_dark.matrixU();
-            mtx_eigenvector_inv_dark = svd_dark.matrixV().transpose();
-            JacobiSVD<MatrixXd> svd_data(mtx_data.real(), ComputeFullU | ComputeFullV);
-            mtx_eigenvector_data = svd_data.matrixU();
-            mtx_eigenvector_inv_data = svd_data.matrixV().transpose();
-            for (int i=0;i<mtx_data.cols();i++)
-            {
-                for (int j=0;j<mtx_data.rows();j++)
-                {
-                    if (i==j) 
-                    {
-                        mtx_eigenval_data_redu(i,j) = svd_data.singularValues()(i);
-                        mtx_eigenval_dark_redu(i,j) = svd_dark.singularValues()(i);
-                    }
-                }
-            }
-        }
+        
         for (int entry=0;entry<mtx_data.cols();entry++)
         {
             int hist_entry = entry+1;
@@ -3490,14 +3469,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     FaintStarTree = (TTree*) InputFile.Get("FaintStarTree");
 
     char lowrank_tag[50] = "";
-    if (EigenDecomposition)
-    {
-        sprintf(lowrank_tag, "eigen");
-    }
-    else
-    {
-        sprintf(lowrank_tag, "svd");
-    }
+    sprintf(lowrank_tag, "svd");
     TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+"_"+TString(output_file2_tag)+"_"+TString(lowrank_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root","recreate");
 
     TTree *newtree = InfoTree->CloneTree();
