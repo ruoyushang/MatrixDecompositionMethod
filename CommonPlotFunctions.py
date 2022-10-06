@@ -55,21 +55,30 @@ smooth_size_spectroscopy = 0.1
 #Smoothing = True
 Smoothing = False
 
+additional_tag = ''
+#additional_tag = '_DD'
 
-calibration_radius = 0.5 # need to be larger than the PSF and smaller than the integration radius
+#UseEffectiveArea = True
+UseEffectiveArea = False
 
+calibration_radius = 0.3 # need to be larger than the PSF and smaller than the integration radius
+
+#energy_index_scale = 0
 energy_index_scale = 2
 
-doGalacticCoord = True
-Skymap_size_x = 4.
-Skymap_nbins_x = 90
-Skymap_size_y = 2.
-Skymap_nbins_y = 45
-#doGalacticCoord = False
-#Skymap_size_x = 2.
-#Skymap_nbins_x = 45
-#Skymap_size_y = 2.
-#Skymap_nbins_y = 45
+#doGalacticCoord = True
+doGalacticCoord = False
+
+if doGalacticCoord:
+    Skymap_size_x = 22.5
+    Skymap_nbins_x = 45
+    Skymap_size_y = 5.
+    Skymap_nbins_y = 10
+else:
+    Skymap_size_x = 2.
+    Skymap_nbins_x = 45
+    Skymap_size_y = 2.
+    Skymap_nbins_y = 45
 #Skymap_nbins = 15 
 #Skymap_nbins = 9 # Crab calibration 
 #Skymap_nbins = 5
@@ -113,7 +122,8 @@ def reflectXaxis(hist):
 def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
 
     bin_size = Hist_Old.GetXaxis().GetBinCenter(2)-Hist_Old.GetXaxis().GetBinCenter(1)
-    if bin_size>smooth_size or doGalacticCoord: 
+    #if bin_size>smooth_size or doGalacticCoord: 
+    if bin_size>smooth_size: 
         Hist_Smooth.Reset()
         Hist_Smooth.Add(Hist_Old)
         return
@@ -490,11 +500,16 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
     global calibration_radius
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
-    #n_bins_1d = 4
-    #n_bins_1d = min(8,int(float(n_bins_2d)/2.))
-    n_bins_1d = min(16,int(float(n_bins_2d)/2.))
-    #integration_range = 0.8
-    integration_range = 1.6
+    integration_range = min(integration_range,1.5)
+    n_bins_1d = int(10.*integration_range)
+
+    n_bins_y = Hist_Data_input.GetNbinsY()
+    n_bins_x = Hist_Data_input.GetNbinsX()
+    MapEdge_left = Hist_Data_input.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = Hist_Data_input.GetXaxis().GetBinLowEdge(Hist_Data_input.GetNbinsX()+1)
+    MapEdge_lower = Hist_Data_input.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = Hist_Data_input.GetYaxis().GetBinLowEdge(Hist_Data_input.GetNbinsY()+1)
+    cell_size = (MapEdge_right-MapEdge_left)/float(n_bins_x)*(MapEdge_upper-MapEdge_lower)/float(n_bins_y)
 
     Hist_Profile_Theta2 = ROOT.TH1D("Hist_Profile_Theta2","",n_bins_1d,0,integration_range)
     for br in range(0,Hist_Profile_Theta2.GetNbinsX()):
@@ -503,6 +518,7 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
         slice_data = 0.
         slice_data_err = 0.
         slice_syst_err = 0.
+        solid_angle = 0.
         for bx in range(0,Hist_Data_input.GetNbinsX()):
             for by in range(0,Hist_Data_input.GetNbinsY()):
                 cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
@@ -514,13 +530,17 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
                 if Hist_Syst_input!=None:
                     syst_error = Hist_Syst_input.GetBinContent(bx+1,by+1)
                 if distance_sq>=pow(range_limit_previous,2) and distance_sq<pow(range_limit,2):
-                    slice_data += data_content
-                    slice_data_err += data_error*data_error
-                    slice_syst_err += syst_error
-        slice_data_err = pow(slice_data_err,0.5)
-        if slice_data==0.: 
+                    if not data_content==0.:
+                        slice_data += data_content
+                        slice_data_err += data_error*data_error
+                        slice_syst_err += syst_error
+                        solid_angle += cell_size
+        if solid_angle==0.: 
             slice_data = 0.
             slice_data_err = 0.
+        else:
+            slice_data = slice_data/solid_angle
+            slice_data_err = pow(slice_data_err,0.5)/solid_angle
         Hist_Profile_Theta2.SetBinContent(br+1,slice_data)
         Hist_Profile_Theta2.SetBinError(br+1,pow(slice_data_err*slice_data_err+slice_syst_err*slice_syst_err,0.5))
 
@@ -533,11 +553,8 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
         center = Hist_Profile_Theta2.GetBinCenter(binx+1)
         range_limit = Hist_Profile_Theta2.GetBinLowEdge(binx+2)
         range_limit_previous = Hist_Profile_Theta2.GetBinLowEdge(binx+1)
-        #solid_angle = 3.14*(range_limit*range_limit-range_limit_previous*range_limit_previous)
-        solid_angle = 2.*3.14*center*(range_limit-range_limit_previous)
-        profile_content = Hist_Profile_Theta2.GetBinContent(binx+1)/solid_angle
-        #profile_content = max(0.,profile_content)
-        profile_error = Hist_Profile_Theta2.GetBinError(binx+1)/solid_angle
+        profile_content = Hist_Profile_Theta2.GetBinContent(binx+1)
+        profile_error = Hist_Profile_Theta2.GetBinError(binx+1)
         if center>integration_range: continue
         theta2 += [center]
         theta2_err += [range_limit-range_limit_previous]

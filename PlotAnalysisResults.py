@@ -251,6 +251,18 @@ if '1ES0647' in sys.argv[1]:
 if 'SNR_G150p3Plus04p5' in sys.argv[1]:
     observation_name = 'SNR_G150p3Plus04p5'
     data_epoch = ['SNR_G150p3Plus04p5_V6']
+if 'GalaticPlane_Q0' in sys.argv[1]:
+    observation_name = 'GalaticPlane_Q0'
+    data_epoch = ['GalaticPlane_Q0_V6']
+if 'GalaticPlane_Q1' in sys.argv[1]:
+    observation_name = 'GalaticPlane_Q1'
+    data_epoch = ['GalaticPlane_Q1_V6']
+if 'GalaticPlane_Q2' in sys.argv[1]:
+    observation_name = 'GalaticPlane_Q2'
+    data_epoch = ['GalaticPlane_Q2_V6']
+if 'GalaticPlane_Q3' in sys.argv[1]:
+    observation_name = 'GalaticPlane_Q3'
+    data_epoch = ['GalaticPlane_Q3_V6']
 
 PrepreSample()
 
