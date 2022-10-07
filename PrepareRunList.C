@@ -1191,10 +1191,29 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
             continue;
         }
         double L3_rate = GetRunL3Rate(Data_runlist[run].second);
-        if (L3_rate<150.)
+        if (!RHVData)
         {
-            std::cout << int(Data_runlist[run].second) << " L3 rate rejected." << std::endl;
+            if (L3_rate<150.)
+            {
+                std::cout << int(Data_runlist[run].second) << " L3 rate rejected." << std::endl;
+                continue;
+            }
+        }
+        if (NSB_thisrun>7.0)
+        {
+            std::cout << int(Data_runlist[run].second) << " NSB rejected." << std::endl;
             continue;
+        }
+        if (UseGalacticCoord)
+        {
+            std::pair<double,double> on_run_RA_Dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+            pair<double,double> run_galactic_coords =  ConvertRaDecToGalactic(on_run_RA_Dec.first,on_run_RA_Dec.second);
+            pair<double,double> mean_galactic_coords =  ConvertRaDecToGalactic(source_ra_dec.first,source_ra_dec.second);
+            if (abs(run_galactic_coords.first-mean_galactic_coords.first)>22.5+2.)
+            {
+                std::cout << int(Data_runlist[run].second) << " gal. coord. rejected." << std::endl;
+                continue;
+            }
         }
 
         new_list.push_back(Data_runlist[run].second);
@@ -1239,10 +1258,13 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
             continue;
         }
         double L3_rate = GetRunL3Rate(OFF_runlist_input[off_run].second);
-        if (L3_rate<150.)
+        if (!RHVData)
         {
-            //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " L3 rate rejected." << std::endl;
-            continue;
+            if (L3_rate<150.)
+            {
+                //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " L3 rate rejected." << std::endl;
+                continue;
+            }
         }
         std::pair<double,double> off_run_RA_Dec = GetRunRaDec(OFF_filename,int(OFF_runlist_input[off_run].second));
         double delta_ra = source_ra_dec.first-off_run_RA_Dec.first;
@@ -1476,14 +1498,33 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
         }
         if (!MJDSelection(filename,int(Data_runlist[run].second))) 
         {
-            //std::cout << int(Data_runlist[run].second) << " MJD rejected." << std::endl;
+            std::cout << int(Data_runlist[run].second) << " MJD rejected." << std::endl;
             continue;
         }
         double L3_rate = GetRunL3Rate(Data_runlist[run].second);
-        if (L3_rate<150.)
+        if (!RHVData)
         {
-            std::cout << int(Data_runlist[run].second) << " L3 rate rejected." << std::endl;
+            if (L3_rate<150.)
+            {
+                std::cout << int(Data_runlist[run].second) << " L3 rate rejected." << std::endl;
+                continue;
+            }
+        }
+        if (NSB_thisrun>7.0)
+        {
+            std::cout << int(Data_runlist[run].second) << " NSB rejected." << std::endl;
             continue;
+        }
+        if (UseGalacticCoord)
+        {
+            std::pair<double,double> on_run_RA_Dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+            pair<double,double> run_galactic_coords =  ConvertRaDecToGalactic(on_run_RA_Dec.first,on_run_RA_Dec.second);
+            pair<double,double> mean_galactic_coords =  ConvertRaDecToGalactic(source_ra_dec.first,source_ra_dec.second);
+            if (abs(run_galactic_coords.first-mean_galactic_coords.first)>22.5+2.)
+            {
+                std::cout << int(Data_runlist[run].second) << " gal. coord. rejected." << std::endl;
+                continue;
+            }
         }
 
         new_list.push_back(Data_runlist[run].second);
@@ -1528,10 +1569,13 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
             continue;
         }
         double L3_rate = GetRunL3Rate(OFF_runlist_input[off_run].second);
-        if (L3_rate<150.)
+        if (!RHVData)
         {
-            //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " L3 rate rejected." << std::endl;
-            continue;
+            if (L3_rate<150.)
+            {
+                //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " L3 rate rejected." << std::endl;
+                continue;
+            }
         }
         std::pair<double,double> off_run_RA_Dec = GetRunRaDec(OFF_filename,int(OFF_runlist_input[off_run].second));
         double delta_ra = source_ra_dec.first-off_run_RA_Dec.first;
@@ -1773,7 +1817,10 @@ vector<std::pair<string,int>> GetDBRunList(string epoch, double elev_low, double
                 double exposure_minute = GetRunUsableTime("",runnumber)/60.;
                 if (exposure_minute<10.) qualified = false;
                 double L3_rate = GetRunL3Rate(runnumber);
-                if (L3_rate<150.) qualified = false;
+                if (!RHVData)
+                {
+                    if (L3_rate<150.) qualified = false;
+                }
                 if (TelElevation_avg<elev_low-5.) qualified = false;
                 if (TelElevation_avg>elev_up+5.) qualified = false;
                 if (Tel0Fir_avg>0.3) qualified = false;
