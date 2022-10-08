@@ -47,6 +47,8 @@ gamma_hadron_dim_ratio_l = CommonPlotFunctions.gamma_hadron_dim_ratio_l
 gamma_hadron_low_end = CommonPlotFunctions.gamma_hadron_low_end
 MSCW_blind_cut = CommonPlotFunctions.MSCW_blind_cut
 MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
+Skymap_nzones_x = CommonPlotFunctions.Skymap_nzones_x
+Skymap_nzones_y = CommonPlotFunctions.Skymap_nzones_y
 
 method_tag = 'tight_mdm_default'
 
@@ -251,100 +253,20 @@ if '1ES0647' in sys.argv[1]:
 if 'SNR_G150p3Plus04p5' in sys.argv[1]:
     observation_name = 'SNR_G150p3Plus04p5'
     data_epoch = ['SNR_G150p3Plus04p5_V6']
-if 'GalaticPlane_Q0' in sys.argv[1]:
-    observation_name = 'GalaticPlane_Q0'
-    data_epoch = ['GalaticPlane_Q0_V6']
-if 'GalaticPlane_Q1' in sys.argv[1]:
-    observation_name = 'GalaticPlane_Q1'
-    data_epoch = ['GalaticPlane_Q1_V6']
-if 'GalaticPlane_Q2' in sys.argv[1]:
-    observation_name = 'GalaticPlane_Q2'
-    data_epoch = ['GalaticPlane_Q2_V6']
-if 'GalaticPlane_Q3' in sys.argv[1]:
-    observation_name = 'GalaticPlane_Q3'
-    data_epoch = ['GalaticPlane_Q3_V6']
+if 'V_V725_Tau' in sys.argv[1]:
+    observation_name = 'V_V725_Tau'
+    data_epoch = ['V_V725_Tau_V6']
+if 'GalacticPlane_All_l30' in sys.argv[1]:
+    observation_name = 'GalacticPlane_All_l30'
+    data_epoch = ['GalacticPlane_All_l30_V6']
+if 'GalacticPlane_All_l190' in sys.argv[1]:
+    observation_name = 'GalacticPlane_All_l190'
+    data_epoch = ['GalacticPlane_All_l190_V6']
+if 'GalacticPlane_DAR_l190' in sys.argv[1]:
+    observation_name = 'GalacticPlane_DAR_l190'
+    data_epoch = ['GalacticPlane_DAR_l190_V6']
 
 PrepreSample()
-
-
-if sys.argv[1]=='Perseus_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['Perseus_V6_ON']
-
-if sys.argv[1]=='SS433_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['SS433_V6_ON']
-    sample_list += ['SS433_V5_ON']
-    sample_list += ['SS433_V4_ON']
-    
-if sys.argv[1]=='SS433Half1_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['SS433Half1_V6_ON']
-    sample_list += ['SS433Half1_V5_ON']
-    sample_list += ['SS433Half1_V4_ON']
-    
-if sys.argv[1]=='SS433Half2_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['SS433Half2_V6_ON']
-    sample_list += ['SS433Half2_V5_ON']
-    sample_list += ['SS433Half2_V4_ON']
-    
-if sys.argv[1]=='MAGIC_J1857_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['MAGIC_J1857_V6_ON']
-    sample_list += ['MAGIC_J1857_V5_ON']
-    #sample_list += ['MAGIC_J1857_V4_ON']
-    # this is a Tevatron, largely extended at 400 GeV
-    
-if sys.argv[1]=='MGRO_J2031_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['MGRO_J2031_V6_ON']
-    sample_list += ['MGRO_J2031_V5_ON']
-    sample_list += ['MGRO_J2031_V4_ON']
-    # this is a Tevatron with time-variable morphology
-    
-if sys.argv[1]=='Cygnus_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['CygnusV6_ON']
-    sample_list += ['CygnusV5_ON']
-    # this is a Tevatron
-    
-if sys.argv[1]=='GammaCygni_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    #sample_list += ['GammaCygniV4_ON']
-    sample_list += ['GammaCygniV5_ON']
-    sample_list += ['GammaCygniV6_ON']
-    # this is a Tevatron
-    
-if sys.argv[1]=='Geminga_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['GemingaV6_ON']
-    sample_list += ['GemingaV5_ON']
-    
-if sys.argv[1]=='Coma_ON':
-    ONOFF_tag = 'ON'
-    ONOFF_tag += '_Model0'
-    sample_list = []
-    sample_list += ['ComaV6_ON']
-    #sample_list += ['ComaV4_ON']
 
 root_file_tags = []
 
@@ -799,8 +721,7 @@ def GetSourceInfo(file_list):
             source_dec = InfoTree.mean_tele_point_b
         source_l = InfoTree.mean_tele_point_l
         source_b = InfoTree.mean_tele_point_b
-        if '_X0_Y0' in file_list[path]:
-            exposure_hours += InfoTree.exposure_hours_usable
+        exposure_hours += InfoTree.exposure_hours_usable
         MJD_Start = min(InfoTree.MJD_Start,MJD_Start)
         MJD_End = max(InfoTree.MJD_End,MJD_End)
         print ('len(roi_ra) = %s'%(len(roi_ra)))
@@ -6924,19 +6845,19 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
     for source in range(0,len(source_list)):
         source_name = source_list[source]
         for elev in range(0,len(root_file_tags)):
-            file_exists = True
-            n_groups = 0
-            while file_exists:
-                SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,0,0)+".root"
-                print ('Read file: %s'%(SourceFilePath))
-                if os.path.exists(SourceFilePath):
-                    n_groups += 1
-                    print ('file exists.')
-                else:
-                    file_exists = False
-                    print ('file does not exist.')
-            for x_idx in range(0,Skymap_normalization_nbins):
-                for y_idx in range(0,Skymap_normalization_nbins):
+            for x_idx in range(0,Skymap_nzones_x):
+                for y_idx in range(0,Skymap_nzones_y):
+                    n_groups = 0
+                    file_exists = True
+                    while file_exists:
+                        SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,x_idx,y_idx)+".root"
+                        print ('Read file: %s'%(SourceFilePath))
+                        if os.path.exists(SourceFilePath):
+                            n_groups += 1
+                            print ('file exists.')
+                        else:
+                            file_exists = False
+                            print ('file does not exist.')
                     for g_idx in range(0,n_groups):
                         FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
                         GetBrightStarInfo(FilePath)
@@ -7151,23 +7072,27 @@ source_ra = 0.
 source_dec = 0.
 source_l = 0.
 source_b = 0.
+print ('len(sample_list) = %s'%(len(sample_list)))
+print ('len(root_file_tags) = %s'%(len(root_file_tags)))
+print ('Skymap_nzones_x = %s'%(Skymap_nzones_x))
+print ('Skymap_nzones_y = %s'%(Skymap_nzones_y))
 for source in range(0,len(sample_list)):
     source_idx = FindSourceIndex(sample_list[source])
     FilePath_Folder = []
     for elev in range(0,len(root_file_tags)):
-        file_exists = True
-        n_groups = 0
-        while file_exists:
-            SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,0,0)+".root"
-            print ('Read file: %s'%(SourceFilePath))
-            if os.path.exists(SourceFilePath):
-                n_groups += 1
-                print ('file exists.')
-            else:
-                file_exists = False
-                print ('file does not exist.')
-        for x_idx in range(0,Skymap_normalization_nbins):
-            for y_idx in range(0,Skymap_normalization_nbins):
+        for x_idx in range(0,Skymap_nzones_x):
+            for y_idx in range(0,Skymap_nzones_y):
+                n_groups = 0
+                file_exists = True
+                while file_exists:
+                    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,x_idx,y_idx)+".root"
+                    print ('Read file: %s'%(SourceFilePath))
+                    if os.path.exists(SourceFilePath):
+                        n_groups += 1
+                        print ('file exists.')
+                    else:
+                        file_exists = False
+                        print ('file does not exist.')
                 for g_idx in range(0,n_groups):
                     SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
                     FilePath_Folder += [SourceFilePath]

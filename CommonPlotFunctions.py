@@ -22,6 +22,7 @@ from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 
 folder_path = 'output_test'
+#folder_path = 'output_nominal'
 #folder_path = 'output_2hrs'
 #folder_path = 'output_5hrs'
 #folder_path = 'output_10hrs'
@@ -32,7 +33,6 @@ folder_path = 'output_test'
 #folder_path = 'output_FreeNSB'
 #folder_path = 'output_FreeAzim'
 #folder_path = 'output_FreeElev'
-#folder_path = 'output_radialcorrect'
 
 #N_bins_for_deconv = 4
 #N_bins_for_deconv = 8
@@ -56,29 +56,33 @@ smooth_size_spectroscopy = 0.1
 Smoothing = False
 
 additional_tag = ''
-#additional_tag = '_DD'
 
 #UseEffectiveArea = True
+#additional_tag = ''
 UseEffectiveArea = False
+additional_tag = '_DD'
 
 calibration_radius = 0.3 # need to be larger than the PSF and smaller than the integration radius
 
 #energy_index_scale = 0
 energy_index_scale = 2
 
-#doGalacticCoord = True
-doGalacticCoord = False
+doGalacticCoord = True
+#doGalacticCoord = False
 
+Skymap_nzones_x = 1
+Skymap_nzones_y = 1
+Skymap_size_x = 2.
+Skymap_nbins_x = 45
+Skymap_size_y = 2.
+Skymap_nbins_y = 45
 if doGalacticCoord:
-    Skymap_size_x = 22.5
-    Skymap_nbins_x = 45
+    Skymap_nzones_x = 6
+    Skymap_nzones_y = 3
+    Skymap_size_x = 10.
+    Skymap_nbins_x = 40
     Skymap_size_y = 5.
-    Skymap_nbins_y = 10
-else:
-    Skymap_size_x = 2.
-    Skymap_nbins_x = 45
-    Skymap_size_y = 2.
-    Skymap_nbins_y = 45
+    Skymap_nbins_y = 20
 #Skymap_nbins = 15 
 #Skymap_nbins = 9 # Crab calibration 
 #Skymap_nbins = 5
@@ -726,6 +730,9 @@ def GetGammaSourceInfo():
 
     other_stars = []
     other_star_coord = []
+    near_source_cut = 0.3
+    if doGalacticCoord:
+        near_source_cut = 1.0
     if 'MGRO_J1908' in sys.argv[1]:
         inputFile = open('J1908_sources_RaDec_w_Names.txt')
         #inputFile = open('TeVCat_RaDec_w_Names.txt')
@@ -733,6 +740,8 @@ def GetGammaSourceInfo():
             gamma_source_name = line.split(',')[0]
             gamma_source_ra = float(line.split(',')[1])
             gamma_source_dec = float(line.split(',')[2])
+            if doGalacticCoord:
+                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
             near_a_source = False
             for entry in range(0,len(other_stars)):
                 distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
@@ -748,10 +757,12 @@ def GetGammaSourceInfo():
             gamma_source_name = line.split(',')[0]
             gamma_source_ra = float(line.split(',')[1])
             gamma_source_dec = float(line.split(',')[2])
+            if doGalacticCoord:
+                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
             near_a_source = False
             for entry in range(0,len(other_stars)):
                 distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-                if distance<0.3*0.3:
+                if distance<near_source_cut*near_source_cut:
                     near_a_source = True
             if not near_a_source and not '%' in gamma_source_name:
                 other_stars += [gamma_source_name]
@@ -761,10 +772,12 @@ def GetGammaSourceInfo():
             gamma_source_name = line.split(',')[0]
             gamma_source_ra = float(line.split(',')[1])
             gamma_source_dec = float(line.split(',')[2])
+            if doGalacticCoord:
+                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
             near_a_source = False
             for entry in range(0,len(other_stars)):
                 distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-                if distance<0.3*0.3:
+                if distance<near_source_cut*near_source_cut:
                     near_a_source = True
             if not near_a_source and not '%' in gamma_source_name:
                 other_stars += [gamma_source_name]
@@ -947,6 +960,8 @@ def MatplotlibMultiMaps(hist_maps,fig,label_x,label_y,label_z,plotname):
     other_star_labels = []
     other_star_markers = []
     star_range = 2.0
+    if doGalacticCoord:
+        star_range = 10.0
     source_ra = (MapEdge_left+MapEdge_right)/2.
     source_dec = (MapEdge_lower+MapEdge_upper)/2.
     for star in range(0,len(other_stars)):
@@ -1125,17 +1140,20 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
                 if label_z!='Z score' and max_z_contour>0.:
                     grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)*max_z/max_z_contour
     other_stars, other_star_coord = GetGammaSourceInfo() 
-    if isGalactic:
-        for star in range(0,len(other_stars)):
-            other_star_coord[star][0], other_star_coord[star][1] = ConvertRaDecToGalactic(other_star_coord[star][0], other_star_coord[star][1]) 
 
     other_star_labels = []
     other_star_markers = []
     star_range = 2.0
+    if doGalacticCoord:
+        star_range = 10.0
     source_ra = (MapEdge_left+MapEdge_right)/2.
     source_dec = (MapEdge_lower+MapEdge_upper)/2.
     for star in range(0,len(other_stars)):
-        if pow(source_ra+other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
+        if doGalacticCoord:
+            if abs(source_ra+other_star_coord[star][0])>star_range: continue
+            if abs(source_dec-other_star_coord[star][1])>0.5*star_range: continue
+        else:
+            if pow(source_ra+other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
         #if '#' in other_stars[star]: continue
         other_star_markers += [[-other_star_coord[star][0],other_star_coord[star][1]]]
         other_star_labels += ['%s'%(other_stars[star])]
@@ -1159,18 +1177,14 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     #cbar = fig.colorbar(im,orientation="horizontal")
     cbar = fig.colorbar(im)
     cbar.set_label(label_z)
+    for star in range(0,len(other_star_markers)):
+        axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], c='k', marker='+', label=other_star_labels[star])
+        text_offset_x = 0.
+        text_offset_y = 0.
+        text_length = len(other_star_labels[star])/10.
+        text_offset_x = 0.1
+        plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k', rotation = rotation_angle)
     if not doGalacticCoord:
-        for star in range(0,len(other_star_markers)):
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], c='k', marker='+', label=other_star_labels[star])
-            text_offset_x = 0.
-            text_offset_y = 0.
-            text_length = len(other_star_labels[star])/10.
-            text_offset_x = 0.1
-            #if source_ra+other_star_coord[star][0]>0.:
-            #    text_offset_x = -text_length
-            #else: 
-            #    text_offset_x = 0.1
-            plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k', rotation = rotation_angle)
         if roi_r>0.:
             mycircle = plt.Circle((-roi_x, roi_y), roi_r, color='b', fill=False)
             axbig.add_patch(mycircle)
