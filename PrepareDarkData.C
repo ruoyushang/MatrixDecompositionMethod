@@ -102,10 +102,6 @@ double exposure_hours_usable = 0.;
 double exposure_hours_ref = 0.;
 int MJD_Start = 2147483647;
 int MJD_End = 0;
-double map_x_bin_upper = 0.;
-double map_x_bin_lower = 0.;
-double map_y_bin_upper = 0.;
-double map_y_bin_lower = 0.;
 
 int n_expect_matches = 0;
 int n_good_matches = 0;
@@ -335,10 +331,6 @@ bool FoV(bool doImposter) {
     {
         if (abs(x)>Skymap_size_x) return false;
         if (abs(y)>Skymap_size_y) return false;
-        if (x<map_x_bin_lower) return false;
-        if (x>map_x_bin_upper) return false;
-        if (y<map_y_bin_lower) return false;
-        if (y>map_y_bin_upper) return false;
     }
     else
     {
@@ -348,10 +340,6 @@ bool FoV(bool doImposter) {
         double gal_y = evt_l_b.second-map_l_b.second;
         if (abs(gal_x)>Skymap_size_x) return false;
         if (abs(gal_y)>Skymap_size_y) return false;
-        if (gal_x<map_x_bin_lower) return false;
-        if (gal_x>map_x_bin_upper) return false;
-        if (gal_y<map_y_bin_lower) return false;
-        if (gal_y>map_y_bin_upper) return false;
     }
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     if (doImposter)
@@ -1588,10 +1576,6 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     sprintf(group_tag, "_G%d", group_index);
     sprintf(map_x_tag, "_X%d", map_x_index);
     sprintf(map_y_tag, "_Y%d", map_y_index);
-    map_x_bin_upper = double(map_x_index+1)*2.0*Skymap_size_x/double(Skymap_normalization_nbins)-Skymap_size_x;
-    map_x_bin_lower = double(map_x_index)*2.0*Skymap_size_x/double(Skymap_normalization_nbins)-Skymap_size_x;
-    map_y_bin_upper = double(map_y_index+1)*2.0*Skymap_size_y/double(Skymap_normalization_nbins)-Skymap_size_y;
-    map_y_bin_lower = double(map_y_index)*2.0*Skymap_size_y/double(Skymap_normalization_nbins)-Skymap_size_y;
 
     roi_name.clear();
     roi_ra.clear();
@@ -2404,9 +2388,9 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
 
     std::cout << "Prepare dark run samples..." << std::endl;
-    std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root" << std::endl;
+    std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root" << std::endl;
 
-    TFile InputRunListFile(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root");
+    TFile InputRunListFile(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root");
     TTree* RunListTree_ptr = nullptr;
     RunListTree_ptr = (TTree*) InputRunListFile.Get("RunListTree_subgroup");
     RunListTree_ptr->SetBranchStatus("*", 0);
@@ -4406,36 +4390,40 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     sprintf(char_SignalStrength, "%i", GammaModel);
     ONOFF_tag += TString("_Model")+TString(char_SignalStrength);
 
-    bool file_exists = true;
-    int group_index = 0;
-    int n_groups = 0;
-    while (file_exists)
+    for (int x_idx=0;x_idx<Skymap_nzones_x;x_idx++)
     {
-        sprintf(group_tag, "_G%d", group_index);
-        std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root" << std::endl;
-        if (gSystem->AccessPathName(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root"))
+        for (int y_idx=0;y_idx<Skymap_nzones_y;y_idx++)
         {
-            std::cout << "file does not exist." << std::endl;
-            file_exists = false;
-        }
-        else
-        {
-            std::cout << "file exists." << std::endl;
-            n_groups += 1;
-        }
-        group_index += 1;
-    }
-    std::cout << "n_groups = " << n_groups << std::endl;
-
-    for (int g_idx=0;g_idx<n_groups;g_idx++)
-    {
-        std::cout << "===============================================================================" << std::endl;
-        std::cout << "Prepare sub-group " << g_idx+1 << "/" << n_groups << std::endl;
-        std::cout << "===============================================================================" << std::endl;
-        for (int x_idx=0;x_idx<Skymap_normalization_nbins;x_idx++)
-        {
-            for (int y_idx=0;y_idx<Skymap_normalization_nbins;y_idx++)
+            sprintf(map_x_tag, "_X%d", x_idx);
+            sprintf(map_y_tag, "_Y%d", y_idx);
+            bool file_exists = true;
+            int group_index = 0;
+            int n_groups = 0;
+            while (file_exists)
             {
+                sprintf(group_tag, "_G%d", group_index);
+                std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root" << std::endl;
+                if (gSystem->AccessPathName(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root"))
+                {
+                    std::cout << "file does not exist." << std::endl;
+                    file_exists = false;
+                }
+                else
+                {
+                    std::cout << "file exists." << std::endl;
+                    n_groups += 1;
+                }
+                group_index += 1;
+            }
+            std::cout << "n_groups = " << n_groups << std::endl;
+
+            for (int g_idx=0;g_idx<n_groups;g_idx++)
+            {
+                std::cout << "===============================================================================" << std::endl;
+                std::cout << "Prepare sub-group " << g_idx+1 << "/" << n_groups << std::endl;
+                std::cout << "x_idx " << x_idx << std::endl;
+                std::cout << "y_idx " << y_idx << std::endl;
+                std::cout << "===============================================================================" << std::endl;
                 PrepareDarkData_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, input_theta2_cut_lower, input_theta2_cut_upper, isON, doImposter, GammaModel, g_idx, x_idx, y_idx);
             }
         }

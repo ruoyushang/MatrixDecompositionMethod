@@ -3723,34 +3723,39 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     TelElev_upper = tel_elev_upper_input;
     sprintf(elev_cut_tag, "_TelElev%dto%d%s", int(TelElev_lower), int(TelElev_upper), Azim_region.c_str());
 
-    bool file_exists = true;
-    int group_index = 0;
-    int n_groups = 0;
-    while (file_exists)
+    for (int x_idx=0;x_idx<Skymap_nzones_x;x_idx++)
     {
-        sprintf(group_tag, "_G%d", group_index);
-        std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+"_X0_Y0"+".root" << std::endl;
-        if (gSystem->AccessPathName(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+"_X0_Y0"+".root"))
+        for (int y_idx=0;y_idx<Skymap_nzones_y;y_idx++)
         {
-            std::cout << "file does not exist." << std::endl;
-            file_exists = false;
-        }
-        else
-        {
-            std::cout << "file exists." << std::endl;
-            n_groups += 1;
-        }
-        group_index += 1;
-    }
-    std::cout << "n_groups = " << n_groups << std::endl;
-
-
-    for (int g_idx=0;g_idx<n_groups;g_idx++)
-    {
-        for (int x_idx=0;x_idx<Skymap_normalization_nbins;x_idx++)
-        {
-            for (int y_idx=0;y_idx<Skymap_normalization_nbins;y_idx++)
+            bool file_exists = true;
+            int group_index = 0;
+            int n_groups = 0;
+            while (file_exists)
             {
+                sprintf(group_tag, "_G%d", group_index);
+                std::cout << "Reading file " << TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+"_X"+x_idx+"_Y"+y_idx+".root" << std::endl;
+                if (gSystem->AccessPathName(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+"_X"+x_idx+"_Y"+y_idx+".root"))
+                {
+                    std::cout << "file does not exist." << std::endl;
+                    file_exists = false;
+                }
+                else
+                {
+                    std::cout << "file exists." << std::endl;
+                    n_groups += 1;
+                }
+                group_index += 1;
+            }
+            std::cout << "n_groups = " << n_groups << std::endl;
+
+
+            for (int g_idx=0;g_idx<n_groups;g_idx++)
+            {
+                std::cout << "===============================================================================" << std::endl;
+                std::cout << "Prepare sub-group " << g_idx+1 << "/" << n_groups << std::endl;
+                std::cout << "x_idx " << x_idx << std::endl;
+                std::cout << "y_idx " << y_idx << std::endl;
+                std::cout << "===============================================================================" << std::endl;
                 MakePrediction_SubGroup(target_data, tel_elev_lower_input, tel_elev_upper_input, input_theta2_cut_lower, input_theta2_cut_upper, isON, GammaModel, g_idx, x_idx, y_idx);
             }
         }

@@ -50,6 +50,8 @@ char elev_cut_tag[50] = "";
 char theta2_cut_tag[50] = "";
 char mjd_cut_tag[50] = "";
 char group_tag[50] = "";
+char map_x_tag[50] = "";
+char map_y_tag[50] = "";
 double SizeSecondMax_Cut = 0.;
 
 // EventDisplay variables
@@ -96,6 +98,8 @@ int MJD_End = 0;
 
 int n_expect_matches = 0;
 int n_good_matches = 0;
+double map_center_x = 0.;
+double map_center_y = 0.;
 double mean_tele_point_ra = 0.;
 double mean_tele_point_dec = 0.;
 double mean_tele_point_l = 0.;
@@ -1877,6 +1881,19 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     MSCL_cut_blind = MSCL_cut_moderate;
 
     pair<double,double> source_ra_dec = GetSourceRaDec(TString(target));
+    mean_tele_point_ra = source_ra_dec.first;
+    mean_tele_point_dec = source_ra_dec.second;
+    pair<double,double> mean_tele_point_l_b = ConvertRaDecToGalactic(mean_tele_point_ra, mean_tele_point_dec);
+    mean_tele_point_l = mean_tele_point_l_b.first;
+    mean_tele_point_b = mean_tele_point_l_b.second;
+
+    map_center_x = mean_tele_point_ra;
+    map_center_y = mean_tele_point_dec;
+    if (UseGalacticCoord)
+    {
+        map_center_x = mean_tele_point_l;
+        map_center_y = mean_tele_point_b;
+    }
 
     TString ONOFF_tag;
     if (isON) 
@@ -1967,40 +1984,66 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     RunListTree_subgroup.Branch("OFF_exposure_hour","std::vector<double>",&OFF_exposure_hour);
     std::cout << __LINE__ << std::endl;
     std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
-    int group_index = 0;
-    double exposure_hour_limit = exposure_limit;
-    double exposure_hour_sum = 0.;
     int usable_runs = 0;
-    for (int on_run=0;on_run<RunListTree.GetEntries();on_run++)
+    double exposure_hour_limit = exposure_limit;
+    for (int x_idx=0;x_idx<Skymap_nzones_x;x_idx++)
     {
-        sprintf(group_tag, "_G%d", group_index);
-
-        RunListTree.GetEntry(on_run);
-        ON_runnumber = ON_runnumber_ptr;
-        ON_exposure_hour = ON_exposure_hour_ptr;
-        ON_pointing_RA = ON_pointing_RA_ptr;
-        ON_pointing_Dec = ON_pointing_Dec_ptr;
-        OFF_runnumber = *OFF_runnumber_ptr;
-        OFF_exposure_hour = *OFF_exposure_hour_ptr;
-        RunListTree_subgroup.Fill();
-
-        if (OFF_runnumber.at(0)!=0)
+        for (int y_idx=0;y_idx<Skymap_nzones_y;y_idx++)
         {
-            usable_runs += 1;
-        }
+            int group_index = 0;
+            double exposure_hour_sum = 0.;
+            for (int on_run=0;on_run<RunListTree.GetEntries();on_run++)
+            {
+                sprintf(group_tag, "_G%d", group_index);
+                sprintf(map_x_tag, "_X%d", x_idx);
+                sprintf(map_y_tag, "_Y%d", y_idx);
+                double map_x_bin_upper = double(x_idx+1)*2.0*Skymap_size_x/double(Skymap_nzones_x)-Skymap_size_x+map_center_x;
+                double map_x_bin_lower = double(x_idx)*2.0*Skymap_size_x/double(Skymap_nzones_x)-Skymap_size_x+map_center_x;
+                double map_y_bin_upper = double(y_idx+1)*2.0*Skymap_size_y/double(Skymap_nzones_y)-Skymap_size_y+map_center_y;
+                double map_y_bin_lower = double(y_idx)*2.0*Skymap_size_y/double(Skymap_nzones_y)-Skymap_size_y+map_center_y;
 
-        exposure_hour_sum += ON_exposure_hour;
-        
-        if (exposure_hour_sum>exposure_hour_limit || on_run==RunListTree.GetEntries()-1)
-        {
-            TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+".root","recreate");
-            RunListTree_subgroup.Write();
-            OutputFile.Close();
-            RunListTree_subgroup.Reset();
-            exposure_hour_sum = 0.;
-            group_index += 1;
-        }
+                RunListTree.GetEntry(on_run);
+                ON_runnumber = ON_runnumber_ptr;
+                ON_exposure_hour = ON_exposure_hour_ptr;
+                ON_pointing_RA = ON_pointing_RA_ptr;
+                ON_pointing_Dec = ON_pointing_Dec_ptr;
+                OFF_runnumber = *OFF_runnumber_ptr;
+                OFF_exposure_hour = *OFF_exposure_hour_ptr;
 
+                double run_pointing_x = ON_pointing_RA;
+                double run_pointing_y = ON_pointing_Dec;
+                pair<double,double> run_pointing_l_b = ConvertRaDecToGalactic(run_pointing_x,run_pointing_y);
+                if (UseGalacticCoord)
+                {
+                    run_pointing_x = run_pointing_l_b.first;
+                    run_pointing_y = run_pointing_l_b.second;
+                }
+                if (run_pointing_x>map_x_bin_upper) continue;
+                if (run_pointing_x<map_x_bin_lower) continue;
+                if (run_pointing_y>map_y_bin_upper) continue;
+                if (run_pointing_y<map_y_bin_lower) continue;
+
+                RunListTree_subgroup.Fill();
+
+                if (OFF_runnumber.at(0)!=0)
+                {
+                    usable_runs += 1;
+                }
+
+                exposure_hour_sum += ON_exposure_hour;
+                
+                if (exposure_hour_sum>exposure_hour_limit || on_run==RunListTree.GetEntries()-1)
+                {
+                    TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root","recreate");
+                    RunListTree_subgroup.Write();
+                    OutputFile.Close();
+                    RunListTree_subgroup.Reset();
+                    exposure_hour_sum = 0.;
+                    group_index += 1;
+                }
+
+            }
+        }
     }
 
     std::cout << "initial runs = " << Data_runlist_init.size() << std::endl;
