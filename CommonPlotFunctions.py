@@ -79,10 +79,10 @@ Skymap_nbins_y = 45
 if doGalacticCoord:
     Skymap_nzones_x = 6
     Skymap_nzones_y = 3
-    Skymap_size_x = 10.
-    Skymap_nbins_x = 40
-    Skymap_size_y = 5.
-    Skymap_nbins_y = 20
+    Skymap_size_x = 12.
+    Skymap_nbins_x = 90
+    Skymap_size_y = 6.
+    Skymap_nbins_y = 45
 #Skymap_nbins = 15 
 #Skymap_nbins = 9 # Crab calibration 
 #Skymap_nbins = 5
@@ -125,8 +125,12 @@ def reflectXaxis(hist):
 
 def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
 
+    #Hist_Smooth.Reset()
+    #Hist_Smooth.Add(Hist_Old)
+    #return
+
+    print('Smoothing %s'%(Hist_Old.GetName()))
     bin_size = Hist_Old.GetXaxis().GetBinCenter(2)-Hist_Old.GetXaxis().GetBinCenter(1)
-    #if bin_size>smooth_size or doGalacticCoord: 
     if bin_size>smooth_size: 
         Hist_Smooth.Reset()
         Hist_Smooth.Add(Hist_Old)
@@ -136,8 +140,11 @@ def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
     nbins_y = Hist_Old.GetNbinsY()
     MapEdge_left = Hist_Old.GetXaxis().GetBinLowEdge(1)
     MapEdge_right = Hist_Old.GetXaxis().GetBinLowEdge(Hist_Old.GetNbinsX()+1)
-    map_size = (MapEdge_right-MapEdge_left)/2.
-    Hist_Kernel = ROOT.TH2D("Hist_Kernel","",nbins_x,-map_size,map_size,nbins_y,-map_size,map_size)
+    MapEdge_lower = Hist_Old.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = Hist_Old.GetYaxis().GetBinLowEdge(Hist_Old.GetNbinsX()+1)
+    map_size_x = (MapEdge_right-MapEdge_left)/2.
+    map_size_y = (MapEdge_upper-MapEdge_lower)/2.
+    Hist_Kernel = ROOT.TH2D("Hist_Kernel","",nbins_x,-map_size_x,map_size_x,nbins_y,-map_size_y,map_size_y)
     Hist_Kernel.Reset()
     for bx1 in range(1,Hist_Old.GetNbinsX()+1):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
@@ -149,7 +156,8 @@ def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
     #print ('Hist_Kernel.Integral() = %s'%(Hist_Kernel.Integral()))
 
     nbin_smooth = int(2*smooth_size/bin_size) + 1
-    central_bin = int(nbins_x/2) + 1
+    central_bin_x = int(nbins_x/2) + 1
+    central_bin_y = int(nbins_y/2) + 1
     for bx1 in range(1,Hist_Old.GetNbinsX()+1):
         for by1 in range(1,Hist_Old.GetNbinsY()+1):
             old_content = Hist_Old.GetBinContent(bx1,by1)
@@ -166,11 +174,11 @@ def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
                         continue
                     if by2>Hist_Old.GetNbinsY(): 
                         continue
-                    bin_content += Hist_Kernel.GetBinContent(bx2-bx1+central_bin,by2-by1+central_bin)*Hist_Old.GetBinContent(bx2,by2)
+                    bin_content += Hist_Kernel.GetBinContent(bx2-bx1+central_bin_x,by2-by1+central_bin_y)*Hist_Old.GetBinContent(bx2,by2)
                     if not addLinearly:
-                        bin_error += Hist_Kernel.GetBinContent(bx2-bx1+central_bin,by2-by1+central_bin)*pow(Hist_Old.GetBinError(bx2,by2),2)
+                        bin_error += Hist_Kernel.GetBinContent(bx2-bx1+central_bin_x,by2-by1+central_bin_y)*pow(Hist_Old.GetBinError(bx2,by2),2)
                     else:
-                        bin_error += Hist_Kernel.GetBinContent(bx2-bx1+central_bin,by2-by1+central_bin)*Hist_Old.GetBinError(bx2,by2)
+                        bin_error += Hist_Kernel.GetBinContent(bx2-bx1+central_bin_x,by2-by1+central_bin_y)*Hist_Old.GetBinError(bx2,by2)
             Hist_Smooth.SetBinContent(bx1,by1,bin_content)
             if not addLinearly:
                 Hist_Smooth.SetBinError(bx1,by1,pow(bin_error,0.5))
@@ -182,6 +190,8 @@ def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
         #    for by1 in range(1,Hist_Smooth.GetNbinsY()+1):
         #        old_error = Hist_Old.GetBinError(bx1,by1)
         #        Hist_Smooth.SetBinError(bx1,by1,old_error)
+    print ('Hist_Old.Integral() = %s'%(Hist_Old.Integral()))
+    print ('Hist_Smooth.Integral() = %s'%(Hist_Smooth.Integral()))
 
 def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
 
@@ -961,7 +971,7 @@ def MatplotlibMultiMaps(hist_maps,fig,label_x,label_y,label_z,plotname):
     other_star_markers = []
     star_range = 2.0
     if doGalacticCoord:
-        star_range = 10.0
+        star_range = 12.0
     source_ra = (MapEdge_left+MapEdge_right)/2.
     source_dec = (MapEdge_lower+MapEdge_upper)/2.
     for star in range(0,len(other_stars)):
@@ -1145,7 +1155,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     other_star_markers = []
     star_range = 2.0
     if doGalacticCoord:
-        star_range = 10.0
+        star_range = 12.0
     source_ra = (MapEdge_left+MapEdge_right)/2.
     source_dec = (MapEdge_lower+MapEdge_upper)/2.
     for star in range(0,len(other_stars)):
@@ -1161,6 +1171,13 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     #print ('len(other_star_markers) = %s'%len(other_star_markers))
 
     fig.clf()
+    figsize_x = 8
+    figsize_y = 8
+    if doGalacticCoord:
+        figsize_x = 16
+        figsize_y = 8
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     axbig.set_xlabel(label_x)
     axbig.set_ylabel(label_y)
@@ -1199,6 +1216,11 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     #axbig.legend(fontsize=7)
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
     axbig.remove()
+
+    figsize_x = 6.4
+    figsize_y = 4.8
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
 
 def GetSkyViewMap(map_file, hist_map, isRaDec):
 

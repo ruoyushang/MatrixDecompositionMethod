@@ -3,6 +3,7 @@ import os
 import sys,ROOT
 import array
 import math
+import csv
 from array import *
 from ROOT import *
 from astropy import units as my_unit
@@ -20,6 +21,11 @@ from itertools import cycle
 import CommonPlotFunctions
 
 fig, ax = plt.subplots()
+figsize_x = 6.4
+figsize_y = 4.8
+fig.set_figheight(figsize_y)
+fig.set_figwidth(figsize_x)
+
 UseEffectiveArea = CommonPlotFunctions.UseEffectiveArea
 energy_index_scale = CommonPlotFunctions.energy_index_scale
 smooth_size = CommonPlotFunctions.smooth_size_spectroscopy
@@ -29,6 +35,9 @@ energy_bin_cut_up = int(sys.argv[3])
 doImposter = int(sys.argv[4])
 
 n_imposters = 5
+
+#target_max_dist_cut = 0.
+target_max_dist_cut = 3.
 
 correct_bias = True
 #correct_bias = False
@@ -555,6 +564,132 @@ def ConvertRaDecToGalacticMap(hist_map_radec,hist_map_galactic):
             content = hist_map_radec.GetBinContent(bx2,by2)
             hist_map_galactic.SetBinContent(bx1,by1,content)
     #return hist_map_galactic
+
+def HMS2deg(ra='', dec=''):
+    RA, DEC, rs, ds = '', '', 1, 1
+    if dec:
+        D, M, S = [float(i) for i in dec.split(':')]
+        if str(D)[0] == '-':
+            ds, D = -1, abs(D)
+        deg = D + (M/60) + (S/3600)
+        DEC = '{0}'.format(deg*ds)
+    if ra:
+        H, M, S = [float(i) for i in ra.split(':')]
+        if str(H)[0] == '-':
+            rs, H = -1, abs(H)
+        deg = (H*15) + (M/4) + (S/240)
+        RA = '{0}'.format(deg*rs)           
+    if ra and dec:
+        return (RA, DEC)
+    else:
+        return RA or DEC
+
+def ReadATNFTargetListFromFile(file_path):
+    source_name = []
+    source_ra = []
+    source_dec = []
+    source_dist = []
+    source_age = []
+    source_edot = []
+    inputFile = open(file_path)
+    for line in inputFile:
+        if line[0]=="#": continue
+        target_name = line.split(',')[0].strip(" ")
+        target_ra = line.split(',')[1].strip(" ")
+        target_dec = line.split(',')[2].strip(" ")
+        #print ('target_ra = %s'%(target_ra))
+        #print ('target_dec = %s'%(target_dec))
+        target_dist = float(line.split(',')[3].strip(" "))
+        target_age = float(line.split(',')[4].strip(" "))
+        target_edot = float(line.split(',')[5].strip(" "))
+        target_brightness = float(target_edot)/pow(float(target_dist),2)
+
+        if target_brightness<1e33 and target_edot<1e34: continue
+        if target_dist>target_max_dist_cut: continue
+        #if target_dist>2.0: continue
+        #if target_age<1e4: continue
+
+        #ra_deg = float(HMS2deg(target_ra,target_dec)[0])
+        #dec_deg = float(HMS2deg(target_ra,target_dec)[1])
+        #gal_l, gal_b = ConvertRaDecToGalactic(ra_deg,dec_deg)
+        #if abs(gal_b)<5.: continue
+
+        source_name += [target_name]
+        source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
+        source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
+        source_dist += [target_dist]
+        source_age += [target_age]
+        source_edot += [target_edot]
+    return source_name, source_ra, source_dec
+
+def ReadSNRTargetListFromCSVFile():
+    source_name = []
+    source_ra = []
+    source_dec = []
+    with open('SNRcat20221001-SNR.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+        for row in reader:
+            if len(row)==0: continue
+            if '#' in row[0]: continue
+            target_name = row[0]
+            target_min_dist = row[13]
+            if target_min_dist=='':
+                target_min_dist = '1000'
+            if float(target_min_dist)>target_max_dist_cut: continue
+            target_ra = row[19]
+            target_dec = row[20]
+            source_name += [target_name]
+            source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
+            source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
+            print('target_min_dist = %s'%(target_min_dist))
+            print('source_name = %s'%(source_name[len(source_name)-1]))
+            print('source_ra = %0.2f'%(source_ra[len(source_ra)-1]))
+            print('source_dec = %0.2f'%(source_dec[len(source_dec)-1]))
+            print(row)
+    return source_name, source_ra, source_dec
+
+def MaskKnownSources():
+
+    theta_cut_min = 0.3
+
+    target_name = []
+    target_ra = []
+    target_dec = []
+    target_psr_name, target_psr_ra, target_psr_dec = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+    target_name += target_psr_name
+    target_ra += target_psr_ra
+    target_dec += target_psr_dec
+    target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
+    target_name += target_snr_name
+    target_ra += target_snr_ra
+    target_dec += target_snr_dec
+
+    if CommonPlotFunctions.doGalacticCoord:
+        for src in range(0,len(target_name)):
+            target_ra[src], target_dec[src] = ConvertRaDecToGalactic(target_ra[src], target_dec[src])
+
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        for binx in range(0,hist_real_flux_skymap[ebin].GetNbinsX()):
+            for biny in range(0,hist_real_flux_skymap[ebin].GetNbinsY()):
+                bin_center_x = hist_real_flux_skymap[ebin].GetXaxis().GetBinCenter(binx+1)
+                bin_center_y = hist_real_flux_skymap[ebin].GetYaxis().GetBinCenter(biny+1)
+                for src in range(0,len(target_name)):
+                    dist_to_src_x = bin_center_x-target_ra[src]
+                    dist_to_src_y = bin_center_y-target_dec[src]
+                    dist_to_src = pow(dist_to_src_x*dist_to_src_x+dist_to_src_y*dist_to_src_y,0.5)
+                    if dist_to_src<theta_cut_min:
+                        hist_real_flux_skymap[ebin].SetBinContent(binx+1,biny+1,0.)
+                        hist_real_flux_skymap_smooth[ebin].SetBinContent(binx+1,biny+1,0.)
+                        hist_real_flux_skymap[ebin].SetBinError(binx+1,biny+1,0.)
+                        hist_real_flux_skymap_smooth[ebin].SetBinError(binx+1,biny+1,0.)
+                        hist_real_data_skymap[ebin].SetBinContent(binx+1,biny+1,0.)
+                        hist_real_data_skymap_smooth[ebin].SetBinContent(binx+1,biny+1,0.)
+                        hist_real_data_skymap[ebin].SetBinError(binx+1,biny+1,0.)
+                        hist_real_data_skymap_smooth[ebin].SetBinError(binx+1,biny+1,0.)
+                        hist_real_bkgd_skymap[ebin].SetBinContent(binx+1,biny+1,0.)
+                        hist_real_bkgd_skymap_smooth[ebin].SetBinContent(binx+1,biny+1,0.)
+                        hist_real_bkgd_skymap[ebin].SetBinError(binx+1,biny+1,0.)
+                        hist_real_bkgd_skymap_smooth[ebin].SetBinError(binx+1,biny+1,0.)
 
 def CleanFluxMapNoise():
 
@@ -1254,11 +1389,11 @@ def MakeGalacticProfile():
     norm_allE = []
     norm_err_allE = []
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_real_flux_skymap[ebin],hist_real_flux_syst_skymap[ebin])
+        real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_real_flux_skymap_smooth[ebin],hist_real_flux_syst_skymap[ebin])
         imposter_profile_list = []
         imposter_profile_err_list = []
         for imposter in range(0,n_imposters):
-            imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_imposter_flux_skymap[imposter][ebin],hist_real_flux_syst_skymap[ebin])
+            imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_imposter_flux_skymap_smooth[imposter][ebin],hist_real_flux_syst_skymap[ebin])
             imposter_profile_list += [imposter_profile]
             imposter_profile_err_list += [imposter_profile_stat_err]
 
@@ -1296,11 +1431,11 @@ def MakeGalacticProfile():
         fig.savefig("output_plots/%s_E%s_%s.png"%(plotname,ebin,plot_tag),bbox_inches='tight')
         axbig.remove()
 
-    real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_real_flux_skymap_sum,hist_real_flux_syst_skymap[0])
+    real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_real_flux_skymap_smooth_sum,hist_real_flux_syst_skymap[0])
     imposter_profile_list = []
     imposter_profile_err_list = []
     for imposter in range(0,n_imposters):
-        imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_imposter_flux_skymap_sum[imposter],hist_real_flux_syst_skymap[0])
+        imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_imposter_flux_skymap_smooth_sum[imposter],hist_real_flux_syst_skymap[0])
         imposter_profile_list += [imposter_profile]
         imposter_profile_err_list += [imposter_profile_stat_err]
 
@@ -1984,6 +2119,7 @@ else:
 
 MakeDiagnisticPlots()
 CleanFluxMapNoise()
+#MaskKnownSources()
 SumFluxMap()
 MakeSpectrum(region_x,region_y,region_r,region_name)
 MakeExtensionProfile(region_x,region_y,region_r,do_fit,region_name)
