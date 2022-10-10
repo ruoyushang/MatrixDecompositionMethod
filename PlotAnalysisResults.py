@@ -259,6 +259,9 @@ if 'V_V725_Tau' in sys.argv[1]:
 if 'GalacticPlane_All_l30' in sys.argv[1]:
     observation_name = 'GalacticPlane_All_l30'
     data_epoch = ['GalacticPlane_All_l30_V6']
+if 'GalacticPlane_All_l50' in sys.argv[1]:
+    observation_name = 'GalacticPlane_All_l50'
+    data_epoch = ['GalacticPlane_All_l50_V6']
 if 'GalacticPlane_All_l190' in sys.argv[1]:
     observation_name = 'GalacticPlane_All_l190'
     data_epoch = ['GalacticPlane_All_l190_V6']
@@ -427,9 +430,6 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
 
 def FindExtension(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range):
     return CommonPlotFunctions.FindExtension(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range)
-
-def FindGalacticProjection(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range):
-    return CommonPlotFunctions.FindGalacticProjection(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range)
 
 def EstimateLeptonicDiffusionCoefficient(photon_energy,mag_field,d_PSR,t_PSR,diff_coeff,diff_coeff_index):
     # photon_energy in GeV
@@ -4673,27 +4673,6 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
         fig.savefig("output_plots/%s_%s_E%sto%s.png"%(plotname,sys.argv[1],energy_bin_cut_low,energy_bin_cut_up),bbox_inches='tight')
         axbig.remove()
 
-        profile, profile_err, theta2 = FindGalacticProjection(hist_flux_skymap_sum,hist_flux_syst_skymap_sum,profile_center_x,profile_center_y,0.2)
-        fig.clf()
-        axbig = fig.add_subplot()
-        axbig.errorbar(theta2[0],profile[0],profile_err[0],color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
-        axbig.set_ylabel('flux [$\mathrm{TeV}^{%s}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}$]'%(-1+energy_index))
-        axbig.set_xlabel('galactic l. [degree]')
-        new_tick_locations = axbig.get_xticks()
-        axbig.legend(loc='best')
-        plotname = 'ProfileVsGal_l'
-        fig.savefig("output_plots/%s_%s_E%sto%s.png"%(plotname,sys.argv[1],energy_bin_cut_low,energy_bin_cut_up),bbox_inches='tight')
-        axbig.remove()
-        fig.clf()
-        axbig = fig.add_subplot()
-        axbig.errorbar(theta2[1],profile[1],profile_err[1],color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
-        axbig.set_ylabel('flux [$\mathrm{TeV}^{%s}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}$]'%(-1+energy_index))
-        axbig.set_xlabel('galactic b. [degree]')
-        new_tick_locations = axbig.get_xticks()
-        axbig.legend(loc='best')
-        plotname = 'ProfileVsGal_b'
-        fig.savefig("output_plots/%s_%s_E%sto%s.png"%(plotname,sys.argv[1],energy_bin_cut_low,energy_bin_cut_up),bbox_inches='tight')
-        axbig.remove()
 
         #if sys.argv[1]=='MGRO_J1908_ON':
         #    for bx in range(0,hist_flux_skymap_sum.GetNbinsX()):

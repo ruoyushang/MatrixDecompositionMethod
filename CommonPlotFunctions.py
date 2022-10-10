@@ -340,115 +340,6 @@ def ConvertRaDecToGalactic(ra, dec):
     l = (l_NCP-ROOT.TMath.ATan2(sin_l_NCP_m_l,cos_l_NCP_m_l))*180./ROOT.TMath.Pi()
     return l, b
 
-def FindGalacticProjection(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range):
-
-    global calibration_radius
-
-    roi_l, roi_b = ConvertRaDecToGalactic(roi_x,roi_y)
-
-    n_bins = 10
-    Hist_Profile_Gal_l = ROOT.TH1D("Hist_Profile_Gal_l","",n_bins,roi_l-2.,roi_l+2.)
-    n_bins = 10
-    Hist_Profile_Gal_b = ROOT.TH1D("Hist_Profile_Gal_b","",n_bins,roi_b-2.,roi_b+2.)
-
-    for br in range(0,Hist_Profile_Gal_l.GetNbinsX()):
-        range_limit = Hist_Profile_Gal_l.GetBinLowEdge(br+2)
-        range_limit_previous = Hist_Profile_Gal_l.GetBinLowEdge(br+1)
-        slice_data = 0.
-        slice_data_err = 0.
-        slice_syst_err = 0.
-        for bx in range(0,Hist_Data_input.GetNbinsX()):
-            for by in range(0,Hist_Data_input.GetNbinsY()):
-                cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
-                cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
-                cell_l, cell_b = ConvertRaDecToGalactic(cell_x,cell_y)
-                data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
-                data_error = Hist_Data_input.GetBinError(bx+1,by+1)
-                syst_error = 0.
-                if Hist_Syst_input!=None:
-                    syst_error = Hist_Syst_input.GetBinContent(bx+1,by+1)
-                cell_err = pow(syst_error*syst_error+data_error*data_error,0.5)
-                if cell_err>0.9: continue
-                delta_b = abs(cell_b-roi_b)
-                if delta_b>integration_range: continue
-                if cell_l>=range_limit_previous and cell_l<range_limit:
-                    slice_data += data_content
-                    slice_data_err += data_error*data_error
-                    slice_syst_err += syst_error
-        slice_data_err = pow(slice_data_err,0.5)
-        if slice_data==0.: slice_data_err = 1.
-        Hist_Profile_Gal_l.SetBinContent(br+1,slice_data)
-        Hist_Profile_Gal_l.SetBinError(br+1,pow(slice_data_err*slice_data_err+slice_syst_err*slice_syst_err,0.5))
-
-    for br in range(0,Hist_Profile_Gal_b.GetNbinsX()):
-        range_limit = Hist_Profile_Gal_b.GetBinLowEdge(br+2)
-        range_limit_previous = Hist_Profile_Gal_b.GetBinLowEdge(br+1)
-        slice_data = 0.
-        slice_data_err = 0.
-        slice_syst_err = 0.
-        for bx in range(0,Hist_Data_input.GetNbinsX()):
-            for by in range(0,Hist_Data_input.GetNbinsY()):
-                cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
-                cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
-                cell_l, cell_b = ConvertRaDecToGalactic(cell_x,cell_y)
-                data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
-                data_error = Hist_Data_input.GetBinError(bx+1,by+1)
-                syst_error = 0.
-                if Hist_Syst_input!=None:
-                    syst_error = Hist_Syst_input.GetBinContent(bx+1,by+1)
-                cell_err = pow(syst_error*syst_error+data_error*data_error,0.5)
-                if cell_err>0.9: continue
-                delta_l = abs(cell_l-roi_l)
-                if delta_l>integration_range: continue
-                if cell_b>=range_limit_previous and cell_b<range_limit:
-                    slice_data += data_content
-                    slice_data_err += data_error*data_error
-                    slice_syst_err += syst_error
-        slice_data_err = pow(slice_data_err,0.5)
-        if slice_data==0.: slice_data_err = 1.
-        Hist_Profile_Gal_b.SetBinContent(br+1,slice_data)
-        Hist_Profile_Gal_b.SetBinError(br+1,pow(slice_data_err*slice_data_err+slice_syst_err*slice_syst_err,0.5))
-
-
-    profile_l = []
-    profile_err_l = []
-    theta2_l = []
-    for binx in range(0,Hist_Profile_Gal_l.GetNbinsX()):
-        center = Hist_Profile_Gal_l.GetBinCenter(binx+1)
-        range_limit = Hist_Profile_Gal_l.GetBinLowEdge(binx+2)
-        range_limit_previous = Hist_Profile_Gal_l.GetBinLowEdge(binx+1)
-        profile_content = Hist_Profile_Gal_l.GetBinContent(binx+1)
-        profile_error = Hist_Profile_Gal_l.GetBinError(binx+1)
-        if profile_error>0.9: continue
-        theta2_l += [center]
-        profile_l += [profile_content]
-        profile_err_l += [profile_error]
-    profile_b = []
-    profile_err_b = []
-    theta2_b = []
-    for binx in range(0,Hist_Profile_Gal_b.GetNbinsX()):
-        center = Hist_Profile_Gal_b.GetBinCenter(binx+1)
-        range_limit = Hist_Profile_Gal_b.GetBinLowEdge(binx+2)
-        range_limit_previous = Hist_Profile_Gal_b.GetBinLowEdge(binx+1)
-        profile_content = Hist_Profile_Gal_b.GetBinContent(binx+1)
-        profile_error = Hist_Profile_Gal_b.GetBinError(binx+1)
-        if profile_error>0.9: continue
-        theta2_b += [center]
-        profile_b += [profile_content]
-        profile_err_b += [profile_error]
-
-    profile = []
-    profile_err = []
-    theta2 = []
-    profile += [profile_l]
-    profile_err += [profile_err_l]
-    theta2 += [theta2_l]
-    profile += [profile_b]
-    profile_err += [profile_err_b]
-    theta2 += [theta2_b]
-
-    return profile, profile_err, theta2
-
 def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
 
     n_bins_y = Hist_Data_input.GetNbinsY()
@@ -460,36 +351,39 @@ def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
     cell_size = (MapEdge_right-MapEdge_left)/float(n_bins_x)*(MapEdge_upper-MapEdge_lower)/float(n_bins_y)
 
     Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",n_bins_y,MapEdge_lower,MapEdge_upper)
+    #Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",int(n_bins_y/3),MapEdge_lower/3.,MapEdge_upper/3.)
     for br in range(0,Hist_Profile_Y.GetNbinsX()):
         range_limit = Hist_Profile_Y.GetBinLowEdge(br+2)
         range_limit_previous = Hist_Profile_Y.GetBinLowEdge(br+1)
         slice_data = 0.
         slice_data_err = 0.
-        slice_syst_err = 0.
-        solid_angle = 0.
+        total_error_weight = 0.
+        total_cell_size = 0.
         for bx in range(0,Hist_Data_input.GetNbinsX()):
             for by in range(0,Hist_Data_input.GetNbinsY()):
                 cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
                 cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
+                #data_content = Hist_Data_input.GetBinContent(bx+1,by+1)/cell_size
+                #data_error = Hist_Data_input.GetBinError(bx+1,by+1)/cell_size
                 data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
                 data_error = Hist_Data_input.GetBinError(bx+1,by+1)
-                syst_error = 0.
-                if Hist_Syst_input!=None:
-                    syst_error = Hist_Syst_input.GetBinContent(bx+1,by+1)
                 if cell_y>=range_limit_previous and cell_y<range_limit:
-                    if not data_content==0.:
+                    if not data_error==0.:
+                        #error_weight = 1./(data_error*data_error)
+                        #slice_data += data_content*error_weight
+                        #total_error_weight += error_weight
+                        #slice_data_err += 1.
                         slice_data += data_content
                         slice_data_err += data_error*data_error
-                        slice_syst_err += syst_error
-                        solid_angle += cell_size
-        if solid_angle==0.: 
+                        total_cell_size += cell_size
+        if total_cell_size==0.: 
             slice_data = 0.
             slice_data_err = 0.
         else:
-            slice_data = slice_data/solid_angle
-            slice_data_err = pow(slice_data_err,0.5)/solid_angle
+            slice_data = slice_data/total_cell_size
+            slice_data_err = pow(slice_data_err,0.5)/total_cell_size
         Hist_Profile_Y.SetBinContent(br+1,slice_data)
-        Hist_Profile_Y.SetBinError(br+1,pow(slice_data_err*slice_data_err+slice_syst_err*slice_syst_err,0.5))
+        Hist_Profile_Y.SetBinError(br+1,slice_data_err)
 
     profile = []
     profile_err = []
@@ -499,8 +393,9 @@ def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
         center = Hist_Profile_Y.GetBinCenter(binx+1)
         range_limit = Hist_Profile_Y.GetBinLowEdge(binx+2)
         range_limit_previous = Hist_Profile_Y.GetBinLowEdge(binx+1)
-        profile_content = Hist_Profile_Y.GetBinContent(binx+1)
-        profile_error = Hist_Profile_Y.GetBinError(binx+1)
+        sr_to_deg2 = 3282.80635
+        profile_content = Hist_Profile_Y.GetBinContent(binx+1)*sr_to_deg2
+        profile_error = Hist_Profile_Y.GetBinError(binx+1)*sr_to_deg2
         theta2 += [center]
         theta2_err += [range_limit-range_limit_previous]
         profile += [profile_content]
@@ -531,32 +426,34 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
         range_limit_previous = Hist_Profile_Theta2.GetBinLowEdge(br+1)
         slice_data = 0.
         slice_data_err = 0.
-        slice_syst_err = 0.
-        solid_angle = 0.
+        total_error_weight = 0.
+        total_cell_size = 0.
         for bx in range(0,Hist_Data_input.GetNbinsX()):
             for by in range(0,Hist_Data_input.GetNbinsY()):
                 cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
                 cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
                 distance_sq = pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2)
+                #data_content = Hist_Data_input.GetBinContent(bx+1,by+1)/cell_size
+                #data_error = Hist_Data_input.GetBinError(bx+1,by+1)/cell_size
                 data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
                 data_error = Hist_Data_input.GetBinError(bx+1,by+1)
-                syst_error = 0.
-                if Hist_Syst_input!=None:
-                    syst_error = Hist_Syst_input.GetBinContent(bx+1,by+1)
                 if distance_sq>=pow(range_limit_previous,2) and distance_sq<pow(range_limit,2):
-                    if not data_content==0.:
+                    if not data_error==0.:
+                        #error_weight = 1./(data_error*data_error)
+                        #slice_data += data_content*error_weight
+                        #total_error_weight += error_weight
+                        #slice_data_err += 1.
                         slice_data += data_content
                         slice_data_err += data_error*data_error
-                        slice_syst_err += syst_error
-                        solid_angle += cell_size
-        if solid_angle==0.: 
+                        total_cell_size += cell_size
+        if total_cell_size==0.: 
             slice_data = 0.
             slice_data_err = 0.
         else:
-            slice_data = slice_data/solid_angle
-            slice_data_err = pow(slice_data_err,0.5)/solid_angle
+            slice_data = slice_data/total_cell_size
+            slice_data_err = pow(slice_data_err,0.5)/total_cell_size
         Hist_Profile_Theta2.SetBinContent(br+1,slice_data)
-        Hist_Profile_Theta2.SetBinError(br+1,pow(slice_data_err*slice_data_err+slice_syst_err*slice_syst_err,0.5))
+        Hist_Profile_Theta2.SetBinError(br+1,slice_data_err)
 
 
     profile = []

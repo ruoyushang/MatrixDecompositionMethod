@@ -36,8 +36,8 @@ doImposter = int(sys.argv[4])
 
 n_imposters = 5
 
-#target_max_dist_cut = 0.
-target_max_dist_cut = 3.
+#target_max_dist_cut = 3.
+target_max_dist_cut = 100.
 
 correct_bias = True
 #correct_bias = False
@@ -691,42 +691,47 @@ def MaskKnownSources():
                         hist_real_bkgd_skymap[ebin].SetBinError(binx+1,biny+1,0.)
                         hist_real_bkgd_skymap_smooth[ebin].SetBinError(binx+1,biny+1,0.)
 
-def CleanFluxMapNoise():
+def CleanFluxMapNoise(hist_skymap):
 
+    mean_flux_err = 0.
     mean_flux = 0.
     rms_flux = 0.
     local_flux = 0.
     local_flux_err = 0.
     used_bins = 0.
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        mean_flux_err = 0.
         mean_flux = 0.
         rms_flux = 0.
         used_bins = 0.
-        for binx in range(0,hist_real_flux_skymap[ebin].GetNbinsX()):
-            for biny in range(0,hist_real_flux_skymap[ebin].GetNbinsY()):
-                bin_content = hist_real_flux_skymap[ebin].GetBinContent(binx+1,biny+1)
+        for binx in range(0,hist_skymap[ebin].GetNbinsX()):
+            for biny in range(0,hist_skymap[ebin].GetNbinsY()):
+                bin_content = hist_skymap[ebin].GetBinContent(binx+1,biny+1)
+                bin_error = hist_skymap[ebin].GetBinError(binx+1,biny+1)
                 if bin_content!=0.:
                     used_bins += 1.
                     mean_flux += bin_content
+                    mean_flux_err += bin_error
         if used_bins>0.:
             mean_flux = mean_flux/used_bins
+            mean_flux_err = mean_flux_err/used_bins
         used_bins = 0.
-        for binx in range(0,hist_real_flux_skymap[ebin].GetNbinsX()):
-            for biny in range(0,hist_real_flux_skymap[ebin].GetNbinsY()):
-                bin_content = hist_real_flux_skymap[ebin].GetBinContent(binx+1,biny+1)
+        for binx in range(0,hist_skymap[ebin].GetNbinsX()):
+            for biny in range(0,hist_skymap[ebin].GetNbinsY()):
+                bin_content = hist_skymap[ebin].GetBinContent(binx+1,biny+1)
                 if bin_content!=0.:
                     used_bins += 1.
                     rms_flux += pow(bin_content-mean_flux,2)
         if used_bins>0.:
             rms_flux = pow(rms_flux/used_bins,0.5)
 
-        for binx in range(0,hist_real_flux_skymap[ebin].GetNbinsX()):
-            for biny in range(0,hist_real_flux_skymap[ebin].GetNbinsY()):
+        for binx in range(0,hist_skymap[ebin].GetNbinsX()):
+            for biny in range(0,hist_skymap[ebin].GetNbinsY()):
                 if rms_flux==0.: continue
                 local_flux = 0.
                 local_flux_err = 0.
-                local_flux = hist_real_flux_skymap[ebin].GetBinContent(binx+1,biny+1)
-                local_flux_stat_err = hist_real_flux_skymap[ebin].GetBinError(binx+1,biny+1)
+                local_flux = hist_skymap[ebin].GetBinContent(binx+1,biny+1)
+                local_flux_stat_err = hist_skymap[ebin].GetBinError(binx+1,biny+1)
                 local_flux_syst_err = 0.
                 for imposter in range(0,n_imposters):
                     bin_content = hist_imposter_flux_skymap[imposter][ebin].GetBinContent(binx+1,biny+1) 
@@ -736,54 +741,11 @@ def CleanFluxMapNoise():
                 if local_flux_err==0.: continue
                 if abs(local_flux-mean_flux)/rms_flux>2.:
                     if abs(local_flux)/local_flux_err<2.:
-                        hist_real_flux_skymap[ebin].SetBinContent(binx+1,biny+1,0.)
-                        hist_real_flux_skymap[ebin].SetBinError(binx+1,biny+1,0.)
-
-    mean_flux = 0.
-    rms_flux = 0.
-    local_flux = 0.
-    local_flux_err = 0.
-    used_bins = 0.
-    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        mean_flux = 0.
-        rms_flux = 0.
-        used_bins = 0.
-        for binx in range(0,hist_real_flux_skymap_smooth[ebin].GetNbinsX()):
-            for biny in range(0,hist_real_flux_skymap_smooth[ebin].GetNbinsY()):
-                bin_content = hist_real_flux_skymap_smooth[ebin].GetBinContent(binx+1,biny+1)
-                if bin_content!=0.:
-                    used_bins += 1.
-                    mean_flux += bin_content
-        if used_bins>0.:
-            mean_flux = mean_flux/used_bins
-        used_bins = 0.
-        for binx in range(0,hist_real_flux_skymap_smooth[ebin].GetNbinsX()):
-            for biny in range(0,hist_real_flux_skymap_smooth[ebin].GetNbinsY()):
-                bin_content = hist_real_flux_skymap_smooth[ebin].GetBinContent(binx+1,biny+1)
-                if bin_content!=0.:
-                    used_bins += 1.
-                    rms_flux += pow(bin_content-mean_flux,2)
-        if used_bins>0.:
-            rms_flux = pow(rms_flux/used_bins,0.5)
-
-        for binx in range(0,hist_real_flux_skymap_smooth[ebin].GetNbinsX()):
-            for biny in range(0,hist_real_flux_skymap_smooth[ebin].GetNbinsY()):
-                if rms_flux==0.: continue
-                local_flux = 0.
-                local_flux_err = 0.
-                local_flux = hist_real_flux_skymap_smooth[ebin].GetBinContent(binx+1,biny+1)
-                local_flux_stat_err = hist_real_flux_skymap_smooth[ebin].GetBinError(binx+1,biny+1)
-                local_flux_syst_err = 0.
-                for imposter in range(0,n_imposters):
-                    bin_content = hist_imposter_flux_skymap_smooth[imposter][ebin].GetBinContent(binx+1,biny+1) 
-                    local_flux_syst_err += pow(bin_content,2)
-                local_flux_syst_err = pow(local_flux_syst_err/n_imposters,0.5)
-                local_flux_err = pow(local_flux_stat_err*local_flux_stat_err+local_flux_syst_err*local_flux_syst_err,0.5)
-                if local_flux_err==0.: continue
-                if abs(local_flux-mean_flux)/rms_flux>2.:
-                    if abs(local_flux)/local_flux_err<2.:
-                        hist_real_flux_skymap_smooth[ebin].SetBinContent(binx+1,biny+1,0.)
-                        hist_real_flux_skymap_smooth[ebin].SetBinError(binx+1,biny+1,0.)
+                        hist_skymap[ebin].SetBinContent(binx+1,biny+1,0.)
+                        hist_skymap[ebin].SetBinError(binx+1,biny+1,0.)
+                #if local_flux_err/mean_flux_err>3.0:
+                #    hist_skymap[ebin].SetBinContent(binx+1,biny+1,0.)
+                #    hist_skymap[ebin].SetBinError(binx+1,biny+1,0.)
 
 
 def SumFluxMap():
@@ -1389,11 +1351,11 @@ def MakeGalacticProfile():
     norm_allE = []
     norm_err_allE = []
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_real_flux_skymap_smooth[ebin],hist_real_flux_syst_skymap[ebin])
+        real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_real_flux_skymap[ebin],hist_real_flux_syst_skymap[ebin])
         imposter_profile_list = []
         imposter_profile_err_list = []
         for imposter in range(0,n_imposters):
-            imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_imposter_flux_skymap_smooth[imposter][ebin],hist_real_flux_syst_skymap[ebin])
+            imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_imposter_flux_skymap[imposter][ebin],hist_real_flux_syst_skymap[ebin])
             imposter_profile_list += [imposter_profile]
             imposter_profile_err_list += [imposter_profile_stat_err]
 
@@ -1424,18 +1386,18 @@ def MakeGalacticProfile():
         axbig = fig.add_subplot()
         axbig.bar(theta2, 2.*real_profile_syst_err, bottom=-real_profile_syst_err, width=1.*theta2_err, color='b', align='center', alpha=0.2)
         axbig.errorbar(theta2,real_profile,real_profile_stat_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[ebin],energy_bin[ebin+1]))
-        axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
+        axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{sr}^{-1}$]')
         axbig.set_xlabel('Gal. b [degree]')
         axbig.legend(loc='best')
         plotname = 'ProfileVsGalb'
         fig.savefig("output_plots/%s_E%s_%s.png"%(plotname,ebin,plot_tag),bbox_inches='tight')
         axbig.remove()
 
-    real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_real_flux_skymap_smooth_sum,hist_real_flux_syst_skymap[0])
+    real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_real_flux_skymap_sum,hist_real_flux_syst_skymap[0])
     imposter_profile_list = []
     imposter_profile_err_list = []
     for imposter in range(0,n_imposters):
-        imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_imposter_flux_skymap_smooth_sum[imposter],hist_real_flux_syst_skymap[0])
+        imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindGalacticProjection_v2(hist_imposter_flux_skymap_sum[imposter],hist_real_flux_syst_skymap[0])
         imposter_profile_list += [imposter_profile]
         imposter_profile_err_list += [imposter_profile_stat_err]
 
@@ -1466,7 +1428,7 @@ def MakeGalacticProfile():
     axbig = fig.add_subplot()
     axbig.bar(theta2, 2.*real_profile_syst_err, bottom=-real_profile_syst_err, width=1.*theta2_err, color='b', align='center', alpha=0.2)
     axbig.errorbar(theta2,real_profile,real_profile_stat_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
-    axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
+    axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{sr}^{-1}$]')
     axbig.set_xlabel('Gal. b [degree]')
     axbig.legend(loc='best')
     plotname = 'ProfileVsGalb'
@@ -1480,7 +1442,7 @@ def MakeGalacticProfile():
     for imposter in range(0,n_imposters):
         next_color = next(cycol)
         axbig.errorbar(theta2,imposter_profile_list[imposter],imposter_profile_err_list[imposter],color=next_color,marker='s',ls='none')
-    axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
+    axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{sr}^{-1}$]')
     axbig.set_xlabel('Gal. b [degree]')
     plotname = 'ProfileVsGalb_Imposter'
     fig.savefig("output_plots/%s_sum_%s.png"%(plotname,plot_tag),bbox_inches='tight')
@@ -1924,7 +1886,7 @@ if correct_bias:
         for imposter in range(0,n_imposters):
             hist_real_bias_skymap[ebin].Add(hist_imposter_bias_skymap[imposter][ebin],1./float(n_imposters))
     for ebin in range(0,len(energy_bin)-1):
-        if ebin>=3: continue
+        #if ebin>=3: continue
         hist_real_bkgd_skymap[ebin].Add(hist_real_bias_skymap[ebin])
         for imposter in range(0,n_imposters):
             hist_imposter_bkgd_skymap[imposter][ebin].Add(hist_real_bias_skymap[ebin])
@@ -2005,15 +1967,15 @@ if 'Crab' in source_name:
 elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
     text_angle = 30.
     #3HWC J1908+063, 287.05, 6.39 
-    #region_x = 287.05
-    #region_y = 6.39
-    #region_r = 1.5
-    #region_name = '3HWC'
+    region_x = 287.05
+    region_y = 6.39
+    region_r = 1.5
+    region_name = '3HWC'
     #PSR J1907+0602 # cover more exposure hours, allow larger radius
-    region_x = 286.975
-    region_y = 6.03777777778
-    region_r = 2.0
-    region_name = 'PSR'
+    #region_x = 286.975
+    #region_y = 6.03777777778
+    #region_r = 2.0
+    #region_name = 'PSR'
     #PSR J1907+0602
     #North hot spot
     #region_x = 286.8
@@ -2118,8 +2080,9 @@ else:
     do_fit = 0
 
 MakeDiagnisticPlots()
-CleanFluxMapNoise()
-#MaskKnownSources()
+#CleanFluxMapNoise(hist_real_flux_skymap)
+#CleanFluxMapNoise(hist_real_flux_skymap_smooth)
+MaskKnownSources()
 SumFluxMap()
 MakeSpectrum(region_x,region_y,region_r,region_name)
 MakeExtensionProfile(region_x,region_y,region_r,do_fit,region_name)
