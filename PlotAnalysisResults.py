@@ -261,6 +261,12 @@ if 'V_V725_Tau' in sys.argv[1]:
 if 'GalacticPlane_All_l40' in sys.argv[1]:
     observation_name = 'GalacticPlane_All_l40'
     data_epoch = ['GalacticPlane_All_l40_V6']
+if 'GalacticPlane_All_l60' in sys.argv[1]:
+    observation_name = 'GalacticPlane_All_l60'
+    data_epoch = ['GalacticPlane_All_l60_V6']
+if 'GalacticPlane_All_l80' in sys.argv[1]:
+    observation_name = 'GalacticPlane_All_l80'
+    data_epoch = ['GalacticPlane_All_l80_V6']
 if 'GalacticPlane_All_l190' in sys.argv[1]:
     observation_name = 'GalacticPlane_All_l190'
     data_epoch = ['GalacticPlane_All_l190_V6']

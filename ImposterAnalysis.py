@@ -33,6 +33,7 @@ energy_bin_cut_low = int(sys.argv[2])
 energy_bin_cut_up = int(sys.argv[3])
 doImposter = int(sys.argv[4])
 
+#n_imposters = 4
 n_imposters = 5
 
 correct_bias = True
@@ -148,17 +149,17 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
             hist_real_syst_skymap_sum.SetBinContent(binx+1,biny+1,pow(old_syst_err,0.5))
     hist_zscore_skymap_sum.Add(GetSignificanceMap(hist_real_data_skymap_sum,hist_real_bkgd_skymap_sum,hist_real_syst_skymap_sum,False))
 
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap_sum)
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         hist_zscore_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_reflect,None,fig,'RA','Dec','Z score','SkymapZscore_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r,rotation_angle=text_angle)
+        CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapZscore_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r,rotation_angle=text_angle)
         hist_excess_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_excess_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_excess_skymap_reflect,None,fig,'RA','Dec','excess count','SkymapExcess_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r,rotation_angle=text_angle)
+        CommonPlotFunctions.MatplotlibMap2D(hist_excess_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','excess count','SkymapExcess_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r,rotation_angle=text_angle)
         hist_on_bkgd_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_on_bkgd_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_on_bkgd_skymap_reflect,None,fig,'RA','Dec','excess count','SkymapBkgdCnt_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r,rotation_angle=text_angle)
+        CommonPlotFunctions.MatplotlibMap2D(hist_on_bkgd_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','excess count','SkymapBkgdCnt_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r,rotation_angle=text_angle)
 
     hist_real_zscore_skymap_sum.Reset()
     hist_real_zscore_skymap_sum.Add(hist_zscore_skymap_sum)
-    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap_sum)
     CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapZscore_Sum_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r,rotation_angle=text_angle)
 
     CommonPlotFunctions.SaveAsFITS(hist_zscore_skymap_sum_reflect,'skymap_zscore_sum_%s'%(plot_tag))
@@ -1788,11 +1789,25 @@ if doImposter==1:
     for imposter in range(0,n_imposters):
         for ebin in range(0,len(energy_bin)-1):
             if hist_imposter_norm_skymap[imposter][ebin].Integral()==0.: continue
-            expo_scale = hist_real_norm_skymap[ebin].Integral()/hist_imposter_norm_skymap[imposter][ebin].Integral()
-            hist_imposter_data_skymap[imposter][ebin].Scale(expo_scale)
-            hist_imposter_bias_skymap[imposter][ebin].Scale(expo_scale)
-            hist_imposter_norm_skymap[imposter][ebin].Scale(expo_scale)
-            hist_imposter_bkgd_skymap[imposter][ebin].Scale(expo_scale)
+            #expo_scale = hist_real_norm_skymap[ebin].Integral()/hist_imposter_norm_skymap[imposter][ebin].Integral()
+            #hist_imposter_data_skymap[imposter][ebin].Scale(expo_scale)
+            #hist_imposter_bias_skymap[imposter][ebin].Scale(expo_scale)
+            #hist_imposter_norm_skymap[imposter][ebin].Scale(expo_scale)
+            #hist_imposter_bkgd_skymap[imposter][ebin].Scale(expo_scale)
+            for binx in range(0,hist_real_norm_skymap[ebin].GetNbinsX()):
+                for biny in range(0,hist_real_norm_skymap[ebin].GetNbinsY()):
+                    real_expo = hist_real_norm_skymap[ebin].GetBinContent(binx+1,biny+1)
+                    imposter_expo = hist_imposter_norm_skymap[imposter][ebin].GetBinContent(binx+1,biny+1)
+                    if imposter_expo==0.: continue
+                    expo_scale = real_expo/imposter_expo
+                    old_data = hist_imposter_data_skymap[imposter][ebin].GetBinContent(binx+1,biny+1)
+                    old_bias = hist_imposter_bias_skymap[imposter][ebin].GetBinContent(binx+1,biny+1)
+                    old_norm = hist_imposter_norm_skymap[imposter][ebin].GetBinContent(binx+1,biny+1)
+                    old_bkgd = hist_imposter_bkgd_skymap[imposter][ebin].GetBinContent(binx+1,biny+1)
+                    hist_imposter_data_skymap[imposter][ebin].SetBinContent(binx+1,biny+1,old_data*expo_scale)
+                    hist_imposter_bias_skymap[imposter][ebin].SetBinContent(binx+1,biny+1,old_bias*expo_scale)
+                    hist_imposter_norm_skymap[imposter][ebin].SetBinContent(binx+1,biny+1,old_norm*expo_scale)
+                    hist_imposter_bkgd_skymap[imposter][ebin].SetBinContent(binx+1,biny+1,old_bkgd*expo_scale)
 
 if correct_bias:
     for ebin in range(0,len(energy_bin)-1):
@@ -1991,8 +2006,10 @@ else:
     region_y = MapCenter_y
     #region_r = 0.15
     #region_r = 0.27
-    #region_r = 0.5
-    region_r = 1.0
+    region_r = 0.6
+    #region_r = 1.0
+    if CommonPlotFunctions.doGalacticCoord:
+        region_r = 12.0
     region_name = 'Center'
     do_fit = 0
 

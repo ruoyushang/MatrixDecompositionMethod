@@ -69,8 +69,8 @@ calibration_radius = 0.3 # need to be larger than the PSF and smaller than the i
 #energy_index_scale = 0
 energy_index_scale = 2
 
-#doGalacticCoord = True
-doGalacticCoord = False
+doGalacticCoord = True
+#doGalacticCoord = False
 
 Skymap_nzones_x = 1
 Skymap_nzones_y = 1
@@ -369,7 +369,7 @@ def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
                 cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
                 cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
                 #if abs(cell_x-40.527)<2.: continue # MGRO J1908+06 veto
-                if abs(cell_x-40.527)>1.: continue # MGRO J1908+06 select
+                #if abs(cell_x-40.527)>1.: continue # MGRO J1908+06 select
                 data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
                 data_error = Hist_Data_input.GetBinError(bx+1,by+1)
                 #if abs(cell_y)>=range_limit_previous and abs(cell_y)<range_limit:
@@ -799,9 +799,25 @@ def GetGammaSourceInfo(hist_contour):
                     distance = pow(min_dist_src_x-other_star_coord[entry][0],2)+pow(min_dist_src_y-other_star_coord[entry][1],2)
                     if distance<near_source_cut*near_source_cut:
                         near_a_source = True
-                if not near_a_source:
+                if not near_a_source and min_dist<0.5:
                     other_stars += [min_dist_src]
                     other_star_coord += [[min_dist_src_x,min_dist_src_y]]
+
+        inputFile = open('TeVCat_RaDec_w_Names.txt')
+        for line in inputFile:
+            gamma_source_name = line.split(',')[0]
+            gamma_source_ra = float(line.split(',')[1])
+            gamma_source_dec = float(line.split(',')[2])
+            if doGalacticCoord:
+                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<near_source_cut*near_source_cut:
+                    near_a_source = True
+            if not near_a_source and not '%' in gamma_source_name:
+                other_stars += [gamma_source_name]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
         for src in range(0,len(target_name)):
             gamma_source_name = target_name[src]
@@ -817,22 +833,6 @@ def GetGammaSourceInfo(hist_contour):
             if not near_a_source and not '%' in gamma_source_name:
                 other_stars += [gamma_source_name]
                 other_star_coord += [[gamma_source_ra,gamma_source_dec]]
-
-        #inputFile = open('TeVCat_RaDec_w_Names.txt')
-        #for line in inputFile:
-        #    gamma_source_name = line.split(',')[0]
-        #    gamma_source_ra = float(line.split(',')[1])
-        #    gamma_source_dec = float(line.split(',')[2])
-        #    if doGalacticCoord:
-        #        gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-        #    near_a_source = False
-        #    for entry in range(0,len(other_stars)):
-        #        distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-        #        if distance<near_source_cut*near_source_cut:
-        #            near_a_source = True
-        #    if not near_a_source and not '%' in gamma_source_name:
-        #        other_stars += [gamma_source_name]
-        #        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
     return other_stars, other_star_coord
 
