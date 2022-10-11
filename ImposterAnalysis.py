@@ -3,7 +3,6 @@ import os
 import sys,ROOT
 import array
 import math
-import csv
 from array import *
 from ROOT import *
 from astropy import units as my_unit
@@ -35,9 +34,6 @@ energy_bin_cut_up = int(sys.argv[3])
 doImposter = int(sys.argv[4])
 
 n_imposters = 5
-
-#target_max_dist_cut = 3.
-target_max_dist_cut = 100.
 
 correct_bias = True
 #correct_bias = False
@@ -565,101 +561,18 @@ def ConvertRaDecToGalacticMap(hist_map_radec,hist_map_galactic):
             hist_map_galactic.SetBinContent(bx1,by1,content)
     #return hist_map_galactic
 
-def HMS2deg(ra='', dec=''):
-    RA, DEC, rs, ds = '', '', 1, 1
-    if dec:
-        D, M, S = [float(i) for i in dec.split(':')]
-        if str(D)[0] == '-':
-            ds, D = -1, abs(D)
-        deg = D + (M/60) + (S/3600)
-        DEC = '{0}'.format(deg*ds)
-    if ra:
-        H, M, S = [float(i) for i in ra.split(':')]
-        if str(H)[0] == '-':
-            rs, H = -1, abs(H)
-        deg = (H*15) + (M/4) + (S/240)
-        RA = '{0}'.format(deg*rs)           
-    if ra and dec:
-        return (RA, DEC)
-    else:
-        return RA or DEC
-
-def ReadATNFTargetListFromFile(file_path):
-    source_name = []
-    source_ra = []
-    source_dec = []
-    source_dist = []
-    source_age = []
-    source_edot = []
-    inputFile = open(file_path)
-    for line in inputFile:
-        if line[0]=="#": continue
-        target_name = line.split(',')[0].strip(" ")
-        target_ra = line.split(',')[1].strip(" ")
-        target_dec = line.split(',')[2].strip(" ")
-        #print ('target_ra = %s'%(target_ra))
-        #print ('target_dec = %s'%(target_dec))
-        target_dist = float(line.split(',')[3].strip(" "))
-        target_age = float(line.split(',')[4].strip(" "))
-        target_edot = float(line.split(',')[5].strip(" "))
-        target_brightness = float(target_edot)/pow(float(target_dist),2)
-
-        if target_brightness<1e33 and target_edot<1e34: continue
-        if target_dist>target_max_dist_cut: continue
-        #if target_dist>2.0: continue
-        #if target_age<1e4: continue
-
-        #ra_deg = float(HMS2deg(target_ra,target_dec)[0])
-        #dec_deg = float(HMS2deg(target_ra,target_dec)[1])
-        #gal_l, gal_b = ConvertRaDecToGalactic(ra_deg,dec_deg)
-        #if abs(gal_b)<5.: continue
-
-        source_name += [target_name]
-        source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
-        source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
-        source_dist += [target_dist]
-        source_age += [target_age]
-        source_edot += [target_edot]
-    return source_name, source_ra, source_dec
-
-def ReadSNRTargetListFromCSVFile():
-    source_name = []
-    source_ra = []
-    source_dec = []
-    with open('SNRcat20221001-SNR.csv', newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=';')
-        for row in reader:
-            if len(row)==0: continue
-            if '#' in row[0]: continue
-            target_name = row[0]
-            target_min_dist = row[13]
-            if target_min_dist=='':
-                target_min_dist = '1000'
-            if float(target_min_dist)>target_max_dist_cut: continue
-            target_ra = row[19]
-            target_dec = row[20]
-            source_name += [target_name]
-            source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
-            source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
-            print('target_min_dist = %s'%(target_min_dist))
-            print('source_name = %s'%(source_name[len(source_name)-1]))
-            print('source_ra = %0.2f'%(source_ra[len(source_ra)-1]))
-            print('source_dec = %0.2f'%(source_dec[len(source_dec)-1]))
-            print(row)
-    return source_name, source_ra, source_dec
-
 def MaskKnownSources():
 
-    theta_cut_min = 0.3
+    theta_cut_min = 0.4
 
     target_name = []
     target_ra = []
     target_dec = []
-    target_psr_name, target_psr_ra, target_psr_dec = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+    target_psr_name, target_psr_ra, target_psr_dec = CommonPlotFunctions.ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
     target_name += target_psr_name
     target_ra += target_psr_ra
     target_dec += target_psr_dec
-    target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
+    target_snr_name, target_snr_ra, target_snr_dec = CommonPlotFunctions.ReadSNRTargetListFromCSVFile()
     target_name += target_snr_name
     target_ra += target_snr_ra
     target_dec += target_snr_dec
@@ -1943,6 +1856,7 @@ if doImposter==1:
             CommonPlotFunctions.Smooth2DMap_v2(hist_imposter_Aeff_skymap[imposter][ebin],hist_imposter_Aeff_skymap_smooth[imposter][ebin],smooth_size_irf,False,True)
             CommonPlotFunctions.Smooth2DMap_v2(hist_imposter_expo_skymap[imposter][ebin],hist_imposter_expo_skymap_smooth[imposter][ebin],smooth_size_irf,False,True)
 
+#MaskKnownSources()
 
 MakeFluxMap(hist_bkgd_flux_skymap, hist_real_bkgd_skymap, hist_null_skymap, hist_real_norm_skymap_smooth, hist_real_Aeff_skymap_smooth, hist_real_expo_skymap_smooth)
 MakeFluxMap(hist_real_flux_skymap, hist_real_data_skymap, hist_real_bkgd_skymap, hist_real_norm_skymap_smooth, hist_real_Aeff_skymap_smooth, hist_real_expo_skymap_smooth)
@@ -1971,6 +1885,9 @@ elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
     region_y = 6.39
     region_r = 1.5
     region_name = '3HWC'
+    if doGalacticCoord:
+        region_x = 40.527
+        region_y = -0.795
     #PSR J1907+0602 # cover more exposure hours, allow larger radius
     #region_x = 286.975
     #region_y = 6.03777777778
@@ -2082,7 +1999,6 @@ else:
 MakeDiagnisticPlots()
 #CleanFluxMapNoise(hist_real_flux_skymap)
 #CleanFluxMapNoise(hist_real_flux_skymap_smooth)
-MaskKnownSources()
 SumFluxMap()
 MakeSpectrum(region_x,region_y,region_r,region_name)
 MakeExtensionProfile(region_x,region_y,region_r,do_fit,region_name)

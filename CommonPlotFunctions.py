@@ -3,6 +3,7 @@ import os
 import sys,ROOT
 import array
 import math
+import csv
 from array import *
 from ROOT import *
 from astropy import units as my_unit
@@ -20,6 +21,7 @@ from scipy.optimize import curve_fit
 from itertools import cycle
 from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
+from operator import itemgetter, attrgetter
 
 folder_path = 'output_test'
 #folder_path = 'output_nominal'
@@ -67,8 +69,8 @@ calibration_radius = 0.3 # need to be larger than the PSF and smaller than the i
 #energy_index_scale = 0
 energy_index_scale = 2
 
-doGalacticCoord = True
-#doGalacticCoord = False
+#doGalacticCoord = True
+doGalacticCoord = False
 
 Skymap_nzones_x = 1
 Skymap_nzones_y = 1
@@ -80,15 +82,18 @@ if doGalacticCoord:
     Skymap_nzones_x = 6
     Skymap_nzones_y = 3
     Skymap_size_x = 12.
-    Skymap_nbins_x = 90
+    Skymap_nbins_x = 60
     Skymap_size_y = 6.
-    Skymap_nbins_y = 45
+    Skymap_nbins_y = 30
 #Skymap_nbins = 15 
 #Skymap_nbins = 9 # Crab calibration 
 #Skymap_nbins = 5
 #Skymap_nbins = 3
 
-Skymap_normalization_nbins = 1
+#Skymap_normalization_nbins = 1
+
+#target_max_dist_cut = 3.
+target_max_dist_cut = 100.
 
 elev_range = [45,90]
 #elev_range = [35,45]
@@ -351,7 +356,7 @@ def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
     cell_size = (MapEdge_right-MapEdge_left)/float(n_bins_x)*(MapEdge_upper-MapEdge_lower)/float(n_bins_y)
 
     Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",n_bins_y,MapEdge_lower,MapEdge_upper)
-    #Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",int(n_bins_y/3),MapEdge_lower/3.,MapEdge_upper/3.)
+    #Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",int(n_bins_y/2),0.,MapEdge_upper)
     for br in range(0,Hist_Profile_Y.GetNbinsX()):
         range_limit = Hist_Profile_Y.GetBinLowEdge(br+2)
         range_limit_previous = Hist_Profile_Y.GetBinLowEdge(br+1)
@@ -363,19 +368,16 @@ def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
             for by in range(0,Hist_Data_input.GetNbinsY()):
                 cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
                 cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
-                #data_content = Hist_Data_input.GetBinContent(bx+1,by+1)/cell_size
-                #data_error = Hist_Data_input.GetBinError(bx+1,by+1)/cell_size
+                #if abs(cell_x-40.527)<2.: continue # MGRO J1908+06 veto
+                if abs(cell_x-40.527)>1.: continue # MGRO J1908+06 select
                 data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
                 data_error = Hist_Data_input.GetBinError(bx+1,by+1)
+                #if abs(cell_y)>=range_limit_previous and abs(cell_y)<range_limit:
                 if cell_y>=range_limit_previous and cell_y<range_limit:
                     if not data_error==0.:
-                        #error_weight = 1./(data_error*data_error)
-                        #slice_data += data_content*error_weight
-                        #total_error_weight += error_weight
-                        #slice_data_err += 1.
+                        total_cell_size += cell_size
                         slice_data += data_content
                         slice_data_err += data_error*data_error
-                        total_cell_size += cell_size
         if total_cell_size==0.: 
             slice_data = 0.
             slice_data_err = 0.
@@ -394,6 +396,7 @@ def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
         range_limit = Hist_Profile_Y.GetBinLowEdge(binx+2)
         range_limit_previous = Hist_Profile_Y.GetBinLowEdge(binx+1)
         sr_to_deg2 = 3282.80635
+        #sr_to_deg2 = 1.
         profile_content = Hist_Profile_Y.GetBinContent(binx+1)*sr_to_deg2
         profile_error = Hist_Profile_Y.GetBinError(binx+1)*sr_to_deg2
         theta2 += [center]
@@ -633,13 +636,97 @@ def GetGalacticCoordMap(map_file, hist_map, isRaDec):
 
     return hist_map_new
 
-def GetGammaSourceInfo():
+def HMS2deg(ra='', dec=''):
+    RA, DEC, rs, ds = '', '', 1, 1
+    if dec:
+        D, M, S = [float(i) for i in dec.split(':')]
+        if str(D)[0] == '-':
+            ds, D = -1, abs(D)
+        deg = D + (M/60) + (S/3600)
+        DEC = '{0}'.format(deg*ds)
+    if ra:
+        H, M, S = [float(i) for i in ra.split(':')]
+        if str(H)[0] == '-':
+            rs, H = -1, abs(H)
+        deg = (H*15) + (M/4) + (S/240)
+        RA = '{0}'.format(deg*rs)           
+    if ra and dec:
+        return (RA, DEC)
+    else:
+        return RA or DEC
+
+def ReadATNFTargetListFromFile(file_path):
+    source_name = []
+    source_ra = []
+    source_dec = []
+    source_dist = []
+    source_age = []
+    source_edot = []
+    inputFile = open(file_path)
+    for line in inputFile:
+        if line[0]=="#": continue
+        target_name = line.split(',')[0].strip(" ")
+        target_ra = line.split(',')[1].strip(" ")
+        target_dec = line.split(',')[2].strip(" ")
+        #print ('target_ra = %s'%(target_ra))
+        #print ('target_dec = %s'%(target_dec))
+        target_dist = float(line.split(',')[3].strip(" "))
+        target_age = float(line.split(',')[4].strip(" "))
+        target_edot = float(line.split(',')[5].strip(" "))
+        target_brightness = float(target_edot)/pow(float(target_dist),2)
+
+        if target_brightness<1e33 and target_edot<1e34: continue
+        if target_dist>target_max_dist_cut: continue
+        #if target_dist>2.0: continue
+        #if target_age<1e4: continue
+
+        #ra_deg = float(HMS2deg(target_ra,target_dec)[0])
+        #dec_deg = float(HMS2deg(target_ra,target_dec)[1])
+        #gal_l, gal_b = ConvertRaDecToGalactic(ra_deg,dec_deg)
+        #if abs(gal_b)<5.: continue
+
+        source_name += [target_name]
+        source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
+        source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
+        source_dist += [target_dist]
+        source_age += [target_age]
+        source_edot += [target_edot]
+    return source_name, source_ra, source_dec
+
+def ReadSNRTargetListFromCSVFile():
+    source_name = []
+    source_ra = []
+    source_dec = []
+    with open('SNRcat20221001-SNR.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+        for row in reader:
+            if len(row)==0: continue
+            if '#' in row[0]: continue
+            target_name = row[0]
+            target_min_dist = row[13]
+            if target_min_dist=='':
+                target_min_dist = '1000'
+            if float(target_min_dist)>target_max_dist_cut: continue
+            target_ra = row[19]
+            target_dec = row[20]
+            source_name += [target_name]
+            source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
+            source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
+            #print('target_min_dist = %s'%(target_min_dist))
+            #print('source_name = %s'%(source_name[len(source_name)-1]))
+            #print('source_ra = %0.2f'%(source_ra[len(source_ra)-1]))
+            #print('source_dec = %0.2f'%(source_dec[len(source_dec)-1]))
+            #print(row)
+    return source_name, source_ra, source_dec
+
+def GetGammaSourceInfo(hist_contour):
 
     other_stars = []
     other_star_coord = []
     near_source_cut = 0.3
     if doGalacticCoord:
-        near_source_cut = 1.0
+        near_source_cut = 1.5
+
     if 'MGRO_J1908' in sys.argv[1]:
         inputFile = open('J1908_sources_RaDec_w_Names.txt')
         #inputFile = open('TeVCat_RaDec_w_Names.txt')
@@ -659,11 +746,67 @@ def GetGammaSourceInfo():
                 other_star_coord += [[gamma_source_ra,gamma_source_dec]]
     else:
 
-        inputFile = open('PSR_RaDec_w_Names.txt')
-        for line in inputFile:
-            gamma_source_name = line.split(',')[0]
-            gamma_source_ra = float(line.split(',')[1])
-            gamma_source_dec = float(line.split(',')[2])
+        target_name = []
+        target_ra = []
+        target_dec = []
+        target_psr_name, target_psr_ra, target_psr_dec = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+        target_name += target_psr_name
+        target_ra += target_psr_ra
+        target_dec += target_psr_dec
+        target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
+        target_name += target_snr_name
+        target_ra += target_snr_ra
+        target_dec += target_snr_dec
+
+        zscore_objects = []
+        if not hist_contour==None:
+            for binx in range(0,hist_contour.GetNbinsX()):
+                for biny in range(0,hist_contour.GetNbinsY()):
+                    zscore = hist_contour.GetBinContent(binx+1,biny+1)
+                    bin_center_x = -hist_contour.GetXaxis().GetBinCenter(binx+1)
+                    bin_center_y = hist_contour.GetYaxis().GetBinCenter(biny+1)
+                    if zscore<3.: continue
+                    zscore_objects += [(zscore,bin_center_x,bin_center_y)]
+            zscore_objects = sorted(zscore_objects, key=itemgetter(0), reverse=True)
+
+            print ('++++++++++++++++++++++++++++++++++++++++++++++++++')
+            for zo in range(0,len(zscore_objects)):
+                zscore = zscore_objects[zo][0]
+                bin_center_x = zscore_objects[zo][1]
+                bin_center_y = zscore_objects[zo][2]
+                print ('zscore = %s'%(zscore))
+                print ('bin_center_x = %s'%(bin_center_x))
+                print ('bin_center_y = %s'%(bin_center_y))
+                if zscore<3.: continue
+                min_dist = 1e10
+                min_dist_src = ''
+                min_dist_src_x = 0.
+                min_dist_src_y = 0.
+                for src in range(0,len(target_name)):
+                    gamma_source_name = target_name[src]
+                    gamma_source_ra = target_ra[src]
+                    gamma_source_dec = target_dec[src]
+                    if doGalacticCoord:
+                        gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+                    dist = pow(pow(gamma_source_ra-bin_center_x,2)+pow(gamma_source_dec-bin_center_y,2),0.5)
+                    if dist<min_dist:
+                        min_dist = dist
+                        min_dist_src = gamma_source_name
+                        min_dist_src_x = gamma_source_ra
+                        min_dist_src_y = gamma_source_dec
+                near_a_source = False
+                for entry in range(0,len(other_stars)):
+                    distance = pow(min_dist_src_x-other_star_coord[entry][0],2)+pow(min_dist_src_y-other_star_coord[entry][1],2)
+                    if distance<near_source_cut*near_source_cut:
+                        near_a_source = True
+                if not near_a_source:
+                    other_stars += [min_dist_src]
+                    other_star_coord += [[min_dist_src_x,min_dist_src_y]]
+
+        for src in range(0,len(target_name)):
+            gamma_source_name = target_name[src]
+            gamma_source_ra = target_ra[src]
+            gamma_source_dec = target_dec[src]
             if doGalacticCoord:
                 gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
             near_a_source = False
@@ -674,21 +817,22 @@ def GetGammaSourceInfo():
             if not near_a_source and not '%' in gamma_source_name:
                 other_stars += [gamma_source_name]
                 other_star_coord += [[gamma_source_ra,gamma_source_dec]]
-        inputFile = open('TeVCat_RaDec_w_Names.txt')
-        for line in inputFile:
-            gamma_source_name = line.split(',')[0]
-            gamma_source_ra = float(line.split(',')[1])
-            gamma_source_dec = float(line.split(',')[2])
-            if doGalacticCoord:
-                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-            near_a_source = False
-            for entry in range(0,len(other_stars)):
-                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-                if distance<near_source_cut*near_source_cut:
-                    near_a_source = True
-            if not near_a_source and not '%' in gamma_source_name:
-                other_stars += [gamma_source_name]
-                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+
+        #inputFile = open('TeVCat_RaDec_w_Names.txt')
+        #for line in inputFile:
+        #    gamma_source_name = line.split(',')[0]
+        #    gamma_source_ra = float(line.split(',')[1])
+        #    gamma_source_dec = float(line.split(',')[2])
+        #    if doGalacticCoord:
+        #        gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+        #    near_a_source = False
+        #    for entry in range(0,len(other_stars)):
+        #        distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+        #        if distance<near_source_cut*near_source_cut:
+        #            near_a_source = True
+        #    if not near_a_source and not '%' in gamma_source_name:
+        #        other_stars += [gamma_source_name]
+        #        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
     return other_stars, other_star_coord
 
@@ -807,103 +951,6 @@ def GetHawcSkymap(hist_map, isRaDec):
     hist_map_new = FillSkymapHoles(hist_map, map_resolution)
 
     return hist_map_new
-
-def MatplotlibMultiMaps(hist_maps,fig,label_x,label_y,label_z,plotname):
-
-    top = cm.get_cmap('Blues_r', 5) # r means reversed version
-    bottom = cm.get_cmap('Reds', 5)# combine it all
-    newcolors = np.vstack((top(np.linspace(0, 1, 5)),bottom(np.linspace(0, 1, 5))))# create a new colormaps with a name of OrangeBlue
-    redblue = ListedColormap(newcolors, name='RedBlue')
-
-    N = 256
-    red = np.ones((N, 4))
-    red[:, 0] = np.linspace(255/256, 1, N) # R = 255
-    red[:, 1] = np.linspace(0/256, 1, N)   # G = 0
-    red[:, 2] = np.linspace(0/256, 1, N)   # B = 0
-    red_cmp = ListedColormap(red[::-1])
-    blue = np.ones((N, 4))
-    blue[:, 0] = np.linspace(0/256, 1, N)   # R = 0
-    blue[:, 1] = np.linspace(0/256, 1, N)   # G = 0
-    blue[:, 2] = np.linspace(255/256, 1, N) # B = 255
-    blue_cmp = ListedColormap(blue[::-1])
-    map_colors = [blue_cmp,red_cmp]
-
-    map_nbins = hist_maps[0].GetNbinsX()
-    MapEdge_left = hist_maps[0].GetXaxis().GetBinLowEdge(1)
-    MapEdge_right = hist_maps[0].GetXaxis().GetBinLowEdge(hist_maps[0].GetNbinsX()+1)
-    MapEdge_lower = hist_maps[0].GetYaxis().GetBinLowEdge(1)
-    MapEdge_upper = hist_maps[0].GetYaxis().GetBinLowEdge(hist_maps[0].GetNbinsY()+1)
-
-    deg_per_bin = (MapEdge_right-MapEdge_left)/map_nbins
-    nbins_per_deg = map_nbins/(MapEdge_right-MapEdge_left)
-    nbins_extend = int(0.*nbins_per_deg)
-    deg_extend = nbins_extend/nbins_per_deg
-    x_axis = np.linspace(MapEdge_left,MapEdge_right,map_nbins)
-    x_axis_extend = np.linspace(MapEdge_left-deg_extend,MapEdge_right,map_nbins+nbins_extend)
-    x_axis_sparse = np.linspace(MapEdge_left-deg_extend,MapEdge_right,5)
-    x_axis_reflect = ["{:6.2f}".format(-1.*i) for i in x_axis_sparse]
-    y_axis = np.linspace(MapEdge_lower,MapEdge_upper,map_nbins)
-
-    grid_z_list = []
-    zmax_list = []
-    for nmap in range(0,len(hist_maps)):
-        grid_z = np.zeros((map_nbins, map_nbins+nbins_extend))
-        zmax = 0.
-        for ybin in range(0,len(y_axis)):
-            for xbin in range(0,len(x_axis_extend)):
-                hist_bin_x = xbin+1
-                hist_bin_y = ybin+1
-                if hist_bin_x<1: continue
-                if hist_bin_y<1: continue
-                if hist_bin_x>hist_maps[nmap].GetNbinsX(): continue
-                if hist_bin_y>hist_maps[nmap].GetNbinsY(): continue
-                grid_z[ybin,xbin] = hist_maps[nmap].GetBinContent(hist_bin_x,hist_bin_y)
-                if zmax<grid_z[ybin,xbin]:
-                    zmax = grid_z[ybin,xbin]
-        grid_z_list += [grid_z]
-        zmax_list += [zmax]
-
-    other_stars, other_star_coord = GetGammaSourceInfo() 
-    other_star_labels = []
-    other_star_markers = []
-    star_range = 2.0
-    if doGalacticCoord:
-        star_range = 12.0
-    source_ra = (MapEdge_left+MapEdge_right)/2.
-    source_dec = (MapEdge_lower+MapEdge_upper)/2.
-    for star in range(0,len(other_stars)):
-        if pow(source_ra+other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
-        #if '#' in other_stars[star]: continue
-        other_star_markers += [[-other_star_coord[star][0],other_star_coord[star][1]]]
-        other_star_labels += ['%s'%(other_stars[star])]
-
-    fig.clf()
-    axbig = fig.add_subplot()
-    axbig.set_xlabel(label_x)
-    axbig.set_ylabel(label_y)
-    #level_low = 2.0
-    #level_high = 7.0
-    for nmap in range(0,len(hist_maps)):
-        mycolor = cm.get_cmap(map_colors[nmap], 3) # r means reversed version
-        im = axbig.imshow(grid_z_list[nmap], origin='lower', cmap=mycolor, alpha=0.5, extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()), vmin=0.5*zmax_list[nmap])
-        cbar = fig.colorbar(im)
-        cbar.set_label(label_z)
-        #axbig.contour(grid_z_list[nmap], levels, cmap=mycolor, extent=(x_axis_extend.min(),x_axis_extend.max(),y_axis.min(),y_axis.max()), vmin=0.)
-    for star in range(0,len(other_star_markers)):
-        axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], c='k', marker='+', label=other_star_labels[star])
-        text_offset_x = 0.
-        text_offset_y = 0.
-        text_length = len(other_star_labels[star])/10.
-        if source_ra+other_star_coord[star][0]>0.:
-            text_offset_x = -text_length
-        else: 
-            text_offset_x = 0.1
-        plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k')
-    axbig.set_xticks(x_axis_sparse)
-    axbig.set_xticklabels(x_axis_reflect)
-    #axbig.legend(fontsize=7)
-    fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
-    axbig.remove()
 
 def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname):
 
@@ -1046,7 +1093,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
                 grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)
                 if label_z!='Z score' and max_z_contour>0.:
                     grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)*max_z/max_z_contour
-    other_stars, other_star_coord = GetGammaSourceInfo() 
+    other_stars, other_star_coord = GetGammaSourceInfo(hist_contour) 
 
     other_star_labels = []
     other_star_markers = []
@@ -1087,7 +1134,8 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
     else:
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=0)
-    axbig.contour(grid_contour, levels, colors='w', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=1)
+    if not doGalacticCoord:
+        axbig.contour(grid_contour, levels, colors='w', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=1)
     #cbar = fig.colorbar(im,orientation="horizontal")
     cbar = fig.colorbar(im)
     cbar.set_label(label_z)

@@ -39,7 +39,6 @@ elev_range = CommonPlotFunctions.elev_range
 energy_index_scale = CommonPlotFunctions.energy_index_scale
 Smoothing = CommonPlotFunctions.Smoothing
 doGalacticCoord = CommonPlotFunctions.doGalacticCoord
-Skymap_normalization_nbins = CommonPlotFunctions.Skymap_normalization_nbins
 N_bins_for_deconv = CommonPlotFunctions.N_bins_for_deconv
 energy_fine_bin = CommonPlotFunctions.energy_fine_bin
 gamma_hadron_dim_ratio_w = CommonPlotFunctions.gamma_hadron_dim_ratio_w
@@ -169,6 +168,9 @@ if 'PSR_J0023_p09' in sys.argv[1]:
 if 'PSR_J0633_p0632' in sys.argv[1]:
     observation_name = 'PSR_J0633_p0632'
     data_epoch = ['PSR_J0633_p0632_V6']
+if 'PSR_J1856_p0245' in sys.argv[1]:
+    observation_name = 'PSR_J1856_p0245'
+    data_epoch = ['PSR_J1856_p0245_V6']
 if 'LSI_p61_303' in sys.argv[1]:
     observation_name = 'LSI_p61_303'
     data_epoch = ['LSI_p61_303_V6']
@@ -256,12 +258,9 @@ if 'SNR_G150p3Plus04p5' in sys.argv[1]:
 if 'V_V725_Tau' in sys.argv[1]:
     observation_name = 'V_V725_Tau'
     data_epoch = ['V_V725_Tau_V6']
-if 'GalacticPlane_All_l30' in sys.argv[1]:
-    observation_name = 'GalacticPlane_All_l30'
-    data_epoch = ['GalacticPlane_All_l30_V6']
-if 'GalacticPlane_All_l50' in sys.argv[1]:
-    observation_name = 'GalacticPlane_All_l50'
-    data_epoch = ['GalacticPlane_All_l50_V6']
+if 'GalacticPlane_All_l40' in sys.argv[1]:
+    observation_name = 'GalacticPlane_All_l40'
+    data_epoch = ['GalacticPlane_All_l40_V6']
 if 'GalacticPlane_All_l190' in sys.argv[1]:
     observation_name = 'GalacticPlane_All_l190'
     data_epoch = ['GalacticPlane_All_l190_V6']
@@ -527,7 +526,7 @@ def GetGammaSourceInfo():
     global other_stars
     global other_star_coord
 
-    other_stars, other_star_coord = CommonPlotFunctions.GetGammaSourceInfo() 
+    other_stars, other_star_coord = CommonPlotFunctions.GetGammaSourceInfo(None) 
 
 def ResetStackedShowerHistograms():
 
