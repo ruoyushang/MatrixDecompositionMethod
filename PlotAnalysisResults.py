@@ -109,6 +109,10 @@ if 'Crab_Elev70' in sys.argv[1]:
     observation_name = 'Crab_Elev70'
     data_epoch = ['Crab_Elev70_V5','Crab_Elev70_V6']
     elev_range = [70,90]
+if 'Crab_Elev60' in sys.argv[1]:
+    observation_name = 'Crab_Elev60'
+    data_epoch = ['Crab_Elev60_V5','Crab_Elev60_V6']
+    elev_range = [60,80]
 if 'Crab_Elev50' in sys.argv[1]:
     observation_name = 'Crab_Elev50'
     data_epoch = ['Crab_Elev50_V5','Crab_Elev50_V6']
@@ -267,6 +271,12 @@ if 'GalacticPlane_All_l60' in sys.argv[1]:
 if 'GalacticPlane_All_l80' in sys.argv[1]:
     observation_name = 'GalacticPlane_All_l80'
     data_epoch = ['GalacticPlane_All_l80_V6']
+if 'GalacticPlane_All_l100' in sys.argv[1]:
+    observation_name = 'GalacticPlane_All_l100'
+    data_epoch = ['GalacticPlane_All_l100_V6']
+if 'GalacticPlane_All_l120' in sys.argv[1]:
+    observation_name = 'GalacticPlane_All_l120'
+    data_epoch = ['GalacticPlane_All_l120_V6']
 if 'GalacticPlane_All_l190' in sys.argv[1]:
     observation_name = 'GalacticPlane_All_l190'
     data_epoch = ['GalacticPlane_All_l190_V6']
@@ -3354,9 +3364,9 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
     Hist_OnBkgd_Skymap.Reset()
     Hist_OnBkgd_Skymap.Add(InputFile.Get(HistName))
     Hist_Bkgd_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
+    Hist_Expo_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
     HistName = "Hist_OnRFoV_CR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Rfov_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
-    #Hist_Expo_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
     HistName = "Hist_NormSyst_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Skymap_Syst_Norm.Reset()
     Hist_OnBkgd_Skymap_Syst_Norm.Add(InputFile.Get(HistName))

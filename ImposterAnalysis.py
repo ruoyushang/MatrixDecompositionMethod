@@ -33,8 +33,10 @@ energy_bin_cut_low = int(sys.argv[2])
 energy_bin_cut_up = int(sys.argv[3])
 doImposter = int(sys.argv[4])
 
+#n_imposters = 3
 #n_imposters = 4
 n_imposters = 5
+#n_imposters = 6
 
 correct_bias = True
 #correct_bias = False
@@ -77,7 +79,10 @@ def MakeDiagnisticPlots():
 def GetFluxCalibration(energy):
 
     #return 1.
-    flux_calibration = [3.023414070487144e-11, 3.218292804209806e-12, 3.1147377943720107e-13, 3.369685197588649e-14, 3.0534610495007516e-15, 3.592243088826805e-16]
+    # constants for fitted spectrum, elev. 60-80 deg
+    flux_calibration = [1.095697834652546e-09, 3.9895843693953783e-10, 1.740499100148897e-10, 8.362921638341658e-11, 4.2658753097817425e-11, 2.2135681331569072e-11]
+    # constants for fitted spectrum, elev. 50-70 deg
+    #flux_calibration = [3.070531668119735e-11, 3.1903518995058366e-12, 3.0900584834756197e-13, 3.328195354644942e-14, 2.8991779848198513e-15, 3.886526248948016e-16]
 
     return flux_calibration[energy]
 
@@ -1065,6 +1070,7 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     fig.savefig("output_plots/%s_%s.png"%(plotname,plot_tag),bbox_inches='tight')
     axbig.remove()
 
+
     energy_axis, energy_error, bkgd_flux, bkgd_flux_stat_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_bkgd_flux_skymap,hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r)
     fig.clf()
     axbig = fig.add_subplot()
@@ -1550,7 +1556,7 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, norm_map, aeff_map, expo_map):
             for biny in range(0,bkgd_map[ebin].GetNbinsY()):
                 data_content = data_map[ebin].GetBinContent(binx+1,biny+1)
                 bkgd_content = bkgd_map[ebin].GetBinContent(binx+1,biny+1)
-                norm_content = norm_map[ebin].GetBinContent(binx+1,biny+1)
+                norm_content = norm_map[0].GetBinContent(binx+1,biny+1)
                 expo_content = expo_map[ebin].GetBinContent(binx+1,biny+1)
                 aeff_content = aeff_map[ebin].GetBinContent(binx+1,biny+1)
 
@@ -1679,11 +1685,13 @@ for ebin in range(0,len(energy_bin)-1):
     if UseEffectiveArea:
         HistName = "hist_expo_hour_skymap_sum"
     else:
-        HistName = "hist_bkgd_skymap_%s"%(ebin)
-    hist_real_norm_skymap[ebin].Add(InputFile.Get(HistName))
+        #HistName = "hist_bkgd_skymap_%s"%(ebin)
+        HistName = "hist_expo_skymap_%s"%(ebin)
+    hist_real_norm_skymap[0].Add(InputFile.Get(HistName))
     HistName = "hist_effarea_skymap_%s"%(ebin)
     hist_real_Aeff_skymap[ebin].Add(InputFile.Get(HistName))
-    HistName = "hist_expo_hour_skymap_%s"%(ebin)
+    #HistName = "hist_expo_hour_skymap_%s"%(ebin)
+    HistName = "hist_expo_hour_skymap_sum"
     hist_real_expo_skymap[ebin].Add(InputFile.Get(HistName))
 InputFile.Close()
 
@@ -1771,11 +1779,13 @@ if doImposter==1:
             if UseEffectiveArea:
                 HistName = "hist_expo_hour_skymap_sum"
             else:
-                HistName = "hist_bkgd_skymap_%s"%(ebin)
-            hist_imposter_norm_skymap[imposter][ebin].Add(InputFile.Get(HistName))
+                #HistName = "hist_bkgd_skymap_%s"%(ebin)
+                HistName = "hist_expo_skymap_%s"%(ebin)
+            hist_imposter_norm_skymap[imposter][0].Add(InputFile.Get(HistName))
             HistName = "hist_effarea_skymap_%s"%(ebin)
             hist_imposter_Aeff_skymap[imposter][ebin].Add(InputFile.Get(HistName))
-            HistName = "hist_expo_hour_skymap_%s"%(ebin)
+            #HistName = "hist_expo_hour_skymap_%s"%(ebin)
+            HistName = "hist_expo_hour_skymap_sum"
             hist_imposter_expo_skymap[imposter][ebin].Add(InputFile.Get(HistName))
             HistName = "hist_bkgd_skymap_%s"%(ebin)
             if use_rfov:
@@ -1786,18 +1796,18 @@ if doImposter==1:
             #hist_imposter_bias_skymap[imposter][ebin].Add(InputFile.Get(HistName),-1.*data_norm/bkgd_norm)
             hist_imposter_bias_skymap[imposter][ebin].Add(InputFile.Get(HistName),-1.)
         InputFile.Close()
+
+    exposure_scaling_factors = []
     for imposter in range(0,n_imposters):
+        exposure_scaling_factors_per_imposter = []
         for ebin in range(0,len(energy_bin)-1):
             if hist_imposter_norm_skymap[imposter][ebin].Integral()==0.: continue
-            #expo_scale = hist_real_norm_skymap[ebin].Integral()/hist_imposter_norm_skymap[imposter][ebin].Integral()
-            #hist_imposter_data_skymap[imposter][ebin].Scale(expo_scale)
-            #hist_imposter_bias_skymap[imposter][ebin].Scale(expo_scale)
-            #hist_imposter_norm_skymap[imposter][ebin].Scale(expo_scale)
-            #hist_imposter_bkgd_skymap[imposter][ebin].Scale(expo_scale)
+            expo_scale_global = hist_real_norm_skymap[ebin].Integral()/hist_imposter_norm_skymap[imposter][ebin].Integral()
+            exposure_scaling_factors_per_imposter += [expo_scale_global]
             for binx in range(0,hist_real_norm_skymap[ebin].GetNbinsX()):
                 for biny in range(0,hist_real_norm_skymap[ebin].GetNbinsY()):
-                    real_expo = hist_real_norm_skymap[ebin].GetBinContent(binx+1,biny+1)
-                    imposter_expo = hist_imposter_norm_skymap[imposter][ebin].GetBinContent(binx+1,biny+1)
+                    real_expo = hist_real_expo_skymap[ebin].GetBinContent(binx+1,biny+1)
+                    imposter_expo = hist_imposter_expo_skymap[imposter][ebin].GetBinContent(binx+1,biny+1)
                     if imposter_expo==0.: continue
                     expo_scale = real_expo/imposter_expo
                     old_data = hist_imposter_data_skymap[imposter][ebin].GetBinContent(binx+1,biny+1)
@@ -1808,6 +1818,7 @@ if doImposter==1:
                     hist_imposter_bias_skymap[imposter][ebin].SetBinContent(binx+1,biny+1,old_bias*expo_scale)
                     hist_imposter_norm_skymap[imposter][ebin].SetBinContent(binx+1,biny+1,old_norm*expo_scale)
                     hist_imposter_bkgd_skymap[imposter][ebin].SetBinContent(binx+1,biny+1,old_bkgd*expo_scale)
+        exposure_scaling_factors += [exposure_scaling_factors_per_imposter]
 
 if correct_bias:
     for ebin in range(0,len(energy_bin)-1):
@@ -1896,19 +1907,23 @@ if 'Crab' in source_name:
 elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
     text_angle = 30.
     #3HWC J1908+063, 287.05, 6.39 
-    region_x = 287.05
-    region_y = 6.39
-    region_r = 1.5
-    region_name = '3HWC'
-    if doGalacticCoord:
-        region_x = 40.527
-        region_y = -0.795
+    #region_x = 287.05
+    #region_y = 6.39
+    #region_r = 1.5
+    #region_name = '3HWC'
+    #if CommonPlotFunctions.doGalacticCoord:
+    #    region_x = 40.527
+    #    region_y = -0.795
+    #Fermi J1906+0626
+    #region_x = 286.88
+    #region_y = 6.29
+    #region_r = 0.5
+    #region_name = 'Fermi J1906+0626'
     #PSR J1907+0602 # cover more exposure hours, allow larger radius
-    #region_x = 286.975
-    #region_y = 6.03777777778
-    #region_r = 2.0
-    #region_name = 'PSR'
-    #PSR J1907+0602
+    region_x = 286.975
+    region_y = 6.03777777778
+    region_r = 1.8
+    region_name = 'PSR'
     #North hot spot
     #region_x = 286.8
     #region_y = 7.1
@@ -2021,4 +2036,7 @@ MakeSpectrum(region_x,region_y,region_r,region_name)
 MakeExtensionProfile(region_x,region_y,region_r,do_fit,region_name)
 MakeGalacticProfile()
 MakeSignificanceMap(hist_real_data_skymap_smooth,hist_real_bkgd_skymap_smooth,hist_imposter_data_skymap_smooth,hist_imposter_bkgd_skymap_smooth)
+
+for esf in range(0,len(exposure_scaling_factors)):
+    print ('exposure_scaling_factors = %s'%(exposure_scaling_factors[esf]))
 

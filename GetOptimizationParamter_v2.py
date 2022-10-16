@@ -34,11 +34,15 @@ gamma_hadron_low_end = CommonPlotFunctions.gamma_hadron_low_end
 MSCW_blind_cut = CommonPlotFunctions.MSCW_blind_cut
 MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 
+#n_measures_per_entry = 1
 #n_measures_per_entry = 5
+#n_measures_per_entry = 10
 n_measures_per_entry = 20
 
-#analysis_type = 'RBM'
-analysis_type = 'Matrix'
+#background_type = 'RBM'
+background_type = 'ONOFF'
+#background_type = 'Matrix'
+analysis_type = 'Solo'
 #analysis_type = 'Mimic'
 
 observing_condition = 'all'
@@ -56,7 +60,7 @@ ONOFF_tag_sample = 'OFF'
 imposter_list = []
 ONOFF_tag_imposter = 'OFF'
 
-if analysis_type=='Matrix' or analysis_type=='RBM':
+if analysis_type=='Solo':
     ONOFF_tag_sample = 'OFF'
     sample_list += ['1ES0414V5_OFF']
     sample_list += ['1ES0647V6_OFF']
@@ -90,12 +94,22 @@ if analysis_type=='Matrix' or analysis_type=='RBM':
     sample_list += ['1ES1011V6_OFF'] # north
 if analysis_type=='Mimic' and observing_condition=='north':
     ONOFF_tag_sample = 'OFF'
+    sample_list += ['UrsaMajorIIV6_OFF']
+    sample_list += ['UrsaMinorV6_OFF']
+    sample_list += ['UrsaMinorV5_OFF']
+    sample_list += ['RGB_J0710_p591_V6_OFF']
+    sample_list += ['RGB_J0710_p591_V5_OFF']
     sample_list += ['H1426V6_OFF']
     sample_list += ['NGC1275V6_OFF']
     sample_list += ['DracoV6_OFF']
     sample_list += ['DracoV5_OFF']
     ONOFF_tag_imposter = 'ON'
     for imposter_ID in range(0,5):
+        imposter_list += ['UrsaMajorIIV6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['UrsaMinorV6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['UrsaMinorV5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['RGB_J0710_p591_V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['RGB_J0710_p591_V5_Imposter%s'%(imposter_ID)]
         imposter_list += ['H1426V6_Imposter%s'%(imposter_ID)]
         imposter_list += ['NGC1275V6_Imposter%s'%(imposter_ID)]
         imposter_list += ['DracoV6_Imposter%s'%(imposter_ID)]
@@ -118,6 +132,42 @@ if analysis_type=='Mimic' and observing_condition=='south':
         imposter_list += ['Segue1V6_Imposter%s'%(imposter_ID)]
         imposter_list += ['Segue1V5_Imposter%s'%(imposter_ID)]
         imposter_list += ['1ES0414V5_Imposter%s'%(imposter_ID)]
+if analysis_type=='Mimic' and observing_condition=='all':
+    ONOFF_tag_sample = 'OFF'
+    sample_list += ['UrsaMajorIIV6_OFF']
+    sample_list += ['UrsaMinorV6_OFF']
+    sample_list += ['UrsaMinorV5_OFF']
+    sample_list += ['RGB_J0710_p591_V6_OFF']
+    sample_list += ['RGB_J0710_p591_V5_OFF']
+    sample_list += ['H1426V6_OFF']
+    sample_list += ['NGC1275V6_OFF']
+    sample_list += ['DracoV6_OFF']
+    sample_list += ['DracoV5_OFF']
+    sample_list += ['1ES0229V6_OFF']
+    sample_list += ['1ES0229V5_OFF']
+    sample_list += ['3C273V6_OFF']
+    sample_list += ['3C273V5_OFF']
+    sample_list += ['Segue1V6_OFF']
+    sample_list += ['Segue1V5_OFF']
+    sample_list += ['1ES0414V5_OFF']
+    ONOFF_tag_imposter = 'ON'
+    for imposter_ID in range(0,5):
+        imposter_list += ['UrsaMajorIIV6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['UrsaMinorV6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['UrsaMinorV5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['RGB_J0710_p591_V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['RGB_J0710_p591_V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['H1426V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['NGC1275V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['DracoV6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['DracoV5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['1ES0229V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['1ES0229V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['3C273V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['3C273V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['Segue1V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['Segue1V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['1ES0414V5_Imposter%s'%(imposter_ID)]
 
 
 
@@ -126,14 +176,13 @@ elev_range = CommonPlotFunctions.elev_range
 theta2_bins = [0,4]
 skymap_zoomin_scale = CommonPlotFunctions.skymap_zoomin_scale
 smooth_size_spectroscopy = CommonPlotFunctions.smooth_size_spectroscopy
-Skymap_size = CommonPlotFunctions.Skymap_size
-Skymap_nbins = CommonPlotFunctions.Skymap_nbins
 energy_bin = CommonPlotFunctions.energy_bin
 calibration_radius = CommonPlotFunctions.calibration_radius
 elev_range = CommonPlotFunctions.elev_range
 energy_index_scale = CommonPlotFunctions.energy_index_scale
 Smoothing = CommonPlotFunctions.Smoothing
-Skymap_normalization_nbins = CommonPlotFunctions.Skymap_normalization_nbins
+Skymap_nzones_x = CommonPlotFunctions.Skymap_nzones_x
+Skymap_nzones_y = CommonPlotFunctions.Skymap_nzones_y
 
 method_tag = 'tight_mdm_default'
 lowrank_tag = '_svd'
@@ -198,11 +247,11 @@ def GetGammaCounts(file_path,ebin):
     InputFile = ROOT.TFile(file_path)
     NewInfoTree = InputFile.Get("NewInfoTree")
     NewInfoTree.SetBranchAddress('dark_stable_rank',ROOT.AddressOf(dark_stable_rank))
-    if analysis_type=='RBM':
+    if background_type=='RBM':
         NewInfoTree.SetBranchAddress('roi_data_gamma_count',ROOT.AddressOf(data_gamma_count))
     else:
         NewInfoTree.SetBranchAddress('data_gamma_count',ROOT.AddressOf(data_gamma_count))
-    if analysis_type=='RBM':
+    if background_type=='RBM':
         NewInfoTree.SetBranchAddress('roi_rbm_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
     else:
         NewInfoTree.SetBranchAddress('bkgd_gamma_count',ROOT.AddressOf(bkgd_gamma_count))
@@ -470,7 +519,7 @@ def MakeCorrelationPlot(list_var,ebin):
     y_var = mtx_var_bkgd_good.transpose()[1]
     plt.scatter(x_var,y_var,color='r',alpha=0.2)
 
-    plt.savefig("output_plots/par_correlation_%s%s_%s%s_E%s_%s_%s.png"%(par1_row,par1_col,par2_row,par2_col,ebin,analysis_type,observing_condition))
+    plt.savefig("output_plots/par_correlation_%s%s_%s%s_E%s_%s_%s.png"%(par1_row,par1_col,par2_row,par2_col,ebin,background_type,observing_condition))
 
 
 def LoopOverFiles():
@@ -512,8 +561,8 @@ def LoopOverFiles():
                 else:
                     file_exists = False
                     print ('file does not exist.')
-            for x_idx in range(0,Skymap_normalization_nbins):
-                for y_idx in range(0,Skymap_normalization_nbins):
+            for x_idx in range(0,Skymap_nzones_x):
+                for y_idx in range(0,Skymap_nzones_y):
                     for g_idx in range(0,n_groups):
                         SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(sample_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
                         FilePath_Folder += [SourceFilePath]
@@ -604,8 +653,8 @@ def LoopOverFiles():
                 else:
                     file_exists = False
                     print ('file does not exist.')
-            for x_idx in range(0,Skymap_normalization_nbins):
-                for y_idx in range(0,Skymap_normalization_nbins):
+            for x_idx in range(0,Skymap_nzones_x):
+                for y_idx in range(0,Skymap_nzones_y):
                     for g_idx in range(0,n_groups):
                         SourceFilePath = "%s/Netflix_"%(folder_path)+imposter_list[source_idx]+"_%s"%(imposter_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
                         FilePath_Folder += [SourceFilePath]
@@ -685,11 +734,61 @@ for eb in range(0,len(energy_bin)-1):
     Hist_Diff_ShowerShape[eb].Reset()
     Hist_Diff_ShowerShape[eb].Add(Hist_Data_ShowerShape[eb])
     Hist_Diff_ShowerShape[eb].Add(Hist_Dark_ShowerShape[eb],-1.)
-    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrixDark_E%s_%s_%s_%s'%(eb,analysis_type,observing_condition,folder_path))
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrixDark_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
     Hist_Diff_ShowerShape[eb].Reset()
     Hist_Diff_ShowerShape[eb].Add(Hist_Data_ShowerShape[eb])
     Hist_Diff_ShowerShape[eb].Add(Hist_Bkgd_ShowerShape[eb],-1.)
-    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrixBkgd_E%s_%s_%s_%s'%(eb,analysis_type,observing_condition,folder_path))
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrixBkgd_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
+
+bin_lower_x = Hist_Data_ShowerShape[0].GetXaxis().FindBin(-1.*MSCL_blind_cut+0.01)-1
+bin_upper_x = Hist_Data_ShowerShape[0].GetXaxis().FindBin(MSCL_blind_cut+0.01)-1
+bin_lower_y = Hist_Data_ShowerShape[0].GetYaxis().FindBin(-1.*MSCW_blind_cut+0.01)-1
+bin_upper_y = Hist_Data_ShowerShape[0].GetYaxis().FindBin(MSCW_blind_cut+0.01)-1
+for eb in range(0,len(energy_bin)-1):
+    data_x = []
+    data_y = []
+    dark_y = []
+    bkgd_y = []
+    data_ratio = []
+    dark_ratio = []
+    bkgd_ratio = []
+    for by in range(0,Hist_Data_ShowerShape[eb].GetNbinsY()):
+        data_cnt = 0.
+        dark_cnt = 0.
+        bkgd_cnt = 0.
+        data_x += [Hist_Data_ShowerShape[eb].GetYaxis().GetBinCenter(by+1)]
+        for bx in range(0,Hist_Data_ShowerShape[eb].GetNbinsX()):
+            if bx>bin_upper_x: continue
+            data_cnt += Hist_Data_ShowerShape[eb].GetBinContent(bx+1,by+1)
+            dark_cnt += Hist_Dark_ShowerShape[eb].GetBinContent(bx+1,by+1)
+            bkgd_cnt += Hist_Bkgd_ShowerShape[eb].GetBinContent(bx+1,by+1)
+        data_y += [data_cnt]
+        dark_y += [dark_cnt]
+        bkgd_y += [bkgd_cnt]
+        data_ratio += [1.]
+        if data_cnt>0.:
+            dark_ratio += [dark_cnt/data_cnt]
+            bkgd_ratio += [bkgd_cnt/data_cnt]
+        else:
+            dark_ratio += [0.]
+            bkgd_ratio += [0.]
+
+    plt.clf()
+    plot1 = plt.subplot2grid((2, 2), (0, 0), rowspan=1, colspan=2)
+    plot1.plot(data_x,data_y,color='b',label='ON data')
+    plot1.plot(data_x,dark_y,color='r',linestyle='dashed',label='OFF data')
+    plot1.plot(data_x,bkgd_y,color='g',linestyle='dotted',label='OFF data (matrix method)')
+    plot1.legend(loc='best')
+    plot1.set(ylabel='count')
+    plot2 = plt.subplot2grid((2, 2), (1, 0), rowspan=1, colspan=2)
+    plot2.plot(data_x,data_ratio,color='b')
+    plot2.plot(data_x,dark_ratio,color='r',label='OFF data')
+    plot2.plot(data_x,bkgd_ratio,color='g',label='OFF data (matrix method)')
+    plot2.legend(loc='best')
+    plot2.set(ylabel='ratio')
+    plt.xlabel("MSCW")
+    plt.savefig("output_plots/MSCL_Bkgd_E%s_%s_%s.png"%(eb,observing_condition,folder_path))
+
 
 Hist_Data_Eigenvalues_Mean = []
 for eb in range(0,len(energy_bin)-1):
@@ -702,7 +801,7 @@ for eb in range(0,len(energy_bin)-1):
         for entry in range(0,n_measurements):
             if eb==0 or eb==1:
                 if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
-            #if analysis_type!='RBM':
+            #if background_type!='RBM':
             #    if eb==0 and data_count[entry][eb]<2000.: continue
             #    if eb==1 and data_count[entry][eb]<500.: continue
             #if data_count[entry][eb]<10.: continue
@@ -742,7 +841,7 @@ for eb in range(0,len(energy_bin)-1):
     for entry in range(0,n_measurements):
         #if eb==0 or eb==1:
         #    if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
-        if analysis_type!='RBM':
+        if background_type!='RBM':
             if eb==0 and data_count[entry][eb]<2000.: continue
             if eb==1 and data_count[entry][eb]<500.: continue
         if data_count[entry][eb]<10.: continue
@@ -788,13 +887,16 @@ for eb in range(0,len(energy_bin)-1):
     data_cnt_sum = 0.
     bkgd_cnt_sum = 0.
     for entry in range(0,n_measurements):
-        #if analysis_type!='RBM':
+        #if background_type!='RBM':
         #    if eb==0 and data_count[entry][eb]<2000.: continue
         #    if eb==1 and data_count[entry][eb]<500.: continue
         #if data_count[entry][eb]<10.: continue
         n_measures += 1.
         data_cnt_sum += data_count[entry][eb]
-        bkgd_cnt_sum += bkgd_count[entry][eb]
+        if background_type=='ONOFF':
+            bkgd_cnt_sum += dark_count[entry][eb]
+        else:
+            bkgd_cnt_sum += bkgd_count[entry][eb]
         if n_measures==n_measures_per_entry:
             if data_cnt_sum<10.: continue
             epsilon_bkgd = (data_cnt_sum-bkgd_cnt_sum)/data_cnt_sum
@@ -812,15 +914,15 @@ for eb in range(0,len(energy_bin)-1):
     energy_dependent_stat += [epsilon_stat_avg]
 plt.clf()
 fig, ax = plt.subplots()
-plt.xlabel("Energy [GeV]", fontsize=18)
-plt.ylabel("RMS of $\\epsilon$", fontsize=18)
+plt.xlabel("Energy [GeV]", fontsize=12)
+plt.ylabel("RMS of $\\epsilon$", fontsize=12)
 plt.yscale('log')
 plt.xscale('log')
 plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_bkgd,marker='.',label='syst.+stat. unc.')
 plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_stat,marker='.',label='stat. unc.')
 plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_syst,marker='.',label='syst. unc.')
 ax.legend(loc='best')
-plt.savefig("output_plots/SystVsStatErrors_M%s_%s.png"%(n_measures_per_entry,analysis_type))
+plt.savefig("output_plots/SystVsStatErrors_M%s_%s.png"%(n_measures_per_entry,background_type))
 
 
 Hist_Bkgd_Optimization_Mean = []
@@ -835,7 +937,7 @@ for eb in range(0,len(energy_bin)-1):
             for entry in range(0,n_measurements):
                 if eb==0 or eb==1:
                     if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
-                #if analysis_type!='RBM':
+                #if background_type!='RBM':
                 #    if eb==0 and data_count[entry][eb]<2000.: continue
                 #    if eb==1 and data_count[entry][eb]<500.: continue
                 #if data_count[entry][eb]<10.: continue
@@ -846,7 +948,7 @@ for eb in range(0,len(energy_bin)-1):
                 rms = rms/n_entries
                 rms = pow(rms,0.5)
             Hist_Bkgd_Optimization_Mean[eb].SetBinContent(binx+1,biny+1,rms)
-    CommonPlotFunctions.MatplotlibHist2D(Hist_Bkgd_Optimization_Mean[eb],fig,'log10 $\\beta_{11}$','log10 $\\beta_{22}$','RMS of $\\epsilon$','Optimization_E%s_%s_%s'%(eb,analysis_type,observing_condition))
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Bkgd_Optimization_Mean[eb],fig,'log10 $\\beta_{11}$','log10 $\\beta_{22}$','RMS of $\\epsilon$','Optimization_E%s_%s_%s'%(eb,background_type,observing_condition))
 
 Hist_SystErrDist_MDM = []
 Hist_SystErrDist_Init = []
@@ -893,7 +995,7 @@ for eb in range(0,len(energy_bin)-1):
         if eb==0 or eb==1:
             if plot_rank!=0 and data_rank[entry][eb]!=plot_rank: continue
         if data_count[entry][eb]==0.: continue
-        #if analysis_type!='RBM':
+        #if background_type!='RBM':
         #    if eb==0 and data_count[entry][eb]<2000.: continue
         #    if eb==1 and data_count[entry][eb]<500.: continue
         #if data_count[entry][eb]<10.: continue
@@ -933,7 +1035,7 @@ for eb in range(0,len(energy_bin)-1):
         if eb==0 or eb==1:
             if plot_rank!=0 and imposter_data_rank[entry][eb]!=plot_rank: continue
         if imposter_data_count[entry][eb]==0.: continue
-        #if analysis_type!='RBM':
+        #if background_type!='RBM':
         #    if eb==0 and imposter_data_count[entry][eb]<2000.: continue
         #    if eb==1 and imposter_data_count[entry][eb]<500.: continue
         #if imposter_data_count[entry][eb]<10.: continue
@@ -962,21 +1064,28 @@ for eb in range(0,len(energy_bin)-1):
     Hists = []
     legends = []
     colors = []
-    Hists += [Hist_SystErrDist_MDM[eb]]
-    legends += ['%0.2f-%0.2f TeV, ON data, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_rms,MDM_rms/pow(n_entries,0.5))]
-    colors += [1]
-    if analysis_type=='Matrix':
+    if analysis_type=='Solo' and background_type=='Matrix':
         Hists += [Hist_SystErrDist_Init[eb]]
-        legends += ['initial matching, RMS = $%0.3f \pm %0.3f$'%(Init_rms,Init_rms/pow(n_entries,0.5))]
+        legends += ['%0.2f-%0.2f TeV, ON/OFF, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,Init_rms,Init_rms/pow(n_entries,0.5))]
+        colors += [2]
+        Hists += [Hist_SystErrDist_MDM[eb]]
+        legends += ['Matrix method, RMS = $%0.3f \pm %0.3f$'%(MDM_rms,MDM_rms/pow(n_entries,0.5))]
+        colors += [1]
+    elif analysis_type=='Solo' and background_type=='ONOFF':
+        Hists += [Hist_SystErrDist_Init[eb]]
+        legends += ['%0.2f-%0.2f TeV, ON/OFF, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,Init_rms,Init_rms/pow(n_entries,0.5))]
         colors += [2]
     elif analysis_type=='Mimic':
+        Hists += [Hist_SystErrDist_MDM[eb]]
+        legends += ['%0.2f-%0.2f TeV, ON data, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_rms,MDM_rms/pow(n_entries,0.5))]
+        colors += [1]
         Hists += [Hist_Imposter_SystErrDist_MDM[eb]]
         legends += ['mimic data (entries scaled by 1/5), RMS = $%0.3f \pm %0.3f$'%(MDM_rms_imposter,MDM_rms_imposter/pow(n_entries_imposter,0.5))]
         colors += [2]
     fig.clf()
     ax = fig.add_subplot()
     MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error $\epsilon$','number of entries')
-    fig.savefig("output_plots/SystErrDist_E%s_M%s_%s_%s_%s.png"%(eb,n_measures_per_entry,analysis_type,observing_condition,folder_path))
+    fig.savefig("output_plots/SystErrDist_E%s_M%s_%s_%s_%s.png"%(eb,n_measures_per_entry,background_type,observing_condition,folder_path))
 
 list_var_pair = []
 good_var_pair = []

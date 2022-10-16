@@ -24,7 +24,7 @@ from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 from operator import itemgetter, attrgetter
 
 folder_path = 'output_test'
-#folder_path = 'output_nominal'
+#folder_path = 'output_default'
 #folder_path = 'output_2hrs'
 #folder_path = 'output_5hrs'
 #folder_path = 'output_10hrs'
@@ -34,6 +34,7 @@ folder_path = 'output_test'
 #folder_path = 'output_12x12'
 #folder_path = 'output_FreeNSB'
 #folder_path = 'output_FreeAzim'
+#folder_path = 'output_FreeMJD'
 #folder_path = 'output_FreeElev'
 
 #N_bins_for_deconv = 4
@@ -64,13 +65,13 @@ additional_tag = ''
 UseEffectiveArea = False
 additional_tag = '_DD'
 
-calibration_radius = 0.3 # need to be larger than the PSF and smaller than the integration radius
+calibration_radius = 0.2 # need to be larger than the PSF and smaller than the integration radius
 
 #energy_index_scale = 0
 energy_index_scale = 2
 
-doGalacticCoord = True
-#doGalacticCoord = False
+#doGalacticCoord = True
+doGalacticCoord = False
 
 Skymap_nzones_x = 1
 Skymap_nzones_y = 1
@@ -130,7 +131,7 @@ def reflectXaxis(hist):
 
 def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
 
-    #Hist_Smooth.Reset()
+    Hist_Smooth.Reset()
     #Hist_Smooth.Add(Hist_Old)
     #return
 
@@ -727,7 +728,8 @@ def GetGammaSourceInfo(hist_contour):
     if doGalacticCoord:
         near_source_cut = 1.5
 
-    if 'MGRO_J1908' in sys.argv[1]:
+    #if 'MGRO_J1908' in sys.argv[1]:
+    if 'nothing' in sys.argv[1]:
         inputFile = open('J1908_sources_RaDec_w_Names.txt')
         #inputFile = open('TeVCat_RaDec_w_Names.txt')
         for line in inputFile:
@@ -769,14 +771,14 @@ def GetGammaSourceInfo(hist_contour):
                     zscore_objects += [(zscore,bin_center_x,bin_center_y)]
             zscore_objects = sorted(zscore_objects, key=itemgetter(0), reverse=True)
 
-            print ('++++++++++++++++++++++++++++++++++++++++++++++++++')
+            #print ('++++++++++++++++++++++++++++++++++++++++++++++++++')
             for zo in range(0,len(zscore_objects)):
                 zscore = zscore_objects[zo][0]
                 bin_center_x = zscore_objects[zo][1]
                 bin_center_y = zscore_objects[zo][2]
-                print ('zscore = %s'%(zscore))
-                print ('bin_center_x = %s'%(bin_center_x))
-                print ('bin_center_y = %s'%(bin_center_y))
+                #print ('zscore = %s'%(zscore))
+                #print ('bin_center_x = %s'%(bin_center_x))
+                #print ('bin_center_y = %s'%(bin_center_y))
                 if zscore<3.: continue
                 min_dist = 1e10
                 min_dist_src = ''
