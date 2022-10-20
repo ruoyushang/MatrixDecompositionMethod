@@ -1376,6 +1376,8 @@ def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name):
     y_axis_syst_err_allE = []
     norm_allE = []
     norm_err_allE = []
+    diff_radius = []
+    diff_radius_err = []
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindExtension_v2(hist_real_flux_skymap[ebin],hist_real_flux_syst_skymap[ebin],roi_x,roi_y,2.0*roi_r)
         imposter_profile_list = []
@@ -1421,6 +1423,8 @@ def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name):
             print ('energy = %0.2f GeV'%(energy_bin[ebin]))
             print ('diffusion flux = %0.2E +/- %0.2E'%(popt[0],pow(pcov[0][0],0.5)))
             print ('diffusion radius = %0.2f +/- %0.2f deg (chi2/dof = %0.2f)'%(popt[1],pow(pcov[1][1],0.5),chisq/dof))
+            diff_radius += [popt[1]]
+            diff_radius_err += [pow(pcov[1][1],0.5)]
             r_axis_allE += [theta2]
             y_axis_allE += [profile_fit]
             norm_allE += [popt[0]]
@@ -1434,7 +1438,7 @@ def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name):
             residual = real_profile - profile_fit
             chisq = np.sum((residual/real_profile_stat_err)**2)
             dof = len(theta2)-2
-            print ('diffusion flux = %0.2E +/- %0.2E'%(popt[0],pow(pcov[0][0],0.5)))
+            print ('guass flux = %0.2E +/- %0.2E'%(popt[0],pow(pcov[0][0],0.5)))
             print ('gauss radius = %0.2f +/- %0.2f deg (chi2/dof = %0.2f)'%(popt[1],pow(pcov[1][1],0.5),chisq/dof))
             r_axis_allE += [theta2]
             y_axis_allE += [profile_fit]
@@ -1536,11 +1540,23 @@ def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name):
     axbig.remove()
 
     if fit_profile:
+
         energy_axis = []
         energy_axis_err = []
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
             energy_axis += [0.5*(energy_bin[ebin]+energy_bin[ebin+1])]
             energy_axis_err += [0.5*(energy_bin[ebin+1]-energy_bin[ebin])]
+
+        fig.clf()
+        axbig = fig.add_subplot()
+        axbig.errorbar(energy_axis,diff_radius,diff_radius_err,color='k',marker='s',ls='none')
+        axbig.set_ylabel('diffusion radius [deg]')
+        axbig.set_xlabel('photon energy [GeV]')
+        axbig.set_xscale('log')
+        plotname = 'RadiusVsEnergy_%s'%(roi_name)
+        fig.savefig("output_plots/%s_%s.png"%(plotname,plot_tag),bbox_inches='tight')
+        axbig.remove()
+
         MakeDiffusionSpectrum(energy_axis,energy_axis_err,r_axis_allE,y_axis_allE,y_axis_stat_err_allE,y_axis_syst_err_allE,norm_allE,norm_err_allE)
 
 def MakeFluxMap(flux_map, data_map, bkgd_map, norm_map, aeff_map, expo_map):
@@ -1562,6 +1578,7 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, norm_map, aeff_map, expo_map):
 
                 if aeff_content<10.: continue
                 if expo_content<1.: continue
+                if expo_content<expo_content_max*0.2: continue
                 #if expo_content_max<20.:
                 #    if expo_content<expo_content_max*0.3: continue
                 #else:

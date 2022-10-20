@@ -80,12 +80,12 @@ Skymap_nbins_x = 45
 Skymap_size_y = 2.
 Skymap_nbins_y = 45
 if doGalacticCoord:
-    Skymap_nzones_x = 6
+    Skymap_nzones_x = 3
     Skymap_nzones_y = 3
-    Skymap_size_x = 12.
+    Skymap_size_x = 6.
     Skymap_nbins_x = 60
     Skymap_size_y = 6.
-    Skymap_nbins_y = 30
+    Skymap_nbins_y = 60
 #Skymap_nbins = 15 
 #Skymap_nbins = 9 # Crab calibration 
 #Skymap_nbins = 5
@@ -356,7 +356,7 @@ def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
     MapEdge_upper = Hist_Data_input.GetYaxis().GetBinLowEdge(Hist_Data_input.GetNbinsY()+1)
     cell_size = (MapEdge_right-MapEdge_left)/float(n_bins_x)*(MapEdge_upper-MapEdge_lower)/float(n_bins_y)
 
-    Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",n_bins_y,MapEdge_lower,MapEdge_upper)
+    Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",int(n_bins_y/2),MapEdge_lower,MapEdge_upper)
     #Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",int(n_bins_y/2),0.,MapEdge_upper)
     for br in range(0,Hist_Profile_Y.GetNbinsX()):
         range_limit = Hist_Profile_Y.GetBinLowEdge(br+2)
@@ -414,7 +414,8 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
     integration_range = min(integration_range,1.5)
-    n_bins_1d = int(10.*integration_range)
+    #n_bins_1d = int(10.*integration_range)
+    n_bins_1d = int(5.*integration_range)
 
     n_bins_y = Hist_Data_input.GetNbinsY()
     n_bins_x = Hist_Data_input.GetNbinsX()
@@ -1099,9 +1100,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
 
     other_star_labels = []
     other_star_markers = []
-    star_range = 2.0
-    if doGalacticCoord:
-        star_range = 12.0
+    star_range = Skymap_size_x
     source_ra = (MapEdge_left+MapEdge_right)/2.
     source_dec = (MapEdge_lower+MapEdge_upper)/2.
     for star in range(0,len(other_stars)):
@@ -1152,12 +1151,12 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         if roi_r>0.:
             mycircle = plt.Circle((-roi_x, roi_y), roi_r, color='b', fill=False)
             axbig.add_patch(mycircle)
-        if 'J1908' in plotname:
-            mycircle = plt.Circle((-286.975, 6.038), 0.43, color='g', fill=False) # PSR J1907+0602
-            axbig.add_patch(mycircle)
-            mycircle = plt.Circle((-286.786, 6.498), 0.39, color='r', fill=False) # SNR GG40.5-0.5
-            #mycircle = plt.Circle((-286.786, 6.498), 0.12, color='r', fill=False) # SNR GG40.5-0.5
-            axbig.add_patch(mycircle)
+        #if 'J1908' in plotname:
+        #    mycircle = plt.Circle((-286.975, 6.038), 0.43, color='g', fill=False) # PSR J1907+0602
+        #    axbig.add_patch(mycircle)
+        #    mycircle = plt.Circle((-286.786, 6.498), 0.39, color='r', fill=False) # SNR GG40.5-0.5
+        #    #mycircle = plt.Circle((-286.786, 6.498), 0.12, color='r', fill=False) # SNR GG40.5-0.5
+        #    axbig.add_patch(mycircle)
     axbig.set_xticks(x_axis_sparse)
     axbig.set_xticklabels(x_axis_reflect)
     #axbig.legend(fontsize=7)

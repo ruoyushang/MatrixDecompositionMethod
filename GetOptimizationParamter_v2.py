@@ -40,8 +40,8 @@ MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 n_measures_per_entry = 20
 
 #background_type = 'RBM'
-background_type = 'ONOFF'
-#background_type = 'Matrix'
+#background_type = 'ONOFF'
+background_type = 'Matrix'
 analysis_type = 'Solo'
 #analysis_type = 'Mimic'
 
@@ -278,7 +278,7 @@ def GetCoefficientHistogram(file_path,ebin,hist_data,hist_bkgd):
     HistName = "Hist_Coeff_Bkgd_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     hist_bkgd.Add(InputFile.Get(HistName))
 
-def GetShowerShapeHistogram(file_path,ebin,hist_data,hist_dark,hist_bkgd):
+def GetShowerShapeHistogram(file_path,ebin,hist_data,hist_dark,hist_bkgd,hist_rank0,hist_rank1):
 
     InputFile = ROOT.TFile(file_path)
     ErecS_lower_cut = energy_bin[ebin]
@@ -291,6 +291,10 @@ def GetShowerShapeHistogram(file_path,ebin,hist_data,hist_dark,hist_bkgd):
     hist_dark.Add(InputFile.Get(HistName))
     HistName = "Hist_OnBkgd_MSCLW_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     hist_bkgd.Add(InputFile.Get(HistName))
+    HistName = "Hist_Rank0_MSCLW_Dark_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    hist_rank0.Add(InputFile.Get(HistName))
+    HistName = "Hist_Rank1_MSCLW_Dark_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    hist_rank1.Add(InputFile.Get(HistName))
 
 def GetSingularValueHistogram(file_path,ebin,hist_optimization):
 
@@ -601,7 +605,7 @@ def LoopOverFiles():
                         mtx_CDE_data_E = []
                         mtx_CDE_bkgd_E = []
                         for eb in range(0,len(energy_bin)-1):
-                            GetShowerShapeHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Data_ShowerShape[eb],Hist_Dark_ShowerShape[eb],Hist_Bkgd_ShowerShape[eb])
+                            GetShowerShapeHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Data_ShowerShape[eb],Hist_Dark_ShowerShape[eb],Hist_Bkgd_ShowerShape[eb],Hist_Dark_Rank0[eb],Hist_Dark_Rank1[eb])
                             Hist_Data_Eigenvalues_E += [ROOT.TH1D("Hist_Data_Eigenvalues_M%s_E%s"%(n_measurements,eb),"",N_bins_for_deconv,0,N_bins_for_deconv)]
                             Hist_Data_Eigenvalues_E[eb].Reset()
                             GetSingularValueHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Data_Eigenvalues_E[eb])
@@ -720,11 +724,15 @@ MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_blind_cut
 MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_blind_cut-(-1.*MSCL_blind_cut))-MSCL_blind_cut
 Hist_Data_ShowerShape = []
 Hist_Dark_ShowerShape = []
+Hist_Dark_Rank0 = []
+Hist_Dark_Rank1 = []
 Hist_Bkgd_ShowerShape = []
 Hist_Diff_ShowerShape = []
 for eb in range(0,len(energy_bin)-1):
     Hist_Data_ShowerShape += [ROOT.TH2D("Hist_Data_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist_Dark_ShowerShape += [ROOT.TH2D("Hist_Dark_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+    Hist_Dark_Rank0 += [ROOT.TH2D("Hist_Dark_Rank0_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+    Hist_Dark_Rank1 += [ROOT.TH2D("Hist_Dark_Rank1_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist_Bkgd_ShowerShape += [ROOT.TH2D("Hist_Bkgd_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist_Diff_ShowerShape += [ROOT.TH2D("Hist_Diff_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
 
@@ -739,6 +747,10 @@ for eb in range(0,len(energy_bin)-1):
     Hist_Diff_ShowerShape[eb].Add(Hist_Data_ShowerShape[eb])
     Hist_Diff_ShowerShape[eb].Add(Hist_Bkgd_ShowerShape[eb],-1.)
     CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrixBkgd_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
+
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Dark_ShowerShape[eb],fig,'scaled length','scaled width','count','DarkMatrixFull_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Dark_Rank0[eb],fig,'scaled length','scaled width','count','DarkMatrixRank0_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Dark_Rank1[eb],fig,'scaled length','scaled width','count','DarkMatrixRank1_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
 
 bin_lower_x = Hist_Data_ShowerShape[0].GetXaxis().FindBin(-1.*MSCL_blind_cut+0.01)-1
 bin_upper_x = Hist_Data_ShowerShape[0].GetXaxis().FindBin(MSCL_blind_cut+0.01)-1
