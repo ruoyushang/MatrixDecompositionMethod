@@ -70,8 +70,8 @@ calibration_radius = 0.2 # need to be larger than the PSF and smaller than the i
 #energy_index_scale = 0
 energy_index_scale = 2
 
-#doGalacticCoord = True
-doGalacticCoord = False
+doGalacticCoord = True
+#doGalacticCoord = False
 
 Skymap_nzones_x = 1
 Skymap_nzones_y = 1
@@ -693,7 +693,7 @@ def ReadATNFTargetListFromFile(file_path):
         source_dist += [target_dist]
         source_age += [target_age]
         source_edot += [target_edot]
-    return source_name, source_ra, source_dec
+    return source_name, source_ra, source_dec, source_dist, source_age
 
 def ReadSNRTargetListFromCSVFile():
     source_name = []
@@ -721,7 +721,7 @@ def ReadSNRTargetListFromCSVFile():
             #print(row)
     return source_name, source_ra, source_dec
 
-def GetGammaSourceInfo(hist_contour):
+def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_psr_dec=None):
 
     other_stars = []
     other_star_coord = []
@@ -749,10 +749,16 @@ def GetGammaSourceInfo(hist_contour):
                 other_star_coord += [[gamma_source_ra,gamma_source_dec]]
     else:
 
+        if not prime_psr_name==None:
+            for src in range(0,len(prime_psr_name)):
+                other_stars += [prime_psr_name[src]]
+                other_star_coord += [[prime_psr_ra[src],prime_psr_dec[src]]]
+
         target_name = []
         target_ra = []
         target_dec = []
-        target_psr_name, target_psr_ra, target_psr_dec = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+
+        target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
         target_name += target_psr_name
         target_ra += target_psr_ra
         target_dec += target_psr_dec
@@ -1005,7 +1011,7 @@ def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname):
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
     axbig.remove()
 
-def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,roi_x=0.,roi_y=0.,roi_r=0.,rotation_angle=0.,fill_gaps=False):
+def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,roi_x=0.,roi_y=0.,roi_r=0.,rotation_angle=0.,fill_gaps=False,prime_psr_name=None,prime_psr_ra=None,prime_psr_dec=None):
 
     isGalactic = False
     if label_x=='gal. l':
@@ -1096,7 +1102,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
                 grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)
                 if label_z!='Z score' and max_z_contour>0.:
                     grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)*max_z/max_z_contour
-    other_stars, other_star_coord = GetGammaSourceInfo(hist_contour) 
+    other_stars, other_star_coord = GetGammaSourceInfo(hist_contour,prime_psr_name,prime_psr_ra,prime_psr_dec) 
 
     other_star_labels = []
     other_star_markers = []

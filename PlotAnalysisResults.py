@@ -154,30 +154,12 @@ if 'LHAASO_J1929' in sys.argv[1]:
 if 'LHAASO_J2108' in sys.argv[1]:
     observation_name = 'LHAASO_J2108'
     data_epoch = ['LHAASO_J2108_V6']
-if 'PSR_J2238_p5903' in sys.argv[1]:
-    observation_name = 'PSR_J2238_p5903'
-    data_epoch = ['PSR_J2238_p5903_V6']
-if 'PSR_J1930_p1852' in sys.argv[1]:
-    observation_name = 'PSR_J1930_p1852'
-    data_epoch = ['PSR_J1930_p1852_V6']
-if 'PSR_J2022_p3842' in sys.argv[1]:
-    observation_name = 'PSR_J2022_p3842'
-    data_epoch = ['PSR_J2022_p3842_V6']
-if 'PSR_J0248_p6021' in sys.argv[1]:
-    observation_name = 'PSR_J0248_p6021'
-    data_epoch = ['PSR_J0248_p6021_V6']
-if 'PSR_J0023_p09' in sys.argv[1]:
-    observation_name = 'PSR_J0023_p09'
-    data_epoch = ['PSR_J0023_p09_V6']
-if 'PSR_J0633_p0632' in sys.argv[1]:
-    observation_name = 'PSR_J0633_p0632'
-    data_epoch = ['PSR_J0633_p0632_V6']
 if 'PSR_J1856_p0245' in sys.argv[1]:
     observation_name = 'PSR_J1856_p0245'
     data_epoch = ['PSR_J1856_p0245_V6']
-if 'LSI_p61_303' in sys.argv[1]:
-    observation_name = 'LSI_p61_303'
-    data_epoch = ['LSI_p61_303_V6']
+if 'PSR_J1913_p0904' in sys.argv[1]:
+    observation_name = 'PSR_J1913_p0904'
+    data_epoch = ['PSR_J1913_p0904_V6']
 if 'IC443HotSpot' in sys.argv[1]:
     observation_name = 'IC443HotSpot'
     data_epoch = ['IC443HotSpotV5','IC443HotSpotV6']
