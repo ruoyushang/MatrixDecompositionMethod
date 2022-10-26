@@ -154,12 +154,27 @@ if 'LHAASO_J1929' in sys.argv[1]:
 if 'LHAASO_J2108' in sys.argv[1]:
     observation_name = 'LHAASO_J2108'
     data_epoch = ['LHAASO_J2108_V6']
+if 'PSR_J1841_m0345' in sys.argv[1]:
+    observation_name = 'PSR_J1841_m0345'
+    data_epoch = ['PSR_J1841_m0345_V6','PSR_J1841_m0345_V5']
 if 'PSR_J1856_p0245' in sys.argv[1]:
     observation_name = 'PSR_J1856_p0245'
-    data_epoch = ['PSR_J1856_p0245_V6']
-if 'PSR_J1913_p0904' in sys.argv[1]:
-    observation_name = 'PSR_J1913_p0904'
-    data_epoch = ['PSR_J1913_p0904_V6']
+    data_epoch = ['PSR_J1856_p0245_V6','PSR_J1856_p0245_V5']
+if 'PSR_J1938_p2213' in sys.argv[1]:
+    observation_name = 'PSR_J1938_p2213'
+    data_epoch = ['PSR_J1938_p2213_V6','PSR_J1938_p2213_V5']
+if 'PSR_J2021_p3651' in sys.argv[1]:
+    observation_name = 'PSR_J2021_p3651'
+    data_epoch = ['PSR_J2021_p3651_V6','PSR_J2021_p3651_V5']
+if 'PSR_J2021_p4026' in sys.argv[1]:
+    observation_name = 'PSR_J2021_p4026'
+    data_epoch = ['PSR_J2021_p4026_V6','PSR_J2021_p4026_V5']
+if 'PSR_J2032_p4127_Baseline' in sys.argv[1]:
+    observation_name = 'PSR_J2032_p4127_Baseline'
+    data_epoch = ['PSR_J2032_p4127_Baseline_V6','PSR_J2032_p4127_Baseline_V5']
+if 'PSR_J2032_p4127_Fall2017' in sys.argv[1]:
+    observation_name = 'PSR_J2032_p4127_Fall2017'
+    data_epoch = ['PSR_J2032_p4127_Fall2017_V6']
 if 'IC443HotSpot' in sys.argv[1]:
     observation_name = 'IC443HotSpot'
     data_epoch = ['IC443HotSpotV5','IC443HotSpotV6']

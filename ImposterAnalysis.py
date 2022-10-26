@@ -148,6 +148,15 @@ def FindDetectedPWN(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_skym
 
     print ('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = CommonPlotFunctions.ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+    target_snr_name, target_snr_ra, target_snr_dec = CommonPlotFunctions.ReadSNRTargetListFromCSVFile()
+    target_tev_name = []
+    target_tev_ra = []
+    target_tev_dec = []
+    inputFile = open('TeVCat_RaDec_w_Names.txt')
+    for line in inputFile:
+        target_tev_name += [line.split(',')[0]]
+        target_tev_ra += [float(line.split(',')[1])]
+        target_tev_dec += [float(line.split(',')[2])]
     short_list_psr_name = []
     short_list_psr_ra = []
     short_list_psr_dec = []
@@ -157,6 +166,14 @@ def FindDetectedPWN(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_skym
             short_list_psr_name += [target_psr_name[psr]]
             short_list_psr_ra += [target_psr_ra[psr]]
             short_list_psr_dec += [target_psr_dec[psr]]
+            for snr in range(0,len(target_snr_name)):
+                dist_psr_snr = pow(pow(target_psr_ra[psr]-target_snr_ra[snr],2)+pow(target_psr_dec[psr]-target_snr_dec[snr],2),0.5)
+                if dist_psr_snr<0.5:
+                    print ('SNR %s might be associated.'%(target_snr_name[snr]))
+            for tev in range(0,len(target_tev_name)):
+                dist_psr_tev = pow(pow(target_psr_ra[psr]-target_tev_ra[tev],2)+pow(target_psr_dec[psr]-target_tev_dec[tev],2),0.5)
+                if dist_psr_tev<0.5:
+                    print ('TeV source %s might be associated.'%(target_tev_name[tev]))
     print ('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
     return short_list_psr_name, short_list_psr_ra, short_list_psr_dec
@@ -902,7 +919,7 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ1908(energy_index_scale)
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index_scale)
         LHAASO_energies, LHAASO_fluxes, LHAASO_flux_errs = GetLHAASOFluxJ1908(energy_index_scale)
-    if source_name=='MGRO_J2019':
+    if source_name=='MGRO_J2019' or source_name=='PSR_J2021_p3651':
         HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ2019(energy_index_scale)
         OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ2019(energy_index_scale)
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ2019(energy_index_scale)
@@ -935,7 +952,7 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         xdata = pow(10.,log_energy)
         vectorize_f_veritas_paper = np.vectorize(flux_1es0229_func)
         ydata_veritas_paper = pow(xdata/1e3,energy_index_scale)*vectorize_f_veritas_paper(xdata)
-    if source_name=='MGRO_J2019':
+    if source_name=='MGRO_J2019' or source_name=='PSR_J2021_p3651':
         log_energy = np.linspace(log10(1e2),log10(1e4),50)
         xdata = pow(10.,log_energy)
         vectorize_f_veritas_paper = np.vectorize(flux_mgro_j2019_func)
@@ -1079,7 +1096,7 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='y',marker='s',ls='none',label='HAWC',zorder=5)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=6)
         axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',uplims=uplims,zorder=7)
-    elif source_name=='MGRO_J2019':
+    elif source_name=='MGRO_J2019' or source_name=='PSR_J2021_p3651':
         axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='eHWC J2019+368',zorder=1)
         axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='g',marker='s',ls='none',label='VER J2019+368',zorder=2)
         #axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='b',marker='s',ls='none',label='Fermi',zorder=3)
@@ -1223,7 +1240,7 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
         OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ1908(energy_index_scale)
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index_scale)
         LHAASO_energies, LHAASO_fluxes, LHAASO_flux_errs = GetLHAASOFluxJ1908(energy_index_scale)
-    if source_name=='MGRO_J2019':
+    if source_name=='MGRO_J2019' or source_name=='PSR_J2021_p3651':
         HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ2019(energy_index_scale)
         OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ2019(energy_index_scale)
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ2019(energy_index_scale)
@@ -1277,7 +1294,7 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
         axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='y',marker='s',ls='none',label='HAWC',zorder=5)
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=6)
         axbig.errorbar(energy_axis,real_flux,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',zorder=7)
-    elif source_name=='MGRO_J2019':
+    elif source_name=='MGRO_J2019' or source_name=='PSR_J2021_p3651':
         axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='eHWC J2019+368',zorder=1)
         axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='g',marker='s',ls='none',label='VER J2019+368',zorder=2)
         #axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='b',marker='s',ls='none',label='Fermi',zorder=3)
@@ -1643,7 +1660,8 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, norm_map, aeff_map, expo_map):
 
                 if aeff_content<10.: continue
                 if expo_content<1.: continue
-                if expo_content<expo_content_max*0.2: continue
+                #if expo_content<expo_content_max*0.2: continue
+                if expo_content<expo_content_max*0.25: continue
                 #if expo_content_max<20.:
                 #    if expo_content<expo_content_max*0.3: continue
                 #else:
@@ -1991,6 +2009,53 @@ if 'Crab' in source_name:
     region_r = CommonPlotFunctions.calibration_radius
     region_name = 'Center'
     do_fit = 1
+elif source_name=='PSR_J2021_p4026' and not CommonPlotFunctions.doGalacticCoord:
+    text_angle = 0.
+    region_x = MapCenter_x
+    region_y = MapCenter_y
+    region_r = 1.0
+    region_name = 'Center'
+    do_fit = 0
+
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
+
+    Hist_mc_intensity = ROOT.TH2D("Hist_mc_intensity","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+    Hist_mc_column = ROOT.TH2D("Hist_mc_column","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+
+    MWL_map_file = 'MWL_maps/CGPS_1420MHz.txt' # CO intensity (K km s^{-1} deg)
+    MWL_map_title = 'H_{2} column density (1/cm^{2})'
+    Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
+    Hist_mc_intensity.Scale(1.823*1e18) # optical thin
+    Hist_mc_column.Reset()
+    Hist_mc_column.Add(Hist_mc_intensity)
+    Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCGPS_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+
+    #MWL_map_file = 'MWL_maps/skv4052116888244_gammaCygni.txt' # CO intensity (K km s^{-1} deg)
+    #MWL_map_title = 'H_{2} column density (1/cm^{2})'
+    #Hist_mc_intensity.Reset()
+    #Hist_mc_column.Reset()
+    #Hist_mc_intensity = CommonPlotFunctions.GetSkyViewMap(MWL_map_file, Hist_mc_intensity, True)
+    #Hist_mc_intensity.Scale(2.*1e20) # H2 column density
+    #Hist_mc_column.Add(Hist_mc_intensity)
+    #Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
+    #CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapSkv_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+
+    pc_to_cm = 3.086e+18
+    CO_intensity_to_H_column_density = 2.*1e20
+    FITS_correction = 1000.# the source FITS file has a mistake in velocity km/s -> m/s
+    Hist_mc_intensity.Reset()
+    Hist_mc_column.Reset()
+    MWL_map_file = 'MWL_maps/DHT10_Cygnus_interp_m20_p20_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+    MWL_map_title = 'H_{2} column density (1/cm^{2})'
+    Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
+    Hist_mc_intensity.Scale(FITS_correction)
+    Hist_mc_column.Reset()
+    Hist_mc_column.Add(Hist_mc_intensity)
+    Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
+    Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapDHT10_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+
 elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
     text_angle = 30.
     #3HWC J1908+063, 287.05, 6.39 
@@ -2064,7 +2129,7 @@ elif source_name=='WComae':
     region_r = 0.2
     region_name = '1ES1218'
     do_fit = 0
-elif source_name=='MGRO_J2019':
+elif source_name=='MGRO_J2019' or source_name=='PSR_J2021_p3651':
     text_angle = 45.
     region_x = 304.85
     region_y = 36.80
@@ -2095,11 +2160,12 @@ elif source_name=='Boomerang':
     #region_r = 0.32
     region_name = 'Boomerang'
     do_fit = 0
-elif source_name=='LHAASO_J2032' or source_name=='LHAASO_J2032_Fall2017' or source_name=='LHAASO_J2032_Baseline':
+elif 'LHAASO_J2032' in source_name or 'PSR_J2032_p4127' in source_name:
     text_angle = 45.
     region_x = 308.042
     region_y = 41.459
-    region_r = 0.8
+    region_r = 0.3
+    #region_r = 0.8
     region_name = 'PSR J2032+4127'
     do_fit = 1
 else:
@@ -2108,6 +2174,7 @@ else:
     region_y = MapCenter_y
     #region_r = 0.15
     #region_r = 0.27
+    #region_r = 0.3
     region_r = 0.6
     #region_r = 1.0
     if CommonPlotFunctions.doGalacticCoord:

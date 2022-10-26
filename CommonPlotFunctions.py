@@ -70,8 +70,8 @@ calibration_radius = 0.2 # need to be larger than the PSF and smaller than the i
 #energy_index_scale = 0
 energy_index_scale = 2
 
-doGalacticCoord = True
-#doGalacticCoord = False
+#doGalacticCoord = True
+doGalacticCoord = False
 
 Skymap_nzones_x = 1
 Skymap_nzones_y = 1
@@ -413,7 +413,7 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
     global calibration_radius
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
-    integration_range = min(integration_range,1.5)
+    integration_range = min(integration_range,1.8)
     #n_bins_1d = int(10.*integration_range)
     n_bins_1d = int(5.*integration_range)
 
@@ -751,66 +751,85 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
 
         if not prime_psr_name==None:
             for src in range(0,len(prime_psr_name)):
-                other_stars += [prime_psr_name[src]]
-                other_star_coord += [[prime_psr_ra[src],prime_psr_dec[src]]]
+                src_ra = prime_psr_ra[src]
+                src_dec = prime_psr_dec[src]
+                if doGalacticCoord:
+                    src_ra, src_dec = ConvertRaDecToGalactic(src_ra,src_dec)
+                near_a_source = False
+                for entry in range(0,len(other_stars)):
+                    distance = pow(src_ra-other_star_coord[entry][0],2)+pow(src_dec-other_star_coord[entry][1],2)
+                    if distance<near_source_cut*near_source_cut:
+                        near_a_source = True
+                if not near_a_source:
+                    other_stars += [prime_psr_name[src]]
+                    other_star_coord += [[src_ra,src_dec]]
 
         target_name = []
         target_ra = []
         target_dec = []
 
-        target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
-        target_name += target_psr_name
-        target_ra += target_psr_ra
-        target_dec += target_psr_dec
+        #target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+        #target_name += target_psr_name
+        #target_ra += target_psr_ra
+        #target_dec += target_psr_dec
+
         target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
         target_name += target_snr_name
         target_ra += target_snr_ra
         target_dec += target_snr_dec
+        for src in range(0,len(target_snr_name)):
+            gamma_source_name = target_snr_name[src]
+            gamma_source_ra = target_snr_ra[src]
+            gamma_source_dec = target_snr_dec[src]
+            if doGalacticCoord:
+                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+            other_stars += [gamma_source_name]
+            other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
-        zscore_objects = []
-        if not hist_contour==None:
-            for binx in range(0,hist_contour.GetNbinsX()):
-                for biny in range(0,hist_contour.GetNbinsY()):
-                    zscore = hist_contour.GetBinContent(binx+1,biny+1)
-                    bin_center_x = -hist_contour.GetXaxis().GetBinCenter(binx+1)
-                    bin_center_y = hist_contour.GetYaxis().GetBinCenter(biny+1)
-                    if zscore<3.: continue
-                    zscore_objects += [(zscore,bin_center_x,bin_center_y)]
-            zscore_objects = sorted(zscore_objects, key=itemgetter(0), reverse=True)
+        #zscore_objects = []
+        #if not hist_contour==None:
+        #    for binx in range(0,hist_contour.GetNbinsX()):
+        #        for biny in range(0,hist_contour.GetNbinsY()):
+        #            zscore = hist_contour.GetBinContent(binx+1,biny+1)
+        #            bin_center_x = -hist_contour.GetXaxis().GetBinCenter(binx+1)
+        #            bin_center_y = hist_contour.GetYaxis().GetBinCenter(biny+1)
+        #            if zscore<3.: continue
+        #            zscore_objects += [(zscore,bin_center_x,bin_center_y)]
+        #    zscore_objects = sorted(zscore_objects, key=itemgetter(0), reverse=True)
 
-            #print ('++++++++++++++++++++++++++++++++++++++++++++++++++')
-            for zo in range(0,len(zscore_objects)):
-                zscore = zscore_objects[zo][0]
-                bin_center_x = zscore_objects[zo][1]
-                bin_center_y = zscore_objects[zo][2]
-                #print ('zscore = %s'%(zscore))
-                #print ('bin_center_x = %s'%(bin_center_x))
-                #print ('bin_center_y = %s'%(bin_center_y))
-                if zscore<3.: continue
-                min_dist = 1e10
-                min_dist_src = ''
-                min_dist_src_x = 0.
-                min_dist_src_y = 0.
-                for src in range(0,len(target_name)):
-                    gamma_source_name = target_name[src]
-                    gamma_source_ra = target_ra[src]
-                    gamma_source_dec = target_dec[src]
-                    if doGalacticCoord:
-                        gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-                    dist = pow(pow(gamma_source_ra-bin_center_x,2)+pow(gamma_source_dec-bin_center_y,2),0.5)
-                    if dist<min_dist:
-                        min_dist = dist
-                        min_dist_src = gamma_source_name
-                        min_dist_src_x = gamma_source_ra
-                        min_dist_src_y = gamma_source_dec
-                near_a_source = False
-                for entry in range(0,len(other_stars)):
-                    distance = pow(min_dist_src_x-other_star_coord[entry][0],2)+pow(min_dist_src_y-other_star_coord[entry][1],2)
-                    if distance<near_source_cut*near_source_cut:
-                        near_a_source = True
-                if not near_a_source and min_dist<0.5:
-                    other_stars += [min_dist_src]
-                    other_star_coord += [[min_dist_src_x,min_dist_src_y]]
+        #    #print ('++++++++++++++++++++++++++++++++++++++++++++++++++')
+        #    for zo in range(0,len(zscore_objects)):
+        #        zscore = zscore_objects[zo][0]
+        #        bin_center_x = zscore_objects[zo][1]
+        #        bin_center_y = zscore_objects[zo][2]
+        #        #print ('zscore = %s'%(zscore))
+        #        #print ('bin_center_x = %s'%(bin_center_x))
+        #        #print ('bin_center_y = %s'%(bin_center_y))
+        #        if zscore<3.: continue
+        #        min_dist = 1e10
+        #        min_dist_src = ''
+        #        min_dist_src_x = 0.
+        #        min_dist_src_y = 0.
+        #        for src in range(0,len(target_name)):
+        #            gamma_source_name = target_name[src]
+        #            gamma_source_ra = target_ra[src]
+        #            gamma_source_dec = target_dec[src]
+        #            if doGalacticCoord:
+        #                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+        #            dist = pow(pow(gamma_source_ra-bin_center_x,2)+pow(gamma_source_dec-bin_center_y,2),0.5)
+        #            if dist<min_dist:
+        #                min_dist = dist
+        #                min_dist_src = gamma_source_name
+        #                min_dist_src_x = gamma_source_ra
+        #                min_dist_src_y = gamma_source_dec
+        #        near_a_source = False
+        #        for entry in range(0,len(other_stars)):
+        #            distance = pow(min_dist_src_x-other_star_coord[entry][0],2)+pow(min_dist_src_y-other_star_coord[entry][1],2)
+        #            if distance<near_source_cut*near_source_cut:
+        #                near_a_source = True
+        #        if not near_a_source and min_dist<0.5:
+        #            other_stars += [min_dist_src]
+        #            other_star_coord += [[min_dist_src_x,min_dist_src_y]]
 
         inputFile = open('TeVCat_RaDec_w_Names.txt')
         for line in inputFile:
@@ -1102,7 +1121,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
                 grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)
                 if label_z!='Z score' and max_z_contour>0.:
                     grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)*max_z/max_z_contour
-    other_stars, other_star_coord = GetGammaSourceInfo(hist_contour,prime_psr_name,prime_psr_ra,prime_psr_dec) 
+    other_stars, other_star_coord = GetGammaSourceInfo(hist_contour,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec) 
 
     other_star_labels = []
     other_star_markers = []
@@ -1122,14 +1141,20 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     #print ('len(other_star_markers) = %s'%len(other_star_markers))
 
     fig.clf()
-    figsize_x = 8
-    figsize_y = 8
+    figsize_x = 14
+    figsize_y = 7
     if doGalacticCoord:
-        figsize_x = 16
-        figsize_y = 8
+        figsize_x = 10
+        figsize_y = 5
     fig.set_figheight(figsize_y)
     fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
+    if doGalacticCoord:
+        label_x = 'gal. l'
+        label_y = 'gal. b'
+    else:
+        label_x = 'RA'
+        label_y = 'Dec'
     axbig.set_xlabel(label_x)
     axbig.set_ylabel(label_y)
     if label_z=='Z score':
