@@ -260,11 +260,11 @@ if 'V_V725_Tau' in sys.argv[1]:
     observation_name = 'V_V725_Tau'
     data_epoch = ['V_V725_Tau_V6']
 
-Gal_l_center = [30,40,50,60,70,80,90,100,110,120,130]
+Gal_l_center = [30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,210,220,230]
 for glc in range(0,len(Gal_l_center)):
     if 'GalacticPlane_All_l%s'%(Gal_l_center[glc]) in sys.argv[1]:
         observation_name = 'GalacticPlane_All_l%s'%(Gal_l_center[glc])
-        data_epoch = ['GalacticPlane_All_l%s_V6'%(Gal_l_center[glc])]
+        data_epoch = ['GalacticPlane_All_l%s_V6'%(Gal_l_center[glc]),'GalacticPlane_All_l%s_V5'%(Gal_l_center[glc])]
 
 PrepreSample()
 

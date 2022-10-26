@@ -6,8 +6,8 @@ energy_bin_end=6
 #analysis_type='off'
 #analysis_type='on'
 #analysis_type='fiction'
-#analysis_type='imposter_on'
-analysis_type='science_on'
+analysis_type='imposter_on'
+#analysis_type='science_on'
 
 source_name = []
 
@@ -31,7 +31,7 @@ source_name = []
 #source_name += ['1ES1011'] # 41.0 hrs # north
 #source_name += ['1ES0647'] # 29.3 hrs
 
-source_name += ['MGRO_J1908'] # 127 hrs
+#source_name += ['MGRO_J1908'] # 127 hrs
 #source_name += ['MGRO_J2019'] # north
 #source_name += ['Boomerang']
 #source_name += ['Geminga']
@@ -75,6 +75,14 @@ source_name += ['MGRO_J1908'] # 127 hrs
 #source_name += ['GalacticPlane_All_l110']
 #source_name += ['GalacticPlane_All_l120']
 #source_name += ['GalacticPlane_All_l130']
+#source_name += ['GalacticPlane_All_l140']
+source_name += ['GalacticPlane_All_l150']
+#source_name += ['GalacticPlane_All_l160']
+#source_name += ['GalacticPlane_All_l170']
+#source_name += ['GalacticPlane_All_l180']
+#source_name += ['GalacticPlane_All_l190']
+#source_name += ['GalacticPlane_All_l200']
+#source_name += ['GalacticPlane_All_l210']
 
 output_txt = open('run_plots.sh', 'w')
 if analysis_type=='imposter_on':
