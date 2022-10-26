@@ -6339,7 +6339,7 @@ def SystematicAnalysis():
 
     FilePath_List = []
     for elev in range(0,len(root_file_tags)):
-        FilePath = "%s/Netflix_"%(folder_path)+"Syst_%s"%(root_file_tags[elev])+".root"
+        FilePath = "/gamma_raid/userspace/rshang/SMI_output/%s/Netflix_"%(folder_path)+"Syst_%s"%(root_file_tags[elev])+".root"
         FilePath_List += [FilePath]
         print ('Reading file %s'%(FilePath_List[len(FilePath_List)-1]))
         if not os.path.isfile(FilePath_List[len(FilePath_List)-1]):continue
@@ -6826,7 +6826,7 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
                     n_groups = 0
                     file_exists = True
                     while file_exists:
-                        SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,x_idx,y_idx)+".root"
+                        SourceFilePath = "/gamma_raid/userspace/rshang/SMI_output/%s/Netflix_"%(folder_path)+sample_list[source]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,x_idx,y_idx)+".root"
                         print ('Read file: %s'%(SourceFilePath))
                         if os.path.exists(SourceFilePath):
                             n_groups += 1
@@ -6835,7 +6835,7 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
                             file_exists = False
                             print ('file does not exist.')
                     for g_idx in range(0,n_groups):
-                        FilePath = "%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
+                        FilePath = "/gamma_raid/userspace/rshang/SMI_output/%s/Netflix_"%(folder_path)+source_list[source]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
                         GetBrightStarInfo(FilePath)
                         print ('len(bright_star_ra) = %s'%(len(bright_star_ra)))
                         FilePath_List += [FilePath]
@@ -7061,7 +7061,7 @@ for source in range(0,len(sample_list)):
                 n_groups = 0
                 file_exists = True
                 while file_exists:
-                    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,x_idx,y_idx)+".root"
+                    SourceFilePath = "/gamma_raid/userspace/rshang/SMI_output/%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,x_idx,y_idx)+".root"
                     print ('Read file: %s'%(SourceFilePath))
                     if os.path.exists(SourceFilePath):
                         n_groups += 1
@@ -7070,7 +7070,7 @@ for source in range(0,len(sample_list)):
                         file_exists = False
                         print ('file does not exist.')
                 for g_idx in range(0,n_groups):
-                    SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
+                    SourceFilePath = "/gamma_raid/userspace/rshang/SMI_output/%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(root_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
                     FilePath_Folder += [SourceFilePath]
                     print ('Get %s...'%(FilePath_Folder[len(FilePath_Folder)-1]))
                     if not os.path.isfile(FilePath_Folder[len(FilePath_Folder)-1]): 
