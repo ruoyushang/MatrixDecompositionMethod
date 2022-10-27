@@ -100,7 +100,7 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
 def FindDetectedPWN(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_skymap,hist_mimic_bkgd_skymap):
 
     Skymap_size = CommonPlotFunctions.Skymap_size_x
-    target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = CommonPlotFunctions.ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+    target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = CommonPlotFunctions.ReadATNFTargetListFromFile('ATNF_pulsar_full_list.txt')
     if CommonPlotFunctions.doGalacticCoord:
         for src in range(0,len(target_psr_name)):
             target_psr_ra[src], target_psr_dec[src] = ConvertRaDecToGalactic(target_psr_ra[src], target_psr_dec[src])

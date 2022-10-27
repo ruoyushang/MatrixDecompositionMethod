@@ -70,8 +70,8 @@ calibration_radius = 0.2 # need to be larger than the PSF and smaller than the i
 #energy_index_scale = 0
 energy_index_scale = 2
 
-#doGalacticCoord = True
-doGalacticCoord = False
+doGalacticCoord = True
+#doGalacticCoord = False
 
 Skymap_nzones_x = 1
 Skymap_nzones_y = 1
@@ -668,17 +668,22 @@ def ReadATNFTargetListFromFile(file_path):
     for line in inputFile:
         if line[0]=="#": continue
         target_name = line.split(',')[0].strip(" ")
+        if target_name=="\n": continue
+        print ('target_name = %s'%(target_name))
         target_ra = line.split(',')[1].strip(" ")
         target_dec = line.split(',')[2].strip(" ")
         #print ('target_ra = %s'%(target_ra))
         #print ('target_dec = %s'%(target_dec))
-        target_dist = float(line.split(',')[3].strip(" "))
-        target_age = float(line.split(',')[4].strip(" "))
-        target_edot = float(line.split(',')[5].strip(" "))
+        target_dist = line.split(',')[3].strip(" ")
+        target_age = line.split(',')[4].strip(" ")
+        target_edot = line.split(',')[5].strip(" ")
+        if target_dist=='*': continue
+        if target_age=='*': continue
+        if target_edot=='*': continue
         target_brightness = float(target_edot)/pow(float(target_dist),2)
 
-        if target_brightness<1e33 and target_edot<1e34: continue
-        if target_dist>target_max_dist_cut: continue
+        if float(target_brightness)<1e33 and float(target_edot)<1e34: continue
+        #if target_dist>target_max_dist_cut: continue
         #if target_dist>2.0: continue
         #if target_age<1e4: continue
 
@@ -690,9 +695,9 @@ def ReadATNFTargetListFromFile(file_path):
         source_name += [target_name]
         source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
         source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
-        source_dist += [target_dist]
-        source_age += [target_age]
-        source_edot += [target_edot]
+        source_dist += [float(target_dist)]
+        source_age += [float(target_age)]
+        source_edot += [float(target_edot)]
     return source_name, source_ra, source_dec, source_dist, source_age
 
 def ReadSNRTargetListFromCSVFile():
