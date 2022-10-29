@@ -669,7 +669,7 @@ def ReadATNFTargetListFromFile(file_path):
         if line[0]=="#": continue
         target_name = line.split(',')[0].strip(" ")
         if target_name=="\n": continue
-        print ('target_name = %s'%(target_name))
+        #print ('target_name = %s'%(target_name))
         target_ra = line.split(',')[1].strip(" ")
         target_dec = line.split(',')[2].strip(" ")
         #print ('target_ra = %s'%(target_ra))
@@ -778,18 +778,18 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
         #target_ra += target_psr_ra
         #target_dec += target_psr_dec
 
-        target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
-        target_name += target_snr_name
-        target_ra += target_snr_ra
-        target_dec += target_snr_dec
-        for src in range(0,len(target_snr_name)):
-            gamma_source_name = target_snr_name[src]
-            gamma_source_ra = target_snr_ra[src]
-            gamma_source_dec = target_snr_dec[src]
-            if doGalacticCoord:
-                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-            other_stars += [gamma_source_name]
-            other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+        #target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
+        #target_name += target_snr_name
+        #target_ra += target_snr_ra
+        #target_dec += target_snr_dec
+        #for src in range(0,len(target_snr_name)):
+        #    gamma_source_name = target_snr_name[src]
+        #    gamma_source_ra = target_snr_ra[src]
+        #    gamma_source_dec = target_snr_dec[src]
+        #    if doGalacticCoord:
+        #        gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+        #    other_stars += [gamma_source_name]
+        #    other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
         #zscore_objects = []
         #if not hist_contour==None:
@@ -985,7 +985,7 @@ def GetHawcSkymap(hist_map, isRaDec):
 
     return hist_map_new
 
-def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname):
+def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname,zmax=0,zmin=0):
 
     top = cm.get_cmap('Blues_r', 128) # r means reversed version
     bottom = cm.get_cmap('Oranges', 128)# combine it all
@@ -1021,7 +1021,10 @@ def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname):
     axbig = fig.add_subplot()
     axbig.set_xlabel(label_x)
     axbig.set_ylabel(label_y)
-    im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=0)
+    if zmax==0 and zmin==0:
+        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=0)
+    else:
+        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=0,vmin=zmin,vmax=zmax)
     cbar = fig.colorbar(im)
     cbar.set_label(label_z)
     
