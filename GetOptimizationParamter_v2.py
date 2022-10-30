@@ -40,8 +40,8 @@ MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 n_measures_per_entry = 20
 
 #background_type = 'RBM'
-#background_type = 'ONOFF'
-background_type = 'Matrix'
+background_type = 'ONOFF'
+#background_type = 'Matrix'
 analysis_type = 'Solo'
 #analysis_type = 'Mimic'
 
@@ -742,11 +742,13 @@ for eb in range(0,len(energy_bin)-1):
     Hist_Diff_ShowerShape[eb].Reset()
     Hist_Diff_ShowerShape[eb].Add(Hist_Data_ShowerShape[eb])
     Hist_Diff_ShowerShape[eb].Add(Hist_Dark_ShowerShape[eb],-1.)
-    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrixDark_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
+    zmax = Hist_Diff_ShowerShape[eb].GetMaximum()
+    zmin = Hist_Diff_ShowerShape[eb].GetMinimum()
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrixDark_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path),zmin=zmin,zmax=zmax)
     Hist_Diff_ShowerShape[eb].Reset()
     Hist_Diff_ShowerShape[eb].Add(Hist_Data_ShowerShape[eb])
     Hist_Diff_ShowerShape[eb].Add(Hist_Bkgd_ShowerShape[eb],-1.)
-    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrixBkgd_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Diff_ShowerShape[eb],fig,'scaled length','scaled width','count difference','DiffMatrixBkgd_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path),zmin=zmin,zmax=zmax)
 
     CommonPlotFunctions.MatplotlibHist2D(Hist_Dark_ShowerShape[eb],fig,'scaled length','scaled width','count','DarkMatrixFull_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
     CommonPlotFunctions.MatplotlibHist2D(Hist_Dark_Rank0[eb],fig,'scaled length','scaled width','count','DarkMatrixRank0_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))

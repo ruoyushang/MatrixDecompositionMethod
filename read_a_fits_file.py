@@ -77,13 +77,13 @@ folder_name = 'CTAsim_gps_%s_%shr_pwn'%(layout,exposure_hour)
 bkg_folder_name = 'CTAsim_gps_%s_%shr_bkg'%(layout,exposure_hour)
 
 plotname = 'Plot2D_%s'%(folder_name)
-filename = 'output_tehanu/%s/cntcube_emin=0.20_emax=10.00_side=16.00.fits'%(folder_name)
+filename = 'output_tehanu/%s/cntcube_emin=0.20_emax=10.00_side=45.00.fits'%(folder_name)
 hdu = fits.open(filename)[0]
 wcs = WCS(hdu.header)
 image_data = hdu.data
 
 bkg_plotname = 'Plot2D_%s'%(bkg_folder_name)
-bkg_filename = 'output_tehanu/%s/cntcube_emin=0.20_emax=10.00_side=16.00.fits'%(bkg_folder_name)
+bkg_filename = 'output_tehanu/%s/cntcube_emin=0.20_emax=10.00_side=45.00.fits'%(bkg_folder_name)
 bkg_hdu = fits.open(bkg_filename)[0]
 bkg_wcs = WCS(bkg_hdu.header)
 bkg_image_data = bkg_hdu.data
@@ -104,8 +104,8 @@ emax = 50
 #center_sky_y = -26.9782
 center_sky_x = 0.
 center_sky_y = 0.
-delta_sky_x = 8.0
-delta_sky_y = 4.0
+delta_sky_x = 45./2.
+delta_sky_y = 6./2.
 
 print (wcs.all_world2pix(center_sky_x,center_sky_y,0.0,1))
 #
@@ -196,7 +196,7 @@ ax = plt.subplot(projection=wcs.dropaxis(2))
 max_z = 25.
 min_z = 0.
 im = ax.imshow(image_data_zscore[:,:],vmin=min_z,vmax=max_z)
-cbar = fig.colorbar(im)
+cbar = fig.colorbar(im,orientation="horizontal")
 cbar.set_label('Test Statistics')
 plt.savefig("output_plots/%s_zscore.png"%(plotname),bbox_inches='tight')
 
