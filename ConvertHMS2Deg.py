@@ -148,8 +148,6 @@ source += ['HESS J1857+026']
 sky_coord += [['18 57 11','+02 40 00']]
 source += ['HESS J1858+020']
 sky_coord += [['18 58 20','+02 05 24']]
-source += ['Tycho']
-sky_coord += [['00 25 21.6','+64 07 48']]
 source += ['G40.5-0.5']
 sky_coord += [['19 07 11.9','+06 15 35']]
 source += ['HESS J1844-030']
@@ -190,6 +188,8 @@ source += ['3C 273']
 sky_coord += [['12 29 06.6996828061','+02 03 08.598846466']]
 source += ['1ES 0502+675']
 sky_coord += [['05 07 56.1461168342','+67 37 24.302255568']]
+source += ['Tycho']
+sky_coord += [['00 25 21.6','+64 07 48']]
 
 for s in range(0,len(source)):
     print 'if (source_name=="%s")'%(source[s])
