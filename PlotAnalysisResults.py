@@ -60,8 +60,8 @@ folder_path = CommonPlotFunctions.folder_path
 energy_bin_cut_low = 0
 energy_bin_cut_up = 6
 
-#theta2_bins = [0,3]
-theta2_bins = [0,4]
+theta2_bins = [0,3]
+#theta2_bins = [0,4]
 
 #distance_sq_limit = 3.24
 distance_sq_limit = 2.56
@@ -160,6 +160,9 @@ if 'PSR_J1841_m0345' in sys.argv[1]:
 if 'PSR_J1856_p0245' in sys.argv[1]:
     observation_name = 'PSR_J1856_p0245'
     data_epoch = ['PSR_J1856_p0245_V6','PSR_J1856_p0245_V5']
+if 'PSR_J1849_m0003' in sys.argv[1]:
+    observation_name = 'PSR_J1849_m0003'
+    data_epoch = ['PSR_J1849_m0003_V6','PSR_J1849_m0003_V5']
 if 'PSR_J1938_p2213' in sys.argv[1]:
     observation_name = 'PSR_J1938_p2213'
     data_epoch = ['PSR_J1938_p2213_V6','PSR_J1938_p2213_V5']
@@ -175,6 +178,12 @@ if 'PSR_J2032_p4127_Baseline' in sys.argv[1]:
 if 'PSR_J2032_p4127_Fall2017' in sys.argv[1]:
     observation_name = 'PSR_J2032_p4127_Fall2017'
     data_epoch = ['PSR_J2032_p4127_Fall2017_V6']
+if 'PSR_J0633_p0632' in sys.argv[1]:
+    observation_name = 'PSR_J0633_p0632'
+    data_epoch = ['PSR_J0633_p0632_V6','PSR_J0633_p0632_V5']
+if 'PSR_B0611_p22' in sys.argv[1]:
+    observation_name = 'PSR_B0611_p22'
+    data_epoch = ['PSR_B0611_p22_V6','PSR_B0611_p22_V5']
 if 'IC443HotSpot' in sys.argv[1]:
     observation_name = 'IC443HotSpot'
     data_epoch = ['IC443HotSpotV5','IC443HotSpotV6']
@@ -7442,9 +7451,9 @@ doUpperLimit = False
 doReferenceFlux = True
 doExtentFit = False
 
-if sys.argv[1]=='MGRO_J1908_ON': doMWLMap = True
-if sys.argv[1]=='GammaCygni_ON': doMWLMap = True
-if sys.argv[1]=='IC443HotSpot_ON': doMWLMap = True
+if sys.argv[1]=='MGRO_J1908_ON': doMWLMap = False
+if sys.argv[1]=='GammaCygni_ON': doMWLMap = False
+if sys.argv[1]=='IC443HotSpot_ON': doMWLMap = False
 
 #J1908_model = 'SNR_7p9kpc_PSR_stationary'
 #J1908_model = 'SNR_3p4kpc_PSR_stationary'

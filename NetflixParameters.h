@@ -43,13 +43,13 @@ bool UseDL3Tree = true;
 bool RHVData = false;
 
 
-bool UseGalacticCoord = true;
-double Skymap_size_x = 10.;
-int Skymap_nbins_x = 40;
-double Skymap_size_y = 5.;
-int Skymap_nbins_y = 20;
-int Skymap_nzones_x = 6;
-int Skymap_nzones_y= 3;
+//bool UseGalacticCoord = true;
+//double Skymap_size_x = 6.;
+//int Skymap_nbins_x = 60;
+//double Skymap_size_y = 6.;
+//int Skymap_nbins_y = 60;
+//int Skymap_nzones_x = 3;
+//int Skymap_nzones_y= 3;
 //bool UseGalacticCoord = false;
 //double Skymap_size_x = 2.;
 //int Skymap_nbins_x = 45;
@@ -57,11 +57,17 @@ int Skymap_nzones_y= 3;
 //int Skymap_nbins_y = 45;
 //int Skymap_nzones_x = 1;
 //int Skymap_nzones_y= 1;
+bool UseGalacticCoord = false;
+double Skymap_size_x = 3.;
+int Skymap_nbins_x = 68;
+double Skymap_size_y = 3.;
+int Skymap_nbins_y = 68;
+int Skymap_nzones_x = 2;
+int Skymap_nzones_y= 2;
 
 bool UseDBOnly = false;
-double exposure_limit = 5.; // default
-//double exposure_limit = 50.;
 //bool UseDBOnly = true;
+double exposure_limit = 5.; // default
 //double exposure_limit = 1000.;
 
 bool UseRegularization = true;

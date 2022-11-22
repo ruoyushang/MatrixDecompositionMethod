@@ -1208,6 +1208,10 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     {
         return std::make_pair(mtx_output,mtx_CDE);
     }
+    if (entry_size==1)
+    {
+        return std::make_pair(mtx_init_input,mtx_CDE);
+    }
 
     //mtx_frobenius_island = GetFrobeniusIslandMatrix(mtx_dark_input, entry_size, beta1, beta2);
 

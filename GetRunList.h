@@ -12,40 +12,162 @@ pair<double,double> GetSourceRaDec(TString source_name)
 {
     double Source_RA = 0.;
     double Source_Dec = 0.;
-    if (source_name.Contains("PSR_J2238_p5903"))
+    if (source_name.Contains("GalacticPlane_All_l30"))
     {
-            Source_RA = 339.6177917;
-            Source_Dec = 59.0613333;
+        Source_RA = 281.522;
+        Source_Dec = -2.609;
     }
-    if (source_name.Contains("PSR_J1930_p1852"))
+    if (source_name.Contains("GalacticPlane_All_l40"))
     {
-            Source_RA = 292.62554;
-            Source_Dec = 18.87058;
+        Source_RA = 286.095;
+        Source_Dec = 6.287;
     }
-    if (source_name.Contains("PSR_J2022_p3842"))
+    if (source_name.Contains("GalacticPlane_All_l50"))
     {
-            Source_RA = 305.59037;
-            Source_Dec = 38.704117;
+        Source_RA = 290.829;
+        Source_Dec = 15.142;
     }
-    if (source_name.Contains("PSR_J0023_p09"))
+    if (source_name.Contains("GalacticPlane_All_l60"))
     {
-            Source_RA = 5.82032291;
-            Source_Dec = 9.38996121;
+        Source_RA = 295.976;
+        Source_Dec = 23.890;
     }
-    if (source_name.Contains("PSR_J0248_p6021"))
+    if (source_name.Contains("GalacticPlane_All_l70"))
     {
-            Source_RA = 42.077571;
-            Source_Dec = 60.359644;
+        Source_RA = 301.866;
+        Source_Dec = 32.442;
+    }
+    if (source_name.Contains("GalacticPlane_All_l80"))
+    {
+        Source_RA = 308.971;
+        Source_Dec = 40.664;
+    }
+    if (source_name.Contains("GalacticPlane_All_l90"))
+    {
+        Source_RA = 318.004;
+        Source_Dec = 48.330;
+    }
+    if (source_name.Contains("GalacticPlane_All_l100"))
+    {
+        Source_RA = 330.004;
+        Source_Dec = 55.050;
+    }
+    if (source_name.Contains("GalacticPlane_All_l110"))
+    {
+        Source_RA = 346.131;
+        Source_Dec = 60.160;
+    }
+    if (source_name.Contains("GalacticPlane_All_l120"))
+    {
+        Source_RA = 6.451;
+        Source_Dec = 62.726;
+    }
+    if (source_name.Contains("GalacticPlane_All_l130"))
+    {
+        Source_RA = 28.071;
+        Source_Dec = 62.034;
+    }
+    if (source_name.Contains("GalacticPlane_All_l140"))
+    {
+        Source_RA = 46.813;
+        Source_Dec = 58.298;
+    }
+    if (source_name.Contains("GalacticPlane_All_l150"))
+    {
+        Source_RA = 61.117;
+        Source_Dec = 52.420;
+    }
+    if (source_name.Contains("GalacticPlane_All_l160"))
+    {
+        Source_RA = 71.744;
+        Source_Dec = 45.246;
+    }
+    if (source_name.Contains("GalacticPlane_All_l170"))
+    {
+        Source_RA = 79.873;
+        Source_Dec = 37.315;
+    }
+    if (source_name.Contains("GalacticPlane_All_l180"))
+    {
+        Source_RA = 86.405;
+        Source_Dec = 28.936;
+    }
+    if (source_name.Contains("GalacticPlane_All_l190"))
+    {
+        Source_RA = 91.940;
+        Source_Dec = 20.290;
+    }
+    if (source_name.Contains("GalacticPlane_All_l200"))
+    {
+        Source_RA = 96.882;
+        Source_Dec = 11.489;
+    }
+    if (source_name.Contains("GalacticPlane_All_l210"))
+    {
+        Source_RA = 101.522;
+        Source_Dec = 2.609;
+    }
+    if (source_name.Contains("GalacticPlane_All_l220"))
+    {
+        Source_RA = 106.095;
+        Source_Dec = -6.287;
+    }
+    if (source_name.Contains("PSR_J1841_m0345"))
+    {
+            Source_RA = 280.41;
+            Source_Dec = -3.81;
+    }
+    if (source_name.Contains("PSR_J1849_m0003"))
+    {
+            Source_RA = 282.35;
+            Source_Dec = -0.05;
+    }
+    if (source_name.Contains("PSR_J1856_p0245"))
+    {
+            Source_RA = 284.21;
+            Source_Dec = 2.76;
+    }
+    if (source_name.Contains("PSR_J1913_p0904"))
+    {
+            Source_RA = 288.34;
+            Source_Dec = 9.08;
+    }
+    if (source_name.Contains("PSR_J1938_p2213"))
+    {
+            Source_RA = 294.56;
+            Source_Dec = 22.22;
+    }
+    if (source_name.Contains("PSR_J2021_p3651"))
+    {
+            Source_RA = 305.27;
+            Source_Dec = 36.85;
+    }
+    if (source_name.Contains("PSR_J2021_p4026"))
+    {
+            Source_RA = 305.37;
+            Source_Dec = 40.45;
+    }
+    if (source_name.Contains("PSR_J2032_p4127"))
+    {
+            Source_RA = 308.05;
+            Source_Dec = 41.46;
     }
     if (source_name.Contains("PSR_J0633_p0632"))
     {
-            Source_RA = 98.43421;
-            Source_Dec = 6.5430;
+            //Source_RA = 98.4342083;
+            //Source_Dec = 6.5430278;
+            Source_RA = 98.2533333;
+            Source_Dec = 5.7941667;
     }
-    if (source_name.Contains("LSI_p61_303"))
+    if (source_name.Contains("PSR_B0611_p22"))
     {
-            Source_RA = 40.1416667;
-            Source_Dec = 61.2569444;
+            Source_RA = 93.57;
+            Source_Dec = 22.50;
+    }
+    if (source_name.Contains("V_V725_Tau"))
+    {
+            Source_RA = 84.728;
+            Source_Dec = 26.316;
     }
     if (source_name.Contains("SgrA"))
     {
@@ -318,11 +440,6 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 287.9565;
             Source_Dec = 4.98272222222;
     }
-    if (source_name.Contains("MAGIC_J1857"))
-    {
-            Source_RA = 284.303;
-            Source_Dec = 2.729;
-    }
     if (source_name.Contains("MGRO_J2031"))
     {
             Source_RA = 308.041666667;
@@ -420,6 +537,9 @@ vector<std::pair<string,int>> GetRunList(string source) {
                 list = GetRunListFromFile("CrabV6_DL3");
             }
             if (source.find("Crab_Elev70_V6") != std::string::npos) {
+                list = GetRunListFromFile("CrabV6_DL3");
+            }
+            if (source.find("Crab_Elev60_V6") != std::string::npos) {
                 list = GetRunListFromFile("CrabV6_DL3");
             }
             if (source.find("Crab_Elev50_V6") != std::string::npos) {
@@ -573,10 +693,67 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("MGRO_J1908_V6");
         }
-        if (source.find("MAGIC_J1857_V6") != std::string::npos)
+        if (source.find("PSR_J1841_m0345_V6") != std::string::npos)
         {
-            //list = GetRunListFromFile("MGRO_J1908_V6");
-            list = GetRunListFromFile("HESS_J1857_V6");
+            list_temp = GetRunListFromFile("GalacticPlane_All_l30_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J1849_m0003_V6") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l30_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l50_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J1856_p0245_V6") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l30_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l50_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J1913_p0904_V6") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l30_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l50_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J1938_p2213_V6") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l50_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l70_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J2021_p3651_V6") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l70_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J2021_p4026_V6") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l70_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l90_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J2032_p4127_V6") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l70_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l90_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J0633_p0632_V6") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l210_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_B0611_p22_V6") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l190_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
         if (source.find("MGRO_J2031_V6") != std::string::npos)
         {
@@ -604,7 +781,11 @@ vector<std::pair<string,int>> GetRunList(string source) {
         }
         if (source.find("TychoV6") != std::string::npos)
         {
-            list = GetRunListFromFile("TychoV6");
+            //list = GetRunListFromFile("TychoV6");
+            list_temp = GetRunListFromFile("GalacticPlane_All_l110_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l130_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
         if (source.find("2HWC_J1953V6") != std::string::npos)
         {
@@ -653,21 +834,32 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("DracoV6");
         }
-        if (source.find("PSR_J2238_p5903_V6") != std::string::npos)
+        if (source.find("V_V725_Tau_V6") != std::string::npos)
         {
-            list = GetRunListFromFile("PSR_J2238_p5903_V6");
+            list = GetRunListFromFile("V_V725_Tau_V6");
         }
-        if (source.find("PSR_J0248_p6021_V6") != std::string::npos)
+        if (source.find("GalacticPlane_All")!=std::string::npos && source.find("V6")!=std::string::npos)
         {
-            list = GetRunListFromFile("PSR_J0248_p6021_V6");
-        }
-        if (source.find("PSR_J0633_p0632_V6") != std::string::npos)
-        {
-            list = GetRunListFromFile("PSR_J0633_p0632_V6");
-        }
-        if (source.find("LSI_p61_303_V6") != std::string::npos)
-        {
-            list = GetRunListFromFile("PSR_J0248_p6021_V6");
+            list_temp = GetRunListFromFile("GalacticPlane_All_l30_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l50_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l70_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l90_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l110_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l130_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l150_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l170_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l190_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l210_V6");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
         if (source.find("LHAASO_J2032_V6") != std::string::npos)
         {
@@ -678,6 +870,14 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list = GetRunListFromFile("LHAASO_J2032_Baseline_V6");
         }
         if (source.find("LHAASO_J2032_Fall2017_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J2032_Fall2017_V6");
+        }
+        if (source.find("PSR_J2032_p4127_Baseline_V6") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J2032_Baseline_V6");
+        }
+        if (source.find("PSR_J2032_p4127_Fall2017_V6") != std::string::npos)
         {
             list = GetRunListFromFile("LHAASO_J2032_Fall2017_V6");
         }
@@ -721,18 +921,6 @@ vector<std::pair<string,int>> GetRunList(string source) {
         {
             list = GetRunListFromFile("RGB_J0710_p591_V6");
         }
-        if (source.find("PSR_J0023_p09_V6") != std::string::npos)
-        {
-            list = GetRunListFromFile("PSR_J0023_p09_V6");
-        }
-        if (source.find("PSR_J1930_p1852_V6") != std::string::npos)
-        {
-            list = GetRunListFromFile("PSR_J1930_p1852_V6");
-        }
-        if (source.find("PSR_J2022_p3842_V6") != std::string::npos)
-        {
-            list = GetRunListFromFile("PSR_J2022_p3842_V6");
-        }
         if (source=="OffRunsV6")
         {
             if (RHVData)
@@ -757,6 +945,18 @@ vector<std::pair<string,int>> GetRunList(string source) {
                     list_temp = GetRunListFromFile("RGB_J0710_p591_V6");
                     list.insert(list.end(), list_temp.begin(), list_temp.end());
                     list_temp = GetRunListFromFile("LHAASO_J2032_Imposter_V6");
+                    list.insert(list.end(), list_temp.begin(), list_temp.end());
+                    list_temp = GetRunListFromFile("GalacticPlane_All_l210_Imposter_V6");
+                    list.insert(list.end(), list_temp.begin(), list_temp.end());
+                    list_temp = GetRunListFromFile("GalacticPlane_All_l190_Imposter_V6");
+                    list.insert(list.end(), list_temp.begin(), list_temp.end());
+                    list_temp = GetRunListFromFile("GalacticPlane_All_l180_Imposter_V6");
+                    list.insert(list.end(), list_temp.begin(), list_temp.end());
+                    list_temp = GetRunListFromFile("GalacticPlane_All_l150_Imposter_V6");
+                    list.insert(list.end(), list_temp.begin(), list_temp.end());
+                    list_temp = GetRunListFromFile("GalacticPlane_All_l140_Imposter_V6");
+                    list.insert(list.end(), list_temp.begin(), list_temp.end());
+                    list_temp = GetRunListFromFile("GalacticPlane_All_l120_Imposter_V6");
                     list.insert(list.end(), list_temp.begin(), list_temp.end());
                 }
                 list_temp = GetRunListFromFile("LowElevationDarkV6");
@@ -825,6 +1025,91 @@ vector<std::pair<string,int>> GetRunList(string source) {
             //list_temp = GetRunListFromFile("H1426_MatchedDark_V6");
             //list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
+        if (source.find("GalacticPlane_All")!=std::string::npos && source.find("V5")!=std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l30_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l50_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l70_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l90_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l110_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l130_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l150_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l170_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l190_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l210_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J1841_m0345_V5") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l30_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J1849_m0003_V5") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l30_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l50_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J1856_p0245_V5") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l30_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l50_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J1913_p0904_V5") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l30_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l50_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J1938_p2213_V5") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l50_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l70_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J2021_p3651_V5") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l70_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J2021_p4026_V5") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l70_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l90_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J2032_p4127_V5") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l70_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l90_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_J0633_p0632_V5") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l210_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
+        if (source.find("PSR_B0611_p22_V5") != std::string::npos)
+        {
+            list_temp = GetRunListFromFile("GalacticPlane_All_l190_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+        }
         if (source.find("UrsaMinorV5") != std::string::npos)
         {
             list = GetRunListFromFile("UrsaMinorV5");
@@ -855,10 +1140,6 @@ vector<std::pair<string,int>> GetRunList(string source) {
         if (source.find("SS433Half2_V5") != std::string::npos) {
             list = GetRunListFromFile("MGRO_J1908_V5");
         }
-        if (source.find("MAGIC_J1857_V5") != std::string::npos) {
-            //list = GetRunListFromFile("MGRO_J1908_V5");
-            list = GetRunListFromFile("HESS_J1857_V5");
-        }
         if (source.find("IC443HotSpotV5") != std::string::npos)
         {
             list = GetRunListFromFile("IC443HotSpotV5");
@@ -877,6 +1158,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
                 list = GetRunListFromFile("CrabV5_DL3");
             }
             if (source.find("Crab_Elev70_V5") != std::string::npos)
+            {
+                list = GetRunListFromFile("CrabV5_DL3");
+            }
+            if (source.find("Crab_Elev60_V5") != std::string::npos)
             {
                 list = GetRunListFromFile("CrabV5_DL3");
             }
@@ -962,7 +1247,11 @@ vector<std::pair<string,int>> GetRunList(string source) {
         }
         if (source.find("TychoV5") != std::string::npos)
         {
-            list = GetRunListFromFile("TychoV5");
+            //list = GetRunListFromFile("TychoV5");
+            list_temp = GetRunListFromFile("GalacticPlane_All_l110_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("GalacticPlane_All_l130_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
         if (source.find("3C273V5") != std::string::npos)
         {
@@ -981,6 +1270,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list = GetRunListFromFile("LHAASO_J2032_V5");
         }
         if (source.find("LHAASO_J2032_Baseline_V5") != std::string::npos)
+        {
+            list = GetRunListFromFile("LHAASO_J2032_Baseline_V5");
+        }
+        if (source.find("PSR_J2032_p4127_Baseline_V5") != std::string::npos)
         {
             list = GetRunListFromFile("LHAASO_J2032_Baseline_V5");
         }
@@ -1029,6 +1322,16 @@ vector<std::pair<string,int>> GetRunList(string source) {
                 list.insert(list.end(), list_temp.begin(), list_temp.end());
                 list_temp = GetRunListFromFile("LHAASO_J2032_Imposter_V5");
                 list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("GalacticPlane_All_l210_Imposter_V5");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("GalacticPlane_All_l190_Imposter_V5");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("GalacticPlane_All_l180_Imposter_V5");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("GalacticPlane_All_l140_Imposter_V5");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("GalacticPlane_All_l120_Imposter_V5");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
             }
         }
         if (source.find("WComaeV4") != std::string::npos)
@@ -1046,10 +1349,6 @@ vector<std::pair<string,int>> GetRunList(string source) {
         }
         if (source.find("SS433Half2_V4") != std::string::npos) {
             list = GetRunListFromFile("MGRO_J1908_V4");
-        }
-        if (source.find("MAGIC_J1857_V4") != std::string::npos) {
-            //list = GetRunListFromFile("MGRO_J1908_V4");
-            list = GetRunListFromFile("HESS_J1857_V4");
         }
         if (source.find("MGRO_J2031_V4") != std::string::npos) {
             list = GetRunListFromFile("MGRO_J2031_V4");

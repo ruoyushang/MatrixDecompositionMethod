@@ -1213,9 +1213,23 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
             std::pair<double,double> on_run_RA_Dec = GetRunRaDec(filename,int(Data_runlist[run].second));
             pair<double,double> run_galactic_coords =  ConvertRaDecToGalactic(on_run_RA_Dec.first,on_run_RA_Dec.second);
             pair<double,double> mean_galactic_coords =  ConvertRaDecToGalactic(source_ra_dec.first,source_ra_dec.second);
-            if (abs(run_galactic_coords.first-mean_galactic_coords.first)>22.5+2.)
+            if (abs(run_galactic_coords.first-mean_galactic_coords.first)>Skymap_size_x+2.)
             {
-                std::cout << int(Data_runlist[run].second) << " gal. coord. rejected." << std::endl;
+                std::cout << int(Data_runlist[run].second) << " sky coord. rejected." << std::endl;
+                continue;
+            }
+        }
+        else
+        {
+            std::pair<double,double> on_run_RA_Dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+            if (abs(on_run_RA_Dec.first-source_ra_dec.first)>Skymap_size_x+1.)
+            {
+                std::cout << int(Data_runlist[run].second) << " sky coord. rejected." << std::endl;
+                continue;
+            }
+            if (abs(on_run_RA_Dec.second-source_ra_dec.second)>Skymap_size_y+1.)
+            {
+                std::cout << int(Data_runlist[run].second) << " sky coord. rejected." << std::endl;
                 continue;
             }
         }
@@ -1444,6 +1458,7 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
             if (matched_runnumber==0)
             {
                 std::cout << "Imposter run " << ON_runnumber << " failed to find a match." << std::endl;
+                ON_runnumber = 0;
                 OFF_runnumber.push_back(0);
                 OFF_exposure_hour.push_back(0);
                 continue_to_find_match = false;
@@ -1464,6 +1479,7 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
 
         }
 
+        if (ON_runnumber==0) continue;
         RunListTree->Fill();
     }
 
@@ -1524,9 +1540,23 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
             std::pair<double,double> on_run_RA_Dec = GetRunRaDec(filename,int(Data_runlist[run].second));
             pair<double,double> run_galactic_coords =  ConvertRaDecToGalactic(on_run_RA_Dec.first,on_run_RA_Dec.second);
             pair<double,double> mean_galactic_coords =  ConvertRaDecToGalactic(source_ra_dec.first,source_ra_dec.second);
-            if (abs(run_galactic_coords.first-mean_galactic_coords.first)>22.5+2.)
+            if (abs(run_galactic_coords.first-mean_galactic_coords.first)>Skymap_size_x+2.)
             {
-                std::cout << int(Data_runlist[run].second) << " gal. coord. rejected." << std::endl;
+                std::cout << int(Data_runlist[run].second) << " sky coord. rejected." << std::endl;
+                continue;
+            }
+        }
+        else
+        {
+            std::pair<double,double> on_run_RA_Dec = GetRunRaDec(filename,int(Data_runlist[run].second));
+            if (abs(on_run_RA_Dec.first-source_ra_dec.first)>Skymap_size_x+1.)
+            {
+                std::cout << int(Data_runlist[run].second) << " sky coord. rejected." << std::endl;
+                continue;
+            }
+            if (abs(on_run_RA_Dec.second-source_ra_dec.second)>Skymap_size_y+1.)
+            {
+                std::cout << int(Data_runlist[run].second) << " sky coord. rejected." << std::endl;
                 continue;
             }
         }
@@ -1539,7 +1569,7 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
         ON_L3Rate.push_back(GetRunL3Rate(Data_runlist[run].second));
 
     }
-    std::cout << "ON runs = " << new_list.size() << std::endl;
+    std::cout << "ON runs (final) = " << new_list.size() << std::endl;
     if (new_list.size()==0)
     {
         return;
@@ -1675,6 +1705,7 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
                 std::cout << "ON run azim = " << ON_pointing.second << std::endl;
                 std::cout << "ON run NSB = " << on_run_NSB << std::endl;
                 std::cout << "ON run L3 rate = " << ON_L3Rate << std::endl;
+                ON_runnumber = 0;
                 OFF_runnumber.push_back(0);
                 OFF_exposure_hour.push_back(0);
                 continue_to_find_match = false;
@@ -1695,6 +1726,7 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
 
         }
 
+        if (ON_runnumber==0) continue;
         RunListTree->Fill();
     }
 
@@ -1860,6 +1892,24 @@ vector<std::pair<string,int>> GetDBRunList(string epoch, double elev_low, double
 
 }
 
+vector<pair<string,int>> GetNewRunListFromTree(TTree * RunListTree)
+{
+    RunListTree->SetBranchStatus("*", 0);
+    RunListTree->SetBranchStatus("ON_runnumber", 1);
+    int ON_runnumber_ptr;
+    RunListTree->SetBranchAddress("ON_runnumber",&ON_runnumber_ptr);
+
+    vector<pair<string,int>> Data_runlist_new;
+    for (int on_run=0;on_run<RunListTree->GetEntries();on_run++)
+    {
+        RunListTree->GetEntry(on_run);
+        if (ON_runnumber_ptr==0) continue;
+        std::cout << "ON run " << ON_runnumber_ptr << " is good for finding an imposter." << std::endl;
+        Data_runlist_new.push_back(std::make_pair("ON run",ON_runnumber_ptr));
+    }
+    return Data_runlist_new;
+}
+
 void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel)
 {
 
@@ -1939,6 +1989,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     }
     else
     {
+        //SelectONRunList(&RunListTree, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, source_ra_dec);
         int iteration = 1;
         if (TString(target).Contains("Imposter1")) iteration = 1;
         if (TString(target).Contains("Imposter2")) iteration = 2;
@@ -1947,6 +1998,9 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
         if (TString(target).Contains("Imposter5")) iteration = 5;
         if (TString(target).Contains("Imposter6")) iteration = 6;
         TString root_file_name = "Netflix_RunList_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+"_G0.root";
+        //vector<pair<string,int>> Data_runlist_new = GetNewRunListFromTree(&RunListTree);
+        //RunListTree.Reset();
+        //std::cout << "Empty the tree before searching for imposters, RunListTree entries = " << RunListTree.GetEntries() << std::endl;
         SelectImposterRunList(&RunListTree, root_file_name, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, iteration, source_ra_dec);
     }
 
@@ -1985,6 +2039,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::cout << __LINE__ << std::endl;
     std::cout << "RunListTree.GetEntries() = " << RunListTree.GetEntries() << std::endl;
     int usable_runs = 0;
+    int saved_files = 0;
     double exposure_hour_limit = exposure_limit;
     for (int x_idx=0;x_idx<Skymap_nzones_x;x_idx++)
     {
@@ -2018,10 +2073,13 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
                     run_pointing_x = run_pointing_l_b.first;
                     run_pointing_y = run_pointing_l_b.second;
                 }
-                if (run_pointing_x>map_x_bin_upper) continue;
-                if (run_pointing_x<map_x_bin_lower) continue;
-                if (run_pointing_y>map_y_bin_upper) continue;
-                if (run_pointing_y<map_y_bin_lower) continue;
+                if (Skymap_nzones_x>1 || Skymap_nzones_y>1)
+                {
+                    if (run_pointing_x>map_x_bin_upper) continue;
+                    if (run_pointing_x<map_x_bin_lower) continue;
+                    if (run_pointing_y>map_y_bin_upper) continue;
+                    if (run_pointing_y<map_y_bin_lower) continue;
+                }
 
                 RunListTree_subgroup.Fill();
 
@@ -2040,6 +2098,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
                     RunListTree_subgroup.Reset();
                     exposure_hour_sum = 0.;
                     group_index += 1;
+                    saved_files += 1;
                 }
 
             }
@@ -2048,6 +2107,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
 
     std::cout << "initial runs = " << Data_runlist_init.size() << std::endl;
     std::cout << "usable runs = " << usable_runs << std::endl;
+    std::cout << "saved files = " << saved_files << std::endl;
     std::cout << "Done." << std::endl;
 
 }

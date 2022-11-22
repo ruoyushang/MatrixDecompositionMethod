@@ -2059,23 +2059,20 @@ elif source_name=='PSR_J2021_p4026' and not CommonPlotFunctions.doGalacticCoord:
 elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
     text_angle = 30.
     #3HWC J1908+063, 287.05, 6.39 
-    #region_x = 287.05
-    #region_y = 6.39
-    #region_r = 1.5
-    #region_name = '3HWC'
-    #if CommonPlotFunctions.doGalacticCoord:
-    #    region_x = 40.527
-    #    region_y = -0.795
+    region_x = 287.05
+    region_y = 6.39
+    region_r = 1.5
+    region_name = '3HWC'
     #Fermi J1906+0626
     #region_x = 286.88
     #region_y = 6.29
     #region_r = 0.5
     #region_name = 'Fermi J1906+0626'
     #PSR J1907+0602 # cover more exposure hours, allow larger radius
-    region_x = 286.975
-    region_y = 6.03777777778
-    region_r = 1.8
-    region_name = 'PSR'
+    #region_x = 286.975
+    #region_y = 6.03777777778
+    #region_r = 1.8
+    #region_name = 'PSR'
     #North hot spot
     #region_x = 286.8
     #region_y = 7.1
@@ -2087,15 +2084,16 @@ elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
     do_fit = 1
 
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
-    Hist_fermi5 = ROOT.TH2D("Hist_fermi5","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
-    Hist_fermi5 = CommonPlotFunctions.GetSkyViewMap("MWL_maps/skv1826930706371_j1908_fermi5.txt", Hist_fermi5, True)
-    # 3-300 GeV Band 5, Atwood et al. 2009
-    Hist_fermi5_reflect = CommonPlotFunctions.reflectXaxis(Hist_fermi5)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_fermi5_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','cnts$/s/cm^{2}/sr$','SkymapFermi5.png',rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
-    Hist_hawc = ROOT.TH2D("Hist_hawc","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
-    Hist_hawc = CommonPlotFunctions.GetHawcSkymap(Hist_hawc, True)
-    Hist_hawc_reflect = CommonPlotFunctions.reflectXaxis(Hist_hawc)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_hawc_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Significance','SkymapHAWC.png',rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+
+    #Hist_fermi5 = ROOT.TH2D("Hist_fermi5","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+    #Hist_fermi5 = CommonPlotFunctions.GetSkyViewMap("MWL_maps/skv1826930706371_j1908_fermi5.txt", Hist_fermi5, True)
+    ## 3-300 GeV Band 5, Atwood et al. 2009
+    #Hist_fermi5_reflect = CommonPlotFunctions.reflectXaxis(Hist_fermi5)
+    #CommonPlotFunctions.MatplotlibMap2D(Hist_fermi5_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','cnts$/s/cm^{2}/sr$','SkymapFermi5.png',rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    #Hist_hawc = ROOT.TH2D("Hist_hawc","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+    #Hist_hawc = CommonPlotFunctions.GetHawcSkymap(Hist_hawc, True)
+    #Hist_hawc_reflect = CommonPlotFunctions.reflectXaxis(Hist_hawc)
+    #CommonPlotFunctions.MatplotlibMap2D(Hist_hawc_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Significance','SkymapHAWC.png',rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     Hist_mc_intensity = ROOT.TH2D("Hist_mc_intensity","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     Hist_mc_column = ROOT.TH2D("Hist_mc_column","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
@@ -2104,8 +2102,7 @@ elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
     # Dame, T. M.; Hartmann, Dap; Thaddeus, P., 2011, "Replication data for: First Quadrant, main survey (DHT08)", https://doi.org/10.7910/DVN/1PG9NV, Harvard Dataverse, V3
     # https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/1PG9NV
     FITS_correction = 1000.# the source FITS file has a mistake in velocity km/s -> m/s
-    MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_6_22_0th_moment.txt' # CO intensity (K km s^{-1} deg)
-    #MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_50_60_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+    MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_p50_p60_0th_moment.txt' # CO intensity (K km s^{-1} deg)
     #MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_45_65_0th_moment.txt' # CO intensity (K km s^{-1} deg)
     Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
     Hist_mc_intensity.Scale(FITS_correction)
@@ -2128,14 +2125,6 @@ elif source_name=='WComae':
     region_y = 30.191
     region_r = 0.2
     region_name = '1ES1218'
-    do_fit = 0
-elif source_name=='MGRO_J2019' or source_name=='PSR_J2021_p3651':
-    text_angle = 45.
-    region_x = 304.85
-    region_y = 36.80
-    region_r = 1.0
-    #region_r = 0.23
-    region_name = 'VER J2019+368'
     do_fit = 0
 elif source_name=='Geminga':
     text_angle = 45.
@@ -2168,6 +2157,46 @@ elif 'LHAASO_J2032' in source_name or 'PSR_J2032_p4127' in source_name:
     #region_r = 0.8
     region_name = 'PSR J2032+4127'
     do_fit = 1
+elif 'Tycho' in source_name:
+    text_angle = 45.
+    region_x = 6.340
+    region_y = 64.130
+    region_r = 2.0
+    region_name = 'Tycho'
+    do_fit = 0
+
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
+
+    Hist_fermi5 = ROOT.TH2D("Hist_fermi5","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+    Hist_fermi5 = CommonPlotFunctions.GetSkyViewMap("MWL_maps/skv23149968874996_1.txt", Hist_fermi5, True)
+    # 3-300 GeV Band 5, Atwood et al. 2009
+    Hist_fermi5_reflect = CommonPlotFunctions.reflectXaxis(Hist_fermi5)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_fermi5_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','cnts$/s/cm^{2}/sr$','SkymapFermi5.png',rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+
+elif 'PSR_J2021_p3651' in source_name:
+    text_angle = 45.
+    region_x = 304.85
+    region_y = 36.80
+    region_r = 1.0
+    #region_r = 0.23
+    region_name = 'VER J2019+368'
+    do_fit = 0
+
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
+
+    Hist_mc_intensity = ROOT.TH2D("Hist_mc_intensity","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+    Hist_mc_column = ROOT.TH2D("Hist_mc_column","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+    pc_to_cm = 3.086e+18
+    CO_intensity_to_H_column_density = 2.*1e20
+    FITS_correction = 1000.# the source FITS file has a mistake in velocity km/s -> m/s
+    MWL_map_file = 'MWL_maps/DHT17_Quad2_bw_interp_p0_p40_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+    Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
+    Hist_mc_intensity.Scale(FITS_correction)
+    Hist_mc_column.Add(Hist_mc_intensity)
+    Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
+    Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapMolecularColumn_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+
 else:
     text_angle = 45.
     region_x = MapCenter_x
