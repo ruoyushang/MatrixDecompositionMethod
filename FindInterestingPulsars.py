@@ -2,6 +2,7 @@
 
 
 from prettytable import PrettyTable
+import csv
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.visualization import astropy_mpl_style, quantity_support
@@ -11,6 +12,11 @@ quantity_support()
 import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+from astropy import units as my_unit
+from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
+from astropy.io import fits
+from astropy.wcs import WCS
+from astropy.coordinates import Angle
 
 
 def HMS2deg(ra='', dec=''):
@@ -54,6 +60,64 @@ def FindSourceVisibility(psr_name,psr_ra,psr_dec):
 
     #psr_altaz = psr_coord.transform_to(AltAz(obstime=time,location=veritas_site))
     #print(f"Pulsar's Altitude = {psr_altaz.alt:.2}")
+
+def FindFermiSource(psr_name,psr_ra,psr_dec,fermi_name,fermi_ra,fermi_dec):
+
+    found_fermi_name = ''
+    for fermi in range(0,len(fermi_name)):
+        delta_ra = psr_ra - fermi_ra[fermi]
+        delta_dec = psr_dec - fermi_dec[fermi]
+        distance = pow(delta_ra*delta_ra+delta_dec*delta_dec,0.5)
+        if distance<0.2:
+            found_fermi_name = fermi_name[fermi]
+    return found_fermi_name
+
+def ReadFermiCatelog():
+    source_name = []
+    source_ra = []
+    source_dec = []
+    inputFile = open('gll_psc_v26.xml')
+    target_name = ''
+    target_info = ''
+    target_ra = ''
+    target_dec = ''
+    for line in inputFile:
+        if line.split(' ')[0]=='<source':
+            for block in range(0,len(line.split(' '))):
+                if 'Unc_' in line.split(' ')[block]: continue
+                if 'name=' in line.split(' ')[block]:
+                    target_name = line.split('name="')[1].split('"')[0]
+                if 'Flux1000=' in line.split(' ')[block]:
+                    target_info = line.split(' ')[block]
+                    target_info = target_info.strip('>\n')
+                    target_info = target_info.strip('"')
+                    target_info = target_info.lstrip('Flux1000="')
+        if '<parameter' in line and 'name="RA"' in line:
+            for block in range(0,len(line.split(' '))):
+                if 'value=' in line.split(' ')[block]:
+                    target_ra = line.split(' ')[block].split('"')[1]
+        if '<parameter' in line and 'name="DEC"' in line:
+            for block in range(0,len(line.split(' '))):
+                if 'value=' in line.split(' ')[block]:
+                    target_dec = line.split(' ')[block].split('"')[1]
+        if 'source>' in line:
+            if target_ra=='': 
+                target_name = ''
+                target_info = ''
+                target_ra = ''
+                target_dec = ''
+                continue
+            #print ('target_name = %s'%(target_name))
+            #print ('target_ra = %s'%(target_ra))
+            #print ('target_dec = %s'%(target_dec))
+            #source_name += [target_name]
+            source_name += ['%0.2e'%(float(target_info))]
+            source_ra += [float(target_ra)]
+            source_dec += [float(target_dec)]
+            target_name = ''
+            target_ra = ''
+            target_dec = ''
+    return source_name, source_ra, source_dec
 
 def FindVeritasExposure(psr_ra,psr_dec):
 
@@ -107,6 +171,40 @@ def FindVeritasExposure(psr_ra,psr_dec):
 
     return Total_Livetime
 
+def ConvertGalacticToRaDec(l, b):
+    my_sky = SkyCoord(l*my_unit.deg, b*my_unit.deg, frame='galactic')
+    return my_sky.icrs.ra.deg, my_sky.icrs.dec.deg
+
+def ConvertRaDecToGalactic(ra, dec):
+    my_sky = SkyCoord(ra*my_unit.deg, dec*my_unit.deg, frame='icrs')
+    return my_sky.galactic.l.deg, my_sky.galactic.b.deg
+
+def ReadSNRTargetListFromCSVFile():
+    source_name = []
+    source_ra = []
+    source_dec = []
+    source_dist = []
+    with open('SNRcat20221001-SNR.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+        for row in reader:
+            if len(row)==0: continue
+            if '#' in row[0]: continue
+            target_name = row[0]
+            target_min_dist = row[13]
+            if target_min_dist=='':
+                target_min_dist = '0'
+            target_ra = row[19]
+            target_dec = row[20]
+            source_name += [target_name]
+            source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
+            source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
+            source_dist += [float(target_min_dist)]
+            #print('target_min_dist = %s'%(target_min_dist))
+            #print('source_name = %s'%(source_name[len(source_name)-1]))
+            #print('source_ra = %0.2f'%(source_ra[len(source_ra)-1]))
+            #print('source_dec = %0.2f'%(source_dec[len(source_dec)-1]))
+            #print(row)
+    return source_name, source_ra, source_dec, source_dist
 
 def ReadATNFTargetListFromFile(file_path):
     source_name = []
@@ -261,34 +359,31 @@ for line in inputFile:
             Source_Livetime[entry] = float(Livetime)
 
 
-target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age, target_psr_edot = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+fermi_name, fermi_ra, fermi_dec = ReadFermiCatelog()
+target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age, target_psr_edot = ReadATNFTargetListFromFile('ATNF_pulsar_full_list.txt')
+target_snr_name, target_snr_ra, target_snr_dec, target_snr_dist = ReadSNRTargetListFromCSVFile()
 
-#include_ra_bands = ['00','01']
-#include_ra_bands = ['02','03']
-#include_ra_bands = ['04','05']
-#include_ra_bands = ['06','07']
-#include_ra_bands = ['08','09']
-#include_ra_bands = ['10','11']
-#include_ra_bands = ['12','13']
-#include_ra_bands = ['14','15']
-#include_ra_bands = ['16','17']
-#include_ra_bands = ['18','19']
-#include_ra_bands = ['20','21']
-include_ra_bands = ['22','23']
+include_ra_bands = []
+#include_ra_bands += ['00','01']
+#include_ra_bands += ['02','03']
+#include_ra_bands += ['04','05']
+#include_ra_bands += ['06','07']
+#include_ra_bands += ['08','09']
+#include_ra_bands += ['10','11']
+#include_ra_bands += ['12','13']
+#include_ra_bands += ['14','15']
+#include_ra_bands += ['16','17']
+#include_ra_bands += ['18','19']
+#include_ra_bands += ['20','21']
+include_ra_bands += ['22','23']
 
-mytable = PrettyTable(['%s-%s band'%(include_ra_bands[0],include_ra_bands[1]), 'Dist (kpc)', 'Age (kyr)', 'Edot (erg/s)', 'VTS expo (hr)', 'VTS max alt (deg)'])
-mytable.float_format["Dist (kpc)"] = "0.1f"
-mytable.float_format["Age (kyr)"] = "0.1e"
-mytable.float_format["Edot (erg/s)"] = "0.1e"
-mytable.float_format["VTS expo (hr)"] = "0.1f"
-mytable.float_format["VTS max alt (deg)"] = "0.1f"
+my_psr_table = PrettyTable(['%s-%s band'%(include_ra_bands[0],include_ra_bands[1]), 'RA (deg)', 'Dec (deg)', 'l (deg)', 'b (deg)', 'Fermi source', 'Dist (kpc)', 'Age (kyr)', 'Edot (erg/s)', 'VTS expo (hr)', 'VTS max alt (deg)'])
 for psr in range(0,len(target_psr_name)):
 
+    myangle_ra = Angle(target_psr_ra[psr], my_unit.deg)
     include_this_psr = False
     for ra in range(0,len(include_ra_bands)):
-        if 'B%s'%(include_ra_bands[ra]) in target_psr_name[psr]:
-            include_this_psr = True
-        if 'J%s'%(include_ra_bands[ra]) in target_psr_name[psr]:
+        if myangle_ra.hour>float(include_ra_bands[ra]) and myangle_ra.hour<float(include_ra_bands[ra])+1.:
             include_this_psr = True
     if not include_this_psr: continue
 
@@ -298,8 +393,54 @@ for psr in range(0,len(target_psr_name)):
     if max_alt<45.: continue
     #if max_alt<75.: continue
 
-    exposure_time = FindVeritasExposure(target_psr_ra[psr],target_psr_dec[psr])
-    mytable.add_row([target_psr_name[psr],target_psr_dist[psr],target_psr_age[psr]/1000.,target_psr_edot[psr],exposure_time,max_alt])
-print (mytable)
+    found_fermi_name = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],fermi_name,fermi_ra,fermi_dec)
+    gal_l, gal_b = ConvertRaDecToGalactic(target_psr_ra[psr],target_psr_dec[psr])
 
+    exposure_time = FindVeritasExposure(target_psr_ra[psr],target_psr_dec[psr])
+    if exposure_time<5.: continue
+    #if exposure_time>30.: continue
+
+    txt_ra = '%0.2f'%(target_psr_ra[psr])
+    txt_dec = '%0.2f'%(target_psr_dec[psr])
+    txt_l = '%0.2f'%(gal_l)
+    txt_b = '%0.2f'%(gal_b)
+    txt_dist = '%0.1f'%(target_psr_dist[psr])
+    txt_age = '%0.1e'%(target_psr_age[psr]/1000.)
+    txt_edot = '%0.1e'%(target_psr_edot[psr])
+    txt_expo = '%0.1f'%(exposure_time)
+    txt_alt = '%0.1f'%(max_alt)
+    my_psr_table.add_row([target_psr_name[psr],txt_ra,txt_dec,txt_l,txt_b,found_fermi_name,txt_dist,txt_age,txt_edot,txt_expo,txt_alt])
+print (my_psr_table)
+
+
+my_snr_table = PrettyTable(['%s-%s band'%(include_ra_bands[0],include_ra_bands[1]), 'RA (deg)', 'Dec (deg)', 'l (deg)', 'b (deg)', 'Fermi source', 'Dist (kpc)', 'VTS expo (hr)', 'VTS max alt (deg)'])
+for snr in range(0,len(target_snr_name)):
+
+    myangle_ra = Angle(target_snr_ra[snr], my_unit.deg)
+    include_this_snr = False
+    for ra in range(0,len(include_ra_bands)):
+        if myangle_ra.hour>float(include_ra_bands[ra]) and myangle_ra.hour<float(include_ra_bands[ra])+1.:
+            include_this_snr = True
+    if not include_this_snr: continue
+
+    max_alt = FindSourceVisibility('SNR %s'%(target_snr_name[snr]),target_snr_ra[snr],target_snr_dec[snr])
+    if max_alt<45.: continue
+    #if max_alt<75.: continue
+
+    found_fermi_name = FindFermiSource(target_snr_name[snr],target_snr_ra[snr],target_snr_dec[snr],fermi_name,fermi_ra,fermi_dec)
+    gal_l, gal_b = ConvertRaDecToGalactic(target_snr_ra[snr],target_snr_dec[snr])
+
+    exposure_time = FindVeritasExposure(target_snr_ra[snr],target_snr_dec[snr])
+    if exposure_time<5.: continue
+    #if exposure_time>30.: continue
+
+    txt_ra = '%0.2f'%(target_snr_ra[snr])
+    txt_dec = '%0.2f'%(target_snr_dec[snr])
+    txt_l = '%0.2f'%(gal_l)
+    txt_b = '%0.2f'%(gal_b)
+    txt_dist = '%0.1f'%(target_snr_dist[snr])
+    txt_expo = '%0.1f'%(exposure_time)
+    txt_alt = '%0.1f'%(max_alt)
+    my_snr_table.add_row([target_snr_name[snr],txt_ra,txt_dec,txt_l,txt_b,found_fermi_name,txt_dist,txt_expo,txt_alt])
+print (my_snr_table)
 

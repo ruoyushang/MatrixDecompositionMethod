@@ -57,7 +57,7 @@ def HMS2deg(ra='', dec=''):
     else:
         return RA or DEC
 
-def ReadSNRTargetListFromCSVFile():
+def ReadSNRTargetListFromCSVFile(snr_name=''):
     source_name = []
     source_ra = []
     source_dec = []
@@ -67,19 +67,24 @@ def ReadSNRTargetListFromCSVFile():
             if len(row)==0: continue
             if '#' in row[0]: continue
             target_name = row[0]
+            if not snr_name=='':
+                if not target_name==snr_name:
+                    continue
+                else:
+                    print ('target_name = %s'%(target_name))
             target_min_dist = row[13]
             if target_min_dist=='':
-                target_min_dist = '1000'
-            if float(target_min_dist)>6.: continue
+                target_min_dist = '0'
+            #if float(target_min_dist)>6.: continue
             target_ra = row[19]
             target_dec = row[20]
             source_name += [target_name]
             source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
             source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
-            print('target_min_dist = %s'%(target_min_dist))
-            print('source_name = %s'%(source_name[len(source_name)-1]))
-            print('source_ra = %0.2f'%(source_ra[len(source_ra)-1]))
-            print('source_dec = %0.2f'%(source_dec[len(source_dec)-1]))
+            #print('target_min_dist = %s'%(target_min_dist))
+            #print('source_name = %s'%(source_name[len(source_name)-1]))
+            #print('source_ra = %0.2f'%(source_ra[len(source_ra)-1]))
+            #print('source_dec = %0.2f'%(source_dec[len(source_dec)-1]))
             print(row)
     return source_name, source_ra, source_dec
 
@@ -104,9 +109,6 @@ def ReadATNFTargetListFromFileForPlot(file_path):
     source_name = []
     source_ra = []
     source_dec = []
-    source_dist = []
-    source_age = []
-    source_edot = []
     inputFile = open(file_path)
     for line in inputFile:
         if line[0]=="#": continue
@@ -115,36 +117,31 @@ def ReadATNFTargetListFromFileForPlot(file_path):
         target_dec = line.split(',')[2].strip(" ")
         #print ('target_ra = %s'%(target_ra))
         #print ('target_dec = %s'%(target_dec))
-        target_dist = float(line.split(',')[3].strip(" "))
-        target_age = float(line.split(',')[4].strip(" "))
-        target_edot = float(line.split(',')[5].strip(" "))
-        target_brightness = float(target_edot)/pow(float(target_dist),2)
-        if target_brightness<1e33 and target_edot<1e34: continue
-        #if target_dist<7.0: continue
-        if target_dist>4.0: continue
-        #if target_dist>2.0: continue
-        #if target_age<1e4: continue
         source_name += [target_name]
         source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
         source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
-        source_dist += [target_dist]
-        source_age += [target_age]
-        source_edot += [target_edot]
     return source_name, source_ra, source_dec
 
-def ReadATNFTargetListFromFile(file_path):
+def ReadATNFTargetListFromFile(psr_name=''):
     source_name = []
     source_ra = []
     source_dec = []
     source_dist = []
     source_age = []
     source_edot = []
+    file_path = 'ATNF_pulsar_full_list.txt'
     inputFile = open(file_path)
     for line in inputFile:
         if line[0]=="#": continue
+        if not 'J' in line and not 'B' in line: continue
         target_name = line.split(',')[0].strip(" ")
         target_ra = line.split(',')[1].strip(" ")
         target_dec = line.split(',')[2].strip(" ")
+        if not psr_name=='':
+            if not target_name==psr_name:
+                continue
+            else:
+                print ('target_name = %s'%(target_name))
         #print ('target_ra = %s'%(target_ra))
         #print ('target_dec = %s'%(target_dec))
         target_dist = float(line.split(',')[3].strip(" "))
@@ -152,8 +149,8 @@ def ReadATNFTargetListFromFile(file_path):
         target_edot = float(line.split(',')[5].strip(" "))
         target_brightness = float(target_edot)/pow(float(target_dist),2)
 
-        if target_brightness<1e33 and target_edot<1e34: continue
-        if target_dist>6.0: continue
+        #if target_brightness<1e33 and target_edot<1e34: continue
+        #if target_dist>6.0: continue
         #if target_dist>2.0: continue
         #if target_age<1e4: continue
 
@@ -207,10 +204,22 @@ target_dec = []
 #target_ra += [95.47]
 #target_dec += [37.92]
 
-target_name, target_ra, target_dec = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
-#target_name, target_ra, target_dec = ReadATNFTargetListFromFile('single_pulsar_list.txt')
-#target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromFile('SNR_list.txt')
-target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
+target_psr_name = []
+target_psr_ra = []
+target_psr_dec = []
+#target_psr_name, target_psr_ra, target_psr_dec = ReadATNFTargetListFromFile('J2022+3842')
+
+target_snr_name = []
+target_snr_ra = []
+target_snr_dec = []
+target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile('G076.9+01.0')
+
+target_name = []
+target_ra = []
+target_dec = []
+target_name += target_psr_name
+target_ra += target_psr_ra
+target_dec += target_psr_dec
 target_name += target_snr_name
 target_ra += target_snr_ra
 target_dec += target_snr_dec
@@ -219,8 +228,8 @@ range_ra = 1.5
 range_dec = 1.5
 
 
-#search_for_on_data = True
-search_for_on_data = False
+search_for_on_data = True
+#search_for_on_data = False
 
 #search_for_rhv = True
 search_for_rhv = False
@@ -230,8 +239,8 @@ if search_for_on_data:
     plot_tag = 'ON'
 
 #epoch = 'V4'
-#epoch = 'V5'
-epoch = 'V6'
+epoch = 'V5'
+#epoch = 'V6'
 
 gal_b_cut = 5.
 Galactic_observation = True
@@ -800,48 +809,6 @@ if search_for_on_data:
         other_stars += [target_name[target]]
         other_star_ra += [target_ra[target]]
         other_star_dec += [target_dec[target]]
-
-        psr_name, psr_ra, psr_dec = ReadATNFTargetListFromFileForPlot('ATNF_pulsar_list.txt')
-        for psr in range(0,len(psr_name)):
-            gamma_source_name = psr_name[psr]
-            gamma_source_ra = psr_ra[psr]
-            gamma_source_dec = psr_dec[psr]
-            distance = pow(gamma_source_ra-target_ra[target],2)+pow(gamma_source_dec-target_dec[target],2)
-            if distance>2.*2.: continue
-            near_a_source = False
-            for entry in range(0,len(other_stars)):
-                distance = pow(gamma_source_ra-other_star_ra[entry],2)+pow(gamma_source_dec-other_star_dec[entry],2)
-                if distance<0.2*0.2:
-                    near_a_source = True
-            if not near_a_source:
-                other_stars += [gamma_source_name]
-                other_star_ra += [gamma_source_ra]
-                other_star_dec += [gamma_source_dec]
-            else:
-                other_stars += [gamma_source_name]
-                other_star_ra += [gamma_source_ra]
-                other_star_dec += [gamma_source_dec]
-
-        snr_name, snr_ra, snr_dec = ReadSNRTargetListFromFile('SNR_list.txt')
-        for snr in range(0,len(snr_name)):
-            gamma_source_name = snr_name[snr]
-            gamma_source_ra = snr_ra[snr]
-            gamma_source_dec = snr_dec[snr]
-            distance = pow(gamma_source_ra-target_ra[target],2)+pow(gamma_source_dec-target_dec[target],2)
-            if distance>2.*2.: continue
-            near_a_source = False
-            for entry in range(0,len(other_stars)):
-                distance = pow(gamma_source_ra-other_star_ra[entry],2)+pow(gamma_source_dec-other_star_dec[entry],2)
-                if distance<0.2*0.2:
-                    near_a_source = True
-            if not near_a_source:
-                other_stars += [gamma_source_name]
-                other_star_ra += [gamma_source_ra]
-                other_star_dec += [gamma_source_dec]
-            else:
-                other_stars += [gamma_source_name]
-                other_star_ra += [gamma_source_ra]
-                other_star_dec += [gamma_source_dec]
 
         inputFile = open('TeVCat_RaDec_w_Names.txt')
         for line in inputFile:
