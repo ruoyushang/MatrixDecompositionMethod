@@ -68,7 +68,7 @@ def FindFermiSource(psr_name,psr_ra,psr_dec,fermi_name,fermi_ra,fermi_dec):
         delta_ra = psr_ra - fermi_ra[fermi]
         delta_dec = psr_dec - fermi_dec[fermi]
         distance = pow(delta_ra*delta_ra+delta_dec*delta_dec,0.5)
-        if distance<0.2:
+        if distance<0.5:
             found_fermi_name = fermi_name[fermi]
     return found_fermi_name
 
@@ -87,11 +87,11 @@ def ReadFermiCatelog():
                 if 'Unc_' in line.split(' ')[block]: continue
                 if 'name=' in line.split(' ')[block]:
                     target_name = line.split('name="')[1].split('"')[0]
-                if 'Flux1000=' in line.split(' ')[block]:
+                if 'Energy_Flux100=' in line.split(' ')[block]:
                     target_info = line.split(' ')[block]
                     target_info = target_info.strip('>\n')
                     target_info = target_info.strip('"')
-                    target_info = target_info.lstrip('Flux1000="')
+                    target_info = target_info.lstrip('Energy_Flux100="')
         if '<parameter' in line and 'name="RA"' in line:
             for block in range(0,len(line.split(' '))):
                 if 'value=' in line.split(' ')[block]:
@@ -205,6 +205,57 @@ def ReadSNRTargetListFromCSVFile():
             #print('source_dec = %0.2f'%(source_dec[len(source_dec)-1]))
             #print(row)
     return source_name, source_ra, source_dec, source_dist
+
+def ReadVeritasTargetListFromFile(file_path):
+    source_name = []
+    source_ra = []
+    source_dec = []
+    inputFile = open(file_path)
+    for line in inputFile:
+        target_name = line.split(';')[0]
+        target_ra = line.split(';')[2]
+        target_dec = line.split(';')[3]
+        source_name += [target_name]
+        source_ra += [float(target_ra)]
+        source_dec += [float(target_dec)]
+    return source_name, source_ra, source_dec
+
+def ReadHAWCTargetListFromFile(file_path):
+    source_name = []
+    source_ra = []
+    source_dec = []
+    inputFile = open(file_path)
+    for line in inputFile:
+        if line[0]=="#": continue
+        if '- name:' in line:
+            target_name = line.lstrip('   - name: ')
+            target_name = target_name.strip('\n')
+        if 'RA:' in line:
+            target_ra = line.lstrip('     RA: ')
+        if 'Dec:' in line:
+            target_dec = line.lstrip('     Dec: ')
+        if 'flux measurements:' in line:
+            source_name += [target_name]
+            source_ra += [float(target_ra)]
+            source_dec += [float(target_dec)]
+            target_name = ''
+            target_ra = ''
+            target_dec = ''
+    return source_name, source_ra, source_dec
+
+def ReadTeVCatTargetListFromFile(file_path):
+    source_name = []
+    source_ra = []
+    source_dec = []
+    inputFile = open(file_path)
+    for line in inputFile:
+        target_name = line.split(',')[0].strip(" ")
+        target_ra = line.split(',')[1].strip(" ")
+        target_dec = line.split(',')[2].strip(" ")
+        source_name += [target_name]
+        source_ra += [float(target_ra)]
+        source_dec += [float(target_dec)]
+    return source_name, source_ra, source_dec
 
 def ReadATNFTargetListFromFile(file_path):
     source_name = []
@@ -362,85 +413,230 @@ for line in inputFile:
 fermi_name, fermi_ra, fermi_dec = ReadFermiCatelog()
 target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age, target_psr_edot = ReadATNFTargetListFromFile('ATNF_pulsar_full_list.txt')
 target_snr_name, target_snr_ra, target_snr_dec, target_snr_dist = ReadSNRTargetListFromCSVFile()
+target_tev_name, target_tev_ra, target_tev_dec = ReadTeVCatTargetListFromFile('TeVCat_RaDec_w_Names.txt')
+target_hwc_name, target_hwc_ra, target_hwc_dec = ReadHAWCTargetListFromFile('Cat_3HWC.txt')
+target_vts_name, target_vts_ra, target_vts_dec = ReadVeritasTargetListFromFile('VTS_Cat.txt')
 
 include_ra_bands = []
-#include_ra_bands += ['00','01']
-#include_ra_bands += ['02','03']
-#include_ra_bands += ['04','05']
-#include_ra_bands += ['06','07']
-#include_ra_bands += ['08','09']
-#include_ra_bands += ['10','11']
-#include_ra_bands += ['12','13']
-#include_ra_bands += ['14','15']
-#include_ra_bands += ['16','17']
-#include_ra_bands += ['18','19']
-#include_ra_bands += ['20','21']
-include_ra_bands += ['22','23']
+include_ra_bands += ['00']
+include_ra_bands += ['02']
+include_ra_bands += ['04']
+include_ra_bands += ['06']
+include_ra_bands += ['08']
+include_ra_bands += ['10']
+include_ra_bands += ['12']
+include_ra_bands += ['14']
+include_ra_bands += ['16']
+include_ra_bands += ['18']
+include_ra_bands += ['20']
+include_ra_bands += ['22']
 
-my_psr_table = PrettyTable(['%s-%s band'%(include_ra_bands[0],include_ra_bands[1]), 'RA (deg)', 'Dec (deg)', 'l (deg)', 'b (deg)', 'Fermi source', 'Dist (kpc)', 'Age (kyr)', 'Edot (erg/s)', 'VTS expo (hr)', 'VTS max alt (deg)'])
-for psr in range(0,len(target_psr_name)):
+edot_cut = 5e34
+#edot_cut = 5e35
 
-    myangle_ra = Angle(target_psr_ra[psr], my_unit.deg)
-    include_this_psr = False
-    for ra in range(0,len(include_ra_bands)):
-        if myangle_ra.hour>float(include_ra_bands[ra]) and myangle_ra.hour<float(include_ra_bands[ra])+1.:
+R = "\033[0;31m" #RED
+G = "\033[0;32m" # GREEN
+Y = "\033[0;33m" # Yellow
+B = "\033[0;34m" # Blue
+N = "\033[0m" # Reset
+
+detected_psr_edot = []
+undetected_psr_edot = []
+unknown_psr_edot = []
+detected_psr_flux = []
+undetected_psr_flux = []
+unknown_psr_flux = []
+detected_snr_flux = []
+undetected_snr_flux = []
+
+
+for ra in range(0,len(include_ra_bands)):
+    my_psr_table = PrettyTable(['%s band'%(include_ra_bands[ra]), 'RA/Dec (deg)', 'l/b (deg)', 'Fermi', 'HAWC', 'TeVCat', 'Age (kyr)', 'Dist (kpc)', 'Edot (erg/s)', 'VTS expo (hr)', 'VTS alt (deg)'])
+    for psr in range(0,len(target_psr_name)):
+    
+        myangle_ra = Angle(target_psr_ra[psr], my_unit.deg)
+        include_this_psr = False
+        if myangle_ra.hour>float(include_ra_bands[ra]) and myangle_ra.hour<float(include_ra_bands[ra])+2.:
             include_this_psr = True
-    if not include_this_psr: continue
+        if not include_this_psr: continue
+    
+        #if target_psr_age[psr]>1e6: continue
+    
+        max_alt = FindSourceVisibility('PSR %s'%(target_psr_name[psr]),target_psr_ra[psr],target_psr_dec[psr])
+    
+        found_fermi_name = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],fermi_name,fermi_ra,fermi_dec)
+        found_tev_name = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],target_tev_name,target_tev_ra,target_tev_dec)
+        found_hwc_name = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],target_hwc_name,target_hwc_ra,target_hwc_dec)
+        found_vts_name = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],target_vts_name,target_vts_ra,target_vts_dec)
+        gal_l, gal_b = ConvertRaDecToGalactic(target_psr_ra[psr],target_psr_dec[psr])
+    
+        exposure_time = FindVeritasExposure(target_psr_ra[psr],target_psr_dec[psr])
+    
+        #if exposure_time>20.:
+        #    if not found_vts_name=='':
+        #        if found_fermi_name!='':
+        #            detected_psr_edot += [target_psr_edot[psr]/pow(target_psr_dist[psr],0)]
+        #            detected_psr_flux += [float(found_fermi_name)]
+        #    else:
+        #        if found_fermi_name!='':
+        #            undetected_psr_edot += [target_psr_edot[psr]/pow(target_psr_dist[psr],0)]
+        #            undetected_psr_flux += [float(found_fermi_name)]
+        #else:
+        #    if found_fermi_name!='' and max_alt>50.:
+        #        unknown_psr_edot += [target_psr_edot[psr]/pow(target_psr_dist[psr],0)]
+        #        unknown_psr_flux += [float(found_fermi_name)]
+        if not found_hwc_name=='':
+            if found_fermi_name!='':
+                detected_psr_edot += [target_psr_edot[psr]/pow(target_psr_dist[psr],0)]
+                detected_psr_flux += [float(found_fermi_name)]
+        else:
+            if found_fermi_name!='':
+                undetected_psr_edot += [target_psr_edot[psr]/pow(target_psr_dist[psr],0)]
+                undetected_psr_flux += [float(found_fermi_name)]
+        if exposure_time<20.:
+            if found_fermi_name!='' and max_alt>50.:
+                unknown_psr_edot += [target_psr_edot[psr]/pow(target_psr_dist[psr],0)]
+                unknown_psr_flux += [float(found_fermi_name)]
+    
+        if exposure_time>20.: continue
+        if myangle_ra.hour>17.:
+            if max_alt<70.: continue
+            #if found_hwc_name=='': continue
+            if found_fermi_name=='' and found_hwc_name=='': continue
+            if found_fermi_name!='' and found_hwc_name=='':
+                if float(found_fermi_name)<1e-5 and target_psr_edot[psr]<5e35: continue
+        else:
+            if max_alt<50.: continue
+            #if found_hwc_name=='': continue
+            if found_fermi_name=='' and found_hwc_name=='': continue
+            if found_fermi_name!='' and found_hwc_name=='':
+                if float(found_fermi_name)<1e-5 and target_psr_edot[psr]<5e34: continue
+    
+        txt_ra = '%0.2f'%(target_psr_ra[psr])
+        txt_dec = '%0.2f'%(target_psr_dec[psr])
+        txt_l = '%0.2f'%(gal_l)
+        txt_b = '%0.2f'%(gal_b)
+        txt_dist = '%0.1f'%(target_psr_dist[psr])
+        txt_age = '%0.1e'%(target_psr_age[psr]/1000.)
+        txt_edot = '%0.1e'%(target_psr_edot[psr])
+        txt_expo = '%0.1f'%(exposure_time)
+        txt_alt = '%0.1f'%(max_alt)
+    
+        is_good_target = False
+        if found_fermi_name!='' and found_hwc_name!='':
+            is_good_target = True
+    
+        if is_good_target:
+            my_psr_table.add_row([R+target_psr_name[psr]+N,txt_ra+'\n'+txt_dec,txt_l+'\n'+txt_b,found_fermi_name,found_hwc_name,found_tev_name,txt_age,txt_dist,txt_edot,txt_expo,txt_alt])
+        else:
+            my_psr_table.add_row([target_psr_name[psr],txt_ra+'\n'+txt_dec,txt_l+'\n'+txt_b,found_fermi_name,found_hwc_name,found_tev_name,txt_age,txt_dist,txt_edot,txt_expo,txt_alt])
+    
+    print (my_psr_table)
+    my_psr_table.clear_rows()
 
-    #if target_psr_age[psr]>1e6: continue
 
-    max_alt = FindSourceVisibility('PSR %s'%(target_psr_name[psr]),target_psr_ra[psr],target_psr_dec[psr])
-    if max_alt<45.: continue
-    #if max_alt<75.: continue
-
-    found_fermi_name = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],fermi_name,fermi_ra,fermi_dec)
-    gal_l, gal_b = ConvertRaDecToGalactic(target_psr_ra[psr],target_psr_dec[psr])
-
-    exposure_time = FindVeritasExposure(target_psr_ra[psr],target_psr_dec[psr])
-    if exposure_time<5.: continue
-    #if exposure_time>30.: continue
-
-    txt_ra = '%0.2f'%(target_psr_ra[psr])
-    txt_dec = '%0.2f'%(target_psr_dec[psr])
-    txt_l = '%0.2f'%(gal_l)
-    txt_b = '%0.2f'%(gal_b)
-    txt_dist = '%0.1f'%(target_psr_dist[psr])
-    txt_age = '%0.1e'%(target_psr_age[psr]/1000.)
-    txt_edot = '%0.1e'%(target_psr_edot[psr])
-    txt_expo = '%0.1f'%(exposure_time)
-    txt_alt = '%0.1f'%(max_alt)
-    my_psr_table.add_row([target_psr_name[psr],txt_ra,txt_dec,txt_l,txt_b,found_fermi_name,txt_dist,txt_age,txt_edot,txt_expo,txt_alt])
-print (my_psr_table)
-
-
-my_snr_table = PrettyTable(['%s-%s band'%(include_ra_bands[0],include_ra_bands[1]), 'RA (deg)', 'Dec (deg)', 'l (deg)', 'b (deg)', 'Fermi source', 'Dist (kpc)', 'VTS expo (hr)', 'VTS max alt (deg)'])
-for snr in range(0,len(target_snr_name)):
-
-    myangle_ra = Angle(target_snr_ra[snr], my_unit.deg)
-    include_this_snr = False
-    for ra in range(0,len(include_ra_bands)):
-        if myangle_ra.hour>float(include_ra_bands[ra]) and myangle_ra.hour<float(include_ra_bands[ra])+1.:
+for ra in range(0,len(include_ra_bands)):
+    my_snr_table = PrettyTable(['%s band'%(include_ra_bands[ra]), 'RA/Dec (deg)', 'l/b (deg)', 'Fermi', 'HAWC', 'TeVCat', 'Dist (kpc)', 'VTS expo (hr)', 'VTS alt (deg)'])
+    for snr in range(0,len(target_snr_name)):
+    
+        myangle_ra = Angle(target_snr_ra[snr], my_unit.deg)
+        include_this_snr = False
+        if myangle_ra.hour>float(include_ra_bands[ra]) and myangle_ra.hour<float(include_ra_bands[ra])+2.:
             include_this_snr = True
-    if not include_this_snr: continue
+        if not include_this_snr: continue
+    
+        max_alt = FindSourceVisibility('SNR %s'%(target_snr_name[snr]),target_snr_ra[snr],target_snr_dec[snr])
+    
+        found_fermi_name = FindFermiSource(target_snr_name[snr],target_snr_ra[snr],target_snr_dec[snr],fermi_name,fermi_ra,fermi_dec)
+        found_tev_name = FindFermiSource(target_snr_name[snr],target_snr_ra[snr],target_snr_dec[snr],target_tev_name,target_tev_ra,target_tev_dec)
+        found_hwc_name = FindFermiSource(target_snr_name[snr],target_snr_ra[snr],target_snr_dec[snr],target_hwc_name,target_hwc_ra,target_hwc_dec)
+        found_vts_name = FindFermiSource(target_snr_name[snr],target_snr_ra[snr],target_snr_dec[snr],target_vts_name,target_vts_ra,target_vts_dec)
+        gal_l, gal_b = ConvertRaDecToGalactic(target_snr_ra[snr],target_snr_dec[snr])
+    
+        exposure_time = FindVeritasExposure(target_snr_ra[snr],target_snr_dec[snr])
+    
+        if exposure_time>20. and found_fermi_name!='':
+            if not found_vts_name=='':
+                detected_snr_flux += [float(found_fermi_name)]
+            else:
+                undetected_snr_flux += [float(found_fermi_name)]
+    
+        if exposure_time>20.: continue
+        if myangle_ra.hour>17.:
+            if max_alt<70.: continue
+            if found_hwc_name=='': continue
+        else:
+            if max_alt<50.: continue
+            if found_hwc_name=='': continue
+    
+        txt_ra = '%0.2f'%(target_snr_ra[snr])
+        txt_dec = '%0.2f'%(target_snr_dec[snr])
+        txt_l = '%0.2f'%(gal_l)
+        txt_b = '%0.2f'%(gal_b)
+        txt_dist = '%0.1f'%(target_snr_dist[snr])
+        txt_expo = '%0.1f'%(exposure_time)
+        txt_alt = '%0.1f'%(max_alt)
+    
+        is_good_target = False
+        if found_hwc_name!='' and found_fermi_name!='':
+            is_good_target = True
+    
+        if is_good_target:
+            my_snr_table.add_row([R+target_snr_name[snr]+N,txt_ra+'\n'+txt_dec,txt_l+'\n'+txt_b,found_fermi_name,found_hwc_name,found_tev_name,txt_dist,txt_expo,txt_alt])
+        else:
+            my_snr_table.add_row([target_snr_name[snr],txt_ra+'\n'+txt_dec,txt_l+'\n'+txt_b,found_fermi_name,found_hwc_name,found_tev_name,txt_dist,txt_expo,txt_alt])
+    
+    print (my_snr_table)
+    my_snr_table.clear_rows()
 
-    max_alt = FindSourceVisibility('SNR %s'%(target_snr_name[snr]),target_snr_ra[snr],target_snr_dec[snr])
-    if max_alt<45.: continue
-    #if max_alt<75.: continue
+fig, ax = plt.subplots()
+figsize_x = 6.4
+figsize_y = 4.8
+fig.set_figheight(figsize_y)
+fig.set_figwidth(figsize_x)
 
-    found_fermi_name = FindFermiSource(target_snr_name[snr],target_snr_ra[snr],target_snr_dec[snr],fermi_name,fermi_ra,fermi_dec)
-    gal_l, gal_b = ConvertRaDecToGalactic(target_snr_ra[snr],target_snr_dec[snr])
+a_detected_psr_edot = np.array(detected_psr_edot)
+a_undetected_psr_edot = np.array(undetected_psr_edot)
+a_unknown_psr_edot = np.array(unknown_psr_edot)
+a_detected_psr_flux = np.array(detected_psr_flux)
+a_undetected_psr_flux = np.array(undetected_psr_flux)
+a_unknown_psr_flux = np.array(unknown_psr_flux)
 
-    exposure_time = FindVeritasExposure(target_snr_ra[snr],target_snr_dec[snr])
-    if exposure_time<5.: continue
-    #if exposure_time>30.: continue
+edot_bins = [1e31,1e32,1e33,1e34,1e35,1e36,1e37,1e38,1e39]
+fig.clf()
+axbig = fig.add_subplot()
+plt.hist(a_undetected_psr_edot, bins = edot_bins, label='Undetected',alpha=0.5)
+plt.hist(a_detected_psr_edot, bins = edot_bins, label='VTS detection',alpha=0.5)
+axbig.set_xscale('log')
+axbig.legend(loc='best')
+axbig.set_ylabel('number of pulsars')
+axbig.set_xlabel('$\dot{E}$ [erg/s]')
+plotname = 'Hist_PSR_Edot'
+fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
+axbig.remove()
 
-    txt_ra = '%0.2f'%(target_snr_ra[snr])
-    txt_dec = '%0.2f'%(target_snr_dec[snr])
-    txt_l = '%0.2f'%(gal_l)
-    txt_b = '%0.2f'%(gal_b)
-    txt_dist = '%0.1f'%(target_snr_dist[snr])
-    txt_expo = '%0.1f'%(exposure_time)
-    txt_alt = '%0.1f'%(max_alt)
-    my_snr_table.add_row([target_snr_name[snr],txt_ra,txt_dec,txt_l,txt_b,found_fermi_name,txt_dist,txt_expo,txt_alt])
-print (my_snr_table)
+flux_bins = [pow(10,-11),pow(10,-10.5),pow(10,-10),pow(10,-9.5),pow(10,-9),pow(10,-8.5),pow(10,-8),pow(10,-7.5),pow(10,-7),pow(10,-6.5),pow(10,-6)]
+fig.clf()
+axbig = fig.add_subplot()
+plt.hist(a_undetected_psr_flux, bins = flux_bins, label='Undetected',alpha=0.5)
+plt.hist(a_detected_psr_flux, bins = flux_bins, label='VTS detection',alpha=0.5)
+axbig.set_xscale('log')
+axbig.legend(loc='best')
+axbig.set_ylabel('number of pulsars')
+axbig.set_xlabel('Fermi flux at 1 GeV [/cm2/s]')
+plotname = 'Hist_PSR_Flux'
+fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
+axbig.remove()
 
+fig.clf()
+axbig = fig.add_subplot()
+plt.scatter(a_undetected_psr_edot, a_undetected_psr_flux, marker='o', color='blue',alpha=0.5)
+plt.scatter(a_detected_psr_edot, a_detected_psr_flux, marker='o', color='red',alpha=0.5)
+#plt.scatter(a_unknown_psr_edot, a_unknown_psr_flux, marker='o', color='green',alpha=0.5)
+axbig.set_ylabel('Fermi flux at 1 GeV [/cm2/s]')
+axbig.set_xlabel('$\dot{E}$ [erg/s]')
+axbig.set_yscale('log')
+axbig.set_xscale('log')
+plotname = 'Scatter_PSR_Edot_Flux'
+fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
+axbig.remove()

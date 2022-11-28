@@ -207,12 +207,12 @@ target_dec = []
 target_psr_name = []
 target_psr_ra = []
 target_psr_dec = []
-#target_psr_name, target_psr_ra, target_psr_dec = ReadATNFTargetListFromFile('J2022+3842')
+#target_psr_name, target_psr_ra, target_psr_dec = ReadATNFTargetListFromFile('J2238+5903')
 
 target_snr_name = []
 target_snr_ra = []
 target_snr_dec = []
-target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile('G076.9+01.0')
+target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile('G111.7-02.1')
 
 target_name = []
 target_ra = []
@@ -227,6 +227,10 @@ target_dec += target_snr_dec
 range_ra = 1.5
 range_dec = 1.5
 
+#epoch = 'V4'
+#epoch = 'V5'
+epoch = 'V6'
+
 
 search_for_on_data = True
 #search_for_on_data = False
@@ -237,10 +241,6 @@ search_for_rhv = False
 plot_tag = 'OFF'
 if search_for_on_data:
     plot_tag = 'ON'
-
-#epoch = 'V4'
-epoch = 'V5'
-#epoch = 'V6'
 
 gal_b_cut = 5.
 Galactic_observation = True
