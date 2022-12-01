@@ -40,8 +40,8 @@ MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 n_measures_per_entry = 20
 
 #background_type = 'RBM'
-background_type = 'ONOFF'
-#background_type = 'Matrix'
+#background_type = 'ONOFF'
+background_type = 'Matrix'
 analysis_type = 'Solo'
 #analysis_type = 'Mimic'
 
@@ -196,7 +196,8 @@ imposter_file_tags = []
 for elev in range(0,len(elev_range)-1):
     elev_tag = '_TelElev%sto%s'%(elev_range[elev],elev_range[elev+1])
     for u in range(0,len(theta2_bins)-1):
-        theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
+        #theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
+        theta2_tag = ''
         sample_file_tags += [method_tag+elev_tag+theta2_tag+'_'+ONOFF_tag_sample]
         imposter_file_tags += [method_tag+elev_tag+theta2_tag+'_'+ONOFF_tag_imposter]
 
@@ -557,7 +558,7 @@ def LoopOverFiles():
             file_exists = True
             n_groups = 0
             while file_exists:
-                SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(sample_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,0,0)+".root"
+                SourceFilePath = "/gamma_raid/userspace/rshang/SMI_output/%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(sample_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,0,0)+".root"
                 print ('Read file: %s'%(SourceFilePath))
                 if os.path.exists(SourceFilePath):
                     n_groups += 1
@@ -568,7 +569,7 @@ def LoopOverFiles():
             for x_idx in range(0,Skymap_nzones_x):
                 for y_idx in range(0,Skymap_nzones_y):
                     for g_idx in range(0,n_groups):
-                        SourceFilePath = "%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(sample_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
+                        SourceFilePath = "/gamma_raid/userspace/rshang/SMI_output/%s/Netflix_"%(folder_path)+sample_list[source_idx]+"_%s"%(sample_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
                         FilePath_Folder += [SourceFilePath]
                         print ('Get %s...'%(FilePath_Folder[len(FilePath_Folder)-1]))
                         if not os.path.isfile(FilePath_Folder[len(FilePath_Folder)-1]): 
@@ -649,7 +650,7 @@ def LoopOverFiles():
             file_exists = True
             n_groups = 0
             while file_exists:
-                SourceFilePath = "%s/Netflix_"%(folder_path)+imposter_list[source_idx]+"_%s"%(imposter_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,0,0)+".root"
+                SourceFilePath = "/gamma_raid/userspace/rshang/SMI_output/%s/Netflix_"%(folder_path)+imposter_list[source_idx]+"_%s"%(imposter_file_tags[elev])+"_G%d_X%d_Y%d"%(n_groups,0,0)+".root"
                 print ('Read file: %s'%(SourceFilePath))
                 if os.path.exists(SourceFilePath):
                     n_groups += 1
@@ -660,7 +661,7 @@ def LoopOverFiles():
             for x_idx in range(0,Skymap_nzones_x):
                 for y_idx in range(0,Skymap_nzones_y):
                     for g_idx in range(0,n_groups):
-                        SourceFilePath = "%s/Netflix_"%(folder_path)+imposter_list[source_idx]+"_%s"%(imposter_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
+                        SourceFilePath = "/gamma_raid/userspace/rshang/SMI_output/%s/Netflix_"%(folder_path)+imposter_list[source_idx]+"_%s"%(imposter_file_tags[elev])+"_G%d_X%d_Y%d"%(g_idx,x_idx,y_idx)+".root"
                         FilePath_Folder += [SourceFilePath]
                         print ('Get %s...'%(FilePath_Folder[len(FilePath_Folder)-1]))
                         if not os.path.isfile(FilePath_Folder[len(FilePath_Folder)-1]): 
@@ -694,7 +695,7 @@ optimiz_alpha_upper = [1.5,1.5,1.5,1.5,1.5,1.5]
 optimiz_beta_lower = [-1.5,-1.5,-1.5,-1.5,-1.5,-1.5]
 optimiz_beta_upper = [1.5,1.5,1.5,1.5,1.5,1.5]
 optimiz_nbins = 10
-stable_rank = 2
+stable_rank = 3
 
 n_measurements = 0
 n_imposter_measurements = 0
@@ -936,7 +937,7 @@ plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_bkgd,marker='.',labe
 plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_stat,marker='.',label='stat. unc.')
 plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_syst,marker='.',label='syst. unc.')
 ax.legend(loc='best')
-plt.savefig("output_plots/SystVsStatErrors_M%s_%s.png"%(n_measures_per_entry,background_type))
+plt.savefig("output_plots/SystVsStatErrors_M%s_%s_%s.png"%(n_measures_per_entry,background_type,folder_path))
 
 
 Hist_Bkgd_Optimization_Mean = []

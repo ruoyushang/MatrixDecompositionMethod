@@ -1645,9 +1645,10 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     }
 
 
-    camera_theta2_cut_lower = input_theta2_cut_lower;
-    camera_theta2_cut_upper = input_theta2_cut_upper;
-    sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    //camera_theta2_cut_lower = input_theta2_cut_lower;
+    //camera_theta2_cut_upper = input_theta2_cut_upper;
+    //sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    sprintf(theta2_cut_tag, "");
     sprintf(target, "%s", target_data.c_str());
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
@@ -4366,9 +4367,10 @@ void PrepareDarkData(string target_data, double tel_elev_lower_input, double tel
     SMI_DIR = string(std::getenv("SMI_DIR"));
     SMI_AUX = string(std::getenv("SMI_AUX"));
 
-    camera_theta2_cut_lower = input_theta2_cut_lower;
-    camera_theta2_cut_upper = input_theta2_cut_upper;
-    sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    //camera_theta2_cut_lower = input_theta2_cut_lower;
+    //camera_theta2_cut_upper = input_theta2_cut_upper;
+    //sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    sprintf(theta2_cut_tag, "");
     sprintf(target, "%s", target_data.c_str());
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;

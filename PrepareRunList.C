@@ -1920,9 +1920,10 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
 
     TH1::SetDefaultSumw2();
 
-    camera_theta2_cut_lower = input_theta2_cut_lower;
-    camera_theta2_cut_upper = input_theta2_cut_upper;
-    sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    //camera_theta2_cut_lower = input_theta2_cut_lower;
+    //camera_theta2_cut_upper = input_theta2_cut_upper;
+    //sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    sprintf(theta2_cut_tag, "");
     sprintf(target, "%s", target_data.c_str());
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
@@ -1965,10 +1966,31 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     if (TString(target).Contains("V5")) SizeSecondMax_Cut = 400.;
 
     std::cout << "Get a list of target observation runs" << std::endl;
-    vector<pair<string,int>> Data_runlist_init = GetRunList(target);
+
+    std::istringstream ss_input;
+    ss_input.str(target);
+    std::string source_strip("");
+    std::string segment;
+    std::vector<std::string> seglist;
+    while(std::getline(ss_input, segment, '_'))
+    {
+        seglist.push_back(segment);
+    }
+    for (int s=0;s<seglist.size()-1;s++)
+    {
+        if (s>0)
+        {
+            source_strip.append("_");
+        }
+        source_strip.append(seglist.at(s));
+    }
+
+    vector<pair<string,int>> Data_runlist_init = GetRunList(source_strip);
+    std::cout << "Sorting list by elevation..." << std::endl;
     vector<double> Data_runlist_init_elev = GetRunElevationList(Data_runlist_init);
     SortingList(&Data_runlist_init,&Data_runlist_init_elev);
 
+    std::cout << "Getting background list..." << std::endl;
     vector<pair<string,int>> Dark_runlist_init;
     if (!UseDBOnly)
     {

@@ -102,6 +102,9 @@ data_type = ['OFF','ON','Imposter1','Imposter2','Imposter3','Imposter4','Imposte
 
 observation_name = 'MGRO_J1908'
 data_epoch = ['MGRO_J1908_V5','MGRO_J1908_V6']
+if 'SS433' in sys.argv[1]:
+    observation_name = 'SS433'
+    data_epoch = ['SS433_V5','SS433_V6']
 if 'Crab' in sys.argv[1]:
     observation_name = 'Crab'
     data_epoch = ['CrabV5','CrabV6']
@@ -154,36 +157,14 @@ if 'LHAASO_J1929' in sys.argv[1]:
 if 'LHAASO_J2108' in sys.argv[1]:
     observation_name = 'LHAASO_J2108'
     data_epoch = ['LHAASO_J2108_V6']
-if 'PSR_J1841_m0345' in sys.argv[1]:
-    observation_name = 'PSR_J1841_m0345'
-    data_epoch = ['PSR_J1841_m0345_V6','PSR_J1841_m0345_V5']
-if 'PSR_J1856_p0245' in sys.argv[1]:
-    observation_name = 'PSR_J1856_p0245'
-    data_epoch = ['PSR_J1856_p0245_V6','PSR_J1856_p0245_V5']
-if 'PSR_J1849_m0003' in sys.argv[1]:
-    observation_name = 'PSR_J1849_m0003'
-    data_epoch = ['PSR_J1849_m0003_V6','PSR_J1849_m0003_V5']
-if 'PSR_J1938_p2213' in sys.argv[1]:
-    observation_name = 'PSR_J1938_p2213'
-    data_epoch = ['PSR_J1938_p2213_V6','PSR_J1938_p2213_V5']
-if 'PSR_J2021_p3651' in sys.argv[1]:
-    observation_name = 'PSR_J2021_p3651'
-    data_epoch = ['PSR_J2021_p3651_V6','PSR_J2021_p3651_V5']
-if 'PSR_J2021_p4026' in sys.argv[1]:
-    observation_name = 'PSR_J2021_p4026'
-    data_epoch = ['PSR_J2021_p4026_V6','PSR_J2021_p4026_V5']
-if 'PSR_J2032_p4127_Baseline' in sys.argv[1]:
-    observation_name = 'PSR_J2032_p4127_Baseline'
-    data_epoch = ['PSR_J2032_p4127_Baseline_V6','PSR_J2032_p4127_Baseline_V5']
-if 'PSR_J2032_p4127_Fall2017' in sys.argv[1]:
-    observation_name = 'PSR_J2032_p4127_Fall2017'
-    data_epoch = ['PSR_J2032_p4127_Fall2017_V6']
-if 'PSR_J0633_p0632' in sys.argv[1]:
-    observation_name = 'PSR_J0633_p0632'
-    data_epoch = ['PSR_J0633_p0632_V6','PSR_J0633_p0632_V5']
-if 'PSR_B0611_p22' in sys.argv[1]:
-    observation_name = 'PSR_B0611_p22'
-    data_epoch = ['PSR_B0611_p22_V6','PSR_B0611_p22_V5']
+if 'PSR_' in sys.argv[1]:
+    observation_name = sys.argv[1].split('_')[0]+'_'+sys.argv[1].split('_')[1]+'_'+sys.argv[1].split('_')[2]
+    print ('observation_name = %s'%(observation_name))
+    data_epoch = ['%s_V6'%(observation_name),'%s_V5'%(observation_name)]
+if 'SNR_' in sys.argv[1]:
+    observation_name = sys.argv[1].split('_')[0]+'_'+sys.argv[1].split('_')[1]+'_'+sys.argv[1].split('_')[2]
+    print ('observation_name = %s'%(observation_name))
+    data_epoch = ['%s_V6'%(observation_name),'%s_V5'%(observation_name)]
 if 'IC443HotSpot' in sys.argv[1]:
     observation_name = 'IC443HotSpot'
     data_epoch = ['IC443HotSpotV5','IC443HotSpotV6']
@@ -282,7 +263,8 @@ root_file_tags = []
 for elev in range(0,len(elev_range)-1):
     elev_tag = '_TelElev%sto%s'%(elev_range[elev],elev_range[elev+1])
     for u in range(0,len(theta2_bins)-1):
-        theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
+        theta2_tag = ''
+        #theta2_tag = '_Theta2%sto%s'%(theta2_bins[u],theta2_bins[u+1])
         #theta2_tag = '_Y%sto%s'%(theta2_bins[u],theta2_bins[u+1])
         for d in range(0,len(mjd_tag)):
             root_file_tags += [method_tag+elev_tag+theta2_tag+mjd_tag[d]+'_'+ONOFF_tag]

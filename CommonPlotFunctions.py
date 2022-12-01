@@ -32,6 +32,12 @@ folder_path = 'output_test'
 #folder_path = 'output_4x4'
 #folder_path = 'output_8x8'
 #folder_path = 'output_12x12'
+#folder_path = 'output_16x16'
+#folder_path = 'output_elbow1p0'
+#folder_path = 'output_elbow2p0'
+#folder_path = 'output_elbow3p0'
+#folder_path = 'output_elbow4p0'
+#folder_path = 'output_elbow5p0'
 #folder_path = 'output_FreeNSB'
 #folder_path = 'output_FreeAzim'
 #folder_path = 'output_FreeMJD'
@@ -40,6 +46,7 @@ folder_path = 'output_test'
 #N_bins_for_deconv = 4
 #N_bins_for_deconv = 8
 N_bins_for_deconv = 12
+#N_bins_for_deconv = 16
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 gamma_hadron_low_end = 0.
@@ -55,8 +62,8 @@ smooth_size_spectroscopy = 0.1
 #smooth_size_spectroscopy = 0.2
 #smooth_size_spectroscopy = 0.3
 
-#Smoothing = True
-Smoothing = False
+Smoothing = True
+#Smoothing = False
 
 additional_tag = ''
 
@@ -73,18 +80,18 @@ energy_index_scale = 2
 #doGalacticCoord = True
 doGalacticCoord = False
 
-#Skymap_nzones_x = 1
-#Skymap_nzones_y = 1
-#Skymap_size_x = 2.
-#Skymap_nbins_x = 45
-#Skymap_size_y = 2.
-#Skymap_nbins_y = 45
-Skymap_nzones_x = 2
-Skymap_nzones_y = 2
-Skymap_size_x = 3.
-Skymap_nbins_x = 68
-Skymap_size_y = 3.
-Skymap_nbins_y = 68
+Skymap_nzones_x = 1
+Skymap_nzones_y = 1
+Skymap_size_x = 2.
+Skymap_nbins_x = 45
+Skymap_size_y = 2.
+Skymap_nbins_y = 45
+#Skymap_nzones_x = 2
+#Skymap_nzones_y = 2
+#Skymap_size_x = 3.
+#Skymap_nbins_x = 68
+#Skymap_size_y = 3.
+#Skymap_nbins_y = 68
 if doGalacticCoord:
     Skymap_nzones_x = 3
     Skymap_nzones_y = 3
@@ -143,7 +150,7 @@ def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
 
     print('Smoothing %s'%(Hist_Old.GetName()))
     bin_size = Hist_Old.GetXaxis().GetBinCenter(2)-Hist_Old.GetXaxis().GetBinCenter(1)
-    if bin_size>smooth_size: 
+    if bin_size>smooth_size or not Smoothing: 
         Hist_Smooth.Reset()
         Hist_Smooth.Add(Hist_Old)
         return

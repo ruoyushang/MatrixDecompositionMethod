@@ -202,10 +202,10 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
                     imposter_bkgd = hist_mimic_bkgd_skymap[imposter][ebin].GetBinContent(binx+1,biny+1)
                     sum_square += pow(imposter_data-imposter_bkgd,2)
                     sum_bkgd += imposter_bkgd
-                total_error = pow(sum_square/n_imposters,0.5)
+                total_error = pow(sum_square/float(n_imposters-1),0.5)
                 avg_bkgd = sum_bkgd/float(n_imposters)
                 #print ('ebin %s, binx %s, biny %s, avg_bkgd %s '%(ebin,binx,biny,avg_bkgd))
-                syst_error = pow(max(0.,total_error*total_error-avg_bkgd),0.5)
+                syst_error = total_error
                 if avg_bkgd==0.: continue
                 hist_total_err_skymap[ebin].SetBinContent(binx+1,biny+1,total_error)
                 hist_syst_err_skymap[ebin].SetBinContent(binx+1,biny+1,syst_error)

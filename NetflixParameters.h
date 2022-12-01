@@ -1,8 +1,15 @@
 
 
-//int N_bins_for_deconv = 4; // 8 should be the lowest bin number
-//int N_bins_for_deconv = 8; // 8 should be the lowest bin number
-int N_bins_for_deconv = 12; // 8 should be the lowest bin number
+//int N_bins_for_deconv = 4;
+//int N_bins_for_deconv = 8; 
+int N_bins_for_deconv = 12; // nominal
+//int N_bins_for_deconv = 16; 
+
+//double elbow_ratio = 1.0;
+double elbow_ratio = 2.0; // nominal
+//double elbow_ratio = 3.0;
+//double elbow_ratio = 4.0;
+//double elbow_ratio = 5.0;
 
 //const int N_energy_bins = 4;
 //double Log10_alpha[N_energy_bins] = {1.0,1.0,-0.3,-1.0};
@@ -50,20 +57,20 @@ bool RHVData = false;
 //int Skymap_nbins_y = 60;
 //int Skymap_nzones_x = 3;
 //int Skymap_nzones_y= 3;
-//bool UseGalacticCoord = false;
-//double Skymap_size_x = 2.;
-//int Skymap_nbins_x = 45;
-//double Skymap_size_y = 2.;
-//int Skymap_nbins_y = 45;
-//int Skymap_nzones_x = 1;
-//int Skymap_nzones_y= 1;
 bool UseGalacticCoord = false;
-double Skymap_size_x = 3.;
-int Skymap_nbins_x = 68;
-double Skymap_size_y = 3.;
-int Skymap_nbins_y = 68;
-int Skymap_nzones_x = 2;
-int Skymap_nzones_y= 2;
+double Skymap_size_x = 2.;
+int Skymap_nbins_x = 45;
+double Skymap_size_y = 2.;
+int Skymap_nbins_y = 45;
+int Skymap_nzones_x = 1;
+int Skymap_nzones_y= 1;
+//bool UseGalacticCoord = false;
+//double Skymap_size_x = 3.;
+//int Skymap_nbins_x = 68;
+//double Skymap_size_y = 3.;
+//int Skymap_nbins_y = 68;
+//int Skymap_nzones_x = 2;
+//int Skymap_nzones_y= 2;
 
 bool UseDBOnly = false;
 //bool UseDBOnly = true;
@@ -122,7 +129,7 @@ int NumberOfEigenvectors_Stable = 3;
 double MSCW_cut_loose = 0.9;
 double MSCL_cut_loose = 1.0;
 double camera_theta2_cut_lower = 0.;
-double camera_theta2_cut_upper = 1.;
+double camera_theta2_cut_upper = 3.;
 double source_theta_cut = 0.2;
 
 int n_dark_samples = 1;

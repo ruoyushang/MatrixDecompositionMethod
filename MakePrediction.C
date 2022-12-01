@@ -2097,9 +2097,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     sprintf(char_SignalStrength, "%i", GammaModel);
     ONOFF_tag += TString("_Model")+TString(char_SignalStrength);
 
-    camera_theta2_cut_lower = input_theta2_cut_lower;
-    camera_theta2_cut_upper = input_theta2_cut_upper;
-    sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    //camera_theta2_cut_lower = input_theta2_cut_lower;
+    //camera_theta2_cut_upper = input_theta2_cut_upper;
+    //sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    sprintf(theta2_cut_tag, "");
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
     sprintf(elev_cut_tag, "_TelElev%dto%d%s", int(TelElev_lower), int(TelElev_upper), Azim_region.c_str());
@@ -2952,10 +2953,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
                 if (find_elbow) continue;
                 if (svd_Moff.singularValues()(max_rank)==0.) continue;
                 std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank) << std::endl;
-                //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<2.0)
-                //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<3.0)
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<4.0)
-                //if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<5.0)
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<elbow_ratio)
                 {
                     find_elbow = true;
                 }
@@ -2964,7 +2962,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             }
             NumberOfEigenvectors_Stable = max(NumberOfEigenvectors_Stable,1);
             NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,max_rank);
-            NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,2);
+            //NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,2);
             if (svd_Moff.singularValues()(max_rank)==0.)
             {
                 NumberOfEigenvectors_Stable = 0;
@@ -3720,9 +3718,10 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     sprintf(char_SignalStrength, "%i", GammaModel);
     ONOFF_tag += TString("_Model")+TString(char_SignalStrength);
 
-    camera_theta2_cut_lower = input_theta2_cut_lower;
-    camera_theta2_cut_upper = input_theta2_cut_upper;
-    sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    //camera_theta2_cut_lower = input_theta2_cut_lower;
+    //camera_theta2_cut_upper = input_theta2_cut_upper;
+    //sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
+    sprintf(theta2_cut_tag, "");
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
     sprintf(elev_cut_tag, "_TelElev%dto%d%s", int(TelElev_lower), int(TelElev_upper), Azim_region.c_str());
