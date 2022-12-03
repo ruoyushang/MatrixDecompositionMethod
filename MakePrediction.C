@@ -1309,14 +1309,9 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
                     if (isBlind)
                     {
                         if (kth_entry>entry_size && nth_entry>entry_size) continue;
-                        //if (kth_entry>entry_size || nth_entry>entry_size) continue;
-                        if (kth_entry+nth_entry>entry_size+2) continue;
+                        if (kth_entry>entry_size || nth_entry>entry_size) continue;
+                        //if (kth_entry+nth_entry>entry_size+2) continue;
                         //
-                        //if (kth_entry>entry_size+1 || nth_entry>entry_size+1) continue;
-                        //if (kth_entry>active_rank && nth_entry>active_rank) continue;
-                        //if (kth_entry<active_rank || nth_entry<active_rank) continue;
-                        //if (kth_entry==1 && nth_entry==1) continue;
-                        //if (kth_entry==nth_entry) continue;
                         if (RegularizationType==7)
                         {
                             if (kth_entry>=3 && nth_entry>=3) continue;
@@ -1354,8 +1349,11 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     int idx_n1 = 0;
     int idx_k2 = 0;
     int idx_n2 = 0;
+    int idx_k3 = 0;
+    int idx_n3 = 0;
     int idx_v1 = idx_k1*size_n + idx_n1;
     int idx_v2 = idx_k2*size_n + idx_n2;
+    int idx_v3 = idx_k3*size_n + idx_n3;
     int idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
     double sigma_k1 = mtx_S_dark(idx_k1,idx_k1);
     double sigma_n1 = mtx_S_dark(idx_n1,idx_n1);
@@ -1378,7 +1376,6 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
             mtx_A(idx_u1,idx_v1) = alpha;
-            //mtx_A(idx_u1,idx_v1) = pow(10.,1.);
         }
         if (entry_size>=2)
         {
@@ -1387,8 +1384,32 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
             mtx_A(idx_u1,idx_v1) = beta;
-            //mtx_A(idx_u1,idx_v1) = pow(10.,0.);
         }
+        if (entry_size>=3)
+        {
+            idx_k1 = 3-1;
+            idx_n1 = 3-1;
+            idx_v1 = idx_k1*size_n + idx_n1;
+            idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
+            mtx_A(idx_u1,idx_v1) = beta;
+        }
+
+        //idx_k1 = 1-1;
+        //idx_n1 = 1-1;
+        //idx_v1 = idx_k1*size_n + idx_n1;
+        //idx_k2 = 2-1;
+        //idx_n2 = 2-1;
+        //idx_v2 = idx_k2*size_n + idx_n2;
+        //idx_k3 = 3-1;
+        //idx_n3 = 3-1;
+        //idx_v3 = idx_k3*size_n + idx_n3;
+        //idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
+        //mtx_A(idx_u1,idx_v1) = alpha;
+        //mtx_A(idx_u1,idx_v2) = alpha;
+        //mtx_A(idx_u1,idx_v3) = alpha;
+        ////mtx_A(idx_u1,idx_v1) = alpha/mtx_S_dark(idx_k1,idx_k1)*mtx_S_dark(idx_k1,idx_k1);
+        ////mtx_A(idx_u1,idx_v2) = alpha/mtx_S_dark(idx_k2,idx_k2)*mtx_S_dark(idx_k1,idx_k1);
+        ////mtx_A(idx_u1,idx_v3) = alpha/mtx_S_dark(idx_k3,idx_k3)*mtx_S_dark(idx_k1,idx_k1);
 
         //if (entry_size>=2)
         //{
@@ -2953,7 +2974,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
                 if (find_elbow) continue;
                 if (svd_Moff.singularValues()(max_rank)==0.) continue;
                 std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank) << std::endl;
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<elbow_ratio)
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<elbow_ratio[e])
                 {
                     find_elbow = true;
                 }
@@ -3244,6 +3265,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         std::cout << lambda_data_2 << std::endl;
         std::cout << "lambda_data_3:" << std::endl;
         std::cout << lambda_data_3 << std::endl;
+        std::cout << "lambda_data_1 + lambda_data_2 + lambda_data_3:" << std::endl;
+        std::cout << lambda_data_1 + lambda_data_2 + lambda_data_3 << std::endl;
         std::cout << "=====================================================================" << std::endl;
         std::cout << "lambda_dark_1:" << std::endl;
         std::cout << lambda_dark_1 << " (" << (lambda_dark_1-lambda_data_1)/lambda_data_1 << ")" << std::endl;
@@ -3251,6 +3274,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         std::cout << lambda_dark_2 << " (" << (lambda_dark_2-lambda_data_2)/lambda_data_2 << ")" << std::endl;
         std::cout << "lambda_dark_3:" << std::endl;
         std::cout << lambda_dark_3 << " (" << (lambda_dark_3-lambda_data_3)/lambda_data_3 << ")" << std::endl;
+        std::cout << "lambda_dark_1 + lambda_dark_2 + lambda_dark_3:" << std::endl;
+        std::cout << lambda_dark_1 + lambda_dark_2 + lambda_dark_3 << std::endl;
         std::cout << "=====================================================================" << std::endl;
         std::cout << "lambda_bkgd_1:" << std::endl;
         std::cout << lambda_bkgd_1 << " (" << (lambda_bkgd_1-lambda_data_1)/lambda_data_1 << ")" << std::endl;
@@ -3258,6 +3283,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         std::cout << lambda_bkgd_2 << " (" << (lambda_bkgd_2-lambda_data_2)/lambda_data_2 << ")" << std::endl;
         std::cout << "lambda_bkgd_3:" << std::endl;
         std::cout << lambda_bkgd_3 << " (" << (lambda_bkgd_3-lambda_data_3)/lambda_data_3 << ")" << std::endl;
+        std::cout << "lambda_bkgd_1 + lambda_bkgd_2 + lambda_bkgd_3:" << std::endl;
+        std::cout << lambda_bkgd_1 + lambda_bkgd_2 + lambda_bkgd_3 << std::endl;
         std::cout << "=====================================================================" << std::endl;
 
         MatrixXcd mtx_data_truncate = GetTruncatedMatrix(mtx_data, NumberOfEigenvectors_Stable);

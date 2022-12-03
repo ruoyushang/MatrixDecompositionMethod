@@ -1,33 +1,24 @@
 
+const int N_energy_bins = 6;
 
 //int N_bins_for_deconv = 4;
 //int N_bins_for_deconv = 8; 
 int N_bins_for_deconv = 12; // nominal
 //int N_bins_for_deconv = 16; 
+//int N_bins_for_deconv = 20; 
 
-//double elbow_ratio = 1.0;
-double elbow_ratio = 2.0; // nominal
-//double elbow_ratio = 3.0;
-//double elbow_ratio = 4.0;
-//double elbow_ratio = 5.0;
+//double elbow_ratio[N_energy_bins] = {1.0,1.0,1.0,1.0,1.0,1.0}; 
+//double elbow_ratio[N_energy_bins] = {2.0,2.0,2.0,2.0,2.0,2.0};
+double elbow_ratio[N_energy_bins] = {4.0,4.0,4.0,4.0,4.0,4.0}; // nominal
+//double elbow_ratio[N_energy_bins] = {8.0,8.0,8.0,8.0,8.0,8.0};
 
-//const int N_energy_bins = 4;
-//double Log10_alpha[N_energy_bins] = {1.0,1.0,-0.3,-1.0};
-//double Log10_beta[N_energy_bins] = {0.1,-0.1,-0.1,-0.0};
-//double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5};
-//double optimiz_alpha_upper[N_energy_bins] = {1.5,1.5,1.5,1.5};
-//double optimiz_beta_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5};
-//double optimiz_beta_upper[N_energy_bins] = {1.5,1.5,1.5,1.5};
-//int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
-//double energy_bins[N_energy_bins+1] = {100.,316.,1000.,3162.,10000.};
-//double gamma_hadron_dim_ratio_w = 1.;
-//double gamma_hadron_dim_ratio_l = 1.;
-//double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0};
-//double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0};
-//const int N_energy_fine_bins = 4;
-//double energy_fine_bins[N_energy_fine_bins+1] = {pow(10,2.0),pow(10,2.5),pow(10,3.0),pow(10,3.5),pow(10,4.0)};
+int MatchingSelection = 0; // default
+//int MatchingSelection = 1; // free elevation
+//int MatchingSelection = 2; // free azimuth
+//int MatchingSelection = 3; // free NSB
+//int MatchingSelection = 4; // free MJD
 
-const int N_energy_bins = 6;
+
 double Log10_alpha[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
 double Log10_beta[N_energy_bins] =  {0.0,0.0,0.0,0.0,0.0,0.0};
 double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
@@ -80,15 +71,9 @@ double exposure_limit = 5.; // default
 bool UseRegularization = true;
 //bool UseRegularization = false;
 
-//int AcceptanceCorrection = 1;  // RaDec weight  // default
-int AcceptanceCorrection = 2;  // XYoff weight
+//int AcceptanceCorrection = 1;  // RaDec weight 
+int AcceptanceCorrection = 2;  // XYoff weight // nominal
 //int AcceptanceCorrection = 3;  // Roff weight
-
-int MatchingSelection = 0; // default
-//int MatchingSelection = 1; // free elevation
-//int MatchingSelection = 2; // free azimuth
-//int MatchingSelection = 3; // free NSB
-//int MatchingSelection = 4; // free MJD
 
 bool ExposureCorrection = false;
 
