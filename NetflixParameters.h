@@ -2,6 +2,7 @@
 const int N_energy_bins = 6;
 
 //int N_bins_for_deconv = 4;
+//int N_bins_for_deconv = 6;
 //int N_bins_for_deconv = 8; 
 int N_bins_for_deconv = 12; // nominal
 //int N_bins_for_deconv = 16; 
@@ -18,14 +19,15 @@ int MatchingSelection = 0; // default
 //int MatchingSelection = 3; // free NSB
 //int MatchingSelection = 4; // free MJD
 
+double Log10_alpha_single = 1.5;
+double Log10_alpha[N_energy_bins] = {Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single};
 
-double Log10_alpha[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
+
 double Log10_beta[N_energy_bins] =  {0.0,0.0,0.0,0.0,0.0,0.0};
 double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
 double optimiz_alpha_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5,1.5};
 double optimiz_beta_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
 double optimiz_beta_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5,1.5};
-int N_bins_for_deconv_func_E[N_energy_bins] = {N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv,N_bins_for_deconv};
 double energy_bins[N_energy_bins+1] = {200.,398.,794.,1585.,3162.,6310.,12589.};
 double gamma_hadron_dim_ratio_w = 1.;
 double gamma_hadron_dim_ratio_l = 1.;

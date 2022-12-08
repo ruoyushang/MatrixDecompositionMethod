@@ -1208,10 +1208,10 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     {
         return std::make_pair(mtx_output,mtx_CDE);
     }
-    if (entry_size==1)
-    {
-        return std::make_pair(mtx_init_input,mtx_CDE);
-    }
+    //if (entry_size==1)
+    //{
+    //    return std::make_pair(mtx_init_input,mtx_CDE);
+    //}
 
     //mtx_frobenius_island = GetFrobeniusIslandMatrix(mtx_dark_input, entry_size, beta1, beta2);
 
@@ -1310,7 +1310,6 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
                     {
                         if (kth_entry>entry_size && nth_entry>entry_size) continue;
                         if (kth_entry>entry_size || nth_entry>entry_size) continue;
-                        //if (kth_entry+nth_entry>entry_size+2) continue;
                         //
                         if (RegularizationType==7)
                         {
@@ -1383,7 +1382,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_n1 = 2-1;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u1,idx_v1) = beta;
+            mtx_A(idx_u1,idx_v1) = alpha;
         }
         if (entry_size>=3)
         {
@@ -1391,7 +1390,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_n1 = 3-1;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u1,idx_v1) = beta;
+            mtx_A(idx_u1,idx_v1) = alpha;
         }
 
         //idx_k1 = 1-1;
@@ -2295,7 +2294,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
             MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
             MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
-            N_bins_for_deconv = N_bins_for_deconv_func_E[e];
             ResetMatrixDimension();
 
             Hist_OffData_OneSample_MSCLW.push_back(TH2D("Hist_OffData2_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -2318,7 +2316,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
         MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
         MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
-        N_bins_for_deconv = N_bins_for_deconv_func_E[e];
         ResetMatrixDimension();
 
         for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
@@ -2365,7 +2362,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
             MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
             MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
-            N_bins_for_deconv = N_bins_for_deconv_func_E[e];
             ResetMatrixDimension();
 
             Hist_OneSample_Dark_MSCLW.push_back(TH2D("Hist_OneSample_Dark_MSCLW_V"+TString(sample_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -2447,7 +2443,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
         MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
         MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
-        N_bins_for_deconv = N_bins_for_deconv_func_E[e];
         ResetMatrixDimension();
 
         Hist_Gamma_MSCLW.push_back(TH2D("Hist_Gamma_MSCLW_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper));
@@ -2546,7 +2541,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
         MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
         MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
-        N_bins_for_deconv = N_bins_for_deconv_func_E[e];
         ResetMatrixDimension();
 
         Hist_OnData_SR_Energy.push_back(TH1D("Hist_OnData_SR_Energy_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
@@ -2610,7 +2604,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
         MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
         MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
-        N_bins_for_deconv = N_bins_for_deconv_func_E[e];
         ResetMatrixDimension();
 
         Hist_OnData_SR_Skymap_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_Theta2_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",50,0,10));
@@ -2705,7 +2698,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
             MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
             MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
-            N_bins_for_deconv = N_bins_for_deconv_func_E[e];
             ResetMatrixDimension();
 
             Hist_OnData_OneRoI_SR_RoI_Energy.push_back(TH1D("Hist_OnData_SR_RoI_Energy_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",N_energy_fine_bins,energy_fine_bins));
@@ -2732,7 +2724,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
             MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
             MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
-            N_bins_for_deconv = N_bins_for_deconv_func_E[e];
             ResetMatrixDimension();
 
             Hist_OnData_OneRoI_SR_Skymap_RoI_Theta2.push_back(TH1D("Hist_OnData_SR_Skymap_RoI_Theta2_V"+TString(roi_tag)+"_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",20,0,1.0));
@@ -2776,7 +2767,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         MSCL_plot_upper = gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))+MSCL_cut_blind;
         MSCW_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_w*(MSCW_cut_blind-(-1.*MSCW_cut_blind))-MSCW_cut_blind;
         MSCL_plot_lower = -gamma_hadron_low_end*gamma_hadron_dim_ratio_l*(MSCL_cut_blind-(-1.*MSCL_cut_blind))-MSCL_cut_blind;
-        N_bins_for_deconv = N_bins_for_deconv_func_E[e];
         ResetMatrixDimension();
 
         TString hist_name;
@@ -3049,42 +3039,43 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             std::cout << "++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
             std::cout << "Log10_alpha[e] = " << Log10_alpha[e] << std::endl;
             int bins_in_CR = N_bins_for_deconv-biny_blind_upper_global; 
-            for (int binx=1;binx<=Hist_Bkgd_Optimization.at(e).GetNbinsX();binx++)
-            {
-                for (int biny=1;biny<=Hist_Bkgd_Optimization.at(e).GetNbinsY();biny++)
-                {
-                    double temp_alpha = pow(10.,Hist_Bkgd_Optimization.at(e).GetXaxis()->GetBinCenter(binx));
-                    double temp_beta = pow(10.,Hist_Bkgd_Optimization.at(e).GetYaxis()->GetBinCenter(biny));
-                    hist_dark_temp.Reset();
-                    hist_dark_temp.Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
-                    NormalizeDarkMatrix(&Hist_OnData_MSCLW.at(e),&hist_dark_temp,0.);
-                    mtx_dark = fillMatrix(&hist_dark_temp);
-                    mtx_data_bkgd = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,temp_alpha,temp_beta,1,e).first;
-                    //mtx_data_bkgd = NuclearNormMinimization(mtx_data_bkgd,mtx_data,mtx_data_bkgd,1,NumberOfEigenvectors_Stable,true,temp_alpha,temp_beta,2,e).first;
-                    double data_count = CountGammaRegion(mtx_data);
-                    double bkgd_count = CountGammaRegion(mtx_data_bkgd);
-                    //std::cout << "data_count = " << data_count << std::endl;
-                    //std::cout << "bkgd_count = " << bkgd_count << std::endl;
-                    double lambda_data_2 =  GetSingularValue(mtx_data, 1);
-                    double lambda_bkgd_2 =  GetSingularValue(mtx_data_bkgd, 1);
-                    if (data_count>0.)
-                    {
-                        Hist_Bkgd_Optimization.at(e).SetBinContent(binx,biny,(1.-bkgd_count/data_count));
-                    }
-                    double chi2 = 0.;
-                    for (int row=0;row<N_bins_for_deconv;row++)
-                    {
-                        for (int col=0;col<N_bins_for_deconv;col++)
-                        {
-                            chi2 += pow(mtx_data(row,col).real()-mtx_data_bkgd(row,col).real(),2);
-                        }
-                    }
-                    Hist_Bkgd_Chi2.at(e).SetBinContent(binx,chi2);
-                }
-            }
+            //for (int binx=1;binx<=Hist_Bkgd_Optimization.at(e).GetNbinsX();binx++)
+            //{
+            //    for (int biny=1;biny<=Hist_Bkgd_Optimization.at(e).GetNbinsY();biny++)
+            //    {
+            //        double temp_alpha = pow(10.,Hist_Bkgd_Optimization.at(e).GetXaxis()->GetBinCenter(binx));
+            //        double temp_beta = pow(10.,Hist_Bkgd_Optimization.at(e).GetYaxis()->GetBinCenter(biny));
+            //        hist_dark_temp.Reset();
+            //        hist_dark_temp.Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
+            //        NormalizeDarkMatrix(&Hist_OnData_MSCLW.at(e),&hist_dark_temp,0.);
+            //        mtx_dark = fillMatrix(&hist_dark_temp);
+            //        mtx_data_bkgd = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,temp_alpha,temp_beta,1,e).first;
+            //        //mtx_data_bkgd = NuclearNormMinimization(mtx_data_bkgd,mtx_data,mtx_data_bkgd,1,NumberOfEigenvectors_Stable,true,temp_alpha,temp_beta,2,e).first;
+            //        double data_count = CountGammaRegion(mtx_data);
+            //        double bkgd_count = CountGammaRegion(mtx_data_bkgd);
+            //        //std::cout << "data_count = " << data_count << std::endl;
+            //        //std::cout << "bkgd_count = " << bkgd_count << std::endl;
+            //        double lambda_data_2 =  GetSingularValue(mtx_data, 1);
+            //        double lambda_bkgd_2 =  GetSingularValue(mtx_data_bkgd, 1);
+            //        if (data_count>0.)
+            //        {
+            //            Hist_Bkgd_Optimization.at(e).SetBinContent(binx,biny,(1.-bkgd_count/data_count));
+            //        }
+            //        double chi2 = 0.;
+            //        for (int row=0;row<N_bins_for_deconv;row++)
+            //        {
+            //            for (int col=0;col<N_bins_for_deconv;col++)
+            //            {
+            //                chi2 += pow(mtx_data(row,col).real()-mtx_data_bkgd(row,col).real(),2);
+            //            }
+            //        }
+            //        Hist_Bkgd_Chi2.at(e).SetBinContent(binx,chi2);
+            //    }
+            //}
 
             optimized_alpha = pow(10.,Log10_alpha[e]);
             optimized_beta = pow(10.,Log10_beta[e]);
+            std::cout << "optimized_alpha = " << optimized_alpha << std::endl;
             hist_dark_temp.Reset();
             hist_dark_temp.Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
             NormalizeDarkMatrix(&Hist_OnData_MSCLW.at(e),&hist_dark_temp,0.);
@@ -3721,6 +3712,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
 
 void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel)
 {
+
+    ResetPublicVariables();
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
     SMI_OUTPUT = string(std::getenv("SMI_OUTPUT"));

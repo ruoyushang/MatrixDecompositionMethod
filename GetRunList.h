@@ -122,6 +122,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 350.85;
             Source_Dec = 58.82;
     }
+    if (source_name.Contains("PSR_J1846_m0258"))
+    {
+            Source_RA = 281.60;
+            Source_Dec = -2.98;
+    }
     if (source_name.Contains("PSR_J0007_p7303"))
     {
             Source_RA = 1.76;
@@ -778,6 +783,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
     {
         list = GetRunListFromFile("SS433_V6");
     }
+    if (source.find("SS433_extra_V6") != std::string::npos)
+    {
+        list = GetRunListFromFile("SS433_extra_V6");
+    }
     if (source.find("MGRO_J2031_V6") != std::string::npos)
     {
         list = GetRunListFromFile("MGRO_J2031_V6");
@@ -1104,6 +1113,9 @@ vector<std::pair<string,int>> GetRunList(string source) {
     }
     if (source.find("SS433_V5") != std::string::npos) {
         list = GetRunListFromFile("SS433_V5");
+    }
+    if (source.find("SS433_extra_V5") != std::string::npos) {
+        list = GetRunListFromFile("SS433_extra_V5");
     }
     if (source.find("IC443HotSpotV5") != std::string::npos)
     {

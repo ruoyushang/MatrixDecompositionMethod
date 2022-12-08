@@ -35,6 +35,7 @@
 #include "/home/rshang/MatrixDecompositionMethod/EventDisplay/VEvndispRunParameter.h"
 
 #include "GetRunList.h"
+#include "ResetPublicVariables.C"
 
 #include <complex>
 //#include "../../Eigen/eigen-eigen-323c052e1731/Eigen/Dense"
@@ -1912,6 +1913,8 @@ vector<pair<string,int>> GetNewRunListFromTree(TTree * RunListTree)
 
 void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel)
 {
+
+    ResetPublicVariables();
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
     SMI_OUTPUT = string(std::getenv("SMI_OUTPUT"));
