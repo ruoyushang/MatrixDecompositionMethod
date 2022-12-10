@@ -207,12 +207,12 @@ target_dec = []
 target_psr_name = []
 target_psr_ra = []
 target_psr_dec = []
-#target_psr_name, target_psr_ra, target_psr_dec = ReadATNFTargetListFromFile('J2238+5903')
+target_psr_name, target_psr_ra, target_psr_dec = ReadATNFTargetListFromFile('J1856+0245')
 
 target_snr_name = []
 target_snr_ra = []
 target_snr_dec = []
-target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile('G111.7-02.1')
+#target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile('G073.9+00.9')
 
 target_name = []
 target_ra = []
