@@ -279,7 +279,7 @@ def GetCoefficientHistogram(file_path,ebin,hist_data,hist_bkgd):
     HistName = "Hist_Coeff_Bkgd_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     hist_bkgd.Add(InputFile.Get(HistName))
 
-def GetShowerShapeHistogram(file_path,ebin,hist_data,hist_dark,hist_bkgd,hist_rank0,hist_rank1):
+def GetShowerShapeHistogram(file_path,ebin,hist_data,hist_dark,hist_bkgd,hist_rank0,hist_rank1,hist_rank2):
 
     InputFile = ROOT.TFile(file_path)
     ErecS_lower_cut = energy_bin[ebin]
@@ -296,6 +296,8 @@ def GetShowerShapeHistogram(file_path,ebin,hist_data,hist_dark,hist_bkgd,hist_ra
     hist_rank0.Add(InputFile.Get(HistName))
     HistName = "Hist_Rank1_MSCLW_Dark_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     hist_rank1.Add(InputFile.Get(HistName))
+    HistName = "Hist_Rank2_MSCLW_Dark_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    hist_rank2.Add(InputFile.Get(HistName))
 
 def GetSingularValueHistogram(file_path,ebin,hist_optimization):
 
@@ -606,7 +608,7 @@ def LoopOverFiles():
                         mtx_CDE_data_E = []
                         mtx_CDE_bkgd_E = []
                         for eb in range(0,len(energy_bin)-1):
-                            GetShowerShapeHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Data_ShowerShape[eb],Hist_Dark_ShowerShape[eb],Hist_Bkgd_ShowerShape[eb],Hist_Dark_Rank0[eb],Hist_Dark_Rank1[eb])
+                            GetShowerShapeHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Data_ShowerShape[eb],Hist_Dark_ShowerShape[eb],Hist_Bkgd_ShowerShape[eb],Hist_Dark_Rank0[eb],Hist_Dark_Rank1[eb],Hist_Dark_Rank2[eb])
                             Hist_Data_Eigenvalues_E += [ROOT.TH1D("Hist_Data_Eigenvalues_M%s_E%s"%(n_measurements,eb),"",N_bins_for_deconv,0,N_bins_for_deconv)]
                             Hist_Data_Eigenvalues_E[eb].Reset()
                             GetSingularValueHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Data_Eigenvalues_E[eb])
@@ -727,6 +729,7 @@ Hist_Data_ShowerShape = []
 Hist_Dark_ShowerShape = []
 Hist_Dark_Rank0 = []
 Hist_Dark_Rank1 = []
+Hist_Dark_Rank2 = []
 Hist_Bkgd_ShowerShape = []
 Hist_Diff_ShowerShape = []
 for eb in range(0,len(energy_bin)-1):
@@ -734,6 +737,7 @@ for eb in range(0,len(energy_bin)-1):
     Hist_Dark_ShowerShape += [ROOT.TH2D("Hist_Dark_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist_Dark_Rank0 += [ROOT.TH2D("Hist_Dark_Rank0_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist_Dark_Rank1 += [ROOT.TH2D("Hist_Dark_Rank1_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
+    Hist_Dark_Rank2 += [ROOT.TH2D("Hist_Dark_Rank2_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist_Bkgd_ShowerShape += [ROOT.TH2D("Hist_Bkgd_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
     Hist_Diff_ShowerShape += [ROOT.TH2D("Hist_Diff_ShowerShape_E%s"%(eb),"",N_bins_for_deconv,MSCL_plot_lower,MSCL_plot_upper,N_bins_for_deconv,MSCW_plot_lower,MSCW_plot_upper)]
 
@@ -754,6 +758,7 @@ for eb in range(0,len(energy_bin)-1):
     CommonPlotFunctions.MatplotlibHist2D(Hist_Dark_ShowerShape[eb],fig,'scaled length','scaled width','count','DarkMatrixFull_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
     CommonPlotFunctions.MatplotlibHist2D(Hist_Dark_Rank0[eb],fig,'scaled length','scaled width','count','DarkMatrixRank0_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
     CommonPlotFunctions.MatplotlibHist2D(Hist_Dark_Rank1[eb],fig,'scaled length','scaled width','count','DarkMatrixRank1_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
+    CommonPlotFunctions.MatplotlibHist2D(Hist_Dark_Rank2[eb],fig,'scaled length','scaled width','count','DarkMatrixRank2_E%s_%s_%s_%s'%(eb,background_type,observing_condition,folder_path))
 
 bin_lower_x = Hist_Data_ShowerShape[0].GetXaxis().FindBin(-1.*MSCL_blind_cut+0.01)-1
 bin_upper_x = Hist_Data_ShowerShape[0].GetXaxis().FindBin(MSCL_blind_cut+0.01)-1
@@ -781,12 +786,14 @@ for eb in range(0,len(energy_bin)-1):
         dark_y += [dark_cnt]
         bkgd_y += [bkgd_cnt]
         data_ratio += [1.]
-        if data_cnt>0.:
-            dark_ratio += [dark_cnt/data_cnt]
-            bkgd_ratio += [bkgd_cnt/data_cnt]
-        else:
-            dark_ratio += [0.]
-            bkgd_ratio += [0.]
+        dark_ratio += [data_cnt-dark_cnt]
+        bkgd_ratio += [data_cnt-bkgd_cnt]
+        #if data_cnt>0.:
+        #    dark_ratio += [dark_cnt/data_cnt]
+        #    bkgd_ratio += [bkgd_cnt/data_cnt]
+        #else:
+        #    dark_ratio += [0.]
+        #    bkgd_ratio += [0.]
 
     plt.clf()
     plot1 = plt.subplot2grid((2, 2), (0, 0), rowspan=1, colspan=2)
@@ -800,8 +807,9 @@ for eb in range(0,len(energy_bin)-1):
     plot2.plot(data_x,dark_ratio,color='r',label='OFF data')
     plot2.plot(data_x,bkgd_ratio,color='g',label='OFF data (matrix method)')
     plot2.legend(loc='best')
-    plot2.set(ylabel='ratio')
+    plot2.set(ylabel='ON-OFF count difference')
     plt.xlabel("MSCW")
+    plt.ticklabel_format(axis="y", style="sci", scilimits=(0,0))
     plt.savefig("output_plots/MSCL_Bkgd_E%s_%s_%s.png"%(eb,observing_condition,folder_path))
 
 
@@ -1102,23 +1110,29 @@ for eb in range(0,len(energy_bin)-1):
     MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error $\epsilon$','number of entries')
     fig.savefig("output_plots/SystErrDist_E%s_M%s_%s_%s_%s.png"%(eb,n_measures_per_entry,background_type,observing_condition,folder_path))
 
-list_var_pair = []
-good_var_pair = []
-good_eigenvalue = []
-for eb in range(1,2):
-    for row1 in range(0,stable_rank):
-        for col1 in range(0,stable_rank):
-            for row2 in range(0,stable_rank):
-                for col2 in range(0,stable_rank):
-                    idx1 = row1*stable_rank+col1
-                    idx2 = row2*stable_rank+col2
-                    list_var_pair = [[row1+1,col1+1]]
-                    list_var_pair += [[row2+1,col2+1]]
-                    if idx1<idx2:
-                        print('=======================================================')
-                        PrincipalComponentAnalysis(list_var_pair,eb)
-                        #if math.isnan(max_eigenvalue): continue
-                        #chi2_ratio = min(chi2[0]/chi2[1],chi2[1]/chi2[0])
-                        MakeCorrelationPlot(list_var_pair,eb)
-                        #good_var_pair += [list_var_pair]
-                        #good_eigenvalue += [max_eigenvalue]
+#list_var_pair = []
+#good_var_pair = []
+#good_eigenvalue = []
+#for eb in range(1,2):
+#    for row1 in range(0,stable_rank):
+#        for col1 in range(0,stable_rank):
+#            for row2 in range(0,stable_rank):
+#                for col2 in range(0,stable_rank):
+#                    idx1 = row1*stable_rank+col1
+#                    idx2 = row2*stable_rank+col2
+#                    list_var_pair = [[row1+1,col1+1]]
+#                    list_var_pair += [[row2+1,col2+1]]
+#                    if idx1<idx2:
+#                        print('=======================================================')
+#                        PrincipalComponentAnalysis(list_var_pair,eb)
+#                        #if math.isnan(max_eigenvalue): continue
+#                        #chi2_ratio = min(chi2[0]/chi2[1],chi2[1]/chi2[0])
+#                        MakeCorrelationPlot(list_var_pair,eb)
+#                        #good_var_pair += [list_var_pair]
+#                        #good_eigenvalue += [max_eigenvalue]
+
+print ('energy_bin = %s'%(energy_bin))
+print ('energy_dependent_syst = %s'%(energy_dependent_syst))
+
+output_txt = open('output_plots/syst_%s_%s.txt'%(folder_path,background_type), 'w')
+output_txt.write('syst = %s \n'%(energy_dependent_syst))

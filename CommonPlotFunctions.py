@@ -25,28 +25,48 @@ from operator import itemgetter, attrgetter
 
 folder_path = 'output_test'
 #folder_path = 'output_default'
+
 #folder_path = 'output_2hrs'
 #folder_path = 'output_5hrs'
 #folder_path = 'output_10hrs'
 #folder_path = 'output_20hrs'
+
 #folder_path = 'output_4x4'
+#folder_path = 'output_6x6'
 #folder_path = 'output_8x8'
 #folder_path = 'output_12x12'
 #folder_path = 'output_16x16'
+#folder_path = 'output_20x20'
+
 #folder_path = 'output_elbow1p0'
 #folder_path = 'output_elbow2p0'
-#folder_path = 'output_elbow3p0'
 #folder_path = 'output_elbow4p0'
-#folder_path = 'output_elbow5p0'
-#folder_path = 'output_FreeNSB'
-#folder_path = 'output_FreeAzim'
-#folder_path = 'output_FreeMJD'
-#folder_path = 'output_FreeElev'
+#folder_path = 'output_elbow8p0'
 
-#N_bins_for_deconv = 4
-#N_bins_for_deconv = 8
+#folder_path = 'output_FreeElev'
+#folder_path = 'output_FreeAzim'
+#folder_path = 'output_FreeNSB'
+#folder_path = 'output_FreeMJD'
+
+#folder_path = 'output_LogAlpha_m1p5'
+#folder_path = 'output_LogAlpha_m1p0'
+#folder_path = 'output_LogAlpha_m0p5'
+#folder_path = 'output_LogAlpha_p0p0'
+#folder_path = 'output_LogAlpha_p0p5'
+#folder_path = 'output_LogAlpha_p1p0'
+#folder_path = 'output_LogAlpha_p1p5'
+
 N_bins_for_deconv = 12
-#N_bins_for_deconv = 16
+if '4x4' in folder_path:
+    N_bins_for_deconv = 4
+if '8x8' in folder_path:
+    N_bins_for_deconv = 8
+if '12x12' in folder_path:
+    N_bins_for_deconv = 12
+if '16x16' in folder_path:
+    N_bins_for_deconv = 16
+if '20x20' in folder_path:
+    N_bins_for_deconv = 20
 gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 gamma_hadron_low_end = 0.
@@ -420,6 +440,89 @@ def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
 
     return profile, profile_err, theta2, theta2_err
 
+def FindExtension_v1(Hist_Data_input,Hist_Bkgd_input,roi_x,roi_y,integration_range):
+
+    global calibration_radius
+
+    n_bins_2d = Hist_Data_input.GetNbinsX()
+    integration_range = min(integration_range,1.8)
+    n_bins_1d = int(10.*integration_range)
+    #n_bins_1d = int(5.*integration_range)
+
+    n_bins_y = Hist_Data_input.GetNbinsY()
+    n_bins_x = Hist_Data_input.GetNbinsX()
+    MapEdge_left = Hist_Data_input.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = Hist_Data_input.GetXaxis().GetBinLowEdge(Hist_Data_input.GetNbinsX()+1)
+    MapEdge_lower = Hist_Data_input.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = Hist_Data_input.GetYaxis().GetBinLowEdge(Hist_Data_input.GetNbinsY()+1)
+    cell_size = (MapEdge_right-MapEdge_left)/float(n_bins_x)*(MapEdge_upper-MapEdge_lower)/float(n_bins_y)
+
+    Hist_Bkgd_Theta2 = ROOT.TH1D("Hist_Bkgd_Theta2","",n_bins_1d,0,integration_range)
+    Hist_Data_Theta2 = ROOT.TH1D("Hist_Data_Theta2","",n_bins_1d,0,integration_range)
+    for br in range(0,Hist_Data_Theta2.GetNbinsX()):
+        range_limit = Hist_Data_Theta2.GetBinLowEdge(br+2)
+        range_limit_previous = Hist_Data_Theta2.GetBinLowEdge(br+1)
+        slice_data = 0.
+        slice_data_err = 0.
+        slice_bkgd = 0.
+        slice_bkgd_err = 0.
+        total_error_weight = 0.
+        total_cell_size = 0.
+        for bx in range(0,Hist_Data_input.GetNbinsX()):
+            for by in range(0,Hist_Data_input.GetNbinsY()):
+                cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
+                cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
+                distance_sq = pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2)
+                data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
+                data_error = Hist_Data_input.GetBinError(bx+1,by+1)
+                bkgd_content = Hist_Bkgd_input.GetBinContent(bx+1,by+1)
+                bkgd_error = Hist_Bkgd_input.GetBinError(bx+1,by+1)
+                if distance_sq>=pow(range_limit_previous,2) and distance_sq<pow(range_limit,2):
+                    if not data_error==0.:
+                        slice_data += data_content
+                        slice_data_err += data_error*data_error
+                        slice_bkgd += bkgd_content
+                        slice_bkgd_err += bkgd_error*bkgd_error
+                        total_cell_size += cell_size
+        if total_cell_size==0.: 
+            slice_data = 0.
+            slice_data_err = 0.
+            slice_bkgd = 0.
+            slice_bkgd_err = 0.
+        else:
+            slice_data = slice_data/total_cell_size
+            slice_data_err = pow(slice_data_err,0.5)/total_cell_size
+            slice_bkgd = slice_bkgd/total_cell_size
+            slice_bkgd_err = pow(slice_bkgd_err,0.5)/total_cell_size
+        Hist_Data_Theta2.SetBinContent(br+1,slice_data)
+        Hist_Data_Theta2.SetBinError(br+1,slice_data_err)
+        Hist_Bkgd_Theta2.SetBinContent(br+1,slice_bkgd)
+        Hist_Bkgd_Theta2.SetBinError(br+1,slice_bkgd_err)
+
+    data_cnt = []
+    data_cnt_err = []
+    bkgd_cnt = []
+    bkgd_cnt_err = []
+    theta2 = []
+    theta2_err = []
+    for binx in range(0,Hist_Data_Theta2.GetNbinsX()):
+        center = Hist_Data_Theta2.GetBinCenter(binx+1)
+        range_limit = Hist_Data_Theta2.GetBinLowEdge(binx+2)
+        range_limit_previous = Hist_Data_Theta2.GetBinLowEdge(binx+1)
+        data_content = Hist_Data_Theta2.GetBinContent(binx+1)
+        data_error = Hist_Data_Theta2.GetBinError(binx+1)
+        bkgd_content = Hist_Bkgd_Theta2.GetBinContent(binx+1)
+        bkgd_error = Hist_Bkgd_Theta2.GetBinError(binx+1)
+        if center>integration_range: continue
+        theta2 += [center]
+        theta2_err += [range_limit-range_limit_previous]
+        data_cnt += [data_content]
+        data_cnt_err += [data_error]
+        bkgd_cnt += [bkgd_content]
+        bkgd_cnt_err += [bkgd_error]
+
+    return data_cnt, data_cnt_err, bkgd_cnt, bkgd_cnt_err, theta2, theta2_err
+
 
 def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range):
 
@@ -473,7 +576,6 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
         Hist_Profile_Theta2.SetBinContent(br+1,slice_data)
         Hist_Profile_Theta2.SetBinError(br+1,slice_data_err)
 
-
     profile = []
     profile_err = []
     theta2 = []
@@ -491,6 +593,7 @@ def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_ran
         profile_err += [profile_error]
 
     return profile, profile_err, theta2, theta2_err
+
 
 def SaveAsFITS(hist_map,fits_name):
 
@@ -691,6 +794,76 @@ def ReadBrightStarListFromFile():
     #print ('Found %s bright stars.'%(len(star_name)))
     return star_name, star_ra, star_dec
 
+def ReadFermiCatelog():
+    source_name = []
+    source_ra = []
+    source_dec = []
+    inputFile = open('gll_psc_v26.xml')
+    target_name = ''
+    target_info = ''
+    target_ra = ''
+    target_dec = ''
+    for line in inputFile:
+        if line.split(' ')[0]=='<source':
+            for block in range(0,len(line.split(' '))):
+                if 'Unc_' in line.split(' ')[block]: continue
+                if 'name=' in line.split(' ')[block]:
+                    target_name = line.split('name="')[1].split('"')[0]
+                if 'Energy_Flux100=' in line.split(' ')[block]:
+                    target_info = line.split(' ')[block]
+                    target_info = target_info.strip('>\n')
+                    target_info = target_info.strip('"')
+                    target_info = target_info.lstrip('Energy_Flux100="')
+        if '<parameter' in line and 'name="RA"' in line:
+            for block in range(0,len(line.split(' '))):
+                if 'value=' in line.split(' ')[block]:
+                    target_ra = line.split(' ')[block].split('"')[1]
+        if '<parameter' in line and 'name="DEC"' in line:
+            for block in range(0,len(line.split(' '))):
+                if 'value=' in line.split(' ')[block]:
+                    target_dec = line.split(' ')[block].split('"')[1]
+        if 'source>' in line:
+            if target_ra=='': 
+                target_name = ''
+                target_info = ''
+                target_ra = ''
+                target_dec = ''
+                continue
+            #print ('target_name = %s'%(target_name))
+            #print ('target_ra = %s'%(target_ra))
+            #print ('target_dec = %s'%(target_dec))
+            #source_name += [target_name]
+            source_name += ['%0.2e'%(float(target_info))]
+            source_ra += [float(target_ra)]
+            source_dec += [float(target_dec)]
+            target_name = ''
+            target_ra = ''
+            target_dec = ''
+    return source_name, source_ra, source_dec
+
+def ReadHAWCTargetListFromFile(file_path):
+    source_name = []
+    source_ra = []
+    source_dec = []
+    inputFile = open(file_path)
+    for line in inputFile:
+        if line[0]=="#": continue
+        if '- name:' in line:
+            target_name = line.lstrip('   - name: ')
+            target_name = target_name.strip('\n')
+        if 'RA:' in line:
+            target_ra = line.lstrip('     RA: ')
+        if 'Dec:' in line:
+            target_dec = line.lstrip('     Dec: ')
+        if 'flux measurements:' in line:
+            source_name += [target_name]
+            source_ra += [float(target_ra)]
+            source_dec += [float(target_dec)]
+            target_name = ''
+            target_ra = ''
+            target_dec = ''
+    return source_name, source_ra, source_dec
+
 def ReadATNFTargetListFromFile(file_path):
     source_name = []
     source_ra = []
@@ -716,10 +889,12 @@ def ReadATNFTargetListFromFile(file_path):
         if target_edot=='*': continue
         target_brightness = float(target_edot)/pow(float(target_dist),2)
 
-        if float(target_brightness)<1e33 and float(target_edot)<1e34: continue
+        #if float(target_age)/1000.>pow(10,4.5): continue
+        #if float(target_brightness)<1e33 and float(target_edot)<1e34: continue
+        if float(target_age)/1000.<pow(10,6) and float(target_brightness)<1e34: continue
+        #if float(target_brightness)<1e35: continue
         #if target_dist>target_max_dist_cut: continue
         #if target_dist>2.0: continue
-        #if target_age<1e4: continue
 
         #ra_deg = float(HMS2deg(target_ra,target_dec)[0])
         #dec_deg = float(HMS2deg(target_ra,target_dec)[1])
@@ -763,153 +938,102 @@ def ReadSNRTargetListFromCSVFile():
 def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_psr_dec=None):
 
     other_stars = []
+    other_stars_type = []
     other_star_coord = []
     near_source_cut = 0.3
     if doGalacticCoord:
         near_source_cut = 1.5
 
-    #if 'nothing' in sys.argv[1]:
-    if 'MGRO_J1908' in sys.argv[1]:
-        inputFile = open('J1908_sources_RaDec_w_Names.txt')
-        #inputFile = open('TeVCat_RaDec_w_Names.txt')
-        for line in inputFile:
-            gamma_source_name = line.split(',')[0]
-            gamma_source_ra = float(line.split(',')[1])
-            gamma_source_dec = float(line.split(',')[2])
-            if doGalacticCoord:
-                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-            near_a_source = False
-            for entry in range(0,len(other_stars)):
-                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-                if distance<0.*0.:
-                    near_a_source = True
-            if not near_a_source and not '%' in gamma_source_name:
-                other_stars += [gamma_source_name]
-                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
-    else:
+    #if not prime_psr_name==None:
+    #    for src in range(0,len(prime_psr_name)):
+    #        src_ra = prime_psr_ra[src]
+    #        src_dec = prime_psr_dec[src]
+    #        if doGalacticCoord:
+    #            src_ra, src_dec = ConvertRaDecToGalactic(src_ra,src_dec)
+    #        near_a_source = False
+    #        for entry in range(0,len(other_stars)):
+    #            distance = pow(src_ra-other_star_coord[entry][0],2)+pow(src_dec-other_star_coord[entry][1],2)
+    #            if distance<near_source_cut*near_source_cut:
+    #                near_a_source = True
+    #        if not near_a_source:
+    #            other_stars += [prime_psr_name[src]]
+    #            other_star_coord += [[src_ra,src_dec]]
 
-        if not prime_psr_name==None:
-            for src in range(0,len(prime_psr_name)):
-                src_ra = prime_psr_ra[src]
-                src_dec = prime_psr_dec[src]
-                if doGalacticCoord:
-                    src_ra, src_dec = ConvertRaDecToGalactic(src_ra,src_dec)
-                near_a_source = False
-                for entry in range(0,len(other_stars)):
-                    distance = pow(src_ra-other_star_coord[entry][0],2)+pow(src_dec-other_star_coord[entry][1],2)
-                    if distance<near_source_cut*near_source_cut:
-                        near_a_source = True
-                if not near_a_source:
-                    other_stars += [prime_psr_name[src]]
-                    other_star_coord += [[src_ra,src_dec]]
+    star_name, star_ra, star_dec = ReadBrightStarListFromFile()
+    for src in range(0,len(star_name)):
+        src_ra = star_ra[src]
+        src_dec = star_dec[src]
+        if doGalacticCoord:
+            src_ra, src_dec = ConvertRaDecToGalactic(src_ra,src_dec)
+        other_stars += [star_name[src]]
+        other_stars_type += ['Star']
+        other_star_coord += [[src_ra,src_dec]]
 
-        target_name = []
-        target_ra = []
-        target_dec = []
-        star_name, star_ra, star_dec = ReadBrightStarListFromFile()
-        for src in range(0,len(star_name)):
-            src_ra = star_ra[src]
-            src_dec = star_dec[src]
-            if doGalacticCoord:
-                src_ra, src_dec = ConvertRaDecToGalactic(src_ra,src_dec)
-            other_stars += [star_name[src]]
-            other_star_coord += [[src_ra,src_dec]]
+    target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+    for src in range(0,len(target_psr_name)):
+        gamma_source_name = target_psr_name[src]
+        gamma_source_ra = target_psr_ra[src]
+        gamma_source_dec = target_psr_dec[src]
+        if doGalacticCoord:
+            gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+        other_stars += [gamma_source_name]
+        if target_psr_age[src]/1000.>1e6:
+            other_stars_type += ['MSP']
+        else:
+            other_stars_type += ['PSR']
+        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
-        target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
-        target_name += target_psr_name
-        target_ra += target_psr_ra
-        target_dec += target_psr_dec
+    target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
+    for src in range(0,len(target_snr_name)):
+        gamma_source_name = target_snr_name[src]
+        gamma_source_ra = target_snr_ra[src]
+        gamma_source_dec = target_snr_dec[src]
+        if doGalacticCoord:
+            gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+        other_stars += [gamma_source_name]
+        other_stars_type += ['SNR']
+        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
-        target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
-        target_name += target_snr_name
-        target_ra += target_snr_ra
-        target_dec += target_snr_dec
-        for src in range(0,len(target_snr_name)):
-            gamma_source_name = target_snr_name[src]
-            gamma_source_ra = target_snr_ra[src]
-            gamma_source_dec = target_snr_dec[src]
-            if doGalacticCoord:
-                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-            other_stars += [gamma_source_name]
-            other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+    fermi_name, fermi_ra, fermi_dec = ReadFermiCatelog()
+    for src in range(0,len(fermi_name)):
+        gamma_source_name = fermi_name[src]
+        gamma_source_ra = fermi_ra[src]
+        gamma_source_dec = fermi_dec[src]
+        if doGalacticCoord:
+            gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+        other_stars += [gamma_source_name]
+        other_stars_type += ['Fermi']
+        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
-        zscore_objects = []
-        if not hist_contour==None:
-            for binx in range(0,hist_contour.GetNbinsX()):
-                for biny in range(0,hist_contour.GetNbinsY()):
-                    zscore = hist_contour.GetBinContent(binx+1,biny+1)
-                    bin_center_x = -hist_contour.GetXaxis().GetBinCenter(binx+1)
-                    bin_center_y = hist_contour.GetYaxis().GetBinCenter(biny+1)
-                    if zscore<3.: continue
-                    zscore_objects += [(zscore,bin_center_x,bin_center_y)]
-            zscore_objects = sorted(zscore_objects, key=itemgetter(0), reverse=True)
+    target_hwc_name, target_hwc_ra, target_hwc_dec = ReadHAWCTargetListFromFile('Cat_3HWC.txt')
+    for src in range(0,len(target_hwc_name)):
+        gamma_source_name = target_hwc_name[src]
+        gamma_source_ra = target_hwc_ra[src]
+        gamma_source_dec = target_hwc_dec[src]
+        if doGalacticCoord:
+            gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+        other_stars += [gamma_source_name]
+        other_stars_type += ['HAWC']
+        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
-            #print ('++++++++++++++++++++++++++++++++++++++++++++++++++')
-            for zo in range(0,len(zscore_objects)):
-                zscore = zscore_objects[zo][0]
-                bin_center_x = zscore_objects[zo][1]
-                bin_center_y = zscore_objects[zo][2]
-                #print ('zscore = %s'%(zscore))
-                #print ('bin_center_x = %s'%(bin_center_x))
-                #print ('bin_center_y = %s'%(bin_center_y))
-                if zscore<3.: continue
-                min_dist = 1e10
-                min_dist_src = ''
-                min_dist_src_x = 0.
-                min_dist_src_y = 0.
-                for src in range(0,len(target_name)):
-                    gamma_source_name = target_name[src]
-                    gamma_source_ra = target_ra[src]
-                    gamma_source_dec = target_dec[src]
-                    if doGalacticCoord:
-                        gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-                    dist = pow(pow(gamma_source_ra-bin_center_x,2)+pow(gamma_source_dec-bin_center_y,2),0.5)
-                    if dist<min_dist:
-                        min_dist = dist
-                        min_dist_src = gamma_source_name
-                        min_dist_src_x = gamma_source_ra
-                        min_dist_src_y = gamma_source_dec
-                near_a_source = False
-                for entry in range(0,len(other_stars)):
-                    distance = pow(min_dist_src_x-other_star_coord[entry][0],2)+pow(min_dist_src_y-other_star_coord[entry][1],2)
-                    if distance<near_source_cut*near_source_cut:
-                        near_a_source = True
-                if not near_a_source and min_dist<0.5:
-                    other_stars += [min_dist_src]
-                    other_star_coord += [[min_dist_src_x,min_dist_src_y]]
+    #inputFile = open('TeVCat_RaDec_w_Names.txt')
+    #for line in inputFile:
+    #    gamma_source_name = line.split(',')[0]
+    #    gamma_source_ra = float(line.split(',')[1])
+    #    gamma_source_dec = float(line.split(',')[2])
+    #    if doGalacticCoord:
+    #        gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+    #    near_a_source = False
+    #    for entry in range(0,len(other_stars)):
+    #        distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+    #        if distance<near_source_cut*near_source_cut:
+    #            near_a_source = True
+    #    if not near_a_source and not '%' in gamma_source_name:
+    #        other_stars += [gamma_source_name]
+    #        other_stars_type += ['tev']
+    #        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
-        inputFile = open('TeVCat_RaDec_w_Names.txt')
-        for line in inputFile:
-            gamma_source_name = line.split(',')[0]
-            gamma_source_ra = float(line.split(',')[1])
-            gamma_source_dec = float(line.split(',')[2])
-            if doGalacticCoord:
-                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-            near_a_source = False
-            for entry in range(0,len(other_stars)):
-                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-                if distance<near_source_cut*near_source_cut:
-                    near_a_source = True
-            if not near_a_source and not '%' in gamma_source_name:
-                other_stars += [gamma_source_name]
-                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
-
-        #for src in range(0,len(target_name)):
-        #    gamma_source_name = target_name[src]
-        #    gamma_source_ra = target_ra[src]
-        #    gamma_source_dec = target_dec[src]
-        #    if doGalacticCoord:
-        #        gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-        #    near_a_source = False
-        #    for entry in range(0,len(other_stars)):
-        #        distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-        #        if distance<near_source_cut*near_source_cut:
-        #            near_a_source = True
-        #    if not near_a_source and not '%' in gamma_source_name:
-        #        other_stars += [gamma_source_name]
-        #        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
-
-    return other_stars, other_star_coord
+    return other_stars, other_stars_type, other_star_coord
 
 def GetRegionIntegral(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,roi_x,roi_y,roi_r):
 
@@ -1171,22 +1295,28 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
                 grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)
                 if label_z!='Z score' and max_z_contour>0.:
                     grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)*max_z/max_z_contour
-    other_stars, other_star_coord = GetGammaSourceInfo(hist_contour,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec) 
+    other_stars, other_star_type, other_star_coord = GetGammaSourceInfo(hist_contour,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec) 
 
     other_star_labels = []
+    other_star_types = []
     other_star_markers = []
     star_range = Skymap_size_x
     source_ra = (MapEdge_left+MapEdge_right)/2.
     source_dec = (MapEdge_lower+MapEdge_upper)/2.
+    n_stars = 0
     for star in range(0,len(other_stars)):
         if doGalacticCoord:
             if abs(source_ra+other_star_coord[star][0])>star_range: continue
             if abs(source_dec-other_star_coord[star][1])>0.5*star_range: continue
         else:
-            if pow(source_ra+other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
+            #if pow(source_ra+other_star_coord[star][0],2)+pow(source_dec-other_star_coord[star][1],2)>star_range*star_range: continue
+            if abs(source_ra+other_star_coord[star][0])>star_range: continue
+            if abs(source_dec-other_star_coord[star][1])>star_range: continue
         #if '#' in other_stars[star]: continue
         other_star_markers += [[-other_star_coord[star][0],other_star_coord[star][1]]]
-        other_star_labels += ['%s'%(other_stars[star])]
+        other_star_labels += ['(%s) %s'%(n_stars,other_stars[star])]
+        other_star_types += [other_star_type[star]]
+        n_stars += 1
     #print ('len(other_stars) = %s'%len(other_stars))
     #print ('len(other_star_markers) = %s'%len(other_star_markers))
 
@@ -1222,12 +1352,23 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     cbar = fig.colorbar(im)
     cbar.set_label(label_z)
     for star in range(0,len(other_star_markers)):
-        axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], c='k', marker='+', label=other_star_labels[star])
+        if other_star_types[star]=='PSR':
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='lime', marker='^', label=other_star_labels[star])
+        if other_star_types[star]=='MSP':
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='tomato', marker='^', label=other_star_labels[star])
+        if other_star_types[star]=='SNR':
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='yellow', marker='^', label=other_star_labels[star])
+        if other_star_types[star]=='Fermi':
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='cyan', marker='^', label=other_star_labels[star])
+        if other_star_types[star]=='HAWC':
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='violet', marker='^', label=other_star_labels[star])
+        if other_star_types[star]=='Star':
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='^', label=other_star_labels[star])
         text_offset_x = 0.
         text_offset_y = 0.
-        text_length = len(other_star_labels[star])/10.
-        text_offset_x = 0.1
-        plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k', rotation = rotation_angle)
+        text_offset_x = 0.05
+        #plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k', rotation = rotation_angle)
+        plt.annotate('%s'%(star), (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k')
     if not doGalacticCoord:
         if roi_r>0.:
             mycircle = plt.Circle((-roi_x, roi_y), roi_r, color='b', fill=False)
@@ -1240,7 +1381,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         #    axbig.add_patch(mycircle)
     axbig.set_xticks(x_axis_sparse)
     axbig.set_xticklabels(x_axis_reflect)
-    #axbig.legend(fontsize=7)
+    axbig.legend(fontsize=7)
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
     axbig.remove()
 

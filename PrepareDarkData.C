@@ -90,6 +90,8 @@ double proj_x_roi = 0;
 double proj_y_roi = 0;
 double ra_sky = 0;
 double dec_sky = 0;
+double complementary_ra_sky = 0;
+double complementary_dec_sky = 0;
 double ra_sky_imposter = 0;
 double dec_sky_imposter = 0;
 double ra_sky_dark = 0;
@@ -3151,6 +3153,8 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             Phioff = atan2(Yoff,Xoff)+M_PI;
             ra_sky = tele_point_ra_dec.first+Xoff_derot;
             dec_sky = tele_point_ra_dec.second+Yoff_derot;
+            complementary_ra_sky = tele_point_ra_dec.first-Xoff_derot;
+            complementary_dec_sky = tele_point_ra_dec.second+Yoff_derot;
             if (doImposter)
             {
                 ra_sky_imposter = tele_point_ra_dec_imposter.first+Xoff_derot;
@@ -3166,6 +3170,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             // redefine theta2
             theta2 = pow(ra_sky-mean_tele_point_ra,2)+pow(dec_sky-mean_tele_point_dec,2);
             pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
+            pair<double,double> complementary_evt_l_b = ConvertRaDecToGalactic(complementary_ra_sky,complementary_dec_sky);
             int energy = Hist_ErecS.FindBin(ErecS*1000.)-1;
             int energy_fine = Hist_ErecS_fine.FindBin(ErecS*1000.)-1;
             int elevation = Hist_Elev.FindBin(tele_elev)-1;
@@ -3232,7 +3237,21 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             int bin_ra = Hist_OnData_Expo_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
             int bin_dec = Hist_OnData_Expo_Skymap.at(energy).GetYaxis()->FindBin(dec_sky);
 
-            if (FoV(doImposter))
+            if (CoincideWithBrightStars(complementary_ra_sky,complementary_dec_sky))
+            {
+                if (ControlSelectionTheta2())
+                {
+                    if (!UseGalacticCoord)
+                    {
+                        Hist_OnData_CR_Skymap.at(energy).Fill(complementary_ra_sky,complementary_dec_sky,acceptance_weight);
+                    }
+                    else
+                    {
+                        Hist_OnData_CR_Skymap.at(energy).Fill(complementary_evt_l_b.first,complementary_evt_l_b.second,acceptance_weight);
+                    }
+                }
+            }
+            if (FoV(doImposter) && !CoincideWithBrightStars(ra_sky,dec_sky))
             {
                 if (ControlSelectionTheta2())
                 {

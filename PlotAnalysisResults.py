@@ -7423,7 +7423,7 @@ for nth_sample in range(0,n_control_samples):
     Hist_OffBkgd_CameraFoV_Theta2 += [ROOT.TH1D("Hist_OffBkgd_CameraFoV_Theta2_%s"%(nth_sample),"",50,0,10)]
     Hist_OffBkgd_CameraFoV_Theta2_Sum += [ROOT.TH1D("Hist_OffBkgd_CameraFoV_Theta2_Sum_%s"%(nth_sample),"",50,0,10)]
 
-GetGammaSourceInfo()
+#GetGammaSourceInfo()
 
 #SystematicAnalysis()
 

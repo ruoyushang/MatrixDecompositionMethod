@@ -235,6 +235,49 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
             hist_real_syst_skymap_sum.SetBinContent(binx+1,biny+1,pow(old_syst_err,0.5))
     hist_zscore_skymap_sum.Add(GetSignificanceMap(hist_real_data_skymap_sum,hist_real_bkgd_skymap_sum,hist_real_syst_skymap_sum,False))
 
+    hist_mimic_data_skymap_sum = []
+    hist_mimic_bkgd_skymap_sum = []
+    for imposter in range(0,n_imposters):
+        hist_mimic_data_skymap_sum += [ROOT.TH2D("hist_mimic_data_skymap_sum_%s"%(imposter),"",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)]
+        hist_mimic_bkgd_skymap_sum += [ROOT.TH2D("hist_mimic_bkgd_skymap_sum_%s"%(imposter),"",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)]
+        for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+            hist_mimic_data_skymap_sum[imposter].Add(hist_mimic_data_skymap[imposter][ebin])
+            hist_mimic_bkgd_skymap_sum[imposter].Add(hist_mimic_bkgd_skymap[imposter][ebin])
+    data_cnt, data_cnt_err, bkgd_cnt, bkgd_cnt_err, theta2, theta2_err = CommonPlotFunctions.FindExtension_v1(hist_real_data_skymap_sum,hist_real_bkgd_skymap_sum,region_x,region_y,2.0*region_r)
+    mimic_data_cnt_list = []
+    mimic_bkgd_cnt_list = []
+    for imposter in range(0,n_imposters):
+        mimic_data_cnt, mimic_data_cnt_err, mimic_bkgd_cnt, mimic_bkgd_cnt_err, theta2, theta2_err = CommonPlotFunctions.FindExtension_v1(hist_mimic_data_skymap_sum[imposter],hist_mimic_bkgd_skymap_sum[imposter],region_x,region_y,2.0*region_r)
+        mimic_data_cnt_list += [mimic_data_cnt]
+        mimic_bkgd_cnt_list += [mimic_bkgd_cnt]
+    syst_cnt = []
+    for u in range(0,len(data_cnt)):
+        mimic_square = 0.
+        for imposter in range(0,n_imposters):
+            mimic_square += pow(mimic_data_cnt_list[imposter][u]-mimic_bkgd_cnt_list[imposter][u],2)
+        mimic_square = pow(mimic_square/float(n_imposters-1),0.5)
+        syst_cnt += [mimic_square]
+
+    theta2 = np.array(theta2)
+    theta2_err = np.array(theta2_err)
+    syst_cnt = np.array(syst_cnt)
+    data_cnt = np.array(data_cnt)
+    bkgd_cnt = np.array(bkgd_cnt)
+    data_cnt_err = np.array(data_cnt_err)
+    bkgd_cnt_err = np.array(bkgd_cnt_err)
+    fig.clf()
+    axbig = fig.add_subplot()
+    axbig.bar(theta2, 2.*syst_cnt, bottom=bkgd_cnt-syst_cnt, width=1.*theta2_err, color='b', align='center', alpha=0.2)
+    axbig.errorbar(theta2,data_cnt,data_cnt_err,color='k',marker='s',ls='none',label='Data')
+    axbig.errorbar(theta2,bkgd_cnt,bkgd_cnt_err,color='r',marker='s',ls='none',label='Background')
+    axbig.set_ylabel('event count per degree square')
+    axbig.set_xlabel('angular distance from source [degree]')
+    axbig.legend(loc='best')
+    plotname = 'CountVsTheta2_%s'%(region_name)
+    fig.savefig("output_plots/%s_sum_%s.png"%(plotname,plot_tag),bbox_inches='tight')
+    axbig.remove()
+
+
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap_sum)
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         hist_zscore_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap[ebin])
@@ -1641,6 +1684,8 @@ def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name):
 
         MakeDiffusionSpectrum(energy_axis,energy_axis_err,r_axis_allE,y_axis_allE,y_axis_stat_err_allE,y_axis_syst_err_allE,norm_allE,norm_err_allE)
 
+
+
 def MakeFluxMap(flux_map, data_map, bkgd_map, norm_map, aeff_map, expo_map):
 
     skymap_bin_size_x = data_map[0].GetXaxis().GetBinCenter(2)-data_map[0].GetXaxis().GetBinCenter(1)
@@ -2017,44 +2062,44 @@ elif source_name=='PSR_J2021_p4026' and not CommonPlotFunctions.doGalacticCoord:
     region_name = 'Center'
     do_fit = 0
 
-    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
+    #hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
 
-    Hist_mc_intensity = ROOT.TH2D("Hist_mc_intensity","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
-    Hist_mc_column = ROOT.TH2D("Hist_mc_column","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+    #Hist_mc_intensity = ROOT.TH2D("Hist_mc_intensity","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+    #Hist_mc_column = ROOT.TH2D("Hist_mc_column","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 
-    MWL_map_file = 'MWL_maps/CGPS_1420MHz.txt' # CO intensity (K km s^{-1} deg)
-    MWL_map_title = 'H_{2} column density (1/cm^{2})'
-    Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
-    Hist_mc_intensity.Scale(1.823*1e18) # optical thin
-    Hist_mc_column.Reset()
-    Hist_mc_column.Add(Hist_mc_intensity)
-    Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCGPS_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
-
-    #MWL_map_file = 'MWL_maps/skv4052116888244_gammaCygni.txt' # CO intensity (K km s^{-1} deg)
+    #MWL_map_file = 'MWL_maps/CGPS_1420MHz.txt' # CO intensity (K km s^{-1} deg)
     #MWL_map_title = 'H_{2} column density (1/cm^{2})'
-    #Hist_mc_intensity.Reset()
+    #Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
+    #Hist_mc_intensity.Scale(1.823*1e18) # optical thin
     #Hist_mc_column.Reset()
-    #Hist_mc_intensity = CommonPlotFunctions.GetSkyViewMap(MWL_map_file, Hist_mc_intensity, True)
-    #Hist_mc_intensity.Scale(2.*1e20) # H2 column density
     #Hist_mc_column.Add(Hist_mc_intensity)
     #Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
-    #CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapSkv_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    #CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCGPS_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
-    pc_to_cm = 3.086e+18
-    CO_intensity_to_H_column_density = 2.*1e20
-    FITS_correction = 1000.# the source FITS file has a mistake in velocity km/s -> m/s
-    Hist_mc_intensity.Reset()
-    Hist_mc_column.Reset()
-    MWL_map_file = 'MWL_maps/DHT10_Cygnus_interp_m20_p20_0th_moment.txt' # CO intensity (K km s^{-1} deg)
-    MWL_map_title = 'H_{2} column density (1/cm^{2})'
-    Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
-    Hist_mc_intensity.Scale(FITS_correction)
-    Hist_mc_column.Reset()
-    Hist_mc_column.Add(Hist_mc_intensity)
-    Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
-    Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapDHT10_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    ##MWL_map_file = 'MWL_maps/skv4052116888244_gammaCygni.txt' # CO intensity (K km s^{-1} deg)
+    ##MWL_map_title = 'H_{2} column density (1/cm^{2})'
+    ##Hist_mc_intensity.Reset()
+    ##Hist_mc_column.Reset()
+    ##Hist_mc_intensity = CommonPlotFunctions.GetSkyViewMap(MWL_map_file, Hist_mc_intensity, True)
+    ##Hist_mc_intensity.Scale(2.*1e20) # H2 column density
+    ##Hist_mc_column.Add(Hist_mc_intensity)
+    ##Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
+    ##CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapSkv_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+
+    #pc_to_cm = 3.086e+18
+    #CO_intensity_to_H_column_density = 2.*1e20
+    #FITS_correction = 1000.# the source FITS file has a mistake in velocity km/s -> m/s
+    #Hist_mc_intensity.Reset()
+    #Hist_mc_column.Reset()
+    #MWL_map_file = 'MWL_maps/DHT10_Cygnus_interp_m20_p20_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+    #MWL_map_title = 'H_{2} column density (1/cm^{2})'
+    #Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
+    #Hist_mc_intensity.Scale(FITS_correction)
+    #Hist_mc_column.Reset()
+    #Hist_mc_column.Add(Hist_mc_intensity)
+    #Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
+    #Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
+    #CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapDHT10_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
     text_angle = 30.

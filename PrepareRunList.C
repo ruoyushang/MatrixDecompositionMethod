@@ -878,59 +878,113 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     string acc_version = "";
     string acc_elev = "";
     string acc_az = "";
+    string acc_ra = "";
+    string acc_dec = "";
     int nth_line = 0;
     int nth_delimiter = 0;
     std::string::size_type sz;
 
-    ifstream myfile (SMI_AUX+"/diagnostics.txt");
+    //ifstream myfile (SMI_AUX+"/diagnostics.txt");
+    //if (myfile.is_open())
+    //{
+    //    while ( getline(myfile,line) )
+    //    {
+    //        acc_runnumber = "";
+    //        acc_version = "";
+    //        acc_elev = "";
+    //        acc_az = "";
+    //        nth_delimiter = 0;
+    //        for(int i = 0; i < line.size(); i++)
+    //        {
+    //            if (nth_line<84) continue;
+    //            if(line[i] == delimiter)
+    //            {
+    //                if (nth_delimiter==45 && std::stoi(acc_runnumber,nullptr,10)==run) 
+    //                {
+    //                    TelRAJ2000_tmp = std::stod(acc_elev,&sz);
+    //                    if (std::stoi(acc_version,nullptr,10)!=2) TelRAJ2000_tmp = 0.;
+    //                }
+    //                if (nth_delimiter==46 && std::stoi(acc_runnumber,nullptr,10)==run) 
+    //                {
+    //                    TelDecJ2000_tmp = std::stod(acc_az,&sz);
+    //                    if (std::stoi(acc_version,nullptr,10)!=2) TelDecJ2000_tmp = 0.;
+    //                }
+    //                nth_delimiter += 1;
+    //            }
+    //            else if (nth_delimiter==0)
+    //            {
+    //                acc_runnumber += line[i];
+    //            }
+    //            else if (nth_delimiter==1)
+    //            {
+    //                acc_version += line[i];
+    //            }
+    //            else if (nth_delimiter==45)
+    //            {
+    //                acc_elev += line[i];
+    //            }
+    //            else if (nth_delimiter==46)
+    //            {
+    //                acc_az += line[i];
+    //            }
+    //        }
+    //        nth_line += 1;
+    //    }
+    //    myfile.close();
+    //}
+    ////else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
+
+    ifstream myfile (SMI_AUX+"/RaDec_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
         {
             acc_runnumber = "";
-            acc_version = "";
-            acc_elev = "";
-            acc_az = "";
             nth_delimiter = 0;
             for(int i = 0; i < line.size(); i++)
             {
-                if (nth_line<84) continue;
                 if(line[i] == delimiter)
                 {
-                    if (nth_delimiter==45 && std::stoi(acc_runnumber,nullptr,10)==run) 
-                    {
-                        TelRAJ2000_tmp = std::stod(acc_elev,&sz);
-                        if (std::stoi(acc_version,nullptr,10)!=2) TelRAJ2000_tmp = 0.;
-                    }
-                    if (nth_delimiter==46 && std::stoi(acc_runnumber,nullptr,10)==run) 
-                    {
-                        TelDecJ2000_tmp = std::stod(acc_az,&sz);
-                        if (std::stoi(acc_version,nullptr,10)!=2) TelDecJ2000_tmp = 0.;
-                    }
                     nth_delimiter += 1;
                 }
                 else if (nth_delimiter==0)
                 {
                     acc_runnumber += line[i];
                 }
-                else if (nth_delimiter==1)
-                {
-                    acc_version += line[i];
-                }
-                else if (nth_delimiter==45)
-                {
-                    acc_elev += line[i];
-                }
-                else if (nth_delimiter==46)
-                {
-                    acc_az += line[i];
-                }
             }
-            nth_line += 1;
+            if (std::stoi(acc_runnumber,nullptr,10)==run)
+            {
+                nth_delimiter = 0;
+                acc_runnumber = "";
+                acc_ra = "";
+                acc_dec = "";
+                for(int i = 0; i < line.size(); i++)
+                {
+                    if(line[i] == delimiter)
+                    {
+                        nth_delimiter += 1;
+                    }
+                    else if (nth_delimiter==0)
+                    {
+                        acc_runnumber += line[i];
+                    }
+                    else if (nth_delimiter==1)
+                    {
+                        acc_ra += line[i];
+                    }
+                    else if (nth_delimiter==2)
+                    {
+                        acc_dec += line[i];
+                    }
+                }
+                TelRAJ2000_tmp = std::stod(acc_ra,&sz);
+                TelDecJ2000_tmp = std::stod(acc_dec,&sz);
+                break;
+            }
         }
         myfile.close();
     }
-    //else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
+    else std::cout << "Unable to open file RaDec_allruns.txt" << std::endl; 
     std::cout << "diag file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
 
     if (!UseDBOnly)
@@ -1026,11 +1080,14 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     double threshold_dNSB = 0.4; // for J1908 analysis
     double threshold_dAzim = 180.;
     double threshold_dMJD = 2.*365.;
+    double threshold_dL3Rate = 50.;
 
     threshold_dAirmass = 0.3; // default, do not use for J1908 
     threshold_dNSB = 1.0; // default, do not use for J1908
     threshold_dAzim = 45.; // default, do not use for J1908
-    threshold_dMJD = 2.*365.;
+    threshold_dMJD = 1000.*365.;
+    threshold_dL3Rate = 10000.;
+
     if (!isImposter)
     {
         threshold_dAirmass = 0.2; // default 
@@ -1062,8 +1119,12 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         {
             threshold_dMJD = 100.*365.;
         }
+        if (MatchingSelection==5)
+        {
+            threshold_dL3Rate = 1000.;
+        }
     }
-    double threshold_dL3Rate = 50.;
+
     for (int off_run=0;off_run<OFF_runnumber.size();off_run++)
     {
         bool do_not_use = false;
@@ -1095,10 +1156,8 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         }
 
         if (delta_mjd>threshold_dMJD) continue;
-        if (RHVData)
-        {
-            if (delta_l3rate>threshold_dL3Rate) continue;
-        }
+        if (delta_l3rate>threshold_dL3Rate) continue;
+
         //if (delta_elev>threshold_dElev) continue;
         //
         //double chi2 = pow(delta_nsb,2); // matrix method doesn't make good prediction when dNSB is large.

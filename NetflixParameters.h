@@ -19,7 +19,7 @@ int MatchingSelection = 0; // default
 //int MatchingSelection = 3; // free NSB
 //int MatchingSelection = 4; // free MJD
 
-double Log10_alpha_single = 1.5;
+double Log10_alpha_single = 1.0;
 double Log10_alpha[N_energy_bins] = {Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single};
 
 
@@ -145,7 +145,6 @@ double MSCL_cut_blind = 1.0;
 double MSCW_chi2_upper = 3.;
 double MSCL_chi2_upper = 3.;
 
-double brightness_cut = 5.0;
-//double faint_brightness_cut = 5.0;
+double brightness_cut = 6.0;
 double faint_brightness_cut = 7.0;
 double bright_star_radius_cut = 0.3;
