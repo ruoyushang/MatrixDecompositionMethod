@@ -2,9 +2,9 @@
 const int N_energy_bins = 6;
 
 //int N_bins_for_deconv = 4;
-//int N_bins_for_deconv = 6;
+int N_bins_for_deconv = 6;
 //int N_bins_for_deconv = 8; 
-int N_bins_for_deconv = 12; // nominal
+//int N_bins_for_deconv = 12; // nominal
 //int N_bins_for_deconv = 16; 
 //int N_bins_for_deconv = 20; 
 
@@ -67,7 +67,8 @@ int Skymap_nzones_y= 1;
 
 bool UseDBOnly = false;
 //bool UseDBOnly = true;
-double exposure_limit = 5.; // default
+//double exposure_limit = 5.;
+double exposure_limit = 10.; // default
 //double exposure_limit = 1000.;
 
 bool UseRegularization = true;

@@ -22,10 +22,12 @@ from itertools import cycle
 from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 from operator import itemgetter, attrgetter
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-folder_path = 'output_test'
+#folder_path = 'output_test'
 #folder_path = 'output_default'
 
+folder_path = 'output_1hrs'
 #folder_path = 'output_2hrs'
 #folder_path = 'output_5hrs'
 #folder_path = 'output_10hrs'
@@ -56,9 +58,11 @@ folder_path = 'output_test'
 #folder_path = 'output_LogAlpha_p1p0'
 #folder_path = 'output_LogAlpha_p1p5'
 
-N_bins_for_deconv = 12
+N_bins_for_deconv = 6
 if '4x4' in folder_path:
     N_bins_for_deconv = 4
+if '6x6' in folder_path:
+    N_bins_for_deconv = 6
 if '8x8' in folder_path:
     N_bins_for_deconv = 8
 if '12x12' in folder_path:
@@ -379,7 +383,7 @@ def ConvertRaDecToGalactic(ra, dec):
     l = (l_NCP-ROOT.TMath.ATan2(sin_l_NCP_m_l,cos_l_NCP_m_l))*180./ROOT.TMath.Pi()
     return l, b
 
-def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
+def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input,proj_type="Y"):
 
     n_bins_y = Hist_Data_input.GetNbinsY()
     n_bins_x = Hist_Data_input.GetNbinsX()
@@ -387,10 +391,20 @@ def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
     MapEdge_right = Hist_Data_input.GetXaxis().GetBinLowEdge(Hist_Data_input.GetNbinsX()+1)
     MapEdge_lower = Hist_Data_input.GetYaxis().GetBinLowEdge(1)
     MapEdge_upper = Hist_Data_input.GetYaxis().GetBinLowEdge(Hist_Data_input.GetNbinsY()+1)
-    cell_size = (MapEdge_right-MapEdge_left)/float(n_bins_x)*(MapEdge_upper-MapEdge_lower)/float(n_bins_y)
 
-    Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",int(n_bins_y/2),MapEdge_lower,MapEdge_upper)
-    #Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",int(n_bins_y/2),0.,MapEdge_upper)
+    cell_size = (MapEdge_right-MapEdge_left)/float(n_bins_x)*(MapEdge_upper-MapEdge_lower)/float(n_bins_y)
+    MapCenter_x = (MapEdge_left+MapEdge_right)/2.
+    if proj_type=="X":
+        MapCenter_x = (MapEdge_upper+MapEdge_lower)/2.
+
+    hist_nbins = n_bins_y
+    hist_edge_lower = MapEdge_lower
+    hist_edge_upper = MapEdge_upper
+    if proj_type=="X":
+        hist_nbins = n_bins_x
+        hist_edge_lower = MapEdge_left
+        hist_edge_upper = MapEdge_right
+    Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",hist_nbins,hist_edge_lower,hist_edge_upper)
     for br in range(0,Hist_Profile_Y.GetNbinsX()):
         range_limit = Hist_Profile_Y.GetBinLowEdge(br+2)
         range_limit_previous = Hist_Profile_Y.GetBinLowEdge(br+1)
@@ -402,11 +416,12 @@ def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input):
             for by in range(0,Hist_Data_input.GetNbinsY()):
                 cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
                 cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
-                #if abs(cell_x-40.527)<2.: continue # MGRO J1908+06 veto
-                #if abs(cell_x-40.527)>1.: continue # MGRO J1908+06 select
+                if proj_type=="X":
+                    cell_y = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
+                    cell_x = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
                 data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
                 data_error = Hist_Data_input.GetBinError(bx+1,by+1)
-                #if abs(cell_y)>=range_limit_previous and abs(cell_y)<range_limit:
+                if abs(MapCenter_x-cell_x)>0.7: continue
                 if cell_y>=range_limit_previous and cell_y<range_limit:
                     if not data_error==0.:
                         total_cell_size += cell_size
@@ -800,7 +815,9 @@ def ReadFermiCatelog():
     source_dec = []
     inputFile = open('gll_psc_v26.xml')
     target_name = ''
+    target_type = ''
     target_info = ''
+    target_flux = ''
     target_ra = ''
     target_dec = ''
     for line in inputFile:
@@ -809,6 +826,10 @@ def ReadFermiCatelog():
                 if 'Unc_' in line.split(' ')[block]: continue
                 if 'name=' in line.split(' ')[block]:
                     target_name = line.split('name="')[1].split('"')[0]
+                if 'type=' in line.split(' ')[block]:
+                    target_type = line.split('type="')[1].split('"')[0]
+                if 'Flux1000=' in line.split(' ')[block]:
+                    target_flux = line.split('Flux1000="')[1].split('"')[0]
                 if 'Energy_Flux100=' in line.split(' ')[block]:
                     target_info = line.split(' ')[block]
                     target_info = target_info.strip('>\n')
@@ -825,18 +846,30 @@ def ReadFermiCatelog():
         if 'source>' in line:
             if target_ra=='': 
                 target_name = ''
+                target_type = ''
+                target_info = ''
+                target_ra = ''
+                target_dec = ''
+                continue
+            #if target_type=='PointSource': 
+            #if float(target_info)<1e-5: 
+            if float(target_flux)<1e-9: 
+                target_name = ''
+                target_type = ''
                 target_info = ''
                 target_ra = ''
                 target_dec = ''
                 continue
             #print ('target_name = %s'%(target_name))
+            #print ('target_type = %s'%(target_type))
             #print ('target_ra = %s'%(target_ra))
             #print ('target_dec = %s'%(target_dec))
-            #source_name += [target_name]
-            source_name += ['%0.2e'%(float(target_info))]
+            source_name += [target_name]
+            #source_name += ['%0.2e'%(float(target_info))]
             source_ra += [float(target_ra)]
             source_dec += [float(target_dec)]
             target_name = ''
+            target_type = ''
             target_ra = ''
             target_dec = ''
     return source_name, source_ra, source_dec
@@ -876,11 +909,8 @@ def ReadATNFTargetListFromFile(file_path):
         if line[0]=="#": continue
         target_name = line.split(',')[0].strip(" ")
         if target_name=="\n": continue
-        #print ('target_name = %s'%(target_name))
         target_ra = line.split(',')[1].strip(" ")
         target_dec = line.split(',')[2].strip(" ")
-        #print ('target_ra = %s'%(target_ra))
-        #print ('target_dec = %s'%(target_dec))
         target_dist = line.split(',')[3].strip(" ")
         target_age = line.split(',')[4].strip(" ")
         target_edot = line.split(',')[5].strip(" ")
@@ -889,9 +919,10 @@ def ReadATNFTargetListFromFile(file_path):
         if target_edot=='*': continue
         target_brightness = float(target_edot)/pow(float(target_dist),2)
 
-        #if float(target_age)/1000.>pow(10,4.5): continue
-        #if float(target_brightness)<1e33 and float(target_edot)<1e34: continue
-        if float(target_age)/1000.<pow(10,6) and float(target_brightness)<1e34: continue
+        if float(target_age)/1000.>pow(10,4.5): continue
+        if float(target_edot)<1e34: continue
+        #if float(target_age)/1000.<pow(10,6) and float(target_brightness)<1e34: continue
+        #if float(target_age)/1000.<pow(10,6) and float(target_edot)<1e35: continue
         #if float(target_brightness)<1e35: continue
         #if target_dist>target_max_dist_cut: continue
         #if target_dist>2.0: continue
@@ -969,7 +1000,7 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
         other_stars_type += ['Star']
         other_star_coord += [[src_ra,src_dec]]
 
-    target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = ReadATNFTargetListFromFile('ATNF_pulsar_list.txt')
+    target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = ReadATNFTargetListFromFile('ATNF_pulsar_full_list.txt')
     for src in range(0,len(target_psr_name)):
         gamma_source_name = target_psr_name[src]
         gamma_source_ra = target_psr_ra[src]
@@ -1016,22 +1047,23 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
         other_stars_type += ['HAWC']
         other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
-    #inputFile = open('TeVCat_RaDec_w_Names.txt')
-    #for line in inputFile:
-    #    gamma_source_name = line.split(',')[0]
-    #    gamma_source_ra = float(line.split(',')[1])
-    #    gamma_source_dec = float(line.split(',')[2])
-    #    if doGalacticCoord:
-    #        gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-    #    near_a_source = False
-    #    for entry in range(0,len(other_stars)):
-    #        distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-    #        if distance<near_source_cut*near_source_cut:
-    #            near_a_source = True
-    #    if not near_a_source and not '%' in gamma_source_name:
-    #        other_stars += [gamma_source_name]
-    #        other_stars_type += ['tev']
-    #        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+    inputFile = open('TeVCat_RaDec_w_Names.txt')
+    #inputFile = open('TeVCat_Common_Names.txt')
+    for line in inputFile:
+        gamma_source_name = line.split(',')[0]
+        gamma_source_ra = float(line.split(',')[1])
+        gamma_source_dec = float(line.split(',')[2])
+        if doGalacticCoord:
+            gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+        near_a_source = False
+        for entry in range(0,len(other_stars)):
+            distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+            if distance<near_source_cut*near_source_cut:
+                near_a_source = True
+        if not near_a_source and not '%' in gamma_source_name:
+            other_stars += [gamma_source_name]
+            other_stars_type += ['TeV']
+            other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
     return other_stars, other_stars_type, other_star_coord
 
@@ -1068,7 +1100,7 @@ def GetRegionSpectrum_v2(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin
         flux_sum = 0.
         flux_stat_err = 0.
         flux_syst_err = 0.
-        flux_sum, flux_stat_err, flux_syst_err = GetRegionIntegral(hist_data_skymap[ebin],hist_syst_skymap[ebin],hist_mask_skymap,roi_x,roi_y,roi_r)
+        flux_sum, flux_stat_err, flux_syst_err = GetRegionIntegral(hist_data_skymap[ebin],hist_syst_skymap[ebin],hist_mask_skymap,roi_x,roi_y,roi_r[ebin])
         x_axis += [0.5*(energy_bin[ebin]+energy_bin[ebin+1])]
         x_error += [0.5*(energy_bin[ebin+1]-energy_bin[ebin])]
         y_axis += [flux_sum]
@@ -1206,6 +1238,7 @@ def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname,zmax=0,zmin=0
 
 def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,roi_x=0.,roi_y=0.,roi_r=0.,rotation_angle=0.,fill_gaps=False,prime_psr_name=None,prime_psr_ra=None,prime_psr_dec=None):
 
+    print ('Making plot %s...'%(plotname))
     isGalactic = False
     if label_x=='gal. l':
         isGalactic = True
@@ -1263,6 +1296,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
 
     grid_z = np.zeros((map_nbins_y, map_nbins_x))
     max_z = 0.
+    min_z = 0.
     for ybin in range(0,len(y_axis)):
         for xbin in range(0,len(x_axis)):
             hist_bin_x = xbin+1
@@ -1276,6 +1310,28 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
             #    grid_z[ybin,xbin] = mean_z
             if max_z<hist_map.GetBinContent(hist_bin_x,hist_bin_y):
                 max_z = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+            if min_z>hist_map.GetBinContent(hist_bin_x,hist_bin_y):
+                min_z = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+
+    if not hist_contour==None:
+        zscore_cut = 2.
+        mid_class_z = 0.
+        mid_class_z_bins = 0.
+        for ybin in range(0,len(y_axis)):
+            for xbin in range(0,len(x_axis)):
+                hist_bin_x = xbin+1
+                hist_bin_y = ybin+1
+                if hist_bin_x<1: continue
+                if hist_bin_y<1: continue
+                if hist_bin_x>hist_map.GetNbinsX(): continue
+                if hist_bin_y>hist_map.GetNbinsY(): continue
+                zscore = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)
+                if zscore>zscore_cut and zscore<zscore_cut+1.0:
+                    mid_class_z += hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+                    mid_class_z_bins += 1.
+        if mid_class_z_bins>0.:
+            mid_class_z = mid_class_z/mid_class_z_bins
+            min_z = mid_class_z-(max_z-mid_class_z)
 
     levels = np.arange(3.0, 6.0, 1.0)
 
@@ -1295,6 +1351,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
                 grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)
                 if label_z!='Z score' and max_z_contour>0.:
                     grid_contour[ybin,xbin] = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)*max_z/max_z_contour
+
     other_stars, other_star_type, other_star_coord = GetGammaSourceInfo(hist_contour,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec) 
 
     other_star_labels = []
@@ -1339,18 +1396,19 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     axbig.set_ylabel(label_y)
     if label_z=='Z score':
         max_z = 5.
+        #max_z = 8.
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=-max_z,vmax=max_z,zorder=0)
     elif fill_gaps:
         max_z = mean_z+3.*rms_z
         min_z = mean_z-3.*rms_z
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
     else:
-        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=0)
+        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
     if not doGalacticCoord:
         axbig.contour(grid_contour, levels, colors='w', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=1)
-    #cbar = fig.colorbar(im,orientation="horizontal")
-    cbar = fig.colorbar(im)
-    cbar.set_label(label_z)
+    #cbar = fig.colorbar(im)
+    #im_ratio = grid_z.shape[1]/grid_z.shape[0]
+    #cbar = fig.colorbar(im,orientation="horizontal",fraction=0.047*im_ratio)
     for star in range(0,len(other_star_markers)):
         if other_star_types[star]=='PSR':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='lime', marker='^', label=other_star_labels[star])
@@ -1362,8 +1420,10 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='cyan', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='HAWC':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='violet', marker='^', label=other_star_labels[star])
-        if other_star_types[star]=='Star':
+        if other_star_types[star]=='TeV':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='^', label=other_star_labels[star])
+        if other_star_types[star]=='Star':
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='o', label=other_star_labels[star])
         text_offset_x = 0.
         text_offset_y = 0.
         text_offset_x = 0.05
@@ -1379,9 +1439,14 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         #    mycircle = plt.Circle((-286.786, 6.498), 0.39, color='r', fill=False) # SNR GG40.5-0.5
         #    #mycircle = plt.Circle((-286.786, 6.498), 0.12, color='r', fill=False) # SNR GG40.5-0.5
         #    axbig.add_patch(mycircle)
+    divider = make_axes_locatable(axbig)
+    cax = divider.append_axes("bottom", size="5%", pad=0.5)
+    cbar = fig.colorbar(im,orientation="horizontal",cax=cax)
+    cbar.set_label(label_z)
     axbig.set_xticks(x_axis_sparse)
     axbig.set_xticklabels(x_axis_reflect)
-    axbig.legend(fontsize=7)
+    #axbig.legend(fontsize=7)
+    axbig.legend(bbox_to_anchor=(1.04, 1), borderaxespad=0, fontsize=7)
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
     axbig.remove()
 

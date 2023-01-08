@@ -12,6 +12,27 @@ void ResetPublicVariables()
         exposure_limit = 1000.;
     }
 
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_1hrs")
+    {
+        exposure_limit = 1.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_2hrs")
+    {
+        exposure_limit = 2.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_5hrs")
+    {
+        exposure_limit = 5.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_10hrs")
+    {
+        exposure_limit = 10.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_20hrs")
+    {
+        exposure_limit = 20.;
+    }
+
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_4x4")
     {
         N_bins_for_deconv = 4;

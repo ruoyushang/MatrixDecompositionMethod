@@ -2962,9 +2962,9 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             for (int i=0;i<max_rank;i++)
             {
                 if (find_elbow) continue;
-                if (svd_Moff.singularValues()(max_rank)==0.) continue;
-                std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank) << std::endl;
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(max_rank)<elbow_ratio[e])
+                if (svd_Moff.singularValues()(i+1)==0.) continue;
+                std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1) << std::endl;
+                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1)<elbow_ratio[e])
                 {
                     find_elbow = true;
                 }

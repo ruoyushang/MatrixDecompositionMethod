@@ -34,10 +34,7 @@ gamma_hadron_low_end = CommonPlotFunctions.gamma_hadron_low_end
 MSCW_blind_cut = CommonPlotFunctions.MSCW_blind_cut
 MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 
-#n_measures_per_entry = 1
-#n_measures_per_entry = 5
-#n_measures_per_entry = 10
-n_measures_per_entry = 20
+expo_hours_per_entry = 100.
 
 #background_type = 'RBM'
 #background_type = 'ONOFF'
@@ -263,9 +260,13 @@ def GetGammaCounts(file_path,ebin):
     NewInfoTree.SetBranchAddress('rank3_gamma_count',ROOT.AddressOf(rank3_gamma_count))
     NewInfoTree.GetEntry(0)
 
-    print ('Open %s, E%s, data_gamma_count = %s'%(file_path,ebin,data_gamma_count[ebin]))
+    InfoTree = InputFile.Get("InfoTree")
+    InfoTree.GetEntry(0)
+    data_expo = InfoTree.exposure_hours
 
-    return dark_stable_rank[ebin], data_gamma_count[ebin], bkgd_gamma_count[ebin], dark_gamma_count[ebin], rank0_gamma_count[ebin], rank1_gamma_count[ebin], rank2_gamma_count[ebin]
+    print ('Open %s, E%s, data_expo = %s, data_gamma_count = %s'%(file_path,ebin,data_expo,data_gamma_count[ebin]))
+
+    return data_expo, dark_stable_rank[ebin], data_gamma_count[ebin], bkgd_gamma_count[ebin], dark_gamma_count[ebin], rank0_gamma_count[ebin], rank1_gamma_count[ebin], rank2_gamma_count[ebin]
 
 def GetCoefficientHistogram(file_path,ebin,hist_data,hist_bkgd):
 
@@ -536,6 +537,7 @@ def LoopOverFiles():
     global Hist_Bkgd_Optimization
     global Hist_Data_ShowerShape
     global data_rank
+    global data_exposure
     global data_count
     global bkgd_count
     global dark_count
@@ -543,6 +545,7 @@ def LoopOverFiles():
     global rank1_count
     global rank2_count
     global imposter_data_rank
+    global imposter_data_exposure
     global imposter_data_count
     global imposter_bkgd_count
     global imposter_dark_count
@@ -597,6 +600,7 @@ def LoopOverFiles():
                         Hist_Data_Eigenvalues_E = []
                         Hist_Bkgd_Optimization_E = []
                         rank_E = []
+                        expo_E = []
                         data_count_E = []
                         bkgd_count_E = []
                         dark_count_E = []
@@ -615,8 +619,9 @@ def LoopOverFiles():
                             Hist_Bkgd_Optimization_E += [ROOT.TH2D("Hist_Bkgd_Optimization_M%s_E%s"%(n_measurements,eb),"",optimiz_nbins,optimiz_alpha_lower[eb],optimiz_alpha_upper[eb],optimiz_nbins,optimiz_beta_lower[eb],optimiz_beta_upper[eb])]
                             Hist_Bkgd_Optimization_E[eb].Reset()
                             GetOptimizationHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Bkgd_Optimization_E[eb])
-                            rank, data, bkgd, dark, rank0, rank1, rank2 = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
+                            expo, rank, data, bkgd, dark, rank0, rank1, rank2 = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
                             rank_E += [rank]
+                            expo_E += [expo]
                             data_count_E += [data]
                             bkgd_count_E += [bkgd]
                             dark_count_E += [dark]
@@ -633,6 +638,7 @@ def LoopOverFiles():
                         Hist_Data_Eigenvalues += [Hist_Data_Eigenvalues_E]
                         Hist_Bkgd_Optimization += [Hist_Bkgd_Optimization_E]
                         data_rank += [rank_E]
+                        data_exposure += [expo_E[0]]
                         data_count += [data_count_E]
                         bkgd_count += [bkgd_count_E]
                         dark_count += [dark_count_E]
@@ -672,16 +678,19 @@ def LoopOverFiles():
                         else:
                             print ('Found a file.')
                         rank_E = []
+                        expo_E = []
                         data_count_E = []
                         bkgd_count_E = []
                         dark_count_E = []
                         for eb in range(0,len(energy_bin)-1):
-                            rank, data, bkgd, dark, rank0, rank1, rank2 = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
+                            expo, rank, data, bkgd, dark, rank0, rank1, rank2 = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
                             rank_E += [rank]
+                            expo_E += [expo]
                             data_count_E += [data]
                             bkgd_count_E += [bkgd]
                             dark_count_E += [dark]
                         imposter_data_rank += [rank_E]
+                        imposter_data_exposure += [expo_E]
                         imposter_data_count += [data_count_E]
                         imposter_bkgd_count += [bkgd_count_E]
                         imposter_dark_count += [dark_count_E]
@@ -706,6 +715,7 @@ FilePath_Folder = []
 Hist_Data_Eigenvalues = []
 Hist_Bkgd_Optimization = []
 data_rank = []
+data_exposure = []
 data_count = []
 bkgd_count = []
 dark_count = []
@@ -713,6 +723,7 @@ rank0_count = []
 rank1_count = []
 rank2_count = []
 imposter_data_rank = []
+imposter_data_expo = []
 imposter_data_count = []
 imposter_bkgd_count = []
 imposter_dark_count = []
@@ -907,6 +918,7 @@ for eb in range(0,len(energy_bin)-1):
     epsilon_stat_avg = 0.
     n_entries = 0.
     n_measures = 0.
+    n_expo_hours = 0.
     data_cnt_sum = 0.
     bkgd_cnt_sum = 0.
     for entry in range(0,n_measurements):
@@ -915,17 +927,19 @@ for eb in range(0,len(energy_bin)-1):
         #    if eb==1 and data_count[entry][eb]<500.: continue
         #if data_count[entry][eb]<10.: continue
         n_measures += 1.
+        n_expo_hours += data_exposure[entry]
         data_cnt_sum += data_count[entry][eb]
         if background_type=='ONOFF':
             bkgd_cnt_sum += dark_count[entry][eb]
         else:
             bkgd_cnt_sum += bkgd_count[entry][eb]
-        if n_measures==n_measures_per_entry:
+        if n_expo_hours>=expo_hours_per_entry:
             if data_cnt_sum<10.: continue
             epsilon_bkgd = (data_cnt_sum-bkgd_cnt_sum)/data_cnt_sum
             epsilon_bkgd_avg += epsilon_bkgd*epsilon_bkgd
             epsilon_stat_avg += pow(pow(data_cnt_sum,0.5)/data_cnt_sum,2)
             n_measures = 0.
+            n_expo_hours = 0.
             data_cnt_sum = 0.
             bkgd_cnt_sum = 0.
             n_entries += 1.
@@ -945,7 +959,7 @@ plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_bkgd,marker='.',labe
 plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_stat,marker='.',label='stat. unc.')
 plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_syst,marker='.',label='syst. unc.')
 ax.legend(loc='best')
-plt.savefig("output_plots/SystVsStatErrors_M%s_%s_%s.png"%(n_measures_per_entry,background_type,folder_path))
+plt.savefig("output_plots/SystVsStatErrors_Expo%s_%s_%s.png"%(expo_hours_per_entry,background_type,folder_path))
 
 
 Hist_Bkgd_Optimization_Mean = []
@@ -1011,6 +1025,7 @@ for eb in range(0,len(energy_bin)-1):
     Init_rms = 0.
     n_entries = 0.
     n_measures = 0.
+    n_expo_hours = 0.
     data_count_n_measures = 0.
     bkgd_count_n_measures = 0.
     dark_count_n_measures = 0.
@@ -1023,10 +1038,11 @@ for eb in range(0,len(energy_bin)-1):
         #    if eb==1 and data_count[entry][eb]<500.: continue
         #if data_count[entry][eb]<10.: continue
         n_measures += 1.
+        n_expo_hours += data_exposure[entry]
         data_count_n_measures += data_count[entry][eb]
         bkgd_count_n_measures += bkgd_count[entry][eb]
         dark_count_n_measures += dark_count[entry][eb]
-        if n_measures==n_measures_per_entry:
+        if n_expo_hours>=expo_hours_per_entry:
             Hist_SystErrDist_MDM[eb].Fill(1.-bkgd_count_n_measures/data_count_n_measures)
             Hist_SystErrDist_Init[eb].Fill(1.-dark_count_n_measures/data_count_n_measures)
             MDM_mean += 1.-bkgd_count_n_measures/data_count_n_measures
@@ -1035,6 +1051,7 @@ for eb in range(0,len(energy_bin)-1):
             Init_rms += pow(1.-dark_count_n_measures/data_count_n_measures,2)
             n_entries += 1.
             n_measures = 0.
+            n_expo_hours = 0.
             data_count_n_measures = 0.
             bkgd_count_n_measures = 0.
             dark_count_n_measures = 0.
@@ -1051,6 +1068,7 @@ for eb in range(0,len(energy_bin)-1):
     Init_rms_imposter = 0.
     n_entries_imposter = 0.
     n_measures = 0.
+    n_expo_hours = 0.
     data_count_n_measures = 0.
     bkgd_count_n_measures = 0.
     dark_count_n_measures = 0.
@@ -1063,10 +1081,11 @@ for eb in range(0,len(energy_bin)-1):
         #    if eb==1 and imposter_data_count[entry][eb]<500.: continue
         #if imposter_data_count[entry][eb]<10.: continue
         n_measures += 1.
+        n_expo_hours += imposter_data_exposure[entry]
         data_count_n_measures += imposter_data_count[entry][eb]
         bkgd_count_n_measures += imposter_bkgd_count[entry][eb]
         dark_count_n_measures += imposter_dark_count[entry][eb]
-        if n_measures==n_measures_per_entry:
+        if n_expo_hours>=expo_hours_per_entry:
             Hist_Imposter_SystErrDist_MDM[eb].Fill(1.-bkgd_count_n_measures/data_count_n_measures,n_measurements/n_imposter_measurements)
             Hist_Imposter_SystErrDist_Init[eb].Fill(1.-dark_count_n_measures/data_count_n_measures,n_measurements/n_imposter_measurements)
             MDM_mean_imposter += 1.-bkgd_count_n_measures/data_count_n_measures
@@ -1075,6 +1094,7 @@ for eb in range(0,len(energy_bin)-1):
             Init_rms_imposter += pow(1.-dark_count_n_measures/data_count_n_measures,2)
             n_entries_imposter += 1.
             n_measures = 0.
+            n_expo_hours = 0.
             data_count_n_measures = 0.
             bkgd_count_n_measures = 0.
             dark_count_n_measures = 0.
@@ -1108,7 +1128,7 @@ for eb in range(0,len(energy_bin)-1):
     fig.clf()
     ax = fig.add_subplot()
     MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error $\epsilon$','number of entries')
-    fig.savefig("output_plots/SystErrDist_E%s_M%s_%s_%s_%s.png"%(eb,n_measures_per_entry,background_type,observing_condition,folder_path))
+    fig.savefig("output_plots/SystErrDist_E%s_Expo%s_%s_%s_%s.png"%(eb,expo_hours_per_entry,background_type,observing_condition,folder_path))
 
 #list_var_pair = []
 #good_var_pair = []
