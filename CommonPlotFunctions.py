@@ -25,9 +25,9 @@ from operator import itemgetter, attrgetter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 #folder_path = 'output_test'
-#folder_path = 'output_default'
+folder_path = 'output_default'
 
-folder_path = 'output_1hrs'
+#folder_path = 'output_1hrs'
 #folder_path = 'output_2hrs'
 #folder_path = 'output_5hrs'
 #folder_path = 'output_10hrs'
@@ -77,6 +77,8 @@ gamma_hadron_low_end = 0.
 
 MSCW_blind_cut = 0.6
 MSCL_blind_cut = 0.6
+#MSCW_blind_cut = 0.4
+#MSCL_blind_cut = 0.4
 
 skymap_zoomin_scale = 1
 #skymap_zoomin_scale = 1.5

@@ -34,6 +34,9 @@ gamma_hadron_low_end = CommonPlotFunctions.gamma_hadron_low_end
 MSCW_blind_cut = CommonPlotFunctions.MSCW_blind_cut
 MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 
+#expo_hours_per_entry = 10.
+#expo_hours_per_entry = 20.
+#expo_hours_per_entry = 50.
 expo_hours_per_entry = 100.
 
 #background_type = 'RBM'
@@ -571,6 +574,7 @@ def LoopOverFiles():
                 else:
                     file_exists = False
                     print ('file does not exist.')
+            print ('number of files found for %s = %s'%(sample_list[source],n_groups))
             for x_idx in range(0,Skymap_nzones_x):
                 for y_idx in range(0,Skymap_nzones_y):
                     for g_idx in range(0,n_groups):
@@ -1055,6 +1059,7 @@ for eb in range(0,len(energy_bin)-1):
             data_count_n_measures = 0.
             bkgd_count_n_measures = 0.
             dark_count_n_measures = 0.
+    print ('n_measurements = %s'%(n_measurements))
     MDM_mean = MDM_mean/n_entries
     Init_mean = Init_mean/n_entries
     MDM_rms = pow(MDM_rms/n_entries,0.5)

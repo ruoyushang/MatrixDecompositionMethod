@@ -2842,6 +2842,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         hist_name  = "Hist_Stage1_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_OnData_SR_Skymap.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
+        //hist_name  = "Hist_Stage1_OnDark_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
         Hist_OnData_CR_Skymap.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         Hist_OnRFoV_CR_Skymap.at(e).Add( (TH2D*)InputDataFile.Get(hist_name) );
         hist_name  = "Hist_Stage1_OnData_RBM_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up);
@@ -3114,13 +3115,20 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
 
         std::cout << "binx_blind_lower_global = " << binx_blind_lower_global << ", binx_blind_upper_global = " << binx_blind_upper_global << std::endl;
         std::cout << "biny_blind_lower_global = " << biny_blind_lower_global << ", biny_blind_upper_global = " << biny_blind_upper_global << std::endl;
+        double Dark_SR_Integral = Hist_OnDark_MSCLW.at(e).Integral(binx_blind_lower_global+1,binx_blind_upper_global,biny_blind_lower_global+1,biny_blind_upper_global);
+        double Data_SR_Integral = Hist_OnData_MSCLW.at(e).Integral(binx_blind_lower_global+1,binx_blind_upper_global,biny_blind_lower_global+1,biny_blind_upper_global);
         double Bkgd_SR_Integral = Hist_OnBkgd_MSCLW.at(e).Integral(binx_blind_lower_global+1,binx_blind_upper_global,biny_blind_lower_global+1,biny_blind_upper_global);
-        double Dark_SR_Integral = 0.;
-        double dark_weight = 1./double(n_dark_samples);
-        for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
-        {
-            Dark_SR_Integral += dark_weight*Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e).Integral(binx_blind_lower_global+1,binx_blind_upper_global,biny_blind_lower_global+1,biny_blind_upper_global);
-        }
+        double Bkgd_CR_Integral = Hist_OnBkgd_MSCLW.at(e).Integral()-Bkgd_SR_Integral;
+        double SR_skymap_integral = Hist_OnData_SR_Skymap.at(e).Integral();
+        double CR_skymap_integral = Hist_OnData_CR_Skymap.at(e).Integral();
+        std::cout << "Bkgd_SR_Integral = " << Bkgd_SR_Integral << ", Data_SR_Integral = " << Data_SR_Integral << std::endl;
+        std::cout << "SR_skymap_integral = " << SR_skymap_integral << ", CR_skymap_integral = " << CR_skymap_integral << std::endl;
+        //double Dark_SR_Integral = 0.;
+        //double dark_weight = 1./double(n_dark_samples);
+        //for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
+        //{
+        //    Dark_SR_Integral += dark_weight*Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e).Integral(binx_blind_lower_global+1,binx_blind_upper_global,biny_blind_lower_global+1,biny_blind_upper_global);
+        //}
         double Old_Integral_Energy = Hist_OnData_CR_Energy.at(e).Integral();
         double Old_Integral_Yoff = Hist_OnData_CR_Yoff.at(e).Integral();
         double Old_Integral_Raw = Hist_OnDark_SR_Energy_Tmp.at(e).Integral();
@@ -3134,10 +3142,10 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             scale_energy = Bkgd_SR_Integral/Old_Integral_Energy;
             scale_dark_energy = Dark_SR_Integral/Old_Integral_Energy;
         }
-        if (Old_Integral_Yoff>0.)
+        if (CR_skymap_integral>0.)
         {
-            scale_yoff = Bkgd_SR_Integral/Old_Integral_Yoff;
-            scale_dark_yoff = Dark_SR_Integral/Old_Integral_Yoff;
+            scale_yoff = Bkgd_SR_Integral/CR_skymap_integral;
+            scale_dark_yoff = Dark_SR_Integral/CR_skymap_integral;
         }
         std::cout << "Old_Integral_Raw = " << Old_Integral_Raw << std::endl;
         std::cout << "Dark_SR_Integral = " << Dark_SR_Integral << std::endl;
@@ -3171,19 +3179,19 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             Hist_ShapeSyst_Skymap.at(e).at(xybin).Scale(scale_yoff);
         }
         Hist_OnDark_SR_Skymap.at(e).Scale(scale_dark_raw);
-        for (int binx=0;binx<Hist_OnData_CR_Skymap.at(e).GetNbinsX();binx++)
-        {
-            for (int biny=0;biny<Hist_OnData_CR_Skymap.at(e).GetNbinsY();biny++)
-            {
-                double ra_sky = Hist_OnData_CR_Skymap.at(e).GetXaxis()->GetBinCenter(binx+1);
-                double dec_sky = Hist_OnData_CR_Skymap.at(e).GetYaxis()->GetBinCenter(biny+1);
-                if (CoincideWithBrightStars(ra_sky,dec_sky))
-                {
-                    double dark_content = Hist_OnDark_SR_Skymap.at(e).GetBinContent(binx+1,biny+1);
-                    Hist_OnData_CR_Skymap.at(e).SetBinContent(binx+1,biny+1,dark_content);
-                }
-            }
-        }
+        //for (int binx=0;binx<Hist_OnData_CR_Skymap.at(e).GetNbinsX();binx++)
+        //{
+        //    for (int biny=0;biny<Hist_OnData_CR_Skymap.at(e).GetNbinsY();biny++)
+        //    {
+        //        double ra_sky = Hist_OnData_CR_Skymap.at(e).GetXaxis()->GetBinCenter(binx+1);
+        //        double dec_sky = Hist_OnData_CR_Skymap.at(e).GetYaxis()->GetBinCenter(biny+1);
+        //        if (CoincideWithBrightStars(ra_sky,dec_sky))
+        //        {
+        //            double dark_content = Hist_OnDark_SR_Skymap.at(e).GetBinContent(binx+1,biny+1);
+        //            Hist_OnData_CR_Skymap.at(e).SetBinContent(binx+1,biny+1,dark_content);
+        //        }
+        //    }
+        //}
         Hist_OnData_CR_Skymap_Galactic.at(e).Scale(scale_yoff);
         for (int nth_roi=0;nth_roi<roi_name_ptr->size();nth_roi++)
         {

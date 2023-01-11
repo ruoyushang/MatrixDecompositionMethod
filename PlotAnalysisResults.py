@@ -6927,7 +6927,7 @@ def SingleSourceAnalysis(source_list,e_low,e_up):
     Syst_MDM = energy_syst[energy_bin_cut_low]
 
     #############################################################
-    #PlotsStackedHistograms('%s%s'%(source_list[0],selection_tag))
+    PlotsStackedHistograms('%s%s'%(source_list[0],selection_tag))
     print ('finish stacked plots.')
     print ('selection_tag = %s'%(selection_tag))
     #############################################################

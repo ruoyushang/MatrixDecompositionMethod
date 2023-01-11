@@ -1,17 +1,9 @@
 
 const int N_energy_bins = 6;
 
-//int N_bins_for_deconv = 4;
 int N_bins_for_deconv = 6;
-//int N_bins_for_deconv = 8; 
-//int N_bins_for_deconv = 12; // nominal
-//int N_bins_for_deconv = 16; 
-//int N_bins_for_deconv = 20; 
-
-//double elbow_ratio[N_energy_bins] = {1.0,1.0,1.0,1.0,1.0,1.0}; 
-//double elbow_ratio[N_energy_bins] = {2.0,2.0,2.0,2.0,2.0,2.0};
+//int N_bins_for_deconv = 12;
 double elbow_ratio[N_energy_bins] = {4.0,4.0,4.0,4.0,4.0,4.0}; // nominal
-//double elbow_ratio[N_energy_bins] = {8.0,8.0,8.0,8.0,8.0,8.0};
 
 int MatchingSelection = 0; // default
 //int MatchingSelection = 1; // free elevation
@@ -19,9 +11,12 @@ int MatchingSelection = 0; // default
 //int MatchingSelection = 3; // free NSB
 //int MatchingSelection = 4; // free MJD
 
-double Log10_alpha_single = 1.0;
+double Log10_alpha_single = 0.0;
 double Log10_alpha[N_energy_bins] = {Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single};
 
+double exposure_limit = 5.; // default
+//double exposure_limit = 10.; // default
+//double exposure_limit = 1000.;
 
 double Log10_beta[N_energy_bins] =  {0.0,0.0,0.0,0.0,0.0,0.0};
 double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
@@ -67,15 +62,12 @@ int Skymap_nzones_y= 1;
 
 bool UseDBOnly = false;
 //bool UseDBOnly = true;
-//double exposure_limit = 5.;
-double exposure_limit = 10.; // default
-//double exposure_limit = 1000.;
 
 bool UseRegularization = true;
 //bool UseRegularization = false;
 
-//int AcceptanceCorrection = 1;  // RaDec weight 
-int AcceptanceCorrection = 2;  // XYoff weight // nominal
+int AcceptanceCorrection = 1;  // RaDec weight 
+//int AcceptanceCorrection = 2;  // XYoff weight // nominal
 //int AcceptanceCorrection = 3;  // Roff weight
 
 bool ExposureCorrection = false;
@@ -85,6 +77,9 @@ int nbins_fitting = 4;
 char output_file_tag[50] = "tight";
 double MSCW_cut_moderate = 0.6;
 double MSCL_cut_moderate = 0.6;
+//double MSCW_cut_moderate = 0.4;
+//double MSCL_cut_moderate = 0.4;
+
 //double EmissionHeight_cut = 0.;
 double EmissionHeight_cut = 6.;
 
@@ -148,4 +143,4 @@ double MSCL_chi2_upper = 3.;
 
 double brightness_cut = 6.0;
 double faint_brightness_cut = 7.0;
-double bright_star_radius_cut = 0.3;
+double bright_star_radius_cut = 0.2;

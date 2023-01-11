@@ -2163,6 +2163,36 @@ elif source_name=='PSR_J2021_p4026' and not CommonPlotFunctions.doGalacticCoord:
     #Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
     #CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapDHT10_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
+elif source_name=='SS433' and not CommonPlotFunctions.doGalacticCoord:
+    text_angle = 30.
+
+    ##SS 433
+    #region_x = 287.9565
+    #region_y = 4.9827
+    #region_r = [0.5 for element in range(len(energy_bin)-1)]
+    #region_name = 'SS433'
+
+    ##SS 433 e1
+    #region_x = 288.404
+    #region_y = 4.930
+    #region_r = [0.5 for element in range(len(energy_bin)-1)]
+    #region_name = 'SS433e1'
+
+    ##SS 433 e2
+    #region_x = 288.58
+    #region_y = 4.91
+    #region_r = [0.5 for element in range(len(energy_bin)-1)]
+    #region_name = 'SS433e2'
+
+    #SS 433 w1
+    287.654,5.037
+    region_x = 287.654
+    region_y = 5.037
+    region_r = [0.5 for element in range(len(energy_bin)-1)]
+    region_name = 'SS433w1'
+
+    do_fit = 0
+
 elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
     text_angle = 30.
 
@@ -2313,7 +2343,7 @@ else:
     text_angle = 45.
     region_x = MapCenter_x
     region_y = MapCenter_y
-    region_r = [0.6 for element in range(len(energy_bin)-1)]
+    region_r = [2.0 for element in range(len(energy_bin)-1)]
     region_name = 'Center'
     do_fit = 0
 
