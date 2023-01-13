@@ -1,8 +1,7 @@
 
 const int N_energy_bins = 6;
 
-int N_bins_for_deconv = 6;
-//int N_bins_for_deconv = 12;
+int N_bins_for_deconv = 12;
 double elbow_ratio[N_energy_bins] = {4.0,4.0,4.0,4.0,4.0,4.0}; // nominal
 
 int MatchingSelection = 0; // default
@@ -11,7 +10,7 @@ int MatchingSelection = 0; // default
 //int MatchingSelection = 3; // free NSB
 //int MatchingSelection = 4; // free MJD
 
-double Log10_alpha_single = 0.0;
+double Log10_alpha_single = 1.0;
 double Log10_alpha[N_energy_bins] = {Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single};
 
 double exposure_limit = 5.; // default
@@ -143,4 +142,4 @@ double MSCL_chi2_upper = 3.;
 
 double brightness_cut = 6.0;
 double faint_brightness_cut = 7.0;
-double bright_star_radius_cut = 0.2;
+double bright_star_radius_cut = 0.25;

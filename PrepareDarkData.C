@@ -1549,6 +1549,41 @@ bool ControlSelectionTheta2()
     return true;
 }
 
+void TruncateSVD2DMap(TH2D* hist, int n_rank)
+{
+
+    MatrixXcd matrix(hist->GetNbinsX(),hist->GetNbinsY());
+    for (int binx=0;binx<hist->GetNbinsX();binx++)
+    {
+        for (int biny=0;biny<hist->GetNbinsY();biny++)
+        {
+            matrix(binx,biny) = hist->GetBinContent(binx+1,biny+1);
+        }
+    }
+
+    JacobiSVD<MatrixXd> svd_data(matrix.real(), ComputeFullU | ComputeFullV);
+    MatrixXd mtx_U = svd_data.matrixU();
+    MatrixXd mtx_V = svd_data.matrixV();
+    MatrixXd mtx_S = MatrixXd::Zero(matrix.rows(),matrix.cols());
+    for (int entry=0;entry<svd_data.singularValues().size();entry++)
+    {
+        mtx_S(entry,entry) = svd_data.singularValues()(entry);
+        if (entry+1>n_rank)
+        {
+            mtx_S(entry,entry) = 0.;
+        }
+    }
+    matrix = mtx_U*mtx_S*mtx_V.transpose();
+
+    for (int binx=0;binx<hist->GetNbinsX();binx++)
+    {
+        for (int biny=0;biny<hist->GetNbinsY();biny++)
+        {
+            hist->SetBinContent(binx+1,biny+1,matrix(binx,biny).real());
+        }
+    }
+
+}
 void Smooth2DMap(TH2D* hist, double smooth_size)
 {
 
@@ -2262,7 +2297,6 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     vector<TH2D> Hist_SRDark_RaDec;
     vector<TH2D> Hist_CRDark_RaDec;
     vector<TH2D> Hist_SRCRDarkRatio_RaDec;
-    vector<TH2D> Hist_SRCRDarkRatio_RaDec_Smooth;
     for (int e=0;e<N_energy_bins;e++) 
     {
         char e_low[50];
@@ -2287,10 +2321,14 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         Hist_SRCRDarkRatio_Roff.push_back(TH1D("Hist_SRCRDarkRatio_Roff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Roff_bins,0,2));
         //int RaDec_bins = 30;
         //int RaDec_bins = 20;
-        int RaDec_bins = 10;
+        int RaDec_bins = 20;
         if (e>=2)
         {
             RaDec_bins = 10;
+        }
+        if (e>=4)
+        {
+            RaDec_bins = 5;
         }
         // TRandom::Uniform(x) throws a flat distribution from 0 to x
         double map_binsize = 2*Skymap_size_y/double(RaDec_bins);
@@ -2301,7 +2339,6 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         Hist_SRDark_RaDec.push_back(TH2D("Hist_SRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,map_center_x+random_ra_shift-2*Skymap_size_x,map_center_x+random_ra_shift+2*Skymap_size_x,RaDec_bins,map_center_y+random_dec_shift-2*Skymap_size_y,map_center_y+random_dec_shift+2*Skymap_size_y));
         Hist_CRDark_RaDec.push_back(TH2D("Hist_CRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,map_center_x+random_ra_shift-2*Skymap_size_x,map_center_x+random_ra_shift+2*Skymap_size_x,RaDec_bins,map_center_y+random_dec_shift-2*Skymap_size_y,map_center_y+random_dec_shift+2*Skymap_size_y));
         Hist_SRCRDarkRatio_RaDec.push_back(TH2D("Hist_SRCRDarkRatio_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,map_center_x+random_ra_shift-2*Skymap_size_x,map_center_x+random_ra_shift+2*Skymap_size_x,RaDec_bins,map_center_y+random_dec_shift-2*Skymap_size_y,map_center_y+random_dec_shift+2*Skymap_size_y));
-        Hist_SRCRDarkRatio_RaDec_Smooth.push_back(TH2D("Hist_SRCRDarkRatio_RaDec_Smooth_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",2*Skymap_nbins_x,map_center_x+random_ra_shift-2*Skymap_size_x,map_center_x+random_ra_shift+2*Skymap_size_x,2*Skymap_nbins_y,map_center_y+random_dec_shift-2*Skymap_size_y,map_center_y+random_dec_shift+2*Skymap_size_y));
     }
     vector<TH1D> Hist_SRDark_R2off;
     vector<TH1D> Hist_CRDark_R2off;
@@ -2766,29 +2803,11 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     }
     for (int e=0;e<N_energy_bins;e++) 
     {
+        TruncateSVD2DMap(&Hist_SRDark_RaDec.at(e), 1);
+        TruncateSVD2DMap(&Hist_CRDark_RaDec.at(e), 1);
         Hist_SRCRDarkRatio_RaDec.at(e).Reset();
         Hist_SRCRDarkRatio_RaDec.at(e).Add(&Hist_SRDark_RaDec.at(e));
         Hist_SRCRDarkRatio_RaDec.at(e).Divide(&Hist_CRDark_RaDec.at(e));
-        for (int binx=1;binx<=Hist_SRCRDarkRatio_RaDec_Smooth.at(e).GetNbinsX();binx++)
-        {
-            for (int biny=1;biny<=Hist_SRCRDarkRatio_RaDec_Smooth.at(e).GetNbinsY();biny++)
-            {
-                double ra_sky = Hist_SRCRDarkRatio_RaDec_Smooth.at(e).GetXaxis()->GetBinCenter(binx);
-                double dec_sky = Hist_SRCRDarkRatio_RaDec_Smooth.at(e).GetYaxis()->GetBinCenter(biny);
-                int big_bin_ra = Hist_SRCRDarkRatio_RaDec.at(e).GetXaxis()->FindBin(ra_sky);
-                int big_bin_dec = Hist_SRCRDarkRatio_RaDec.at(e).GetYaxis()->FindBin(dec_sky);
-                //pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
-                //if (UseGalacticCoord)
-                //{
-                //    big_bin_ra = Hist_SRCRDarkRatio_RaDec_Smooth.at(e).GetXaxis()->FindBin(evt_l_b.first);
-                //    big_bin_dec = Hist_SRCRDarkRatio_RaDec_Smooth.at(e).GetYaxis()->FindBin(evt_l_b.second);
-                //}
-                double ratio_content = Hist_SRCRDarkRatio_RaDec.at(e).GetBinContent(big_bin_ra,big_bin_dec);
-                Hist_SRCRDarkRatio_RaDec_Smooth.at(e).SetBinContent(binx,biny,ratio_content);
-            }
-        }
-        double smooth_size = 0.5;
-        Smooth2DMap(&Hist_SRCRDarkRatio_RaDec_Smooth.at(e), smooth_size);
     }
     for (int e=0;e<N_energy_bins;e++) 
     {
@@ -2929,18 +2948,18 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             int bin_roff = Hist_SRCRDarkRatio_Roff.at(energy).GetXaxis()->FindBin(pow(R2off,0.5));
             int big_bin_xoff = Hist_SRCRDarkRatio_XYoff_Smooth.at(energy).GetXaxis()->FindBin(Xoff);
             int big_bin_yoff = Hist_SRCRDarkRatio_XYoff_Smooth.at(energy).GetYaxis()->FindBin(Yoff);
-            int big_bin_ra = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetXaxis()->FindBin(ra_sky);
-            int big_bin_dec = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetYaxis()->FindBin(dec_sky);
+            int big_bin_ra = Hist_SRCRDarkRatio_RaDec.at(energy).GetXaxis()->FindBin(ra_sky);
+            int big_bin_dec = Hist_SRCRDarkRatio_RaDec.at(energy).GetYaxis()->FindBin(dec_sky);
             if (UseGalacticCoord)
             {
-                big_bin_ra = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetXaxis()->FindBin(evt_l_b.first);
-                big_bin_dec = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetYaxis()->FindBin(evt_l_b.second);
+                big_bin_ra = Hist_SRCRDarkRatio_RaDec.at(energy).GetXaxis()->FindBin(evt_l_b.first);
+                big_bin_dec = Hist_SRCRDarkRatio_RaDec.at(energy).GetYaxis()->FindBin(evt_l_b.second);
             }
             double data_cr_content_energy = Hist_SRDark_Energy.at(energy).GetBinContent(bin_energy);
             double dark_cr_content_energy = Hist_CRDark_Energy.at(energy).GetBinContent(bin_energy);
             double roff_weight = Hist_SRCRDarkRatio_Roff.at(energy).GetBinContent(bin_roff);
             double xyoff_weight = Hist_SRCRDarkRatio_XYoff_Smooth.at(energy).GetBinContent(big_bin_xoff,big_bin_yoff);
-            double radec_weight = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
+            double radec_weight = Hist_SRCRDarkRatio_RaDec.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
             double acceptance_weight = radec_weight;
             if (AcceptanceCorrection==2)
             {
@@ -3076,18 +3095,18 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             int bin_roff = Hist_SRCRDarkRatio_Roff.at(energy).GetXaxis()->FindBin(pow(R2off,0.5));
             int big_bin_xoff = Hist_SRCRDarkRatio_XYoff_Smooth.at(energy).GetXaxis()->FindBin(Xoff);
             int big_bin_yoff = Hist_SRCRDarkRatio_XYoff_Smooth.at(energy).GetYaxis()->FindBin(Yoff);
-            int big_bin_ra = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetXaxis()->FindBin(ra_sky);
-            int big_bin_dec = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetYaxis()->FindBin(dec_sky);
+            int big_bin_ra = Hist_SRCRDarkRatio_RaDec.at(energy).GetXaxis()->FindBin(ra_sky);
+            int big_bin_dec = Hist_SRCRDarkRatio_RaDec.at(energy).GetYaxis()->FindBin(dec_sky);
             if (UseGalacticCoord)
             {
-                big_bin_ra = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetXaxis()->FindBin(evt_l_b.first);
-                big_bin_dec = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetYaxis()->FindBin(evt_l_b.second);
+                big_bin_ra = Hist_SRCRDarkRatio_RaDec.at(energy).GetXaxis()->FindBin(evt_l_b.first);
+                big_bin_dec = Hist_SRCRDarkRatio_RaDec.at(energy).GetYaxis()->FindBin(evt_l_b.second);
             }
             double data_cr_content_energy = Hist_SRDark_Energy.at(energy).GetBinContent(bin_energy);
             double dark_cr_content_energy = Hist_CRDark_Energy.at(energy).GetBinContent(bin_energy);
             double roff_weight = Hist_SRCRDarkRatio_Roff.at(energy).GetBinContent(bin_roff);
             double xyoff_weight = Hist_SRCRDarkRatio_XYoff_Smooth.at(energy).GetBinContent(big_bin_xoff,big_bin_yoff);
-            double radec_weight = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
+            double radec_weight = Hist_SRCRDarkRatio_RaDec.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
             double acceptance_weight = radec_weight;
             if (AcceptanceCorrection==2)
             {
@@ -3242,18 +3261,18 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             int bin_roff = Hist_SRCRDarkRatio_Roff.at(energy).GetXaxis()->FindBin(pow(R2off,0.5));
             int big_bin_xoff = Hist_SRCRDarkRatio_XYoff_Smooth.at(energy).GetXaxis()->FindBin(Xoff);
             int big_bin_yoff = Hist_SRCRDarkRatio_XYoff_Smooth.at(energy).GetYaxis()->FindBin(Yoff);
-            int big_bin_ra = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetXaxis()->FindBin(ra_sky);
-            int big_bin_dec = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetYaxis()->FindBin(dec_sky);
+            int big_bin_ra = Hist_SRCRDarkRatio_RaDec.at(energy).GetXaxis()->FindBin(ra_sky);
+            int big_bin_dec = Hist_SRCRDarkRatio_RaDec.at(energy).GetYaxis()->FindBin(dec_sky);
             if (UseGalacticCoord)
             {
-                big_bin_ra = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetXaxis()->FindBin(evt_l_b.first);
-                big_bin_dec = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetYaxis()->FindBin(evt_l_b.second);
+                big_bin_ra = Hist_SRCRDarkRatio_RaDec.at(energy).GetXaxis()->FindBin(evt_l_b.first);
+                big_bin_dec = Hist_SRCRDarkRatio_RaDec.at(energy).GetYaxis()->FindBin(evt_l_b.second);
             }
             double data_cr_content_energy = Hist_SRDark_Energy.at(energy).GetBinContent(bin_energy);
             double dark_cr_content_energy = Hist_CRDark_Energy.at(energy).GetBinContent(bin_energy);
             double roff_weight = Hist_SRCRDarkRatio_Roff.at(energy).GetBinContent(bin_roff);
             double xyoff_weight = Hist_SRCRDarkRatio_XYoff_Smooth.at(energy).GetBinContent(big_bin_xoff,big_bin_yoff);
-            double radec_weight = Hist_SRCRDarkRatio_RaDec_Smooth.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
+            double radec_weight = Hist_SRCRDarkRatio_RaDec.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
             double acceptance_weight = radec_weight;
             if (AcceptanceCorrection==2)
             {
@@ -4157,6 +4176,8 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         Hist_OnData_CR_Zenith.at(e).Write();
         Hist_OnData_SR_Energy_CamCenter.at(e).Write();
         Hist_OnData_CR_Energy_CamCenter.at(e).Write();
+        Hist_SRDark_RaDec.at(e).Write();
+        Hist_CRDark_RaDec.at(e).Write();
     }
     for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
     {

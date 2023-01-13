@@ -560,6 +560,8 @@ def LoopOverFiles():
     global mtx_CDE_bkgd
 
     n_measurements = 0
+    n_total_files = 0
+    total_exposure = 0.
     for source in range(0,len(sample_list)):
         source_idx = FindSourceIndex(sample_list[source],sample_list)
         for elev in range(0,len(sample_file_tags)):
@@ -570,6 +572,7 @@ def LoopOverFiles():
                 print ('Read file: %s'%(SourceFilePath))
                 if os.path.exists(SourceFilePath):
                     n_groups += 1
+                    n_total_files += 1
                     print ('file exists.')
                 else:
                     file_exists = False
@@ -643,6 +646,7 @@ def LoopOverFiles():
                         Hist_Bkgd_Optimization += [Hist_Bkgd_Optimization_E]
                         data_rank += [rank_E]
                         data_exposure += [expo_E[0]]
+                        total_exposure += expo_E[0]
                         data_count += [data_count_E]
                         bkgd_count += [bkgd_count_E]
                         dark_count += [dark_count_E]
@@ -654,6 +658,9 @@ def LoopOverFiles():
                         mtx_CDE_data += [mtx_CDE_data_E]
                         mtx_CDE_bkgd += [mtx_CDE_bkgd_E]
                         n_measurements += 1
+
+    print ('n_total_files = %s'%(n_total_files))
+    print ('total_exposure = %0.1f hrs'%(total_exposure))
 
     n_imposter_measurements = 0
     for source in range(0,len(imposter_list)):
@@ -993,32 +1000,32 @@ for eb in range(0,len(energy_bin)-1):
 
 Hist_SystErrDist_MDM = []
 Hist_SystErrDist_Init = []
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E0","",21,-0.2,0.2)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E0","",21,-0.2,0.2)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E1","",21,-0.2,0.2)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E1","",21,-0.2,0.2)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E2","",21,-0.2,0.2)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E2","",21,-0.2,0.2)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E3","",21,-0.4,0.4)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E3","",21,-0.4,0.4)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E4","",21,-0.4,0.4)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E4","",21,-0.4,0.4)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E5","",21,-0.8,0.8)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E5","",21,-0.8,0.8)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E0","",21,-0.1,0.1)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E0","",21,-0.1,0.1)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E1","",21,-0.1,0.1)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E1","",21,-0.1,0.1)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E2","",21,-0.1,0.1)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E2","",21,-0.1,0.1)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E3","",21,-0.2,0.2)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E3","",21,-0.2,0.2)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E4","",21,-0.2,0.2)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E4","",21,-0.2,0.2)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E5","",21,-0.4,0.4)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E5","",21,-0.4,0.4)]
 Hist_Imposter_SystErrDist_MDM = []
 Hist_Imposter_SystErrDist_Init = []
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E0","",21,-0.2,0.2)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E0","",21,-0.2,0.2)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E1","",21,-0.2,0.2)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E1","",21,-0.2,0.2)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E2","",21,-0.2,0.2)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E2","",21,-0.2,0.2)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E3","",21,-0.4,0.4)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E3","",21,-0.4,0.4)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E4","",21,-0.4,0.4)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E4","",21,-0.4,0.4)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E5","",21,-0.8,0.8)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E5","",21,-0.8,0.8)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E0","",21,-0.1,0.1)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E0","",21,-0.1,0.1)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E1","",21,-0.1,0.1)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E1","",21,-0.1,0.1)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E2","",21,-0.1,0.1)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E2","",21,-0.1,0.1)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E3","",21,-0.2,0.2)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E3","",21,-0.2,0.2)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E4","",21,-0.2,0.2)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E4","",21,-0.2,0.2)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E5","",21,-0.4,0.4)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E5","",21,-0.4,0.4)]
 
 for eb in range(0,len(energy_bin)-1):
     Hist_SystErrDist_MDM[eb].Reset()
