@@ -1,7 +1,12 @@
 
 
-void ResetPublicVariables()
+void ResetPublicVariables(TString target_name)
 {
+
+    //if (target_name.Contains("Crab"))
+    //{
+    //    doRaster = true;
+    //}
 
     string MY_OUTPUT = string(std::getenv("SMI_OUTPUT"));
     std::cout << "MY_OUTPUT = " << MY_OUTPUT << std::endl;
@@ -10,6 +15,19 @@ void ResetPublicVariables()
     {
         UseDBOnly = true;
         exposure_limit = 1000.;
+    }
+
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_tight")
+    {
+        MSCW_cut_moderate = 0.4;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_medium")
+    {
+        MSCW_cut_moderate = 0.5;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_loose")
+    {
+        MSCW_cut_moderate = 0.6;
     }
 
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_1hrs")

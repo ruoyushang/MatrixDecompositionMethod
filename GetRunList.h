@@ -122,6 +122,21 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 350.85;
             Source_Dec = 58.82;
     }
+    if (source_name.Contains("PSR_B1823_m13"))
+    {
+            Source_RA = 276.5548958;
+            Source_Dec = -13.5796667;
+    }
+    if (source_name.Contains("PSR_B2255_p58"))
+    {
+            Source_RA = 344.49;
+            Source_Dec = 59.15;
+    }
+    if (source_name.Contains("PSR_J1954_p2836"))
+    {
+            Source_RA = 298.58;
+            Source_Dec = 28.60;
+    }
     if (source_name.Contains("PSR_J1946_p2052"))
     {
             Source_RA = 296.56;
@@ -174,10 +189,10 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name.Contains("PSR_J0633_p0632"))
     {
-            //Source_RA = 98.4342083;
-            //Source_Dec = 6.5430278;
-            Source_RA = 98.2533333;
-            Source_Dec = 5.7941667;
+            Source_RA = 98.4342083;
+            Source_Dec = 6.5430278;
+            //Source_RA = 98.2533333;
+            //Source_Dec = 5.7941667;
     }
     if (source_name.Contains("PSR_B0611_p22"))
     {
@@ -791,7 +806,7 @@ vector<std::pair<string,int>> GetRunList(string source) {
     }
     if (source.find("SS433_V6") != std::string::npos)
     {
-        list = GetRunListFromFile("SS433_V6");
+        list = GetRunListFromFile("Tobias_SS433_V6");
     }
     if (source.find("SS433_extra_V6") != std::string::npos)
     {
@@ -1122,7 +1137,7 @@ vector<std::pair<string,int>> GetRunList(string source) {
         list = GetRunListFromFile("MGRO_J1908_V5");
     }
     if (source.find("SS433_V5") != std::string::npos) {
-        list = GetRunListFromFile("SS433_V5");
+        list = GetRunListFromFile("Tobias_SS433_V5");
     }
     if (source.find("SS433_extra_V5") != std::string::npos) {
         list = GetRunListFromFile("SS433_extra_V5");

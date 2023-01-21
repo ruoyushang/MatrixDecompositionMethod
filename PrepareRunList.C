@@ -1973,7 +1973,8 @@ vector<pair<string,int>> GetNewRunListFromTree(TTree * RunListTree)
 void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, bool doImposter, int GammaModel)
 {
 
-    ResetPublicVariables();
+    sprintf(target, "%s", target_data.c_str());
+    ResetPublicVariables(TString(target));
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
     SMI_OUTPUT = string(std::getenv("SMI_OUTPUT"));
@@ -1986,7 +1987,6 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     //camera_theta2_cut_upper = input_theta2_cut_upper;
     //sprintf(theta2_cut_tag, "_Theta2%dto%d", int(camera_theta2_cut_lower), int(camera_theta2_cut_upper));
     sprintf(theta2_cut_tag, "");
-    sprintf(target, "%s", target_data.c_str());
     TelElev_lower = tel_elev_lower_input;
     TelElev_upper = tel_elev_upper_input;
     sprintf(elev_cut_tag, "_TelElev%dto%d%s", int(TelElev_lower), int(TelElev_upper), Azim_region.c_str());

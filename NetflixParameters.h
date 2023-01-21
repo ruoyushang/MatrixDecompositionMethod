@@ -12,6 +12,7 @@ int MatchingSelection = 0; // default
 
 double Log10_alpha_single = 1.0;
 double Log10_alpha[N_energy_bins] = {Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single};
+//double Log10_alpha[N_energy_bins] = {Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,-0.5,-0.5};
 
 double exposure_limit = 5.; // default
 //double exposure_limit = 10.; // default
@@ -71,16 +72,16 @@ int AcceptanceCorrection = 1;  // RaDec weight
 
 bool ExposureCorrection = false;
 
+bool doRaster = false;
+
 int nbins_fitting = 4;
 
 char output_file_tag[50] = "tight";
-double MSCW_cut_moderate = 0.6;
-double MSCL_cut_moderate = 0.6;
-//double MSCW_cut_moderate = 0.4;
-//double MSCL_cut_moderate = 0.4;
-
-//double EmissionHeight_cut = 0.;
+double MSCW_cut_moderate = 0.5;
+double MSCL_cut_moderate = 0.7;
+int min_NImages = 3;
 double EmissionHeight_cut = 6.;
+double max_Rcore = 250.;
 
 int MJD_start_cut = 0;
 int MJD_end_cut = 0;
@@ -142,4 +143,4 @@ double MSCL_chi2_upper = 3.;
 
 double brightness_cut = 6.0;
 double faint_brightness_cut = 7.0;
-double bright_star_radius_cut = 0.25;
+double bright_star_radius_cut = 0.3;

@@ -25,7 +25,11 @@ from operator import itemgetter, attrgetter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 #folder_path = 'output_test'
-folder_path = 'output_default'
+#folder_path = 'output_default'
+
+#folder_path = 'output_loose'
+folder_path = 'output_medium'
+#folder_path = 'output_tight'
 
 #folder_path = 'output_1hrs'
 #folder_path = 'output_2hrs'
@@ -58,7 +62,8 @@ folder_path = 'output_default'
 #folder_path = 'output_LogAlpha_p1p0'
 #folder_path = 'output_LogAlpha_p1p5'
 
-N_bins_for_deconv = 6
+#N_bins_for_deconv = 6
+N_bins_for_deconv = 12
 if '4x4' in folder_path:
     N_bins_for_deconv = 4
 if '6x6' in folder_path:
@@ -76,15 +81,17 @@ gamma_hadron_dim_ratio_l = 1.
 gamma_hadron_low_end = 0.
 
 MSCW_blind_cut = 0.6
-MSCL_blind_cut = 0.6
-#MSCW_blind_cut = 0.4
-#MSCL_blind_cut = 0.4
+MSCL_blind_cut = 0.7
+if 'medium' in folder_path:
+    MSCW_blind_cut = 0.5
+if 'tight' in folder_path:
+    MSCW_blind_cut = 0.4
 
 skymap_zoomin_scale = 1
 #skymap_zoomin_scale = 1.5
 #skymap_zoomin_scale = 2
-smooth_size_spectroscopy = 0.1
-#smooth_size_spectroscopy = 0.15
+#smooth_size_spectroscopy = 0.1
+smooth_size_spectroscopy = 0.14
 #smooth_size_spectroscopy = 0.2
 #smooth_size_spectroscopy = 0.3
 
@@ -98,7 +105,9 @@ additional_tag = ''
 UseEffectiveArea = False
 additional_tag = '_DD'
 
-calibration_radius = 0.2 # need to be larger than the PSF and smaller than the integration radius
+#calibration_radius = 0.2 # need to be larger than the PSF and smaller than the integration radius
+calibration_radius = 0.3 # need to be larger than the PSF and smaller than the integration radius
+#calibration_radius = 1.0
 
 #energy_index_scale = 0
 energy_index_scale = 2
@@ -136,6 +145,7 @@ if doGalacticCoord:
 target_max_dist_cut = 100.
 
 elev_range = [45,90]
+#elev_range = [30,90]
 #elev_range = [35,45]
 
 #energy_bin = [100.,316.,1000.,3162.,10000.]
@@ -385,10 +395,12 @@ def ConvertRaDecToGalactic(ra, dec):
     l = (l_NCP-ROOT.TMath.ATan2(sin_l_NCP_m_l,cos_l_NCP_m_l))*180./ROOT.TMath.Pi()
     return l, b
 
-def FindGalacticProjection_v2(Hist_Data_input,Hist_Syst_input,proj_type="Y"):
+def FindGalacticProjection_v2(Hist_Data_input,proj_type="Y"):
 
-    n_bins_y = Hist_Data_input.GetNbinsY()
-    n_bins_x = Hist_Data_input.GetNbinsX()
+    #n_bins_y = Hist_Data_input.GetNbinsY()
+    #n_bins_x = Hist_Data_input.GetNbinsX()
+    n_bins_y = 15
+    n_bins_x = 15
     MapEdge_left = Hist_Data_input.GetXaxis().GetBinLowEdge(1)
     MapEdge_right = Hist_Data_input.GetXaxis().GetBinLowEdge(Hist_Data_input.GetNbinsX()+1)
     MapEdge_lower = Hist_Data_input.GetYaxis().GetBinLowEdge(1)
@@ -541,14 +553,13 @@ def FindExtension_v1(Hist_Data_input,Hist_Bkgd_input,roi_x,roi_y,integration_ran
     return data_cnt, data_cnt_err, bkgd_cnt, bkgd_cnt_err, theta2, theta2_err
 
 
-def FindExtension_v2(Hist_Data_input,Hist_Syst_input,roi_x,roi_y,integration_range):
+def FindExtension_v2(Hist_Data_input,roi_x,roi_y,integration_range):
 
     global calibration_radius
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
-    integration_range = min(integration_range,1.8)
-    #n_bins_1d = int(10.*integration_range)
-    n_bins_1d = int(5.*integration_range)
+    integration_range = min(integration_range,2.0)
+    n_bins_1d = 5
 
     n_bins_y = Hist_Data_input.GetNbinsY()
     n_bins_x = Hist_Data_input.GetNbinsX()
@@ -1058,10 +1069,10 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
         if doGalacticCoord:
             gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
         near_a_source = False
-        for entry in range(0,len(other_stars)):
-            distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-            if distance<near_source_cut*near_source_cut:
-                near_a_source = True
+        #for entry in range(0,len(other_stars)):
+        #    distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+        #    if distance<near_source_cut*near_source_cut:
+        #        near_a_source = True
         if not near_a_source and not '%' in gamma_source_name:
             other_stars += [gamma_source_name]
             other_stars_type += ['TeV']

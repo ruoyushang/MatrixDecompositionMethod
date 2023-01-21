@@ -2616,7 +2616,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         Hist_OnDark_SR_XYoff.push_back(TH2D("Hist_OnDark_SR_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",XYoff_bins,-3,3,XYoff_bins,-3,3));
         Hist_OnDark_SR_R2off.push_back(TH1D("Hist_OnDark_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
         Hist_OnData_SR_R2off.push_back(TH1D("Hist_OnData_SR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
-        Hist_OnData_CR_R2off.push_back(TH1D("Hist_OnData_CR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
+        Hist_OnData_CR_R2off.push_back(TH1D("Hist_OnData_CR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",18,0,9));
         Hist_OnData_ISR_R2off.push_back(TH1D("Hist_OnData_ISR_R2off_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",36,0,9));
         Hist_OnData_CR_Yoff.push_back(TH1D("Hist_OnData_CR_Yoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
         Hist_OnData_CR_Xoff.push_back(TH1D("Hist_OnData_CR_Xoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",30,-3,3));
@@ -3721,7 +3721,8 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
 void MakePrediction(string target_data, double tel_elev_lower_input, double tel_elev_upper_input, double input_theta2_cut_lower, double input_theta2_cut_upper, bool isON, int GammaModel)
 {
 
-    ResetPublicVariables();
+    sprintf(target, "%s", target_data.c_str());
+    ResetPublicVariables(TString(target));
 
     SMI_INPUT = string(std::getenv("SMI_INPUT"));
     SMI_OUTPUT = string(std::getenv("SMI_OUTPUT"));
@@ -3729,8 +3730,6 @@ void MakePrediction(string target_data, double tel_elev_lower_input, double tel_
     SMI_AUX = string(std::getenv("SMI_AUX"));
 
     TH1::SetDefaultSumw2();
-
-    sprintf(target, "%s", target_data.c_str());
 
     TString ONOFF_tag;
     if (isON) 
