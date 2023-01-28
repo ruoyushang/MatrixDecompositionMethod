@@ -122,6 +122,16 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 350.85;
             Source_Dec = 58.82;
     }
+    if (source_name.Contains("PSR_J1928_p1746"))
+    {
+            Source_RA = 292.18;
+            Source_Dec = 17.77;
+    }
+    if (source_name.Contains("PSR_J1930_p1852"))
+    {
+            Source_RA = 292.6255417;
+            Source_Dec = 18.8705833;
+    }
     if (source_name.Contains("PSR_B1823_m13"))
     {
             Source_RA = 276.5548958;
@@ -226,7 +236,7 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name.Contains("PSR_J2021_p3651"))
     {
-            Source_RA = 305.27;
+            Source_RA = 305.27-1.0;
             Source_Dec = 36.85;
     }
     if (source_name.Contains("PSR_J2021_p4026"))
@@ -550,10 +560,12 @@ pair<double,double> GetSourceRaDec(TString source_name)
     }
     if (source_name.Contains("MGRO_J1908"))
     {
+            // 3HWC
+            Source_RA = 287.05;
+            Source_Dec = 6.39;
+            // PSR J1907+0602
             //Source_RA = 286.975;
-            //Source_Dec = 6.269;
-            Source_RA = 286.975;
-            Source_Dec = 6.03777777778;
+            //Source_Dec = 6.03777777778;
     }
     if (source_name.Contains("SS433"))
     {

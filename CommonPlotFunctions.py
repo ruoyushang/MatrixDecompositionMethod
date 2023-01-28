@@ -25,10 +25,10 @@ from operator import itemgetter, attrgetter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 #folder_path = 'output_test'
-#folder_path = 'output_default'
+folder_path = 'output_default'
 
 #folder_path = 'output_loose'
-folder_path = 'output_medium'
+#folder_path = 'output_medium'
 #folder_path = 'output_tight'
 
 #folder_path = 'output_1hrs'
@@ -117,16 +117,10 @@ doGalacticCoord = False
 
 Skymap_nzones_x = 1
 Skymap_nzones_y = 1
-Skymap_size_x = 2.
-Skymap_nbins_x = 45
-Skymap_size_y = 2.
-Skymap_nbins_y = 45
-#Skymap_nzones_x = 2
-#Skymap_nzones_y = 2
-#Skymap_size_x = 3.
-#Skymap_nbins_x = 68
-#Skymap_size_y = 3.
-#Skymap_nbins_y = 68
+Skymap_size_x = 2.0
+Skymap_size_y = 2.0
+Skymap_nbins_x = 50
+Skymap_nbins_y = 50
 if doGalacticCoord:
     Skymap_nzones_x = 3
     Skymap_nzones_y = 3
@@ -177,76 +171,6 @@ def reflectXaxis(hist):
             hT.SetBinContent( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinContent( binx, biny ) )
             hT.SetBinError( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinError( binx, biny ) )
     return hT
-
-def Smooth2DMap_v2(Hist_Old,Hist_Smooth,smooth_size,addLinearly,normalized):
-
-    Hist_Smooth.Reset()
-    #Hist_Smooth.Add(Hist_Old)
-    #return
-
-    print('Smoothing %s'%(Hist_Old.GetName()))
-    bin_size = Hist_Old.GetXaxis().GetBinCenter(2)-Hist_Old.GetXaxis().GetBinCenter(1)
-    if bin_size>smooth_size or not Smoothing: 
-        Hist_Smooth.Reset()
-        Hist_Smooth.Add(Hist_Old)
-        return
-
-    nbins_x = Hist_Old.GetNbinsX()
-    nbins_y = Hist_Old.GetNbinsY()
-    MapEdge_left = Hist_Old.GetXaxis().GetBinLowEdge(1)
-    MapEdge_right = Hist_Old.GetXaxis().GetBinLowEdge(Hist_Old.GetNbinsX()+1)
-    MapEdge_lower = Hist_Old.GetYaxis().GetBinLowEdge(1)
-    MapEdge_upper = Hist_Old.GetYaxis().GetBinLowEdge(Hist_Old.GetNbinsX()+1)
-    map_size_x = (MapEdge_right-MapEdge_left)/2.
-    map_size_y = (MapEdge_upper-MapEdge_lower)/2.
-    Hist_Kernel = ROOT.TH2D("Hist_Kernel","",nbins_x,-map_size_x,map_size_x,nbins_y,-map_size_y,map_size_y)
-    Hist_Kernel.Reset()
-    for bx1 in range(1,Hist_Old.GetNbinsX()+1):
-        for by1 in range(1,Hist_Old.GetNbinsY()+1):
-            cell_x = Hist_Kernel.GetXaxis().GetBinCenter(bx1)
-            cell_y = Hist_Kernel.GetYaxis().GetBinCenter(by1)
-            distance = pow(cell_x*cell_x+cell_y*cell_y,0.5)
-            bin_content = ROOT.TMath.Gaus(distance,0,smooth_size)
-            Hist_Kernel.SetBinContent(bx1,by1,bin_content)
-    #print ('Hist_Kernel.Integral() = %s'%(Hist_Kernel.Integral()))
-
-    nbin_smooth = int(2*smooth_size/bin_size) + 1
-    central_bin_x = int(nbins_x/2) + 1
-    central_bin_y = int(nbins_y/2) + 1
-    for bx1 in range(1,Hist_Old.GetNbinsX()+1):
-        for by1 in range(1,Hist_Old.GetNbinsY()+1):
-            old_content = Hist_Old.GetBinContent(bx1,by1)
-            old_error = Hist_Old.GetBinError(bx1,by1)
-            bin_content = 0
-            bin_error = 0
-            for bx2 in range(bx1-nbin_smooth,bx1+nbin_smooth):
-                for by2 in range(by1-nbin_smooth,by1+nbin_smooth):
-                    if bx2<1: 
-                        continue
-                    if by2<1: 
-                        continue
-                    if bx2>Hist_Old.GetNbinsX(): 
-                        continue
-                    if by2>Hist_Old.GetNbinsY(): 
-                        continue
-                    bin_content += Hist_Kernel.GetBinContent(bx2-bx1+central_bin_x,by2-by1+central_bin_y)*Hist_Old.GetBinContent(bx2,by2)
-                    if not addLinearly:
-                        bin_error += Hist_Kernel.GetBinContent(bx2-bx1+central_bin_x,by2-by1+central_bin_y)*pow(Hist_Old.GetBinError(bx2,by2),2)
-                    else:
-                        bin_error += Hist_Kernel.GetBinContent(bx2-bx1+central_bin_x,by2-by1+central_bin_y)*Hist_Old.GetBinError(bx2,by2)
-            Hist_Smooth.SetBinContent(bx1,by1,bin_content)
-            if not addLinearly:
-                Hist_Smooth.SetBinError(bx1,by1,pow(bin_error,0.5))
-            else:
-                Hist_Smooth.SetBinError(bx1,by1,bin_error)
-    if normalized:
-        Hist_Smooth.Scale(1./Hist_Kernel.Integral())
-        #for bx1 in range(1,Hist_Smooth.GetNbinsX()+1):
-        #    for by1 in range(1,Hist_Smooth.GetNbinsY()+1):
-        #        old_error = Hist_Old.GetBinError(bx1,by1)
-        #        Hist_Smooth.SetBinError(bx1,by1,old_error)
-    print ('Hist_Old.Integral() = %s'%(Hist_Old.Integral()))
-    print ('Hist_Smooth.Integral() = %s'%(Hist_Smooth.Integral()))
 
 def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
 
@@ -762,6 +686,40 @@ def FillSkymapHoles(hist_map, map_resolution):
             hist_map_new.SetBinContent(bx1,by1,min_distance_content)
     return hist_map_new
 
+def GetFITSMap(map_file, hist_map, isRaDec):
+
+    hist_map.Reset()
+    nbins_x = hist_map.GetNbinsX()
+    nbins_y = hist_map.GetNbinsY()
+    MapEdge_left = hist_map.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = hist_map.GetXaxis().GetBinLowEdge(hist_map.GetNbinsX()+1)
+    MapEdge_lower = hist_map.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = hist_map.GetYaxis().GetBinLowEdge(hist_map.GetNbinsY()+1)
+    MapCenter_x = (MapEdge_left+MapEdge_right)/2.
+    MapCenter_y = (MapEdge_lower+MapEdge_upper)/2.
+
+    hdu = fits.open(map_file)[0]
+    wcs = WCS(hdu.header)
+    image_data = hdu.data
+
+    print ("wcs")
+    print (wcs)
+
+    image_shape = np.shape(image_data)
+    for binx in range(0,nbins_x):
+        for biny in range(0,nbins_y):
+            ra = hist_map.GetXaxis().GetBinCenter(binx+1)
+            dec = hist_map.GetYaxis().GetBinCenter(biny+1)
+            pixs = wcs.all_world2pix(ra,dec,1)
+            if int(pixs[0])<0: continue
+            if int(pixs[1])<0: continue
+            if int(pixs[0])>=image_shape[0]: continue
+            if int(pixs[1])>=image_shape[1]: continue
+            fits_data = image_data[int(pixs[1]),int(pixs[0])]
+            hist_map.SetBinContent(binx+1,biny+1,fits_data)
+
+    return hist_map
+
 def GetGalacticCoordMap(map_file, hist_map, isRaDec):
 
     hist_map.Reset()
@@ -1262,12 +1220,24 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     orange_blue = ListedColormap(newcolors, name='OrangeBlue')
     colormap = 'coolwarm'
 
-    map_nbins_x = hist_map.GetNbinsX()
-    map_nbins_y = hist_map.GetNbinsY()
-    MapEdge_left = hist_map.GetXaxis().GetBinLowEdge(1)
-    MapEdge_right = hist_map.GetXaxis().GetBinLowEdge(hist_map.GetNbinsX()+1)
-    MapEdge_lower = hist_map.GetYaxis().GetBinLowEdge(1)
-    MapEdge_upper = hist_map.GetYaxis().GetBinLowEdge(hist_map.GetNbinsY()+1)
+    Old_map_nbins_x = hist_map.GetNbinsX()
+    Old_map_nbins_y = hist_map.GetNbinsY()
+    Old_MapEdge_left = hist_map.GetXaxis().GetBinLowEdge(1)
+    Old_MapEdge_right = hist_map.GetXaxis().GetBinLowEdge(hist_map.GetNbinsX()+1)
+    Old_MapEdge_lower = hist_map.GetYaxis().GetBinLowEdge(1)
+    Old_MapEdge_upper = hist_map.GetYaxis().GetBinLowEdge(hist_map.GetNbinsY()+1)
+    Old_MapEdge_center_x = 0.5*(Old_MapEdge_left+Old_MapEdge_right)
+    Old_MapEdge_center_y = 0.5*(Old_MapEdge_lower+Old_MapEdge_upper)
+    Old_MapEdge_size_x = Old_MapEdge_right-Old_MapEdge_center_x
+    Old_MapEdge_size_y = Old_MapEdge_upper-Old_MapEdge_center_y
+
+    zoomin_frac = 1.0
+    map_nbins_x = int(Old_map_nbins_x*zoomin_frac)
+    map_nbins_y = int(Old_map_nbins_y*zoomin_frac)
+    MapEdge_left = Old_MapEdge_center_x-zoomin_frac*Old_MapEdge_size_x
+    MapEdge_right = Old_MapEdge_center_x+zoomin_frac*Old_MapEdge_size_x
+    MapEdge_lower = Old_MapEdge_center_y-zoomin_frac*Old_MapEdge_size_y
+    MapEdge_upper = Old_MapEdge_center_y+zoomin_frac*Old_MapEdge_size_y
 
     deg_per_bin = (MapEdge_right-MapEdge_left)/map_nbins_x
     nbins_per_deg = map_nbins_x/(MapEdge_right-MapEdge_left)
@@ -1326,10 +1296,14 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
             if min_z>hist_map.GetBinContent(hist_bin_x,hist_bin_y):
                 min_z = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
 
-    if not hist_contour==None:
-        zscore_cut = 2.
+    if not hist_contour==None and 'SkymapFlux' in plotname:
+        max_zscore = hist_contour.GetMaximum()
         mid_class_z = 0.
         mid_class_z_bins = 0.
+        low_class_z = 0.
+        low_class_z_bins = 0.
+        high_class_z = 0.
+        high_class_z_bins = 0.
         for ybin in range(0,len(y_axis)):
             for xbin in range(0,len(x_axis)):
                 hist_bin_x = xbin+1
@@ -1339,12 +1313,23 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
                 if hist_bin_x>hist_map.GetNbinsX(): continue
                 if hist_bin_y>hist_map.GetNbinsY(): continue
                 zscore = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)
-                if zscore>zscore_cut and zscore<zscore_cut+1.0:
+                if zscore>1.-0.5 and zscore<1.+0.5:
                     mid_class_z += hist_map.GetBinContent(hist_bin_x,hist_bin_y)
                     mid_class_z_bins += 1.
+                if zscore>0.-0.5 and zscore<0.+0.5:
+                    low_class_z += hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+                    low_class_z_bins += 1.
+                if zscore>max_zscore-1.:
+                    high_class_z += hist_map.GetBinContent(hist_bin_x,hist_bin_y)
+                    high_class_z_bins += 1.
         if mid_class_z_bins>0.:
             mid_class_z = mid_class_z/mid_class_z_bins
-            min_z = mid_class_z-(max_z-mid_class_z)
+        if low_class_z_bins>0.:
+            low_class_z = low_class_z/low_class_z_bins
+        if high_class_z_bins>0.:
+            high_class_z = high_class_z/high_class_z_bins
+        min_z = low_class_z-(mid_class_z-low_class_z)
+        max_z = max(high_class_z*1.1,mid_class_z+(mid_class_z-low_class_z))
 
     levels = np.arange(3.0, 6.0, 1.0)
 
@@ -1433,10 +1418,10 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='cyan', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='HAWC':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='violet', marker='^', label=other_star_labels[star])
-        if other_star_types[star]=='TeV':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='^', label=other_star_labels[star])
-        if other_star_types[star]=='Star':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='o', label=other_star_labels[star])
+        #if other_star_types[star]=='TeV':
+        #    axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='^', label=other_star_labels[star])
+        #if other_star_types[star]=='Star':
+        #    axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='o', label=other_star_labels[star])
         text_offset_x = 0.
         text_offset_y = 0.
         text_offset_x = 0.05
