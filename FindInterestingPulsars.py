@@ -591,10 +591,12 @@ include_ra_bands += ['18']
 include_ra_bands += ['20']
 include_ra_bands += ['22']
 
-select_psr = False
+select_psr = True
 select_msp = False
 select_gcs = True
-select_snr = False
+select_snr = True
+#select_new_target = False
+#alt_cut = 30.
 select_new_target = True
 alt_cut = 60.
 
@@ -687,7 +689,7 @@ for ra in range(0,len(include_ra_bands)):
     
         found_fermi_name, frm_idx = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],fermi_name,fermi_ra,fermi_dec,0.2)
         found_tev_name  , tev_idx = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],target_tev_name,target_tev_ra,target_tev_dec,0.2)
-        found_hwc_name  , hwc_idx = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],target_hwc_name,target_hwc_ra,target_hwc_dec,0.5)
+        found_hwc_name  , hwc_idx = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],target_hwc_name,target_hwc_ra,target_hwc_dec,0.3)
         found_vts_name  , vts_idx = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],target_vts_name,target_vts_ra,target_vts_dec,0.3)
         found_hss_name  , hss_idx = FindFermiSource(target_psr_name[psr],target_psr_ra[psr],target_psr_dec[psr],target_hss_name,target_hss_ra,target_hss_dec,0.3)
         gal_l, gal_b = ConvertRaDecToGalactic(target_psr_ra[psr],target_psr_dec[psr])
@@ -710,14 +712,14 @@ for ra in range(0,len(include_ra_bands)):
             target_psr_flux[psr] = tev_flux_in_cu
 
         if select_psr:
-            if target_psr_age[psr]/1000.>pow(10,4): continue
+            if target_psr_age[psr]/1000.>pow(10,5): continue
             if tev_flux_in_cu<1e-3: continue
         else:
             if target_psr_age[psr]/1000.<pow(10,5): continue
             if target_psr_dist[psr]>2.0: continue
             if target_psr_edot[psr]<1e34: continue
 
-        if target_psr_age[psr]/1000.<10.: continue
+        #if target_psr_age[psr]/1000.<10.: continue
     
 
         if hwc_alt>45.:
