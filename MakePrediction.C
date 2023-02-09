@@ -121,6 +121,9 @@ vector<double> roi_data_gamma_count;
 vector<double> roi_rbm_gamma_count;
 vector<double> data_gamma_count;
 vector<double> data_antigamma_count;
+vector<double> data_sigma_rank0;
+vector<double> data_sigma_rank1;
+vector<double> data_sigma_rank2;
 vector<double> dark_sigma_rank0;
 vector<double> dark_sigma_rank1;
 vector<double> dark_sigma_rank2;
@@ -1395,6 +1398,29 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
 
         //idx_k1 = 1-1;
         //idx_n1 = 1-1;
+        //idx_k2 = 2-1;
+        //idx_n2 = 2-1;
+        //idx_k3 = 3-1;
+        //idx_n3 = 3-1;
+        //idx_v1 = idx_k1*size_n + idx_n1;
+        //idx_v2 = idx_k2*size_n + idx_n2;
+        //idx_v3 = idx_k3*size_n + idx_n3;
+        //idx_u1 = idx_v1;
+        //if (entry_size>=1)
+        //{
+        //    mtx_A(idx_u1,idx_v1) = alpha;
+        //}
+        //if (entry_size>=2)
+        //{
+        //    mtx_A(idx_u1,idx_v2) = -alpha;
+        //}
+        //if (entry_size>=3)
+        //{
+        //    mtx_Constraint(idx_v3,idx_v3) = 1.;
+        //}
+
+        //idx_k1 = 1-1;
+        //idx_n1 = 1-1;
         //idx_v1 = idx_k1*size_n + idx_n1;
         //idx_k2 = 2-1;
         //idx_n2 = 2-1;
@@ -2132,6 +2158,9 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     roi_rbm_gamma_count.clear();
     data_gamma_count.clear();
     data_antigamma_count.clear();
+    data_sigma_rank0.clear();
+    data_sigma_rank1.clear();
+    data_sigma_rank2.clear();
     dark_sigma_rank0.clear();
     dark_sigma_rank1.clear();
     dark_sigma_rank2.clear();
@@ -2953,32 +2982,32 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             eigensolver_dark = ComplexEigenSolver<MatrixXcd>(mtx_dark);
 
             JacobiSVD<MatrixXd> svd_Moff(mtx_dark.real(), ComputeFullU | ComputeFullV);
-            bool find_elbow = false;
-            int max_rank = min(N_bins_for_deconv-1,3);
-            //int max_rank = min(N_bins_for_deconv-1,2);
-            if (N_bins_for_deconv<4)
-            {
-                max_rank = 1;
-            }
-            for (int i=0;i<max_rank;i++)
-            {
-                if (find_elbow) continue;
-                if (svd_Moff.singularValues()(i+1)==0.) continue;
-                std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1) << std::endl;
-                if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1)<elbow_ratio[e])
-                {
-                    find_elbow = true;
-                }
-                if (find_elbow) continue;
-                NumberOfEigenvectors_Stable = i+1;
-            }
-            NumberOfEigenvectors_Stable = max(NumberOfEigenvectors_Stable,1);
-            NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,max_rank);
-            //NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,2);
-            if (svd_Moff.singularValues()(max_rank)==0.)
-            {
-                NumberOfEigenvectors_Stable = 0;
-            }
+            //bool find_elbow = false;
+            //int max_rank = min(N_bins_for_deconv-1,3);
+            ////int max_rank = min(N_bins_for_deconv-1,2);
+            //if (N_bins_for_deconv<4)
+            //{
+            //    max_rank = 1;
+            //}
+            //for (int i=0;i<max_rank;i++)
+            //{
+            //    if (find_elbow) continue;
+            //    if (svd_Moff.singularValues()(i+1)==0.) continue;
+            //    std::cout << "singularvalue ratio = " << svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1) << std::endl;
+            //    if (svd_Moff.singularValues()(i)/svd_Moff.singularValues()(i+1)<elbow_ratio[e])
+            //    {
+            //        find_elbow = true;
+            //    }
+            //    if (find_elbow) continue;
+            //    NumberOfEigenvectors_Stable = i+1;
+            //}
+            //NumberOfEigenvectors_Stable = max(NumberOfEigenvectors_Stable,1);
+            //NumberOfEigenvectors_Stable = min(NumberOfEigenvectors_Stable,max_rank);
+            //if (svd_Moff.singularValues()(max_rank)==0.)
+            //{
+            //    NumberOfEigenvectors_Stable = 0;
+            //}
+            NumberOfEigenvectors_Stable = matrix_rank[e];
             std::cout << "NumberOfEigenvectors_Stable = " << NumberOfEigenvectors_Stable << std::endl;
 
             //fill2DHistogram(&Hist_Temp_Gamma,mtx_gamma_raw);
@@ -3254,6 +3283,9 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         double lambda_bkgd_1 =  GetSingularValue(mtx_data_bkgd, 0);
         double lambda_bkgd_2 =  GetSingularValue(mtx_data_bkgd, 1);
         double lambda_bkgd_3 =  GetSingularValue(mtx_data_bkgd, 2);
+        data_sigma_rank0.push_back(lambda_data_1);
+        data_sigma_rank1.push_back(lambda_data_2);
+        data_sigma_rank2.push_back(lambda_data_3);
         dark_sigma_rank0.push_back(lambda_dark_1);
         dark_sigma_rank1.push_back(lambda_dark_2);
         dark_sigma_rank2.push_back(lambda_dark_3);
@@ -3527,6 +3559,9 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
     NewInfoTree.Branch("data_gamma_count","std::vector<double>",&data_gamma_count);
     NewInfoTree.Branch("data_antigamma_count","std::vector<double>",&data_antigamma_count);
     NewInfoTree.Branch("dark_stable_rank","std::vector<int>",&dark_stable_rank);
+    NewInfoTree.Branch("data_sigma_rank0","std::vector<double>",&data_sigma_rank0);
+    NewInfoTree.Branch("data_sigma_rank1","std::vector<double>",&data_sigma_rank1);
+    NewInfoTree.Branch("data_sigma_rank2","std::vector<double>",&data_sigma_rank2);
     NewInfoTree.Branch("dark_sigma_rank0","std::vector<double>",&dark_sigma_rank0);
     NewInfoTree.Branch("dark_sigma_rank1","std::vector<double>",&dark_sigma_rank1);
     NewInfoTree.Branch("dark_sigma_rank2","std::vector<double>",&dark_sigma_rank2);

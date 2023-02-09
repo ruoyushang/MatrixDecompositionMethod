@@ -34,6 +34,7 @@ gamma_hadron_low_end = CommonPlotFunctions.gamma_hadron_low_end
 MSCW_blind_cut = CommonPlotFunctions.MSCW_blind_cut
 MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 
+#expo_hours_per_entry = 5.
 #expo_hours_per_entry = 10.
 #expo_hours_per_entry = 20.
 #expo_hours_per_entry = 50.
@@ -244,6 +245,12 @@ def GetGammaCounts(file_path,ebin):
     rank1_gamma_count = ROOT.std.vector("double")(10)
     rank2_gamma_count = ROOT.std.vector("double")(10)
     rank3_gamma_count = ROOT.std.vector("double")(10)
+    data_sigma_rank0 = ROOT.std.vector("double")(10)
+    data_sigma_rank1 = ROOT.std.vector("double")(10)
+    data_sigma_rank2 = ROOT.std.vector("double")(10)
+    dark_sigma_rank0 = ROOT.std.vector("double")(10)
+    dark_sigma_rank1 = ROOT.std.vector("double")(10)
+    dark_sigma_rank2 = ROOT.std.vector("double")(10)
 
     InputFile = ROOT.TFile(file_path)
     NewInfoTree = InputFile.Get("NewInfoTree")
@@ -261,6 +268,12 @@ def GetGammaCounts(file_path,ebin):
     NewInfoTree.SetBranchAddress('rank1_gamma_count',ROOT.AddressOf(rank1_gamma_count))
     NewInfoTree.SetBranchAddress('rank2_gamma_count',ROOT.AddressOf(rank2_gamma_count))
     NewInfoTree.SetBranchAddress('rank3_gamma_count',ROOT.AddressOf(rank3_gamma_count))
+    NewInfoTree.SetBranchAddress('data_sigma_rank0',ROOT.AddressOf(data_sigma_rank0))
+    NewInfoTree.SetBranchAddress('data_sigma_rank1',ROOT.AddressOf(data_sigma_rank1))
+    NewInfoTree.SetBranchAddress('data_sigma_rank2',ROOT.AddressOf(data_sigma_rank2))
+    NewInfoTree.SetBranchAddress('dark_sigma_rank0',ROOT.AddressOf(dark_sigma_rank0))
+    NewInfoTree.SetBranchAddress('dark_sigma_rank1',ROOT.AddressOf(dark_sigma_rank1))
+    NewInfoTree.SetBranchAddress('dark_sigma_rank2',ROOT.AddressOf(dark_sigma_rank2))
     NewInfoTree.GetEntry(0)
 
     InfoTree = InputFile.Get("InfoTree")
@@ -269,7 +282,7 @@ def GetGammaCounts(file_path,ebin):
 
     print ('Open %s, E%s, data_expo = %s, data_gamma_count = %s'%(file_path,ebin,data_expo,data_gamma_count[ebin]))
 
-    return data_expo, dark_stable_rank[ebin], data_gamma_count[ebin], bkgd_gamma_count[ebin], dark_gamma_count[ebin], rank0_gamma_count[ebin], rank1_gamma_count[ebin], rank2_gamma_count[ebin]
+    return data_expo, dark_stable_rank[ebin], data_gamma_count[ebin], bkgd_gamma_count[ebin], dark_gamma_count[ebin], rank0_gamma_count[ebin], rank1_gamma_count[ebin], rank2_gamma_count[ebin], data_sigma_rank0[ebin], data_sigma_rank1[ebin], data_sigma_rank2[ebin], dark_sigma_rank0[ebin], dark_sigma_rank1[ebin], dark_sigma_rank2[ebin]
 
 def GetCoefficientHistogram(file_path,ebin,hist_data,hist_bkgd):
 
@@ -541,6 +554,7 @@ def LoopOverFiles():
     global Hist_Data_ShowerShape
     global data_rank
     global data_exposure
+    global sigma_chi2
     global data_count
     global bkgd_count
     global dark_count
@@ -549,6 +563,7 @@ def LoopOverFiles():
     global rank2_count
     global imposter_data_rank
     global imposter_data_exposure
+    global imposter_sigma_chi2
     global imposter_data_count
     global imposter_bkgd_count
     global imposter_dark_count
@@ -608,6 +623,7 @@ def LoopOverFiles():
                         Hist_Bkgd_Optimization_E = []
                         rank_E = []
                         expo_E = []
+                        sigma_chi2_E = []
                         data_count_E = []
                         bkgd_count_E = []
                         dark_count_E = []
@@ -626,9 +642,15 @@ def LoopOverFiles():
                             Hist_Bkgd_Optimization_E += [ROOT.TH2D("Hist_Bkgd_Optimization_M%s_E%s"%(n_measurements,eb),"",optimiz_nbins,optimiz_alpha_lower[eb],optimiz_alpha_upper[eb],optimiz_nbins,optimiz_beta_lower[eb],optimiz_beta_upper[eb])]
                             Hist_Bkgd_Optimization_E[eb].Reset()
                             GetOptimizationHistogram(FilePath_Folder[len(FilePath_Folder)-1],eb,Hist_Bkgd_Optimization_E[eb])
-                            expo, rank, data, bkgd, dark, rank0, rank1, rank2 = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
+                            expo, rank, data, bkgd, dark, rank0, rank1, rank2, data_sigma_0, data_sigma_1, data_sigma_2, dark_sigma_0, dark_sigma_1, dark_sigma_2 = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
                             rank_E += [rank]
                             expo_E += [expo]
+                            chi2 = pow(data_sigma_0-dark_sigma_0,2)+pow(data_sigma_1-dark_sigma_1,2)+pow(data_sigma_2-dark_sigma_2,2)
+                            sigma2 = pow(dark_sigma_0+dark_sigma_1+dark_sigma_2,2)
+                            if sigma2>0.:
+                                sigma_chi2_E += [chi2/sigma2]
+                            else:
+                                sigma_chi2_E += [0.]
                             data_count_E += [data]
                             bkgd_count_E += [bkgd]
                             dark_count_E += [dark]
@@ -647,6 +669,7 @@ def LoopOverFiles():
                         data_rank += [rank_E]
                         data_exposure += [expo_E[0]]
                         total_exposure += expo_E[0]
+                        sigma_chi2 += [sigma_chi2_E]
                         data_count += [data_count_E]
                         bkgd_count += [bkgd_count_E]
                         dark_count += [dark_count_E]
@@ -690,18 +713,26 @@ def LoopOverFiles():
                             print ('Found a file.')
                         rank_E = []
                         expo_E = []
+                        sigma_chi2_E = []
                         data_count_E = []
                         bkgd_count_E = []
                         dark_count_E = []
                         for eb in range(0,len(energy_bin)-1):
-                            expo, rank, data, bkgd, dark, rank0, rank1, rank2 = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
+                            expo, rank, data, bkgd, dark, rank0, rank1, rank2, data_sigma_0, data_sigma_1, data_sigma_2, dark_sigma_0, dark_sigma_1, dark_sigma_2 = GetGammaCounts(FilePath_Folder[len(FilePath_Folder)-1],eb)
                             rank_E += [rank]
                             expo_E += [expo]
+                            chi2 = pow(data_sigma_0-dark_sigma_0,2)+pow(data_sigma_1-dark_sigma_1,2)+pow(data_sigma_2-dark_sigma_2,2)
+                            sigma2 = pow(dark_sigma_0+dark_sigma_1+dark_sigma_2,2)
+                            if sigma2>0.:
+                                sigma_chi2_E += [chi2/sigma2]
+                            else:
+                                sigma_chi2_E += [0.]
                             data_count_E += [data]
                             bkgd_count_E += [bkgd]
                             dark_count_E += [dark]
                         imposter_data_rank += [rank_E]
                         imposter_data_exposure += [expo_E]
+                        imposter_sigma_chi2 += [sigma_chi2_E]
                         imposter_data_count += [data_count_E]
                         imposter_bkgd_count += [bkgd_count_E]
                         imposter_dark_count += [dark_count_E]
@@ -727,6 +758,7 @@ Hist_Data_Eigenvalues = []
 Hist_Bkgd_Optimization = []
 data_rank = []
 data_exposure = []
+sigma_chi2 = []
 data_count = []
 bkgd_count = []
 dark_count = []
@@ -735,6 +767,7 @@ rank1_count = []
 rank2_count = []
 imposter_data_rank = []
 imposter_data_exposure = []
+imposter_sigma_chi2 = []
 imposter_data_count = []
 imposter_bkgd_count = []
 imposter_dark_count = []
@@ -924,7 +957,9 @@ energy_array = np.array(energy_bin)
 energy_dependent_bkgd = []
 energy_dependent_syst = []
 energy_dependent_stat = []
+energy_dependent_chi2 = []
 for eb in range(0,len(energy_bin)-1):
+    avg_sigma_chi2 = 0.
     epsilon_bkgd_avg = 0.
     epsilon_stat_avg = 0.
     n_entries = 0.
@@ -949,6 +984,7 @@ for eb in range(0,len(energy_bin)-1):
             epsilon_bkgd = (data_cnt_sum-bkgd_cnt_sum)/data_cnt_sum
             epsilon_bkgd_avg += epsilon_bkgd*epsilon_bkgd
             epsilon_stat_avg += pow(pow(data_cnt_sum,0.5)/data_cnt_sum,2)
+            avg_sigma_chi2 += sigma_chi2[entry][eb]
             n_measures = 0.
             n_expo_hours = 0.
             data_cnt_sum = 0.
@@ -960,6 +996,7 @@ for eb in range(0,len(energy_bin)-1):
     energy_dependent_bkgd += [epsilon_bkgd_avg]
     energy_dependent_syst += [pow(max(0.,pow(epsilon_bkgd_avg,2)-pow(epsilon_stat_avg,2)),0.5)]
     energy_dependent_stat += [epsilon_stat_avg]
+    energy_dependent_chi2 += [pow(avg_sigma_chi2/n_entries,0.5)]
 plt.clf()
 fig, ax = plt.subplots()
 plt.xlabel("Energy [GeV]", fontsize=12)
@@ -1165,6 +1202,7 @@ for eb in range(0,len(energy_bin)-1):
 
 print ('energy_bin = %s'%(energy_bin))
 print ('energy_dependent_syst = %s'%(energy_dependent_syst))
+print ('energy_dependent_chi2 = %s'%(energy_dependent_chi2))
 
 output_txt = open('output_plots/syst_%s_%s.txt'%(folder_path,background_type), 'w')
 output_txt.write('syst = %s \n'%(energy_dependent_syst))

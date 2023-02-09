@@ -2,15 +2,22 @@
 const int N_energy_bins = 6;
 
 int N_bins_for_deconv = 12;
-double elbow_ratio[N_energy_bins] = {4.0,4.0,4.0,4.0,4.0,4.0}; // nominal
+//double elbow_ratio[N_energy_bins] = {4.0,4.0,4.0,4.0,4.0,4.0}; // nominal
+//double elbow_ratio_single = 1.5;
+//double elbow_ratio[N_energy_bins] = {elbow_ratio_single,elbow_ratio_single,elbow_ratio_single,3.0,3.0,3.0};
+int matrix_rank[N_energy_bins] = {3,3,2,1,1,1};
 
 int MatchingSelection = 0; // default
 //int MatchingSelection = 1; // free elevation
 //int MatchingSelection = 2; // free azimuth
 //int MatchingSelection = 3; // free NSB
 //int MatchingSelection = 4; // free MJD
+//
+double MatchRun_dElev = 0.2;
+double MatchRun_dAzim = 22.5;
+double MatchRun_dNSB = 0.5;
 
-double Log10_alpha_single = 1.0;
+double Log10_alpha_single = 0.0;
 double Log10_alpha[N_energy_bins] = {Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single};
 //double Log10_alpha[N_energy_bins] = {Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,-0.5,-0.5};
 

@@ -76,34 +76,41 @@ void ResetPublicVariables(TString target_name)
         N_bins_for_deconv = 20;
     }
 
-    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_elbow1p0")
-    {
-        for (int eb=0;eb<N_energy_bins;eb++)
-        {
-            elbow_ratio[eb] = 1.0; 
-        }
-    }
-    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_elbow2p0")
-    {
-        for (int eb=0;eb<N_energy_bins;eb++)
-        {
-            elbow_ratio[eb] = 2.0; 
-        }
-    }
-    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_elbow4p0")
-    {
-        for (int eb=0;eb<N_energy_bins;eb++)
-        {
-            elbow_ratio[eb] = 4.0; 
-        }
-    }
-    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_elbow8p0")
-    {
-        for (int eb=0;eb<N_energy_bins;eb++)
-        {
-            elbow_ratio[eb] = 8.0; 
-        }
-    }
+    //if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_elbow1p2")
+    //{
+    //    for (int eb=0;eb<N_energy_bins;eb++)
+    //    {
+    //        elbow_ratio[eb] = 1.2; 
+    //    }
+    //}
+    //if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_elbow1p5")
+    //{
+    //    for (int eb=0;eb<N_energy_bins;eb++)
+    //    {
+    //        elbow_ratio[eb] = 1.5; 
+    //    }
+    //}
+    //if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_elbow2p0")
+    //{
+    //    for (int eb=0;eb<N_energy_bins;eb++)
+    //    {
+    //        elbow_ratio[eb] = 2.0; 
+    //    }
+    //}
+    //if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_elbow2p5")
+    //{
+    //    for (int eb=0;eb<N_energy_bins;eb++)
+    //    {
+    //        elbow_ratio[eb] = 2.5; 
+    //    }
+    //}
+    //if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_elbow3p0")
+    //{
+    //    for (int eb=0;eb<N_energy_bins;eb++)
+    //    {
+    //        elbow_ratio[eb] = 3.0; 
+    //    }
+    //}
 
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_FreeElev")
     {
@@ -120,6 +127,67 @@ void ResetPublicVariables(TString target_name)
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_FreeMJD")
     {
         MatchingSelection = 4;
+    }
+
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dEl_03")
+    {
+        MatchRun_dElev = 3.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dEl_05")
+    {
+        MatchRun_dElev = 5.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dEl_10")
+    {
+        MatchRun_dElev = 10.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dEl_20")
+    {
+        MatchRun_dElev = 20.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dEl_40")
+    {
+        MatchRun_dElev = 40.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_05")
+    {
+        MatchRun_dAzim = 5.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_10")
+    {
+        MatchRun_dAzim = 10.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_20")
+    {
+        MatchRun_dAzim = 20.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_40")
+    {
+        MatchRun_dAzim = 40.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_80")
+    {
+        MatchRun_dAzim = 80.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dNSB_0p5")
+    {
+        MatchRun_dNSB = 0.5;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dNSB_1p0")
+    {
+        MatchRun_dNSB = 1.0;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dNSB_1p5")
+    {
+        MatchRun_dNSB = 1.5;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dNSB_2p0")
+    {
+        MatchRun_dNSB = 2.0;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dNSB_2p5")
+    {
+        MatchRun_dNSB = 2.5;
     }
 
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_LogAlpha_m1p5")

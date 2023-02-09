@@ -21,6 +21,7 @@ from scipy.optimize import curve_fit
 from itertools import cycle
 from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
+from matplotlib.ticker import MaxNLocator
 from operator import itemgetter, attrgetter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -44,15 +45,22 @@ folder_path = 'output_default'
 #folder_path = 'output_16x16'
 #folder_path = 'output_20x20'
 
-#folder_path = 'output_elbow1p0'
-#folder_path = 'output_elbow2p0'
-#folder_path = 'output_elbow4p0'
-#folder_path = 'output_elbow8p0'
-
 #folder_path = 'output_FreeElev'
 #folder_path = 'output_FreeAzim'
 #folder_path = 'output_FreeNSB'
 #folder_path = 'output_FreeMJD'
+
+#folder_path = 'output_dAz_05'
+#folder_path = 'output_dAz_10'
+#folder_path = 'output_dAz_15'
+#folder_path = 'output_dAz_20'
+#folder_path = 'output_dAz_25'
+
+#folder_path = 'output_elbow1p2'
+#folder_path = 'output_elbow1p5'
+#folder_path = 'output_elbow2p0'
+#folder_path = 'output_elbow2p5'
+#folder_path = 'output_elbow3p0'
 
 #folder_path = 'output_LogAlpha_m1p5'
 #folder_path = 'output_LogAlpha_m1p0'
@@ -80,10 +88,10 @@ gamma_hadron_dim_ratio_w = 1.
 gamma_hadron_dim_ratio_l = 1.
 gamma_hadron_low_end = 0.
 
-MSCW_blind_cut = 0.6
+MSCW_blind_cut = 0.5
 MSCL_blind_cut = 0.7
-if 'medium' in folder_path:
-    MSCW_blind_cut = 0.5
+if 'loose' in folder_path:
+    MSCW_blind_cut = 0.6
 if 'tight' in folder_path:
     MSCW_blind_cut = 0.4
 
@@ -138,7 +146,7 @@ if doGalacticCoord:
 #target_max_dist_cut = 3.
 target_max_dist_cut = 100.
 
-elev_range = [45,90]
+elev_range = [40,90]
 #elev_range = [30,90]
 #elev_range = [35,45]
 
@@ -211,21 +219,16 @@ def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
                     if by2>Hist_Old.GetNbinsY(): 
                         continue
                     bin_content += Hist_Kernel.GetBinContent(bx2-bx1+central_bin,by2-by1+central_bin)*Hist_Old.GetBinContent(bx2,by2)
-                    if not addLinearly:
-                        bin_error += Hist_Kernel.GetBinContent(bx2-bx1+central_bin,by2-by1+central_bin)*pow(Hist_Old.GetBinError(bx2,by2),2)
-                    else:
-                        bin_error += Hist_Kernel.GetBinContent(bx2-bx1+central_bin,by2-by1+central_bin)*Hist_Old.GetBinError(bx2,by2)
+                    bin_error += Hist_Kernel.GetBinContent(bx2-bx1+central_bin,by2-by1+central_bin)*pow(Hist_Old.GetBinError(bx2,by2),2)
             Hist_Smooth.SetBinContent(bx1,by1,bin_content)
-            if not addLinearly:
-                Hist_Smooth.SetBinError(bx1,by1,pow(bin_error,0.5))
-            else:
-                Hist_Smooth.SetBinError(bx1,by1,bin_error)
+            Hist_Smooth.SetBinError(bx1,by1,pow(bin_error,0.5))
+
     if normalized:
         Hist_Smooth.Scale(1./Hist_Kernel.Integral())
         #for bx1 in range(1,Hist_Smooth.GetNbinsX()+1):
         #    for by1 in range(1,Hist_Smooth.GetNbinsY()+1):
-        #        old_error = Hist_Old.GetBinError(bx1,by1)
-        #        Hist_Smooth.SetBinError(bx1,by1,old_error)
+        #        new_error = pow(Hist_Smooth.GetBinContent(bx1,by1),0.5)
+        #        Hist_Smooth.SetBinError(bx1,by1,max(new_error,1.))
 
     return Hist_Smooth
 
@@ -484,6 +487,7 @@ def FindExtension_v2(Hist_Data_input,roi_x,roi_y,integration_range):
     n_bins_2d = Hist_Data_input.GetNbinsX()
     integration_range = min(integration_range,2.0)
     n_bins_1d = 5
+    #n_bins_1d = 10
 
     n_bins_y = Hist_Data_input.GetNbinsY()
     n_bins_x = Hist_Data_input.GetNbinsX()
@@ -890,11 +894,9 @@ def ReadATNFTargetListFromFile(file_path):
         if target_edot=='*': continue
         target_brightness = float(target_edot)/pow(float(target_dist),2)
 
-        if float(target_age)/1000.>pow(10,4.5): continue
-        if float(target_edot)<1e34: continue
-        #if float(target_age)/1000.<pow(10,6) and float(target_brightness)<1e34: continue
-        #if float(target_age)/1000.<pow(10,6) and float(target_edot)<1e35: continue
-        #if float(target_brightness)<1e35: continue
+        #if float(target_age)/1000.>pow(10,4.5): continue
+        if float(target_edot)<1e35: continue
+        if float(target_dist)>6.: continue
         #if target_dist>target_max_dist_cut: continue
         #if target_dist>2.0: continue
 
@@ -924,7 +926,7 @@ def ReadSNRTargetListFromCSVFile():
             target_min_dist = row[13]
             if target_min_dist=='':
                 target_min_dist = '1000'
-            if float(target_min_dist)>target_max_dist_cut: continue
+            if float(target_min_dist)>6.: continue
             target_ra = row[19]
             target_dec = row[20]
             source_name += [target_name]
@@ -942,9 +944,15 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
     other_stars = []
     other_stars_type = []
     other_star_coord = []
-    near_source_cut = 0.3
-    if doGalacticCoord:
-        near_source_cut = 1.5
+
+    near_source_cut = 0.1
+
+    drawBrightStar = False
+    drawPulsar = True
+    drawSNR = False
+    drawFermi = True
+    drawHAWC = False
+    drawTeV = False
 
     #if not prime_psr_name==None:
     #    for src in range(0,len(prime_psr_name)):
@@ -961,84 +969,113 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
     #            other_stars += [prime_psr_name[src]]
     #            other_star_coord += [[src_ra,src_dec]]
 
-    star_name, star_ra, star_dec = ReadBrightStarListFromFile()
-    for src in range(0,len(star_name)):
-        src_ra = star_ra[src]
-        src_dec = star_dec[src]
-        if doGalacticCoord:
-            src_ra, src_dec = ConvertRaDecToGalactic(src_ra,src_dec)
-        other_stars += [star_name[src]]
-        other_stars_type += ['Star']
-        other_star_coord += [[src_ra,src_dec]]
+    if drawBrightStar:
+        star_name, star_ra, star_dec = ReadBrightStarListFromFile()
+        for src in range(0,len(star_name)):
+            src_ra = star_ra[src]
+            src_dec = star_dec[src]
+            if doGalacticCoord:
+                src_ra, src_dec = ConvertRaDecToGalactic(src_ra,src_dec)
+            other_stars += [star_name[src]]
+            other_stars_type += ['Star']
+            other_star_coord += [[src_ra,src_dec]]
 
-    target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = ReadATNFTargetListFromFile('ATNF_pulsar_full_list.txt')
-    for src in range(0,len(target_psr_name)):
-        gamma_source_name = target_psr_name[src]
-        gamma_source_ra = target_psr_ra[src]
-        gamma_source_dec = target_psr_dec[src]
-        if doGalacticCoord:
-            gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-        other_stars += [gamma_source_name]
-        if target_psr_age[src]/1000.>1e6:
-            other_stars_type += ['MSP']
-        else:
-            other_stars_type += ['PSR']
-        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+    if drawSNR:
+        target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
+        for src in range(0,len(target_snr_name)):
+            gamma_source_name = target_snr_name[src]
+            gamma_source_ra = target_snr_ra[src]
+            gamma_source_dec = target_snr_dec[src]
+            if doGalacticCoord:
+                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<near_source_cut*near_source_cut:
+                    near_a_source = True
+            if not near_a_source:
+                other_stars += [gamma_source_name]
+                other_stars_type += ['SNR']
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
-    target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
-    for src in range(0,len(target_snr_name)):
-        gamma_source_name = target_snr_name[src]
-        gamma_source_ra = target_snr_ra[src]
-        gamma_source_dec = target_snr_dec[src]
-        if doGalacticCoord:
-            gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-        other_stars += [gamma_source_name]
-        other_stars_type += ['SNR']
-        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+    if drawPulsar:
+        target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = ReadATNFTargetListFromFile('ATNF_pulsar_full_list.txt')
+        for src in range(0,len(target_psr_name)):
+            gamma_source_name = target_psr_name[src]
+            gamma_source_ra = target_psr_ra[src]
+            gamma_source_dec = target_psr_dec[src]
+            if doGalacticCoord:
+                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<near_source_cut*near_source_cut:
+                    near_a_source = True
+            if not near_a_source:
+                other_stars += [gamma_source_name]
+                if target_psr_age[src]/1000.>1e6:
+                        other_stars_type += ['MSP']
+                else:
+                        other_stars_type += ['PSR']
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
-    fermi_name, fermi_ra, fermi_dec = ReadFermiCatelog()
-    for src in range(0,len(fermi_name)):
-        gamma_source_name = fermi_name[src]
-        gamma_source_ra = fermi_ra[src]
-        gamma_source_dec = fermi_dec[src]
-        if doGalacticCoord:
-            gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-        other_stars += [gamma_source_name]
-        other_stars_type += ['Fermi']
-        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+    if drawFermi:
+        fermi_name, fermi_ra, fermi_dec = ReadFermiCatelog()
+        for src in range(0,len(fermi_name)):
+            gamma_source_name = fermi_name[src]
+            gamma_source_ra = fermi_ra[src]
+            gamma_source_dec = fermi_dec[src]
+            if doGalacticCoord:
+                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<near_source_cut*near_source_cut:
+                    near_a_source = True
+            if not near_a_source:
+                other_stars += [gamma_source_name]
+                other_stars_type += ['Fermi']
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
-    target_hwc_name, target_hwc_ra, target_hwc_dec = ReadHAWCTargetListFromFile('Cat_3HWC.txt')
-    for src in range(0,len(target_hwc_name)):
-        gamma_source_name = target_hwc_name[src]
-        gamma_source_ra = target_hwc_ra[src]
-        gamma_source_dec = target_hwc_dec[src]
-        if doGalacticCoord:
-            gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-        other_stars += [gamma_source_name]
-        other_stars_type += ['HAWC']
-        other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+    if drawHAWC:
+        target_hwc_name, target_hwc_ra, target_hwc_dec = ReadHAWCTargetListFromFile('Cat_3HWC.txt')
+        for src in range(0,len(target_hwc_name)):
+            gamma_source_name = target_hwc_name[src]
+            gamma_source_ra = target_hwc_ra[src]
+            gamma_source_dec = target_hwc_dec[src]
+            if doGalacticCoord:
+                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<near_source_cut*near_source_cut:
+                    near_a_source = True
+            if not near_a_source:
+                other_stars += [gamma_source_name]
+                other_stars_type += ['HAWC']
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
-    inputFile = open('TeVCat_RaDec_w_Names.txt')
-    #inputFile = open('TeVCat_Common_Names.txt')
-    for line in inputFile:
-        gamma_source_name = line.split(',')[0]
-        gamma_source_ra = float(line.split(',')[1])
-        gamma_source_dec = float(line.split(',')[2])
-        if doGalacticCoord:
-            gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
-        near_a_source = False
-        #for entry in range(0,len(other_stars)):
-        #    distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
-        #    if distance<near_source_cut*near_source_cut:
-        #        near_a_source = True
-        if not near_a_source and not '%' in gamma_source_name:
-            other_stars += [gamma_source_name]
-            other_stars_type += ['TeV']
-            other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+    if drawTeV:
+        inputFile = open('TeVCat_RaDec_w_Names.txt')
+        for line in inputFile:
+            gamma_source_name = line.split(',')[0]
+            gamma_source_ra = float(line.split(',')[1])
+            gamma_source_dec = float(line.split(',')[2])
+            if doGalacticCoord:
+                gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
+            near_a_source = False
+            for entry in range(0,len(other_stars)):
+                distance = pow(gamma_source_ra-other_star_coord[entry][0],2)+pow(gamma_source_dec-other_star_coord[entry][1],2)
+                if distance<near_source_cut*near_source_cut:
+                    near_a_source = True
+            if not near_a_source and not '%' in gamma_source_name:
+                other_stars += [gamma_source_name]
+                other_stars_type += ['TeV']
+                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
 
     return other_stars, other_stars_type, other_star_coord
 
-def GetRegionIntegral(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,roi_x,roi_y,roi_r):
+def GetRegionIntegral(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,roi_x,roi_y,roi_r,excl_roi_x,excl_roi_y,excl_roi_r):
 
     flux_sum = 0.
     flux_stat_err = 0.
@@ -1048,7 +1085,10 @@ def GetRegionIntegral(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,roi_x,r
             bin_ra = hist_data_skymap.GetXaxis().GetBinCenter(bx+1)
             bin_dec = hist_data_skymap.GetYaxis().GetBinCenter(by+1)
             distance = pow(pow(bin_ra-roi_x,2) + pow(bin_dec-roi_y,2),0.5)
+            excl_distance = pow(pow(bin_ra-excl_roi_x,2) + pow(bin_dec-excl_roi_y,2),0.5)
             if distance>roi_r: 
+                continue
+            if excl_distance<excl_roi_r: 
                 continue
             if not hist_mask_skymap==None:
                 mask = hist_mask_skymap.GetBinContent(bx+1,by+1)
@@ -1061,7 +1101,7 @@ def GetRegionIntegral(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,roi_x,r
     flux_stat_err = pow(flux_stat_err,0.5)
     return flux_sum, flux_stat_err, flux_syst_err
 
-def GetRegionSpectrum_v2(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin_low,ebin_up,roi_x,roi_y,roi_r):
+def GetRegionSpectrum_v2(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin_low,ebin_up,roi_x,roi_y,roi_r,excl_roi_x,excl_roi_y,excl_roi_r):
 
     x_axis = []
     x_error = []
@@ -1071,7 +1111,7 @@ def GetRegionSpectrum_v2(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin
         flux_sum = 0.
         flux_stat_err = 0.
         flux_syst_err = 0.
-        flux_sum, flux_stat_err, flux_syst_err = GetRegionIntegral(hist_data_skymap[ebin],hist_syst_skymap[ebin],hist_mask_skymap,roi_x,roi_y,roi_r[ebin])
+        flux_sum, flux_stat_err, flux_syst_err = GetRegionIntegral(hist_data_skymap[ebin],hist_syst_skymap[ebin],hist_mask_skymap,roi_x,roi_y,roi_r[ebin],excl_roi_x,excl_roi_y,excl_roi_r[ebin])
         x_axis += [0.5*(energy_bin[ebin]+energy_bin[ebin+1])]
         x_error += [0.5*(energy_bin[ebin+1]-energy_bin[ebin])]
         y_axis += [flux_sum]
@@ -1079,23 +1119,6 @@ def GetRegionSpectrum_v2(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin
         y_error += [flux_stat_err]
 
     return x_axis, x_error, y_axis, y_error
-
-def GetRegionSpectrum(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin_low,ebin_up,roi_x,roi_y,roi_r):
-
-    x_axis = []
-    y_axis = []
-    y_error = []
-    for ebin in range(ebin_low,ebin_up):
-        flux_sum = 0.
-        flux_stat_err = 0.
-        flux_syst_err = 0.
-        flux_sum, flux_stat_err, flux_syst_err = GetRegionIntegral(hist_data_skymap[ebin],hist_syst_skymap[ebin],hist_mask_skymap,roi_x,roi_y,roi_r)
-        x_axis += [energy_bin[ebin]]
-        y_axis += [flux_sum]
-        #y_error += [pow(flux_stat_err*flux_stat_err+flux_syst_err*flux_syst_err,0.5)]
-        y_error += [flux_stat_err]
-
-    return x_axis, y_axis, y_error
 
 def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
 
@@ -1198,10 +1221,12 @@ def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname,zmax=0,zmin=0
     cbar.set_label(label_z)
     
     if 'Matrix' in plotname:
-        x1, y1 = [-0.6, -0.6], [-0.6, 0.6]
-        x2, y2 = [-0.6, 0.6],  [0.6, 0.6]
-        x3, y3 = [0.6, 0.6],  [0.6, -0.6]
-        x4, y4 = [0.6, -0.6],  [-0.6, -0.6]
+        x_cut = 0.7
+        y_cut = 0.5
+        x1, y1 = [-x_cut, -x_cut], [-y_cut, y_cut]
+        x2, y2 = [-x_cut, x_cut],  [y_cut, y_cut]
+        x3, y3 = [x_cut, x_cut],  [y_cut, -y_cut]
+        x4, y4 = [x_cut, -x_cut],  [-y_cut, -y_cut]
         plt.plot(x1, y1, x2, y2, x3, y3, x4, y4, color='k')
 
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
@@ -1231,16 +1256,25 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     Old_MapEdge_size_x = Old_MapEdge_right-Old_MapEdge_center_x
     Old_MapEdge_size_y = Old_MapEdge_upper-Old_MapEdge_center_y
 
-    zoomin_frac = 1.0
-    map_nbins_x = int(Old_map_nbins_x*zoomin_frac)
-    map_nbins_y = int(Old_map_nbins_y*zoomin_frac)
-    MapEdge_left = Old_MapEdge_center_x-zoomin_frac*Old_MapEdge_size_x
-    MapEdge_right = Old_MapEdge_center_x+zoomin_frac*Old_MapEdge_size_x
-    MapEdge_lower = Old_MapEdge_center_y-zoomin_frac*Old_MapEdge_size_y
-    MapEdge_upper = Old_MapEdge_center_y+zoomin_frac*Old_MapEdge_size_y
+    map_bin_size = 2.*Old_MapEdge_size_x/float(Old_map_nbins_x)
+    map_nbins_x = 50
+    map_nbins_y = 50
+    MapEdge_left = Old_MapEdge_center_x-int(map_nbins_x/2)*map_bin_size
+    MapEdge_right = Old_MapEdge_center_x+int(map_nbins_x/2)*map_bin_size
+    MapEdge_lower = Old_MapEdge_center_y-int(map_nbins_y/2)*map_bin_size
+    MapEdge_upper = Old_MapEdge_center_y+int(map_nbins_y/2)*map_bin_size
+
+    #map_nbins_x = Old_map_nbins_x
+    #map_nbins_y = Old_map_nbins_y
+    #MapEdge_left = Old_MapEdge_left
+    #MapEdge_right = Old_MapEdge_right
+    #MapEdge_lower = Old_MapEdge_lower
+    #MapEdge_upper = Old_MapEdge_upper
 
     deg_per_bin = (MapEdge_right-MapEdge_left)/map_nbins_x
     nbins_per_deg = map_nbins_x/(MapEdge_right-MapEdge_left)
+    old_x_axis = np.linspace(Old_MapEdge_left,Old_MapEdge_right,Old_map_nbins_x)
+    old_y_axis = np.linspace(Old_MapEdge_lower,Old_MapEdge_upper,Old_map_nbins_y)
     x_axis = np.linspace(MapEdge_left,MapEdge_right,map_nbins_x)
     x_axis_sparse = np.linspace(MapEdge_left,MapEdge_right,5)
     x_axis_reflect = ["{:6.2f}".format(-1.*i) for i in x_axis_sparse]
@@ -1282,15 +1316,15 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     min_z = 0.
     for ybin in range(0,len(y_axis)):
         for xbin in range(0,len(x_axis)):
-            hist_bin_x = xbin+1
-            hist_bin_y = ybin+1
+            hist_bin_x = hist_map.GetXaxis().FindBin(x_axis[xbin])
+            hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
+            #hist_bin_x = xbin+1
+            #hist_bin_y = ybin+1
             if hist_bin_x<1: continue
             if hist_bin_y<1: continue
             if hist_bin_x>hist_map.GetNbinsX(): continue
             if hist_bin_y>hist_map.GetNbinsY(): continue
             grid_z[ybin,xbin] = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
-            #if fill_gaps and grid_z[ybin,xbin]==0.:
-            #    grid_z[ybin,xbin] = mean_z
             if max_z<hist_map.GetBinContent(hist_bin_x,hist_bin_y):
                 max_z = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
             if min_z>hist_map.GetBinContent(hist_bin_x,hist_bin_y):
@@ -1304,10 +1338,12 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         low_class_z_bins = 0.
         high_class_z = 0.
         high_class_z_bins = 0.
-        for ybin in range(0,len(y_axis)):
-            for xbin in range(0,len(x_axis)):
-                hist_bin_x = xbin+1
-                hist_bin_y = ybin+1
+        for ybin in range(0,len(old_y_axis)):
+            for xbin in range(0,len(old_x_axis)):
+                hist_bin_x = hist_map.GetXaxis().FindBin(old_x_axis[xbin])
+                hist_bin_y = hist_map.GetYaxis().FindBin(old_y_axis[ybin])
+                #hist_bin_x = xbin+1
+                #hist_bin_y = ybin+1
                 if hist_bin_x<1: continue
                 if hist_bin_y<1: continue
                 if hist_bin_x>hist_map.GetNbinsX(): continue
@@ -1319,7 +1355,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
                 if zscore>0.-0.5 and zscore<0.+0.5:
                     low_class_z += hist_map.GetBinContent(hist_bin_x,hist_bin_y)
                     low_class_z_bins += 1.
-                if zscore>max_zscore-1.:
+                if zscore>max_zscore-0.5:
                     high_class_z += hist_map.GetBinContent(hist_bin_x,hist_bin_y)
                     high_class_z_bins += 1.
         if mid_class_z_bins>0.:
@@ -1329,14 +1365,17 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         if high_class_z_bins>0.:
             high_class_z = high_class_z/high_class_z_bins
         min_z = low_class_z-(mid_class_z-low_class_z)
-        max_z = max(high_class_z*1.1,mid_class_z+(mid_class_z-low_class_z))
+        max_z = max(high_class_z*1.1,mid_class_z+2.*(mid_class_z-low_class_z))
 
     levels = np.arange(3.0, 6.0, 1.0)
+    #levels = np.arange(2.0, 6.0, 1.0)
 
     grid_contour = np.zeros((map_nbins_y, map_nbins_x))
     if not hist_contour==None:
         max_z_contour = 5.0
         if label_z!='Z score' and max_z>0.:
+            levels = np.arange(3.0*max_z/max_z_contour, 6.0*max_z/max_z_contour, 1.0*max_z/max_z_contour)
+        if 'SkymapFlux' in plotname and max_z>0.:
             levels = np.arange(3.0*max_z/max_z_contour, 6.0*max_z/max_z_contour, 1.0*max_z/max_z_contour)
         for ybin in range(0,len(y_axis)):
             for xbin in range(0,len(x_axis)):
@@ -1355,7 +1394,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     other_star_labels = []
     other_star_types = []
     other_star_markers = []
-    star_range = Skymap_size_x
+    star_range = 0.9*(MapEdge_right-MapEdge_left)/2.
     source_ra = (MapEdge_left+MapEdge_right)/2.
     source_dec = (MapEdge_lower+MapEdge_upper)/2.
     n_stars = 0
@@ -1410,18 +1449,18 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     for star in range(0,len(other_star_markers)):
         if other_star_types[star]=='PSR':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='lime', marker='^', label=other_star_labels[star])
-        if other_star_types[star]=='MSP':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='tomato', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='SNR':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='yellow', marker='^', label=other_star_labels[star])
-        if other_star_types[star]=='Fermi':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='cyan', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='HAWC':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='violet', marker='^', label=other_star_labels[star])
-        #if other_star_types[star]=='TeV':
-        #    axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='^', label=other_star_labels[star])
-        #if other_star_types[star]=='Star':
-        #    axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='o', label=other_star_labels[star])
+        if other_star_types[star]=='Fermi':
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='cyan', marker='^', label=other_star_labels[star])
+        if other_star_types[star]=='MSP':
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='tomato', marker='^', label=other_star_labels[star])
+        if other_star_types[star]=='TeV':
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='^', label=other_star_labels[star])
+        if other_star_types[star]=='Star':
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='o', label=other_star_labels[star])
         text_offset_x = 0.
         text_offset_y = 0.
         text_offset_x = 0.05
@@ -1431,22 +1470,21 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         if roi_r>0.:
             mycircle = plt.Circle((-roi_x, roi_y), roi_r, color='b', fill=False)
             axbig.add_patch(mycircle)
-        #if 'J1908' in plotname:
-        #    mycircle = plt.Circle((-286.975, 6.038), 0.43, color='g', fill=False) # PSR J1907+0602
-        #    axbig.add_patch(mycircle)
-        #    mycircle = plt.Circle((-286.786, 6.498), 0.39, color='r', fill=False) # SNR GG40.5-0.5
-        #    #mycircle = plt.Circle((-286.786, 6.498), 0.12, color='r', fill=False) # SNR GG40.5-0.5
-        #    axbig.add_patch(mycircle)
     divider = make_axes_locatable(axbig)
     cax = divider.append_axes("bottom", size="5%", pad=0.5)
     cbar = fig.colorbar(im,orientation="horizontal",cax=cax)
     cbar.set_label(label_z)
     axbig.set_xticks(x_axis_sparse)
     axbig.set_xticklabels(x_axis_reflect)
-    #axbig.legend(fontsize=7)
-    axbig.legend(bbox_to_anchor=(1.04, 1), borderaxespad=0, fontsize=7)
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
+    if 'SkymapZscore_Sum' in plotname:
+        axbig.legend(bbox_to_anchor=(1.04, 1), borderaxespad=0, fontsize=7)
+        fig.savefig("output_plots/%s_legend.png"%(plotname),bbox_inches='tight')
     axbig.remove()
+
+    if 'SkymapZscore_Sum' in plotname:
+        for star in range(0,len(other_star_markers)):
+            print ('%s'%(other_star_labels[star]))
 
     figsize_x = 6.4
     figsize_y = 4.8

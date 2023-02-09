@@ -1073,39 +1073,31 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     int matched_runnumber = 0;
     double match_chi2 = 1e10;
     double threshold_dElev = 2.0;
-    //double threshold_dAirmass = 0.2*threshold_scale;
-    //double threshold_dNSB = 0.2*threshold_scale;
     double threshold_dAirmass = 0.1; // for J1908 anlaysis
-    //double threshold_dAirmass = 0.4;
     double threshold_dNSB = 0.4; // for J1908 analysis
     double threshold_dAzim = 180.;
     double threshold_dMJD = 2.*365.;
     double threshold_dL3Rate = 50.;
 
     threshold_dAirmass = 0.3; // default, do not use for J1908 
-    threshold_dNSB = 1.0; // default, do not use for J1908
+    threshold_dElev = 10.;
     threshold_dAzim = 45.; // default, do not use for J1908
+    threshold_dNSB = 1.0; // default, do not use for J1908
     threshold_dMJD = 1000.*365.;
     threshold_dL3Rate = 10000.;
 
     if (!isImposter)
     {
-        threshold_dAirmass = 0.2; // default 
-        threshold_dNSB = 0.5; // default 
-        threshold_dAzim = 22.5; // default 
-        threshold_dMJD = 2.*365.;
-
-        // relaxed for LZA source, do not use!
-        //if (UseDL3Tree)
-        //{
-        //    threshold_dAirmass = 0.3; 
-        //    threshold_dNSB = 1.0; 
-        //    threshold_dAzim = 22.5;
-        //}
+        threshold_dAirmass = MatchRun_dElev; // default 
+        //threshold_dElev = MatchRun_dElev; // default 
+        threshold_dAzim = MatchRun_dAzim; // default 
+        threshold_dNSB = MatchRun_dNSB; // default 
+        threshold_dMJD = 100.*365.;
 
         if (MatchingSelection==1)
         {
             threshold_dAirmass = 1000.;
+            //threshold_dElev = 1000.;
         }
         if (MatchingSelection==2)
         {
@@ -1147,34 +1139,19 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         if (delta_azim>180.) delta_azim = 360.-delta_azim;
 
         if (delta_airmass>threshold_dAirmass) continue;
+        //if (delta_elev>threshold_dElev) continue;
         if (delta_nsb>threshold_dNSB) continue;
-
         if (delta_azim>threshold_dAzim) continue; //default, do not use for J1908
-        if (!isImposter)
-        {
-            if (delta_azim>threshold_dAzim) continue;
-        }
 
         if (delta_mjd>threshold_dMJD) continue;
         if (delta_l3rate>threshold_dL3Rate) continue;
 
-        //if (delta_elev>threshold_dElev) continue;
-        //
-        //double chi2 = pow(delta_nsb,2); // matrix method doesn't make good prediction when dNSB is large.
-        //double chi2 = pow(delta_airmass,2);
-        //double chi2 = pow(delta_mjd,2);
-        //double chi2 = pow(delta_l3rate,2);
         double chi2 = pow(delta_azim,2); // for J1908 analysis
 
         chi2 = pow(delta_airmass,2);  // default, do not use for J1908
-        if (!isImposter)
-        {
-            chi2 = pow(delta_airmass,2);  // default
-            if (MatchingSelection==1)
-            {
-                chi2 = pow(delta_nsb,2);
-            }
-        }
+        //chi2 = pow(delta_elev,2);
+        //chi2 = pow(2.*delta_elev,2)+pow(delta_azim,2);
+        //chi2 = pow(delta_mjd,2);
 
         if (chi2<match_chi2)
         {

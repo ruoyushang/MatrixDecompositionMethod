@@ -17,11 +17,23 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from itertools import cycle
 
+import matplotlib.pylab as pylab
+
+params = {'legend.fontsize': 'x-large',
+          'figure.figsize': (15, 5),
+         'axes.labelsize': 'x-large',
+         'axes.titlesize':'x-large',
+         'xtick.labelsize':'x-large',
+         'ytick.labelsize':'x-large'}
+pylab.rcParams.update(params)
+
 import CommonPlotFunctions
 
 fig, ax = plt.subplots()
+#figsize_x = 6.4
+#figsize_y = 6.4
 figsize_x = 6.4
-figsize_y = 4.8
+figsize_y = 4.2
 fig.set_figheight(figsize_y)
 fig.set_figwidth(figsize_x)
 
@@ -326,6 +338,8 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
     data_cnt_err = np.array(data_cnt_err)
     bkgd_cnt_err = np.array(bkgd_cnt_err)
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     axbig.bar(theta2, 2.*syst_cnt, bottom=bkgd_cnt-syst_cnt, width=1.*theta2_err, color='b', align='center', alpha=0.2)
     axbig.errorbar(theta2,data_cnt,data_cnt_err,color='k',marker='s',ls='none',label='Data')
@@ -901,34 +915,22 @@ def SumFluxMap():
     hist_bkgd_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_bkgd_flux_skymap_sum)
     CommonPlotFunctions.MatplotlibMap2D(hist_bkgd_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapBkgdFlux_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
-    hist_real_flux_skymap_sum.Reset()
-    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
-        hist_real_flux_skymap_sum.Add(hist_real_flux_skymap[ebin])
     hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_sum)
     CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_le)
 
-    hist_real_flux_skymap_sum.Reset()
-    for ebin in range(0,2):
-        hist_real_flux_skymap_sum.Add(hist_real_flux_skymap[ebin])
-    hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_sum)
+    hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_le)
     CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_E0to2_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_me)
 
-    hist_real_flux_skymap_sum.Reset()
-    for ebin in range(2,4):
-        hist_real_flux_skymap_sum.Add(hist_real_flux_skymap[ebin])
-    hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_sum)
+    hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_me)
     CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_E2to4_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_he)
 
-    hist_real_flux_skymap_sum.Reset()
-    for ebin in range(4,6):
-        hist_real_flux_skymap_sum.Add(hist_real_flux_skymap[ebin])
-    hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_sum)
+    hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_he)
     CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_E4to6_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 
@@ -961,13 +963,13 @@ def PrintSpectralDataForNaima(energy_axis,src_flux,src_flux_err,data_name):
     for eb in range(0,len(energy_axis)):
         print ('%.2f %.2f %.2f %.2e %.2e %s'%(energy_mean[eb],energy_edge_lo[eb],energy_edge_hi[eb],flux_mean[eb],flux_error[eb],0))
 
-def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
+def MakeSpectrum(roi_x,roi_y,roi_r,roi_name,excl_roi_x,excl_roi_y,excl_roi_r,excl_roi_name):
 
-    energy_axis, energy_error, real_flux, real_flux_stat_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_real_flux_skymap,hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r)
+    energy_axis, energy_error, real_flux, real_flux_stat_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_real_flux_skymap,hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r,excl_roi_x,excl_roi_y,excl_roi_r)
     imposter_flux_list = []
     imposter_flux_err_list = []
     for imposter in range(0,n_imposters):
-        energy_axis, energy_error, imposter_flux, imposter_flux_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_imposter_flux_skymap[imposter],hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r)
+        energy_axis, energy_error, imposter_flux, imposter_flux_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_imposter_flux_skymap[imposter],hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r,excl_roi_x,excl_roi_y,excl_roi_r)
         imposter_flux_list += [imposter_flux]
         imposter_flux_err_list += [imposter_flux_err]
 
@@ -982,13 +984,13 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
             syst_err = pow(syst_err/float(n_imposters),0.5)
         real_flux_syst_err += [syst_err]
 
-    energy_axis, energy_error, real_data, real_data_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_real_data_skymap,hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r)
+    energy_axis, energy_error, real_data, real_data_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_real_data_skymap,hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r,excl_roi_x,excl_roi_y,excl_roi_r)
 
     imposter_data_list = []
     imposter_bkgd_list = []
     for imposter in range(0,n_imposters):
-        energy_axis, energy_error, imposter_data, imposter_data_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_imposter_data_skymap[imposter],hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r)
-        energy_axis, energy_error, imposter_bkgd, imposter_bkgd_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_imposter_bkgd_skymap[imposter],hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r)
+        energy_axis, energy_error, imposter_data, imposter_data_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_imposter_data_skymap[imposter],hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r,excl_roi_x,excl_roi_y,excl_roi_r)
+        energy_axis, energy_error, imposter_bkgd, imposter_bkgd_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_imposter_bkgd_skymap[imposter],hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r,excl_roi_x,excl_roi_y,excl_roi_r)
         imposter_data_list += [imposter_data]
         imposter_bkgd_list += [imposter_bkgd]
     imposter_data_avg = []
@@ -1080,7 +1082,7 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         print ('=======================================================================')
         print ('new flux_calibration = %s'%(calibration_new))
         print ('=======================================================================')
-    if source_name=='MGRO_J1908':
+    if source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602':
         log_energy = np.linspace(log10(1e2),log10(1e5),50)
         xdata_ref = pow(10.,log_energy)
         vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
@@ -1211,6 +1213,8 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     uplims = np.array(uplims, dtype=bool)
 
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     cycol = cycle('rgbcmy')
     for imposter in range(0,n_imposters):
@@ -1225,6 +1229,8 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     axbig.remove()
 
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     cycol = cycle('rgbcmy')
     for imposter in range(0,n_imposters):
@@ -1242,6 +1248,8 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     axbig.remove()
 
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     cycol = cycle('rgbcmy')
     for imposter in range(0,n_imposters):
@@ -1258,13 +1266,15 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     axbig.remove()
 
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
-    if source_name=='MGRO_J1908':
+    if source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602':
 
         axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='b',marker='s',ls='none',label='Fermi',zorder=4)
         axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC',zorder=3)
         #axbig.errorbar(HESS_energies,HESS_fluxes,HESS_flux_errs,color='g',marker='s',ls='none',label='HESS',zorder=2)
-        axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS',zorder=1)
+        #axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS (2014)',zorder=1)
         axbig.errorbar(LHAASO_energies,LHAASO_fluxes,LHAASO_flux_errs,color='m',marker='s',ls='none',label='LHAASO',zorder=7)
 
         #axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)',zorder=2)
@@ -1273,9 +1283,11 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2, zorder=5)
         axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS (this work)',uplims=uplims,zorder=6)
 
-        PrintSpectralDataForNaima(energy_axis,real_flux_UL,real_flux_syst_err,'VERITAS')
+        real_flux_total_err = pow(real_flux_syst_err*real_flux_syst_err+real_flux_stat_err*real_flux_stat_err,0.5)
+        PrintSpectralDataForNaima(energy_axis,real_flux_UL,real_flux_total_err,'VERITAS')
         PrintSpectralDataForNaima(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,'Fermi')
         PrintSpectralDataForNaima(LHAASO_energies,LHAASO_fluxes,LHAASO_flux_errs,'LHAASO')
+        PrintSpectralDataForNaima(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,'HAWC')
 
     elif source_name=='HESS_J1825':
         axbig.errorbar(HESS_0p8_energies,HESS_0p8_fluxes,HESS_0p8_flux_errs,color='r',marker='s',ls='none',label='HESS 0.8-deg',zorder=1)
@@ -1346,8 +1358,10 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     axbig.remove()
 
 
-    energy_axis, energy_error, bkgd_flux, bkgd_flux_stat_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_bkgd_flux_skymap,hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r)
+    energy_axis, energy_error, bkgd_flux, bkgd_flux_stat_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_bkgd_flux_skymap,hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r,excl_roi_x,excl_roi_y,excl_roi_r)
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     axbig.errorbar(energy_axis,bkgd_flux,bkgd_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='bkg flux')
     axbig.set_xlabel('Energy [GeV]')
@@ -1360,6 +1374,8 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name):
     axbig.remove()
 
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     axbig.step(energy_axis, zscore, where='mid', color='b')
     axbig.set_xlabel('Energy [GeV]')
@@ -1421,7 +1437,7 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
         print ('=======================================================================')
         print ('(diffusion spectrum) new flux_calibration = %s'%(calibration_new))
         print ('=======================================================================')
-    if source_name=='MGRO_J1908':
+    if source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602':
         log_energy = np.linspace(log10(1e2),log10(1e5),50)
         xdata_ref = pow(10.,log_energy)
         vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
@@ -1470,12 +1486,14 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
     real_flux_stat_err = np.array(real_flux_stat_err)
     real_flux_syst_err = np.array(real_flux_syst_err)
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
-    if source_name=='MGRO_J1908':
+    if source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602':
         axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='b',marker='s',ls='none',label='Fermi',zorder=4)
         axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC',zorder=3)
         axbig.errorbar(HESS_energies,HESS_fluxes,HESS_flux_errs,color='g',marker='s',ls='none',label='HESS',zorder=2)
-        axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS',zorder=1)
+        #axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS (2014)',zorder=1)
         axbig.errorbar(LHAASO_energies,LHAASO_fluxes,LHAASO_flux_errs,color='m',marker='s',ls='none',label='LHAASO',zorder=7)
         #axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)',zorder=2)
         #axbig.fill_between(xdata_ref, ydata_hawc-0.15*ydata_hawc, ydata_hawc+0.15*ydata_hawc, alpha=0.2, color='r',zorder=1)
@@ -1577,6 +1595,8 @@ def MakeGalacticProfile(proj_type,axis_title,real_map,imposter_maps,erange_tag):
     real_profile_total_err = np.array(real_profile_total_err)
 
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     axbig.bar(theta2, 2.*real_profile_syst_err, bottom=-real_profile_syst_err, width=1.*theta2_err, color='b', align='center', alpha=0.2)
     axbig.errorbar(theta2,real_profile,real_profile_stat_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
@@ -1588,6 +1608,8 @@ def MakeGalacticProfile(proj_type,axis_title,real_map,imposter_maps,erange_tag):
     axbig.remove()
 
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     cycol = cycle('rgbcmy')
     axbig.bar(theta2, 2.*real_profile_syst_err, bottom=-real_profile_syst_err, width=1.*theta2_err, color='b', align='center', alpha=0.2)
@@ -1602,11 +1624,11 @@ def MakeGalacticProfile(proj_type,axis_title,real_map,imposter_maps,erange_tag):
 
 def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name,real_map,imposter_maps,erange_tag):
 
-    real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindExtension_v2(real_map,roi_x,roi_y,2.0*roi_r[2])
+    real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindExtension_v2(real_map,roi_x,roi_y,3.0*roi_r[2])
     imposter_profile_list = []
     imposter_profile_err_list = []
     for imposter in range(0,n_imposters):
-        imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindExtension_v2(imposter_maps[imposter],roi_x,roi_y,2.0*roi_r[2])
+        imposter_profile, imposter_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindExtension_v2(imposter_maps[imposter],roi_x,roi_y,3.0*roi_r[2])
         imposter_profile_list += [imposter_profile]
         imposter_profile_err_list += [imposter_profile_stat_err]
 
@@ -1654,6 +1676,8 @@ def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name,real_map,imposte
     #    print ('gauss radius = %0.2f +/- %0.2f deg (chi2/dof = %0.2f)'%(popt[1],pow(pcov[1][1],0.5),chisq/dof))
 
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     axbig.bar(theta2, 2.*real_profile_syst_err, bottom=-real_profile_syst_err, width=1.*theta2_err, color='b', align='center', alpha=0.2)
     axbig.errorbar(theta2,real_profile,real_profile_stat_err,color='k',marker='s',ls='none',label='%s-%s GeV'%(energy_bin[energy_bin_cut_low],energy_bin[energy_bin_cut_up]))
@@ -1667,6 +1691,8 @@ def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name,real_map,imposte
     axbig.remove()
 
     fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     cycol = cycle('rgbcmy')
     axbig.bar(theta2, 2.*real_profile_syst_err, bottom=-real_profile_syst_err, width=1.*theta2_err, color='b', align='center', alpha=0.2)
@@ -1714,17 +1740,16 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, norm_map, aeff_map, expo_map):
         for binx in range(0,bkgd_map[ebin].GetNbinsX()):
             for biny in range(0,bkgd_map[ebin].GetNbinsY()):
                 data_content = data_map[ebin].GetBinContent(binx+1,biny+1)
+                data_error = data_map[ebin].GetBinError(binx+1,biny+1)
                 bkgd_content = bkgd_map[ebin].GetBinContent(binx+1,biny+1)
                 norm_content = norm_map[0].GetBinContent(binx+1,biny+1)
                 expo_content = expo_map[ebin].GetBinContent(binx+1,biny+1)
                 aeff_content = aeff_map[ebin].GetBinContent(binx+1,biny+1)
 
-                #if aeff_content<10.: continue
-                #if expo_content<1.: continue
-                #if expo_content<expo_content_max*0.25: continue
-                #if norm_content==0.: continue
+                #if data_error*data_error<10.: continue
                 if norm_content==0.: continue
                 if norm_content/norm_content_max<0.1: continue
+                #if expo_content<5.: continue
 
                 if UseEffectiveArea:
                     norm_content = norm_content*3600.
@@ -1733,10 +1758,14 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, norm_map, aeff_map, expo_map):
                 else:
                     correction = GetFluxCalibration(ebin)
 
+                norm_ratio = norm_content/norm_content_max
+                norm_weight = 1./(1.+np.exp(-(norm_ratio-0.3)/0.1))
+                #norm_weight = 1./(1.+np.exp(-(norm_ratio-0.4)/0.1))
+                correction = correction*norm_weight
 
-                stat_data_err = data_map[ebin].GetBinError(binx+1,biny+1)
-                stat_bkgd_err = bkgd_map[ebin].GetBinError(binx+1,biny+1)
-                flux_stat_err = pow(stat_data_err*stat_data_err+stat_bkgd_err*stat_bkgd_err,0.5)/norm_content*correction*pow(energy_bin[ebin]/1e3,energy_index_scale)
+                stat_data_err = pow(max(data_content,0.),0.5)
+                #stat_data_err = data_error
+                flux_stat_err = max(stat_data_err,1.)/norm_content*correction*pow(energy_bin[ebin]/1e3,energy_index_scale)
                 flux_content = (data_content-bkgd_content)/norm_content*correction*pow(energy_bin[ebin]/1e3,energy_index_scale)
                 flux_map[ebin].SetBinContent(binx+1,biny+1,flux_content)
                 flux_map[ebin].SetBinError(binx+1,biny+1,flux_stat_err)
@@ -1988,6 +2017,10 @@ if use_rfov:
 MakeFluxMap(hist_bkgd_flux_skymap, hist_real_bkgd_skymap, hist_null_skymap, hist_real_norm_skymap, hist_real_Aeff_skymap, hist_real_expo_skymap)
 MakeFluxMap(hist_real_flux_skymap, hist_real_data_skymap, hist_real_bkgd_skymap, hist_real_norm_skymap, hist_real_Aeff_skymap, hist_real_expo_skymap)
 
+excl_region_x = MapCenter_x
+excl_region_y = MapCenter_y
+excl_region_r = [0.0 for element in range(len(energy_bin)-1)]
+excl_region_name = 'Center'
 region_x = MapCenter_x
 region_y = MapCenter_y
 region_r = [1.0 for element in range(len(energy_bin)-1)]
@@ -2068,7 +2101,7 @@ elif source_name=='SS433' and not CommonPlotFunctions.doGalacticCoord:
     #SS 433 e1
     region_x = 288.404
     region_y = 4.930
-    region_r = [0.5 for element in range(len(energy_bin)-1)]
+    region_r = [0.25 for element in range(len(energy_bin)-1)]
     region_name = 'SS433e1'
 
     ##SS 433 e2
@@ -2086,14 +2119,14 @@ elif source_name=='SS433' and not CommonPlotFunctions.doGalacticCoord:
 
     do_fit = 0
 
-elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
+elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not CommonPlotFunctions.doGalacticCoord:
     text_angle = 30.
 
     ##3HWC J1908+063, 287.05, 6.39 
-    region_x = 287.05
-    region_y = 6.39
-    region_r = [1.5 for element in range(len(energy_bin)-1)]
-    region_name = '3HWC'
+    #region_x = 287.05
+    #region_y = 6.39
+    #region_r = [1.5 for element in range(len(energy_bin)-1)]
+    #region_name = '3HWC'
 
     #Fermi J1906+0626
     #region_x = 286.88
@@ -2102,24 +2135,27 @@ elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
     #region_name = 'Fermi J1906+0626'
 
     ##PSR J1907+0602 # cover more exposure hours, allow larger radius
-    #region_x = 286.975
-    #region_y = 6.03777777778
-    #region_r = [1.5 for element in range(len(energy_bin)-1)]
-    #region_name = 'PSR'
+    region_x = 286.975
+    region_y = 6.03777777778
+    region_r = [1.5 for element in range(len(energy_bin)-1)]
+    region_name = 'PSR'
 
-    #North hot spot
-    #region_x = 286.8
-    #region_y = 7.1
-    #region_r = 0.3
-
-    #SS 433 e1
-    #region_x = 288.404
-    #region_y = 4.930
-    #region_r = 0.3
+    ##4FGL J1906.9+0712
+    excl_region_x = 286.7473
+    excl_region_y = 7.2165
+    excl_region_r = [0.3,0.3,0.0,0.0,0.0,0.0]
+    excl_region_name = 'North'
 
     do_fit = 1
 
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
+
+    Hist_Tobias = ROOT.TH2D("Hist_Tobias","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+    MWL_map_file = 'MWL_maps/tobias_map.fits'
+    Hist_Tobias = CommonPlotFunctions.GetFITSMap(MWL_map_file, Hist_Tobias, True)
+    Hist_Tobias_reflect = CommonPlotFunctions.reflectXaxis(Hist_Tobias)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_Tobias_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapTobias_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+
 
     #Hist_fermi5 = ROOT.TH2D("Hist_fermi5","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     #Hist_fermi5 = CommonPlotFunctions.GetSkyViewMap("MWL_maps/skv1826930706371_j1908_fermi5.txt", Hist_fermi5, True)
@@ -2148,13 +2184,14 @@ elif source_name=='MGRO_J1908' and not CommonPlotFunctions.doGalacticCoord:
     Hist_mc_column.Add(Hist_mc_intensity)
     Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
     Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapMolecularColumn_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_sum_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_le)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_le_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_me)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_me_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_he)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_he_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
-    Hist_Tobias = ROOT.TH2D("Hist_Tobias","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
-    MWL_map_file = 'MWL_maps/tobias_map.fits'
-    Hist_Tobias = CommonPlotFunctions.GetFITSMap(MWL_map_file, Hist_Tobias, True)
-    Hist_Tobias_reflect = CommonPlotFunctions.reflectXaxis(Hist_Tobias)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_Tobias_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapTobias_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 elif source_name=='IC443HotSpot':
     text_angle = 45.
@@ -2187,8 +2224,8 @@ elif source_name=='HESS_J1825':
     do_fit = 0
 elif source_name=='Boomerang' or source_name=='PSR_J2229_p6114':
     text_angle = 45.
-    region_x = 336.9958333
-    region_y = 60.8769444
+    region_x = 336.962
+    region_y = 61.0482
     region_r = [1.0 for element in range(len(energy_bin)-1)]
     region_name = 'Boomerang'
     do_fit = 0
@@ -2196,7 +2233,7 @@ elif 'LHAASO_J2032' in source_name or 'PSR_J2032_p4127' in source_name:
     text_angle = 45.
     region_x = 308.042
     region_y = 41.459
-    region_r = [0.3 for element in range(len(energy_bin)-1)]
+    region_r = [1.0 for element in range(len(energy_bin)-1)]
     region_name = 'PSR J2032+4127'
     do_fit = 1
 elif 'Tycho' in source_name:
@@ -2217,10 +2254,17 @@ elif 'Tycho' in source_name:
 
 elif 'PSR_J2021_p3651' in source_name:
     text_angle = 45.
-    region_x = 304.85
-    region_y = 36.80
-    region_r = [1.0 for element in range(len(energy_bin)-1)]
-    region_name = 'VER J2019+368'
+
+    #region_x = 304.85
+    #region_y = 36.80
+    #region_r = [1.0 for element in range(len(energy_bin)-1)]
+    #region_name = 'VER J2019+368'
+    #do_fit = 0
+
+    region_x = 305.27
+    region_y = 36.85
+    region_r = [0.14 for element in range(len(energy_bin)-1)]
+    region_name = 'PSR J2021+3651'
     do_fit = 0
 
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
@@ -2257,7 +2301,7 @@ else:
 MakeDiagnisticPlots()
 #CleanFluxMapNoise(hist_real_flux_skymap)
 SumFluxMap()
-MakeSpectrum(region_x,region_y,region_r,region_name)
+MakeSpectrum(region_x,region_y,region_r,region_name,excl_region_x,excl_region_y,excl_region_r,excl_region_name)
 MakeExtensionProfile(region_x,region_y,region_r,do_fit,region_name,hist_real_flux_skymap_sum,hist_imposter_flux_skymap_sum,'sum')
 MakeExtensionProfile(region_x,region_y,region_r,do_fit,region_name,hist_real_flux_skymap_le,hist_imposter_flux_skymap_le,'E0')
 MakeExtensionProfile(region_x,region_y,region_r,do_fit,region_name,hist_real_flux_skymap_me,hist_imposter_flux_skymap_me,'E2')
