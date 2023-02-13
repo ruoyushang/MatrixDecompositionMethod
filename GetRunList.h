@@ -112,6 +112,11 @@ pair<double,double> GetSourceRaDec(TString source_name)
         Source_RA = 106.095;
         Source_Dec = -6.287;
     }
+    if (source_name.Contains("SNR_G189_p03"))
+    {
+            Source_RA = 94.213;
+            Source_Dec = 22.503;
+    }
     if (source_name.Contains("SNR_G109_m01"))
     {
             Source_RA = 345.40;

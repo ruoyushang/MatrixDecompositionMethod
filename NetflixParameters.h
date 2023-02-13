@@ -5,7 +5,7 @@ int N_bins_for_deconv = 12;
 //double elbow_ratio[N_energy_bins] = {4.0,4.0,4.0,4.0,4.0,4.0}; // nominal
 //double elbow_ratio_single = 1.5;
 //double elbow_ratio[N_energy_bins] = {elbow_ratio_single,elbow_ratio_single,elbow_ratio_single,3.0,3.0,3.0};
-int matrix_rank[N_energy_bins] = {3,3,2,1,1,1};
+int matrix_rank[N_energy_bins] = {3,3,2,2,1,1};
 
 int MatchingSelection = 0; // default
 //int MatchingSelection = 1; // free elevation
@@ -15,11 +15,12 @@ int MatchingSelection = 0; // default
 //
 double MatchRun_dElev = 0.2;
 double MatchRun_dAzim = 22.5;
-double MatchRun_dNSB = 0.5;
+double MatchRun_dNSB = 1.0;
 
-double Log10_alpha_single = 0.0;
-double Log10_alpha[N_energy_bins] = {Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single};
-//double Log10_alpha[N_energy_bins] = {Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,Log10_alpha_single,-0.5,-0.5};
+double Log10_alpha_LE = 0.0;
+double Log10_alpha_ME = 0.5;
+double Log10_alpha_HE = 0.5;
+double Log10_alpha[N_energy_bins] = {Log10_alpha_LE,Log10_alpha_LE,Log10_alpha_ME,Log10_alpha_ME,Log10_alpha_HE,Log10_alpha_HE};
 
 double exposure_limit = 5.; // default
 //double exposure_limit = 10.; // default

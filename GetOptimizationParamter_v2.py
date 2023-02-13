@@ -16,10 +16,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from itertools import cycle
+from matplotlib import ticker
+
+import matplotlib.pylab as pylab
+params = {'legend.fontsize': 'x-large',
+          'figure.figsize': (15, 5),
+         'axes.labelsize': 'x-large',
+         'axes.titlesize':'x-large',
+         'xtick.labelsize':'x-large',
+         'ytick.labelsize':'x-large'}
+pylab.rcParams.update(params)
 
 import CommonPlotFunctions
 
 fig, ax = plt.subplots()
+figsize_x = 6.5
+figsize_y = 4.5
+fig.set_figheight(figsize_y)
+fig.set_figwidth(figsize_x)
 
 ROOT.gStyle.SetOptStat(0)
 ROOT.TH1.SetDefaultSumw2()
@@ -359,12 +373,14 @@ def MakeMultipleFitPlot(ax,Hists,legends,colors,title_x,title_y):
     cycol = cycle('brgcmk')
     for entry in range(0,len(Hists)):
         next_color = next(cycol)
+        bin_width = hist_xdata[entry][1]-hist_xdata[entry][0]
         #start = (50., 0., 0.1)
         #popt, pcov = curve_fit(gaussian_func, np.array(hist_xdata[entry]), np.array(hist_ydata[entry]), p0=start, sigma=np.array(hist_error[entry]))
         #xaxis = np.linspace(hist_xdata[entry][0],hist_xdata[entry][len(hist_xdata[entry])-1],50)
         #ax.plot(xaxis, gaussian_func(np.array(xaxis), *popt),color=next_color)
         #ax.errorbar(hist_xdata[entry], hist_ydata[entry], hist_error[entry], color=next_color, marker='s', ls='none', label='%s, $\mu = %0.3f$, $\sigma = %0.3f$'%(legends[entry],popt[1],popt[2]))
-        ax.errorbar(hist_xdata[entry], hist_ydata[entry], hist_error[entry], color=next_color, marker='s', ls='none', label='%s'%(legends[entry]))
+        #ax.errorbar(hist_xdata[entry], hist_ydata[entry], hist_error[entry], color=next_color, marker='s', ls='none', label='%s'%(legends[entry]))
+        ax.bar(hist_xdata[entry], hist_ydata[entry], color=next_color, ls='solid', label='%s'%(legends[entry]),width=bin_width,alpha=0.5)
 
     ax.legend(loc='best')
     ax.set_xlabel(title_x)
@@ -535,8 +551,8 @@ def MakeCorrelationPlot(list_var,ebin):
     plt.clf()
     x_var = mtx_var_data_good.transpose()[0]
     y_var = mtx_var_data_good.transpose()[1]
-    plt.xlabel("$t_{%s,%s}$ (arbitrary unit)"%(par1_row,par1_col), fontsize=16)
-    plt.ylabel("$t_{%s,%s}$ (arbitrary unit)"%(par2_row,par2_col), fontsize=16)
+    plt.xlabel("$t_{%s,%s}$ (arbitrary unit)"%(par1_row,par1_col))
+    plt.ylabel("$t_{%s,%s}$ (arbitrary unit)"%(par2_row,par2_col))
     plt.scatter(x_var,y_var,color='b',alpha=0.2)
 
     x_var = mtx_var_bkgd_good.transpose()[0]
@@ -897,12 +913,17 @@ for eb in range(0,len(energy_bin)-1):
     energy_dependent_singularvalue += [singularvalue_array]
 plt.clf()
 fig, ax = plt.subplots()
-plt.xlabel("rank $n$", fontsize=18)
-plt.ylabel("singular value $\sigma_{n}$", fontsize=18)
+figsize_x = 8.
+figsize_y = 6.
+fig.set_figheight(figsize_y)
+fig.set_figwidth(figsize_x)
+plt.xlabel("rank $n$")
+plt.ylabel("singular value $\sigma_{n}$")
 plt.yscale('log')
 for entry in range(0,len(energy_dependent_singularvalue)):
     plt.plot(energy_dependent_singularvalue[entry],marker='.',label='%s-%s GeV'%(energy_bin[entry],energy_bin[entry+1]))
 ax.legend(loc='best')
+ax.yaxis.set_label_coords(-.1, .5)
 plt.savefig("output_plots/MatrixSingularValue.png")
 
 energy_array = np.array(energy_bin)
@@ -942,8 +963,12 @@ for eb in range(0,len(energy_bin)-1):
     energy_dependent_stat += [epsilon_stat_avg]
 plt.clf()
 fig, ax = plt.subplots()
-plt.xlabel("Energy [GeV]", fontsize=18)
-plt.ylabel("RMS of $\\epsilon$", fontsize=18)
+figsize_x = 6.4
+figsize_y = 6.4
+fig.set_figheight(figsize_y)
+fig.set_figwidth(figsize_x)
+plt.xlabel("Energy [GeV]")
+plt.ylabel("RMS of $\\epsilon$")
 plt.yscale('log')
 plt.xscale('log')
 plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_rank0,marker='.',label='$n \leq 0$')
@@ -956,6 +981,7 @@ plt.savefig("output_plots/RankErrors.png")
 energy_array = np.array(energy_bin)
 energy_dependent_bkgd = []
 energy_dependent_syst = []
+energy_dependent_syst_err = []
 energy_dependent_stat = []
 energy_dependent_chi2 = []
 for eb in range(0,len(energy_bin)-1):
@@ -995,12 +1021,17 @@ for eb in range(0,len(energy_bin)-1):
         epsilon_stat_avg = pow(epsilon_stat_avg/n_entries,0.5)
     energy_dependent_bkgd += [epsilon_bkgd_avg]
     energy_dependent_syst += [pow(max(0.,pow(epsilon_bkgd_avg,2)-pow(epsilon_stat_avg,2)),0.5)]
+    energy_dependent_syst_err += [pow(max(0.,pow(epsilon_bkgd_avg,2)-pow(epsilon_stat_avg,2)),0.5)/pow(n_entries,0.5)]
     energy_dependent_stat += [epsilon_stat_avg]
     energy_dependent_chi2 += [pow(avg_sigma_chi2/n_entries,0.5)]
 plt.clf()
 fig, ax = plt.subplots()
-plt.xlabel("Energy [GeV]", fontsize=12)
-plt.ylabel("RMS of $\\epsilon$", fontsize=12)
+figsize_x = 6.4
+figsize_y = 6.4
+fig.set_figheight(figsize_y)
+fig.set_figwidth(figsize_x)
+plt.xlabel("Energy [GeV]")
+plt.ylabel("RMS of $\\epsilon$")
 plt.yscale('log')
 plt.xscale('log')
 plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_bkgd,marker='.',label='syst.+stat. unc.')
@@ -1035,34 +1066,38 @@ for eb in range(0,len(energy_bin)-1):
             Hist_Bkgd_Optimization_Mean[eb].SetBinContent(binx+1,biny+1,rms)
     CommonPlotFunctions.MatplotlibHist2D(Hist_Bkgd_Optimization_Mean[eb],fig,'log10 $\\beta_{11}$','log10 $\\beta_{22}$','RMS of $\\epsilon$','Optimization_E%s_%s_%s'%(eb,background_type,observing_condition))
 
+nbins = 20
+hist_limit_le = 0.05
+hist_limit_me = 0.10
+hist_limit_he = 0.40
 Hist_SystErrDist_MDM = []
 Hist_SystErrDist_Init = []
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E0","",21,-0.1,0.1)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E0","",21,-0.1,0.1)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E1","",21,-0.1,0.1)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E1","",21,-0.1,0.1)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E2","",21,-0.1,0.1)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E2","",21,-0.1,0.1)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E3","",21,-0.2,0.2)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E3","",21,-0.2,0.2)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E4","",21,-0.2,0.2)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E4","",21,-0.2,0.2)]
-Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E5","",21,-0.4,0.4)]
-Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E5","",21,-0.4,0.4)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E0","",nbins,-hist_limit_le,hist_limit_le)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E0","",nbins,-hist_limit_le,hist_limit_le)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E1","",nbins,-hist_limit_le,hist_limit_le)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E1","",nbins,-hist_limit_le,hist_limit_le)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E2","",nbins,-hist_limit_me,hist_limit_me)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E2","",nbins,-hist_limit_me,hist_limit_me)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E3","",nbins,-hist_limit_me,hist_limit_me)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E3","",nbins,-hist_limit_me,hist_limit_me)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E4","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E4","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E5","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E5","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_MDM = []
 Hist_Imposter_SystErrDist_Init = []
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E0","",21,-0.1,0.1)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E0","",21,-0.1,0.1)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E1","",21,-0.1,0.1)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E1","",21,-0.1,0.1)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E2","",21,-0.1,0.1)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E2","",21,-0.1,0.1)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E3","",21,-0.2,0.2)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E3","",21,-0.2,0.2)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E4","",21,-0.2,0.2)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E4","",21,-0.2,0.2)]
-Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E5","",21,-0.4,0.4)]
-Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E5","",21,-0.4,0.4)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E0","",nbins,-hist_limit_le,hist_limit_le)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E0","",nbins,-hist_limit_le,hist_limit_le)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E1","",nbins,-hist_limit_le,hist_limit_le)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E1","",nbins,-hist_limit_le,hist_limit_le)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E2","",nbins,-hist_limit_me,hist_limit_me)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E2","",nbins,-hist_limit_me,hist_limit_me)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E3","",nbins,-hist_limit_me,hist_limit_me)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E3","",nbins,-hist_limit_me,hist_limit_me)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E4","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E4","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E5","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E5","",nbins,-hist_limit_he,hist_limit_he)]
 
 for eb in range(0,len(energy_bin)-1):
     Hist_SystErrDist_MDM[eb].Reset()
@@ -1158,7 +1193,8 @@ for eb in range(0,len(energy_bin)-1):
     colors = []
     if analysis_type=='Solo' and background_type=='Matrix':
         Hists += [Hist_SystErrDist_Init[eb]]
-        legends += ['%0.2f-%0.2f TeV, ON/OFF, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,Init_rms,Init_rms/pow(n_entries,0.5))]
+        #legends += ['%0.2f-%0.2f TeV, ON/OFF, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,Init_rms,Init_rms/pow(n_entries,0.5))]
+        legends += ['ON/OFF, RMS = $%0.3f \pm %0.3f$'%(Init_rms,Init_rms/pow(n_entries,0.5))]
         colors += [2]
         Hists += [Hist_SystErrDist_MDM[eb]]
         legends += ['Matrix method, RMS = $%0.3f \pm %0.3f$'%(MDM_rms,MDM_rms/pow(n_entries,0.5))]
@@ -1175,6 +1211,10 @@ for eb in range(0,len(energy_bin)-1):
         legends += ['mimic data (entries scaled by 1/5), RMS = $%0.3f \pm %0.3f$'%(MDM_rms_imposter,MDM_rms_imposter/pow(n_entries_imposter,0.5))]
         colors += [2]
     fig.clf()
+    figsize_x = 6.5
+    figsize_y = 4.5
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     ax = fig.add_subplot()
     MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error $\epsilon$','number of entries')
     fig.savefig("output_plots/SystErrDist_E%s_Expo%s_%s_%s_%s.png"%(eb,expo_hours_per_entry,background_type,observing_condition,folder_path))
@@ -1200,9 +1240,14 @@ for eb in range(0,len(energy_bin)-1):
 #                        #good_var_pair += [list_var_pair]
 #                        #good_eigenvalue += [max_eigenvalue]
 
+energy_dependent_syst = np.array(energy_dependent_syst)
+energy_dependent_syst_err = np.array(energy_dependent_syst_err)
+energy_dependent_chi2 = np.array(energy_dependent_chi2)
+np.set_printoptions(formatter={'float': lambda x: "{0:0.4f},".format(x)})
 print ('energy_bin = %s'%(energy_bin))
-print ('energy_dependent_syst = %s'%(energy_dependent_syst))
-print ('energy_dependent_chi2 = %s'%(energy_dependent_chi2))
+print ('syst     = %s'%(energy_dependent_syst))
+print ('syst_err = %s'%(energy_dependent_syst_err))
+print ('chi2     = %s'%(energy_dependent_chi2))
 
 output_txt = open('output_plots/syst_%s_%s.txt'%(folder_path,background_type), 'w')
 output_txt.write('syst = %s \n'%(energy_dependent_syst))

@@ -129,25 +129,9 @@ void ResetPublicVariables(TString target_name)
         MatchingSelection = 4;
     }
 
-    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dEl_03")
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dEl_0p2")
     {
-        MatchRun_dElev = 3.;
-    }
-    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dEl_05")
-    {
-        MatchRun_dElev = 5.;
-    }
-    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dEl_10")
-    {
-        MatchRun_dElev = 10.;
-    }
-    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dEl_20")
-    {
-        MatchRun_dElev = 20.;
-    }
-    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dEl_40")
-    {
-        MatchRun_dElev = 40.;
+        MatchRun_dElev = 0.2;
     }
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_05")
     {

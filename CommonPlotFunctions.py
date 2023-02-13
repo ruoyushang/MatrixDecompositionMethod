@@ -21,9 +21,14 @@ from scipy.optimize import curve_fit
 from itertools import cycle
 from matplotlib import cm
 from matplotlib.colors import ListedColormap,LinearSegmentedColormap
+from matplotlib import ticker
 from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import NullFormatter
 from operator import itemgetter, attrgetter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+# Great examples of matplotlib plots: https://atmamani.github.io/cheatsheets/matplotlib/matplotlib_2/
+
 
 #folder_path = 'output_test'
 folder_path = 'output_default'
@@ -38,29 +43,34 @@ folder_path = 'output_default'
 #folder_path = 'output_10hrs'
 #folder_path = 'output_20hrs'
 
-#folder_path = 'output_4x4'
-#folder_path = 'output_6x6'
-#folder_path = 'output_8x8'
-#folder_path = 'output_12x12'
-#folder_path = 'output_16x16'
-#folder_path = 'output_20x20'
-
 #folder_path = 'output_FreeElev'
 #folder_path = 'output_FreeAzim'
 #folder_path = 'output_FreeNSB'
 #folder_path = 'output_FreeMJD'
-
-#folder_path = 'output_dAz_05'
-#folder_path = 'output_dAz_10'
-#folder_path = 'output_dAz_15'
-#folder_path = 'output_dAz_20'
-#folder_path = 'output_dAz_25'
 
 #folder_path = 'output_elbow1p2'
 #folder_path = 'output_elbow1p5'
 #folder_path = 'output_elbow2p0'
 #folder_path = 'output_elbow2p5'
 #folder_path = 'output_elbow3p0'
+
+#folder_path = 'output_6x6'
+#folder_path = 'output_8x8'
+#folder_path = 'output_12x12'
+#folder_path = 'output_16x16'
+#folder_path = 'output_20x20'
+
+#folder_path = 'output_dAz_05'
+#folder_path = 'output_dAz_10'
+#folder_path = 'output_dAz_20'
+#folder_path = 'output_dAz_40'
+#folder_path = 'output_dAz_80'
+
+#folder_path = 'output_dNSB_0p5'
+#folder_path = 'output_dNSB_1p0'
+#folder_path = 'output_dNSB_1p5'
+#folder_path = 'output_dNSB_2p0'
+#folder_path = 'output_dNSB_2p5'
 
 #folder_path = 'output_LogAlpha_m1p5'
 #folder_path = 'output_LogAlpha_m1p0'
@@ -98,8 +108,8 @@ if 'tight' in folder_path:
 skymap_zoomin_scale = 1
 #skymap_zoomin_scale = 1.5
 #skymap_zoomin_scale = 2
-#smooth_size_spectroscopy = 0.1
-smooth_size_spectroscopy = 0.14
+smooth_size_spectroscopy = 0.1
+#smooth_size_spectroscopy = 0.14
 #smooth_size_spectroscopy = 0.2
 #smooth_size_spectroscopy = 0.3
 
@@ -322,6 +332,77 @@ def ConvertRaDecToGalactic(ra, dec):
     l = (l_NCP-ROOT.TMath.ATan2(sin_l_NCP_m_l,cos_l_NCP_m_l))*180./ROOT.TMath.Pi()
     return l, b
 
+def FindCountProjection(Hist_Data_input,proj_type="Y"):
+
+    n_bins_y = Hist_Data_input.GetNbinsY()
+    n_bins_x = Hist_Data_input.GetNbinsX()
+    #n_bins_y = 15
+    #n_bins_x = 15
+    MapEdge_left = Hist_Data_input.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = Hist_Data_input.GetXaxis().GetBinLowEdge(Hist_Data_input.GetNbinsX()+1)
+    MapEdge_lower = Hist_Data_input.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = Hist_Data_input.GetYaxis().GetBinLowEdge(Hist_Data_input.GetNbinsY()+1)
+
+    MapCenter_x = (MapEdge_left+MapEdge_right)/2.
+    if proj_type=="X":
+        MapCenter_x = (MapEdge_upper+MapEdge_lower)/2.
+
+    hist_nbins = n_bins_y
+    hist_edge_lower = MapEdge_lower
+    hist_edge_upper = MapEdge_upper
+    if proj_type=="X":
+        hist_nbins = n_bins_x
+        hist_edge_lower = MapEdge_left
+        hist_edge_upper = MapEdge_right
+    Hist_Profile_Y = ROOT.TH1D("Hist_Profile_Y","",hist_nbins,hist_edge_lower,hist_edge_upper)
+    for br in range(0,Hist_Profile_Y.GetNbinsX()):
+        range_limit = Hist_Profile_Y.GetBinLowEdge(br+2)
+        range_limit_previous = Hist_Profile_Y.GetBinLowEdge(br+1)
+        slice_data = 0.
+        slice_data_err = 0.
+        total_error_weight = 0.
+        total_cell_size = 0.
+        for bx in range(0,Hist_Data_input.GetNbinsX()):
+            for by in range(0,Hist_Data_input.GetNbinsY()):
+                cell_x = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
+                cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
+                if proj_type=="X":
+                    cell_y = Hist_Data_input.GetXaxis().GetBinCenter(bx+1)
+                    cell_x = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
+                data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
+                data_error = Hist_Data_input.GetBinError(bx+1,by+1)
+                if abs(MapCenter_x-cell_x)>2.0: continue
+                if cell_y>=range_limit_previous and cell_y<range_limit:
+                    if not data_error==0.:
+                        total_cell_size += 1.
+                        slice_data += data_content
+                        slice_data_err += data_error*data_error
+        if total_cell_size==0.: 
+            slice_data = 0.
+            slice_data_err = 0.
+        else:
+            slice_data = slice_data
+            slice_data_err = pow(slice_data_err,0.5)
+        Hist_Profile_Y.SetBinContent(br+1,slice_data)
+        Hist_Profile_Y.SetBinError(br+1,slice_data_err)
+
+    profile = []
+    profile_err = []
+    theta2 = []
+    theta2_err = []
+    for binx in range(0,Hist_Profile_Y.GetNbinsX()):
+        center = Hist_Profile_Y.GetBinCenter(binx+1)
+        range_limit = Hist_Profile_Y.GetBinLowEdge(binx+2)
+        range_limit_previous = Hist_Profile_Y.GetBinLowEdge(binx+1)
+        profile_content = Hist_Profile_Y.GetBinContent(binx+1)
+        profile_error = Hist_Profile_Y.GetBinError(binx+1)
+        theta2 += [center]
+        theta2_err += [range_limit-range_limit_previous]
+        profile += [profile_content]
+        profile_err += [profile_error]
+
+    return profile, profile_err, theta2, theta2_err
+
 def FindGalacticProjection_v2(Hist_Data_input,proj_type="Y"):
 
     #n_bins_y = Hist_Data_input.GetNbinsY()
@@ -430,9 +511,11 @@ def FindExtension_v1(Hist_Data_input,Hist_Bkgd_input,roi_x,roi_y,integration_ran
                 cell_y = Hist_Data_input.GetYaxis().GetBinCenter(by+1)
                 distance_sq = pow(cell_x-roi_x,2)+pow(cell_y-roi_y,2)
                 data_content = Hist_Data_input.GetBinContent(bx+1,by+1)
-                data_error = Hist_Data_input.GetBinError(bx+1,by+1)
+                #data_error = Hist_Data_input.GetBinError(bx+1,by+1)
+                data_error = pow(Hist_Data_input.GetBinContent(bx+1,by+1),0.5)
                 bkgd_content = Hist_Bkgd_input.GetBinContent(bx+1,by+1)
-                bkgd_error = Hist_Bkgd_input.GetBinError(bx+1,by+1)
+                #bkgd_error = Hist_Bkgd_input.GetBinError(bx+1,by+1)
+                bkgd_error = pow(Hist_Bkgd_input.GetBinContent(bx+1,by+1),0.5)
                 if distance_sq>=pow(range_limit_previous,2) and distance_sq<pow(range_limit,2):
                     if not data_error==0.:
                         slice_data += data_content
@@ -486,8 +569,8 @@ def FindExtension_v2(Hist_Data_input,roi_x,roi_y,integration_range):
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
     integration_range = min(integration_range,2.0)
-    n_bins_1d = 5
-    #n_bins_1d = 10
+    #n_bins_1d = 5
+    n_bins_1d = 10
 
     n_bins_y = Hist_Data_input.GetNbinsY()
     n_bins_x = Hist_Data_input.GetNbinsX()
@@ -948,9 +1031,9 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
     near_source_cut = 0.1
 
     drawBrightStar = False
-    drawPulsar = True
-    drawSNR = False
-    drawFermi = True
+    drawPulsar = False
+    drawSNR = True
+    drawFermi = False
     drawHAWC = False
     drawTeV = False
 
@@ -1210,6 +1293,10 @@ def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname,zmax=0,zmin=0
                 max_z = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
 
     fig.clf()
+    figsize_x = 6.
+    figsize_y = 6.
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     axbig.set_xlabel(label_x)
     axbig.set_ylabel(label_y)
@@ -1217,9 +1304,7 @@ def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname,zmax=0,zmin=0
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=0)
     else:
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=0,vmin=zmin,vmax=zmax)
-    cbar = fig.colorbar(im)
-    cbar.set_label(label_z)
-    
+
     if 'Matrix' in plotname:
         x_cut = 0.7
         y_cut = 0.5
@@ -1229,8 +1314,155 @@ def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname,zmax=0,zmin=0
         x4, y4 = [x_cut, -x_cut],  [-y_cut, -y_cut]
         plt.plot(x1, y1, x2, y2, x3, y3, x4, y4, color='k')
 
+    #divider = make_axes_locatable(axbig)
+    #cax = divider.append_axes("bottom", size="5%", pad=0.7)
+    #cbar = fig.colorbar(im,orientation="horizontal",cax=cax)
+    #cbar.set_label(label_z)
+    
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
     axbig.remove()
+
+def BackgroundSubtractMap(fig,hist_data,hist_bkgd,label_x,label_y,label_z,plotname):
+
+    colormap = 'coolwarm'
+
+    Old_map_nbins_x = hist_data.GetNbinsX()
+    Old_map_nbins_y = hist_data.GetNbinsY()
+    Old_MapEdge_left = hist_data.GetXaxis().GetBinLowEdge(1)
+    Old_MapEdge_right = hist_data.GetXaxis().GetBinLowEdge(hist_data.GetNbinsX()+1)
+    Old_MapEdge_lower = hist_data.GetYaxis().GetBinLowEdge(1)
+    Old_MapEdge_upper = hist_data.GetYaxis().GetBinLowEdge(hist_data.GetNbinsY()+1)
+    Old_MapEdge_center_x = 0.5*(Old_MapEdge_left+Old_MapEdge_right)
+    Old_MapEdge_center_y = 0.5*(Old_MapEdge_lower+Old_MapEdge_upper)
+    Old_MapEdge_size_x = Old_MapEdge_right-Old_MapEdge_center_x
+    Old_MapEdge_size_y = Old_MapEdge_upper-Old_MapEdge_center_y
+
+    map_bin_size = 2.*Old_MapEdge_size_x/float(Old_map_nbins_x)
+    map_nbins_x = 50
+    map_nbins_y = 50
+    MapEdge_left = Old_MapEdge_center_x-int(map_nbins_x/2)*map_bin_size
+    MapEdge_right = Old_MapEdge_center_x+int(map_nbins_x/2)*map_bin_size
+    MapEdge_lower = Old_MapEdge_center_y-int(map_nbins_y/2)*map_bin_size
+    MapEdge_upper = Old_MapEdge_center_y+int(map_nbins_y/2)*map_bin_size
+
+    deg_per_bin = (MapEdge_right-MapEdge_left)/map_nbins_x
+    nbins_per_deg = map_nbins_x/(MapEdge_right-MapEdge_left)
+    old_x_axis = np.linspace(Old_MapEdge_left,Old_MapEdge_right,Old_map_nbins_x)
+    old_y_axis = np.linspace(Old_MapEdge_lower,Old_MapEdge_upper,Old_map_nbins_y)
+    x_axis = np.linspace(MapEdge_left,MapEdge_right,map_nbins_x)
+    x_axis_sparse = np.linspace(MapEdge_left,MapEdge_right,5)
+    x_axis_reflect = ["{:6.1f}".format(-1.*i) for i in x_axis_sparse]
+    y_axis = np.linspace(MapEdge_lower,MapEdge_upper,map_nbins_y)
+
+    grid_data = np.zeros((map_nbins_y, map_nbins_x))
+    grid_bkgd = np.zeros((map_nbins_y, map_nbins_x))
+    grid_excs = np.zeros((map_nbins_y, map_nbins_x))
+    for ybin in range(0,len(y_axis)):
+        for xbin in range(0,len(x_axis)):
+            #hist_bin_x = hist_data.GetXaxis().FindBin(x_axis[xbin])
+            #hist_bin_y = hist_data.GetYaxis().FindBin(y_axis[ybin])
+            hist_bin_x = xbin+1
+            hist_bin_y = ybin+1
+            if hist_bin_x<1: continue
+            if hist_bin_y<1: continue
+            if hist_bin_x>hist_data.GetNbinsX(): continue
+            if hist_bin_y>hist_data.GetNbinsY(): continue
+            grid_data[ybin,xbin] = hist_data.GetBinContent(hist_bin_x,hist_bin_y)
+            grid_bkgd[ybin,xbin] = hist_bkgd.GetBinContent(hist_bin_x,hist_bin_y)
+            grid_excs[ybin,xbin] = hist_data.GetBinContent(hist_bin_x,hist_bin_y)-hist_bkgd.GetBinContent(hist_bin_x,hist_bin_y)
+
+    # Define the locations for the axes
+    left, width = 0.12, 0.6
+    bottom, height = 0.12, 0.6
+    bottom_h = bottom+height+0.03
+    left_h = left+width+0.03
+     
+    # Set up the geometry of the three plots
+    rect_temperature = [left, bottom, width, height] # dimensions of temp plot
+    rect_histx = [left, bottom_h, width, 0.20] # dimensions of x-histogram
+    rect_histy = [left_h, bottom, 0.20, height] # dimensions of y-histogram
+
+    # Set up the size of the figure
+    #fig = plt.figure(1, figsize=(9.5,9))
+    fig = plt.figure(1)
+    fig.set_figheight(8)
+    fig.set_figwidth(8)
+
+    fig.clf()
+    # Make the three plots
+    axTemperature = plt.axes(rect_temperature) # temperature plot
+    axHistx = plt.axes(rect_histx) # x histogram
+    axHisty = plt.axes(rect_histy) # y histogram
+
+    # Remove the inner axes numbers of the histograms
+    nullfmt = NullFormatter()
+    axHistx.xaxis.set_major_formatter(nullfmt)
+    axHisty.yaxis.set_major_formatter(nullfmt)
+
+    # Plot the temperature data
+    cax = (axTemperature.imshow(grid_data, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()), origin='lower', cmap=colormap))
+
+    #Plot the axes labels
+    axTemperature.set_xlabel(label_x)
+    axTemperature.set_ylabel(label_y)
+    axTemperature.set_xticks(x_axis_sparse)
+    axTemperature.set_xticklabels(x_axis_reflect)
+
+    x_profile, x_profile_stat_err, x_ax, x_ax_err = FindCountProjection(hist_data,proj_type='X')
+    y_profile, y_profile_stat_err, y_ax, y_ax_err = FindCountProjection(hist_data,proj_type='Y')
+    x_bkgd_profile, x_bkgd_profile_stat_err, x_ax, x_ax_err = FindCountProjection(hist_bkgd,proj_type='X')
+    y_bkgd_profile, y_bkgd_profile_stat_err, y_ax, y_ax_err = FindCountProjection(hist_bkgd,proj_type='Y')
+    #Plot the histograms
+    axHistx.errorbar(x_ax,x_profile,yerr=x_profile_stat_err,color='k',marker='.',ls='none')
+    axHisty.errorbar(y_profile,y_ax,xerr=y_profile_stat_err,color='k',marker='.',ls='none')
+    axHistx.plot(x_ax,x_bkgd_profile,color='r',ls='solid')
+    axHisty.plot(y_bkgd_profile,y_ax,color='r',ls='solid')
+    formatter = ticker.ScalarFormatter(useMathText=True)
+    formatter.set_scientific(True)
+    formatter.set_powerlimits((-1,1))
+    axHistx.yaxis.set_major_formatter(formatter)
+    axHisty.xaxis.set_major_formatter(formatter)
+
+    fig.savefig("output_plots/%s_Before.png"%(plotname),bbox_inches='tight')
+
+    fig.clf()
+    # Make the three plots
+    axTemperature = plt.axes(rect_temperature) # temperature plot
+    axHistx = plt.axes(rect_histx) # x histogram
+    axHisty = plt.axes(rect_histy) # y histogram
+
+    # Remove the inner axes numbers of the histograms
+    nullfmt = NullFormatter()
+    axHistx.xaxis.set_major_formatter(nullfmt)
+    axHisty.yaxis.set_major_formatter(nullfmt)
+
+    # Plot the temperature data
+    cax = (axTemperature.imshow(grid_excs, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()), origin='lower', cmap=colormap))
+
+    #Plot the axes labels
+    axTemperature.set_xlabel(label_x)
+    axTemperature.set_ylabel(label_y)
+    axTemperature.set_xticks(x_axis_sparse)
+    axTemperature.set_xticklabels(x_axis_reflect)
+
+    nbins = hist_data.GetNbinsX()
+    MapEdge_left = hist_data.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = hist_data.GetXaxis().GetBinLowEdge(hist_data.GetNbinsX()+1)
+    MapEdge_bottom = hist_data.GetYaxis().GetBinLowEdge(1)
+    MapEdge_top = hist_data.GetYaxis().GetBinLowEdge(hist_data.GetNbinsY()+1)
+    hist_excs = ROOT.TH2D("hist_excs","",nbins,MapEdge_left,MapEdge_right,nbins,MapEdge_bottom,MapEdge_top)
+    hist_excs.Reset()
+    hist_excs.Add(hist_data)
+    hist_excs.Add(hist_bkgd,-1.)
+
+    x_profile, x_profile_stat_err, x_ax, x_ax_err = FindCountProjection(hist_excs,proj_type='X')
+    y_profile, y_profile_stat_err, y_ax, y_ax_err = FindCountProjection(hist_excs,proj_type='Y')
+    #Plot the histograms
+    axHistx.errorbar(x_ax,x_profile,yerr=x_profile_stat_err,color='k',marker='.',ls='none')
+    axHisty.errorbar(y_profile,y_ax,xerr=y_profile_stat_err,color='k',marker='.',ls='none')
+
+    fig.savefig("output_plots/%s_After.png"%(plotname),bbox_inches='tight')
+
 
 def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,roi_x=0.,roi_y=0.,roi_r=0.,rotation_angle=0.,fill_gaps=False,prime_psr_name=None,prime_psr_ra=None,prime_psr_dec=None):
 
@@ -1245,48 +1477,38 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     orange_blue = ListedColormap(newcolors, name='OrangeBlue')
     colormap = 'coolwarm'
 
-    Old_map_nbins_x = hist_map.GetNbinsX()
-    Old_map_nbins_y = hist_map.GetNbinsY()
-    Old_MapEdge_left = hist_map.GetXaxis().GetBinLowEdge(1)
-    Old_MapEdge_right = hist_map.GetXaxis().GetBinLowEdge(hist_map.GetNbinsX()+1)
-    Old_MapEdge_lower = hist_map.GetYaxis().GetBinLowEdge(1)
-    Old_MapEdge_upper = hist_map.GetYaxis().GetBinLowEdge(hist_map.GetNbinsY()+1)
-    Old_MapEdge_center_x = 0.5*(Old_MapEdge_left+Old_MapEdge_right)
-    Old_MapEdge_center_y = 0.5*(Old_MapEdge_lower+Old_MapEdge_upper)
-    Old_MapEdge_size_x = Old_MapEdge_right-Old_MapEdge_center_x
-    Old_MapEdge_size_y = Old_MapEdge_upper-Old_MapEdge_center_y
-
-    map_bin_size = 2.*Old_MapEdge_size_x/float(Old_map_nbins_x)
-    map_nbins_x = 50
-    map_nbins_y = 50
-    MapEdge_left = Old_MapEdge_center_x-int(map_nbins_x/2)*map_bin_size
-    MapEdge_right = Old_MapEdge_center_x+int(map_nbins_x/2)*map_bin_size
-    MapEdge_lower = Old_MapEdge_center_y-int(map_nbins_y/2)*map_bin_size
-    MapEdge_upper = Old_MapEdge_center_y+int(map_nbins_y/2)*map_bin_size
-
-    #map_nbins_x = Old_map_nbins_x
-    #map_nbins_y = Old_map_nbins_y
-    #MapEdge_left = Old_MapEdge_left
-    #MapEdge_right = Old_MapEdge_right
-    #MapEdge_lower = Old_MapEdge_lower
-    #MapEdge_upper = Old_MapEdge_upper
+    map_nbins_x = hist_map.GetNbinsX()
+    map_nbins_y = hist_map.GetNbinsY()
+    MapEdge_left = hist_map.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = hist_map.GetXaxis().GetBinLowEdge(hist_map.GetNbinsX()+1)
+    MapEdge_lower = hist_map.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = hist_map.GetYaxis().GetBinLowEdge(hist_map.GetNbinsY()+1)
 
     deg_per_bin = (MapEdge_right-MapEdge_left)/map_nbins_x
     nbins_per_deg = map_nbins_x/(MapEdge_right-MapEdge_left)
-    old_x_axis = np.linspace(Old_MapEdge_left,Old_MapEdge_right,Old_map_nbins_x)
-    old_y_axis = np.linspace(Old_MapEdge_lower,Old_MapEdge_upper,Old_map_nbins_y)
     x_axis = np.linspace(MapEdge_left,MapEdge_right,map_nbins_x)
     x_axis_sparse = np.linspace(MapEdge_left,MapEdge_right,5)
     x_axis_reflect = ["{:6.2f}".format(-1.*i) for i in x_axis_sparse]
     y_axis = np.linspace(MapEdge_lower,MapEdge_upper,map_nbins_y)
+
+    MapWidth = (MapEdge_right-MapEdge_left)/2.
+    MapHeight = (MapEdge_upper-MapEdge_lower)/2.
+    New_MapEdge_left = MapEdge_left+0.5*MapWidth
+    New_MapEdge_right = MapEdge_right-0.5*MapWidth
+    New_MapEdge_lower = MapEdge_lower+0.5*MapHeight
+    New_MapEdge_upper = MapEdge_upper-0.5*MapHeight
+    new_x_axis = np.linspace(New_MapEdge_left,New_MapEdge_right,int(0.5*map_nbins_x))
+    new_y_axis = np.linspace(New_MapEdge_lower,New_MapEdge_upper,int(0.5*map_nbins_y))
 
     mean_z = 0.
     rms_z = 0.
     n_bins = 0.
     for ybin in range(0,len(y_axis)):
         for xbin in range(0,len(x_axis)):
-            hist_bin_x = hist_map.GetXaxis().FindBin(x_axis[xbin])
-            hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
+            #hist_bin_x = hist_map.GetXaxis().FindBin(x_axis[xbin])
+            #hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
+            hist_bin_x = xbin+1
+            hist_bin_y = ybin+1
             if hist_bin_x<1: continue
             if hist_bin_y<1: continue
             if hist_bin_x>hist_map.GetNbinsX(): continue
@@ -1298,8 +1520,10 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         mean_z = mean_z/n_bins
     for ybin in range(0,len(y_axis)):
         for xbin in range(0,len(x_axis)):
-            hist_bin_x = hist_map.GetXaxis().FindBin(x_axis[xbin])
-            hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
+            #hist_bin_x = hist_map.GetXaxis().FindBin(x_axis[xbin])
+            #hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
+            hist_bin_x = xbin+1
+            hist_bin_y = ybin+1
             if hist_bin_x<1: continue
             if hist_bin_y<1: continue
             if hist_bin_x>hist_map.GetNbinsX(): continue
@@ -1316,10 +1540,10 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     min_z = 0.
     for ybin in range(0,len(y_axis)):
         for xbin in range(0,len(x_axis)):
-            hist_bin_x = hist_map.GetXaxis().FindBin(x_axis[xbin])
-            hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
-            #hist_bin_x = xbin+1
-            #hist_bin_y = ybin+1
+            #hist_bin_x = hist_map.GetXaxis().FindBin(x_axis[xbin])
+            #hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
+            hist_bin_x = xbin+1
+            hist_bin_y = ybin+1
             if hist_bin_x<1: continue
             if hist_bin_y<1: continue
             if hist_bin_x>hist_map.GetNbinsX(): continue
@@ -1338,12 +1562,12 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         low_class_z_bins = 0.
         high_class_z = 0.
         high_class_z_bins = 0.
-        for ybin in range(0,len(old_y_axis)):
-            for xbin in range(0,len(old_x_axis)):
-                hist_bin_x = hist_map.GetXaxis().FindBin(old_x_axis[xbin])
-                hist_bin_y = hist_map.GetYaxis().FindBin(old_y_axis[ybin])
-                #hist_bin_x = xbin+1
-                #hist_bin_y = ybin+1
+        for ybin in range(0,len(y_axis)):
+            for xbin in range(0,len(x_axis)):
+                #hist_bin_x = hist_map.GetXaxis().FindBin(x_axis[xbin])
+                #hist_bin_y = hist_map.GetYaxis().FindBin(y_axis[ybin])
+                hist_bin_x = xbin+1
+                hist_bin_y = ybin+1
                 if hist_bin_x<1: continue
                 if hist_bin_y<1: continue
                 if hist_bin_x>hist_map.GetNbinsX(): continue
@@ -1364,23 +1588,25 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
             low_class_z = low_class_z/low_class_z_bins
         if high_class_z_bins>0.:
             high_class_z = high_class_z/high_class_z_bins
-        min_z = low_class_z-(mid_class_z-low_class_z)
+        min_z = low_class_z-2.*(mid_class_z-low_class_z)
         max_z = max(high_class_z*1.1,mid_class_z+2.*(mid_class_z-low_class_z))
 
-    levels = np.arange(3.0, 6.0, 1.0)
-    #levels = np.arange(2.0, 6.0, 1.0)
+    #levels = np.arange(3.0, 6.0, 1.0)
+    levels = np.arange(2.0, 6.0, 1.0)
 
     grid_contour = np.zeros((map_nbins_y, map_nbins_x))
     if not hist_contour==None:
         max_z_contour = 5.0
         if label_z!='Z score' and max_z>0.:
-            levels = np.arange(3.0*max_z/max_z_contour, 6.0*max_z/max_z_contour, 1.0*max_z/max_z_contour)
+            levels = np.arange(2.0*max_z/max_z_contour, 6.0*max_z/max_z_contour, 1.0*max_z/max_z_contour)
         if 'SkymapFlux' in plotname and max_z>0.:
-            levels = np.arange(3.0*max_z/max_z_contour, 6.0*max_z/max_z_contour, 1.0*max_z/max_z_contour)
+            levels = np.arange(2.0*max_z/max_z_contour, 6.0*max_z/max_z_contour, 1.0*max_z/max_z_contour)
         for ybin in range(0,len(y_axis)):
             for xbin in range(0,len(x_axis)):
-                hist_bin_x = hist_contour.GetXaxis().FindBin(x_axis[xbin])
-                hist_bin_y = hist_contour.GetYaxis().FindBin(y_axis[ybin])
+                #hist_bin_x = hist_contour.GetXaxis().FindBin(x_axis[xbin])
+                #hist_bin_y = hist_contour.GetYaxis().FindBin(y_axis[ybin])
+                hist_bin_x = xbin+1
+                hist_bin_y = ybin+1
                 if hist_bin_x<1: continue
                 if hist_bin_y<1: continue
                 if hist_bin_x>hist_contour.GetNbinsX(): continue
@@ -1441,50 +1667,56 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
     else:
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
-    if not doGalacticCoord:
+    if not doGalacticCoord and not 'SkymapZscore_Sum' in plotname:
         axbig.contour(grid_contour, levels, colors='w', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=1)
     #cbar = fig.colorbar(im)
     #im_ratio = grid_z.shape[1]/grid_z.shape[0]
     #cbar = fig.colorbar(im,orientation="horizontal",fraction=0.047*im_ratio)
     for star in range(0,len(other_star_markers)):
+        marker_size = 60
         if other_star_types[star]=='PSR':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='lime', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='lime', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='SNR':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='yellow', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='yellow', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='HAWC':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='violet', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='violet', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='Fermi':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='cyan', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='cyan', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='MSP':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='tomato', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='tomato', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='TeV':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='k', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='Star':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=50, c='k', marker='o', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='k', marker='o', label=other_star_labels[star])
         text_offset_x = 0.
         text_offset_y = 0.
         text_offset_x = 0.05
         #plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k', rotation = rotation_angle)
-        plt.annotate('%s'%(star), (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k')
-    if not doGalacticCoord:
-        if roi_r>0.:
-            mycircle = plt.Circle((-roi_x, roi_y), roi_r, color='b', fill=False)
-            axbig.add_patch(mycircle)
+        plt.annotate('%s'%(star), (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=12, color='k')
     divider = make_axes_locatable(axbig)
-    cax = divider.append_axes("bottom", size="5%", pad=0.5)
+    cax = divider.append_axes("bottom", size="5%", pad=0.7)
     cbar = fig.colorbar(im,orientation="horizontal",cax=cax)
     cbar.set_label(label_z)
     axbig.set_xticks(x_axis_sparse)
     axbig.set_xticklabels(x_axis_reflect)
+    if 'SNR_G189_p03' in plotname:
+        mycircle = plt.Circle((-94.25, 22.57), 0.35, color='b', fill=False)
+        axbig.add_patch(mycircle)
+        mycircle = plt.Circle((-94.62, 22.17), 1.0, color='r', fill=False)
+        axbig.add_patch(mycircle)
     fig.savefig("output_plots/%s.png"%(plotname),bbox_inches='tight')
     if 'SkymapZscore_Sum' in plotname:
+        if not doGalacticCoord:
+            if roi_r>0.:
+                mycircle = plt.Circle((-roi_x, roi_y), roi_r, color='b', fill=False)
+                axbig.add_patch(mycircle)
         axbig.legend(bbox_to_anchor=(1.04, 1), borderaxespad=0, fontsize=7)
         fig.savefig("output_plots/%s_legend.png"%(plotname),bbox_inches='tight')
     axbig.remove()
 
     if 'SkymapZscore_Sum' in plotname:
         for star in range(0,len(other_star_markers)):
-            print ('%s'%(other_star_labels[star]))
+            print ('%s, (%0.2f,%0.2f)'%(other_star_labels[star],-other_star_markers[star][0],other_star_markers[star][1]))
 
     figsize_x = 6.4
     figsize_y = 4.8
