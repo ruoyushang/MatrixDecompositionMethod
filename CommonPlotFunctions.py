@@ -65,6 +65,7 @@ folder_path = 'output_default'
 #folder_path = 'output_dAz_20'
 #folder_path = 'output_dAz_40'
 #folder_path = 'output_dAz_80'
+#folder_path = 'output_dAz_180'
 
 #folder_path = 'output_dNSB_0p5'
 #folder_path = 'output_dNSB_1p0'
@@ -1030,8 +1031,8 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
 
     near_source_cut = 0.1
 
-    drawBrightStar = False
-    drawPulsar = False
+    drawBrightStar = True
+    drawPulsar = True
     drawSNR = True
     drawFermi = False
     drawHAWC = False

@@ -171,7 +171,7 @@ double FindBrightStarWeight(double ra, double dec)
     }
     return weight;
 }
-bool CoincideWithBrightStars(double ra, double dec)
+bool CoincideWithBrightStars(double ra, double dec, double evt_energy)
 {
     bool isCoincident = false;
     for (int star=0;star<BrightStars_Data.size();star++)
@@ -1517,6 +1517,15 @@ void GetBrightStars()
     std::cout << "I found " << BrightStars_Data.size() << " bright stars" << std::endl;
 }
 
+bool MatrixSelectionTheta2()
+{
+    if (MSCW>MSCW_plot_upper) return false;
+    if (MSCW<MSCW_plot_lower) return false;
+    if (MSCL>MSCL_plot_upper) return false;
+    if (MSCL<MSCL_plot_lower) return false;
+
+    return true;
+}
 bool SignalSelectionTheta2()
 {
     if (MSCW>MSCW_plot_upper) return false;
@@ -1531,30 +1540,32 @@ bool SignalSelectionTheta2()
 bool ControlSelectionTheta2()
 {
     if (MSCW>MSCW_plot_upper) return false;
-    if (MSCW<MSCW_plot_lower) return false;
     if (MSCL>MSCL_plot_upper) return false;
+    if (MSCW<MSCW_plot_lower) return false;
     if (MSCL<MSCL_plot_lower) return false;
     if (SignalSelectionTheta2()) return false;
+    //if (MSCW<0.6) return false;
+    //if (MSCL<0.7) return false;
 
     return true;
 }
 bool TightControlSelectionTheta2(double evt_energy)
 {
     if (MSCW>MSCW_plot_upper) return false;
-    if (MSCW<MSCW_plot_lower) return false;
     if (MSCL>MSCL_plot_upper) return false;
+    if (MSCW<MSCW_plot_lower) return false;
     if (MSCL<MSCL_plot_lower) return false;
     if (SignalSelectionTheta2()) return false;
 
-    double boundary = 0.5;
     if (evt_energy<794.) 
     {
         if (evt_energy<398.)
         {
-            boundary = 0.3;
+            if (MSCW>MSCW_cut_blind+0.5) return false;
+            if (MSCL>MSCL_cut_blind+0.5) return false;
         }
-        if (MSCW>boundary*(MSCW_cut_blind+MSCW_cut_blind)+MSCW_cut_blind) return false;
-        if (MSCL>boundary*(MSCL_cut_blind+MSCL_cut_blind)+MSCL_cut_blind) return false;
+        if (MSCW>MSCW_cut_blind+1.0) return false;
+        if (MSCL>MSCL_cut_blind+1.0) return false;
     }
 
     return true;
@@ -2758,7 +2769,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
                         if (theta2_dark>source_theta_cut*source_theta_cut)
                         {
-                            if (SignalSelectionTheta2() || ControlSelectionTheta2())
+                            if (MatrixSelectionTheta2())
                             {
                                 Hist_OnDark_MSCLW.at(nth_sample).at(energy).Fill(MSCL,MSCW,weight);
                             }
@@ -3372,7 +3383,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
 
             if (FoV(TString(target),doImposter))
             {
-                if (SignalSelectionTheta2() || ControlSelectionTheta2())
+                if (MatrixSelectionTheta2())
                 {
                     Hist_OnData_MSCLW.at(energy).Fill(MSCL,MSCW);
                     if (SourceFoV())
@@ -3402,7 +3413,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             }
             if (FoV(TString(target),doImposter))
             {
-                if (CoincideWithBrightStars(ra_sky,dec_sky))
+                if (CoincideWithBrightStars(ra_sky,dec_sky,ErecS*1000.))
                 {
                     if (TightControlSelectionTheta2(ErecS*1000.))
                     {

@@ -32,7 +32,7 @@ import CommonPlotFunctions
 fig, ax = plt.subplots()
 #figsize_x = 6.4
 #figsize_y = 6.4
-figsize_x = 6.4
+figsize_x = 8.6
 figsize_y = 4.2
 fig.set_figheight(figsize_y)
 fig.set_figwidth(figsize_x)
@@ -82,8 +82,7 @@ def GetFluxCalibration(energy):
 
     #return 1.
 
-    # medium cut
-    flux_calibration = [2.68025701768312e-11, 9.795308704242502e-12, 4.30068831800962e-12, 2.2397192834377104e-12, 1.198080275258567e-12, 5.782209042367213e-13]
+    flux_calibration = [2.5571039776977222e-11, 9.416225962090084e-12, 4.188418023244826e-12, 2.166351440397334e-12, 1.143919763294799e-12, 5.456937594126544e-13]
 
     return flux_calibration[energy]
 
@@ -2281,17 +2280,17 @@ elif 'Tycho' in source_name:
 elif 'PSR_J2021_p3651' in source_name:
     text_angle = 45.
 
-    #region_x = 304.85
-    #region_y = 36.80
-    #region_r = [1.0 for element in range(len(energy_bin)-1)]
-    #region_name = 'VER J2019+368'
-    #do_fit = 0
-
-    region_x = 305.27
-    region_y = 36.85
-    region_r = [0.14 for element in range(len(energy_bin)-1)]
-    region_name = 'PSR J2021+3651'
+    region_x = 304.85
+    region_y = 36.80
+    region_r = [1.0 for element in range(len(energy_bin)-1)]
+    region_name = 'VER J2019+368'
     do_fit = 0
+
+    #region_x = 305.27
+    #region_y = 36.85
+    #region_r = [0.14 for element in range(len(energy_bin)-1)]
+    #region_name = 'PSR J2021+3651'
+    #do_fit = 0
 
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
 

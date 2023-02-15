@@ -153,6 +153,10 @@ void ResetPublicVariables(TString target_name)
     {
         MatchRun_dAzim = 80.;
     }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_180")
+    {
+        MatchRun_dAzim = 1000.;
+    }
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dNSB_0p5")
     {
         MatchRun_dNSB = 0.5;

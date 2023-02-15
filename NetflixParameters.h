@@ -151,4 +151,4 @@ double MSCL_chi2_upper = 3.;
 
 double brightness_cut = 6.0;
 double faint_brightness_cut = 7.0;
-double bright_star_radius_cut = 0.3;
+double bright_star_radius_cut = 0.25;
