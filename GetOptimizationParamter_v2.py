@@ -55,8 +55,8 @@ MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 expo_hours_per_entry = 100.
 
 #background_type = 'RBM'
-#background_type = 'ONOFF'
-background_type = 'Matrix'
+background_type = 'ONOFF'
+#background_type = 'Matrix'
 analysis_type = 'Solo'
 #analysis_type = 'Mimic'
 
@@ -215,6 +215,19 @@ for elev in range(0,len(elev_range)-1):
         theta2_tag = ''
         sample_file_tags += [method_tag+elev_tag+theta2_tag+'_'+ONOFF_tag_sample]
         imposter_file_tags += [method_tag+elev_tag+theta2_tag+'_'+ONOFF_tag_imposter]
+
+def GetFluxCalibration(energy):
+
+    #return 1.
+
+    # elevation = 70, energy threshold = 200 GeV
+    flux_calibration = [2.5579605915713342e-11, 9.417832458337564e-12, 4.186357340959233e-12, 2.1646972910242393e-12, 1.142544538194112e-12, 5.433497919384933e-13]
+
+    # elevation = 60, energy threshold = 100 GeV
+    #flux_calibration = [1.7506329704556129e-10, 1.4669366489694362e-11, 5.575025320745524e-12, 2.6520194512426122e-12, 1.3856458120508363e-12, 6.633980234341466e-13]
+
+    return flux_calibration[energy]
+
 
 def FindSourceIndex(source_name,the_list):
     for source in range(0,len(the_list)):
@@ -920,8 +933,11 @@ fig.set_figwidth(figsize_x)
 plt.xlabel("rank $n$")
 plt.ylabel("singular value $\sigma_{n}$")
 plt.yscale('log')
+rank_axis = []
+for r in range(0,len(energy_dependent_singularvalue[0])):
+    rank_axis += [r+1]
 for entry in range(0,len(energy_dependent_singularvalue)):
-    plt.plot(energy_dependent_singularvalue[entry],marker='.',label='%s-%s GeV'%(energy_bin[entry],energy_bin[entry+1]))
+    plt.plot(rank_axis,energy_dependent_singularvalue[entry],marker='.',label='%s-%s GeV'%(energy_bin[entry],energy_bin[entry+1]))
 ax.legend(loc='best')
 ax.yaxis.set_label_coords(-.1, .5)
 plt.savefig("output_plots/MatrixSingularValue.png")
@@ -1244,10 +1260,16 @@ energy_dependent_syst = np.array(energy_dependent_syst)
 energy_dependent_syst_err = np.array(energy_dependent_syst_err)
 energy_dependent_chi2 = np.array(energy_dependent_chi2)
 np.set_printoptions(formatter={'float': lambda x: "{0:0.4f},".format(x)})
+
 print ('energy_bin = %s'%(energy_bin))
-print ('syst     = %s'%(energy_dependent_syst))
-print ('syst_err = %s'%(energy_dependent_syst_err))
-print ('chi2     = %s'%(energy_dependent_chi2))
+if background_type=='ONOFF':
+    print ('init_syst     = %s'%(energy_dependent_syst))
+    print ('init_syst_err = %s'%(energy_dependent_syst_err))
+    print ('init_chi2     = %s'%(energy_dependent_chi2))
+else:
+    print ('syst     = %s'%(energy_dependent_syst))
+    print ('syst_err = %s'%(energy_dependent_syst_err))
+    print ('chi2     = %s'%(energy_dependent_chi2))
 
 output_txt = open('output_plots/syst_%s_%s.txt'%(folder_path,background_type), 'w')
 output_txt.write('syst = %s \n'%(energy_dependent_syst))

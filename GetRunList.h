@@ -832,6 +832,14 @@ vector<std::pair<string,int>> GetRunList(string source) {
     {
         list = GetRunListFromFile("Tobias_SS433_V6");
     }
+    if (source.find("SS433Half1_V6") != std::string::npos)
+    {
+        list = GetRunListFromFile("Tobias_SS433_V6");
+    }
+    if (source.find("SS433Half2_V6") != std::string::npos)
+    {
+        list = GetRunListFromFile("Tobias_SS433_V6");
+    }
     if (source.find("SS433_extra_V6") != std::string::npos)
     {
         list = GetRunListFromFile("SS433_extra_V6");
@@ -961,6 +969,13 @@ vector<std::pair<string,int>> GetRunList(string source) {
     if (source.find("PSR_J2032_p4127_Fall2017_V6") != std::string::npos)
     {
         list = GetRunListFromFile("LHAASO_J2032_Fall2017_V6");
+    }
+    if (source.find("PSR_J2032_p4127_All_V6") != std::string::npos)
+    {
+        list_temp = GetRunListFromFile("LHAASO_J2032_Fall2017_V6");
+        list.insert(list.end(), list_temp.begin(), list_temp.end());
+        list_temp = GetRunListFromFile("LHAASO_J2032_Baseline_V6");
+        list.insert(list.end(), list_temp.begin(), list_temp.end());
     }
     if (source.find("PSR_")!=std::string::npos && source.find("_V6")!=std::string::npos)
     {
@@ -1163,6 +1178,12 @@ vector<std::pair<string,int>> GetRunList(string source) {
     if (source.find("SS433_V5") != std::string::npos) {
         list = GetRunListFromFile("Tobias_SS433_V5");
     }
+    if (source.find("SS433Half1_V5") != std::string::npos) {
+        list = GetRunListFromFile("Tobias_SS433_V5");
+    }
+    if (source.find("SS433Half2_V5") != std::string::npos) {
+        list = GetRunListFromFile("Tobias_SS433_V5");
+    }
     if (source.find("SS433_extra_V5") != std::string::npos) {
         list = GetRunListFromFile("SS433_extra_V5");
     }
@@ -1300,6 +1321,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
         list = GetRunListFromFile("LHAASO_J2032_Baseline_V5");
     }
     if (source.find("PSR_J2032_p4127_Baseline_V5") != std::string::npos)
+    {
+        list = GetRunListFromFile("LHAASO_J2032_Baseline_V5");
+    }
+    if (source.find("PSR_J2032_p4127_All_V5") != std::string::npos)
     {
         list = GetRunListFromFile("LHAASO_J2032_Baseline_V5");
     }

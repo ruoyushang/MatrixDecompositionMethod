@@ -105,6 +105,12 @@ data_epoch = ['MGRO_J1908_V5','MGRO_J1908_V6']
 if 'SS433' in sys.argv[1]:
     observation_name = 'SS433'
     data_epoch = ['SS433_V5','SS433_V6']
+if 'SS433Half1' in sys.argv[1]:
+    observation_name = 'SS433Half1'
+    data_epoch = ['SS433Half1_V5','SS433Half1_V6']
+if 'SS433Half2' in sys.argv[1]:
+    observation_name = 'SS433Half2'
+    data_epoch = ['SS433Half2_V5','SS433Half2_V6']
 if 'Crab' in sys.argv[1]:
     observation_name = 'Crab'
     data_epoch = ['CrabV5','CrabV6']
@@ -3346,27 +3352,27 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
     Hist_Expo_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
     HistName = "Hist_OnRFoV_CR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_Rfov_Energy_Skymap[ebin].Add(InputFile.Get(HistName))
-    HistName = "Hist_NormSyst_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_OnBkgd_Skymap_Syst_Norm.Reset()
-    Hist_OnBkgd_Skymap_Syst_Norm.Add(InputFile.Get(HistName))
-    for binx in range(0,Hist_OnBkgd_Skymap_Syst_Norm.GetNbinsX()):
-        for biny in range(0,Hist_OnBkgd_Skymap_Syst_Norm.GetNbinsY()):
-            old_content = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(binx+1,biny+1)
-            new_content = Hist_OnBkgd_Skymap_Syst_Norm.GetBinContent(binx+1,biny+1)
-            Hist_NormSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,pow(old_content*old_content+new_content*new_content,0.5))
-            #Hist_NormSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,old_content+new_content)
-    for xy_bin in range(0,len(integration_radii)):
-        HistName = "Hist_ShapeSyst_Skymap_ErecS%sto%s_Bin%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int,xy_bin)
-        Hist_OnBkgd_Skymap_Syst_Shape.Reset()
-        Hist_OnBkgd_Skymap_Syst_Shape.Add(InputFile.Get(HistName))
-        for binx in range(0,Hist_OnBkgd_Skymap_Syst_Shape.GetNbinsX()):
-            for biny in range(0,Hist_OnBkgd_Skymap_Syst_Shape.GetNbinsY()):
-                old_content = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].GetBinContent(binx+1,biny+1)
-                new_content = Hist_OnBkgd_Skymap_Syst_Shape.GetBinContent(binx+1,biny+1)
-                Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].SetBinContent(binx+1,biny+1,pow(old_content*old_content+new_content*new_content,0.5))
-    HistName = "Hist_OnData_CR_Skymap_Galactic_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
-    Hist_OnBkgd_Skymap_Galactic.Reset()
-    Hist_OnBkgd_Skymap_Galactic.Add(InputFile.Get(HistName))
+    #HistName = "Hist_NormSyst_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    #Hist_OnBkgd_Skymap_Syst_Norm.Reset()
+    #Hist_OnBkgd_Skymap_Syst_Norm.Add(InputFile.Get(HistName))
+    #for binx in range(0,Hist_OnBkgd_Skymap_Syst_Norm.GetNbinsX()):
+    #    for biny in range(0,Hist_OnBkgd_Skymap_Syst_Norm.GetNbinsY()):
+    #        old_content = Hist_NormSyst_Energy_Skymap[ebin].GetBinContent(binx+1,biny+1)
+    #        new_content = Hist_OnBkgd_Skymap_Syst_Norm.GetBinContent(binx+1,biny+1)
+    #        Hist_NormSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,pow(old_content*old_content+new_content*new_content,0.5))
+    #        #Hist_NormSyst_Energy_Skymap[ebin].SetBinContent(binx+1,biny+1,old_content+new_content)
+    #for xy_bin in range(0,len(integration_radii)):
+    #    HistName = "Hist_ShapeSyst_Skymap_ErecS%sto%s_Bin%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int,xy_bin)
+    #    Hist_OnBkgd_Skymap_Syst_Shape.Reset()
+    #    Hist_OnBkgd_Skymap_Syst_Shape.Add(InputFile.Get(HistName))
+    #    for binx in range(0,Hist_OnBkgd_Skymap_Syst_Shape.GetNbinsX()):
+    #        for biny in range(0,Hist_OnBkgd_Skymap_Syst_Shape.GetNbinsY()):
+    #            old_content = Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].GetBinContent(binx+1,biny+1)
+    #            new_content = Hist_OnBkgd_Skymap_Syst_Shape.GetBinContent(binx+1,biny+1)
+    #            Hist_ShapeSyst_Energy_Skymap[ebin][xy_bin].SetBinContent(binx+1,biny+1,pow(old_content*old_content+new_content*new_content,0.5))
+    #HistName = "Hist_OnData_CR_Skymap_Galactic_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    #Hist_OnBkgd_Skymap_Galactic.Reset()
+    #Hist_OnBkgd_Skymap_Galactic.Add(InputFile.Get(HistName))
 
     InputFile.Close()
 
@@ -3805,10 +3811,10 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
                 old_error = hist_expo_skymap[ebin].GetBinError(bx2,by2)
                 hist_expo_skymap[ebin].SetBinError(bx2,by2,pow(new_error*new_error+old_error*old_error,0.5))
     for ebin in range(0,len(energy_bin)-1):
+        hist_bkgd_skymap_smooth[ebin] = Smooth2DMap(hist_bkgd_skymap_smooth[ebin],2.0*smooth_size_spectroscopy,False,True)
         if not Smoothing:
             continue
         hist_bkgd_skymap[ebin] = Smooth2DMap(hist_bkgd_skymap[ebin],smooth_size_spectroscopy,False,True)
-        hist_bkgd_skymap_smooth[ebin] = Smooth2DMap(hist_bkgd_skymap_smooth[ebin],2.0*smooth_size_spectroscopy,False,True)
         hist_rfov_skymap[ebin] = Smooth2DMap(hist_rfov_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_data_skymap[ebin] = Smooth2DMap(hist_data_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_effarea_skymap[ebin] = Smooth2DMap(hist_effarea_skymap[ebin],smooth_size_spectroscopy,False,True)

@@ -28,6 +28,7 @@ void ResetPublicVariables(TString target_name)
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_loose")
     {
         MSCW_cut_moderate = 0.6;
+        MSCL_cut_moderate = 0.8;
     }
 
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_1hrs")
@@ -157,6 +158,26 @@ void ResetPublicVariables(TString target_name)
     {
         MatchRun_dAzim = 1000.;
     }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_150")
+    {
+        MatchRun_dAzim = 150.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_120")
+    {
+        MatchRun_dAzim = 120.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_90")
+    {
+        MatchRun_dAzim = 90.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_60")
+    {
+        MatchRun_dAzim = 60.;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dAz_30")
+    {
+        MatchRun_dAzim = 30.;
+    }
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dNSB_0p5")
     {
         MatchRun_dNSB = 0.5;
@@ -176,6 +197,18 @@ void ResetPublicVariables(TString target_name)
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dNSB_2p5")
     {
         MatchRun_dNSB = 2.5;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dNSB_3p0")
+    {
+        MatchRun_dNSB = 3.0;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dNSB_3p5")
+    {
+        MatchRun_dNSB = 3.5;
+    }
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_dNSB_4p0")
+    {
+        MatchRun_dNSB = 4.0;
     }
 
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_LogAlpha_m1p5")

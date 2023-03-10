@@ -26,12 +26,16 @@ from matplotlib.ticker import MaxNLocator
 from matplotlib.ticker import NullFormatter
 from operator import itemgetter, attrgetter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import healpy as hp
 
 # Great examples of matplotlib plots: https://atmamani.github.io/cheatsheets/matplotlib/matplotlib_2/
 
+#energy_bin = [200.,398.,794.,1585.,3162.,6310.,12589.]
+energy_bin = [100.,300.,700.,1500.,3100.,6300.,12700.]
+energy_fine_bin = energy_bin
 
-#folder_path = 'output_test'
-folder_path = 'output_default'
+folder_path = 'output_test'
+#folder_path = 'output_default'
 
 #folder_path = 'output_loose'
 #folder_path = 'output_medium'
@@ -66,12 +70,20 @@ folder_path = 'output_default'
 #folder_path = 'output_dAz_40'
 #folder_path = 'output_dAz_80'
 #folder_path = 'output_dAz_180'
+#folder_path = 'output_dAz_150'
+#folder_path = 'output_dAz_120'
+#folder_path = 'output_dAz_90'
+#folder_path = 'output_dAz_60'
+#folder_path = 'output_dAz_30'
 
 #folder_path = 'output_dNSB_0p5'
 #folder_path = 'output_dNSB_1p0'
 #folder_path = 'output_dNSB_1p5'
 #folder_path = 'output_dNSB_2p0'
 #folder_path = 'output_dNSB_2p5'
+#folder_path = 'output_dNSB_3p0'
+#folder_path = 'output_dNSB_3p5'
+#folder_path = 'output_dNSB_4p0'
 
 #folder_path = 'output_LogAlpha_m1p5'
 #folder_path = 'output_LogAlpha_m1p0'
@@ -160,10 +172,6 @@ target_max_dist_cut = 100.
 elev_range = [40,90]
 #elev_range = [30,90]
 #elev_range = [35,45]
-
-#energy_bin = [100.,316.,1000.,3162.,10000.]
-energy_bin = [200.,398.,794.,1585.,3162.,6310.,12589.]
-energy_fine_bin = energy_bin
 
 def Hist2DIntegralAndError(Hist):
 
@@ -516,7 +524,7 @@ def FindExtension_v1(Hist_Data_input,Hist_Bkgd_input,roi_x,roi_y,integration_ran
                 data_error = pow(Hist_Data_input.GetBinContent(bx+1,by+1),0.5)
                 bkgd_content = Hist_Bkgd_input.GetBinContent(bx+1,by+1)
                 #bkgd_error = Hist_Bkgd_input.GetBinError(bx+1,by+1)
-                bkgd_error = pow(Hist_Bkgd_input.GetBinContent(bx+1,by+1),0.5)
+                bkgd_error = pow(abs(Hist_Bkgd_input.GetBinContent(bx+1,by+1)),0.5)
                 if distance_sq>=pow(range_limit_previous,2) and distance_sq<pow(range_limit,2):
                     if not data_error==0.:
                         slice_data += data_content
@@ -773,6 +781,36 @@ def FillSkymapHoles(hist_map, map_resolution):
                                 min_distance_content = bin_content_2
             hist_map_new.SetBinContent(bx1,by1,min_distance_content)
     return hist_map_new
+
+def GetHealpixMap(map_file, hist_map, isRaDec):
+
+    hist_map.Reset()
+    nbins_x = hist_map.GetNbinsX()
+    nbins_y = hist_map.GetNbinsY()
+    MapEdge_left = hist_map.GetXaxis().GetBinLowEdge(1)
+    MapEdge_right = hist_map.GetXaxis().GetBinLowEdge(hist_map.GetNbinsX()+1)
+    MapEdge_lower = hist_map.GetYaxis().GetBinLowEdge(1)
+    MapEdge_upper = hist_map.GetYaxis().GetBinLowEdge(hist_map.GetNbinsY()+1)
+    MapCenter_x = (MapEdge_left+MapEdge_right)/2.
+    MapCenter_y = (MapEdge_lower+MapEdge_upper)/2.
+
+    hpx, header = hp.read_map(map_file, field=1, h=True)
+    npix = len(hpx)
+    nside = hp.npix2nside(npix)
+    for ipix in range(0,npix):
+        theta, phi = hp.pix2ang(nside, ipix)
+        ra = np.rad2deg(phi)
+        dec = np.rad2deg(0.5 * np.pi - theta)
+        fits_data = hpx[ipix]
+        binx = hist_map.GetXaxis().FindBin(ra)
+        biny = hist_map.GetYaxis().FindBin(dec)
+        if binx<1: continue
+        if biny<1: continue
+        if binx>hist_map.GetNbinsX(): continue
+        if biny>hist_map.GetNbinsY(): continue
+        hist_map.SetBinContent(binx,biny,fits_data)
+
+    return hist_map
 
 def GetFITSMap(map_file, hist_map, isRaDec):
 
@@ -1031,9 +1069,9 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
 
     near_source_cut = 0.1
 
-    drawBrightStar = True
+    drawBrightStar = False
     drawPulsar = True
-    drawSNR = True
+    drawSNR = False
     drawFermi = False
     drawHAWC = False
     drawTeV = False
@@ -1204,7 +1242,7 @@ def GetRegionSpectrum_v2(hist_data_skymap,hist_syst_skymap,hist_mask_skymap,ebin
 
     return x_axis, x_error, y_axis, y_error
 
-def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
+def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isON):
 
     Hist_Skymap = Hist_SR.Clone()
     MapEdge_left = Hist_Skymap.GetXaxis().GetBinLowEdge(1)
@@ -1215,7 +1253,6 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
     MapCenter_y = (MapEdge_upper+MapEdge_lower)/2.
     MapSize_x = (MapEdge_right-MapEdge_left)/2.
     MapSize_y = (MapEdge_upper-MapEdge_lower)/2.
-    Hist_Skymap_zoomin = ROOT.TH2D("Hist_Skymap_zoomin","",int(Skymap_nbins_x/3),MapCenter_x-MapSize_x/2,MapCenter_x+MapSize_x/2,int(Skymap_nbins_y/3),MapCenter_y-MapSize_y/2,MapCenter_y+MapSize_y/2)
     for bx in range(0,Hist_SR.GetNbinsX()):
         for by in range(0,Hist_SR.GetNbinsY()):
             if Hist_Bkg.GetBinContent(bx+1,by+1)==0: continue
@@ -1226,6 +1263,7 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
             Data_Stat_Err = Hist_SR.GetBinError(bx+1,by+1)
             Bkgd_Stat_Err = Hist_Bkg.GetBinError(bx+1,by+1)
             NBkg_Err = pow(pow(Bkgd_Stat_Err,2)+pow(Shape_Err,2),0.5)
+            NBkg_Err = 0.
             #Sig = CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
             Sig = 0.
             if pow(pow(NBkg_Err,2)+pow(Data_Stat_Err,2),0.5)>0.:
@@ -1233,13 +1271,7 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isZoomIn):
             Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
             bx_center = Hist_Skymap.GetXaxis().GetBinCenter(bx+1)
             by_center = Hist_Skymap.GetYaxis().GetBinCenter(by+1)
-            bx2 = Hist_Skymap_zoomin.GetXaxis().FindBin(bx_center)
-            by2 = Hist_Skymap_zoomin.GetYaxis().FindBin(by_center)
-            Hist_Skymap_zoomin.SetBinContent(bx2,by2,Sig)
-    if isZoomIn:
-        return Hist_Skymap_zoomin
-    else:
-        return Hist_Skymap
+    return Hist_Skymap
 
 def GetHawcSkymap(hist_map, isRaDec):
 
@@ -1465,7 +1497,7 @@ def BackgroundSubtractMap(fig,hist_data,hist_bkgd,label_x,label_y,label_z,plotna
     fig.savefig("output_plots/%s_After.png"%(plotname),bbox_inches='tight')
 
 
-def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,roi_x=0.,roi_y=0.,roi_r=0.,rotation_angle=0.,fill_gaps=False,prime_psr_name=None,prime_psr_ra=None,prime_psr_dec=None):
+def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,plotname,roi_x=0.,roi_y=0.,roi_r=0.,rotation_angle=0.,fill_gaps=False,prime_psr_name=None,prime_psr_ra=None,prime_psr_dec=None):
 
     print ('Making plot %s...'%(plotname))
     isGalactic = False
@@ -1555,8 +1587,8 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
             if min_z>hist_map.GetBinContent(hist_bin_x,hist_bin_y):
                 min_z = hist_map.GetBinContent(hist_bin_x,hist_bin_y)
 
-    if not hist_contour==None and 'SkymapFlux' in plotname:
-        max_zscore = hist_contour.GetMaximum()
+    if not hist_tone==None and 'SkymapFlux' in plotname:
+        max_zscore = hist_tone.GetMaximum()
         mid_class_z = 0.
         mid_class_z_bins = 0.
         low_class_z = 0.
@@ -1573,7 +1605,7 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
                 if hist_bin_y<1: continue
                 if hist_bin_x>hist_map.GetNbinsX(): continue
                 if hist_bin_y>hist_map.GetNbinsY(): continue
-                zscore = hist_contour.GetBinContent(hist_bin_x,hist_bin_y)
+                zscore = hist_tone.GetBinContent(hist_bin_x,hist_bin_y)
                 if zscore>1.-0.5 and zscore<1.+0.5:
                     mid_class_z += hist_map.GetBinContent(hist_bin_x,hist_bin_y)
                     mid_class_z_bins += 1.
@@ -1662,6 +1694,8 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
         max_z = 5.
         #max_z = 8.
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=-max_z,vmax=max_z,zorder=0)
+    elif 'SkymapHAWC' in plotname:
+        im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=0.,zorder=0)
     elif fill_gaps:
         max_z = mean_z+3.*rms_z
         min_z = mean_z-3.*rms_z
@@ -1676,22 +1710,21 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     for star in range(0,len(other_star_markers)):
         marker_size = 60
         if other_star_types[star]=='PSR':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='lime', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='lime', marker='+', label=other_star_labels[star])
         if other_star_types[star]=='SNR':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='yellow', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='yellow', marker='+', label=other_star_labels[star])
         if other_star_types[star]=='HAWC':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='violet', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='violet', marker='+', label=other_star_labels[star])
         if other_star_types[star]=='Fermi':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='cyan', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='cyan', marker='+', label=other_star_labels[star])
         if other_star_types[star]=='MSP':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='tomato', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='tomato', marker='+', label=other_star_labels[star])
         if other_star_types[star]=='TeV':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='k', marker='^', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='k', marker='+', label=other_star_labels[star])
         if other_star_types[star]=='Star':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='k', marker='o', label=other_star_labels[star])
-        text_offset_x = 0.
-        text_offset_y = 0.
-        text_offset_x = 0.05
+        text_offset_x = 0.07
+        text_offset_y = 0.07
         #plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k', rotation = rotation_angle)
         plt.annotate('%s'%(star), (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=12, color='k')
     divider = make_axes_locatable(axbig)
@@ -1700,6 +1733,9 @@ def MatplotlibMap2D(hist_map,hist_contour,fig,label_x,label_y,label_z,plotname,r
     cbar.set_label(label_z)
     axbig.set_xticks(x_axis_sparse)
     axbig.set_xticklabels(x_axis_reflect)
+    #if roi_r>0.:
+    #    mycircle = plt.Circle((-roi_x, roi_y), roi_r, color='b', fill=False)
+    #    axbig.add_patch(mycircle)
     if 'SNR_G189_p03' in plotname:
         mycircle = plt.Circle((-94.25, 22.57), 0.35, color='b', fill=False)
         axbig.add_patch(mycircle)

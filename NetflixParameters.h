@@ -31,14 +31,16 @@ double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
 double optimiz_alpha_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5,1.5};
 double optimiz_beta_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
 double optimiz_beta_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5,1.5};
-double energy_bins[N_energy_bins+1] = {200.,398.,794.,1585.,3162.,6310.,12589.};
+//double energy_bins[N_energy_bins+1] = {200.,398.,794.,1585.,3162.,6310.,12589.};
+double energy_bins[N_energy_bins+1] = {100.,300.,700.,1500.,3100.,6300.,12700.};
 double gamma_hadron_dim_ratio_w = 1.;
 double gamma_hadron_dim_ratio_l = 1.;
 double gamma_hadron_low_end = 0.;
 double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
 double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0};
 const int N_energy_fine_bins = 6;
-double energy_fine_bins[N_energy_fine_bins+1] = {200.,398.,794.,1585.,3162.,6310.,12589.};
+//double energy_fine_bins[N_energy_fine_bins+1] = {200.,398.,794.,1585.,3162.,6310.,12589.};
+double energy_fine_bins[N_energy_fine_bins+1] = {100.,300.,700.,1500.,3100.,6300.,12700.};
 
 
 bool UseDL3Tree = true;

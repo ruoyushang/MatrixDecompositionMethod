@@ -686,6 +686,26 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         std::cout << run << ", elev = " << TelElevation << ", pointing rejected." << std::endl;
         return false;
     }
+
+    double period = 162.5;
+    double MJD_ref = 59246 + 10.*period; // 2021-02-01
+    double X = ( MJD_ref - double(MJD) )/period;
+    double Phase=X-floor(X);
+    if (TString(target).Contains("SS433Half1"))
+    {
+        if (Phase>0.5)
+        {
+            return false;
+        }
+    }
+    if (TString(target).Contains("SS433Half2"))
+    {
+        if (Phase<=0.5)
+        {
+            return false;
+        }
+    }
+
     //if (Azim_region=="North")
     //{
     //    if (!(TelAzimuth<45. || TelAzimuth>315.))
