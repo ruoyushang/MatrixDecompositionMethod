@@ -135,45 +135,48 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    ifstream myfile (SMI_AUX+"/diagnostics.txt");
+    ifstream myfile (SMI_AUX+"/NSB_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
         {
             acc_runnumber = "";
-            acc_version = "";
-            acc_nsb = "";
             nth_delimiter = 0;
             for(int i = 0; i < line.size(); i++)
             {
-                if (nth_line<84) continue;
                 if(line[i] == delimiter)
                 {
-                    if (nth_delimiter==103 && std::stoi(acc_runnumber,nullptr,10)==run_number) 
-                    {
-                        NSB = std::stod(acc_nsb,&sz);
-                        if (std::stoi(acc_version,nullptr,10)!=2) NSB = 0.;
-                    }
                     nth_delimiter += 1;
                 }
                 else if (nth_delimiter==0)
                 {
                     acc_runnumber += line[i];
                 }
-                else if (nth_delimiter==1)
-                {
-                    acc_version += line[i];
-                }
-                else if (nth_delimiter==103)
-                {
-                    acc_nsb += line[i];
-                }
             }
-            nth_line += 1;
+            if (std::stoi(acc_runnumber,nullptr,10)==run_number)
+            {
+                //std::cout << "find run " << run_number << std::endl;
+                nth_delimiter = 0;
+                acc_nsb = "";
+                for(int i = 0; i < line.size(); i++)
+                {
+                    if (line[i] != delimiter)
+                    {
+                        acc_nsb += line[i];
+                    }
+                    else
+                    {
+                        acc_nsb = "";
+                        nth_delimiter += 1;
+                    }
+                }
+                NSB = std::stod(acc_nsb,&sz);
+                break;
+            }
         }
         myfile.close();
     }
-    else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
+    else std::cout << "Unable to open file NSB_allruns.txt" << std::endl; 
 
     return NSB;
 }
@@ -189,7 +192,7 @@ int RunTypeCategory(int run_number, bool doPrint)
     int runtype = 2;
 
     // run veritas_db_query.py to get this file
-    ifstream myfile (SMI_AUX+"/category_allruns.txt");
+    ifstream myfile (SMI_AUX+"/runtype_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
@@ -224,12 +227,11 @@ int RunTypeCategory(int run_number, bool doPrint)
                         nth_delimiter += 1;
                     }
                 }
-                if (acc_runtype=="science" || acc_runtype=="NULL" || acc_runtype=="None")
+                if (acc_runtype=="observing")
                 {
-                    // this category also contains RHV data! the DB is messy...
                     runtype = 0;
                 }
-                else if (acc_runtype=="reducedhv")
+                else if (acc_runtype=="obsLowHV")
                 {
                     runtype = 1;
                     if (RHVData)
@@ -257,6 +259,8 @@ int RunTypeCategory(int run_number, bool doPrint)
 
 double GetRunL3Rate(int run_number)
 {
+    return 0.;
+
     string line;
     char delimiter = ' ';
     string acc_runnumber = "";
@@ -492,7 +496,8 @@ vector<pair<double,double>> GetRunTimecuts(int run_number)
 int GetRunMJD(string file_name,int run)
 {
 
-    int run_mjd = 0.;
+    int run_mjd = 0;
+    return run_mjd;
 
     //char run_number[50];
     //sprintf(run_number, "%i", int(run));
@@ -575,57 +580,6 @@ pair<double,double> GetRunElevAzim(string file_name, int run)
     int nth_line = 0;
     int nth_delimiter = 0;
     std::string::size_type sz;
-
-    ifstream myfile (SMI_AUX+"/diagnostics.txt");
-    if (myfile.is_open())
-    {
-        while ( getline(myfile,line) )
-        {
-            acc_runnumber = "";
-            acc_version = "";
-            acc_elev = "";
-            acc_az = "";
-            nth_delimiter = 0;
-            for(int i = 0; i < line.size(); i++)
-            {
-                if (nth_line<84) continue;
-                if(line[i] == delimiter)
-                {
-                    if (nth_delimiter==7 && std::stoi(acc_runnumber,nullptr,10)==run) 
-                    {
-                        TelElevation_avg = std::stod(acc_elev,&sz);
-                        if (std::stoi(acc_version,nullptr,10)!=2) TelElevation_avg = 0.;
-                    }
-                    if (nth_delimiter==8 && std::stoi(acc_runnumber,nullptr,10)==run) 
-                    {
-                        TelAzimuth_avg = std::stod(acc_az,&sz);
-                        if (std::stoi(acc_version,nullptr,10)!=2) TelAzimuth_avg = 0.;
-                    }
-                    nth_delimiter += 1;
-                }
-                else if (nth_delimiter==0)
-                {
-                    acc_runnumber += line[i];
-                }
-                else if (nth_delimiter==1)
-                {
-                    acc_version += line[i];
-                }
-                else if (nth_delimiter==7)
-                {
-                    acc_elev += line[i];
-                }
-                else if (nth_delimiter==8)
-                {
-                    acc_az += line[i];
-                }
-            }
-            nth_line += 1;
-        }
-        myfile.close();
-    }
-    else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
-    //std::cout << "diag file elev = " << TelElevation_avg << " azim = " << TelAzimuth_avg << std::endl;
     
     if (!UseDBOnly)
     {
@@ -687,24 +641,24 @@ bool PointingSelection(string file_name,int run, double Elev_cut_lower, double E
         return false;
     }
 
-    double period = 162.5;
-    double MJD_ref = 59246 + 10.*period; // 2021-02-01
-    double X = ( MJD_ref - double(MJD) )/period;
-    double Phase=X-floor(X);
-    if (TString(target).Contains("SS433Half1"))
-    {
-        if (Phase>0.5)
-        {
-            return false;
-        }
-    }
-    if (TString(target).Contains("SS433Half2"))
-    {
-        if (Phase<=0.5)
-        {
-            return false;
-        }
-    }
+    //double period = 162.5;
+    //double MJD_ref = 59246 + 10.*period; // 2021-02-01
+    //double X = ( MJD_ref - double(MJD) )/period;
+    //double Phase=X-floor(X);
+    //if (TString(target).Contains("SS433Half1"))
+    //{
+    //    if (Phase>0.5)
+    //    {
+    //        return false;
+    //    }
+    //}
+    //if (TString(target).Contains("SS433Half2"))
+    //{
+    //    if (Phase<=0.5)
+    //    {
+    //        return false;
+    //    }
+    //}
 
     //if (Azim_region=="North")
     //{
@@ -904,109 +858,6 @@ pair<double,double> GetRunRaDec(string file_name, int run)
     int nth_delimiter = 0;
     std::string::size_type sz;
 
-    //ifstream myfile (SMI_AUX+"/diagnostics.txt");
-    //if (myfile.is_open())
-    //{
-    //    while ( getline(myfile,line) )
-    //    {
-    //        acc_runnumber = "";
-    //        acc_version = "";
-    //        acc_elev = "";
-    //        acc_az = "";
-    //        nth_delimiter = 0;
-    //        for(int i = 0; i < line.size(); i++)
-    //        {
-    //            if (nth_line<84) continue;
-    //            if(line[i] == delimiter)
-    //            {
-    //                if (nth_delimiter==45 && std::stoi(acc_runnumber,nullptr,10)==run) 
-    //                {
-    //                    TelRAJ2000_tmp = std::stod(acc_elev,&sz);
-    //                    if (std::stoi(acc_version,nullptr,10)!=2) TelRAJ2000_tmp = 0.;
-    //                }
-    //                if (nth_delimiter==46 && std::stoi(acc_runnumber,nullptr,10)==run) 
-    //                {
-    //                    TelDecJ2000_tmp = std::stod(acc_az,&sz);
-    //                    if (std::stoi(acc_version,nullptr,10)!=2) TelDecJ2000_tmp = 0.;
-    //                }
-    //                nth_delimiter += 1;
-    //            }
-    //            else if (nth_delimiter==0)
-    //            {
-    //                acc_runnumber += line[i];
-    //            }
-    //            else if (nth_delimiter==1)
-    //            {
-    //                acc_version += line[i];
-    //            }
-    //            else if (nth_delimiter==45)
-    //            {
-    //                acc_elev += line[i];
-    //            }
-    //            else if (nth_delimiter==46)
-    //            {
-    //                acc_az += line[i];
-    //            }
-    //        }
-    //        nth_line += 1;
-    //    }
-    //    myfile.close();
-    //}
-    ////else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
-
-    ifstream myfile (SMI_AUX+"/RaDec_allruns.txt");
-    if (myfile.is_open())
-    {
-        while ( getline(myfile,line) )
-        {
-            acc_runnumber = "";
-            nth_delimiter = 0;
-            for(int i = 0; i < line.size(); i++)
-            {
-                if(line[i] == delimiter)
-                {
-                    nth_delimiter += 1;
-                }
-                else if (nth_delimiter==0)
-                {
-                    acc_runnumber += line[i];
-                }
-            }
-            if (std::stoi(acc_runnumber,nullptr,10)==run)
-            {
-                nth_delimiter = 0;
-                acc_runnumber = "";
-                acc_ra = "";
-                acc_dec = "";
-                for(int i = 0; i < line.size(); i++)
-                {
-                    if(line[i] == delimiter)
-                    {
-                        nth_delimiter += 1;
-                    }
-                    else if (nth_delimiter==0)
-                    {
-                        acc_runnumber += line[i];
-                    }
-                    else if (nth_delimiter==1)
-                    {
-                        acc_ra += line[i];
-                    }
-                    else if (nth_delimiter==2)
-                    {
-                        acc_dec += line[i];
-                    }
-                }
-                TelRAJ2000_tmp = std::stod(acc_ra,&sz);
-                TelDecJ2000_tmp = std::stod(acc_dec,&sz);
-                break;
-            }
-        }
-        myfile.close();
-    }
-    else std::cout << "Unable to open file RaDec_allruns.txt" << std::endl; 
-    std::cout << "diag file RA = " << TelRAJ2000_tmp << " Dec = " << TelDecJ2000_tmp << std::endl;
-
     if (!UseDBOnly)
     {
         if (!gSystem->AccessPathName(file_name.c_str()))
@@ -1036,6 +887,8 @@ pair<double,double> GetRunRaDec(string file_name, int run)
 
 bool MJDSelection(string file_name,int run)
 {
+    return true;
+
     if (MJD_start_cut==0 && MJD_end_cut==0) return true;
     //if (run>100000) return true;
     char run_number[50];
@@ -1075,7 +928,7 @@ void SortingList(vector<pair<string,int>>* list, vector<double>* list_pointing)
     {
         for (int run2=run1+1;run2<list->size();run2++)
         {
-            if (list_pointing->at(run1)<list_pointing->at(run2))
+            if (list_pointing->at(run1)>list_pointing->at(run2))
             {
                 temp_list = list->at(run1);
                 temp_list_pointing = list_pointing->at(run1);
@@ -1252,19 +1105,11 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
             continue;
         }
         double L3_rate = GetRunL3Rate(Data_runlist[run].second);
-        if (!RHVData)
-        {
-            if (L3_rate<150.)
-            {
-                std::cout << int(Data_runlist[run].second) << " L3 rate rejected." << std::endl;
-                continue;
-            }
-        }
-        if (NSB_thisrun>7.0)
-        {
-            std::cout << int(Data_runlist[run].second) << " NSB rejected." << std::endl;
-            continue;
-        }
+        //if (NSB_thisrun>7.0)
+        //{
+        //    std::cout << int(Data_runlist[run].second) << " NSB rejected." << std::endl;
+        //    continue;
+        //}
         if (UseGalacticCoord)
         {
             std::pair<double,double> on_run_RA_Dec = GetRunRaDec(filename,int(Data_runlist[run].second));
@@ -1333,14 +1178,6 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
             continue;
         }
         double L3_rate = GetRunL3Rate(OFF_runlist_input[off_run].second);
-        if (!RHVData)
-        {
-            if (L3_rate<150.)
-            {
-                //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " L3 rate rejected." << std::endl;
-                continue;
-            }
-        }
         std::pair<double,double> off_run_RA_Dec = GetRunRaDec(OFF_filename,int(OFF_runlist_input[off_run].second));
         double delta_ra = source_ra_dec.first-off_run_RA_Dec.first;
         double delta_dec = source_ra_dec.second-off_run_RA_Dec.second;
@@ -1413,7 +1250,6 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
             double on_run_MJD = double(GetRunMJD(ON_filename,ON_runnumber));
 
             int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, true); 
-            //int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false); 
             if (matched_runnumber==0)
             {
                 std::cout << "ON run " << ON_runnumber << " failed to find an imposter." << std::endl;
@@ -1579,25 +1415,17 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
             continue;
         }
         double L3_rate = GetRunL3Rate(Data_runlist[run].second);
-        if (!RHVData)
-        {
-            if (L3_rate<150.)
-            {
-                std::cout << int(Data_runlist[run].second) << " L3 rate rejected." << std::endl;
-                continue;
-            }
-        }
-        if (NSB_thisrun>7.0)
-        {
-            std::cout << int(Data_runlist[run].second) << " NSB rejected." << std::endl;
-            continue;
-        }
+        //if (NSB_thisrun>7.0)
+        //{
+        //    std::cout << int(Data_runlist[run].second) << " NSB rejected." << std::endl;
+        //    continue;
+        //}
         if (UseGalacticCoord)
         {
             std::pair<double,double> on_run_RA_Dec = GetRunRaDec(filename,int(Data_runlist[run].second));
             pair<double,double> run_galactic_coords =  ConvertRaDecToGalactic(on_run_RA_Dec.first,on_run_RA_Dec.second);
             pair<double,double> mean_galactic_coords =  ConvertRaDecToGalactic(source_ra_dec.first,source_ra_dec.second);
-            if (abs(run_galactic_coords.first-mean_galactic_coords.first)>Skymap_size_x+2.)
+            if (abs(run_galactic_coords.first-mean_galactic_coords.first)>Skymap_size_x+0.5)
             {
                 std::cout << int(Data_runlist[run].second) << " sky coord. rejected." << std::endl;
                 continue;
@@ -1606,12 +1434,12 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
         else
         {
             std::pair<double,double> on_run_RA_Dec = GetRunRaDec(filename,int(Data_runlist[run].second));
-            if (abs(on_run_RA_Dec.first-source_ra_dec.first)>Skymap_size_x+1.)
+            if (abs(on_run_RA_Dec.first-source_ra_dec.first)>Skymap_size_x+0.5)
             {
                 std::cout << int(Data_runlist[run].second) << " sky coord. rejected." << std::endl;
                 continue;
             }
-            if (abs(on_run_RA_Dec.second-source_ra_dec.second)>Skymap_size_y+1.)
+            if (abs(on_run_RA_Dec.second-source_ra_dec.second)>Skymap_size_y+0.5)
             {
                 std::cout << int(Data_runlist[run].second) << " sky coord. rejected." << std::endl;
                 continue;
@@ -1660,14 +1488,6 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
             continue;
         }
         double L3_rate = GetRunL3Rate(OFF_runlist_input[off_run].second);
-        if (!RHVData)
-        {
-            if (L3_rate<150.)
-            {
-                //std::cout << "OFF run " << int(OFF_runlist_input[off_run].second) << " L3 rate rejected." << std::endl;
-                continue;
-            }
-        }
         std::pair<double,double> off_run_RA_Dec = GetRunRaDec(OFF_filename,int(OFF_runlist_input[off_run].second));
         double delta_ra = source_ra_dec.first-off_run_RA_Dec.first;
         double delta_dec = source_ra_dec.second-off_run_RA_Dec.second;
@@ -1910,10 +1730,6 @@ vector<std::pair<string,int>> GetDBRunList(string epoch, double elev_low, double
                 double exposure_minute = GetRunUsableTime("",runnumber)/60.;
                 if (exposure_minute<10.) qualified = false;
                 double L3_rate = GetRunL3Rate(runnumber);
-                if (!RHVData)
-                {
-                    if (L3_rate<150.) qualified = false;
-                }
                 if (TelElevation_avg<elev_low-5.) qualified = false;
                 if (TelElevation_avg>elev_up+5.) qualified = false;
                 if (Tel0Fir_avg>0.3) qualified = false;

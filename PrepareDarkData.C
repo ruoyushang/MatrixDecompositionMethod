@@ -339,19 +339,21 @@ bool FoV(TString target, bool doImposter) {
     double y = dec_sky-mean_tele_point_dec;
     if (source_theta_cut>(pow(x*x+y*y,0.5))) return false;
     if (CoincideWithGammaSources(ra_sky,dec_sky,source_theta_cut)) return false;
-    if (target.Contains("SS433"))
-    {
-        double hotspot_x = 287.05;
-        double hotspot_y = 6.39;
-        double dist_x = ra_sky-hotspot_x;
-        double dist_y = dec_sky-hotspot_y;
-        double dist = pow(dist_x*dist_x+dist_y*dist_y,0.5);
-        if (dist<1.2) return false;
-    }
+    //if (target.Contains("SS433"))
+    //{
+    //    double hotspot_x = 287.05;
+    //    double hotspot_y = 6.39;
+    //    double dist_x = ra_sky-hotspot_x;
+    //    double dist_y = dec_sky-hotspot_y;
+    //    double dist = pow(dist_x*dist_x+dist_y*dist_y,0.5);
+    //    if (dist<1.2) return false;
+    //}
     if (!UseGalacticCoord)
     {
         if (abs(x)>Skymap_size_x) return false;
         if (abs(y)>Skymap_size_y) return false;
+        //if (abs(x)>10.) return false;
+        //if (abs(y)>10.) return false;
     }
     else
     {
@@ -361,20 +363,22 @@ bool FoV(TString target, bool doImposter) {
         double gal_y = evt_l_b.second-map_l_b.second;
         if (abs(gal_x)>Skymap_size_x) return false;
         if (abs(gal_y)>Skymap_size_y) return false;
+        //if (abs(gal_x)>10.) return false;
+        //if (abs(gal_y)>10.) return false;
     }
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     if (doImposter)
     {
         if (CoincideWithGammaSources(ra_sky_imposter,dec_sky_imposter,0.2)) return false;
-        if (target.Contains("SS433"))
-        {
-            double hotspot_x = 287.05;
-            double hotspot_y = 6.39;
-            double dist_x = ra_sky_imposter-hotspot_x;
-            double dist_y = dec_sky_imposter-hotspot_y;
-            double dist = pow(dist_x*dist_x+dist_y*dist_y,0.5);
-            if (dist<1.2) return false;
-        }
+        //if (target.Contains("SS433"))
+        //{
+        //    double hotspot_x = 287.05;
+        //    double hotspot_y = 6.39;
+        //    double dist_x = ra_sky_imposter-hotspot_x;
+        //    double dist_y = dec_sky_imposter-hotspot_y;
+        //    double dist = pow(dist_x*dist_x+dist_y*dist_y,0.5);
+        //    if (dist<1.2) return false;
+        //}
     } 
     
     //vector<double> ss433_ra;
@@ -2179,6 +2183,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     vector<TH2D> Hist_OnData_ISR_Skymap;
     vector<TH2D> Hist_OnData_SR_Skymap;
     vector<TH2D> Hist_OnData_CR_Skymap;
+    vector<TH2D> Hist_OnData_CR_LargeSkymap;
     vector<TH2D> Hist_OnData_RBM_Skymap;
     //vector<TH2D> Hist_NormSyst_Skymap;
     //vector<vector<TH2D>> Hist_ShapeSyst_Skymap;
@@ -2230,6 +2235,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         Hist_OnData_ISR_Skymap.push_back(TH2D("Hist_Stage1_OnData_ISR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
         Hist_OnData_SR_Skymap.push_back(TH2D("Hist_Stage1_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
         Hist_OnData_CR_Skymap.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
+        Hist_OnData_CR_LargeSkymap.push_back(TH2D("Hist_Stage1_OnData_CR_LargeSkymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-10.,map_center_x+10.,Skymap_nbins_y,map_center_y-10.,map_center_y+10.));
         Hist_OnData_RBM_Skymap.push_back(TH2D("Hist_Stage1_OnData_RBM_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
         //Hist_NormSyst_Skymap.push_back(TH2D("Hist_Stage1_NormSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
 
@@ -3428,10 +3434,12 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                         if (!UseGalacticCoord)
                         {
                             Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,tight_acceptance_weight);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(ra_sky,dec_sky,tight_acceptance_weight);
                         }
                         else
                         {
                             Hist_OnData_CR_Skymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,tight_acceptance_weight);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,tight_acceptance_weight);
                         }
                     }
                 }
@@ -3443,10 +3451,12 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                         if (!UseGalacticCoord)
                         {
                             Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,acceptance_weight);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(ra_sky,dec_sky,acceptance_weight);
                         }
                         else
                         {
                             Hist_OnData_CR_Skymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,acceptance_weight);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,acceptance_weight);
                         }
                     }
                 }
@@ -3920,6 +3930,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         Hist_OnData_ISR_Skymap.at(e).Write();
         Hist_OnData_SR_Skymap.at(e).Write();
         Hist_OnData_CR_Skymap.at(e).Write();
+        Hist_OnData_CR_LargeSkymap.at(e).Write();
         Hist_OnData_RBM_Skymap.at(e).Write();
         //Hist_NormSyst_Skymap.at(e).Write();
         //for (int xybin=0;xybin<N_integration_radii;xybin++) 

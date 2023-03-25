@@ -44,8 +44,8 @@ double energy_fine_bins[N_energy_fine_bins+1] = {100.,300.,700.,1500.,3100.,6300
 
 
 bool UseDL3Tree = true;
-//bool RHVData = true;
-bool RHVData = false;
+bool RHVData = true;
+//bool RHVData = false;
 
 
 //bool UseGalacticCoord = true;
@@ -55,23 +55,15 @@ bool RHVData = false;
 //int Skymap_nbins_y = 60;
 //int Skymap_nzones_x = 3;
 //int Skymap_nzones_y= 3;
-//bool UseGalacticCoord = false;
-//double Skymap_size_x = 2.;
-//double Skymap_size_y = 2.;
-//int Skymap_nbins_x = 50;
-//int Skymap_nbins_y = 50;
-//int Skymap_nzones_x = 1;
-//int Skymap_nzones_y= 1;
 bool UseGalacticCoord = false;
-double Skymap_size_x = 2.0;
-double Skymap_size_y = 2.0;
+double Skymap_size_x = 1.5;
+double Skymap_size_y = 1.5;
 int Skymap_nbins_x = 50;
 int Skymap_nbins_y = 50;
 int Skymap_nzones_x = 1;
 int Skymap_nzones_y= 1;
 
 bool UseDBOnly = false;
-//bool UseDBOnly = true;
 
 bool UseRegularization = true;
 //bool UseRegularization = false;

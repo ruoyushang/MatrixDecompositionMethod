@@ -830,7 +830,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
     }
     if (source.find("SS433_V6") != std::string::npos)
     {
-        list = GetRunListFromFile("Tobias_SS433_V6");
+        //list = GetRunListFromFile("Tobias_SS433_V6");
+        list = GetRunListFromFile("PSR_J1907_p0602_V6");
     }
     if (source.find("SS433Half1_V6") != std::string::npos)
     {
@@ -1031,7 +1032,7 @@ vector<std::pair<string,int>> GetRunList(string source) {
     {
         if (RHVData)
         {
-            list_temp = GetRunListFromFile("CrabRHV_Imposter_V6");
+            list_temp = GetRunListFromFile("CrabRHV_OFF_V6");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
         else
@@ -1176,7 +1177,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
         list = GetRunListFromFile("MGRO_J1908_V5");
     }
     if (source.find("SS433_V5") != std::string::npos) {
-        list = GetRunListFromFile("Tobias_SS433_V5");
+        //list = GetRunListFromFile("Tobias_SS433_V5");
+        list = GetRunListFromFile("PSR_J1907_p0602_V5");
     }
     if (source.find("SS433Half1_V5") != std::string::npos) {
         list = GetRunListFromFile("Tobias_SS433_V5");
