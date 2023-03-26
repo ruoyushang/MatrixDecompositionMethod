@@ -46,10 +46,9 @@ doImposter = int(sys.argv[4])
 
 plot_energy_break_bin = 3
 
-#n_imposters = 3
-#n_imposters = 4
+#n_imposters = 2
 n_imposters = 5
-#n_imposters = 6
+if not doImposter: n_imposters = 0
 
 correct_bias = True
 #correct_bias = False
@@ -73,7 +72,6 @@ def _gaussian(M, *args):
 
 def fit_2d_model(hist_map_data, hist_map_bkgd, src_x, src_y):
 
-    print ('+++++++++++++++++++++++++++++++++++++++++++++')
     nbins_x = hist_map_data.GetNbinsX()
     nbins_y = hist_map_data.GetNbinsY()
     lon_min = MapEdge_left
@@ -101,8 +99,9 @@ def fit_2d_model(hist_map_data, hist_map_bkgd, src_x, src_y):
     lat = src_y
     sigma = 0.03807
     initial_prms += [(lon,lat,sigma,10.)]
-    bound_lower_prms += [(lon-0.5,lat-0.5,sigma+0.0,0.)]
-    bound_upper_prms += [(lon+0.5,lat+0.5,sigma+2.0,1e10)]
+    centroid_range = 0.5
+    bound_lower_prms += [(lon-centroid_range,lat-centroid_range,sigma+0.0,0.)]
+    bound_upper_prms += [(lon+centroid_range,lat+centroid_range,sigma+2.0,1e10)]
     # Flatten the initial guess parameter list.
     p0 = [p for prms in initial_prms for p in prms]
     p0_lower = [p for prms in bound_lower_prms for p in prms]
@@ -119,6 +118,8 @@ def fit_2d_model(hist_map_data, hist_map_bkgd, src_x, src_y):
     fit_src_sigma = popt[0*4+2]
     fit_src_sigma_err = pow(pcov[0*4+2][0*4+2],0.5)
     print ('fit_src_sigma = %0.3f +/- %0.3f'%(fit_src_sigma,fit_src_sigma_err))
+    true_src_sigma = pow(fit_src_sigma*fit_src_sigma-pow(CommonPlotFunctions.smooth_size_spectroscopy,2),0.5)
+    print ('true_src_sigma = %0.3f +/- %0.3f'%(true_src_sigma,fit_src_sigma_err))
     fit_src_A = popt[0*4+3]
     print ('fit_src_A = %0.1e'%(fit_src_A))
 
@@ -150,10 +151,11 @@ def GetFluxCalibration(energy):
 
     #return 1.
 
+    # The energy threshold needs to be as low as 100 GeV for this method to work.
     # elevation = 70, energy threshold = 200 GeV
     #flux_calibration = [2.5579605915713342e-11, 9.417832458337564e-12, 4.186357340959233e-12, 2.1646972910242393e-12, 1.142544538194112e-12, 5.433497919384933e-13]
 
-    # elevation = 60, energy threshold = 100 GeV
+    # elevation = 60, energy threshold = 100 GeV, 2x2-deg2 map
     flux_calibration = [1.7506329704556129e-10, 1.4669366489694362e-11, 5.575025320745524e-12, 2.6520194512426122e-12, 1.3856458120508363e-12, 6.633980234341466e-13]
 
 
@@ -263,8 +265,8 @@ def GetMapNormalDistribution(hist_mean):
         hist_noise_skymap.Reset()
         for binx in range(0,hist_noise_skymap.GetNbinsX()):
             for biny in range(0,hist_noise_skymap.GetNbinsY()):
+                if hist_mean_skymap.GetBinContent(binx+1,biny+1)<1.: continue
                 error = pow(hist_mean_skymap.GetBinContent(binx+1,biny+1),0.5)
-                if error<1.: continue
                 random_number = np.random.normal(loc=0, scale=error)
                 hist_noise_skymap.SetBinContent(binx+1,biny+1,random_number)
         if CommonPlotFunctions.Smoothing:
@@ -272,8 +274,8 @@ def GetMapNormalDistribution(hist_mean):
             hist_noise_skymap = CommonPlotFunctions.Smooth2DMap(hist_noise_skymap,CommonPlotFunctions.smooth_size_spectroscopy,False,False)
         for binx in range(0,hist_noise_skymap.GetNbinsX()):
             for biny in range(0,hist_noise_skymap.GetNbinsY()):
+                if hist_mean_skymap.GetBinContent(binx+1,biny+1)<1.: continue
                 error = pow(hist_mean_skymap.GetBinContent(binx+1,biny+1),0.5)
-                if error<1.: continue
                 content = hist_noise_skymap.GetBinContent(binx+1,biny+1)/error
                 zscores += [content]
 
@@ -287,7 +289,7 @@ def GetMapChi2Distribution(hist_z,hist_cnt):
         for biny in range(0,hist_z.GetNbinsY()):
             content = hist_z.GetBinContent(binx+1,biny+1)
             count = hist_cnt.GetBinContent(binx+1,biny+1)
-            if count/count_max<0.3: continue
+            if count/count_max<0.5: continue
             zscores += [content]
     return zscores
 
@@ -588,6 +590,24 @@ def GetHAWCFluxJ1908(energy_index):
 
     return energies, fluxes, flux_errs
 
+def GetHawcSaraFluxJ1908(energy_index):
+
+    energies = [1.38,2.58,4.58,6.89,10.88,18.23,35.56,61.32,107.69,186.29]
+    fluxes = [2.7211e-11,2.7457e-11,2.2287e-11,1.7933e-11,1.3624e-11,9.4346e-12,5.9615e-12,2.5984e-12,1.4372e-12,5.7010e-13]
+    flux_errs = [2.7211e-11,2.7457e-11,2.2287e-11,1.7933e-11,1.3624e-11,9.4346e-12,5.9615e-12,2.5984e-12,1.4372e-12,5.7010e-13]
+    flux_errs_up = [+1.3091e-12,+1.1941e-12,+1.0624e-12,+7.6946e-13,+5.3155e-13,+5.0018e-13,+3.1416e-13,+2.5557e-13,+2.3385e-13,+1.7388e-13]
+    flux_errs_low = [-1.2902e-12,-1.2274e-12,-1.0946e-12,-7.6676e-13,-5.2608e-13,-5.1950e-13,-3.2465e-13,-2.4536e-13,-2.3011e-13,-1.7487e-13]
+
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]*1e3
+        fluxes[entry] = fluxes[entry]/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        flux_errs_up[entry] = flux_errs[entry]+flux_errs_up[entry]
+        flux_errs_low[entry] = flux_errs[entry]+flux_errs_low[entry]
+        flux_errs[entry] = 0.5*(flux_errs_up[entry]-flux_errs_low[entry])/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+        #flux_errs[entry] = 0.5*fluxes[entry]/(energies[entry]*energies[entry]/1e6)*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
 def GetHawcDiffusionFluxJ1908(energy_index):
     energies = [pow(10.,0.075),pow(10.,0.259),pow(10.,0.492),pow(10.,0.740),pow(10.,0.997),pow(10.,1.270),pow(10.,1.532),pow(10.,1.776),pow(10.,2.011),pow(10.,2.243)]
     fluxes = [pow(10.,-10.710),pow(10.,-10.696),pow(10.,-10.699),pow(10.,-10.801),pow(10.,-10.924),pow(10.,-11.137),pow(10.,-11.329),pow(10.,-11.560),pow(10.,-11.669),pow(10.,-11.860)]
@@ -864,6 +884,19 @@ def GetFermiFluxJ1908(energy_index):
 
     return energies, fluxes, flux_errs
 
+def GetFermiSajanFluxJ1908(energy_index):
+
+    energies = [0.04259995391188701,0.08589836120408885,0.17320508075688776,0.34924996914343903,0.7042261140012375]
+    fluxes = [2.0742479228356506e-09,5.167797731597238e-10,1.935851113714633e-10,7.61863931502017e-11,1.4556282549787218e-11]
+    flux_errs = [7.284242911341644e-10,2.143585131563245e-10,5.644445726864627e-11,3.33487343076602e-11,1.0187607343539173e-11]
+
+    for entry in range(0,len(energies)):
+        energies[entry] = energies[entry]*1e3
+        fluxes[entry] = fluxes[entry]*pow(energies[entry]/1e3,energy_index)
+        flux_errs[entry] = flux_errs[entry]*pow(energies[entry]/1e3,energy_index)
+
+    return energies, fluxes, flux_errs
+
 def GetFermiUpperLimitFluxGeminga(energy_index):
     energies = [pow(10.,2.09),pow(10.,2.35),pow(10.,2.61),pow(10.,2.87)]
     fluxes = [pow(10.,-7.35),pow(10.,-7.23),pow(10.,-7.34),pow(10.,-7.18)]
@@ -1107,17 +1140,17 @@ def SumFluxMap():
     CommonPlotFunctions.MatplotlibMap2D(hist_bkgd_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapBkgdFlux_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_sum)
-    CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_Sum_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,None,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_Sum_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     hist_zscore_skymap_le_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_le)
 
     hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_le)
-    CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_le_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_LE_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_le_reflect,None,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_LE_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     hist_zscore_skymap_he_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_he)
 
     hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_he)
-    CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_he_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_HE_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_he_reflect,None,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_HE_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 
     CommonPlotFunctions.SaveAsFITS(hist_real_flux_skymap_reflect,'skymap_flux_sum_%s'%(plot_tag))
@@ -1274,11 +1307,12 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name,excl_roi_x,excl_roi_y,excl_roi_r,exc
         vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
         ydata_hawc = pow(xdata_ref/1e3,energy_index_scale)*vectorize_f_hawc(xdata_ref)
         # HAWC systematic uncertainty, The Astrophysical Journal 881, 134. Fig 13
-        #HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index_scale)
         HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHawcDiffusionFluxJ1908(energy_index_scale)
+        Sara_energies, Sara_fluxes, Sara_flux_errs = GetHawcSaraFluxJ1908(energy_index_scale)
         HESS_energies, HESS_fluxes, HESS_flux_errs = GetHessFluxJ1908(energy_index_scale)
         OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ1908(energy_index_scale)
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index_scale)
+        Sajan_energies, Sajan_fluxes, Sajan_flux_errs = GetFermiSajanFluxJ1908(energy_index_scale)
         LHAASO_energies, LHAASO_fluxes, LHAASO_flux_errs = GetLHAASOFluxJ1908(energy_index_scale)
     if source_name=='PSR_J1856_p0245':
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1856(energy_index_scale)
@@ -1460,10 +1494,12 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name,excl_roi_x,excl_roi_y,excl_roi_r,exc
     axbig = fig.add_subplot()
     if source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602':
 
-        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='b',marker='s',ls='none',label='Fermi',zorder=4)
-        axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC',zorder=3)
+        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='b',marker='s',ls='none',label='Fermi (Li)',zorder=4)
+        axbig.errorbar(Sajan_energies,Sajan_fluxes,Sajan_flux_errs,color='y',marker='s',ls='none',label='Fermi (Sajan)',zorder=4)
+        axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC (2021 paper)',zorder=3)
+        axbig.errorbar(Sara_energies,Sara_fluxes,Sara_flux_errs,color='c',marker='s',ls='none',label='HAWC (Sara)',zorder=3)
         #axbig.errorbar(HESS_energies,HESS_fluxes,HESS_flux_errs,color='g',marker='s',ls='none',label='HESS',zorder=2)
-        axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS (2014)',zorder=1)
+        #axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS (2014)',zorder=1)
         axbig.errorbar(LHAASO_energies,LHAASO_fluxes,LHAASO_flux_errs,color='m',marker='s',ls='none',label='LHAASO',zorder=7)
 
         #axbig.plot(xdata_ref, ydata_hawc,'r-',label='1909.08609 (HAWC)',zorder=2)
@@ -1637,11 +1673,12 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
         vectorize_f_hawc = np.vectorize(flux_hawc_j1908_func)
         ydata_hawc = pow(xdata_ref/1e3,energy_index_scale)*vectorize_f_hawc(xdata_ref)
         # HAWC systematic uncertainty, The Astrophysical Journal 881, 134. Fig 13
-        #HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHAWCFluxJ1908(energy_index_scale)
         HAWC_energies, HAWC_fluxes, HAWC_flux_errs = GetHawcDiffusionFluxJ1908(energy_index_scale)
+        Sara_energies, Sara_fluxes, Sara_flux_errs = GetHawcSaraFluxJ1908(energy_index_scale)
         HESS_energies, HESS_fluxes, HESS_flux_errs = GetHessFluxJ1908(energy_index_scale)
         OldV_energies, OldV_fluxes, OldV_flux_errs = GetVeritasFluxJ1908(energy_index_scale)
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1908(energy_index_scale)
+        Sajan_energies, Sajan_fluxes, Sajan_flux_errs = GetFermiSajanFluxJ1908(energy_index_scale)
         LHAASO_energies, LHAASO_fluxes, LHAASO_flux_errs = GetLHAASOFluxJ1908(energy_index_scale)
     if source_name=='PSR_J1856_p0245':
         Fermi_energies, Fermi_fluxes, Fermi_flux_errs = GetFermiFluxJ1856(energy_index_scale)
@@ -1686,8 +1723,10 @@ def MakeDiffusionSpectrum(energy_axis,energy_error,r_axis,y_axis,y_axis_stat_err
     fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     if source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602':
-        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='b',marker='s',ls='none',label='Fermi',zorder=4)
-        axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC',zorder=3)
+        axbig.errorbar(Fermi_energies,Fermi_fluxes,Fermi_flux_errs,color='b',marker='s',ls='none',label='Fermi (Li)',zorder=4)
+        axbig.errorbar(Sajan_energies,Sajan_fluxes,Sajan_flux_errs,color='y',marker='s',ls='none',label='Fermi (Sajan)',zorder=4)
+        axbig.errorbar(HAWC_energies,HAWC_fluxes,HAWC_flux_errs,color='r',marker='s',ls='none',label='HAWC (2021 paper)',zorder=3)
+        axbig.errorbar(Sara_energies,Sara_fluxes,Sara_flux_errs,color='c',marker='s',ls='none',label='HAWC (Sara)',zorder=3)
         axbig.errorbar(HESS_energies,HESS_fluxes,HESS_flux_errs,color='g',marker='s',ls='none',label='HESS',zorder=2)
         axbig.errorbar(OldV_energies,OldV_fluxes,OldV_flux_errs,color='y',marker='s',ls='none',label='VERITAS (2014)',zorder=1)
         axbig.errorbar(LHAASO_energies,LHAASO_fluxes,LHAASO_flux_errs,color='m',marker='s',ls='none',label='LHAASO',zorder=7)
@@ -1824,6 +1863,9 @@ def MakeGalacticProfile(proj_type,axis_title,real_map,imposter_maps,erange_tag):
 
 def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name,real_map,imposter_maps,erange_tag):
 
+    if real_map.Integral()==0.:
+        return
+
     real_profile, real_profile_stat_err, theta2, theta2_err = CommonPlotFunctions.FindExtension_v2(real_map,roi_x,roi_y,3.0*roi_r[2])
     imposter_profile_list = []
     imposter_profile_err_list = []
@@ -1882,13 +1924,13 @@ def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name,real_map,imposte
         print ('gaussian radius = %0.2f +/- %0.2f deg (chi2/dof = %0.2f)'%(popt[1],pow(pcov[1][1],0.5),chisq/dof))
 
     fig.clf()
-    fig.set_figheight(figsize_y)
+    fig.set_figheight(figsize_y*0.8)
     fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     axbig.bar(theta2, 2.*real_profile_syst_err, bottom=-real_profile_syst_err, width=1.*theta2_err, color='b', align='center', alpha=0.2)
     axbig.errorbar(theta2,real_profile,real_profile_stat_err,color='k',marker='s',ls='none',label='ON data')
-    if fit_profile!=0:
-        axbig.plot(theta2,diffusion_func(theta2,*popt),color='r')
+    #if fit_profile!=0:
+    #    axbig.plot(theta2,diffusion_func(theta2,*popt),color='r')
     axbig.set_ylabel('surface brightness [$\mathrm{TeV}\ \mathrm{cm}^{-2}\mathrm{s}^{-1}\mathrm{deg}^{-2}$]')
     axbig.set_xlabel('angular distance from source [degree]')
     axbig.legend(loc='best')
@@ -1898,7 +1940,7 @@ def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name,real_map,imposte
     axbig.remove()
 
     fig.clf()
-    fig.set_figheight(figsize_y)
+    fig.set_figheight(figsize_y*0.8)
     fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     cycol = cycle('rgbcmy')
@@ -2023,6 +2065,10 @@ hist_real_flux_skymap_he = ROOT.TH2D("hist_real_flux_skymap_he","",nbins_x,MapEd
 hist_bkgd_flux_skymap_sum = ROOT.TH2D("hist_bkgd_flux_skymap_sum","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_data_skymap_sum = ROOT.TH2D("hist_real_data_skymap_sum","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_bkgd_skymap_sum = ROOT.TH2D("hist_real_bkgd_skymap_sum","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+hist_real_data_skymap_le = ROOT.TH2D("hist_real_data_skymap_le","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+hist_real_bkgd_skymap_le = ROOT.TH2D("hist_real_bkgd_skymap_le","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+hist_real_data_skymap_he = ROOT.TH2D("hist_real_data_skymap_he","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+hist_real_bkgd_skymap_he = ROOT.TH2D("hist_real_bkgd_skymap_he","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_syst_skymap_sum = ROOT.TH2D("hist_real_syst_skymap_sum","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_mimic_syst_skymap_sum = ROOT.TH2D("hist_mimic_syst_skymap_sum","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_data_skymap = []
@@ -2232,6 +2278,17 @@ hist_real_bkgd_skymap_sum.Reset()
 for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
     hist_real_data_skymap_sum.Add(hist_real_data_skymap[ebin])
     hist_real_bkgd_skymap_sum.Add(hist_real_bkgd_skymap[ebin])
+hist_real_data_skymap_le.Reset()
+hist_real_bkgd_skymap_le.Reset()
+for ebin in range(max(0,energy_bin_cut_low),plot_energy_break_bin):
+    hist_real_data_skymap_le.Add(hist_real_data_skymap[ebin])
+    hist_real_bkgd_skymap_le.Add(hist_real_bkgd_skymap[ebin])
+hist_real_data_skymap_he.Reset()
+hist_real_bkgd_skymap_he.Reset()
+for ebin in range(max(plot_energy_break_bin,energy_bin_cut_low),6):
+    hist_real_data_skymap_he.Add(hist_real_data_skymap[ebin])
+    hist_real_bkgd_skymap_he.Add(hist_real_bkgd_skymap[ebin])
+
 for imposter in range(0,n_imposters):
     hist_imposter_data_skymap_sum[imposter].Reset()
     hist_imposter_bkgd_skymap_sum[imposter].Reset()
@@ -2270,8 +2327,8 @@ if 'Crab' in source_name:
     do_fit = 2
 elif source_name=='PSR_J2021_p4026' and not CommonPlotFunctions.doGalacticCoord:
     text_angle = 0.
-    region_x = MapCenter_x
-    region_y = MapCenter_y
+    region_x = 305.0200000
+    region_y = 40.7572222
     region_r = [1.0 for element in range(len(energy_bin)-1)]
     region_name = 'Center'
     do_fit = 0
@@ -2325,8 +2382,10 @@ elif source_name=='SS433' and not CommonPlotFunctions.doGalacticCoord:
     #region_name = 'SS433'
 
     #SS 433 e1
-    region_x = 288.404
-    region_y = 4.930
+    #region_x = 288.404
+    #region_y = 4.930
+    region_x = 288.407
+    region_y = 5.044
     region_r = [0.25 for element in range(len(energy_bin)-1)]
     region_name = 'SS433e1'
 
@@ -2372,13 +2431,20 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     #region_r = [0.5 for element in range(len(energy_bin)-1)]
     #region_name = 'SNR'
 
+    #SS 433 e1
+    #region_x = 288.407
+    #region_y = 5.044
+    #region_r = [0.25 for element in range(len(energy_bin)-1)]
+    #region_name = 'SS433e1'
+
     ##4FGL J1906.9+0712
     excl_region_x = 286.7473
     excl_region_y = 7.2165
     excl_region_r = [0.3,0.3,0.0,0.0,0.0,0.0]
     excl_region_name = 'North'
 
-    do_fit = 1
+    #do_fit = 1
+    do_fit = 2
 
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
     Hist_Tobias = ROOT.TH2D("Hist_Tobias","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
@@ -2389,17 +2455,19 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
 
     Hist_Fermi = ROOT.TH2D("Hist_Fermi","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     fermi_map_list = []
-    fermi_map_list += ['1GeV']
-    fermi_map_list += ['3GeV']
-    fermi_map_list += ['5GeV']
-    fermi_map_list += ['10GeV']
-    fermi_map_list += ['30GeV']
+    fermi_map_list += ['initial']
+    #fermi_map_list += ['1GeV']
+    #fermi_map_list += ['3GeV']
+    #fermi_map_list += ['5GeV']
+    #fermi_map_list += ['10GeV']
+    #fermi_map_list += ['30GeV']
     for hfile in range(0,len(fermi_map_list)):
-        MWL_map_file = 'MWL_maps/TSmap_%s_pointsource_powerlaw_2.00_tsmap.fits'%(fermi_map_list[hfile])
+        MWL_map_file = 'MWL_maps/TS_%s_pointsource_powerlaw_2.00_tsmap.fits'%(fermi_map_list[hfile])
         Hist_Fermi = CommonPlotFunctions.GetFITSMap(MWL_map_file, Hist_Fermi, True)
-        Hist_Fermi = CommonPlotFunctions.Smooth2DMap(Hist_Fermi,0.1,False,False)
+        Hist_Fermi = CommonPlotFunctions.Smooth2DMap(Hist_Fermi,0.1,False,True)
         Hist_Fermi_reflect = CommonPlotFunctions.reflectXaxis(Hist_Fermi)
-        CommonPlotFunctions.MatplotlibMap2D(Hist_Fermi_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','TS','SkymapFermi_%s_%s'%(fermi_map_list[hfile],plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+        Hist_Fermi_reflect.Scale(0.5)
+        CommonPlotFunctions.MatplotlibMap2D(Hist_Fermi_reflect,None,None,fig,'RA','Dec','sqrt(TS)','SkymapFermi_%s_%s'%(fermi_map_list[hfile],plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     #Hist_Hawc = ROOT.TH2D("Hist_Hawc","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     #hawc_map_list = []
@@ -2412,7 +2480,8 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     #    MWL_map_file = 'MWL_maps/%s-j1908.fits.gz'%(hawc_map_list[hfile])
     #    Hist_Hawc = CommonPlotFunctions.GetHealpixMap(MWL_map_file, Hist_Hawc, True)
     #    Hist_Hawc_reflect = CommonPlotFunctions.reflectXaxis(Hist_Hawc)
-    #    CommonPlotFunctions.MatplotlibMap2D(Hist_Hawc_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapHAWC_%s_%s.png'%(hawc_map_list[hfile],plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    #    #CommonPlotFunctions.MatplotlibMap2D(Hist_Hawc_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapHAWC_%s_%s.png'%(hawc_map_list[hfile],plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    #    CommonPlotFunctions.MatplotlibMap2D(Hist_Hawc_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Significance','SkymapHAWC_%s_%s.png'%(hawc_map_list[hfile],plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 
 
@@ -2575,7 +2644,7 @@ else:
     region_x = MapCenter_x
     region_y = MapCenter_y
     #region_r = [CommonPlotFunctions.calibration_radius for element in range(len(energy_bin)-1)]
-    region_r = [2.0 for element in range(len(energy_bin)-1)]
+    region_r = [0.5 for element in range(len(energy_bin)-1)]
     region_name = 'Center'
     do_fit = 0
 
@@ -2598,7 +2667,15 @@ hist_real_data_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_d
 hist_real_bkgd_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_bkgd_skymap_sum)
 CommonPlotFunctions.BackgroundSubtractMap(fig,hist_real_data_skymap_sum_reflect,hist_real_bkgd_skymap_sum_reflect,'RA','Dec','Count','SkymapBkgSubtraction_%s'%(plot_tag))
 
+print ('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+print ('Sum')
 fit_2d_model(hist_real_data_skymap_sum, hist_real_bkgd_skymap_sum, region_x, region_y)
+print ('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+print ('LE')
+fit_2d_model(hist_real_data_skymap_le, hist_real_bkgd_skymap_le, region_x, region_y)
+print ('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+print ('HE')
+fit_2d_model(hist_real_data_skymap_he, hist_real_bkgd_skymap_he, region_x, region_y)
 
 for esf in range(0,len(exposure_scaling_factors)):
     print ('exposure_scaling_factors = %s'%(exposure_scaling_factors[esf]))
