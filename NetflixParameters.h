@@ -14,7 +14,7 @@ int MatchingSelection = 0; // default
 //int MatchingSelection = 4; // free MJD
 //
 double MatchRun_dElev = 0.2;
-double MatchRun_dAzim = 22.5;
+double MatchRun_dAzim = 30.;
 double MatchRun_dNSB = 1.0;
 
 double Log10_alpha_LE = 0.0;
@@ -44,8 +44,8 @@ double energy_fine_bins[N_energy_fine_bins+1] = {100.,300.,700.,1500.,3100.,6300
 
 
 bool UseDL3Tree = true;
-bool RHVData = true;
-//bool RHVData = false;
+//bool RHVData = true;
+bool RHVData = false;
 
 
 //bool UseGalacticCoord = true;
@@ -56,8 +56,8 @@ bool RHVData = true;
 //int Skymap_nzones_x = 3;
 //int Skymap_nzones_y= 3;
 bool UseGalacticCoord = false;
-double Skymap_size_x = 1.5;
-double Skymap_size_y = 1.5;
+double Skymap_size_x = 2.0;
+double Skymap_size_y = 2.0;
 int Skymap_nbins_x = 50;
 int Skymap_nbins_y = 50;
 int Skymap_nzones_x = 1;

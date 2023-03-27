@@ -3811,13 +3811,19 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
                 old_error = hist_expo_skymap[ebin].GetBinError(bx2,by2)
                 hist_expo_skymap[ebin].SetBinError(bx2,by2,pow(new_error*new_error+old_error*old_error,0.5))
     for ebin in range(0,len(energy_bin)-1):
+        CommonPlotFunctions.ImageCleaning(hist_bkgd_skymap_smooth[ebin])
         hist_bkgd_skymap_smooth[ebin] = Smooth2DMap(hist_bkgd_skymap_smooth[ebin],2.0*smooth_size_spectroscopy,False,True)
         if not Smoothing:
             continue
+        CommonPlotFunctions.ImageCleaning(hist_bkgd_skymap[ebin])
         hist_bkgd_skymap[ebin] = Smooth2DMap(hist_bkgd_skymap[ebin],smooth_size_spectroscopy,False,True)
+        CommonPlotFunctions.ImageCleaning(hist_rfov_skymap[ebin])
         hist_rfov_skymap[ebin] = Smooth2DMap(hist_rfov_skymap[ebin],smooth_size_spectroscopy,False,True)
+        CommonPlotFunctions.ImageCleaning(hist_data_skymap[ebin])
         hist_data_skymap[ebin] = Smooth2DMap(hist_data_skymap[ebin],smooth_size_spectroscopy,False,True)
+        CommonPlotFunctions.ImageCleaning(hist_effarea_skymap[ebin])
         hist_effarea_skymap[ebin] = Smooth2DMap(hist_effarea_skymap[ebin],smooth_size_spectroscopy,False,True)
+        CommonPlotFunctions.ImageCleaning(hist_expo_skymap[ebin])
         hist_expo_skymap[ebin] = Smooth2DMap(hist_expo_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_syst_skymap[ebin] = Smooth2DMap(hist_syst_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_normsyst_skymap[ebin] = Smooth2DMap(hist_normsyst_skymap[ebin],smooth_size_spectroscopy,False,True)

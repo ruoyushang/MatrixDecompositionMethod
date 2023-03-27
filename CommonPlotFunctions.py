@@ -26,6 +26,7 @@ from matplotlib.ticker import MaxNLocator
 from matplotlib.ticker import NullFormatter
 from operator import itemgetter, attrgetter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from mpl_toolkits import mplot3d
 import healpy as hp
 
 # Great examples of matplotlib plots: https://atmamani.github.io/cheatsheets/matplotlib/matplotlib_2/
@@ -121,7 +122,7 @@ if 'tight' in folder_path:
 skymap_zoomin_scale = 1
 #skymap_zoomin_scale = 1.5
 #skymap_zoomin_scale = 2
-smooth_size_spectroscopy = 0.1
+smooth_size_spectroscopy = 0.07
 #smooth_size_spectroscopy = 0.14
 #smooth_size_spectroscopy = 0.2
 #smooth_size_spectroscopy = 0.3
@@ -188,7 +189,11 @@ def reflectXaxis(hist):
     # taken from VPlotAnasumHistograms.cpp
 	
     # temporary histogram
-    hT = ROOT.TH2D( "%s_REFLECTED"%(hist.GetName()), "", hist.GetNbinsX(), -1.*hist.GetXaxis().GetXmax(), -1.*hist.GetXaxis().GetXmin(), hist.GetNbinsY(), hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax() )
+    new_hist_name = "%s_REFLECTED"%(hist.GetName())
+    if ROOT.gDirectory.FindObject(new_hist_name):
+        hT = ROOT.gDirectory.Get(new_hist_name)
+    else:
+        hT = ROOT.TH2D( new_hist_name, "", hist.GetNbinsX(), -1.*hist.GetXaxis().GetXmax(), -1.*hist.GetXaxis().GetXmin(), hist.GetNbinsY(), hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax() )
     hT.SetStats( 0 )
     hT.SetXTitle( hist.GetXaxis().GetTitle() )
     hT.SetYTitle( hist.GetYaxis().GetTitle() )
@@ -198,6 +203,26 @@ def reflectXaxis(hist):
             hT.SetBinContent( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinContent( binx, biny ) )
             hT.SetBinError( hist.GetNbinsX() + 1 - binx, biny, hist.GetBinError( binx, biny ) )
     return hT
+
+def ImageCleaning(signal_map):
+
+    signal_array = np.zeros((signal_map.GetNbinsX(),signal_map.GetNbinsY()))
+
+    for binx in range(0,signal_map.GetNbinsX()):
+        for biny in range(0,signal_map.GetNbinsY()):
+            signal_array[binx,biny] = signal_map.GetBinContent(binx+1,biny+1)
+
+    U_signal, S_signal, V_signal = np.linalg.svd(signal_array,full_matrices=False)
+
+    k = 8
+    reconstructed_matrix = U_signal[:, :k] @ np.diag(S_signal[:k]) @ V_signal[:k, :]
+
+    for binx in range(0,signal_map.GetNbinsX()):
+        for biny in range(0,signal_map.GetNbinsY()):
+            content = reconstructed_matrix[binx,biny]
+            #content = max(0.,content)
+            signal_map.SetBinContent(binx+1,biny+1,content)
+
 
 def Smooth2DMap(Hist_Old,smooth_size,addLinearly,normalized):
 
@@ -577,9 +602,10 @@ def FindExtension_v2(Hist_Data_input,roi_x,roi_y,integration_range):
     global calibration_radius
 
     n_bins_2d = Hist_Data_input.GetNbinsX()
-    integration_range = min(integration_range,2.0)
+    #integration_range = min(integration_range,2.0)
+    integration_range = Skymap_size_x
     #n_bins_1d = 5
-    n_bins_1d = 10
+    n_bins_1d = int(integration_range/0.2)
 
     n_bins_y = Hist_Data_input.GetNbinsY()
     n_bins_x = Hist_Data_input.GetNbinsX()
@@ -794,7 +820,8 @@ def GetHealpixMap(map_file, hist_map, isRaDec):
     MapCenter_x = (MapEdge_left+MapEdge_right)/2.
     MapCenter_y = (MapEdge_lower+MapEdge_upper)/2.
 
-    hpx, header = hp.read_map(map_file, field=1, h=True)
+    hpx, header = hp.read_map(map_file, field=0, h=True)
+    #hpx, header = hp.read_map(map_file, field=1, h=True)
     npix = len(hpx)
     nside = hp.npix2nside(npix)
     for ipix in range(0,npix):
@@ -1016,11 +1043,8 @@ def ReadATNFTargetListFromFile(file_path):
         if target_edot=='*': continue
         target_brightness = float(target_edot)/pow(float(target_dist),2)
 
-        #if float(target_age)/1000.>pow(10,4.5): continue
         if float(target_edot)<1e35: continue
-        if float(target_dist)>6.: continue
-        #if target_dist>target_max_dist_cut: continue
-        #if target_dist>2.0: continue
+        #if float(target_dist)>6.: continue
 
         #ra_deg = float(HMS2deg(target_ra,target_dec)[0])
         #dec_deg = float(HMS2deg(target_ra,target_dec)[1])
@@ -1262,12 +1286,13 @@ def GetSignificanceMap(Hist_SR,Hist_Bkg,Hist_Syst,isON):
             Shape_Err = Hist_Syst.GetBinContent(bx+1,by+1)
             Data_Stat_Err = Hist_SR.GetBinError(bx+1,by+1)
             Bkgd_Stat_Err = Hist_Bkg.GetBinError(bx+1,by+1)
-            NBkg_Err = pow(pow(Bkgd_Stat_Err,2)+pow(Shape_Err,2),0.5)
-            NBkg_Err = 0.
+            #NBkg_Err = pow(pow(Bkgd_Stat_Err,2)+pow(Shape_Err,2),0.5)
+            NBkg_Err = Shape_Err
             #Sig = CalculateSignificance(NSR-NBkg,NBkg,NBkg_Err)
             Sig = 0.
             if pow(pow(NBkg_Err,2)+pow(Data_Stat_Err,2),0.5)>0.:
-                Sig = (NSR-NBkg)/pow(pow(NBkg_Err,2)+pow(Data_Stat_Err,2),0.5)
+                #Sig = (NSR-NBkg)/pow(pow(NBkg_Err,2)+pow(Data_Stat_Err,2),0.5)
+                Sig = (NSR-NBkg)/max(max(NBkg_Err,Data_Stat_Err),1)
             Hist_Skymap.SetBinContent(bx+1,by+1,Sig)
             bx_center = Hist_Skymap.GetXaxis().GetBinCenter(bx+1)
             by_center = Hist_Skymap.GetYaxis().GetBinCenter(by+1)
@@ -1299,6 +1324,7 @@ def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname,zmax=0,zmin=0
     bottom = cm.get_cmap('Oranges', 128)# combine it all
     newcolors = np.vstack((top(np.linspace(0, 1, 128)),bottom(np.linspace(0, 1, 128))))# create a new colormaps with a name of OrangeBlue
     orange_blue = ListedColormap(newcolors, name='OrangeBlue')
+    #colormap = orange_blue
     colormap = 'coolwarm'
 
     map_nbins = hist_map.GetNbinsX()
@@ -1508,7 +1534,8 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
     bottom = cm.get_cmap('Oranges', 128)# combine it all
     newcolors = np.vstack((top(np.linspace(0, 1, 128)),bottom(np.linspace(0, 1, 128))))# create a new colormaps with a name of OrangeBlue
     orange_blue = ListedColormap(newcolors, name='OrangeBlue')
-    colormap = 'coolwarm'
+    colormap = orange_blue
+    #colormap = 'coolwarm'
 
     map_nbins_x = hist_map.GetNbinsX()
     map_nbins_y = hist_map.GetNbinsY()
@@ -1624,16 +1651,15 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
         min_z = low_class_z-2.*(mid_class_z-low_class_z)
         max_z = max(high_class_z*1.1,mid_class_z+2.*(mid_class_z-low_class_z))
 
-    #levels = np.arange(3.0, 6.0, 1.0)
-    levels = np.arange(2.0, 6.0, 1.0)
+    levels = np.arange(3.0, 6.0, 1.0)
 
     grid_contour = np.zeros((map_nbins_y, map_nbins_x))
     if not hist_contour==None:
         max_z_contour = 5.0
         if label_z!='Z score' and max_z>0.:
-            levels = np.arange(2.0*max_z/max_z_contour, 6.0*max_z/max_z_contour, 1.0*max_z/max_z_contour)
+            levels = np.arange(3.0*max_z/max_z_contour, 6.0*max_z/max_z_contour, 1.0*max_z/max_z_contour)
         if 'SkymapFlux' in plotname and max_z>0.:
-            levels = np.arange(2.0*max_z/max_z_contour, 6.0*max_z/max_z_contour, 1.0*max_z/max_z_contour)
+            levels = np.arange(3.0*max_z/max_z_contour, 6.0*max_z/max_z_contour, 1.0*max_z/max_z_contour)
         for ybin in range(0,len(y_axis)):
             for xbin in range(0,len(x_axis)):
                 #hist_bin_x = hist_contour.GetXaxis().FindBin(x_axis[xbin])
@@ -1702,17 +1728,17 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
     else:
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
-    if not doGalacticCoord and not 'SkymapZscore_Sum' in plotname:
-        axbig.contour(grid_contour, levels, colors='w', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=1)
+    if not doGalacticCoord:
+        axbig.contour(grid_contour, levels, colors='r', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=1)
     #cbar = fig.colorbar(im)
     #im_ratio = grid_z.shape[1]/grid_z.shape[0]
     #cbar = fig.colorbar(im,orientation="horizontal",fraction=0.047*im_ratio)
     for star in range(0,len(other_star_markers)):
         marker_size = 60
         if other_star_types[star]=='PSR':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='lime', marker='+', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='lime', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='SNR':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='yellow', marker='+', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='lime', marker='+', label=other_star_labels[star])
         if other_star_types[star]=='HAWC':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='violet', marker='+', label=other_star_labels[star])
         if other_star_types[star]=='Fermi':
@@ -1720,13 +1746,22 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
         if other_star_types[star]=='MSP':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='tomato', marker='+', label=other_star_labels[star])
         if other_star_types[star]=='TeV':
-            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='k', marker='+', label=other_star_labels[star])
+            axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='lime', marker='+', label=other_star_labels[star])
         if other_star_types[star]=='Star':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='k', marker='o', label=other_star_labels[star])
         text_offset_x = 0.07
         text_offset_y = 0.07
         #plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k', rotation = rotation_angle)
         plt.annotate('%s'%(star), (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=12, color='k')
+    #if 'SkymapHAWC' in plotname:
+    #    axbig.scatter(-286.77, 6.37, s=marker_size, c='b', marker='+', label='LE')
+    #    axbig.scatter(-286.97, 6.28, s=marker_size, c='g', marker='+', label='ME')
+    #    axbig.scatter(-286.97, 6.19, s=marker_size, c='r', marker='+', label='HE')
+    #    text_offset_x = 0.07
+    #    text_offset_y = 0.07
+    #    plt.annotate('LE', (-286.77+text_offset_x, 6.37+text_offset_y), fontsize=12, color='k')
+    #    plt.annotate('ME', (-286.97+text_offset_x, 6.28+text_offset_y), fontsize=12, color='k')
+    #    plt.annotate('HE', (-286.97+text_offset_x, 6.19+text_offset_y), fontsize=12, color='k')
     divider = make_axes_locatable(axbig)
     cax = divider.append_axes("bottom", size="5%", pad=0.7)
     cbar = fig.colorbar(im,orientation="horizontal",cax=cax)
@@ -1750,6 +1785,25 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
         axbig.legend(bbox_to_anchor=(1.04, 1), borderaxespad=0, fontsize=7)
         fig.savefig("output_plots/%s_legend.png"%(plotname),bbox_inches='tight')
     axbig.remove()
+
+    #if 'SkymapFlux' in plotname:
+    #    fig.clf()
+    #    ax = fig.add_subplot(111, projection='3d')
+    #    if doGalacticCoord:
+    #        label_x = 'gal. l'
+    #        label_y = 'gal. b'
+    #    else:
+    #        label_x = 'RA'
+    #        label_y = 'Dec'
+    #    ax.set_xlabel(label_x)
+    #    ax.set_ylabel(label_y)
+    #    X, Y = np.meshgrid(x_axis, y_axis)
+    #    ax.plot_surface(X, Y, grid_z, cmap='coolwarm')
+    #    delta_z = max_z-min_z
+    #    ax.contour(X, Y, grid_z, zdir='z', offset=min_z-1.0*delta_z, cmap='coolwarm')
+    #    ax.set(zlim=(min_z-1.0*delta_z, max_z))
+    #    fig.savefig("output_plots/%s_3D.png"%(plotname),bbox_inches='tight')
+    #    ax.remove()
 
     if 'SkymapZscore_Sum' in plotname:
         for star in range(0,len(other_star_markers)):

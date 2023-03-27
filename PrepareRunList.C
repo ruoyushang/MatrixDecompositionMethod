@@ -959,6 +959,21 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     threshold_dMJD = 1000.*365.;
     threshold_dL3Rate = 10000.;
 
+    if (RHVData)
+    {
+        threshold_dElev = 2.*MatchRun_dElev; // default 
+        threshold_dAzim = 45.; // default 
+        threshold_dNSB = 10.; // default 
+        threshold_dMJD = 100.*365.;
+    }
+    else
+    {
+        threshold_dElev = 2.*MatchRun_dElev; // default 
+        threshold_dAzim = 2.*MatchRun_dAzim; // default 
+        threshold_dNSB = 2.*MatchRun_dNSB; // default 
+        threshold_dMJD = 100.*365.;
+    }
+
     if (!isImposter)
     {
         threshold_dAirmass = MatchRun_dElev; // default 
@@ -969,8 +984,8 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
 
         if (MatchingSelection==1)
         {
-            threshold_dAirmass = 1000.;
-            //threshold_dElev = 1000.;
+            //threshold_dAirmass = 1000.;
+            threshold_dElev = 1000.;
         }
         if (MatchingSelection==2)
         {

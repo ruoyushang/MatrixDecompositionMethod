@@ -89,7 +89,8 @@ def fit_2d_model(hist_map_data, hist_map_bkgd, src_x, src_y):
     for binx in range (0,hist_map_data.GetNbinsX()):
         for biny in range (0,hist_map_data.GetNbinsY()):
             image_data[biny,binx] = hist_map_data.GetBinContent(binx+1,biny+1) - hist_map_bkgd.GetBinContent(binx+1,biny+1)
-            image_error[biny,binx] = max(1.,pow(hist_map_data.GetBinContent(binx+1,biny+1),0.5))
+            error = pow(abs(hist_map_data.GetBinContent(binx+1,biny+1)),0.5)
+            image_error[biny,binx] = max(1.,pow(error,0.5))
 
     #print ('set initial avlues and bounds')
     initial_prms = []
@@ -2020,6 +2021,7 @@ def MakeFluxMap(flux_map, data_map, bkgd_map, norm_map, aeff_map, expo_map):
                 flux_content = (data_content-bkgd_content)/norm_content*correction*pow(energy_bin[ebin]/1e3,energy_index_scale)
                 flux_map[ebin].SetBinContent(binx+1,biny+1,flux_content)
                 flux_map[ebin].SetBinError(binx+1,biny+1,flux_stat_err)
+        #CommonPlotFunctions.ImageCleaning(flux_map[ebin])
 
 
 
@@ -2407,11 +2409,11 @@ elif source_name=='SS433' and not CommonPlotFunctions.doGalacticCoord:
 elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not CommonPlotFunctions.doGalacticCoord:
     text_angle = 30.
 
-    ##3HWC J1908+063, 287.05, 6.39 
-    #region_x = 287.05
-    #region_y = 6.39
-    #region_r = [1.5 for element in range(len(energy_bin)-1)]
-    #region_name = '3HWC'
+    #3HWC J1908+063, 287.05, 6.39 
+    region_x = 287.05
+    region_y = 6.39
+    region_r = [1.5 for element in range(len(energy_bin)-1)]
+    region_name = '3HWC'
 
     #Fermi J1906+0626
     #region_x = 286.88
@@ -2420,10 +2422,10 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     #region_name = 'Fermi J1906+0626'
 
     #PSR J1907+0602 # cover more exposure hours, allow larger radius
-    region_x = 286.975
-    region_y = 6.03777777778
-    region_r = [1.5 for element in range(len(energy_bin)-1)]
-    region_name = 'PSR'
+    #region_x = 286.975
+    #region_y = 6.03777777778
+    #region_r = [1.5 for element in range(len(energy_bin)-1)]
+    #region_name = 'PSR'
 
     # SNR G40.5-0.5
     #region_x = 286.79
