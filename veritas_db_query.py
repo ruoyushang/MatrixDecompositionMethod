@@ -8,6 +8,34 @@ from astropy import units as my_unit
 # https://veritas.sao.arizona.edu/wiki/Ryan_Dickherber%27s_Wiki
 # Log Gen script: http://veritash.sao.arizona.edu:8081/OfflineAnalysis-WG/230319_221625/query_night
 
+def ReadHAWCTargetListFromFile(file_path):
+    source_name = []
+    source_ra = []
+    source_dec = []
+    source_flux = []
+    inputFile = open(file_path)
+    for line in inputFile:
+        if line[0]=="#": continue
+        if '- name:' in line:
+            target_name = line.lstrip('   - name: ')
+            target_name = target_name.strip('\n')
+        if 'RA:' in line:
+            target_ra = line.lstrip('     RA: ')
+        if 'Dec:' in line:
+            target_dec = line.lstrip('     Dec: ')
+        if 'flux:' in line:
+            target_flux = line.lstrip('          flux: ')
+        if 'index systematic uncertainty down:' in line:
+            source_name += [target_name]
+            source_ra += [float(target_ra)]
+            source_dec += [float(target_dec)]
+            source_flux += [float(target_flux)/2.34204e-13]
+            target_name = ''
+            target_ra = ''
+            target_dec = ''
+            target_flux = ''
+    return source_name, source_ra, source_dec, source_flux
+
 def ConvertRaDecToGalactic(ra, dec):
     my_sky = SkyCoord(ra*my_unit.deg, dec*my_unit.deg, frame='icrs')
     return my_sky.galactic.l.deg, my_sky.galactic.b.deg
@@ -170,7 +198,7 @@ def get_all_runs_info(epoch,obs_type):
 
         if x['run_id'] in all_runs_comments:
             run_usable_time = all_runs_comments[x['run_id']]
-            if run_usable_time<20.*60.: continue
+            if run_usable_time<5.*60.: continue
         else:
             continue
 
@@ -205,7 +233,7 @@ def get_all_runs_info(epoch,obs_type):
         el_avg_run = el_avg_run/total_entries*180./math.pi
         az_avg_run = az_avg_run/total_entries*180./math.pi
         #print ('run_id = %s, el_avg_run = %s, az_avg_run = %s'%(run_id,el_avg_run,az_avg_run))
-        all_runs_info += [[x['run_id'],x['source_id'],el_avg_run,az_avg_run]]
+        all_runs_info += [[x['run_id'],x['source_id'],el_avg_run,az_avg_run,run_usable_time]]
     return all_runs_info
 
 def print_all_runs_l3rate():
@@ -351,6 +379,8 @@ def get_run_el_az(run_id):
     res = crs.fetchall()
     timestamp_start = '%s'%(res[0]['data_start_time'])
     timestamp_end = '%s'%(res[0]['data_end_time'])
+    if timestamp_start=='None': return 0, 0
+    if timestamp_end=='None': return 0, 0
     timestamp_start = timestamp_start.replace(' ','').replace('-','').replace(':','')
     timestamp_end = timestamp_end.replace(' ','').replace('-','').replace(':','')
     timestamp_start += '000'
@@ -366,6 +396,8 @@ def get_run_el_az(run_id):
         el_avg_run += x['elevation_target']
         az_avg_run += x['azimuth_target']
         total_entries += 1.
+    if total_entries==0.:
+        return 0., 0.
     el_avg_run = el_avg_run/total_entries*180./math.pi
     az_avg_run = az_avg_run/total_entries*180./math.pi
     #print ('run_id = %s, el_avg_run = %s, az_avg_run = %s'%(run_id,el_avg_run,az_avg_run))
@@ -518,38 +550,69 @@ def get_run_type(run_id):
     #print ('run_id = %s, run_type = %s'%(run_id,res[0]['run_type']))
     return res[0]['run_type']
 
-def find_runs_around_source(obs_ra,obs_dec,epoch,obs_type):
+def find_runs_near_galactic_plane(obs_name,epoch,obs_type,gal_b_low,gal_b_up):
+
+    out_file = open('output_vts_hours/%s.txt'%(obs_name),"w")
 
     list_on_run_ids = []
     list_on_sources = []
-    list_off_run_ids = []
-    list_off_sources = []
 
     # setup database connection
     dbcnx=pymysql.connect(host='romulus.ucsc.edu', db='VERITAS', user='readonly', cursorclass=pymysql.cursors.DictCursor)
     # connect to database
     crs=dbcnx.cursor()
 
+    all_src_ra = {}
+    all_src_dec = {}
+    runs_per_src = {}
     query = 'SELECT source_id,ra,decl FROM tblObserving_Sources'
     crs.execute(query)
     # fetch from cursor
     res = crs.fetchall()
     for x in res:
         source_name = x['source_id']
-        print ('source_name = %s'%(source_name))
+        #print ('source_name = %s'%(source_name))
         source_ra = x['ra']*180./math.pi
         source_dec = x['decl']*180./math.pi
+        all_src_ra[x['source_id']] = source_ra
+        all_src_dec[x['source_id']] = source_dec
+        runs_per_src[x['source_id']] = 0
         source_gal_l, source_gal_b = ConvertRaDecToGalactic(source_ra,source_dec)
-        distance = pow(pow(obs_ra-source_ra,2)+pow(obs_dec-source_dec,2),0.5)
-        if distance<2.0:
+        if abs(source_gal_b)>gal_b_low and abs(source_gal_b)<gal_b_up:
             list_on_sources += [source_name]
-        if distance>10.:
-            if 'HWC' in source_name: continue
-            if abs(source_gal_b)>10.:
-                list_off_sources += [source_name]
     print ('++++++++++++++++++++++++++++++++++++++++++++++++++++')
     for src in range(0,len(list_on_sources)):
         print (list_on_sources[src])
+
+    # setup database connection
+    dbcnx=pymysql.connect(host='romulus.ucsc.edu', db='VOFFLINE', user='readonly', cursorclass=pymysql.cursors.DictCursor)
+    # connect to database
+    crs=dbcnx.cursor()
+
+    all_runs_duration = {}
+    query = 'SELECT run_id,usable_duration FROM tblRun_Analysis_Comments'
+    crs.execute(query)
+    # fetch from cursor
+    res_comment = crs.fetchall()
+    for x in res_comment:
+        all_runs_duration[x['run_id']] = get_sec(str(x['usable_duration']))
+
+    # setup database connection
+    dbcnx=pymysql.connect(host='romulus.ucsc.edu', db='VERITAS', user='readonly', cursorclass=pymysql.cursors.DictCursor)
+    # connect to database
+    crs=dbcnx.cursor()
+
+    print ('Read tblRun_Info...')
+    all_runs_src = {}
+    all_runs_weather = {}
+    all_runs_type = {}
+    query = 'SELECT run_id,source_id,weather,run_type FROM tblRun_Info'
+    crs.execute(query)
+    res_run_info = crs.fetchall()
+    for x in res_run_info:
+        all_runs_src[x['run_id']] = x['source_id']
+        all_runs_weather[x['run_id']] = x['weather']
+        all_runs_type[x['run_id']] = x['run_type']
 
     query = 'SELECT run_id,source_id FROM tblRun_Info'
     crs.execute(query)
@@ -579,20 +642,172 @@ def find_runs_around_source(obs_ra,obs_dec,epoch,obs_type):
                 is_good_src = True
         if not is_good_src: continue
 
-        run_type = get_run_type(x['run_id'])
-        if run_type!=obs_type: continue
+        if x['run_id'] in all_runs_type:
+            run_type = all_runs_type[x['run_id']]
+            if run_type!=obs_type: continue
+        else:
+            continue
 
-        run_usable_time = get_run_usable_duration(x['run_id'])
-        if run_usable_time<5.*60.: continue
+        if x['run_id'] in all_runs_weather:
+            run_weather = all_runs_weather[x['run_id']]
+            if run_weather==None: continue
+            if 'C' in run_weather: continue
+            if 'D' in run_weather: continue
+            if 'F' in run_weather: continue
+        else:
+            continue
 
-        run_weather = get_run_weather(x['run_id'])
-        if run_weather==None: continue
-        if 'C' in run_weather: continue
-        if 'D' in run_weather: continue
-        if 'F' in run_weather: continue
+        if x['run_id'] in all_runs_duration:
+            run_duration = all_runs_duration[x['run_id']]
+            if run_duration<5.*60.: continue
+        else:
+            continue
+
+        on_run_el, on_run_az = get_run_el_az(x['run_id'])
+        if on_run_el<45.: continue
+
+        print ('run_id = %s, source_name = %s, RA = %0.2f, Dec = %0.2f'%(x['run_id'],x['source_id'],all_src_ra[x['source_id']],all_src_dec[x['source_id']]))
+        out_file.write('run_id = %s, source_name = %s, RA = %0.2f, Dec = %0.2f \n'%(x['run_id'],x['source_id'],all_src_ra[x['source_id']],all_src_dec[x['source_id']]))
+        list_on_run_ids += [x['run_id']]
+        runs_per_src[x['source_id']] += 1
+
+    out_file.write('++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
+    out_file.write('Source list\n')
+    for src in range(0,len(list_on_sources)):
+        src_name = list_on_sources[src]
+        if runs_per_src[src_name]<50: continue
+        print ('%s, runs = %s, RA = %0.2f, Dec = %0.2f'%(src_name,runs_per_src[src_name],all_src_ra[src_name],all_src_dec[src_name]))
+        out_file.write('%s, runs = %s, RA = %0.2f, Dec = %0.2f \n'%(src_name,runs_per_src[src_name],all_src_ra[src_name],all_src_dec[src_name]))
+
+    out_file.close()
+
+def find_runs_around_source(obs_name,obs_ra,obs_dec,epoch,obs_type,find_off):
+
+    out_file = open('output_vts_hours/%s.txt'%(obs_name),"w")
+
+    list_on_run_ids = []
+    list_on_sources = []
+    list_off_run_ids = []
+    list_off_sources = []
+
+    # setup database connection
+    dbcnx=pymysql.connect(host='romulus.ucsc.edu', db='VERITAS', user='readonly', cursorclass=pymysql.cursors.DictCursor)
+    # connect to database
+    crs=dbcnx.cursor()
+
+    query = 'SELECT source_id,ra,decl FROM tblObserving_Sources'
+    crs.execute(query)
+    # fetch from cursor
+    res = crs.fetchall()
+    for x in res:
+        source_name = x['source_id']
+        #print ('source_name = %s'%(source_name))
+        source_ra = x['ra']*180./math.pi
+        source_dec = x['decl']*180./math.pi
+        source_gal_l, source_gal_b = ConvertRaDecToGalactic(source_ra,source_dec)
+        distance = pow(pow(obs_ra-source_ra,2)+pow(obs_dec-source_dec,2),0.5)
+        if distance<2.0:
+            list_on_sources += [source_name]
+        if distance>10.:
+            if 'HWC' in source_name: continue
+            if abs(source_gal_b)>10.:
+                list_off_sources += [source_name]
+    print ('++++++++++++++++++++++++++++++++++++++++++++++++++++')
+    for src in range(0,len(list_on_sources)):
+        print (list_on_sources[src])
+
+    # setup database connection
+    dbcnx=pymysql.connect(host='romulus.ucsc.edu', db='VOFFLINE', user='readonly', cursorclass=pymysql.cursors.DictCursor)
+    # connect to database
+    crs=dbcnx.cursor()
+
+    all_runs_duration = {}
+    query = 'SELECT run_id,usable_duration FROM tblRun_Analysis_Comments'
+    crs.execute(query)
+    # fetch from cursor
+    res_comment = crs.fetchall()
+    for x in res_comment:
+        all_runs_duration[x['run_id']] = get_sec(str(x['usable_duration']))
+
+    # setup database connection
+    dbcnx=pymysql.connect(host='romulus.ucsc.edu', db='VERITAS', user='readonly', cursorclass=pymysql.cursors.DictCursor)
+    # connect to database
+    crs=dbcnx.cursor()
+
+    print ('Read tblRun_Info...')
+    all_runs_src = {}
+    all_runs_weather = {}
+    all_runs_type = {}
+    query = 'SELECT run_id,source_id,weather,run_type FROM tblRun_Info'
+    crs.execute(query)
+    res_run_info = crs.fetchall()
+    for x in res_run_info:
+        all_runs_src[x['run_id']] = x['source_id']
+        all_runs_weather[x['run_id']] = x['weather']
+        all_runs_type[x['run_id']] = x['run_type']
+
+    query = 'SELECT run_id,source_id FROM tblRun_Info'
+    crs.execute(query)
+    # fetch from cursor
+    res = crs.fetchall()
+    for x in res:
+
+        if x['run_id']<46642: continue
+        if x['run_id']<46642:
+            if not epoch=='V4': continue
+        if x['run_id']>=46642 and x['run_id']<63373:
+            if not epoch=='V5': continue
+        if x['run_id']>=63373:
+            if not epoch=='V6': continue
+
+        if x['source_id']==None: continue
+        if x['source_id']=='engineering': continue
+        if x['source_id']=='other': continue
+        if x['source_id']=='none': continue
+        if x['source_id']=='qi': continue
+        if x['source_id']=='NOSOURCE': continue
+
+        source_name = x['source_id']
+        is_good_src = False
+        for src in range(0,len(list_on_sources)):
+            if source_name==list_on_sources[src]:
+                is_good_src = True
+        if not is_good_src: continue
+
+        if x['run_id'] in all_runs_type:
+            run_type = all_runs_type[x['run_id']]
+            if run_type!=obs_type: continue
+        else:
+            continue
+
+        if x['run_id'] in all_runs_weather:
+            run_weather = all_runs_weather[x['run_id']]
+            if run_weather==None: continue
+            if 'C' in run_weather: continue
+            if 'D' in run_weather: continue
+            if 'F' in run_weather: continue
+        else:
+            continue
+
+        if x['run_id'] in all_runs_duration:
+            run_duration = all_runs_duration[x['run_id']]
+            if run_duration<5.*60.: continue
+        else:
+            continue
 
         print ('run_id = %s, source_name = %s'%(x['run_id'],x['source_id']))
+        out_file.write('run_id = %s, source_name = %s \n'%(x['run_id'],x['source_id']))
         list_on_run_ids += [x['run_id']]
+
+    out_file.write('++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
+    out_file.write('ON run list\n')
+    print ('++++++++++++++++++++++++++++++++++++++++++++++++++++')
+    print ('ON run list')
+    for run in range(0,len(list_on_run_ids)):
+        out_file.write('%s\n'%(list_on_run_ids[run]))
+        print (list_on_run_ids[run])
+
+    if not find_off: return
 
     print ('++++++++++++++++++++++++++++++++++++++++++++++++++++')
     print ('Get all runs El Az...')
@@ -606,7 +821,7 @@ def find_runs_around_source(obs_ra,obs_dec,epoch,obs_type):
 
         for run in range(0,len(all_runs_info)):
 
-            if number_off_runs>=5: continue
+            if number_off_runs>=8: continue
             if abs(all_runs_info[run][0]-list_on_run_ids[on_run])>20000: continue
             already_used = False
             for off_run in range(0,len(list_off_run_ids)):
@@ -628,12 +843,15 @@ def find_runs_around_source(obs_ra,obs_dec,epoch,obs_type):
                     is_good_src = True
             if not is_good_src: continue
 
+            off_run_duration = all_runs_info[run][4]
+            if off_run_duration<20.*60.: continue
+
             off_run_el = all_runs_info[run][2]
             off_run_az = all_runs_info[run][3]
             delta_azim = abs(off_run_az-on_run_az)
             if delta_azim>180.: delta_azim = 360.-delta_azim
-            if abs(off_run_el-on_run_el)>5.: continue
-            if delta_azim>30.: continue
+            if abs(off_run_el-on_run_el)>10.: continue
+            if delta_azim>45.: continue
 
             list_off_run_ids += [[list_on_run_ids[on_run],all_runs_info[run][0],on_run_el,off_run_el]]
             number_off_runs += 1
@@ -647,25 +865,48 @@ def find_runs_around_source(obs_ra,obs_dec,epoch,obs_type):
         if len(list_off_run_ids)<5:
             print ('!!!Less than 5 sets of OFF runs!!!!')
 
+    out_file.write('++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
+    out_file.write('ON run list\n')
     print ('++++++++++++++++++++++++++++++++++++++++++++++++++++')
     print ('ON run list')
     for run in range(0,len(list_on_run_ids)):
+        out_file.write('%s\n'%(list_on_run_ids[run]))
         print (list_on_run_ids[run])
 
+    out_file.write('++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
+    out_file.write('OFF run list\n')
     print ('++++++++++++++++++++++++++++++++++++++++++++++++++++')
     print ('OFF run list')
     for run in range(0,len(list_off_run_ids)):
+        out_file.write('%s\n'%(list_off_run_ids[run][1]))
         print (list_off_run_ids[run][1])
+
+    out_file.close()
 
 #run_epoch = 'V4'
 #run_epoch = 'V5'
 run_epoch = 'V6'
-run_obs_type = 'obsLowHV' # RHV
-#run_obs_type = 'observing'
+#run_obs_type = 'obsLowHV' # RHV
+run_obs_type = 'observing'
+find_off = False
 
-obs_ra = 95.4700093461456
-obs_dec = 37.920008459363764
-find_runs_around_source(obs_ra,obs_dec,run_epoch,run_obs_type)
+#target_hwc_name, target_hwc_ra, target_hwc_dec, target_hwc_flux = ReadHAWCTargetListFromFile('Cat_3HWC.txt')
+#for hwc in range(3,len(target_hwc_name)):
+#    print ('Search VTS data for %s'%(target_hwc_name[hwc]))
+#    obs_ra = target_hwc_ra[hwc]
+#    obs_dec = target_hwc_dec[hwc]
+#    obs_name = target_hwc_name[hwc].replace(' ','_').replace('+','_p').replace('-','_m')
+#    obs_name += '_%s'%(run_epoch)
+#    find_runs_around_source(obs_name,obs_ra,obs_dec,run_epoch,run_obs_type,find_off)
+
+obs_name = '1ES_0033_p595_%s'%(run_epoch)
+obs_ra = 8.97
+obs_dec = 59.83
+#find_off = True
+find_runs_around_source(obs_name,obs_ra,obs_dec,run_epoch,run_obs_type,find_off)
+
+#obs_name = 'Galactic_OFF_%s'%(run_epoch)
+#find_runs_near_galactic_plane(obs_name,run_epoch,run_obs_type,1.5,5.0)
 
 run_id = 103322
 #run_id = 104633

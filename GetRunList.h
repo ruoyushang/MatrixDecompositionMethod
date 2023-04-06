@@ -12,105 +12,25 @@ pair<double,double> GetSourceRaDec(TString source_name)
 {
     double Source_RA = 0.;
     double Source_Dec = 0.;
-    if (source_name.Contains("GalacticPlane_All_l30"))
+    if (source_name.Contains("LHAASO_J0621_p3755"))
     {
-        Source_RA = 281.522;
-        Source_Dec = -2.609;
+        Source_RA = 95.47;
+        Source_Dec = 37.92;
     }
-    if (source_name.Contains("GalacticPlane_All_l40"))
+    if (source_name.Contains("Galactic_RA304Dec36"))
     {
-        Source_RA = 286.095;
-        Source_Dec = 6.287;
+            Source_RA = 304.08;
+            Source_Dec = 36.13;
     }
-    if (source_name.Contains("GalacticPlane_All_l50"))
+    if (source_name.Contains("Galactic_RA345Dec59"))
     {
-        Source_RA = 290.829;
-        Source_Dec = 15.142;
+            Source_RA = 345.28;
+            Source_Dec = 58.88;
     }
-    if (source_name.Contains("GalacticPlane_All_l60"))
+    if (source_name.Contains("Galactic_OFF_RA09Dec60"))
     {
-        Source_RA = 295.976;
-        Source_Dec = 23.890;
-    }
-    if (source_name.Contains("GalacticPlane_All_l70"))
-    {
-        Source_RA = 301.866;
-        Source_Dec = 32.442;
-    }
-    if (source_name.Contains("GalacticPlane_All_l80"))
-    {
-        Source_RA = 308.971;
-        Source_Dec = 40.664;
-    }
-    if (source_name.Contains("GalacticPlane_All_l90"))
-    {
-        Source_RA = 318.004;
-        Source_Dec = 48.330;
-    }
-    if (source_name.Contains("GalacticPlane_All_l100"))
-    {
-        Source_RA = 330.004;
-        Source_Dec = 55.050;
-    }
-    if (source_name.Contains("GalacticPlane_All_l110"))
-    {
-        Source_RA = 346.131;
-        Source_Dec = 60.160;
-    }
-    if (source_name.Contains("GalacticPlane_All_l120"))
-    {
-        Source_RA = 6.451;
-        Source_Dec = 62.726;
-    }
-    if (source_name.Contains("GalacticPlane_All_l130"))
-    {
-        Source_RA = 28.071;
-        Source_Dec = 62.034;
-    }
-    if (source_name.Contains("GalacticPlane_All_l140"))
-    {
-        Source_RA = 46.813;
-        Source_Dec = 58.298;
-    }
-    if (source_name.Contains("GalacticPlane_All_l150"))
-    {
-        Source_RA = 61.117;
-        Source_Dec = 52.420;
-    }
-    if (source_name.Contains("GalacticPlane_All_l160"))
-    {
-        Source_RA = 71.744;
-        Source_Dec = 45.246;
-    }
-    if (source_name.Contains("GalacticPlane_All_l170"))
-    {
-        Source_RA = 79.873;
-        Source_Dec = 37.315;
-    }
-    if (source_name.Contains("GalacticPlane_All_l180"))
-    {
-        Source_RA = 86.405;
-        Source_Dec = 28.936;
-    }
-    if (source_name.Contains("GalacticPlane_All_l190"))
-    {
-        Source_RA = 91.940;
-        Source_Dec = 20.290;
-    }
-    if (source_name.Contains("GalacticPlane_All_l200"))
-    {
-        Source_RA = 96.882;
-        Source_Dec = 11.489;
-    }
-    if (source_name.Contains("GalacticPlane_All_l210"))
-    {
-        Source_RA = 101.522;
-        Source_Dec = 2.609;
-    }
-    if (source_name.Contains("GalacticPlane_All_l220"))
-    {
-        Source_RA = 106.095;
-        Source_Dec = -6.287;
+            Source_RA = 8.97;
+            Source_Dec = 59.83;
     }
     if (source_name.Contains("SNR_G189_p03"))
     {
@@ -869,14 +789,6 @@ vector<std::pair<string,int>> GetRunList(string source) {
     {
         list = GetRunListFromFile("MS1221V6");
     }
-    if (source.find("TychoV6") != std::string::npos)
-    {
-        //list = GetRunListFromFile("TychoV6");
-        list_temp = GetRunListFromFile("GalacticPlane_All_l110_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l130_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-    }
     if (source.find("2HWC_J1953V6") != std::string::npos)
     {
         list = GetRunListFromFile("2HWC_J1953V6");
@@ -928,28 +840,9 @@ vector<std::pair<string,int>> GetRunList(string source) {
     {
         list = GetRunListFromFile("V_V725_Tau_V6");
     }
-    if (source.find("GalacticPlane_All")!=std::string::npos && source.find("V6")!=std::string::npos)
+    if (source.find("LHAASO_J0621_p3755_RHV_V6") != std::string::npos)
     {
-        list_temp = GetRunListFromFile("GalacticPlane_All_l30_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l50_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l70_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l90_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l110_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l130_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l150_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l170_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l190_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l210_V6");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
+        list = GetRunListFromFile("LHAASO_J0621_p3755_RHV_V6");
     }
     if (source.find("LHAASO_J2032_V6") != std::string::npos)
     {
@@ -979,6 +872,11 @@ vector<std::pair<string,int>> GetRunList(string source) {
         list.insert(list.end(), list_temp.begin(), list_temp.end());
     }
     if (source.find("PSR_")!=std::string::npos && source.find("_V6")!=std::string::npos)
+    {
+        list_temp = GetRunListFromFile(source);
+        list.insert(list.end(), list_temp.begin(), list_temp.end());
+    }
+    if (source.find("Galactic_")!=std::string::npos && source.find("_V6")!=std::string::npos)
     {
         list_temp = GetRunListFromFile(source);
         list.insert(list.end(), list_temp.begin(), list_temp.end());
@@ -1132,29 +1030,6 @@ vector<std::pair<string,int>> GetRunList(string source) {
         //list_temp = GetRunListFromFile("H1426_MatchedDark_V6");
         //list.insert(list.end(), list_temp.begin(), list_temp.end());
     }
-    if (source.find("GalacticPlane_All")!=std::string::npos && source.find("V5")!=std::string::npos)
-    {
-        list_temp = GetRunListFromFile("GalacticPlane_All_l30_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l50_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l70_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l90_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l110_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l130_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l150_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l170_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l190_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l210_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-    }
     if (source.find("UrsaMinorV5") != std::string::npos)
     {
         list = GetRunListFromFile("UrsaMinorV5");
@@ -1294,14 +1169,6 @@ vector<std::pair<string,int>> GetRunList(string source) {
     {
         list = GetRunListFromFile("GammaCygniV5");
     }
-    if (source.find("TychoV5") != std::string::npos)
-    {
-        //list = GetRunListFromFile("TychoV5");
-        list_temp = GetRunListFromFile("GalacticPlane_All_l110_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-        list_temp = GetRunListFromFile("GalacticPlane_All_l130_V5");
-        list.insert(list.end(), list_temp.begin(), list_temp.end());
-    }
     if (source.find("3C273V5") != std::string::npos)
     {
         list = GetRunListFromFile("3C273V5");
@@ -1331,6 +1198,11 @@ vector<std::pair<string,int>> GetRunList(string source) {
         list = GetRunListFromFile("LHAASO_J2032_Baseline_V5");
     }
     if (source.find("PSR_")!=std::string::npos && source.find("_V5")!=std::string::npos)
+    {
+        list_temp = GetRunListFromFile(source);
+        list.insert(list.end(), list_temp.begin(), list_temp.end());
+    }
+    if (source.find("Galactic_")!=std::string::npos && source.find("_V5")!=std::string::npos)
     {
         list_temp = GetRunListFromFile(source);
         list.insert(list.end(), list_temp.begin(), list_temp.end());

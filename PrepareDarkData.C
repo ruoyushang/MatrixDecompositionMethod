@@ -350,10 +350,10 @@ bool FoV(TString target, bool doImposter) {
     //}
     if (!UseGalacticCoord)
     {
-        if (abs(x)>Skymap_size_x) return false;
-        if (abs(y)>Skymap_size_y) return false;
-        //if (abs(x)>10.) return false;
-        //if (abs(y)>10.) return false;
+        //if (abs(x)>Skymap_size_x) return false;
+        //if (abs(y)>Skymap_size_y) return false;
+        if (abs(x)>10.) return false;
+        if (abs(y)>10.) return false;
     }
     else
     {
@@ -361,10 +361,10 @@ bool FoV(TString target, bool doImposter) {
         pair<double,double> map_l_b = ConvertRaDecToGalactic(mean_tele_point_ra,mean_tele_point_dec);
         double gal_x = evt_l_b.first-map_l_b.first;
         double gal_y = evt_l_b.second-map_l_b.second;
-        if (abs(gal_x)>Skymap_size_x) return false;
-        if (abs(gal_y)>Skymap_size_y) return false;
-        //if (abs(gal_x)>10.) return false;
-        //if (abs(gal_y)>10.) return false;
+        //if (abs(gal_x)>Skymap_size_x) return false;
+        //if (abs(gal_y)>Skymap_size_y) return false;
+        if (abs(gal_x)>10.) return false;
+        if (abs(gal_y)>10.) return false;
     }
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     if (doImposter)
@@ -470,6 +470,58 @@ bool ApplyTimeCuts(double event_time, vector<pair<double,double>> timecut)
 }
 double GetRunPedestalVar(int run_number)
 {
+    //string line;
+    //char delimiter = ' ';
+    //string acc_runnumber = "";
+    //string acc_version = "";
+    //string acc_nsb = "";
+    //int nth_line = 0;
+    //int nth_delimiter = 0;
+    //std::string::size_type sz;
+    //double NSB = 0.;
+
+    //ifstream myfile (SMI_AUX+"/diagnostics.txt");
+    //if (myfile.is_open())
+    //{
+    //    while ( getline(myfile,line) )
+    //    {
+    //        acc_runnumber = "";
+    //        acc_version = "";
+    //        acc_nsb = "";
+    //        nth_delimiter = 0;
+    //        for(int i = 0; i < line.size(); i++)
+    //        {
+    //            if (nth_line<84) continue;
+    //            if(line[i] == delimiter)
+    //            {
+    //                if (nth_delimiter==103 && std::stoi(acc_runnumber,nullptr,10)==run_number) 
+    //                {
+    //                    NSB = std::stod(acc_nsb,&sz);
+    //                    if (std::stoi(acc_version,nullptr,10)!=2) NSB = 0.;
+    //                }
+    //                nth_delimiter += 1;
+    //            }
+    //            else if (nth_delimiter==0)
+    //            {
+    //                acc_runnumber += line[i];
+    //            }
+    //            else if (nth_delimiter==1)
+    //            {
+    //                acc_version += line[i];
+    //            }
+    //            else if (nth_delimiter==103)
+    //            {
+    //                acc_nsb += line[i];
+    //            }
+    //        }
+    //        nth_line += 1;
+    //    }
+    //    myfile.close();
+    //}
+    //else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
+
+    //return NSB;
+
     string line;
     char delimiter = ' ';
     string acc_runnumber = "";
@@ -480,47 +532,46 @@ double GetRunPedestalVar(int run_number)
     std::string::size_type sz;
     double NSB = 0.;
 
-    ifstream myfile (SMI_AUX+"/diagnostics.txt");
+    ifstream myfile (SMI_AUX+"/NSB_allruns.txt");
     if (myfile.is_open())
     {
         while ( getline(myfile,line) )
         {
             acc_runnumber = "";
-            acc_version = "";
-            acc_nsb = "";
             nth_delimiter = 0;
             for(int i = 0; i < line.size(); i++)
             {
-                if (nth_line<84) continue;
                 if(line[i] == delimiter)
                 {
-                    if (nth_delimiter==103 && std::stoi(acc_runnumber,nullptr,10)==run_number) 
-                    {
-                        NSB = std::stod(acc_nsb,&sz);
-                        if (std::stoi(acc_version,nullptr,10)!=2) NSB = 0.;
-                    }
                     nth_delimiter += 1;
                 }
                 else if (nth_delimiter==0)
                 {
                     acc_runnumber += line[i];
                 }
-                else if (nth_delimiter==1)
-                {
-                    acc_version += line[i];
-                }
-                else if (nth_delimiter==103)
-                {
-                    acc_nsb += line[i];
-                }
             }
-            nth_line += 1;
+            if (std::stoi(acc_runnumber,nullptr,10)==run_number)
+            {
+                //std::cout << "find run " << run_number << std::endl;
+                nth_delimiter = 0;
+                acc_nsb = "";
+                for(int i = 0; i < line.size(); i++)
+                {
+                    if (line[i] != delimiter)
+                    {
+                        acc_nsb += line[i];
+                    }
+                    else
+                    {
+                        acc_nsb = "";
+                        nth_delimiter += 1;
+                    }
+                }
+                NSB = std::stod(acc_nsb,&sz);
+                break;
+            }
         }
         myfile.close();
-    }
-    else std::cout << "Unable to open file diagnostics.txt" << std::endl; 
-
-    return NSB;
 }
 
 int RunTypeCategory(int run_number, bool doPrint)

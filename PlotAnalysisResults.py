@@ -163,18 +163,27 @@ if 'LHAASO_J1929' in sys.argv[1]:
 if 'LHAASO_J2108' in sys.argv[1]:
     observation_name = 'LHAASO_J2108'
     data_epoch = ['LHAASO_J2108_V6']
+if 'LHAASO_J0621_p3755_RHV' in sys.argv[1]:
+    observation_name = 'LHAASO_J0621_p3755_RHV'
+    data_epoch = ['LHAASO_J0621_p3755_RHV_V6']
 if 'PSR_' in sys.argv[1]:
     observation_name = ''
     for t in range(0,len(sys.argv[1].split('_'))-1):
         observation_name += sys.argv[1].split('_')[t]
         if t<len(sys.argv[1].split('_'))-2:
             observation_name += '_'
-    #observation_name = sys.argv[1].split('_')[0]+'_'+sys.argv[1].split('_')[1]+'_'+sys.argv[1].split('_')[2]
     print ('observation_name = %s'%(observation_name))
     data_epoch = ['%s_V6'%(observation_name),'%s_V5'%(observation_name)]
-    #data_epoch = ['%s_V6'%(observation_name)]
 if 'SNR_' in sys.argv[1]:
     observation_name = sys.argv[1].split('_')[0]+'_'+sys.argv[1].split('_')[1]+'_'+sys.argv[1].split('_')[2]
+    print ('observation_name = %s'%(observation_name))
+    data_epoch = ['%s_V6'%(observation_name),'%s_V5'%(observation_name)]
+if 'Galactic_' in sys.argv[1]:
+    observation_name = ''
+    for t in range(0,len(sys.argv[1].split('_'))-1):
+        observation_name += sys.argv[1].split('_')[t]
+        if t<len(sys.argv[1].split('_'))-2:
+            observation_name += '_'
     print ('observation_name = %s'%(observation_name))
     data_epoch = ['%s_V6'%(observation_name),'%s_V5'%(observation_name)]
 if 'IC443HotSpot' in sys.argv[1]:
@@ -3811,19 +3820,19 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
                 old_error = hist_expo_skymap[ebin].GetBinError(bx2,by2)
                 hist_expo_skymap[ebin].SetBinError(bx2,by2,pow(new_error*new_error+old_error*old_error,0.5))
     for ebin in range(0,len(energy_bin)-1):
-        CommonPlotFunctions.ImageCleaning(hist_bkgd_skymap_smooth[ebin])
+        #CommonPlotFunctions.ImageCleaning(hist_bkgd_skymap_smooth[ebin])
+        #CommonPlotFunctions.ImageCleaning(hist_bkgd_skymap[ebin])
+        #CommonPlotFunctions.ImageCleaning(hist_rfov_skymap[ebin])
+        #CommonPlotFunctions.ImageCleaning(hist_data_skymap[ebin])
+        #CommonPlotFunctions.ImageCleaning(hist_effarea_skymap[ebin])
+        #CommonPlotFunctions.ImageCleaning(hist_expo_skymap[ebin])
         hist_bkgd_skymap_smooth[ebin] = Smooth2DMap(hist_bkgd_skymap_smooth[ebin],2.0*smooth_size_spectroscopy,False,True)
         if not Smoothing:
             continue
-        CommonPlotFunctions.ImageCleaning(hist_bkgd_skymap[ebin])
         hist_bkgd_skymap[ebin] = Smooth2DMap(hist_bkgd_skymap[ebin],smooth_size_spectroscopy,False,True)
-        CommonPlotFunctions.ImageCleaning(hist_rfov_skymap[ebin])
         hist_rfov_skymap[ebin] = Smooth2DMap(hist_rfov_skymap[ebin],smooth_size_spectroscopy,False,True)
-        CommonPlotFunctions.ImageCleaning(hist_data_skymap[ebin])
         hist_data_skymap[ebin] = Smooth2DMap(hist_data_skymap[ebin],smooth_size_spectroscopy,False,True)
-        CommonPlotFunctions.ImageCleaning(hist_effarea_skymap[ebin])
         hist_effarea_skymap[ebin] = Smooth2DMap(hist_effarea_skymap[ebin],smooth_size_spectroscopy,False,True)
-        CommonPlotFunctions.ImageCleaning(hist_expo_skymap[ebin])
         hist_expo_skymap[ebin] = Smooth2DMap(hist_expo_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_syst_skymap[ebin] = Smooth2DMap(hist_syst_skymap[ebin],smooth_size_spectroscopy,False,True)
         hist_normsyst_skymap[ebin] = Smooth2DMap(hist_normsyst_skymap[ebin],smooth_size_spectroscopy,False,True)

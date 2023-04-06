@@ -17,6 +17,11 @@ void ResetPublicVariables(TString target_name)
         exposure_limit = 1000.;
     }
 
+    if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_galactic")
+    {
+        UseGalacticCoord = true;
+    }
+
     if (MY_OUTPUT=="/gamma_raid/userspace/rshang/SMI_output/output_tight")
     {
         MSCW_cut_moderate = 0.4;

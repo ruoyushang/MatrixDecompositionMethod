@@ -32,10 +32,12 @@ import healpy as hp
 # Great examples of matplotlib plots: https://atmamani.github.io/cheatsheets/matplotlib/matplotlib_2/
 
 #energy_bin = [200.,398.,794.,1585.,3162.,6310.,12589.]
-energy_bin = [100.,300.,700.,1500.,3100.,6300.,12700.]
+#energy_bin = [100.,300.,700.,1500.,3100.,6300.,12700.]
+energy_bin = [100.,300.,900.,2100.,4500.,9300.]
 energy_fine_bin = energy_bin
 
 folder_path = 'output_test'
+#folder_path = 'output_galactic'
 #folder_path = 'output_default'
 
 #folder_path = 'output_loose'
@@ -144,13 +146,14 @@ calibration_radius = 0.3 # need to be larger than the PSF and smaller than the i
 #energy_index_scale = 0
 energy_index_scale = 2
 
-#doGalacticCoord = True
 doGalacticCoord = False
+if folder_path=='output_galactic':
+    doGalacticCoord = True
 
 Skymap_nzones_x = 1
 Skymap_nzones_y = 1
-Skymap_size_x = 2.0
-Skymap_size_y = 2.0
+Skymap_size_x = 1.5
+Skymap_size_y = 1.5
 Skymap_nbins_x = 50
 Skymap_nbins_y = 50
 if doGalacticCoord:
@@ -205,6 +208,8 @@ def reflectXaxis(hist):
     return hT
 
 def ImageCleaning(signal_map):
+
+    #return
 
     signal_array = np.zeros((signal_map.GetNbinsX(),signal_map.GetNbinsY()))
 
@@ -1063,6 +1068,7 @@ def ReadSNRTargetListFromCSVFile():
     source_name = []
     source_ra = []
     source_dec = []
+    source_size = []
     with open('SNRcat20221001-SNR.csv', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=';')
         for row in reader:
@@ -1073,17 +1079,21 @@ def ReadSNRTargetListFromCSVFile():
             if target_min_dist=='':
                 target_min_dist = '1000'
             if float(target_min_dist)>6.: continue
+            target_size = row[15]
+            if target_size=='':
+                target_size = 0.
             target_ra = row[19]
             target_dec = row[20]
             source_name += [target_name]
             source_ra += [float(HMS2deg(target_ra,target_dec)[0])]
             source_dec += [float(HMS2deg(target_ra,target_dec)[1])]
+            source_size += [0.5*float(target_size)/60.]
             #print('target_min_dist = %s'%(target_min_dist))
             #print('source_name = %s'%(source_name[len(source_name)-1]))
             #print('source_ra = %0.2f'%(source_ra[len(source_ra)-1]))
             #print('source_dec = %0.2f'%(source_dec[len(source_dec)-1]))
             #print(row)
-    return source_name, source_ra, source_dec
+    return source_name, source_ra, source_dec, source_size
 
 def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_psr_dec=None):
 
@@ -1095,7 +1105,7 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
 
     drawBrightStar = False
     drawPulsar = True
-    drawSNR = False
+    drawSNR = True
     drawFermi = False
     drawHAWC = False
     drawTeV = False
@@ -1124,14 +1134,15 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
                 src_ra, src_dec = ConvertRaDecToGalactic(src_ra,src_dec)
             other_stars += [star_name[src]]
             other_stars_type += ['Star']
-            other_star_coord += [[src_ra,src_dec]]
+            other_star_coord += [[src_ra,src_dec,0.]]
 
     if drawSNR:
-        target_snr_name, target_snr_ra, target_snr_dec = ReadSNRTargetListFromCSVFile()
+        target_snr_name, target_snr_ra, target_snr_dec, target_snr_size = ReadSNRTargetListFromCSVFile()
         for src in range(0,len(target_snr_name)):
             gamma_source_name = target_snr_name[src]
             gamma_source_ra = target_snr_ra[src]
             gamma_source_dec = target_snr_dec[src]
+            gamma_source_size = target_snr_size[src]
             if doGalacticCoord:
                 gamma_source_ra, gamma_source_dec = ConvertRaDecToGalactic(gamma_source_ra,gamma_source_dec)
             near_a_source = False
@@ -1142,7 +1153,7 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
             if not near_a_source:
                 other_stars += [gamma_source_name]
                 other_stars_type += ['SNR']
-                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec,gamma_source_size]]
 
     if drawPulsar:
         target_psr_name, target_psr_ra, target_psr_dec, target_psr_dist, target_psr_age = ReadATNFTargetListFromFile('ATNF_pulsar_full_list.txt')
@@ -1163,7 +1174,7 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
                         other_stars_type += ['MSP']
                 else:
                         other_stars_type += ['PSR']
-                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec,0.]]
 
     if drawFermi:
         fermi_name, fermi_ra, fermi_dec = ReadFermiCatelog()
@@ -1181,7 +1192,7 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
             if not near_a_source:
                 other_stars += [gamma_source_name]
                 other_stars_type += ['Fermi']
-                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec,0.]]
 
     if drawHAWC:
         target_hwc_name, target_hwc_ra, target_hwc_dec = ReadHAWCTargetListFromFile('Cat_3HWC.txt')
@@ -1199,7 +1210,7 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
             if not near_a_source:
                 other_stars += [gamma_source_name]
                 other_stars_type += ['HAWC']
-                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec,0.]]
 
     if drawTeV:
         inputFile = open('TeVCat_RaDec_w_Names.txt')
@@ -1217,7 +1228,7 @@ def GetGammaSourceInfo(hist_contour,prime_psr_name=None,prime_psr_ra=None,prime_
             if not near_a_source and not '%' in gamma_source_name:
                 other_stars += [gamma_source_name]
                 other_stars_type += ['TeV']
-                other_star_coord += [[gamma_source_ra,gamma_source_dec]]
+                other_star_coord += [[gamma_source_ra,gamma_source_dec,0.]]
 
     return other_stars, other_stars_type, other_star_coord
 
@@ -1679,7 +1690,7 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
     other_star_labels = []
     other_star_types = []
     other_star_markers = []
-    star_range = 0.9*(MapEdge_right-MapEdge_left)/2.
+    star_range = 0.7*(MapEdge_right-MapEdge_left)/2.
     source_ra = (MapEdge_left+MapEdge_right)/2.
     source_dec = (MapEdge_lower+MapEdge_upper)/2.
     n_stars = 0
@@ -1692,7 +1703,7 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
             if abs(source_ra+other_star_coord[star][0])>star_range: continue
             if abs(source_dec-other_star_coord[star][1])>star_range: continue
         #if '#' in other_stars[star]: continue
-        other_star_markers += [[-other_star_coord[star][0],other_star_coord[star][1]]]
+        other_star_markers += [[-other_star_coord[star][0],other_star_coord[star][1],other_star_coord[star][2]]]
         other_star_labels += ['(%s) %s'%(n_stars,other_stars[star])]
         other_star_types += [other_star_type[star]]
         n_stars += 1
@@ -1728,6 +1739,22 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
     else:
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
+
+    
+    MapCenter_RA = -0.5*(MapEdge_left+MapEdge_right)
+    MapCenter_Dec = 0.5*(MapEdge_lower+MapEdge_upper)
+    MapCenter_l, MapCenter_b = ConvertRaDecToGalactic(MapCenter_RA, MapCenter_Dec)
+    gal_l_axis = np.linspace(MapCenter_l-5., MapCenter_l+5., 1000)
+    ra_axis = []
+    dec_axis = []
+    for entry in range(0,len(gal_l_axis)):
+        ra, dec = ConvertGalacticToRaDec(gal_l_axis[entry], 0.)
+        if -1.*ra>MapEdge_right or -1.*ra<MapEdge_left: continue
+        if dec>MapEdge_upper or dec<MapEdge_lower: continue
+        ra_axis += [-1.*ra]
+        dec_axis += [dec]
+    axbig.plot(ra_axis,dec_axis,color='w')
+
     if not doGalacticCoord:
         axbig.contour(grid_contour, levels, colors='r', extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),zorder=1)
     #cbar = fig.colorbar(im)
@@ -1739,6 +1766,8 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='lime', marker='^', label=other_star_labels[star])
         if other_star_types[star]=='SNR':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='lime', marker='+', label=other_star_labels[star])
+            mycircle = plt.Circle( (other_star_markers[star][0], other_star_markers[star][1]), other_star_markers[star][2], fill = False, color='lime')
+            axbig.add_patch(mycircle)
         if other_star_types[star]=='HAWC':
             axbig.scatter(other_star_markers[star][0], other_star_markers[star][1], s=marker_size, c='violet', marker='+', label=other_star_labels[star])
         if other_star_types[star]=='Fermi':
@@ -1752,16 +1781,7 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
         text_offset_x = 0.07
         text_offset_y = 0.07
         #plt.annotate(other_star_labels[star], (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=10, color='k', rotation = rotation_angle)
-        plt.annotate('%s'%(star), (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=12, color='k')
-    #if 'SkymapHAWC' in plotname:
-    #    axbig.scatter(-286.77, 6.37, s=marker_size, c='b', marker='+', label='LE')
-    #    axbig.scatter(-286.97, 6.28, s=marker_size, c='g', marker='+', label='ME')
-    #    axbig.scatter(-286.97, 6.19, s=marker_size, c='r', marker='+', label='HE')
-    #    text_offset_x = 0.07
-    #    text_offset_y = 0.07
-    #    plt.annotate('LE', (-286.77+text_offset_x, 6.37+text_offset_y), fontsize=12, color='k')
-    #    plt.annotate('ME', (-286.97+text_offset_x, 6.28+text_offset_y), fontsize=12, color='k')
-    #    plt.annotate('HE', (-286.97+text_offset_x, 6.19+text_offset_y), fontsize=12, color='k')
+        #plt.annotate('%s'%(star), (other_star_markers[star][0]+text_offset_x, other_star_markers[star][1]+text_offset_y), fontsize=12, color='k')
     divider = make_axes_locatable(axbig)
     cax = divider.append_axes("bottom", size="5%", pad=0.7)
     cbar = fig.colorbar(im,orientation="horizontal",cax=cax)
