@@ -183,7 +183,7 @@ bool CoincideWithBrightStars(double ra, double dec, double evt_energy)
         if (star_brightness>brightness_cut) continue;
         if (evt_energy<398.)
         {
-            if (radius>2.*bright_star_radius_cut) continue;
+            if (radius>bright_star_radius_cut) continue;
         }
         else
         {
@@ -572,6 +572,10 @@ double GetRunPedestalVar(int run_number)
             }
         }
         myfile.close();
+    }
+    else std::cout << "Unable to open file NSB_allruns.txt" << std::endl; 
+
+    return NSB;
 }
 
 int RunTypeCategory(int run_number, bool doPrint)
@@ -1606,8 +1610,10 @@ bool ControlSelectionTheta2()
     if (MSCW<MSCW_plot_lower) return false;
     if (MSCL<MSCL_plot_lower) return false;
     if (SignalSelectionTheta2()) return false;
-    //if (MSCW<0.6) return false;
-    //if (MSCL<0.7) return false;
+
+    //if (MSCW>MSCW_cut_blind) return false;
+    //if (MSCL>MSCL_cut_blind) return false;
+    //if (MSCL<MSCL_cut_blind) return false;
 
     return true;
 }
@@ -3127,6 +3133,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             {
                 acceptance_weight = roff_weight;
             }
+            acceptance_weight = 1.;
             double energy_weight = 1.;
             if (dark_cr_content_energy>0.)
             {
@@ -3277,6 +3284,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             {
                 acceptance_weight = roff_weight;
             }
+            acceptance_weight = 1.;
             double energy_weight = 1.;
             if (dark_cr_content_energy>0.)
             {
@@ -3437,6 +3445,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             {
                 acceptance_weight = roff_weight;
             }
+            acceptance_weight = 1.;
             double energy_weight = 1.;
             if (dark_cr_content_energy>0.)
             {
@@ -3477,15 +3486,15 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             }
             if (FoV(TString(target),doImposter))
             {
-                if (CoincideWithBrightStars(ra_sky,dec_sky,ErecS*1000.))
+                if (CoincideWithBrightStars(complementary_ra_sky,complementary_dec_sky,ErecS*1000.))
                 {
-                    if (TightControlSelectionTheta2(ErecS*1000.))
+                    if (ControlSelectionTheta2())
                     {
                         Hist_OnData_CR_XYoff.at(energy).Fill(Xoff,Yoff,tight_acceptance_weight);
                         if (!UseGalacticCoord)
                         {
-                            Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,tight_acceptance_weight);
-                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(ra_sky,dec_sky,tight_acceptance_weight);
+                            Hist_OnData_CR_Skymap.at(energy).Fill(complementary_ra_sky,complementary_dec_sky,acceptance_weight);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(complementary_ra_sky,complementary_dec_sky,acceptance_weight);
                         }
                         else
                         {
@@ -3494,7 +3503,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                         }
                     }
                 }
-                else
+                if (!CoincideWithBrightStars(ra_sky,dec_sky,ErecS*1000.))
                 {
                     if (ControlSelectionTheta2())
                     {

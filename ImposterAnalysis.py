@@ -43,9 +43,9 @@ energy_bin_cut_low = int(sys.argv[2])
 energy_bin_cut_up = int(sys.argv[3])
 doImposter = int(sys.argv[4])
 
-plot_energy_break_bin = 3
+plot_energy_break_bin = 5
 
-#n_imposters = 3
+#n_imposters = 2
 n_imposters = 5
 if not doImposter: n_imposters = 0
 
@@ -135,21 +135,21 @@ def fit_2d_model(hist_map_data, hist_map_bkgd, src_x, src_y):
 
 def MakeDiagnisticPlots():
 
-    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum_smooth)
 
     hist_real_elev_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_elev_skymap)
-    CommonPlotFunctions.MatplotlibMap2D(hist_real_elev_skymap_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','elevation [deg]','SkymapElev_%s.png'%(plot_tag),fill_gaps=True,rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(hist_real_elev_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','elevation [deg]','SkymapElev_%s.png'%(plot_tag),fill_gaps=True,rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
     hist_real_azim_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_azim_skymap)
-    CommonPlotFunctions.MatplotlibMap2D(hist_real_azim_skymap_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','azim [deg]','SkymapAzim_%s.png'%(plot_tag),fill_gaps=True,rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(hist_real_azim_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','azim [deg]','SkymapAzim_%s.png'%(plot_tag),fill_gaps=True,rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
     hist_real_nsb_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_nsb_skymap)
-    CommonPlotFunctions.MatplotlibMap2D(hist_real_nsb_skymap_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','NSB','SkymapNSB_%s.png'%(plot_tag),fill_gaps=True,rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(hist_real_nsb_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','NSB','SkymapNSB_%s.png'%(plot_tag),fill_gaps=True,rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
     hist_real_mjd_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_mjd_skymap)
-    CommonPlotFunctions.MatplotlibMap2D(hist_real_mjd_skymap_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','MJD','SkymapMJD_%s.png'%(plot_tag),fill_gaps=True,rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(hist_real_mjd_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','MJD','SkymapMJD_%s.png'%(plot_tag),fill_gaps=True,rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
     hist_real_expo_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_expo_skymap[0])
-    CommonPlotFunctions.MatplotlibMap2D(hist_real_expo_skymap_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Hours','SkymapExpo_E%s_%s'%(0,plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(hist_real_expo_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','Hours','SkymapExpo_E%s_%s'%(0,plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
     for ebin in range(0,len(energy_bin)-1):
         hist_real_norm_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_norm_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_real_norm_skymap_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Count','SkymapNorm_E%s_%s'%(ebin,plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+        CommonPlotFunctions.MatplotlibMap2D(hist_real_norm_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','Count','SkymapNorm_E%s_%s'%(ebin,plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     if doImposter==1:
         for imposter in range(0,n_imposters):
@@ -169,9 +169,9 @@ def GetFluxCalibration(energy,elev):
     #flux_calibration = [1.7506329704556129e-10, 1.4669366489694362e-11, 5.575025320745524e-12, 2.6520194512426122e-12, 1.3856458120508363e-12, 6.633980234341466e-13]
 
     # energy threshold = 100 GeV, 1.5x1.5-deg2 map
-    flux_calibration_el70 = [8.316492664593018e-11, 6.664982087567068e-12, 2.2089281499157e-12, 1.1384124731999146e-12, 5.644607364619215e-13]
-    flux_calibration_el60 = [9.029702995723389e-11, 6.2121338707469236e-12, 2.0293374917031843e-12, 1.0230422665376246e-12, 5.285117414970046e-13]
-    flux_calibration_el50 = [1.7150051010554295e-10, 4.853475408162292e-12, 1.4245639038672151e-12, 6.852317606243813e-13, 3.6034440319473114e-13]
+    flux_calibration_el70 = [2.19e-10, 2.16e-11, 9.29e-12, 4.26e-12, 1.67e-12, 8.50e-13, 4.28e-13]
+    flux_calibration_el60 = [2.19e-10, 2.16e-11, 9.29e-12, 4.26e-12, 1.67e-12, 8.50e-13, 4.28e-13]
+    flux_calibration_el50 = [2.19e-10, 2.16e-11, 9.29e-12, 4.26e-12, 1.67e-12, 8.50e-13, 4.28e-13]
 
     xp = [62.,74.,77.]
     fp = [flux_calibration_el70[energy],flux_calibration_el70[energy],flux_calibration_el70[energy]]
@@ -414,6 +414,12 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
     hist_real_zscore_skymap_sum.Reset()
     hist_real_zscore_skymap_sum.Add(hist_zscore_skymap_sum)
 
+    #hist_real_data_skymap_sum_smooth = CommonPlotFunctions.Smooth2DMap(hist_real_data_skymap_sum,0.2,False,False)
+    #hist_real_bkgd_skymap_sum_smooth = CommonPlotFunctions.Smooth2DMap(hist_real_bkgd_skymap_sum,0.2,False,False)
+    #hist_real_syst_skymap_sum_smooth = CommonPlotFunctions.Smooth2DMap(hist_real_syst_skymap_sum,0.2,False,False)
+    hist_real_zscore_skymap_sum_smooth.Reset()
+    hist_real_zscore_skymap_sum_smooth.Add(GetSignificanceMap(hist_real_data_skymap_sum,hist_real_bkgd_skymap_sum,hist_real_syst_skymap_sum,True))
+
     hist_mimic_data_skymap_sum = []
     hist_mimic_bkgd_skymap_sum = []
     for imposter in range(0,n_imposters):
@@ -462,13 +468,13 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap_sum)
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         hist_zscore_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapZscore_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+        CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','Significance','SkymapZscore_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
         hist_excess_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_excess_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_excess_skymap_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','excess count','SkymapExcess_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+        CommonPlotFunctions.MatplotlibMap2D(hist_excess_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','excess count','SkymapExcess_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
         hist_on_bkgd_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_on_bkgd_skymap[ebin])
-        CommonPlotFunctions.MatplotlibMap2D(hist_on_bkgd_skymap_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','excess count','SkymapBkgdCnt_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+        CommonPlotFunctions.MatplotlibMap2D(hist_on_bkgd_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','excess count','SkymapBkgdCnt_E%s_%s'%(ebin,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
-    CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapZscore_Sum_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','Significance','SkymapZscore_Sum_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     CommonPlotFunctions.SaveAsFITS(hist_zscore_skymap_sum_reflect,'skymap_zscore_sum_%s'%(plot_tag))
     hist_zscore_skymap_sum_reflect.Delete()
@@ -494,7 +500,7 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
                         imposter_bkgd = hist_mimic_bkgd_skymap[imposter2][ebin].GetBinContent(binx+1,biny+1)
                         sum_square += pow(imposter_data-imposter_bkgd,2)
                         sum_bkgd += imposter_bkgd
-                    total_error = pow(sum_square/float(n_imposters-1-1),0.5)
+                    total_error = pow(sum_square/float(n_imposters-1),0.5)
                     avg_bkgd = sum_bkgd/float(n_imposters-1)
                     syst_error = total_error
                     if avg_bkgd==0.: continue
@@ -517,7 +523,7 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
         hist_imposter_zscore_skymap_sum[imposter].Reset()
         hist_imposter_zscore_skymap_sum[imposter].Add(hist_zscore_skymap_sum)
         hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_zscore_skymap_sum)
-        CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapZscore_Imposter%s_Sum_%s'%(imposter,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+        CommonPlotFunctions.MatplotlibMap2D(hist_zscore_skymap_sum_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','Significance','SkymapZscore_Imposter%s_Sum_%s'%(imposter,plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
         hist_zscore_skymap_sum_reflect.Delete()
 
 
@@ -538,7 +544,7 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_mimic_data_
         axbig.hist(zscores, bins=40, range=[z_min_range, z_max_range], density=True, histtype='step', color=next_color, alpha=1.0, label='Mimic #%s'%(imposter+1))
     zscores = GetMapChi2Distribution(hist_real_zscore_skymap_sum,hist_real_bkgd_skymap_sum)
     axbig.hist(zscores, bins=40, range=[z_min_range, z_max_range], density=True, histtype='step', color='black', alpha=1.0, label='ON data')
-    axbig.set_xlabel('Z scores')
+    axbig.set_xlabel('Significances')
     axbig.set_ylabel('Entries')
     axbig.set_yscale('log')
     axbig.legend(loc='best')
@@ -1139,10 +1145,22 @@ def CleanFluxMapNoise(hist_skymap):
 
 def SumFluxMap():
 
+    hist_excess_skymap_sum.Reset()
+    for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
+        hist_excess_skymap_sum.Add(hist_real_data_skymap[ebin])
+        hist_excess_skymap_sum.Add(hist_real_bkgd_skymap[ebin],-1.)
     hist_real_flux_skymap_sum.Reset()
     for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
         hist_real_flux_skymap_sum.Add(hist_real_flux_skymap[ebin])
 
+    hist_excess_skymap_le.Reset()
+    for ebin in range(max(0,energy_bin_cut_low),plot_energy_break_bin):
+        hist_excess_skymap_le.Add(hist_real_data_skymap[ebin])
+        hist_excess_skymap_le.Add(hist_real_bkgd_skymap[ebin],-1.)
+    hist_excess_skymap_he.Reset()
+    for ebin in range(max(plot_energy_break_bin,energy_bin_cut_low),len(energy_bin)-1):
+        hist_excess_skymap_he.Add(hist_real_data_skymap[ebin])
+        hist_excess_skymap_he.Add(hist_real_bkgd_skymap[ebin],-1.)
     hist_real_flux_skymap_le.Reset()
     for ebin in range(max(0,energy_bin_cut_low),plot_energy_break_bin):
         hist_real_flux_skymap_le.Add(hist_real_flux_skymap[ebin])
@@ -1165,23 +1183,32 @@ def SumFluxMap():
         for ebin in range(max(plot_energy_break_bin,energy_bin_cut_low),len(energy_bin)-1):
             hist_imposter_flux_skymap_he[imposter].Add(hist_imposter_flux_skymap[imposter][ebin])
 
-    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum_smooth)
 
     hist_bkgd_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_bkgd_flux_skymap_sum)
-    CommonPlotFunctions.MatplotlibMap2D(hist_bkgd_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapBkgdFlux_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(hist_bkgd_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapBkgdFlux_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_sum)
     CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_sum_reflect,None,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_Sum_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+
+    hist_excess_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_excess_skymap_sum)
+    CommonPlotFunctions.MatplotlibMap2D(hist_excess_skymap_reflect,hist_zscore_skymap_sum_reflect,None,fig,'RA','Dec','Excess count','SkymapExcess_Sum_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     hist_zscore_skymap_le_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_le)
 
     hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_le)
     CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_le_reflect,None,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_LE_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
+    hist_excess_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_excess_skymap_le)
+    CommonPlotFunctions.MatplotlibMap2D(hist_excess_skymap_reflect,hist_zscore_skymap_le_reflect,None,fig,'RA','Dec','Excess count','SkymapExcess_LE_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+
     hist_zscore_skymap_he_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_he)
 
     hist_real_flux_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_flux_skymap_he)
     CommonPlotFunctions.MatplotlibMap2D(hist_real_flux_skymap_reflect,hist_zscore_skymap_he_reflect,None,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapFlux_HE_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+
+    hist_excess_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_excess_skymap_he)
+    CommonPlotFunctions.MatplotlibMap2D(hist_excess_skymap_reflect,hist_zscore_skymap_he_reflect,None,fig,'RA','Dec','Excess count','SkymapExcess_HE_%s'%(plot_tag),roi_x=region_x,roi_y=region_y,roi_r=region_r[0],rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 
     CommonPlotFunctions.SaveAsFITS(hist_real_flux_skymap_sum,'skymap_flux_sum_%s'%(plot_tag))
@@ -1288,8 +1315,8 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name,excl_roi_x,excl_roi_y,excl_roi_r,exc
             syst_bias += imposter_s2b_list[imposter][ebin]
             syst_err += pow(imposter_s2b_list[imposter][ebin],2)
         if correct_bias:
-            syst_lower_bound_bias = syst_lower_bound_bias/float(n_imposters-2)
-            syst_lower_bound_err = pow(syst_lower_bound_err/float(n_imposters-2),0.5)
+            syst_lower_bound_bias = syst_lower_bound_bias/float(n_imposters-1)
+            syst_lower_bound_err = pow(syst_lower_bound_err/float(n_imposters-1),0.5)
             syst_bias = syst_bias/float(n_imposters-1)
             syst_err = pow(syst_err/float(n_imposters-1),0.5)
         else:
@@ -1332,7 +1359,9 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name,excl_roi_x,excl_roi_y,excl_roi_r,exc
             else:
                 calibration_new += [0.]
         print ('=======================================================================')
-        print ('new flux_calibration = %s'%(calibration_new))
+        #print ('new flux_calibration = %s'%(calibration_new))
+        formatted_numbers = ['%0.2e' % num for num in calibration_new]
+        print ('new flux_calibration = %s'%(formatted_numbers))
         print ('=======================================================================')
     if source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602':
         log_energy = np.linspace(log10(1e2),log10(1e5),50)
@@ -1642,7 +1671,7 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name,excl_roi_x,excl_roi_y,excl_roi_r,exc
     axbig = fig.add_subplot()
     axbig.step(energy_axis, zscore, where='mid', color='b')
     axbig.set_xlabel('Energy [GeV]')
-    axbig.set_ylabel('Z score')
+    axbig.set_ylabel('Significance')
     axbig.set_xscale('log')
     axbig.legend(loc='best')
     plotname = 'ZscoreSpectrum_%s'%(roi_name)
@@ -2092,11 +2121,15 @@ hist_real_azim_skymap = ROOT.TH2D("hist_real_azim_skymap","",nbins_x,MapEdge_lef
 hist_real_nsb_skymap = ROOT.TH2D("hist_real_nsb_skymap","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_mjd_skymap = ROOT.TH2D("hist_real_mjd_skymap","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_zscore_skymap_sum = ROOT.TH2D("hist_real_zscore_skymap_sum","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+hist_real_zscore_skymap_sum_smooth = ROOT.TH2D("hist_real_zscore_skymap_sum_smooth","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_zscore_skymap_le = ROOT.TH2D("hist_real_zscore_skymap_le","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_zscore_skymap_he = ROOT.TH2D("hist_real_zscore_skymap_he","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_flux_skymap_sum = ROOT.TH2D("hist_real_flux_skymap_sum","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_flux_skymap_le = ROOT.TH2D("hist_real_flux_skymap_le","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_flux_skymap_he = ROOT.TH2D("hist_real_flux_skymap_he","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+hist_excess_skymap_sum = ROOT.TH2D("hist_excess_skymap_sum","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+hist_excess_skymap_le = ROOT.TH2D("hist_excess_skymap_le","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+hist_excess_skymap_he = ROOT.TH2D("hist_excess_skymap_he","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_bkgd_flux_skymap_sum = ROOT.TH2D("hist_bkgd_flux_skymap_sum","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_data_skymap_sum = ROOT.TH2D("hist_real_data_skymap_sum","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
 hist_real_bkgd_skymap_sum = ROOT.TH2D("hist_real_bkgd_skymap_sum","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
@@ -2455,7 +2488,7 @@ elif source_name=='Galactic_RA304Dec36':
     region_name = 'Center'
     do_fit = 0
 
-    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum_smooth)
     Hist_mc_intensity = ROOT.TH2D("Hist_mc_intensity","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     Hist_mc_column = ROOT.TH2D("Hist_mc_column","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     pc_to_cm = 3.086e+18
@@ -2470,7 +2503,7 @@ elif source_name=='Galactic_RA304Dec36':
     Hist_mc_column.Add(Hist_mc_intensity)
     Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
     Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_m50p100_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_m50p100_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 
 elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not CommonPlotFunctions.doGalacticCoord:
@@ -2515,46 +2548,38 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     #do_fit = 1
     do_fit = 2
 
-    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum_smooth)
     Hist_Tobias = ROOT.TH2D("Hist_Tobias","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     MWL_map_file = 'MWL_maps/tobias_map.fits'
     Hist_Tobias = CommonPlotFunctions.GetFITSMap(MWL_map_file, Hist_Tobias, True)
     Hist_Tobias_reflect = CommonPlotFunctions.reflectXaxis(Hist_Tobias)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_Tobias_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Z score','SkymapTobias_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_Tobias_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','Significance','SkymapTobias_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     Hist_Fermi = ROOT.TH2D("Hist_Fermi","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
-    fermi_map_list = []
-    fermi_map_list += ['initial']
-    #fermi_map_list += ['1GeV']
-    #fermi_map_list += ['3GeV']
-    #fermi_map_list += ['5GeV']
-    #fermi_map_list += ['10GeV']
-    #fermi_map_list += ['30GeV']
-    for hfile in range(0,len(fermi_map_list)):
-        MWL_map_file = 'MWL_maps/TS_%s_pointsource_powerlaw_2.00_tsmap.fits'%(fermi_map_list[hfile])
-        Hist_Fermi = CommonPlotFunctions.GetFITSMap(MWL_map_file, Hist_Fermi, True)
-        Hist_Fermi = CommonPlotFunctions.Smooth2DMap(Hist_Fermi,0.1,False,True)
-        Hist_Fermi_reflect = CommonPlotFunctions.reflectXaxis(Hist_Fermi)
-        Hist_Fermi_reflect.Scale(0.5)
-        CommonPlotFunctions.MatplotlibMap2D(Hist_Fermi_reflect,None,None,fig,'RA','Dec','sqrt(TS)','SkymapFermi_%s_%s'%(fermi_map_list[hfile],plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    Hist_Fermi.Rebin2D(2,2)
+    MWL_map_file = 'MWL_maps/rg_nothing_gone_all_30-300gev_pointsource_powerlaw_2.00_tsmap.fits'
+    Hist_Fermi = CommonPlotFunctions.GetFITSMap(MWL_map_file, Hist_Fermi, True)
+    Hist_Fermi = CommonPlotFunctions.ConvertTSmapToZscore(Hist_Fermi)
+    Hist_Fermi_reflect = CommonPlotFunctions.reflectXaxis(Hist_Fermi)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_Fermi_reflect,None,None,fig,'RA','Dec','Significance','SkymapFermi_30GeV_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
-    #Hist_Hawc = ROOT.TH2D("Hist_Hawc","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
-    #hawc_map_list = []
+    Hist_Hawc = ROOT.TH2D("Hist_Hawc","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
+    Hist_Hawc.Rebin2D(2,2)
+    hawc_map_list = []
     #hawc_map_list += ['cd'] # 1-3.16 TeV
-    ##hawc_map_list += ['ef'] # 3.16-10 TeV
+    #hawc_map_list += ['ef'] # 3.16-10 TeV
     #hawc_map_list += ['gh'] # 10-31.6 TeV
-    ##hawc_map_list += ['ij'] # 31.6-100 TeV
-    #hawc_map_list += ['kl'] # 100-300 TeV
-    #for hfile in range(0,len(hawc_map_list)):
-    #    MWL_map_file = 'MWL_maps/%s-j1908.fits.gz'%(hawc_map_list[hfile])
-    #    Hist_Hawc = CommonPlotFunctions.GetHealpixMap(MWL_map_file, Hist_Hawc, True)
-    #    Hist_Hawc_reflect = CommonPlotFunctions.reflectXaxis(Hist_Hawc)
-    #    #CommonPlotFunctions.MatplotlibMap2D(Hist_Hawc_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]','SkymapHAWC_%s_%s.png'%(hawc_map_list[hfile],plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
-    #    CommonPlotFunctions.MatplotlibMap2D(Hist_Hawc_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','Significance','SkymapHAWC_%s_%s.png'%(hawc_map_list[hfile],plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    #hawc_map_list += ['ij'] # 31.6-100 TeV
+    hawc_map_list += ['kl'] # 100-316 TeV
+    for hfile in range(0,len(hawc_map_list)):
+        MWL_map_file = 'MWL_maps/%s-j1908.fits.gz'%(hawc_map_list[hfile])
+        Hist_Hawc = CommonPlotFunctions.GetHealpixMap(MWL_map_file, Hist_Hawc, True)
+        Hist_Hawc_reflect = CommonPlotFunctions.reflectXaxis(Hist_Hawc)
+        CommonPlotFunctions.MatplotlibMap2D(Hist_Hawc_reflect,None,None,fig,'RA','Dec','Significance','SkymapHAWC_%s_%s.png'%(hawc_map_list[hfile],plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 
 
-    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum_smooth)
     Hist_mc_intensity = ROOT.TH2D("Hist_mc_intensity","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     Hist_mc_column = ROOT.TH2D("Hist_mc_column","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     pc_to_cm = 3.086e+18
@@ -2574,7 +2599,7 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     Hist_mc_column.Add(Hist_mc_intensity)
     Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
     Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_p30p50_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,[hist_zscore_skymap_sum_reflect,Hist_Fermi_reflect],fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_p30p50_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
     MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_p10_p30_0th_moment.txt' # CO intensity (K km s^{-1} deg)
     Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
     Hist_mc_intensity.Scale(FITS_correction)
@@ -2582,7 +2607,7 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     Hist_mc_column.Add(Hist_mc_intensity)
     Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
     Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_p10p30_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,[hist_zscore_skymap_sum_reflect,Hist_Fermi_reflect],fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_p10p30_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
     MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_p50_p70_0th_moment.txt' # CO intensity (K km s^{-1} deg)
     Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
     Hist_mc_intensity.Scale(FITS_correction)
@@ -2590,7 +2615,7 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     Hist_mc_column.Add(Hist_mc_intensity)
     Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
     Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_p50p70_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,[hist_zscore_skymap_sum_reflect,Hist_Fermi_reflect],fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_p50p70_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 
 elif source_name=='IC443HotSpot' or source_name=='SNR_G189_p03':
@@ -2648,13 +2673,6 @@ elif 'Tycho' in source_name:
     region_name = 'Tycho'
     do_fit = 0
 
-    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
-
-    Hist_fermi5 = ROOT.TH2D("Hist_fermi5","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
-    Hist_fermi5 = CommonPlotFunctions.GetSkyViewMap("MWL_maps/skv23149968874996_1.txt", Hist_fermi5, True)
-    # 3-300 GeV Band 5, Atwood et al. 2009
-    Hist_fermi5_reflect = CommonPlotFunctions.reflectXaxis(Hist_fermi5)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_fermi5_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','cnts$/s/cm^{2}/sr$','SkymapFermi5.png',rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 elif 'PSR_J2021_p3651' in source_name:
     text_angle = 45.
@@ -2677,7 +2695,7 @@ elif 'PSR_J2021_p3651' in source_name:
     #region_name = 'PSR J2021+3651'
     #do_fit = 0
 
-    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
+    hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum_smooth)
 
     Hist_mc_intensity = ROOT.TH2D("Hist_mc_intensity","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     Hist_mc_column = ROOT.TH2D("Hist_mc_column","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
@@ -2690,7 +2708,7 @@ elif 'PSR_J2021_p3651' in source_name:
     Hist_mc_column.Add(Hist_mc_intensity)
     Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
     Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,hist_zscore_skymap_sum_reflect,fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapMolecularColumn_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapMolecularColumn_%s.png'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 elif 'PSR_J1928_p1746' in source_name:
     text_angle = 45.
@@ -2713,7 +2731,7 @@ else:
     region_x = MapCenter_x
     region_y = MapCenter_y
     #region_r = [CommonPlotFunctions.calibration_radius for element in range(len(energy_bin)-1)]
-    region_r = [0.5 for element in range(len(energy_bin)-1)]
+    region_r = [1.5 for element in range(len(energy_bin)-1)]
     region_name = 'Center'
     do_fit = 0
 

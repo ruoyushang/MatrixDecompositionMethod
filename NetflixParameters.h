@@ -1,11 +1,8 @@
 
-const int N_energy_bins = 5;
+const int N_energy_bins = 7;
 
 int N_bins_for_deconv = 12;
-//double elbow_ratio[N_energy_bins] = {4.0,4.0,4.0,4.0,4.0,4.0}; // nominal
-//double elbow_ratio_single = 1.5;
-//double elbow_ratio[N_energy_bins] = {elbow_ratio_single,elbow_ratio_single,elbow_ratio_single,3.0,3.0,3.0};
-int matrix_rank[N_energy_bins] = {3,3,2,2,1};
+int matrix_rank[N_energy_bins] = {2,3,3,2,2,2,1};
 
 int MatchingSelection = 0; // default
 //int MatchingSelection = 1; // free elevation
@@ -14,31 +11,31 @@ int MatchingSelection = 0; // default
 //int MatchingSelection = 4; // free MJD
 //
 double MatchRun_dElev = 0.2;
-double MatchRun_dAzim = 30.;
-double MatchRun_dNSB = 1.0;
+double MatchRun_dAzim = 45.;
+double MatchRun_dNSB = 100.0;
 
-double Log10_alpha_LE = 0.0;
-double Log10_alpha_ME = 0.5;
-double Log10_alpha_HE = 0.5;
-double Log10_alpha[N_energy_bins] = {Log10_alpha_LE,Log10_alpha_LE,Log10_alpha_ME,Log10_alpha_ME,Log10_alpha_HE};
+double Log10_alpha_LE = 10.;
+double Log10_alpha_ME = 10.;
+double Log10_alpha_HE = 10.;
+double Log10_alpha[N_energy_bins] = {Log10_alpha_LE,Log10_alpha_LE,Log10_alpha_LE,Log10_alpha_ME,Log10_alpha_ME,Log10_alpha_ME,Log10_alpha_ME};
 
 double exposure_limit = 5.; // default
 //double exposure_limit = 10.; // default
 //double exposure_limit = 1000.;
 
-double Log10_beta[N_energy_bins] =  {0.0,0.0,0.0,0.0,0.0};
-double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5};
-double optimiz_alpha_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5};
-double optimiz_beta_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5};
-double optimiz_beta_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5};
-double energy_bins[N_energy_bins+1] = {100.,300.,900.,2100.,4500.,9300.};
+double Log10_beta[N_energy_bins] =  {0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
+double optimiz_alpha_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5,1.5,1.5};
+double optimiz_beta_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
+double optimiz_beta_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5,1.5,1.5};
+double energy_bins[N_energy_bins+1] = {100.,200.,300.,500.,900.,2100.,4500.,9300.};
 double gamma_hadron_dim_ratio_w = 1.;
 double gamma_hadron_dim_ratio_l = 1.;
 double gamma_hadron_low_end = 0.;
-double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0};
-double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0};
-const int N_energy_fine_bins = 5;
-double energy_fine_bins[N_energy_fine_bins+1] = {100.,300.,900.,2100.,4500.,9300.};
+double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+const int N_energy_fine_bins = 7;
+double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,300.,500.,900.,2100.,4500.,9300.};
 
 
 bool UseDL3Tree = true;
@@ -56,8 +53,8 @@ bool RHVData = false;
 bool UseGalacticCoord = false;
 double Skymap_size_x = 1.5;
 double Skymap_size_y = 1.5;
-int Skymap_nbins_x = 50;
-int Skymap_nbins_y = 50;
+int Skymap_nbins_x = 60;
+int Skymap_nbins_y = 60;
 int Skymap_nzones_x = 1;
 int Skymap_nzones_y= 1;
 
@@ -144,3 +141,4 @@ double MSCL_chi2_upper = 3.;
 double brightness_cut = 6.0;
 double faint_brightness_cut = 7.0;
 double bright_star_radius_cut = 0.25;
+//double bright_star_radius_cut = 0.;

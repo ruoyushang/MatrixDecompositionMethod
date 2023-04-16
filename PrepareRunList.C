@@ -920,6 +920,16 @@ vector<double> GetRunElevationList(vector<pair<string,int>> list)
     }
     return list_elev;
 }
+vector<double> GetRunRaDecList(vector<pair<string,int>> list)
+{
+    vector<double> list_radec;
+    for (int run=0;run<list.size();run++)
+    {
+        double run_RA_Dec = GetRunRaDec(list.at(run).first,int(list.at(run).second)).second;
+        list_radec.push_back(run_RA_Dec);
+    }
+    return list_radec;
+}
 void SortingList(vector<pair<string,int>>* list, vector<double>* list_pointing)
 {
     pair<string,int> temp_list;
@@ -941,18 +951,122 @@ void SortingList(vector<pair<string,int>>* list, vector<double>* list_pointing)
     }
 }
 
-int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON_NSB, double ON_L3Rate, double ON_MJD, vector<int> OFF_runnumber, vector<pair<double,double>> OFF_pointing, vector<double> OFF_NSB, vector<double> OFF_L3Rate, vector<double> OFF_MJD, vector<int> exclusion_list, bool isImposter) 
+int FindAMatchedRunFromPairList(int ON_runnumber, string source, vector<int> exclusion_list, bool isImposter, int true_ON_runnumber) 
+{
+
+    string line;
+    char delimiter = ' ';
+    string txt_on_runnumber = "";
+    string txt_off_runnumber = "";
+    int nth_line = 0;
+    int nth_delimiter = 0;
+    std::string::size_type sz;
+    vector<int> offrun_list;
+
+    string SMI_DIR;
+    SMI_DIR = string(std::getenv("SMI_DIR"));
+    ifstream myfile (SMI_DIR+"/runlist_backup/PairList_"+source+".txt");
+    if (myfile.is_open())
+    {
+        while ( getline(myfile,line) )
+        {
+            txt_on_runnumber = "";
+            txt_off_runnumber = "";
+            nth_delimiter = 0;
+            for(int i = 0; i < line.size(); i++)
+            {
+                if(line[i] == delimiter)
+                {
+                    nth_delimiter += 1;
+                }
+                else if (nth_delimiter==1)
+                {
+                    txt_off_runnumber += line[i];
+                }
+                else if (nth_delimiter==0)
+                {
+                    txt_on_runnumber += line[i];
+                }
+                if (i==line.size()-1)
+                {
+                    double this_on_runnumber = std::stod(txt_on_runnumber,&sz);
+                    double this_off_runnumber = std::stod(txt_off_runnumber,&sz);
+                    if (!isImposter)
+                    {
+                        if (int(this_on_runnumber)==ON_runnumber)
+                        {
+                            offrun_list.push_back(int(this_off_runnumber));
+                        }
+                    }
+                    else
+                    {
+                        if (int(this_on_runnumber)==true_ON_runnumber)
+                        {
+                            offrun_list.push_back(int(this_off_runnumber));
+                        }
+                    }
+                }
+            }
+            nth_line += 1;
+        }
+        myfile.close();
+    }
+
+    if (offrun_list.size()==0)
+    {
+        std::cout << "ON run " << ON_runnumber << " does not have matched off runs." << std::endl;
+    }
+
+    char char_onrun_number[50];
+    sprintf(char_onrun_number, "%i", ON_runnumber);
+    string ON_filename;
+    ON_filename = TString(SMI_INPUT+"/"+string(char_onrun_number)+".anasum.root");
+    std::pair<double,double> onrun_pointing = GetRunElevAzim(ON_filename,ON_runnumber);
+
+    double chi2 = 1e10;
+    int best_off_runnumber = 0;
+    for (int off_run=0;off_run<offrun_list.size();off_run++)
+    {
+        int OFF_runnumber = offrun_list[off_run];
+
+        bool do_not_use = false;
+        for (int exclude_run=0;exclude_run<exclusion_list.size();exclude_run++)
+        {
+            if (OFF_runnumber==exclusion_list[exclude_run])
+            {
+                do_not_use = true;
+            }
+        }
+        if (do_not_use) continue;
+
+        char char_offrun_number[50];
+        sprintf(char_offrun_number, "%i", OFF_runnumber);
+        string OFF_filename;
+        OFF_filename = TString(SMI_INPUT+"/"+string(char_offrun_number)+".anasum.root");
+        std::pair<double,double> offrun_pointing = GetRunElevAzim(OFF_filename,OFF_runnumber);
+
+        double this_chi2 = pow(onrun_pointing.first-offrun_pointing.first,2);
+        if (this_chi2<chi2)
+        {
+            chi2 = this_chi2;
+            best_off_runnumber = OFF_runnumber;
+        }
+    }
+
+    return best_off_runnumber;
+
+}
+
+int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON_NSB, double ON_L3Rate, double ON_MJD, vector<int> OFF_runnumber, vector<pair<double,double>> OFF_pointing, vector<double> OFF_NSB, vector<double> OFF_L3Rate, vector<double> OFF_MJD, vector<int> exclusion_list, bool isImposter, double elev_offset) 
 {
     int matched_runnumber = 0;
     double match_chi2 = 1e10;
     double threshold_dElev = 2.0;
-    double threshold_dAirmass = 0.1; // for J1908 anlaysis
     double threshold_dNSB = 0.4; // for J1908 analysis
     double threshold_dAzim = 180.;
     double threshold_dMJD = 2.*365.;
     double threshold_dL3Rate = 50.;
 
-    threshold_dAirmass = 0.3; // default, do not use for J1908 
     threshold_dElev = 10.;
     threshold_dAzim = 45.; // default, do not use for J1908
     threshold_dNSB = 1.0; // default, do not use for J1908
@@ -976,15 +1090,13 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
 
     if (!isImposter)
     {
-        threshold_dAirmass = MatchRun_dElev; // default 
-        //threshold_dElev = MatchRun_dElev; // default 
+        threshold_dElev = MatchRun_dElev; // default 
         threshold_dAzim = MatchRun_dAzim; // default 
         threshold_dNSB = MatchRun_dNSB; // default 
         threshold_dMJD = 100.*365.;
 
         if (MatchingSelection==1)
         {
-            //threshold_dAirmass = 1000.;
             threshold_dElev = 1000.;
         }
         if (MatchingSelection==2)
@@ -1019,15 +1131,28 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         double delta_l3rate = abs(ON_L3Rate-OFF_L3Rate[off_run]);
         double delta_mjd = abs(ON_MJD-OFF_MJD[off_run]);
         double delta_nsb = abs(ON_NSB-OFF_NSB[off_run]);
-        double delta_elev = abs(ON_pointing.first-OFF_pointing[off_run].first);
-        double delta_airmass = abs(1./sin(ON_pointing.first*M_PI/180.)-1./sin(OFF_pointing[off_run].first*M_PI/180.));
+        double delta_elev = (ON_pointing.first-OFF_pointing[off_run].first);
+        double delta_airmass = (1./sin(ON_pointing.first*M_PI/180.)-1./sin(OFF_pointing[off_run].first*M_PI/180.));
         double signed_delta_airmass = (1./sin(ON_pointing.first*M_PI/180.)-1./sin(OFF_pointing[off_run].first*M_PI/180.));
 
         double delta_azim = abs(ON_pointing.second-OFF_pointing[off_run].second);
         if (delta_azim>180.) delta_azim = 360.-delta_azim;
 
-        if (delta_airmass>threshold_dAirmass) continue;
-        //if (delta_elev>threshold_dElev) continue;
+        if (!isImposter)
+        {
+            //if (ON_runnumber % 2 == 1)
+            if (elev_offset>0.)
+            {
+                if (delta_elev>0.) continue;
+            }
+            else
+            {
+                if (delta_elev<0.) continue;
+            }
+        }
+
+        if (abs(delta_airmass)>threshold_dElev) continue;
+        //if (abs(delta_elev)>threshold_dElev) continue;
         if (delta_nsb>threshold_dNSB) continue;
         if (delta_azim>threshold_dAzim) continue; //default, do not use for J1908
 
@@ -1036,8 +1161,8 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
 
         double chi2 = pow(delta_azim,2); // for J1908 analysis
 
-        chi2 = pow(delta_airmass,2);  // default, do not use for J1908
-        //chi2 = pow(delta_elev,2);
+        //chi2 = pow(delta_airmass,2);  // default, do not use for J1908
+        chi2 = pow(delta_elev,2);
         //chi2 = pow(2.*delta_elev,2)+pow(delta_azim,2);
         //chi2 = pow(delta_mjd,2);
 
@@ -1084,7 +1209,7 @@ bool CheckBrightGammaRaySource(double input_ra, double input_dec)
     return false;
 }
 
-void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, int iteration, pair<double,double> source_ra_dec)
+void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, int iteration, pair<double,double> source_ra_dec, string source_strip)
 {
     std::cout << "initial runs = " << Data_runlist.size() << std::endl;
 
@@ -1231,7 +1356,7 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
     vector<double> OFF_exposure_hour;
 
     vector<int> exclusion_list = new_list;
-    vector<int> imposter_list;
+    vector<std::pair<int,int>> imposter_list;
     vector<pair<double,double>> imposter_list_radec;
     std::cout << "Find matched imposter run list..." << std::endl;
     std::cout << "ON runs = " << new_list.size() << std::endl;
@@ -1264,7 +1389,8 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
             pair<double,double> ON_pointing = new_list_pointing[on_run];
             double on_run_MJD = double(GetRunMJD(ON_filename,ON_runnumber));
 
-            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, true); 
+            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, true, 0.); 
+            //int matched_runnumber = FindAMatchedRunFromPairList(ON_runnumber, source_strip, exclusion_list, false, 0);
             if (matched_runnumber==0)
             {
                 std::cout << "ON run " << ON_runnumber << " failed to find an imposter." << std::endl;
@@ -1274,48 +1400,12 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
                 std::cout << "ON run " << ON_runnumber << " found an imposter " << matched_runnumber << std::endl;
                 if (trial==iteration-1)
                 {
-                    imposter_list.push_back(matched_runnumber);
+                    imposter_list.push_back(std::make_pair(matched_runnumber,ON_runnumber));
                     imposter_list_radec.push_back(std::make_pair(ON_pointing_RA,ON_pointing_Dec));
                 }
                 exclusion_list.push_back(matched_runnumber);
             }
         }
-    }
-    if (root_file_name.Contains("MGRO_J1908"))
-    {
-
-        TFile InputRunListFile("/gamma_raid/userspace/rshang/SMI_output/output_db_search/j1908_1000hrs_bin/"+root_file_name);
-        TTree* RunListTree_ptr = nullptr;
-        RunListTree_ptr = (TTree*) InputRunListFile.Get("RunListTree_subgroup");
-        RunListTree_ptr->SetBranchStatus("*", 0);
-        RunListTree_ptr->SetBranchStatus("ON_runnumber", 1);
-        RunListTree_ptr->SetBranchStatus("ON_pointing_RA", 1);
-        RunListTree_ptr->SetBranchStatus("ON_pointing_Dec", 1);
-        RunListTree_ptr->SetBranchStatus("ON_exposure_hour", 1);
-        RunListTree_ptr->SetBranchStatus("OFF_runnumber", 1);
-        RunListTree_ptr->SetBranchStatus("OFF_exposure_hour", 1);
-        int ON_runnumber_ptr;
-        RunListTree_ptr->SetBranchAddress("ON_runnumber",&ON_runnumber_ptr);
-        double ON_exposure_hour_ptr;
-        RunListTree_ptr->SetBranchAddress("ON_exposure_hour",&ON_exposure_hour_ptr);
-        double ON_pointing_RA_ptr;
-        RunListTree_ptr->SetBranchAddress("ON_pointing_RA",&ON_pointing_RA_ptr);
-        double ON_pointing_Dec_ptr;
-        RunListTree_ptr->SetBranchAddress("ON_pointing_Dec",&ON_pointing_Dec_ptr);
-        vector<int>* OFF_runnumber_ptr = new std::vector<int>(10);
-        RunListTree_ptr->SetBranchAddress("OFF_runnumber",&OFF_runnumber_ptr);
-        vector<double>* OFF_exposure_hour_ptr = new std::vector<double>(10);
-        RunListTree_ptr->SetBranchAddress("OFF_exposure_hour",&OFF_exposure_hour_ptr);
-
-        for (int on_run=0;on_run<RunListTree_ptr->GetEntries();on_run++)
-        {
-            RunListTree_ptr->GetEntry(on_run);
-            if (OFF_runnumber_ptr->size()==0) continue;
-            if (OFF_runnumber_ptr->at(0)==0) continue;
-            imposter_list.push_back(ON_runnumber_ptr);
-            imposter_list_radec.push_back(std::make_pair(ON_pointing_RA_ptr,ON_pointing_Dec_ptr));
-        }
-
     }
 
 
@@ -1328,10 +1418,16 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
     RunListTree->Branch("OFF_exposure_hour","std::vector<double>",&OFF_exposure_hour);
 
 
+    exclusion_list = new_list;
+    for (int on_run=0;on_run<imposter_list.size();on_run++)
+    {
+        exclusion_list.push_back(imposter_list.at(on_run).first);
+    }
     for (int on_run=0;on_run<imposter_list.size();on_run++)
     {
 
-        ON_runnumber = imposter_list.at(on_run);
+        ON_runnumber = imposter_list.at(on_run).first;
+        int true_ON_runnumber = imposter_list.at(on_run).second;
         ON_timecut = GetRunTimecuts(ON_runnumber);
         std::cout << "Selected imposter run " << ON_runnumber << std::endl;
         std::cout << "time cut: ";
@@ -1359,32 +1455,34 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
         OFF_runnumber.clear();
         OFF_exposure_hour.clear();
         bool continue_to_find_match = true;
-        while (total_off_time<1.0*ON_exposure_hour && continue_to_find_match)
+        double sum_on_elev = 0.;
+        double sum_off_elev = 0.;
+
+        int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false, sum_on_elev-sum_off_elev); 
+        //int matched_runnumber = FindAMatchedRunFromPairList(ON_runnumber, source_strip, exclusion_list, true, true_ON_runnumber);
+        if (matched_runnumber==0)
         {
-
-            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false); 
-            if (matched_runnumber==0)
-            {
-                std::cout << "Imposter run " << ON_runnumber << " failed to find a match." << std::endl;
-                ON_runnumber = 0;
-                OFF_runnumber.push_back(0);
-                OFF_exposure_hour.push_back(0);
-                continue_to_find_match = false;
-            }
-            else
-            {
-                std::cout << "Imposter run " << ON_runnumber << " found a match " << matched_runnumber << std::endl;
-                exclusion_list.push_back(matched_runnumber);
-                string OFF_filename;
-                char char_off_runnumber[50];
-                sprintf(char_off_runnumber, "%i", matched_runnumber);
-                OFF_filename = TString(SMI_INPUT+"/"+string(char_off_runnumber)+".anasum.root");
-                OFF_runnumber.push_back(matched_runnumber);
-                double off_time = GetRunUsableTime(OFF_filename,matched_runnumber)/3600.;
-                OFF_exposure_hour.push_back(off_time);
-                total_off_time += off_time;
-            }
-
+            std::cout << "Imposter run " << ON_runnumber << " failed to find a match." << std::endl;
+            ON_runnumber = 0;
+            OFF_runnumber.push_back(0);
+            OFF_exposure_hour.push_back(0);
+            continue_to_find_match = false;
+        }
+        else
+        {
+            std::cout << "Imposter run " << ON_runnumber << " found a match " << matched_runnumber << std::endl;
+            exclusion_list.push_back(matched_runnumber);
+            string OFF_filename;
+            char char_off_runnumber[50];
+            sprintf(char_off_runnumber, "%i", matched_runnumber);
+            OFF_filename = TString(SMI_INPUT+"/"+string(char_off_runnumber)+".anasum.root");
+            OFF_runnumber.push_back(matched_runnumber);
+            double off_time = GetRunUsableTime(OFF_filename,matched_runnumber)/3600.;
+            OFF_exposure_hour.push_back(off_time);
+            total_off_time += off_time;
+            std::pair<double,double> off_run_pointing = GetRunElevAzim(OFF_filename,matched_runnumber);
+            sum_on_elev += ON_pointing.first*off_time;
+            sum_off_elev += off_run_pointing.first*off_time;
         }
 
         if (ON_runnumber==0) continue;
@@ -1393,7 +1491,7 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
 
 }
 
-void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, pair<double,double> source_ra_dec)
+void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist, vector<pair<string,int>> OFF_runlist_input, double Elev_cut_lower, double Elev_cut_upper, pair<double,double> source_ra_dec, string source_strip)
 {
     std::cout << "initial runs = " << Data_runlist.size() << std::endl;
 
@@ -1587,36 +1685,39 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
         {
             ratio_exposure = 2.0;
         }
-        while (total_off_time<ratio_exposure*ON_exposure_hour && continue_to_find_match)
+        double sum_on_elev = 0.;
+        double sum_off_elev = 0.;
+        int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false, sum_on_elev-sum_off_elev); 
+        //int matched_runnumber = FindAMatchedRunFromPairList(ON_runnumber, source_strip, exclusion_list, false, 0);
+        if (matched_runnumber==0)
         {
-            int matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false); 
-            if (matched_runnumber==0)
-            {
-                std::cout << "ON run " << ON_runnumber << " failed to find a match." << std::endl;
-                std::cout << "ON run elev = " << ON_pointing.first << std::endl;
-                std::cout << "ON run azim = " << ON_pointing.second << std::endl;
-                std::cout << "ON run NSB = " << on_run_NSB << std::endl;
-                std::cout << "ON run L3 rate = " << ON_L3Rate << std::endl;
-                ON_runnumber = 0;
-                OFF_runnumber.push_back(0);
-                OFF_exposure_hour.push_back(0);
-                continue_to_find_match = false;
-            }
-            else
-            {
-                std::cout << "ON run " << ON_runnumber << " found a match " << matched_runnumber << std::endl;
-                exclusion_list.push_back(matched_runnumber);
-                string OFF_filename;
-                char char_off_runnumber[50];
-                sprintf(char_off_runnumber, "%i", matched_runnumber);
-                OFF_filename = TString(SMI_INPUT+"/"+string(char_off_runnumber)+".anasum.root");
-                OFF_runnumber.push_back(matched_runnumber);
-                double off_time = GetRunUsableTime(OFF_filename,matched_runnumber)/3600.;
-                OFF_exposure_hour.push_back(off_time);
-                total_off_time += off_time;
-            }
-
+            std::cout << "ON run " << ON_runnumber << " failed to find a match." << std::endl;
+            std::cout << "ON run elev = " << ON_pointing.first << std::endl;
+            std::cout << "ON run azim = " << ON_pointing.second << std::endl;
+            std::cout << "ON run NSB = " << on_run_NSB << std::endl;
+            std::cout << "ON run L3 rate = " << ON_L3Rate << std::endl;
+            ON_runnumber = 0;
+            OFF_runnumber.push_back(0);
+            OFF_exposure_hour.push_back(0);
+            continue_to_find_match = false;
         }
+        else
+        {
+            std::cout << "ON run " << ON_runnumber << " found a match " << matched_runnumber << std::endl;
+            exclusion_list.push_back(matched_runnumber);
+            string OFF_filename;
+            char char_off_runnumber[50];
+            sprintf(char_off_runnumber, "%i", matched_runnumber);
+            OFF_filename = TString(SMI_INPUT+"/"+string(char_off_runnumber)+".anasum.root");
+            OFF_runnumber.push_back(matched_runnumber);
+            double off_time = GetRunUsableTime(OFF_filename,matched_runnumber)/3600.;
+            OFF_exposure_hour.push_back(off_time);
+            total_off_time += off_time;
+            std::pair<double,double> off_run_pointing = GetRunElevAzim(OFF_filename,matched_runnumber);
+            sum_on_elev += ON_pointing.first*off_time;
+            sum_off_elev += off_run_pointing.first*off_time;
+        }
+
 
         if (ON_runnumber==0) continue;
         RunListTree->Fill();
@@ -1860,6 +1961,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     std::istringstream ss_input;
     ss_input.str(target);
     std::string source_strip("");
+    std::string source_off_strip("");
     std::string segment;
     std::vector<std::string> seglist;
     while(std::getline(ss_input, segment, '_'))
@@ -1871,14 +1973,19 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
         if (s>0)
         {
             source_strip.append("_");
+            source_off_strip.append("_");
         }
         source_strip.append(seglist.at(s));
+        source_off_strip.append(seglist.at(s));
     }
+    source_off_strip.append("_OFF");
 
     vector<pair<string,int>> Data_runlist_init = GetRunList(source_strip);
     std::cout << "Sorting list by elevation..." << std::endl;
     vector<double> Data_runlist_init_elev = GetRunElevationList(Data_runlist_init);
+    vector<double> Data_runlist_init_radec = GetRunRaDecList(Data_runlist_init);
     SortingList(&Data_runlist_init,&Data_runlist_init_elev);
+    //SortingList(&Data_runlist_init,&Data_runlist_init_radec);
 
     std::cout << "Getting background list..." << std::endl;
     vector<pair<string,int>> Dark_runlist_init;
@@ -1886,6 +1993,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     {
         if (TString(target).Contains("V6")) Dark_runlist_init = GetRunList("OffRunsV6");
         if (TString(target).Contains("V5")) Dark_runlist_init = GetRunList("OffRunsV5");
+        //Dark_runlist_init = GetRunList(source_off_strip);
     }
     else
     {
@@ -1897,7 +2005,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
     TTree RunListTree("RunListTree","ON data runn list tree");
     if (!doImposter)
     {
-        SelectONRunList(&RunListTree, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, source_ra_dec);
+        SelectONRunList(&RunListTree, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, source_ra_dec, source_strip);
     }
     else
     {
@@ -1913,7 +2021,7 @@ void PrepareRunList(string target_data, double tel_elev_lower_input, double tel_
         //vector<pair<string,int>> Data_runlist_new = GetNewRunListFromTree(&RunListTree);
         //RunListTree.Reset();
         //std::cout << "Empty the tree before searching for imposters, RunListTree entries = " << RunListTree.GetEntries() << std::endl;
-        SelectImposterRunList(&RunListTree, root_file_name, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, iteration, source_ra_dec);
+        SelectImposterRunList(&RunListTree, root_file_name, Data_runlist_init, Dark_runlist_init, tel_elev_lower_input, tel_elev_upper_input, iteration, source_ra_dec, source_strip);
     }
 
     RunListTree.SetBranchStatus("*", 0);

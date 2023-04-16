@@ -686,9 +686,13 @@ def find_runs_around_source(obs_name,obs_ra,obs_dec,epoch,obs_type,find_off):
     out_file = open('output_vts_hours/%s.txt'%(obs_name),"w")
 
     list_on_run_ids = []
+    list_on_run_elev = []
+    list_on_run_nmatch = []
     list_on_sources = []
     list_off_run_ids = []
     list_off_sources = []
+
+    require_nmatch = 5
 
     # setup database connection
     dbcnx=pymysql.connect(host='romulus.ucsc.edu', db='VERITAS', user='readonly', cursorclass=pymysql.cursors.DictCursor)
@@ -797,7 +801,13 @@ def find_runs_around_source(obs_name,obs_ra,obs_dec,epoch,obs_type,find_off):
 
         print ('run_id = %s, source_name = %s'%(x['run_id'],x['source_id']))
         out_file.write('run_id = %s, source_name = %s \n'%(x['run_id'],x['source_id']))
+        on_run_el, on_run_az = get_run_el_az(x['run_id'])
         list_on_run_ids += [x['run_id']]
+        list_on_run_elev += [on_run_el]
+
+    #list_pairs = zip(list_on_run_ids, list_on_run_elev)
+    #sorted_pairs = sorted(list_pairs, key=lambda x: x[1])
+    #list_on_run_ids = [x[0] for x in sorted_pairs]
 
     out_file.write('++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
     out_file.write('ON run list\n')
@@ -819,10 +829,12 @@ def find_runs_around_source(obs_name,obs_ra,obs_dec,epoch,obs_type,find_off):
         on_run_el, on_run_az = get_run_el_az(list_on_run_ids[on_run])
         number_off_runs = 0
 
+        sum_on_run_elev = 0.
+        sum_off_run_elev = 0.
         for run in range(0,len(all_runs_info)):
 
-            if number_off_runs>=8: continue
-            if abs(all_runs_info[run][0]-list_on_run_ids[on_run])>20000: continue
+            if number_off_runs>=require_nmatch: continue
+            #if abs(all_runs_info[run][0]-list_on_run_ids[on_run])>40000: continue
             already_used = False
             for off_run in range(0,len(list_off_run_ids)):
                 if all_runs_info[run][0]==list_off_run_ids[off_run][1]: already_used = True
@@ -849,21 +861,34 @@ def find_runs_around_source(obs_name,obs_ra,obs_dec,epoch,obs_type,find_off):
             off_run_el = all_runs_info[run][2]
             off_run_az = all_runs_info[run][3]
             delta_azim = abs(off_run_az-on_run_az)
+            if on_run_el==0.: continue
+            if off_run_el==0.: continue
+            delta_airmass = (1./math.sin(on_run_el*math.pi/180.)-1./math.sin(off_run_el*math.pi/180.));
             if delta_azim>180.: delta_azim = 360.-delta_azim
-            if abs(off_run_el-on_run_el)>10.: continue
+            if (sum_off_run_elev-sum_on_run_elev)>0.:
+                if (off_run_el-on_run_el)>0.: continue
+            else:
+                if (off_run_el-on_run_el)<0.: continue
+            #if abs(off_run_el-on_run_el)>5.: continue
+            if abs(delta_airmass)>0.2: continue
             if delta_azim>45.: continue
 
             list_off_run_ids += [[list_on_run_ids[on_run],all_runs_info[run][0],on_run_el,off_run_el]]
             number_off_runs += 1
+            sum_on_run_elev += on_run_el
+            sum_off_run_elev += off_run_el
 
+        list_on_run_nmatch += [number_off_runs]
+
+    out_file.write('++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
+    out_file.write('ON/OFF pair list\n')
     print ('++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    print ('OFF run list')
+    print ('ON/OFF pair list')
     for run in range(0,len(list_off_run_ids)):
-        print ('++++++++++++++++++++++++++++++++++++++++++++++++++++')
-        print ('ON run = %s, el = %s'%(list_off_run_ids[run][0],list_off_run_ids[run][2]))
-        print ('OFF run = %s, el = %s'%(list_off_run_ids[run][1],list_off_run_ids[run][3]))
-        if len(list_off_run_ids)<5:
-            print ('!!!Less than 5 sets of OFF runs!!!!')
+        #print ('ON run = %s, el = %s'%(list_off_run_ids[run][0],list_off_run_ids[run][2]))
+        #print ('OFF run = %s, el = %s'%(list_off_run_ids[run][1],list_off_run_ids[run][3]))
+        print ('%s %s'%(list_off_run_ids[run][0],list_off_run_ids[run][1]))
+        out_file.write('%s %s\n'%(list_off_run_ids[run][0],list_off_run_ids[run][1]))
 
     out_file.write('++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
     out_file.write('ON run list\n')
@@ -881,11 +906,22 @@ def find_runs_around_source(obs_name,obs_ra,obs_dec,epoch,obs_type,find_off):
         out_file.write('%s\n'%(list_off_run_ids[run][1]))
         print (list_off_run_ids[run][1])
 
+    out_file.write('++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
+    out_file.write('ON runs do not have enought matches\n')
+    for run in range(0,len(list_on_run_ids)):
+        if list_on_run_nmatch[run]<require_nmatch:
+            out_file.write('%s, elev %0.1f,  has %s OFF runs.\n'%(list_on_run_ids[run],list_on_run_elev[run],list_on_run_nmatch[run]))
+
+
+    out_file.write('++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
+    out_file.write('ON run list\n')
+    out_file.write('OFF/ON ratio = %0.2f'%( float(len(list_off_run_ids))/float(len(list_on_run_ids)) ))
+
     out_file.close()
 
 #run_epoch = 'V4'
-#run_epoch = 'V5'
-run_epoch = 'V6'
+run_epoch = 'V5'
+#run_epoch = 'V6'
 #run_obs_type = 'obsLowHV' # RHV
 run_obs_type = 'observing'
 find_off = False
@@ -899,10 +935,13 @@ find_off = False
 #    obs_name += '_%s'%(run_epoch)
 #    find_runs_around_source(obs_name,obs_ra,obs_dec,run_epoch,run_obs_type,find_off)
 
-obs_name = '1ES_0033_p595_%s'%(run_epoch)
-obs_ra = 8.97
-obs_dec = 59.83
-#find_off = True
+obs_name = 'PSR_J1907_p0602_%s'%(run_epoch)
+obs_ra = 286.975
+obs_dec = 6.03777777778
+#obs_name = 'IC443_%s'%(run_epoch)
+#obs_ra = 94.213
+#obs_dec = 22.503
+find_off = True
 find_runs_around_source(obs_name,obs_ra,obs_dec,run_epoch,run_obs_type,find_off)
 
 #obs_name = 'Galactic_OFF_%s'%(run_epoch)

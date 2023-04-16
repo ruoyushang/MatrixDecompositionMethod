@@ -4280,7 +4280,10 @@ def MakeSpectrumIndexSkymap(exposure_in_hours,hist_data,hist_bkgd,hist_rfov,hist
         bin_size_0 = hist_bkgd_skymap[ebin].GetXaxis().GetBinLowEdge(2)-hist_bkgd_skymap[ebin].GetXaxis().GetBinLowEdge(1)
         bin_size_1 = Hist_Data_CR_XYoff[ebin].GetXaxis().GetBinLowEdge(2)-Hist_Data_CR_XYoff[ebin].GetXaxis().GetBinLowEdge(1)
         bkgd_rate = Hist_Data_CR_XYoff[ebin].GetMaximum()*(bin_size_0*bin_size_0)/(exposure_hours*bin_size_1*bin_size_1)
-        hist_expo_hour_skymap[ebin].Scale(1./bkgd_rate)
+        if bkgd_rate>0.:
+            hist_expo_hour_skymap[ebin].Scale(1./bkgd_rate)
+        else:
+            hist_expo_hour_skymap[ebin].Scale(0.)
 
     hist_expo_hour_skymap_sum = ROOT.TH2D("hist_expo_hour_skymap_sum","",int(Skymap_nbins_x/zoomin_scale),MapCenter_x-MapSize_x/zoomin_scale,MapCenter_x+MapSize_x/zoomin_scale,int(Skymap_nbins_y/zoomin_scale),MapCenter_y-MapSize_y/zoomin_scale,MapCenter_y+MapSize_y/zoomin_scale)
     hist_expo_hour_skymap_sum.Add(hist_bkgd_skymap_sum)
