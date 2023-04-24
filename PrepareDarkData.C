@@ -329,16 +329,16 @@ bool MCFoV() {
     //if (angular_dist>1.5) return false;
     return true;
 }
-bool FoV(TString target, bool doImposter) {
+bool FoV(TString target, bool doImposter, double evt_ra, double evt_dec) {
 
     if (R2off>9.) return false;
     if (R2off<camera_theta2_cut_lower) return false;
     if (R2off>camera_theta2_cut_upper) return false;
     
-    double x = ra_sky-mean_tele_point_ra;
-    double y = dec_sky-mean_tele_point_dec;
+    double x = evt_ra-mean_tele_point_ra;
+    double y = evt_dec-mean_tele_point_dec;
     if (source_theta_cut>(pow(x*x+y*y,0.5))) return false;
-    if (CoincideWithGammaSources(ra_sky,dec_sky,source_theta_cut)) return false;
+    if (CoincideWithGammaSources(evt_ra,evt_dec,source_theta_cut)) return false;
     //if (target.Contains("SS433"))
     //{
     //    double hotspot_x = 287.05;
@@ -350,21 +350,21 @@ bool FoV(TString target, bool doImposter) {
     //}
     if (!UseGalacticCoord)
     {
-        //if (abs(x)>Skymap_size_x) return false;
-        //if (abs(y)>Skymap_size_y) return false;
-        if (abs(x)>10.) return false;
-        if (abs(y)>10.) return false;
+        if (abs(x)>Skymap_size_x) return false;
+        if (abs(y)>Skymap_size_y) return false;
+        //if (abs(x)>10.) return false;
+        //if (abs(y)>10.) return false;
     }
     else
     {
-        pair<double,double> evt_l_b = ConvertRaDecToGalactic(ra_sky,dec_sky);
+        pair<double,double> evt_l_b = ConvertRaDecToGalactic(evt_ra,evt_dec);
         pair<double,double> map_l_b = ConvertRaDecToGalactic(mean_tele_point_ra,mean_tele_point_dec);
         double gal_x = evt_l_b.first-map_l_b.first;
         double gal_y = evt_l_b.second-map_l_b.second;
-        //if (abs(gal_x)>Skymap_size_x) return false;
-        //if (abs(gal_y)>Skymap_size_y) return false;
-        if (abs(gal_x)>10.) return false;
-        if (abs(gal_y)>10.) return false;
+        if (abs(gal_x)>Skymap_size_x) return false;
+        if (abs(gal_y)>Skymap_size_y) return false;
+        //if (abs(gal_x)>10.) return false;
+        //if (abs(gal_y)>10.) return false;
     }
     //if (CoincideWithBrightStars(ra_sky,dec_sky)) return false;
     if (doImposter)
@@ -2793,7 +2793,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     double run_weight = Data_exposure_hour[run]/Dark_exposure_hour.at(run).at(nth_sample)[off_run];
                     double weight = run_weight;
 
-                    if (DarkFoV() && FoV(TString(target),false))
+                    if (DarkFoV() && FoV(TString(target),false,ra_sky,dec_sky))
                     {
                         if (SignalSelectionTheta2())
                         {
@@ -2845,7 +2845,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                             }
                         }
                     }
-                    if (FoV(TString(target),false) && !CoincideWithGammaSources(ra_sky_dark,dec_sky_dark,0.2))
+                    if (FoV(TString(target),false,ra_sky,dec_sky) && !CoincideWithGammaSources(ra_sky_dark,dec_sky_dark,0.2))
                     {
                         if (SignalSelectionTheta2())
                         {
@@ -3454,7 +3454,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             int bin_ra = Hist_OnData_Expo_Skymap.at(energy).GetXaxis()->FindBin(ra_sky);
             int bin_dec = Hist_OnData_Expo_Skymap.at(energy).GetYaxis()->FindBin(dec_sky);
 
-            if (FoV(TString(target),doImposter))
+            if (FoV(TString(target),doImposter,ra_sky,dec_sky))
             {
                 if (MatrixSelectionTheta2())
                 {
@@ -3469,7 +3469,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     }
                 }
             }
-            if (FoV(TString(target),doImposter))
+            if (FoV(TString(target),doImposter,ra_sky,dec_sky))
             {
                 if (SignalSelectionTheta2())
                 {
@@ -3484,22 +3484,40 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     }
                 }
             }
-            if (FoV(TString(target),doImposter))
+            if (FoV(TString(target),doImposter,complementary_ra_sky,complementary_dec_sky))
             {
                 if (CoincideWithBrightStars(complementary_ra_sky,complementary_dec_sky,ErecS*1000.))
                 {
                     if (ControlSelectionTheta2())
                     {
-                        Hist_OnData_CR_XYoff.at(energy).Fill(Xoff,Yoff,tight_acceptance_weight);
                         if (!UseGalacticCoord)
                         {
-                            Hist_OnData_CR_Skymap.at(energy).Fill(complementary_ra_sky,complementary_dec_sky,acceptance_weight);
-                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(complementary_ra_sky,complementary_dec_sky,acceptance_weight);
+                            Hist_OnData_CR_Skymap.at(energy).Fill(complementary_ra_sky,complementary_dec_sky,0.5);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(complementary_ra_sky,complementary_dec_sky,0.5);
                         }
                         else
                         {
-                            Hist_OnData_CR_Skymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,tight_acceptance_weight);
-                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,tight_acceptance_weight);
+                            Hist_OnData_CR_Skymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,0.5);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,0.5);
+                        }
+                    }
+                }
+            }
+            if (FoV(TString(target),doImposter,ra_sky,dec_sky))
+            {
+                if (CoincideWithBrightStars(ra_sky,dec_sky,ErecS*1000.))
+                {
+                    if (ControlSelectionTheta2())
+                    {
+                        if (!UseGalacticCoord)
+                        {
+                            Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,0.5);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(ra_sky,dec_sky,0.5);
+                        }
+                        else
+                        {
+                            Hist_OnData_CR_Skymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,0.5);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,0.5);
                         }
                     }
                 }
@@ -3510,13 +3528,13 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                         Hist_OnData_CR_XYoff.at(energy).Fill(Xoff,Yoff,acceptance_weight);
                         if (!UseGalacticCoord)
                         {
-                            Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,acceptance_weight);
-                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(ra_sky,dec_sky,acceptance_weight);
+                            Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,1.);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(ra_sky,dec_sky,1.);
                         }
                         else
                         {
-                            Hist_OnData_CR_Skymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,acceptance_weight);
-                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,acceptance_weight);
+                            Hist_OnData_CR_Skymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,1.);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(evt_l_b.first,evt_l_b.second,1.);
                         }
                     }
                 }
@@ -3658,7 +3676,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (energy>=N_energy_bins) continue;
             MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
             MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
-            if (FoV(TString(target),doImposter))
+            if (FoV(TString(target),doImposter,ra_sky,dec_sky))
             {
                 if (SignalSelectionTheta2())
                 {
@@ -3774,7 +3792,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             }
             if (!SignalSelectionTheta2())
             {
-                if (FoV(TString(target),doImposter))
+                if (FoV(TString(target),doImposter,ra_sky,dec_sky))
                 {
                     if (!UseGalacticCoord)
                     {
@@ -3791,7 +3809,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             }
             if (SignalSelectionTheta2())
             {
-                if (FoV(TString(target),doImposter))
+                if (FoV(TString(target),doImposter,ra_sky,dec_sky))
                 {
                     if (SourceFoV())
                     {

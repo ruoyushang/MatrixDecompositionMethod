@@ -1285,7 +1285,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             //double min_distance = pow(binx_distance*binx_distance+biny_distance*biny_distance,0.5);
             //double region_weight = 1./(min_distance+1.);
             double weight = 1.;
-            //weight = stat_weight;
+            weight = stat_weight;
             //if (isBlind)
             //{
             //    if (idx_i>=binx_blind_upper_global+nbins_fitting) continue;
@@ -1371,6 +1371,8 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     if (RegularizationType==6 && UseRegularization)
     {
 
+        alpha = 1e10;
+        beta = 0.;
         if (entry_size>=1)
         {
             idx_k1 = 1-1;
@@ -1386,6 +1388,17 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
             mtx_A(idx_u1,idx_v1) = alpha;
+
+            idx_k1 = 1-1;
+            idx_n1 = 2-1;
+            idx_v1 = idx_k1*size_n + idx_n1;
+            idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
+            mtx_A(idx_u1,idx_v1) = beta;
+            idx_k1 = 2-1;
+            idx_n1 = 1-1;
+            idx_v1 = idx_k1*size_n + idx_n1;
+            idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
+            mtx_A(idx_u1,idx_v1) = beta;
         }
         if (entry_size>=3)
         {
@@ -1394,6 +1407,27 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
             mtx_A(idx_u1,idx_v1) = alpha;
+
+            idx_k1 = 1-1;
+            idx_n1 = 3-1;
+            idx_v1 = idx_k1*size_n + idx_n1;
+            idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
+            mtx_A(idx_u1,idx_v1) = beta;
+            idx_k1 = 2-1;
+            idx_n1 = 3-1;
+            idx_v1 = idx_k1*size_n + idx_n1;
+            idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
+            mtx_A(idx_u1,idx_v1) = beta;
+            idx_k1 = 3-1;
+            idx_n1 = 2-1;
+            idx_v1 = idx_k1*size_n + idx_n1;
+            idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
+            mtx_A(idx_u1,idx_v1) = beta;
+            idx_k1 = 3-1;
+            idx_n1 = 1-1;
+            idx_v1 = idx_k1*size_n + idx_n1;
+            idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
+            mtx_A(idx_u1,idx_v1) = beta;
         }
 
         //idx_k1 = 1-1;
@@ -3108,14 +3142,14 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             //}
 
             optimized_alpha = pow(10.,Log10_alpha[e]);
-            optimized_beta = pow(10.,Log10_beta[e]);
+            optimized_beta = pow(10.,Log10_alpha[e]);
             std::cout << "optimized_alpha = " << optimized_alpha << std::endl;
             hist_dark_temp.Reset();
             hist_dark_temp.Add(&Hist_OneGroup_Dark_MSCLW.at(nth_sample).at(e));
             NormalizeDarkMatrix(&Hist_OnData_MSCLW.at(e),&hist_dark_temp,0.);
             mtx_dark = fillMatrix(&hist_dark_temp);
-            mtx_data_bkgd = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,optimized_alpha,optimized_beta,1,e).first;
-            //mtx_data_bkgd = NuclearNormMinimization(mtx_data_bkgd,mtx_data,mtx_data_bkgd,1,NumberOfEigenvectors_Stable,true,optimized_alpha,optimized_beta,2,e).first;
+            mtx_data_bkgd = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,optimized_alpha,0.,1,e).first;
+            //mtx_data_bkgd = NuclearNormMinimization(mtx_data_bkgd,mtx_data,mtx_data_bkgd,1,NumberOfEigenvectors_Stable,true,0.,optimized_alpha,1,e).first;
             fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
             Hist_OnBkgd_MSCLW.at(e).Add(&Hist_Temp_Bkgd,dark_weight);
 
@@ -3153,7 +3187,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         double Bkgd_SR_Integral = Hist_OnBkgd_MSCLW.at(e).Integral(binx_blind_lower_global+1,binx_blind_upper_global,biny_blind_lower_global+1,biny_blind_upper_global);
         double Bkgd_CR_Integral = Hist_OnBkgd_MSCLW.at(e).Integral()-Bkgd_SR_Integral;
         double SR_skymap_integral = Hist_OnData_SR_Skymap.at(e).Integral();
-        double CR_skymap_integral = Hist_OnData_CR_LargeSkymap.at(e).Integral();
+        double CR_skymap_integral = Hist_OnData_CR_Skymap.at(e).Integral();
         std::cout << "Bkgd_SR_Integral = " << Bkgd_SR_Integral << ", Data_SR_Integral = " << Data_SR_Integral << std::endl;
         std::cout << "SR_skymap_integral = " << SR_skymap_integral << ", CR_skymap_integral = " << CR_skymap_integral << std::endl;
         //double Dark_SR_Integral = 0.;
@@ -3177,6 +3211,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         }
         if (CR_skymap_integral>0.)
         {
+            //scale_yoff = Data_SR_Integral/CR_skymap_integral;
             scale_yoff = Bkgd_SR_Integral/CR_skymap_integral;
             scale_dark_yoff = Dark_SR_Integral/CR_skymap_integral;
         }

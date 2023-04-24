@@ -8,6 +8,18 @@ void ResetPublicVariables(TString target_name)
     //    doRaster = true;
     //}
 
+    for (int ebin=0;ebin<N_energy_bins;ebin++)
+    {
+        Log10_alpha[ebin] = Log10_alpha_LE;
+        Log10_beta[ebin] = 0.0;
+        optimiz_alpha_lower[ebin] = -1.5;
+        optimiz_alpha_upper[ebin] = 1.5;
+        optimiz_beta_lower[ebin] = -1.5;
+        optimiz_beta_upper[ebin] = 1.5;
+        MSCW_rescale[ebin] = 0.;
+        MSCL_rescale[ebin] = 0.;
+    }
+
     string MY_OUTPUT = string(std::getenv("SMI_OUTPUT"));
     std::cout << "MY_OUTPUT = " << MY_OUTPUT << std::endl;
 

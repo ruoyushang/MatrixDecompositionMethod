@@ -1,8 +1,19 @@
 
-const int N_energy_bins = 7;
+const int N_energy_bins = 8;
+//double energy_bins[N_energy_bins+1] = {100.,250.,275.,350.,575.,1250.,3275.,9350.};
+double energy_bins[N_energy_bins+1] = {100.,251.,398.,631.,1000.,1585.,2512.,3981.,10000.};
+//double energy_bins[N_energy_bins+1] = {100.,200.,300.,500.,900.,2100.,4500.,9300.};
+//double energy_bins[N_energy_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
+const int N_energy_fine_bins = 8;
+//double energy_fine_bins[N_energy_fine_bins+1] = {100.,250.,275.,350.,575.,1250.,3275.,9350.};
+double energy_fine_bins[N_energy_fine_bins+1] = {100.,251.,398.,631.,1000.,1585.,2512.,3981.,10000.};
+//double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,300.,500.,900.,2100.,4500.,9300.};
+//double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
 
 int N_bins_for_deconv = 12;
-int matrix_rank[N_energy_bins] = {2,3,3,2,2,2,1};
+//int matrix_rank[N_energy_bins] = {1,1,1,1,1,1,1};
+int matrix_rank[N_energy_bins] = {2,2,2,2,2,1,1,1};
+//int matrix_rank[N_energy_bins] = {2,3,3,3,2,2,2,1,1};
 
 int MatchingSelection = 0; // default
 //int MatchingSelection = 1; // free elevation
@@ -10,32 +21,29 @@ int MatchingSelection = 0; // default
 //int MatchingSelection = 3; // free NSB
 //int MatchingSelection = 4; // free MJD
 //
-double MatchRun_dElev = 0.2;
-double MatchRun_dAzim = 45.;
-double MatchRun_dNSB = 100.0;
+double MatchRun_dElev = 0.1;
+double MatchRun_dAzim = 20.;
+double MatchRun_dNSB = 1.0;
 
 double Log10_alpha_LE = 10.;
 double Log10_alpha_ME = 10.;
 double Log10_alpha_HE = 10.;
-double Log10_alpha[N_energy_bins] = {Log10_alpha_LE,Log10_alpha_LE,Log10_alpha_LE,Log10_alpha_ME,Log10_alpha_ME,Log10_alpha_ME,Log10_alpha_ME};
+double Log10_alpha[N_energy_bins] = {};
 
 double exposure_limit = 5.; // default
 //double exposure_limit = 10.; // default
 //double exposure_limit = 1000.;
 
-double Log10_beta[N_energy_bins] =  {0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-double optimiz_alpha_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
-double optimiz_alpha_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5,1.5,1.5};
-double optimiz_beta_lower[N_energy_bins] = {-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5};
-double optimiz_beta_upper[N_energy_bins] = {1.5,1.5,1.5,1.5,1.5,1.5,1.5};
-double energy_bins[N_energy_bins+1] = {100.,200.,300.,500.,900.,2100.,4500.,9300.};
+double Log10_beta[N_energy_bins] =  {};
+double optimiz_alpha_lower[N_energy_bins] = {};
+double optimiz_alpha_upper[N_energy_bins] = {};
+double optimiz_beta_lower[N_energy_bins] = {};
+double optimiz_beta_upper[N_energy_bins] = {};
 double gamma_hadron_dim_ratio_w = 1.;
 double gamma_hadron_dim_ratio_l = 1.;
 double gamma_hadron_low_end = 0.;
-double MSCW_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-double MSCL_rescale[N_energy_bins] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-const int N_energy_fine_bins = 7;
-double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,300.,500.,900.,2100.,4500.,9300.};
+double MSCW_rescale[N_energy_bins] = {};
+double MSCL_rescale[N_energy_bins] = {};
 
 
 bool UseDL3Tree = true;
