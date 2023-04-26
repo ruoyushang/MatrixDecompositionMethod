@@ -1280,17 +1280,8 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             double sigma_data = max(1.,pow(mtx_init_comp(idx_i,idx_j).real(),0.5));
             double stat_weight = 1.;
             if (WeightingType==1 && entry_size>1) stat_weight = 1./pow(sigma_data*sigma_data,0.5);
-            //double binx_distance = double(idx_i);
-            //double biny_distance = double(idx_j);
-            //double min_distance = pow(binx_distance*binx_distance+biny_distance*biny_distance,0.5);
-            //double region_weight = 1./(min_distance+1.);
             double weight = 1.;
             weight = stat_weight;
-            //if (isBlind)
-            //{
-            //    if (idx_i>=binx_blind_upper_global+nbins_fitting) continue;
-            //    if (idx_j>=biny_blind_upper_global+nbins_fitting) continue;
-            //}
             vtr_Delta(idx_u) = weight*(mtx_data_input-mtx_init_comp)(idx_i,idx_j);
             if (isBlind)
             {
@@ -1371,7 +1362,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
     if (RegularizationType==6 && UseRegularization)
     {
 
-        alpha = 1e10;
+        alpha = 0.;
         beta = 0.;
         if (entry_size>=1)
         {
@@ -1379,7 +1370,7 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_n1 = 1-1;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u1,idx_v1) = alpha;
+            mtx_A(idx_u1,idx_v1) = 1e10;
         }
         if (entry_size>=2)
         {
@@ -1387,18 +1378,18 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_n1 = 2-1;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u1,idx_v1) = alpha;
+            mtx_A(idx_u1,idx_v1) = 1e10;
 
             idx_k1 = 1-1;
             idx_n1 = 2-1;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u1,idx_v1) = beta;
+            mtx_A(idx_u1,idx_v1) = 0.;
             idx_k1 = 2-1;
             idx_n1 = 1-1;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u1,idx_v1) = beta;
+            mtx_A(idx_u1,idx_v1) = 0.;
         }
         if (entry_size>=3)
         {
@@ -1406,28 +1397,28 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
             idx_n1 = 3-1;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u1,idx_v1) = alpha;
+            mtx_A(idx_u1,idx_v1) = 1e10;
 
             idx_k1 = 1-1;
             idx_n1 = 3-1;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u1,idx_v1) = beta;
+            mtx_A(idx_u1,idx_v1) = 0.;
             idx_k1 = 2-1;
             idx_n1 = 3-1;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u1,idx_v1) = beta;
+            mtx_A(idx_u1,idx_v1) = 0.;
             idx_k1 = 3-1;
             idx_n1 = 2-1;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u1,idx_v1) = beta;
+            mtx_A(idx_u1,idx_v1) = 0.;
             idx_k1 = 3-1;
             idx_n1 = 1-1;
             idx_v1 = idx_k1*size_n + idx_n1;
             idx_u1 = idx_v1 + mtx_init_input.rows()*mtx_init_input.cols();
-            mtx_A(idx_u1,idx_v1) = beta;
+            mtx_A(idx_u1,idx_v1) = 0.;
         }
 
         //idx_k1 = 1-1;
@@ -2692,7 +2683,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         Hist_OnData_ISR_Skymap.push_back(TH2D("Hist_OnData_ISR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
         Hist_OnData_SR_Skymap.push_back(TH2D("Hist_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
         Hist_OnData_CR_Skymap.push_back(TH2D("Hist_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
-        Hist_OnData_CR_LargeSkymap.push_back(TH2D("Hist_OnData_CR_LargeSkymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-10.,map_center_x+10.,Skymap_nbins_y,map_center_y-10.,map_center_y+10.));
+        Hist_OnData_CR_LargeSkymap.push_back(TH2D("Hist_OnData_CR_LargeSkymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_large_size_x,map_center_x+Skymap_large_size_x,Skymap_nbins_y,map_center_y-Skymap_large_size_y,map_center_y+Skymap_large_size_y));
         Hist_OnData_RBM_Skymap.push_back(TH2D("Hist_OnData_RBM_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
         //Hist_NormSyst_Skymap.push_back(TH2D("Hist_NormSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
 

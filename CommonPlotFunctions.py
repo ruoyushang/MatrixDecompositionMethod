@@ -31,14 +31,12 @@ import healpy as hp
 
 # Great examples of matplotlib plots: https://atmamani.github.io/cheatsheets/matplotlib/matplotlib_2/
 
-#energy_bin = [100.,200.,398.,794.,1585.,3162.,6310.,12589.]
-energy_bin = [100.,251.,398.,631.,1000.,1585.,2512.,3981.,10000.]
-#energy_bin = [100.,250.,300.,400.,600.,1000.,1800.,3400.,6600.,13000.]
-#energy_bin = [100.,250.,275.,350.,575.,1250.,3275.,9350.]
+#energy_bin = [100.,200.,316.,501.,1000.,1995.,5011.,12589.]
+energy_bin = [100.,200.,398.,794.,1585.,3162.,6310.,12589.]
 energy_fine_bin = energy_bin
 
-folder_path = 'output_test'
-#folder_path = 'output_default'
+#folder_path = 'output_test'
+folder_path = 'output_default'
 
 #folder_path = 'output_loose'
 #folder_path = 'output_medium'
@@ -153,10 +151,10 @@ if folder_path=='output_galactic':
 
 Skymap_nzones_x = 1
 Skymap_nzones_y = 1
-Skymap_size_x = 1.5
-Skymap_size_y = 1.5
-Skymap_nbins_x = 60
-Skymap_nbins_y = 60
+Skymap_size_x = 2.5
+Skymap_size_y = 2.5
+Skymap_nbins_x = 100
+Skymap_nbins_y = 100
 if doGalacticCoord:
     Skymap_nzones_x = 3
     Skymap_nzones_y = 3
@@ -1418,8 +1416,8 @@ def MatplotlibHist2D(hist_map,fig,label_x,label_y,label_z,plotname,zmax=0,zmin=0
 
 def BackgroundSubtractMap(fig,hist_data,hist_bkgd,label_x,label_y,label_z,plotname):
 
-    #colormap = 'coolwarm'
-    colormap = 'viridis'
+    colormap = 'coolwarm'
+    #colormap = 'viridis'
 
     Old_map_nbins_x = hist_data.GetNbinsX()
     Old_map_nbins_y = hist_data.GetNbinsY()
@@ -1433,8 +1431,8 @@ def BackgroundSubtractMap(fig,hist_data,hist_bkgd,label_x,label_y,label_z,plotna
     Old_MapEdge_size_y = Old_MapEdge_upper-Old_MapEdge_center_y
 
     map_bin_size = 2.*Old_MapEdge_size_x/float(Old_map_nbins_x)
-    map_nbins_x = Skymap_nbins_x
-    map_nbins_y = Skymap_nbins_y
+    map_nbins_x = Old_map_nbins_x
+    map_nbins_y = Old_map_nbins_y
     MapEdge_left = Old_MapEdge_center_x-int(map_nbins_x/2)*map_bin_size
     MapEdge_right = Old_MapEdge_center_x+int(map_nbins_x/2)*map_bin_size
     MapEdge_lower = Old_MapEdge_center_y-int(map_nbins_y/2)*map_bin_size

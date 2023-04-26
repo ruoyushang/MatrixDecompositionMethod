@@ -714,6 +714,10 @@ def find_runs_around_source(obs_name,obs_ra,obs_dec,epoch,obs_type,find_off):
             list_on_sources += [source_name]
         if distance>10.:
             if 'HWC' in source_name: continue
+            if abs(source_ra-83.633)<2. and abs(source_dec-22.014)<2.: continue # Crab
+            if abs(source_ra-166.079)<2. and abs(source_dec-38.195)<2.: continue # Mrk 421
+            if abs(source_ra-253.467)<2. and abs(source_dec-39.76)<2.: continue # Mrk 501
+            if abs(source_ra-98.117)<3. and abs(source_dec-17.367)<3.: continue # Geminga
             if abs(source_gal_b)>10.:
                 list_off_sources += [source_name]
     print ('++++++++++++++++++++++++++++++++++++++++++++++++++++')
@@ -915,7 +919,7 @@ def find_runs_around_source(obs_name,obs_ra,obs_dec,epoch,obs_type,find_off):
 
     out_file.write('++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
     out_file.write('ON run list\n')
-    out_file.write('OFF/ON ratio = %0.2f'%( float(len(list_off_run_ids))/float(len(list_on_run_ids)) ))
+    out_file.write('OFF/ON ratio = %0.2f\n'%( float(len(list_off_run_ids))/float(len(list_on_run_ids)) ))
 
     out_file.close()
 
@@ -935,12 +939,9 @@ find_off = False
 #    obs_name += '_%s'%(run_epoch)
 #    find_runs_around_source(obs_name,obs_ra,obs_dec,run_epoch,run_obs_type,find_off)
 
-obs_name = 'PSR_J1907_p0602_%s'%(run_epoch)
-obs_ra = 286.975
-obs_dec = 6.03777777778
-#obs_name = 'IC443_%s'%(run_epoch)
-#obs_ra = 94.213
-#obs_dec = 22.503
+obs_name = 'Sky_RA38Dec20_%s'%(run_epoch)
+obs_ra = 38.222
+obs_dec = 20.273
 find_off = True
 find_runs_around_source(obs_name,obs_ra,obs_dec,run_epoch,run_obs_type,find_off)
 

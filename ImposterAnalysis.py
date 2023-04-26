@@ -36,6 +36,9 @@ figsize_y = 6.4
 fig.set_figheight(figsize_y)
 fig.set_figwidth(figsize_x)
 
+new_nbins_x = 100
+new_nbins_y = 100
+
 UseEffectiveArea = CommonPlotFunctions.UseEffectiveArea
 energy_index_scale = CommonPlotFunctions.energy_index_scale
 energy_bin = CommonPlotFunctions.energy_bin
@@ -43,7 +46,7 @@ energy_bin_cut_low = int(sys.argv[2])
 energy_bin_cut_up = int(sys.argv[3])
 doImposter = int(sys.argv[4])
 
-plot_energy_break_bin = 3
+plot_energy_break_bin = 5
 
 #n_imposters = 3
 n_imposters = 5
@@ -133,6 +136,29 @@ def fit_2d_model(hist_map_data, hist_map_bkgd, src_x, src_y):
     dof = len(image_data.ravel())-4
     print ('chisq/dof = %0.3f'%(chisq/dof))
 
+def FillSkyMapHistogram(hist_input,hist_output,scale=1.):
+
+    temp_nbins_x = hist_output.GetNbinsX()
+    temp_nbins_y = hist_output.GetNbinsY()
+    temp_map_left = hist_output.GetXaxis().GetBinLowEdge(1)
+    temp_map_right = hist_output.GetXaxis().GetBinLowEdge(hist_output.GetNbinsX()+1)
+    temp_map_lower = hist_output.GetYaxis().GetBinLowEdge(1)
+    temp_map_upper = hist_output.GetYaxis().GetBinLowEdge(hist_output.GetNbinsY()+1)
+    hist_temp = ROOT.TH2D("hist_temp","",temp_nbins_x,temp_map_left,temp_map_right,temp_nbins_y,temp_map_lower,temp_map_upper)
+
+    for binx in range(0,hist_input.GetNbinsX()):
+        for biny in range(0,hist_input.GetNbinsY()):
+            bin_center_x = hist_input.GetXaxis().GetBinCenter(binx+1)
+            bin_center_y = hist_input.GetYaxis().GetBinCenter(biny+1)
+            bin_content = hist_input.GetBinContent(binx+1,biny+1)
+            bin_error = hist_input.GetBinError(binx+1,biny+1)
+            bx2 = hist_temp.GetXaxis().FindBin(bin_center_x)
+            by2 = hist_temp.GetYaxis().FindBin(bin_center_y)
+            hist_temp.SetBinContent(bx2,by2,bin_content)
+            hist_temp.SetBinError(bx2,by2,bin_error)
+
+    hist_output.Add(hist_temp,scale)
+
 def MakeDiagnisticPlots():
 
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
@@ -164,14 +190,14 @@ def GetFluxCalibration(energy,elev):
     # The energy threshold needs to be as low as 100 GeV for this method to work.
 
     # energy threshold = 100 GeV, old binning
-    #str_flux_calibration_el70 = ['8.73e-10', '5.39e-11', '1.98e-11', '9.01e-12', '4.72e-12', '2.48e-12', '1.20e-12']
-    #str_flux_calibration_el60 = ['1.09e-09', '5.44e-11', '1.86e-11', '8.42e-12', '4.34e-12', '2.27e-12', '1.11e-12']
-    #str_flux_calibration_el50 = ['5.42e-09', '6.64e-11', '1.37e-11', '5.92e-12', '2.96e-12', '1.48e-12', '7.71e-13']
+    str_flux_calibration_el70 = ['2.23e-10', '1.33e-11', '4.91e-12', '2.24e-12', '1.16e-12', '6.15e-13', '3.03e-13']
+    str_flux_calibration_el60 = ['2.73e-10', '1.34e-11', '4.59e-12', '2.09e-12', '1.07e-12', '5.55e-13', '2.69e-13']
+    str_flux_calibration_el50 = ['1.39e-09', '1.59e-11', '3.48e-12', '1.49e-12', '7.50e-13', '3.72e-13', '1.91e-13']
 
     # energy threshold = 100 GeV, new binning
-    str_flux_calibration_el70 = ['9.22e-11', '3.08e-11', '1.57e-11', '7.80e-12', '3.92e-12', '2.02e-12', '1.11e-12', '6.02e-13', '2.75e-13']
-    str_flux_calibration_el60 = ['1.05e-10', '3.07e-11', '1.49e-11', '7.27e-12', '3.67e-12', '1.88e-12', '1.04e-12', '5.59e-13', '2.60e-13']
-    str_flux_calibration_el50 = ['2.83e-10', '3.90e-11', '1.31e-11', '5.35e-12', '2.63e-12', '1.31e-12', '7.15e-13', '3.70e-13', '1.91e-13']
+    #str_flux_calibration_el70 = ['2.23e-10', '1.92e-11', '9.42e-12', '3.72e-12', '1.78e-12', '7.36e-13', '2.98e-13']
+    #str_flux_calibration_el60 = ['2.74e-10', '1.99e-11', '8.82e-12', '3.49e-12', '1.65e-12', '6.79e-13', '2.70e-13']
+    #str_flux_calibration_el50 = ['1.40e-09', '2.82e-11', '7.24e-12', '2.61e-12', '1.18e-12', '4.64e-13', '1.95e-13']
 
     flux_calibration_el70 = []
     flux_calibration_el60 = []
@@ -1732,6 +1758,29 @@ def MakeGalacticProfile(proj_type,axis_title,real_map,imposter_maps,erange_tag):
             syst_err = pow(syst_err/float(n_imposters),0.5)
         real_profile_syst_err += [syst_err]
 
+    end_of_array = False
+    while not end_of_array:
+        for ubin in range(0,len(theta2)):
+            delete_entry = False
+            if real_profile[ubin]==0.:
+                delete_entry = True
+            if real_profile_stat_err[ubin]==0.:
+                delete_entry = True
+            if real_profile_syst_err[ubin]==0.:
+                delete_entry = True
+            if delete_entry:
+                del theta2[ubin]
+                del theta2_err[ubin]
+                del real_profile[ubin]
+                del real_profile_stat_err[ubin]
+                del real_profile_syst_err[ubin]
+                for imposter in range(0,n_imposters):
+                    del imposter_profile_list[imposter][ubin]
+                    del imposter_profile_err_list[imposter][ubin]
+                break
+            if ubin==len(theta2)-1:
+                end_of_array = True
+
     theta2 = np.array(theta2)
     theta2_err = np.array(theta2_err)
     real_profile = np.array(real_profile)
@@ -1795,6 +1844,29 @@ def MakeExtensionProfile(roi_x,roi_y,roi_r,fit_profile,roi_name,real_map,imposte
         else:
             syst_err = pow(syst_err/float(n_imposters),0.5)
         real_profile_syst_err += [syst_err]
+
+    end_of_array = False
+    while not end_of_array:
+        for ubin in range(0,len(theta2)):
+            delete_entry = False
+            if real_profile[ubin]==0.:
+                delete_entry = True
+            if real_profile_stat_err[ubin]==0.:
+                delete_entry = True
+            if real_profile_syst_err[ubin]==0.:
+                delete_entry = True
+            if delete_entry:
+                del theta2[ubin]
+                del theta2_err[ubin]
+                del real_profile[ubin]
+                del real_profile_stat_err[ubin]
+                del real_profile_syst_err[ubin]
+                for imposter in range(0,n_imposters):
+                    del imposter_profile_list[imposter][ubin]
+                    del imposter_profile_err_list[imposter][ubin]
+                break
+            if ubin==len(theta2)-1:
+                end_of_array = True
 
     theta2 = np.array(theta2)
     theta2_err = np.array(theta2_err)
@@ -1957,6 +2029,15 @@ InputFile.Close()
 
 MapCenter_x = (MapEdge_left+MapEdge_right)/2.
 MapCenter_y = (MapEdge_lower+MapEdge_upper)/2.
+binsize_x = (MapEdge_right-MapEdge_left)/nbins_x
+binsize_y = (MapEdge_upper-MapEdge_lower)/nbins_y
+
+nbins_x = new_nbins_x
+nbins_y = new_nbins_y
+MapEdge_right = MapCenter_x+0.5*nbins_x*binsize_x
+MapEdge_left = MapCenter_x-0.5*nbins_x*binsize_x
+MapEdge_upper = MapCenter_y+0.5*nbins_y*binsize_y
+MapEdge_lower = MapCenter_y-0.5*nbins_y*binsize_y
 
 print ('MapEdge_left = %0.2f'%(MapEdge_left))
 print ('MapEdge_right = %0.2f'%(MapEdge_right))
@@ -2010,32 +2091,32 @@ for ebin in range(0,len(energy_bin)-1):
     hist_null_skymap += [ROOT.TH2D("hist_null_skymap_E%s"%(ebin),"",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)]
 InputFile = ROOT.TFile("output_fitting/%s_skymap_%s.root"%(sys.argv[1],folder_name))
 HistName = "Hist_Data_Elev_Skymap"
-hist_real_elev_skymap.Add(InputFile.Get(HistName))
+FillSkyMapHistogram(InputFile.Get(HistName),hist_real_elev_skymap)
 HistName = "Hist_Data_Azim_Skymap"
-hist_real_azim_skymap.Add(InputFile.Get(HistName))
+FillSkyMapHistogram(InputFile.Get(HistName),hist_real_azim_skymap)
 HistName = "Hist_Data_NSB_Skymap"
-hist_real_nsb_skymap.Add(InputFile.Get(HistName))
+FillSkyMapHistogram(InputFile.Get(HistName),hist_real_nsb_skymap)
 HistName = "Hist_Data_MJD_Skymap"
-hist_real_mjd_skymap.Add(InputFile.Get(HistName))
+FillSkyMapHistogram(InputFile.Get(HistName),hist_real_mjd_skymap)
 for ebin in range(0,len(energy_bin)-1):
     HistName = "hist_data_skymap_%s"%(ebin)
-    hist_real_data_skymap[ebin].Add(InputFile.Get(HistName))
+    FillSkyMapHistogram(InputFile.Get(HistName),hist_real_data_skymap[ebin])
     HistName = "hist_bkgd_skymap_%s"%(ebin)
     if use_rfov:
         HistName = "hist_rfov_skymap_%s"%(ebin)
-    hist_real_bkgd_skymap[ebin].Add(InputFile.Get(HistName))
-    hist_real_raw_bkgd_skymap[ebin].Add(InputFile.Get(HistName))
+    FillSkyMapHistogram(InputFile.Get(HistName),hist_real_bkgd_skymap[ebin])
+    FillSkyMapHistogram(InputFile.Get(HistName),hist_real_raw_bkgd_skymap[ebin])
     if UseEffectiveArea:
         HistName = "hist_expo_hour_skymap_sum"
     else:
         HistName = "hist_bkgd_skymap_smooth_%s"%(ebin)
-    hist_real_norm_skymap[0].Add(InputFile.Get(HistName))
+    FillSkyMapHistogram(InputFile.Get(HistName),hist_real_norm_skymap[0])
     HistName = "hist_effarea_skymap_%s"%(ebin)
-    hist_real_Aeff_skymap[ebin].Add(InputFile.Get(HistName))
-    #HistName = "hist_expo_hour_skymap_%s"%(ebin)
+    FillSkyMapHistogram(InputFile.Get(HistName),hist_real_Aeff_skymap[ebin])
     HistName = "hist_expo_hour_skymap_sum"
-    hist_real_expo_skymap[ebin].Add(InputFile.Get(HistName))
+    FillSkyMapHistogram(InputFile.Get(HistName),hist_real_expo_skymap[ebin])
 InputFile.Close()
+
 
 hist_imposter_elev_skymap = []
 hist_imposter_azim_skymap = []
@@ -2093,37 +2174,37 @@ if doImposter==1:
     for imposter in range(0,n_imposters):
         InputFile = ROOT.TFile("output_fitting/%s_Imposter%s_skymap_%s.root"%(source_name,imposter+1,folder_name))
         HistName = "Hist_Data_Elev_Skymap"
-        hist_imposter_elev_skymap[imposter].Add(InputFile.Get(HistName))
+        FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_elev_skymap[imposter])
         HistName = "Hist_Data_Azim_Skymap"
-        hist_imposter_azim_skymap[imposter].Add(InputFile.Get(HistName))
+        FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_azim_skymap[imposter])
         HistName = "Hist_Data_NSB_Skymap"
-        hist_imposter_nsb_skymap[imposter].Add(InputFile.Get(HistName))
+        FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_nsb_skymap[imposter])
         HistName = "Hist_Data_MJD_Skymap"
-        hist_imposter_mjd_skymap[imposter].Add(InputFile.Get(HistName))
+        FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_mjd_skymap[imposter])
         for ebin in range(0,len(energy_bin)-1):
             HistName = "hist_data_skymap_%s"%(ebin)
-            hist_imposter_data_skymap[imposter][ebin].Add(InputFile.Get(HistName))
-            hist_imposter_bias_skymap[imposter][ebin].Add(InputFile.Get(HistName))
+            FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_data_skymap[imposter][ebin])
+            FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bias_skymap[imposter][ebin])
             if UseEffectiveArea:
                 HistName = "hist_expo_hour_skymap_sum"
             else:
                 HistName = "hist_bkgd_skymap_smooth_%s"%(ebin)
-            hist_imposter_norm_skymap[imposter][0].Add(InputFile.Get(HistName))
+            FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_norm_skymap[imposter][0])
             HistName = "hist_effarea_skymap_%s"%(ebin)
-            hist_imposter_Aeff_skymap[imposter][ebin].Add(InputFile.Get(HistName))
+            FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_Aeff_skymap[imposter][ebin])
             #HistName = "hist_expo_hour_skymap_%s"%(ebin)
             HistName = "hist_expo_hour_skymap_sum"
-            hist_imposter_expo_skymap[imposter][ebin].Add(InputFile.Get(HistName))
+            FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_expo_skymap[imposter][ebin])
             HistName = "hist_bkgd_skymap_%s"%(ebin)
             if use_rfov:
                 HistName = "hist_rfov_skymap_%s"%(ebin)
-            hist_imposter_bkgd_skymap[imposter][ebin].Add(InputFile.Get(HistName))
-            hist_imposter_raw_bkgd_skymap[imposter][ebin].Add(InputFile.Get(HistName))
+            FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bkgd_skymap[imposter][ebin])
+            FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_raw_bkgd_skymap[imposter][ebin])
             data_norm = hist_imposter_data_skymap[imposter][ebin].Integral()
             bkgd_norm = hist_imposter_bkgd_skymap[imposter][ebin].Integral()
-            #hist_imposter_bias_skymap[imposter][ebin].Add(InputFile.Get(HistName),-1.*data_norm/bkgd_norm)
-            hist_imposter_bias_skymap[imposter][ebin].Add(InputFile.Get(HistName),-1.)
-            #hist_imposter_bias_skymap[imposter][ebin].Divide(InputFile.Get(HistName))
+            #FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bias_skymap[imposter][ebin],scale=-1.*data_norm/bkgd_norm)
+            FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bias_skymap[imposter][ebin],scale=-1.)
+            #hist_imposter_bias_skymap[imposter][ebin].Divide(hist_imposter_bkgd_skymap[imposter][ebin])
         InputFile.Close()
 
     exposure_scaling_factors = []
@@ -2334,10 +2415,10 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     text_angle = 30.
 
     #3HWC J1908+063, 287.05, 6.39 
-    #region_x = 287.05
-    #region_y = 6.39
-    #region_r = [1.5 for element in range(len(energy_bin)-1)]
-    #region_name = '3HWC'
+    region_x = 287.05
+    region_y = 6.39
+    region_r = [1.2 for element in range(len(energy_bin)-1)]
+    region_name = '3HWC'
 
     #Fermi J1906+0626
     #region_x = 286.88
@@ -2346,10 +2427,16 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     #region_name = 'Fermi J1906+0626'
 
     #PSR J1907+0602 # cover more exposure hours, allow larger radius
-    region_x = 286.975
-    region_y = 6.03777777778
-    region_r = [1.5 for element in range(len(energy_bin)-1)]
-    region_name = 'PSR'
+    #region_x = 286.975
+    #region_y = 6.03777777778
+    #region_r = [1.5 for element in range(len(energy_bin)-1)]
+    #region_name = 'PSR'
+
+    #The cavity
+    #region_x = 287.1
+    #region_y = 6.3
+    #region_r = [1.2 for element in range(len(energy_bin)-1)]
+    #region_name = 'CO'
 
     # SNR G40.5-0.5
     #region_x = 286.79

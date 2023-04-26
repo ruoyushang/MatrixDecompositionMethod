@@ -27,10 +27,15 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 345.28;
             Source_Dec = 58.88;
     }
-    if (source_name.Contains("Galactic_OFF_RA09Dec60"))
+    if (source_name.Contains("Galactic_RA09Dec60"))
     {
             Source_RA = 8.97;
             Source_Dec = 59.83;
+    }
+    if (source_name.Contains("Sky_RA55Dec53"))
+    {
+            Source_RA = 55.34;
+            Source_Dec = 52.97;
     }
     if (source_name.Contains("SNR_G189_p03"))
     {
@@ -284,7 +289,8 @@ pair<double,double> GetSourceRaDec(TString source_name)
             Source_RA = 217.136;
             Source_Dec = 42.673;
     }
-    if (source_name.Contains("1ES0229"))
+    if (source_name.Contains("Sky_RA38Dec20"))
+    //if (source_name.Contains("1ES0229"))
     {
             Source_RA = 38.222;
             Source_Dec = 20.273;
@@ -750,8 +756,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
     }
     if (source.find("SS433_V6") != std::string::npos)
     {
-        //list = GetRunListFromFile("Tobias_SS433_V6");
-        list = GetRunListFromFile("PSR_J1907_p0602_V6");
+        list = GetRunListFromFile("Tobias_SS433_V6");
+        //list = GetRunListFromFile("PSR_J1907_p0602_V6");
     }
     if (source.find("SS433Half1_V6") != std::string::npos)
     {
@@ -876,7 +882,7 @@ vector<std::pair<string,int>> GetRunList(string source) {
         list_temp = GetRunListFromFile(source);
         list.insert(list.end(), list_temp.begin(), list_temp.end());
     }
-    if (source.find("Galactic_")!=std::string::npos && source.find("_V6")!=std::string::npos)
+    if (source.find("Sky_")!=std::string::npos && source.find("_V6")!=std::string::npos)
     {
         list_temp = GetRunListFromFile(source);
         list.insert(list.end(), list_temp.begin(), list_temp.end());
@@ -962,6 +968,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
                 list_temp = GetRunListFromFile("GalacticPlane_All_l140_Imposter_V6");
                 list.insert(list.end(), list_temp.begin(), list_temp.end());
                 list_temp = GetRunListFromFile("GalacticPlane_All_l120_Imposter_V6");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("PSR_J1907_p0602_V6_OFF");
+                list.insert(list.end(), list_temp.begin(), list_temp.end());
+                list_temp = GetRunListFromFile("Sky_RA55Dec53_V6_OFF");
                 list.insert(list.end(), list_temp.begin(), list_temp.end());
             }
             list_temp = GetRunListFromFile("LowElevationDarkV6");
@@ -1052,8 +1062,8 @@ vector<std::pair<string,int>> GetRunList(string source) {
         list = GetRunListFromFile("MGRO_J1908_V5");
     }
     if (source.find("SS433_V5") != std::string::npos) {
-        //list = GetRunListFromFile("Tobias_SS433_V5");
-        list = GetRunListFromFile("PSR_J1907_p0602_V5");
+        list = GetRunListFromFile("Tobias_SS433_V5");
+        //list = GetRunListFromFile("PSR_J1907_p0602_V5");
     }
     if (source.find("SS433Half1_V5") != std::string::npos) {
         list = GetRunListFromFile("Tobias_SS433_V5");
@@ -1202,7 +1212,7 @@ vector<std::pair<string,int>> GetRunList(string source) {
         list_temp = GetRunListFromFile(source);
         list.insert(list.end(), list_temp.begin(), list_temp.end());
     }
-    if (source.find("Galactic_")!=std::string::npos && source.find("_V5")!=std::string::npos)
+    if (source.find("Sky_")!=std::string::npos && source.find("_V5")!=std::string::npos)
     {
         list_temp = GetRunListFromFile(source);
         list.insert(list.end(), list_temp.begin(), list_temp.end());
@@ -1266,6 +1276,10 @@ vector<std::pair<string,int>> GetRunList(string source) {
             list_temp = GetRunListFromFile("GalacticPlane_All_l140_Imposter_V5");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
             list_temp = GetRunListFromFile("GalacticPlane_All_l120_Imposter_V5");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("PSR_J1907_p0602_V5_OFF");
+            list.insert(list.end(), list_temp.begin(), list_temp.end());
+            list_temp = GetRunListFromFile("Sky_RA55Dec53_V6_OFF");
             list.insert(list.end(), list_temp.begin(), list_temp.end());
         }
     }

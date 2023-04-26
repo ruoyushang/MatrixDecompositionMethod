@@ -1102,9 +1102,9 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
     }
     else
     {
-        threshold_dElev = 2.*MatchRun_dElev; // default 
-        threshold_dAzim = 2.*MatchRun_dAzim; // default 
-        threshold_dNSB = 2.*MatchRun_dNSB; // default 
+        threshold_dElev = 1.*MatchRun_dElev; // default 
+        threshold_dAzim = 1.*MatchRun_dAzim; // default 
+        threshold_dNSB = 1.*MatchRun_dNSB; // default 
         threshold_dMJD = 100.*365.;
     }
 

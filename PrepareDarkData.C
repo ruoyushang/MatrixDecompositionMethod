@@ -352,8 +352,8 @@ bool FoV(TString target, bool doImposter, double evt_ra, double evt_dec) {
     {
         if (abs(x)>Skymap_size_x) return false;
         if (abs(y)>Skymap_size_y) return false;
-        //if (abs(x)>10.) return false;
-        //if (abs(y)>10.) return false;
+        //if (abs(x)>Skymap_large_size_x) return false;
+        //if (abs(y)>Skymap_large_size_y) return false;
     }
     else
     {
@@ -2292,7 +2292,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         Hist_OnData_ISR_Skymap.push_back(TH2D("Hist_Stage1_OnData_ISR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
         Hist_OnData_SR_Skymap.push_back(TH2D("Hist_Stage1_OnData_SR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
         Hist_OnData_CR_Skymap.push_back(TH2D("Hist_Stage1_OnData_CR_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
-        Hist_OnData_CR_LargeSkymap.push_back(TH2D("Hist_Stage1_OnData_CR_LargeSkymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-10.,map_center_x+10.,Skymap_nbins_y,map_center_y-10.,map_center_y+10.));
+        Hist_OnData_CR_LargeSkymap.push_back(TH2D("Hist_Stage1_OnData_CR_LargeSkymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_large_size_x,map_center_x+Skymap_large_size_x,Skymap_nbins_y,map_center_y-Skymap_large_size_y,map_center_y+Skymap_large_size_y));
         Hist_OnData_RBM_Skymap.push_back(TH2D("Hist_Stage1_OnData_RBM_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
         //Hist_NormSyst_Skymap.push_back(TH2D("Hist_Stage1_NormSyst_Skymap_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Skymap_nbins_x,map_center_x-Skymap_size_x,map_center_x+Skymap_size_x,Skymap_nbins_y,map_center_y-Skymap_size_y,map_center_y+Skymap_size_y));
 

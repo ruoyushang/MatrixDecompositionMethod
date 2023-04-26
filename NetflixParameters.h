@@ -1,18 +1,14 @@
 
-const int N_energy_bins = 8;
-//double energy_bins[N_energy_bins+1] = {100.,250.,275.,350.,575.,1250.,3275.,9350.};
-double energy_bins[N_energy_bins+1] = {100.,251.,398.,631.,1000.,1585.,2512.,3981.,10000.};
-//double energy_bins[N_energy_bins+1] = {100.,200.,300.,500.,900.,2100.,4500.,9300.};
-//double energy_bins[N_energy_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
-const int N_energy_fine_bins = 8;
-//double energy_fine_bins[N_energy_fine_bins+1] = {100.,250.,275.,350.,575.,1250.,3275.,9350.};
-double energy_fine_bins[N_energy_fine_bins+1] = {100.,251.,398.,631.,1000.,1585.,2512.,3981.,10000.};
-//double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,300.,500.,900.,2100.,4500.,9300.};
-//double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
+const int N_energy_bins = 7;
+//double energy_bins[N_energy_bins+1] = {100.,200.,316.,501.,1000.,1995.,5011.,12589.};
+double energy_bins[N_energy_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
+const int N_energy_fine_bins = 7;
+//double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,316.,501.,1000.,1995.,5011.,12589.};
+double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
 
 int N_bins_for_deconv = 12;
 //int matrix_rank[N_energy_bins] = {1,1,1,1,1,1,1};
-int matrix_rank[N_energy_bins] = {2,2,2,2,2,1,1,1};
+int matrix_rank[N_energy_bins] = {2,2,2,2,2,1,1};
 //int matrix_rank[N_energy_bins] = {2,3,3,3,2,2,2,1,1};
 
 int MatchingSelection = 0; // default
@@ -22,8 +18,8 @@ int MatchingSelection = 0; // default
 //int MatchingSelection = 4; // free MJD
 //
 double MatchRun_dElev = 0.1;
-double MatchRun_dAzim = 20.;
-double MatchRun_dNSB = 1.0;
+double MatchRun_dAzim = 45.;
+double MatchRun_dNSB = 10.0;
 
 double Log10_alpha_LE = 10.;
 double Log10_alpha_ME = 10.;
@@ -51,18 +47,15 @@ bool UseDL3Tree = true;
 bool RHVData = false;
 
 
-//bool UseGalacticCoord = true;
-//double Skymap_size_x = 6.;
-//int Skymap_nbins_x = 60;
-//double Skymap_size_y = 6.;
-//int Skymap_nbins_y = 60;
-//int Skymap_nzones_x = 3;
-//int Skymap_nzones_y= 3;
+double Skymap_large_size_x = 5.;
+double Skymap_large_size_y = 5.;
 bool UseGalacticCoord = false;
-double Skymap_size_x = 1.5;
-double Skymap_size_y = 1.5;
-int Skymap_nbins_x = 60;
-int Skymap_nbins_y = 60;
+double Skymap_size_x = 2.5;
+double Skymap_size_y = 2.5;
+//double Skymap_size_x = 1.5;
+//double Skymap_size_y = 1.5;
+int Skymap_nbins_x = 100;
+int Skymap_nbins_y = 100;
 int Skymap_nzones_x = 1;
 int Skymap_nzones_y= 1;
 
