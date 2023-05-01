@@ -1,10 +1,10 @@
 
 const int N_energy_bins = 7;
-//double energy_bins[N_energy_bins+1] = {100.,200.,316.,501.,1000.,1995.,5011.,12589.};
-double energy_bins[N_energy_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
+double energy_bins[N_energy_bins+1] = {100.,200.,316.,501.,1000.,1995.,5011.,12589.};
+//double energy_bins[N_energy_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
 const int N_energy_fine_bins = 7;
-//double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,316.,501.,1000.,1995.,5011.,12589.};
-double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
+double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,316.,501.,1000.,1995.,5011.,12589.};
+//double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
 
 int N_bins_for_deconv = 12;
 //int matrix_rank[N_energy_bins] = {1,1,1,1,1,1,1};
@@ -25,6 +25,8 @@ double Log10_alpha_LE = 10.;
 double Log10_alpha_ME = 10.;
 double Log10_alpha_HE = 10.;
 double Log10_alpha[N_energy_bins] = {};
+//double norm_scale[N_energy_bins] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+double norm_scale[N_energy_bins] = {1.0717, 1.0040, 1.0037, 1.0036, 0.9908, 0.9958, 0.9793};
 
 double exposure_limit = 5.; // default
 //double exposure_limit = 10.; // default

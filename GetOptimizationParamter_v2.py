@@ -55,8 +55,8 @@ MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 expo_hours_per_entry = 100.
 
 #background_type = 'RBM'
-background_type = 'ONOFF'
-#background_type = 'Matrix'
+#background_type = 'ONOFF'
+background_type = 'Matrix'
 analysis_type = 'Solo'
 #analysis_type = 'Mimic'
 
@@ -87,8 +87,8 @@ if analysis_type=='Solo':
     sample_list += ['3C273V5_OFF']
     sample_list += ['PG1553V6_OFF']
     sample_list += ['PG1553V5_OFF']
-    sample_list += ['1ES0229V6_OFF']
-    sample_list += ['1ES0229V5_OFF']
+    sample_list += ['Sky_RA38Dec20_V6_OFF']
+    sample_list += ['Sky_RA38Dec20_V5_OFF']
     sample_list += ['PKS1424V6_OFF']
     sample_list += ['PKS1424V5_OFF']
     sample_list += ['RGB_J0710_p591_V6_OFF'] # north 
@@ -131,8 +131,8 @@ if analysis_type=='Mimic' and observing_condition=='north':
         imposter_list += ['DracoV5_Imposter%s'%(imposter_ID)]
 if analysis_type=='Mimic' and observing_condition=='south':
     ONOFF_tag_sample = 'OFF'
-    sample_list += ['1ES0229V6_OFF']
-    sample_list += ['1ES0229V5_OFF']
+    sample_list += ['Sky_RA38Dec20_V6_OFF']
+    sample_list += ['Sky_RA38Dec20_V5_OFF']
     sample_list += ['3C273V6_OFF']
     sample_list += ['3C273V5_OFF']
     sample_list += ['Segue1V6_OFF']
@@ -140,8 +140,8 @@ if analysis_type=='Mimic' and observing_condition=='south':
     sample_list += ['1ES0414V5_OFF']
     ONOFF_tag_imposter = 'ON'
     for imposter_ID in range(0,5):
-        imposter_list += ['1ES0229V6_Imposter%s'%(imposter_ID)]
-        imposter_list += ['1ES0229V5_Imposter%s'%(imposter_ID)]
+        imposter_list += ['Sky_RA38Dec20_V6_Imposter%s'%(imposter_ID)]
+        imposter_list += ['Sky_RA38Dec20_V5_Imposter%s'%(imposter_ID)]
         imposter_list += ['3C273V6_Imposter%s'%(imposter_ID)]
         imposter_list += ['3C273V5_Imposter%s'%(imposter_ID)]
         imposter_list += ['Segue1V6_Imposter%s'%(imposter_ID)]
@@ -772,10 +772,10 @@ def LoopOverFiles():
 #optimiz_alpha_upper = [1.5,1.5,1.5,1.5]
 #optimiz_beta_lower = [-1.5,-1.5,-1.5,-1.5]
 #optimiz_beta_upper = [1.5,1.5,1.5,1.5]
-optimiz_alpha_lower = [-1.5,-1.5,-1.5,-1.5,-1.5,-1.5]
-optimiz_alpha_upper = [1.5,1.5,1.5,1.5,1.5,1.5]
-optimiz_beta_lower = [-1.5,-1.5,-1.5,-1.5,-1.5,-1.5]
-optimiz_beta_upper = [1.5,1.5,1.5,1.5,1.5,1.5]
+optimiz_alpha_lower = [-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5]
+optimiz_alpha_upper = [1.5,1.5,1.5,1.5,1.5,1.5,1.5]
+optimiz_beta_lower = [-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5]
+optimiz_beta_upper = [1.5,1.5,1.5,1.5,1.5,1.5,1.5]
 optimiz_nbins = 10
 stable_rank = 3
 
@@ -996,12 +996,16 @@ plt.savefig("output_plots/RankErrors.png")
 
 energy_array = np.array(energy_bin)
 energy_dependent_bkgd = []
+energy_dependent_scale = []
+energy_dependent_bias = []
 energy_dependent_syst = []
 energy_dependent_syst_err = []
 energy_dependent_stat = []
 energy_dependent_chi2 = []
 for eb in range(0,len(energy_bin)-1):
     avg_sigma_chi2 = 0.
+    epsilon_scale_avg = 0.
+    epsilon_bias_avg = 0.
     epsilon_bkgd_avg = 0.
     epsilon_stat_avg = 0.
     n_entries = 0.
@@ -1010,10 +1014,6 @@ for eb in range(0,len(energy_bin)-1):
     data_cnt_sum = 0.
     bkgd_cnt_sum = 0.
     for entry in range(0,n_measurements):
-        #if background_type!='RBM':
-        #    if eb==0 and data_count[entry][eb]<2000.: continue
-        #    if eb==1 and data_count[entry][eb]<500.: continue
-        #if data_count[entry][eb]<10.: continue
         n_measures += 1.
         n_expo_hours += data_exposure[entry]
         data_cnt_sum += data_count[entry][eb]
@@ -1024,6 +1024,31 @@ for eb in range(0,len(energy_bin)-1):
         if n_expo_hours>=expo_hours_per_entry:
             if data_cnt_sum<10.: continue
             epsilon_bkgd = (data_cnt_sum-bkgd_cnt_sum)/data_cnt_sum
+            epsilon_bias_avg += epsilon_bkgd
+            epsilon_scale_avg += data_cnt_sum/bkgd_cnt_sum
+            n_measures = 0.
+            n_expo_hours = 0.
+            data_cnt_sum = 0.
+            bkgd_cnt_sum = 0.
+            n_entries += 1.
+    epsilon_bias_avg = epsilon_bias_avg/n_entries
+    epsilon_scale_avg = epsilon_scale_avg/n_entries
+    n_entries = 0.
+    n_measures = 0.
+    n_expo_hours = 0.
+    data_cnt_sum = 0.
+    bkgd_cnt_sum = 0.
+    for entry in range(0,n_measurements):
+        n_measures += 1.
+        n_expo_hours += data_exposure[entry]
+        data_cnt_sum += data_count[entry][eb]
+        if background_type=='ONOFF':
+            bkgd_cnt_sum += dark_count[entry][eb]
+        else:
+            bkgd_cnt_sum += bkgd_count[entry][eb]
+        if n_expo_hours>=expo_hours_per_entry:
+            if data_cnt_sum<10.: continue
+            epsilon_bkgd = (data_cnt_sum-bkgd_cnt_sum)/data_cnt_sum - epsilon_bias_avg
             epsilon_bkgd_avg += epsilon_bkgd*epsilon_bkgd
             epsilon_stat_avg += pow(pow(data_cnt_sum,0.5)/data_cnt_sum,2)
             avg_sigma_chi2 += sigma_chi2[entry][eb]
@@ -1035,6 +1060,8 @@ for eb in range(0,len(energy_bin)-1):
     if n_entries>0.:
         epsilon_bkgd_avg = pow(epsilon_bkgd_avg/n_entries,0.5)
         epsilon_stat_avg = pow(epsilon_stat_avg/n_entries,0.5)
+    energy_dependent_scale += [epsilon_scale_avg]
+    energy_dependent_bias += [epsilon_bias_avg]
     energy_dependent_bkgd += [epsilon_bkgd_avg]
     energy_dependent_syst += [pow(max(0.,pow(epsilon_bkgd_avg,2)-pow(epsilon_stat_avg,2)),0.5)]
     energy_dependent_syst_err += [pow(max(0.,pow(epsilon_bkgd_avg,2)-pow(epsilon_stat_avg,2)),0.5)/pow(n_entries,0.5)]
@@ -1100,6 +1127,8 @@ Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E4","",nbins,-hist_limi
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E4","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E5","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E5","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E6","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E6","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_MDM = []
 Hist_Imposter_SystErrDist_Init = []
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E0","",nbins,-hist_limit_le,hist_limit_le)]
@@ -1114,6 +1143,8 @@ Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E4","
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E4","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E5","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E5","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E6","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E6","",nbins,-hist_limit_he,hist_limit_he)]
 
 for eb in range(0,len(energy_bin)-1):
     Hist_SystErrDist_MDM[eb].Reset()
@@ -1256,6 +1287,8 @@ for eb in range(0,len(energy_bin)-1):
 #                        #good_var_pair += [list_var_pair]
 #                        #good_eigenvalue += [max_eigenvalue]
 
+energy_dependent_scale = np.array(energy_dependent_scale)
+energy_dependent_bias = np.array(energy_dependent_bias)
 energy_dependent_syst = np.array(energy_dependent_syst)
 energy_dependent_syst_err = np.array(energy_dependent_syst_err)
 energy_dependent_chi2 = np.array(energy_dependent_chi2)
@@ -1263,10 +1296,13 @@ np.set_printoptions(formatter={'float': lambda x: "{0:0.4f},".format(x)})
 
 print ('energy_bin = %s'%(energy_bin))
 if background_type=='ONOFF':
+    print ('init_bias     = %s'%(energy_dependent_bias))
     print ('init_syst     = %s'%(energy_dependent_syst))
     print ('init_syst_err = %s'%(energy_dependent_syst_err))
     print ('init_chi2     = %s'%(energy_dependent_chi2))
 else:
+    print ('scale     = %s'%(energy_dependent_scale))
+    print ('bias     = %s'%(energy_dependent_bias))
     print ('syst     = %s'%(energy_dependent_syst))
     print ('syst_err = %s'%(energy_dependent_syst_err))
     print ('chi2     = %s'%(energy_dependent_chi2))

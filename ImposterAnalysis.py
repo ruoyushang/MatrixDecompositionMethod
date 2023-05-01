@@ -173,7 +173,7 @@ def MakeDiagnisticPlots():
     CommonPlotFunctions.MatplotlibMap2D(hist_real_mjd_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','MJD','SkymapMJD_%s.png'%(plot_tag),fill_gaps=True,rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
     hist_real_expo_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_expo_skymap[0])
     CommonPlotFunctions.MatplotlibMap2D(hist_real_expo_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','Hours','SkymapExpo_E%s_%s'%(0,plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
-    for ebin in range(0,len(energy_bin)-1):
+    for ebin in range(0,1):
         hist_real_norm_skymap_reflect = CommonPlotFunctions.reflectXaxis(hist_real_norm_skymap[ebin])
         CommonPlotFunctions.MatplotlibMap2D(hist_real_norm_skymap_reflect,None,[hist_zscore_skymap_sum_reflect],fig,'RA','Dec','Count','SkymapNorm_E%s_%s'%(ebin,plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
@@ -190,14 +190,14 @@ def GetFluxCalibration(energy,elev):
     # The energy threshold needs to be as low as 100 GeV for this method to work.
 
     # energy threshold = 100 GeV, old binning
-    str_flux_calibration_el70 = ['2.23e-10', '1.33e-11', '4.91e-12', '2.24e-12', '1.16e-12', '6.15e-13', '3.03e-13']
-    str_flux_calibration_el60 = ['2.73e-10', '1.34e-11', '4.59e-12', '2.09e-12', '1.07e-12', '5.55e-13', '2.69e-13']
-    str_flux_calibration_el50 = ['1.39e-09', '1.59e-11', '3.48e-12', '1.49e-12', '7.50e-13', '3.72e-13', '1.91e-13']
+    #str_flux_calibration_el70 = ['2.23e-10', '1.33e-11', '4.91e-12', '2.24e-12', '1.16e-12', '6.15e-13', '3.03e-13']
+    #str_flux_calibration_el60 = ['2.73e-10', '1.34e-11', '4.59e-12', '2.09e-12', '1.07e-12', '5.55e-13', '2.69e-13']
+    #str_flux_calibration_el50 = ['1.39e-09', '1.59e-11', '3.48e-12', '1.49e-12', '7.50e-13', '3.72e-13', '1.91e-13']
 
     # energy threshold = 100 GeV, new binning
-    #str_flux_calibration_el70 = ['2.23e-10', '1.92e-11', '9.42e-12', '3.72e-12', '1.78e-12', '7.36e-13', '2.98e-13']
-    #str_flux_calibration_el60 = ['2.74e-10', '1.99e-11', '8.82e-12', '3.49e-12', '1.65e-12', '6.79e-13', '2.70e-13']
-    #str_flux_calibration_el50 = ['1.40e-09', '2.82e-11', '7.24e-12', '2.61e-12', '1.18e-12', '4.64e-13', '1.95e-13']
+    str_flux_calibration_el70 = ['2.19e-10', '1.99e-11', '9.71e-12', '3.82e-12', '1.81e-12', '7.56e-13', '3.06e-13']
+    str_flux_calibration_el60 = ['2.67e-10', '2.04e-11', '9.05e-12', '3.56e-12', '1.68e-12', '6.95e-13', '2.77e-13']
+    str_flux_calibration_el50 = ['1.26e-09', '2.96e-11', '7.16e-12', '2.55e-12', '1.15e-12', '4.66e-13', '1.81e-13']
 
     flux_calibration_el70 = []
     flux_calibration_el60 = []
@@ -1689,6 +1689,8 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name,excl_roi_x,excl_roi_y,excl_roi_r,exc
     else:
         axbig.bar(energy_axis, 2.*real_flux_syst_err, bottom=real_flux-real_flux_syst_err, width=2.*energy_error, color='b', align='center', alpha=0.2)
         axbig.errorbar(energy_axis,real_flux_UL,real_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='VERITAS',uplims=uplims)
+        real_flux_total_err = pow(real_flux_syst_err*real_flux_syst_err+real_flux_stat_err*real_flux_stat_err,0.5)
+        PrintSpectralDataForNaima(energy_axis,real_flux_UL,real_flux_total_err,'VERITAS')
 
     axbig.set_xlabel('Energy [GeV]')
     axbig.set_ylabel('$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]')
@@ -2296,6 +2298,8 @@ MakeSignificanceMap(hist_real_data_skymap,hist_real_bkgd_skymap,hist_real_raw_bk
 
 prime_psr_name, prime_psr_ra, prime_psr_dec = FindDetectedPWN(hist_real_data_skymap,hist_real_bkgd_skymap,hist_imposter_data_skymap,hist_imposter_bkgd_skymap)
 
+SumFluxMap()
+
 if 'Crab' in source_name:
     text_angle = 0.
     region_x = MapCenter_x
@@ -2363,12 +2367,10 @@ elif source_name=='SS433' and not CommonPlotFunctions.doGalacticCoord:
     #region_name = 'SS433'
 
     #SS 433 e1
-    #region_x = 288.404
-    #region_y = 4.930
-    region_x = 288.407
-    region_y = 5.044
-    region_r = [0.25 for element in range(len(energy_bin)-1)]
-    region_name = 'SS433e1'
+    #region_x = 288.55
+    #region_y = 4.95
+    #region_r = [0.25 for element in range(len(energy_bin)-1)]
+    #region_name = 'SS433e1'
 
     ##SS 433 e2
     #region_x = 288.58
@@ -2377,11 +2379,10 @@ elif source_name=='SS433' and not CommonPlotFunctions.doGalacticCoord:
     #region_name = 'SS433e2'
 
     ##SS 433 w1
-    #287.654,5.037
-    #region_x = 287.654
-    #region_y = 5.037
-    #region_r = [0.5 for element in range(len(energy_bin)-1)]
-    #region_name = 'SS433w1'
+    region_x = 287.49
+    region_y = 5.06
+    region_r = [0.25 for element in range(len(energy_bin)-1)]
+    region_name = 'SS433w1'
 
     do_fit = 0
 
@@ -2456,8 +2457,9 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     excl_region_r = [0.0 for element in range(len(energy_bin)-1)]
     excl_region_name = 'North'
 
+    do_fit = 0
     #do_fit = 1
-    do_fit = 2
+    #do_fit = 2
 
     hist_zscore_skymap_sum_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_sum)
     Hist_Tobias = ROOT.TH2D("Hist_Tobias","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
@@ -2483,7 +2485,7 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     #MWL_map_file = 'MWL_maps/sajan_rg_nothing_gone_all_30gev_pointsource_powerlaw_2.00_tsmap.fits'
     MWL_map_file = 'MWL_maps/rg_nothing_gone_all_30-300gev_pointsource_powerlaw_2.00_tsmap.fits'
     Hist_Fermi = CommonPlotFunctions.GetFITSMap(MWL_map_file, Hist_Fermi, True)
-    Hist_Fermi = CommonPlotFunctions.ConvertTSmapToZscore(Hist_Fermi)
+    #Hist_Fermi = CommonPlotFunctions.ConvertTSmapToZscore(Hist_Fermi)
     Hist_Fermi_reflect = CommonPlotFunctions.reflectXaxis(Hist_Fermi)
     CommonPlotFunctions.MatplotlibMap2D(Hist_Fermi_reflect,None,None,fig,'RA','Dec','TS','SkymapFermi_30GeV_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
@@ -2503,8 +2505,8 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
 
 
 
-    hist_zscore_skymap_le_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_le)
-    hist_zscore_skymap_he_reflect = CommonPlotFunctions.reflectXaxis(hist_real_zscore_skymap_he)
+    hist_zscore_skymap_le_reflect = CommonPlotFunctions.reflectXaxis(hist_excess_skymap_le)
+    hist_zscore_skymap_he_reflect = CommonPlotFunctions.reflectXaxis(hist_excess_skymap_he)
     Hist_mc_intensity = ROOT.TH2D("Hist_mc_intensity","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     Hist_mc_column = ROOT.TH2D("Hist_mc_column","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     pc_to_cm = 3.086e+18
@@ -2513,17 +2515,21 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     # https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/1PG9NV
     FITS_correction = 1000.# the source FITS file has a mistake in velocity km/s -> m/s
     #MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_p10_p50_0th_moment.txt' # CO intensity (K km s^{-1} deg)
-    MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_p10_p40_0th_moment.txt' # CO intensity (K km s^{-1} deg)
-    Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
-    Hist_mc_intensity.Scale(FITS_correction)
+    #MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_p10_p40_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+    #Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
+    #Hist_mc_intensity.Scale(FITS_correction)
+    MWL_map_file = 'MWL_maps/DHT08_Quad1_interp.fits' 
+    CommonPlotFunctions.GetSlicedDataCubeMap(MWL_map_file, Hist_mc_intensity, 10., 40.)
     Hist_mc_column.Reset()
     Hist_mc_column.Add(Hist_mc_intensity)
     Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2
     Hist_mc_column_reflect = CommonPlotFunctions.reflectXaxis(Hist_mc_column)
     CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,[hist_zscore_skymap_he_reflect,hist_zscore_skymap_le_reflect,Hist_Fermi_reflect],fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_p10p40_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
-    MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_p40_p70_0th_moment.txt' # CO intensity (K km s^{-1} deg)
-    Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
-    Hist_mc_intensity.Scale(FITS_correction)
+    #MWL_map_file = 'MWL_maps/DHT08_Quad1_interp_p40_p70_0th_moment.txt' # CO intensity (K km s^{-1} deg)
+    #Hist_mc_intensity = CommonPlotFunctions.GetGalacticCoordMap(MWL_map_file, Hist_mc_intensity, True)
+    #Hist_mc_intensity.Scale(FITS_correction)
+    MWL_map_file = 'MWL_maps/DHT08_Quad1_interp.fits' 
+    CommonPlotFunctions.GetSlicedDataCubeMap(MWL_map_file, Hist_mc_intensity, 40., 70.)
     Hist_mc_column.Reset()
     Hist_mc_column.Add(Hist_mc_intensity)
     Hist_mc_column.Scale(CO_intensity_to_H_column_density) # H2 column density in unit of 1/cm2

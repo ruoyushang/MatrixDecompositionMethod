@@ -951,7 +951,7 @@ void SortingList(vector<pair<string,int>>* list, vector<double>* list_pointing)
     }
 }
 
-int FindAMatchedRunFromPairList(int ON_runnumber, string source, vector<int> exclusion_list, bool isImposter, int true_ON_runnumber, double elev_offset) 
+int FindAMatchedRunFromPairList(int ON_runnumber, string source, vector<int> exclusion_list, bool isImposter, int true_ON_runnumber, double elev_offset, double azim_offset) 
 {
 
     string line;
@@ -1049,7 +1049,7 @@ int FindAMatchedRunFromPairList(int ON_runnumber, string source, vector<int> exc
         double delta_elev = onrun_pointing.first-offrun_pointing.first;
         double delta_airmass = (1./sin(onrun_pointing.first*M_PI/180.)-1./sin(offrun_pointing.first*M_PI/180.));
         double delta_azim = onrun_pointing.second-offrun_pointing.second;
-        if (delta_azim>180.) delta_azim = 360.-delta_azim;
+        if (abs(delta_azim)>180.) delta_azim = delta_azim-360.;
 
         if (!isImposter)
         {
@@ -1060,6 +1060,14 @@ int FindAMatchedRunFromPairList(int ON_runnumber, string source, vector<int> exc
             else
             {
                 if (delta_elev<0.) continue;
+            }
+            if (azim_offset>0.)
+            {
+                if (delta_azim>0.) continue;
+            }
+            else
+            {
+                if (delta_azim<0.) continue;
             }
         }
         if (abs(delta_airmass)>MatchRun_dElev) continue;
@@ -1077,7 +1085,7 @@ int FindAMatchedRunFromPairList(int ON_runnumber, string source, vector<int> exc
 
 }
 
-int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON_NSB, double ON_L3Rate, double ON_MJD, vector<int> OFF_runnumber, vector<pair<double,double>> OFF_pointing, vector<double> OFF_NSB, vector<double> OFF_L3Rate, vector<double> OFF_MJD, vector<int> exclusion_list, bool isImposter, double elev_offset) 
+int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON_NSB, double ON_L3Rate, double ON_MJD, vector<int> OFF_runnumber, vector<pair<double,double>> OFF_pointing, vector<double> OFF_NSB, vector<double> OFF_L3Rate, vector<double> OFF_MJD, vector<int> exclusion_list, bool isImposter, double elev_offset, double azim_offset) 
 {
     int matched_runnumber = 0;
     double match_chi2 = 1e10;
@@ -1155,8 +1163,8 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
         double delta_airmass = (1./sin(ON_pointing.first*M_PI/180.)-1./sin(OFF_pointing[off_run].first*M_PI/180.));
         double signed_delta_airmass = (1./sin(ON_pointing.first*M_PI/180.)-1./sin(OFF_pointing[off_run].first*M_PI/180.));
 
-        double delta_azim = abs(ON_pointing.second-OFF_pointing[off_run].second);
-        if (delta_azim>180.) delta_azim = 360.-delta_azim;
+        double delta_azim = ON_pointing.second-OFF_pointing[off_run].second;
+        if (abs(delta_azim)>180.) delta_azim = delta_azim-360.;
 
         if (!isImposter)
         {
@@ -1169,12 +1177,20 @@ int FindAMatchedRun(int ON_runnumber, pair<double,double> ON_pointing, double ON
             {
                 if (delta_elev<0.) continue;
             }
+            if (azim_offset>0.)
+            {
+                if (delta_azim>0.) continue;
+            }
+            else
+            {
+                if (delta_azim<0.) continue;
+            }
         }
 
         if (abs(delta_airmass)>threshold_dElev) continue;
         //if (abs(delta_elev)>threshold_dElev) continue;
         if (delta_nsb>threshold_dNSB) continue;
-        if (delta_azim>threshold_dAzim) continue; //default, do not use for J1908
+        if (abs(delta_azim)>threshold_dAzim) continue; //default, do not use for J1908
 
         if (delta_mjd>threshold_dMJD) continue;
         if (delta_l3rate>threshold_dL3Rate) continue;
@@ -1432,10 +1448,10 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
             pair<double,double> ON_pointing = new_list_pointing[on_run];
             double on_run_MJD = double(GetRunMJD(ON_filename,ON_runnumber));
 
-            int matched_runnumber = FindAMatchedRunFromPairList(ON_runnumber, source_strip, exclusion_list, false, 0, 0.);
+            int matched_runnumber = FindAMatchedRunFromPairList(ON_runnumber, source_strip, exclusion_list, false, 0, 0., 0.);
             if (matched_runnumber==0)
             {
-                matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, true, 0.); 
+                matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, true, 0., 0.); 
             }
             if (matched_runnumber==0)
             {
@@ -1503,11 +1519,13 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
         bool continue_to_find_match = true;
         double sum_on_elev = 0.;
         double sum_off_elev = 0.;
+        double sum_on_azim = 0.;
+        double sum_off_azim = 0.;
 
-        int matched_runnumber = FindAMatchedRunFromPairList(ON_runnumber, source_strip, exclusion_list, true, true_ON_runnumber, sum_on_elev-sum_off_elev);
+        int matched_runnumber = FindAMatchedRunFromPairList(ON_runnumber, source_strip, exclusion_list, true, true_ON_runnumber, sum_on_elev-sum_off_elev, sum_on_azim-sum_off_azim);
         if (matched_runnumber==0)
         {
-            matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false, sum_on_elev-sum_off_elev); 
+            matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false, sum_on_elev-sum_off_elev, sum_on_azim-sum_off_azim); 
         }
         if (matched_runnumber==0)
         {
@@ -1532,6 +1550,8 @@ void SelectImposterRunList(TTree * RunListTree, TString root_file_name, vector<p
             std::pair<double,double> off_run_pointing = GetRunElevAzim(OFF_filename,matched_runnumber);
             sum_on_elev += ON_pointing.first*off_time;
             sum_off_elev += off_run_pointing.first*off_time;
+            sum_on_azim += ON_pointing.second*off_time;
+            sum_off_azim += off_run_pointing.second*off_time;
         }
 
         if (ON_runnumber==0) continue;
@@ -1759,10 +1779,12 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
         }
         double sum_on_elev = 0.;
         double sum_off_elev = 0.;
-        int matched_runnumber = FindAMatchedRunFromPairList(ON_runnumber, source_strip, exclusion_list, false, 0, sum_on_elev-sum_off_elev);
+        double sum_on_azim = 0.;
+        double sum_off_azim = 0.;
+        int matched_runnumber = FindAMatchedRunFromPairList(ON_runnumber, source_strip, exclusion_list, false, 0, sum_on_elev-sum_off_elev, sum_on_azim-sum_off_azim);
         if (matched_runnumber==0)
         {
-            matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false, sum_on_elev-sum_off_elev); 
+            matched_runnumber = FindAMatchedRun(ON_runnumber, ON_pointing, on_run_NSB, ON_L3Rate, on_run_MJD, OFF_runlist, OFF_pointing, OFF_NSB, OFF_L3Rate, OFF_MJD, exclusion_list, false, sum_on_elev-sum_off_elev, sum_on_azim-sum_off_azim); 
         }
         if (matched_runnumber==0)
         {
@@ -1791,6 +1813,8 @@ void SelectONRunList(TTree * RunListTree, vector<pair<string,int>> Data_runlist,
             std::pair<double,double> off_run_pointing = GetRunElevAzim(OFF_filename,matched_runnumber);
             sum_on_elev += ON_pointing.first*off_time;
             sum_off_elev += off_run_pointing.first*off_time;
+            sum_on_azim += ON_pointing.second*off_time;
+            sum_off_azim += off_run_pointing.second*off_time;
         }
 
 

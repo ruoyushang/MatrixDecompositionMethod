@@ -12,6 +12,9 @@ from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
 from astropy.time import Time
 from astropy.io import fits
 from astropy.wcs import WCS
+from astropy.utils.data import get_pkg_data_filename
+import astropy.utils as utils
+from astropy.nddata import Cutout2D
 from scipy import special
 from scipy import interpolate
 import scipy.stats as st
@@ -28,15 +31,16 @@ from operator import itemgetter, attrgetter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits import mplot3d
 import healpy as hp
+from spectral_cube import SpectralCube
 
 # Great examples of matplotlib plots: https://atmamani.github.io/cheatsheets/matplotlib/matplotlib_2/
 
-#energy_bin = [100.,200.,316.,501.,1000.,1995.,5011.,12589.]
-energy_bin = [100.,200.,398.,794.,1585.,3162.,6310.,12589.]
+energy_bin = [100.,200.,316.,501.,1000.,1995.,5011.,12589.]
+#energy_bin = [100.,200.,398.,794.,1585.,3162.,6310.,12589.]
 energy_fine_bin = energy_bin
 
-#folder_path = 'output_test'
-folder_path = 'output_default'
+folder_path = 'output_test'
+#folder_path = 'output_default'
 
 #folder_path = 'output_loose'
 #folder_path = 'output_medium'
@@ -893,6 +897,40 @@ def GetFITSMap(map_file, hist_map, isRaDec):
 
     return hist_map
 
+def GetSlicedDataCubeMap(map_file, hist_map, vel_low, vel_up):
+
+    hist_map.Reset()
+    nbinsx = hist_map.GetNbinsX()
+    nbinsy = hist_map.GetNbinsY()
+    map_center_ra = hist_map.GetXaxis().GetBinCenter(int(float(nbinsx)/2.))
+    map_center_dec = hist_map.GetYaxis().GetBinCenter(int(float(nbinsy)/2.))
+    map_center_lon, map_center_lat = ConvertRaDecToGalactic(map_center_ra, map_center_dec)
+
+    filename = map_file
+
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
+    image_data = hdu.data
+
+    pixs_start = wcs.all_world2pix(vel_low,map_center_lon,map_center_lat,1)
+    pixs_end = wcs.all_world2pix(vel_up,map_center_lon,map_center_lat,1)
+    vel_idx_start = int(pixs_start[0])
+    vel_idx_end = int(pixs_end[0])
+
+    image_data_reduced_z = np.full((image_data[:, :, vel_idx_start].shape),0.)
+    for idx in range(vel_idx_start,vel_idx_end):
+        image_data_reduced_z += image_data[:, :, idx]
+
+    for binx in range(0,nbinsx):
+        for biny in range(0,nbinsy):
+            map_ra = hist_map.GetXaxis().GetBinCenter(binx+1)
+            map_dec = hist_map.GetYaxis().GetBinCenter(biny+1)
+            map_lon, map_lat = ConvertRaDecToGalactic(map_ra, map_dec)
+            map_pixs = wcs.all_world2pix(vel_low, map_lon, map_lat, 1)
+            pix_lon = int(map_pixs[1])
+            pix_lat = int(map_pixs[2])
+            hist_map.SetBinContent(binx+1,biny+1,image_data_reduced_z[pix_lat,pix_lon])
+
 def GetGalacticCoordMap(map_file, hist_map, isRaDec):
 
     hist_map.Reset()
@@ -1693,17 +1731,24 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
 
 
     list_levels = []
-    list_levels += [np.arange(2.5, 11.5, 3.0)]
-    list_levels += [np.arange(2.5, 11.5, 3.0)]
-    list_levels += [np.arange(2.5, 11.5, 3.0)]
+    #list_levels += [np.arange(2.5, 11.5, 3.0)]
+    #list_levels += [np.arange(2.5, 11.5, 3.0)]
+    #list_levels += [np.arange(2.5, 11.5, 3.0)]
+    list_levels += [np.arange(0.5, 1.0, 0.3)]
+    list_levels += [np.arange(0.5, 1.0, 0.3)]
+    list_levels += [np.arange(0.5, 1.0, 0.3)]
     list_grid_contour = []
     if not hist_contour==None:
         for ctr in range(0,len(hist_contour)):
-            grid_contour = np.zeros((hist_contour[ctr].GetNbinsY(),hist_contour[ctr].GetNbinsX()))
-            max_z_contour = list_levels[ctr][1]
-            min_z_contour = list_levels[ctr][0]
-            delta_z = list_levels[ctr][2]
             if max_z==0.: continue
+            if hist_contour[ctr].GetMaximum()==0.: continue
+            grid_contour = np.zeros((hist_contour[ctr].GetNbinsY(),hist_contour[ctr].GetNbinsX()))
+            #max_z_contour = list_levels[ctr][1]
+            #min_z_contour = list_levels[ctr][0]
+            #delta_z = list_levels[ctr][2]
+            max_z_contour = 1.0*hist_contour[ctr].GetMaximum()
+            min_z_contour = 0.7*hist_contour[ctr].GetMaximum()
+            delta_z = 0.3*hist_contour[ctr].GetMaximum()
             list_levels[ctr] = np.arange(min_z_contour*max_z/max_z_contour, max_z_contour*max_z/max_z_contour, delta_z*max_z/max_z_contour)
             contour_x_axis = np.linspace(MapEdge_left,MapEdge_right,hist_contour[ctr].GetNbinsX())
             contour_y_axis = np.linspace(MapEdge_lower,MapEdge_upper,hist_contour[ctr].GetNbinsY())
