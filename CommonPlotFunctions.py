@@ -897,6 +897,100 @@ def GetFITSMap(map_file, hist_map, isRaDec):
 
     return hist_map
 
+def GetVelocitySpectrum(map_file, roi_lon, roi_lat, roi_inner_ring, roi_outer_ring):
+
+    roi_ra, roi_dec = ConvertGalacticToRaDec(roi_lon,roi_lat)
+    print ('GetVelocitySpectrum, roi_ra = %0.1f, roi_dec = %0.1f'%(roi_ra,roi_dec))
+
+    hdu = fits.open(map_file)[0]
+    wcs = WCS(hdu.header)
+    image_data = hdu.data
+    dimensions = image_data.shape
+    vel_dim = dimensions[2]
+    lon_dim = dimensions[1]
+    lat_dim = dimensions[0]
+
+    lon_max = roi_lon-2.0
+    lon_min = roi_lon+2.0
+    lat_max = roi_lat+2.0
+    lat_min = roi_lat-2.0
+    pixs_min = wcs.all_world2pix(0.,lon_min,lat_min,1)
+    pixs_max = wcs.all_world2pix(0.,lon_max,lat_max,1)
+    pixs_lon_min = int(pixs_min[1])
+    pixs_lat_min = int(pixs_min[2])
+    pixs_lon_max = int(pixs_max[1])
+    pixs_lat_max = int(pixs_max[2])
+
+    vel_axis = []
+    column_density = []
+    for vel_pix in range(0,vel_dim):
+        world_coord = wcs.all_pix2world(vel_pix,0,0,1) 
+        velocity = world_coord[0]
+        vel_axis += [velocity]
+        total_pix = 0.
+        avg_density = 0.
+        for lon_pix in range(pixs_lon_min,pixs_lon_max):
+            for lat_pix in range(pixs_lat_min,pixs_lat_max):
+                world_coord = wcs.all_pix2world(vel_pix,lon_pix,lat_pix,1) 
+                velocity = world_coord[0]
+                lon = world_coord[1]
+                lat = world_coord[2]
+                distance = pow(pow(lon-roi_lon,2)+pow(lat-roi_lat,2),0.5)
+                if distance<roi_inner_ring: continue
+                if distance>roi_outer_ring: continue
+                avg_density += image_data[lat_pix,lon_pix,vel_pix]
+                total_pix += 1.
+        avg_density = avg_density/total_pix
+        column_density += [avg_density]
+
+    return vel_axis, column_density
+
+def PlotDataCubeRoI(filename, roi_lon, roi_lat, roi_radius, vel_low, vel_up, fig):
+
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
+    image_data = hdu.data
+
+    pixs_start = wcs.all_world2pix(vel_low,roi_lon+roi_radius,roi_lat-roi_radius,1)
+    pixs_center = wcs.all_world2pix((vel_low+vel_up)/2.,roi_lon,roi_lat,1)
+    pixs_end = wcs.all_world2pix(vel_up,roi_lon-roi_radius,roi_lat+roi_radius,1)
+    vel_pix_start = int(pixs_start[0])
+    vel_pix_end = int(pixs_end[0])
+    lon_pix_center = int(pixs_center[1])
+    lat_pix_center = int(pixs_center[2])
+    lon_pix_end = int(pixs_end[1])
+    lat_pix_end = int(pixs_end[2])
+    lon_pix_size = lon_pix_end-lon_pix_center
+    lat_pix_size = lat_pix_end-lat_pix_center
+
+    image_data_reduced_z = np.full((image_data[:, :, vel_pix_start].shape),0.)
+    for idx in range(vel_pix_start,vel_pix_end):
+        image_data_reduced_z += image_data[:, :, idx]
+
+    position = (lon_pix_center,lat_pix_center)
+    size = (lon_pix_size,lat_pix_size)
+    image_data_cutout = Cutout2D(image_data_reduced_z, position=position, size=size, wcs=wcs.dropaxis(0))
+
+    fig.clf()
+    figsize_x = 14
+    figsize_y = 7
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
+    axbig = fig.add_subplot()
+    label_x = 'gal. l'
+    label_y = 'gal. b'
+    axbig.set_xlabel(label_x)
+    axbig.set_ylabel(label_y)
+    axbig = plt.subplot(projection=image_data_cutout.wcs)
+    axbig.imshow(image_data_cutout.data[:,:], origin='lower', cmap='coolwarm',zorder=0)
+    mycircle = plt.Circle((roi_lon, roi_lat), 0.4, transform=axbig.get_transform('galactic'), color='w', fill=False)
+    axbig.add_patch(mycircle)
+    mycircle = plt.Circle((roi_lon, roi_lat), 0.8, transform=axbig.get_transform('galactic'), color='w', fill=False)
+    axbig.add_patch(mycircle)
+    fig.savefig("output_plots/DataCubeRoI.png",bbox_inches='tight')
+    axbig.remove()
+
+
 def GetSlicedDataCubeMap(map_file, hist_map, vel_low, vel_up):
 
     hist_map.Reset()
@@ -919,7 +1013,12 @@ def GetSlicedDataCubeMap(map_file, hist_map, vel_low, vel_up):
 
     image_data_reduced_z = np.full((image_data[:, :, vel_idx_start].shape),0.)
     for idx in range(vel_idx_start,vel_idx_end):
-        image_data_reduced_z += image_data[:, :, idx]
+        world_coord = wcs.all_pix2world(idx,0,0,1) 
+        velocity = world_coord[0]
+        world_coord = wcs.all_pix2world(idx+1,0,0,1) 
+        velocity_next = world_coord[0]
+        delta_vel = velocity_next - velocity
+        image_data_reduced_z += image_data[:, :, idx]*delta_vel
 
     for binx in range(0,nbinsx):
         for biny in range(0,nbinsy):
@@ -1625,8 +1724,12 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
     deg_per_bin = (MapEdge_right-MapEdge_left)/map_nbins_x
     nbins_per_deg = map_nbins_x/(MapEdge_right-MapEdge_left)
     x_axis = np.linspace(MapEdge_left,MapEdge_right,map_nbins_x)
-    x_axis_sparse = np.linspace(MapEdge_left,MapEdge_right,5)
-    x_axis_reflect = ["{:6.2f}".format(-1.*i) for i in x_axis_sparse]
+    prelim_x_axis_sparse = np.linspace(MapEdge_left,MapEdge_right,6)
+    x_axis_sparse = []
+    for i in prelim_x_axis_sparse:
+        if int(i)>MapEdge_left and int(i)<MapEdge_right:
+            x_axis_sparse += [int(i)]
+    x_axis_reflect = ["{:6.1f}".format(-1.*i) for i in x_axis_sparse]
     y_axis = np.linspace(MapEdge_lower,MapEdge_upper,map_nbins_y)
 
     MapWidth = (MapEdge_right-MapEdge_left)/2.
@@ -1818,7 +1921,6 @@ def MatplotlibMap2D(hist_map,hist_tone,hist_contour,fig,label_x,label_y,label_z,
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
     else:
         im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
-    #im = axbig.imshow(grid_z, origin='lower', cmap=colormap, extent=(x_axis.min(),x_axis.max(),y_axis.min(),y_axis.max()),vmin=min_z,vmax=max_z,zorder=0)
 
     
     #MapCenter_RA = -0.5*(MapEdge_left+MapEdge_right)

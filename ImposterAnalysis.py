@@ -2537,6 +2537,36 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     CommonPlotFunctions.MatplotlibMap2D(Hist_mc_column_reflect,None,[hist_zscore_skymap_he_reflect,hist_zscore_skymap_le_reflect,Hist_Fermi_reflect],fig,'RA','Dec','column density [$1/cm^{2}$]','SkymapCOMap_p40p70_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
 
+    CommonPlotFunctions.PlotDataCubeRoI(MWL_map_file, 40.7, -0.8, 2.0, 10., 40., fig)
+    vel_axis_inner, column_density_axis_inner = CommonPlotFunctions.GetVelocitySpectrum(MWL_map_file, 40.7, -0.8, 0.0, 0.4)
+    vel_axis_outer, column_density_axis_outer = CommonPlotFunctions.GetVelocitySpectrum(MWL_map_file, 40.7, -0.8, 0.4, 0.8)
+    column_density_axis_inner = CO_intensity_to_H_column_density*np.array(column_density_axis_inner)
+    column_density_axis_outer = CO_intensity_to_H_column_density*np.array(column_density_axis_outer)
+    column_density_axis_diff = column_density_axis_outer - column_density_axis_inner
+
+    max_idx = np.argmax(column_density_axis_diff)
+    print ('velocity of highest emission = %0.1f km/s'%(vel_axis_inner[max_idx]))
+
+    fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
+    axbig = fig.add_subplot()
+    axbig.plot(vel_axis_inner, column_density_axis_inner)
+    axbig.plot(vel_axis_inner, column_density_axis_outer)
+    axbig.set_xlabel('$V_{LSR}$ [km/s]')
+    axbig.set_ylabel('column density per channel [$1/cm^{2}/(km/s)$]')
+    fig.savefig("output_plots/VelocitySpectrum_Cavity.png",bbox_inches='tight')
+    axbig.remove()
+    fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
+    axbig = fig.add_subplot()
+    axbig.plot(vel_axis_inner, column_density_axis_diff)
+    axbig.set_xlabel('$V_{LSR}$ [km/s]')
+    axbig.set_ylabel('column density per channel [$1/cm^{2}/(km/s)$]')
+    fig.savefig("output_plots/VelocitySpectrum_Diff.png",bbox_inches='tight')
+    axbig.remove()
+
 elif source_name=='IC443HotSpot' or source_name=='SNR_G189_p03':
     text_angle = 45.
     region_x = 94.25
