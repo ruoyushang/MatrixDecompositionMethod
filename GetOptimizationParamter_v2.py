@@ -51,20 +51,20 @@ MSCL_blind_cut = CommonPlotFunctions.MSCL_blind_cut
 #expo_hours_per_entry = 5.
 #expo_hours_per_entry = 10.
 #expo_hours_per_entry = 20.
-#expo_hours_per_entry = 50.
-expo_hours_per_entry = 100.
+expo_hours_per_entry = 50.
+#expo_hours_per_entry = 100.
 
 #background_type = 'RBM'
-#background_type = 'ONOFF'
-background_type = 'Matrix'
+background_type = 'ONOFF'
+#background_type = 'Matrix'
 analysis_type = 'Solo'
 #analysis_type = 'Mimic'
 
-observing_condition = 'all'
+#observing_condition = 'all'
 #observing_condition = 'north'
 #observing_condition = 'south'
 #observing_condition = 'eastwest'
-#observing_condition = 'sza'
+observing_condition = 'sza'
 #observing_condition = 'lza'
 #observing_condition = 'hnsb'
 #observing_condition = 'lnsb'
@@ -768,14 +768,10 @@ def LoopOverFiles():
                         n_imposter_measurements += 1
 
 
-#optimiz_alpha_lower = [-1.5,-1.5,-1.5,-1.5]
-#optimiz_alpha_upper = [1.5,1.5,1.5,1.5]
-#optimiz_beta_lower = [-1.5,-1.5,-1.5,-1.5]
-#optimiz_beta_upper = [1.5,1.5,1.5,1.5]
-optimiz_alpha_lower = [-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5]
-optimiz_alpha_upper = [1.5,1.5,1.5,1.5,1.5,1.5,1.5]
-optimiz_beta_lower = [-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5]
-optimiz_beta_upper = [1.5,1.5,1.5,1.5,1.5,1.5,1.5]
+optimiz_alpha_lower = [-1.5 for eb in range(0,len(energy_bin)-1)]
+optimiz_alpha_upper = [1.5 for eb in range(0,len(energy_bin)-1)]
+optimiz_beta_lower = [-1.5 for eb in range(0,len(energy_bin)-1)]
+optimiz_beta_upper = [1.5 for eb in range(0,len(energy_bin)-1)]
 optimiz_nbins = 10
 stable_rank = 3
 
@@ -1129,6 +1125,10 @@ Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E5","",nbins,-hist_limi
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E5","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E6","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E6","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E7","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E7","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E8","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E8","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_MDM = []
 Hist_Imposter_SystErrDist_Init = []
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E0","",nbins,-hist_limit_le,hist_limit_le)]
@@ -1145,6 +1145,10 @@ Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E5","
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E5","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E6","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E6","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E7","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E7","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E8","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E8","",nbins,-hist_limit_he,hist_limit_he)]
 
 for eb in range(0,len(energy_bin)-1):
     Hist_SystErrDist_MDM[eb].Reset()
