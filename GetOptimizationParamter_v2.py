@@ -55,8 +55,8 @@ expo_hours_per_entry = 50.
 #expo_hours_per_entry = 100.
 
 #background_type = 'RBM'
-background_type = 'ONOFF'
-#background_type = 'Matrix'
+#background_type = 'ONOFF'
+background_type = 'Matrix'
 analysis_type = 'Solo'
 #analysis_type = 'Mimic'
 
@@ -64,8 +64,8 @@ analysis_type = 'Solo'
 #observing_condition = 'north'
 #observing_condition = 'south'
 #observing_condition = 'eastwest'
-observing_condition = 'sza'
-#observing_condition = 'lza'
+#observing_condition = 'sza'
+observing_condition = 'lza'
 #observing_condition = 'hnsb'
 #observing_condition = 'lnsb'
 
@@ -773,7 +773,7 @@ optimiz_alpha_upper = [1.5 for eb in range(0,len(energy_bin)-1)]
 optimiz_beta_lower = [-1.5 for eb in range(0,len(energy_bin)-1)]
 optimiz_beta_upper = [1.5 for eb in range(0,len(energy_bin)-1)]
 optimiz_nbins = 10
-stable_rank = 3
+stable_rank = 2
 
 n_measurements = 0
 n_imposter_measurements = 0
@@ -1077,7 +1077,7 @@ plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_bkgd,marker='.',labe
 plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_stat,marker='.',label='stat. unc.')
 plt.plot(energy_array[0:len(energy_bin)-1],energy_dependent_syst,marker='.',label='syst. unc.')
 ax.legend(loc='best')
-plt.savefig("output_plots/SystVsStatErrors_Expo%s_%s_%s.png"%(expo_hours_per_entry,background_type,folder_path))
+plt.savefig("output_plots/SystVsStatErrors_Expo%s_%s_%s_%s.png"%(expo_hours_per_entry,background_type,observing_condition,folder_path))
 
 
 Hist_Bkgd_Optimization_Mean = []
@@ -1129,6 +1129,8 @@ Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E7","",nbins,-hist_limi
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E7","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E8","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E8","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E9","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E9","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_MDM = []
 Hist_Imposter_SystErrDist_Init = []
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E0","",nbins,-hist_limit_le,hist_limit_le)]
@@ -1149,6 +1151,8 @@ Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E7","
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E7","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E8","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E8","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E9","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E9","",nbins,-hist_limit_he,hist_limit_he)]
 
 for eb in range(0,len(energy_bin)-1):
     Hist_SystErrDist_MDM[eb].Reset()
@@ -1270,26 +1274,26 @@ for eb in range(0,len(energy_bin)-1):
     MakeMultipleFitPlot(ax,Hists,legends,colors,'relative error $\epsilon$','number of entries')
     fig.savefig("output_plots/SystErrDist_E%s_Expo%s_%s_%s_%s.png"%(eb,expo_hours_per_entry,background_type,observing_condition,folder_path))
 
-#list_var_pair = []
-#good_var_pair = []
-#good_eigenvalue = []
-#for eb in range(1,2):
-#    for row1 in range(0,stable_rank):
-#        for col1 in range(0,stable_rank):
-#            for row2 in range(0,stable_rank):
-#                for col2 in range(0,stable_rank):
-#                    idx1 = row1*stable_rank+col1
-#                    idx2 = row2*stable_rank+col2
-#                    list_var_pair = [[row1+1,col1+1]]
-#                    list_var_pair += [[row2+1,col2+1]]
-#                    if idx1<idx2:
-#                        print('=======================================================')
-#                        PrincipalComponentAnalysis(list_var_pair,eb)
-#                        #if math.isnan(max_eigenvalue): continue
-#                        #chi2_ratio = min(chi2[0]/chi2[1],chi2[1]/chi2[0])
-#                        MakeCorrelationPlot(list_var_pair,eb)
-#                        #good_var_pair += [list_var_pair]
-#                        #good_eigenvalue += [max_eigenvalue]
+list_var_pair = []
+good_var_pair = []
+good_eigenvalue = []
+for eb in range(1,6):
+    for row1 in range(0,stable_rank):
+        for col1 in range(0,stable_rank):
+            for row2 in range(0,stable_rank):
+                for col2 in range(0,stable_rank):
+                    idx1 = row1*stable_rank+col1
+                    idx2 = row2*stable_rank+col2
+                    list_var_pair = [[row1+1,col1+1]]
+                    list_var_pair += [[row2+1,col2+1]]
+                    if idx1<idx2:
+                        print('=======================================================')
+                        PrincipalComponentAnalysis(list_var_pair,eb)
+                        #if math.isnan(max_eigenvalue): continue
+                        #chi2_ratio = min(chi2[0]/chi2[1],chi2[1]/chi2[0])
+                        MakeCorrelationPlot(list_var_pair,eb)
+                        #good_var_pair += [list_var_pair]
+                        #good_eigenvalue += [max_eigenvalue]
 
 energy_dependent_scale = np.array(energy_dependent_scale)
 energy_dependent_bias = np.array(energy_dependent_bias)
@@ -1305,7 +1309,7 @@ if background_type=='ONOFF':
     print ('init_syst_err = %s'%(energy_dependent_syst_err))
     print ('init_chi2     = %s'%(energy_dependent_chi2))
 else:
-    print ('scale     = %s'%(energy_dependent_scale))
+    print ('scale    = %s'%(energy_dependent_scale))
     print ('bias     = %s'%(energy_dependent_bias))
     print ('syst     = %s'%(energy_dependent_syst))
     print ('syst_err = %s'%(energy_dependent_syst_err))

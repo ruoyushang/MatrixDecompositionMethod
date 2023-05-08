@@ -3356,6 +3356,7 @@ def NormalizeSkyMapHistograms(FilePath,ebin):
     Hist_OnData_Skymap_Galactic.Reset()
     Hist_OnData_Skymap_Galactic.Add(InputFile.Get(HistName))
     HistName = "Hist_OnData_CR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
+    #HistName = "Hist_OnDark_SR_Skymap_ErecS%sto%s"%(ErecS_lower_cut_int,ErecS_upper_cut_int)
     Hist_OnBkgd_Skymap.Reset()
     Hist_OnBkgd_Skymap.Add(InputFile.Get(HistName))
     Hist_Bkgd_Energy_Skymap[ebin].Add(InputFile.Get(HistName))

@@ -35,7 +35,9 @@ from spectral_cube import SpectralCube
 
 # Great examples of matplotlib plots: https://atmamani.github.io/cheatsheets/matplotlib/matplotlib_2/
 
-energy_bin = [100.,200.,316.,501.,1000.,1995.,5011.,12589.]
+energy_bin = [100.,200.,251.,316.,398.,501.,794.,1259.,1995.,5011.,12589.]
+#energy_bin = [100.,200.,251.,316.,398.,631.,1000.,1995.,5011.,12589.]
+#energy_bin = [100.,200.,316.,501.,1000.,1995.,5011.,12589.]
 #energy_bin = [100.,200.,398.,794.,1585.,3162.,6310.,12589.]
 energy_fine_bin = energy_bin
 
@@ -159,6 +161,10 @@ Skymap_size_x = 2.5
 Skymap_size_y = 2.5
 Skymap_nbins_x = 100
 Skymap_nbins_y = 100
+#Skymap_size_x = 3.5
+#Skymap_size_y = 3.5
+#Skymap_nbins_x = 140
+#Skymap_nbins_y = 140
 if doGalacticCoord:
     Skymap_nzones_x = 3
     Skymap_nzones_y = 3
@@ -176,9 +182,8 @@ if doGalacticCoord:
 #target_max_dist_cut = 3.
 target_max_dist_cut = 100.
 
+#elev_range = [55,90]
 elev_range = [40,90]
-#elev_range = [30,90]
-#elev_range = [35,45]
 
 def Hist2DIntegralAndError(Hist):
 
@@ -392,10 +397,10 @@ def ConvertRaDecToGalactic(ra, dec):
 
 def FindCountProjection(Hist_Data_input,proj_type="Y"):
 
-    n_bins_y = Hist_Data_input.GetNbinsY()
-    n_bins_x = Hist_Data_input.GetNbinsX()
-    #n_bins_y = 15
-    #n_bins_x = 15
+    #n_bins_y = Hist_Data_input.GetNbinsY()
+    #n_bins_x = Hist_Data_input.GetNbinsX()
+    n_bins_y = min(50,Hist_Data_input.GetNbinsY())
+    n_bins_x = min(50,Hist_Data_input.GetNbinsX())
     MapEdge_left = Hist_Data_input.GetXaxis().GetBinLowEdge(1)
     MapEdge_right = Hist_Data_input.GetXaxis().GetBinLowEdge(Hist_Data_input.GetNbinsX()+1)
     MapEdge_lower = Hist_Data_input.GetYaxis().GetBinLowEdge(1)

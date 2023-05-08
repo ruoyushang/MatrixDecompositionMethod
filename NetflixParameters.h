@@ -1,15 +1,17 @@
 
-const int N_energy_bins = 7;
-double energy_bins[N_energy_bins+1] = {100.,200.,316.,501.,1000.,1995.,5011.,12589.};
+const int N_energy_bins = 10;
+double energy_bins[N_energy_bins+1] = {100.,200.,251.,316.,398.,501.,794.,1259.,1995.,5011.,12589.};
+//double energy_bins[N_energy_bins+1] = {100.,200.,251.,316.,398.,631.,1000.,1995.,5011.,12589.};
+//double energy_bins[N_energy_bins+1] = {100.,200.,316.,501.,1000.,1995.,5011.,12589.};
 //double energy_bins[N_energy_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
-const int N_energy_fine_bins = 7;
-double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,316.,501.,1000.,1995.,5011.,12589.};
+const int N_energy_fine_bins = 10;
+double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,251.,316.,398.,501.,794.,1259.,1995.,5011.,12589.};
+//double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,251.,316.,398.,631.,1000.,1995.,5011.,12589.};
+//double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,316.,501.,1000.,1995.,5011.,12589.};
 //double energy_fine_bins[N_energy_fine_bins+1] = {100.,200.,398.,794.,1585.,3162.,6310.,12589.};
 
 int N_bins_for_deconv = 12;
-//int matrix_rank[N_energy_bins] = {1,1,1,1,1,1,1};
-int matrix_rank[N_energy_bins] = {2,2,2,2,2,1,1};
-//int matrix_rank[N_energy_bins] = {2,3,3,3,2,2,2,1,1};
+int matrix_rank[N_energy_bins] = {1,2,2,2,2,2,2,1,1,1};
 
 int MatchingSelection = 0; // default
 //int MatchingSelection = 1; // free elevation
@@ -25,12 +27,12 @@ double Log10_alpha_LE = 10.;
 double Log10_alpha_ME = 10.;
 double Log10_alpha_HE = 10.;
 double Log10_alpha[N_energy_bins] = {};
+double norm_scale[N_energy_bins] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+//double norm_scale[N_energy_bins] = {0.9863, 0.9962, 0.9982, 0.9977, 0.9983, 0.9994, 0.9931, 0.9810, 0.9731};
 //double norm_scale[N_energy_bins] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-double norm_scale[N_energy_bins] = {1.0717, 1.0040, 1.0037, 1.0036, 0.9908, 0.9958, 0.9793};
+//double norm_scale[N_energy_bins] = {1.0717, 1.0040, 1.0037, 1.0036, 0.9908, 0.9958, 0.9793};
 
 double exposure_limit = 5.; // default
-//double exposure_limit = 10.; // default
-//double exposure_limit = 1000.;
 
 double Log10_beta[N_energy_bins] =  {};
 double optimiz_alpha_lower[N_energy_bins] = {};
@@ -54,8 +56,6 @@ double Skymap_large_size_y = 5.;
 bool UseGalacticCoord = false;
 double Skymap_size_x = 2.5;
 double Skymap_size_y = 2.5;
-//double Skymap_size_x = 1.5;
-//double Skymap_size_y = 1.5;
 int Skymap_nbins_x = 100;
 int Skymap_nbins_y = 100;
 int Skymap_nzones_x = 1;
@@ -112,7 +112,7 @@ int NumberOfEigenvectors_Stable = 3;
 double MSCW_cut_loose = 0.9;
 double MSCL_cut_loose = 1.0;
 double camera_theta2_cut_lower = 0.;
-double camera_theta2_cut_upper = 3.;
+double camera_theta2_cut_upper = 4.0;
 double source_theta_cut = 0.2;
 
 int n_dark_samples = 1;

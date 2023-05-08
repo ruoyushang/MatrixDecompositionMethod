@@ -15,6 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from itertools import cycle
+from scipy import fftpack
 
 import matplotlib.pylab as pylab
 
@@ -46,7 +47,7 @@ energy_bin_cut_low = int(sys.argv[2])
 energy_bin_cut_up = int(sys.argv[3])
 doImposter = int(sys.argv[4])
 
-plot_energy_break_bin = 5
+plot_energy_break_bin = 8
 
 #n_imposters = 3
 n_imposters = 5
@@ -136,6 +137,21 @@ def fit_2d_model(hist_map_data, hist_map_bkgd, src_x, src_y):
     dof = len(image_data.ravel())-4
     print ('chisq/dof = %0.3f'%(chisq/dof))
 
+def CleanMapNoise(hist_input):
+
+    image_data = np.zeros((hist_input.GetNbinsX(),hist_input.GetNbinsY()))
+    for binx in range (0,hist_input.GetNbinsX()):
+        for biny in range (0,hist_input.GetNbinsY()):
+            image_data[biny,binx] = hist_input.GetBinContent(binx+1,biny+1)
+
+    k = 3
+    U_signal, S_signal, V_signal = np.linalg.svd(image_data,full_matrices=False)
+    image_svd_cleaned = U_signal[:, :k] @ np.diag(S_signal[:k]) @ V_signal[:k, :]
+
+    for binx in range (0,hist_input.GetNbinsX()):
+        for biny in range (0,hist_input.GetNbinsY()):
+            hist_input.SetBinContent(binx+1,biny+1,image_svd_cleaned[biny,binx])
+
 def FillSkyMapHistogram(hist_input,hist_output,scale=1.):
 
     temp_nbins_x = hist_output.GetNbinsX()
@@ -158,6 +174,55 @@ def FillSkyMapHistogram(hist_input,hist_output,scale=1.):
             hist_temp.SetBinError(bx2,by2,bin_error)
 
     hist_output.Add(hist_temp,scale)
+
+def fft_filter(hist_input):
+
+    image_data = np.zeros((hist_input.GetNbinsX(),hist_input.GetNbinsY()))
+    for binx in range (0,hist_input.GetNbinsX()):
+        for biny in range (0,hist_input.GetNbinsY()):
+            image_data[biny,binx] = hist_input.GetBinContent(binx+1,biny+1)
+
+    # Compute 2D Fourier transform
+    F = fftpack.fft2(image_data)
+    
+    # Shift the zero-frequency component to the center
+    F_shifted = fftpack.fftshift(F)
+    
+    rows, cols = image_data.shape
+
+    # Filter out high-frequency components
+    n = 6  # Number of frequency components to keep
+    crow, ccol = rows // 2, cols // 2  # Center coordinates
+    F_shifted[crow-n:crow+n+1, ccol-n:ccol+n+1] = 0
+    
+    # Shift the zero-frequency component back to the corner
+    F_filtered = fftpack.ifftshift(F_shifted)
+    
+    # Compute the inverse Fourier transform to get the filtered image
+    image_fft_cleaned = image_data - np.real(fftpack.ifft2(F_filtered))
+
+    for binx in range (0,hist_input.GetNbinsX()):
+        for biny in range (0,hist_input.GetNbinsY()):
+            hist_input.SetBinContent(binx+1,biny+1,image_fft_cleaned[biny,binx])
+
+def DivideSkyMapHistogram(hist_numerator,hist_demoniator,hist_output):
+
+    temp_nbins_x = hist_output.GetNbinsX()
+    temp_nbins_y = hist_output.GetNbinsY()
+    temp_map_left = hist_output.GetXaxis().GetBinLowEdge(1)
+    temp_map_right = hist_output.GetXaxis().GetBinLowEdge(hist_output.GetNbinsX()+1)
+    temp_map_lower = hist_output.GetYaxis().GetBinLowEdge(1)
+    temp_map_upper = hist_output.GetYaxis().GetBinLowEdge(hist_output.GetNbinsY()+1)
+    hist_temp_n = ROOT.TH2D("hist_temp_n","",temp_nbins_x,temp_map_left,temp_map_right,temp_nbins_y,temp_map_lower,temp_map_upper)
+    hist_temp_d = ROOT.TH2D("hist_temp_d","",temp_nbins_x,temp_map_left,temp_map_right,temp_nbins_y,temp_map_lower,temp_map_upper)
+
+    hist_temp_n.Add(hist_numerator)
+    hist_temp_d.Add(hist_demoniator)
+
+    hist_output.Add(hist_temp_n)
+    hist_output.Divide(hist_temp_d)
+
+    fft_filter(hist_output)
 
 def MakeDiagnisticPlots():
 
@@ -195,9 +260,9 @@ def GetFluxCalibration(energy,elev):
     #str_flux_calibration_el50 = ['1.39e-09', '1.59e-11', '3.48e-12', '1.49e-12', '7.50e-13', '3.72e-13', '1.91e-13']
 
     # energy threshold = 100 GeV, new binning
-    str_flux_calibration_el70 = ['2.19e-10', '1.99e-11', '9.71e-12', '3.82e-12', '1.81e-12', '7.56e-13', '3.06e-13']
-    str_flux_calibration_el60 = ['2.67e-10', '2.04e-11', '9.05e-12', '3.56e-12', '1.68e-12', '6.95e-13', '2.77e-13']
-    str_flux_calibration_el50 = ['1.26e-09', '2.96e-11', '7.16e-12', '2.55e-12', '1.15e-12', '4.66e-13', '1.81e-13']
+    str_flux_calibration_el70 = ['2.03e-10', '3.99e-11', '2.53e-11', '1.83e-11', '1.33e-11', '5.31e-12', '3.20e-12', '2.01e-12', '7.56e-13', '3.06e-13']
+    str_flux_calibration_el60 = ['2.48e-10', '4.33e-11', '2.51e-11', '1.74e-11', '1.24e-11', '5.02e-12', '3.01e-12', '1.84e-12', '7.02e-13', '2.80e-13']
+    str_flux_calibration_el50 = ['1.27e-09', '8.67e-11', '3.04e-11', '1.55e-11', '9.34e-12', '3.77e-12', '2.19e-12', '1.30e-12', '4.88e-13', '1.90e-13']
 
     flux_calibration_el70 = []
     flux_calibration_el60 = []
@@ -344,6 +409,7 @@ def GetMapChi2Distribution(hist_z,hist_cnt):
             content = hist_z.GetBinContent(binx+1,biny+1)
             count = hist_cnt.GetBinContent(binx+1,biny+1)
             #if count/count_max<0.5: continue
+            if count==0.: continue
             zscores += [content]
     return zscores
 
@@ -366,17 +432,21 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_on_raw_bkgd
             for biny in range(0,hist_mimic_data_skymap[0][ebin].GetNbinsY()):
                 sum_square = 0.
                 sum_bkgd = 0.
+                sum_bkgd_stat_err = 0.
                 for imposter in range(0,n_imposters):
                     imposter_data = hist_mimic_data_skymap[imposter][ebin].GetBinContent(binx+1,biny+1)
+                    imposter_data_err = hist_mimic_data_skymap[imposter][ebin].GetBinError(binx+1,biny+1)
                     imposter_bkgd = hist_mimic_bkgd_skymap[imposter][ebin].GetBinContent(binx+1,biny+1)
                     sum_square += pow(imposter_data-imposter_bkgd,2)
                     sum_bkgd += imposter_bkgd
+                    sum_bkgd_stat_err += imposter_data_err*imposter_data_err
                 total_error = pow(sum_square/float(n_imposters-1),0.5)
                 avg_bkgd = sum_bkgd/float(n_imposters)
                 if avg_bkgd<=0.: continue
-                avg_stat_err = pow(avg_bkgd,0.5)
+                avg_stat_err = pow(sum_bkgd_stat_err/float(n_imposters),0.5)
                 syst_error = total_error*total_error-avg_stat_err*avg_stat_err
                 syst_error = pow(max(syst_error,0.),0.5)
+                #syst_error = total_error
                 hist_total_err_skymap[ebin].SetBinContent(binx+1,biny+1,total_error)
                 hist_syst_err_skymap[ebin].SetBinContent(binx+1,biny+1,syst_error)
                 hist_avg_bkgd_skymap[ebin].SetBinContent(binx+1,biny+1,avg_bkgd)
@@ -513,18 +583,22 @@ def MakeSignificanceMap(hist_on_data_skymap,hist_on_bkgd_skymap,hist_on_raw_bkgd
                 for biny in range(0,hist_mimic_data_skymap[0][ebin].GetNbinsY()):
                     sum_square = 0.
                     sum_bkgd = 0.
+                    sum_bkgd_stat_err = 0.
                     for imposter2 in range(0,n_imposters):
                         if imposter==imposter2: continue
                         imposter_data = hist_mimic_data_skymap[imposter2][ebin].GetBinContent(binx+1,biny+1)
+                        imposter_data_err = hist_mimic_data_skymap[imposter][ebin].GetBinError(binx+1,biny+1)
                         imposter_bkgd = hist_mimic_bkgd_skymap[imposter2][ebin].GetBinContent(binx+1,biny+1)
                         sum_square += pow(imposter_data-imposter_bkgd,2)
                         sum_bkgd += imposter_bkgd
+                        sum_bkgd_stat_err += imposter_data_err*imposter_data_err
                     total_error = pow(sum_square/float(n_imposters-1),0.5)
                     avg_bkgd = sum_bkgd/float(n_imposters-1)
                     if avg_bkgd<=0.: continue
-                    avg_stat_err = pow(avg_bkgd,0.5)
+                    avg_stat_err = pow(sum_bkgd_stat_err/float(n_imposters),0.5)
                     syst_error = total_error*total_error-avg_stat_err*avg_stat_err
                     syst_error = pow(max(syst_error,0.),0.5)
+                    #syst_error = total_error
                     hist_syst_err_skymap[ebin].SetBinContent(binx+1,biny+1,syst_error)
         for ebin in range(energy_bin_cut_low,energy_bin_cut_up):
             hist_mimic_data_skymap_sum.Add(hist_mimic_data_skymap[imposter][ebin])
@@ -1708,12 +1782,31 @@ def MakeSpectrum(roi_x,roi_y,roi_r,roi_name,excl_roi_x,excl_roi_y,excl_roi_r,exc
     fig.set_figwidth(figsize_x)
     axbig = fig.add_subplot()
     axbig.errorbar(energy_axis,bkgd_flux,bkgd_flux_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='bkg flux')
+    for ebin in range(0,len(energy_axis)):
+        axbig.text(energy_axis[ebin]-0.5*energy_error[ebin], bkgd_flux[ebin], '%s'%(ebin+energy_bin_cut_low))
     axbig.set_xlabel('Energy [GeV]')
     axbig.set_ylabel('$E^{2}$ dN/dE [$\mathrm{TeV}\cdot\mathrm{cm}^{-2}\mathrm{s}^{-1}$]')
     axbig.set_xscale('log')
-    axbig.set_yscale('log')
+    #axbig.set_yscale('log')
     axbig.legend(loc='best')
-    plotname = 'BkgdSpectrum_%s'%(roi_name)
+    plotname = 'BkgdFluxSpectrum_%s'%(roi_name)
+    fig.savefig("output_plots/%s_%s.png"%(plotname,plot_tag),bbox_inches='tight')
+    axbig.remove()
+
+    energy_axis, energy_error, bkgd_cnt, bkgd_cnt_stat_err = CommonPlotFunctions.GetRegionSpectrum_v2(hist_real_bkgd_skymap,hist_real_flux_syst_skymap,None,energy_bin_cut_low,energy_bin_cut_up,roi_x,roi_y,roi_r,excl_roi_x,excl_roi_y,excl_roi_r)
+    fig.clf()
+    fig.set_figheight(figsize_y)
+    fig.set_figwidth(figsize_x)
+    axbig = fig.add_subplot()
+    axbig.errorbar(energy_axis,bkgd_cnt,bkgd_cnt_stat_err,xerr=energy_error,color='k',marker='_',ls='none',label='bkg count')
+    for ebin in range(0,len(energy_axis)):
+        axbig.text(energy_axis[ebin]-0.5*energy_error[ebin], bkgd_cnt[ebin], '%s'%(ebin+energy_bin_cut_low))
+    axbig.set_xlabel('Energy [GeV]')
+    axbig.set_ylabel('Count')
+    axbig.set_xscale('log')
+    #axbig.set_yscale('log')
+    axbig.legend(loc='best')
+    plotname = 'BkgdCountSpectrum_%s'%(roi_name)
     fig.savefig("output_plots/%s_%s.png"%(plotname,plot_tag),bbox_inches='tight')
     axbig.remove()
 
@@ -2186,7 +2279,6 @@ if doImposter==1:
         for ebin in range(0,len(energy_bin)-1):
             HistName = "hist_data_skymap_%s"%(ebin)
             FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_data_skymap[imposter][ebin])
-            FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bias_skymap[imposter][ebin])
             if UseEffectiveArea:
                 HistName = "hist_expo_hour_skymap_sum"
             else:
@@ -2204,9 +2296,18 @@ if doImposter==1:
             FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_raw_bkgd_skymap[imposter][ebin])
             data_norm = hist_imposter_data_skymap[imposter][ebin].Integral()
             bkgd_norm = hist_imposter_bkgd_skymap[imposter][ebin].Integral()
-            #FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bias_skymap[imposter][ebin],scale=-1.*data_norm/bkgd_norm)
-            FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bias_skymap[imposter][ebin],scale=-1.)
-            #hist_imposter_bias_skymap[imposter][ebin].Divide(hist_imposter_bkgd_skymap[imposter][ebin])
+            #if bkgd_norm==0.:
+            #    FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bias_skymap[imposter][ebin],scale=0.)
+            #else:
+            #    FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bias_skymap[imposter][ebin],scale=-1.*data_norm/bkgd_norm)
+            #FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bias_skymap[imposter][ebin],scale=-1.)
+            if energy_bin[ebin]>700.:
+                HistName = "hist_data_skymap_%s"%(ebin)
+                FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bias_skymap[imposter][ebin])
+                HistName = "hist_bkgd_skymap_%s"%(ebin)
+                FillSkyMapHistogram(InputFile.Get(HistName),hist_imposter_bias_skymap[imposter][ebin],scale=-1.)
+            else:
+                DivideSkyMapHistogram(hist_imposter_data_skymap[imposter][ebin],hist_imposter_bkgd_skymap[imposter][ebin],hist_imposter_bias_skymap[imposter][ebin])
         InputFile.Close()
 
     exposure_scaling_factors = []
@@ -2237,12 +2338,15 @@ if correct_bias:
         for imposter in range(0,n_imposters):
             hist_real_bias_skymap[ebin].Add(hist_imposter_bias_skymap[imposter][ebin],1./float(n_imposters))
     for ebin in range(0,len(energy_bin)-1):
-        #if ebin>=3: continue
-        hist_real_bkgd_skymap[ebin].Add(hist_real_bias_skymap[ebin])
-        #hist_real_bkgd_skymap[ebin].Multiply(hist_real_bias_skymap[ebin])
+        if energy_bin[ebin]>700.:
+            hist_real_bkgd_skymap[ebin].Add(hist_real_bias_skymap[ebin])
+        else:
+            hist_real_bkgd_skymap[ebin].Multiply(hist_real_bias_skymap[ebin])
         for imposter in range(0,n_imposters):
-            hist_imposter_bkgd_skymap[imposter][ebin].Add(hist_real_bias_skymap[ebin])
-            #hist_imposter_bkgd_skymap[imposter][ebin].Multiply(hist_real_bias_skymap[ebin])
+            if energy_bin[ebin]>700.:
+                hist_imposter_bkgd_skymap[imposter][ebin].Add(hist_real_bias_skymap[ebin])
+            else:
+                hist_imposter_bkgd_skymap[imposter][ebin].Multiply(hist_real_bias_skymap[ebin])
 else:
     plot_tag += '_NC'
 
@@ -2469,25 +2573,14 @@ elif (source_name=='MGRO_J1908' or source_name=='PSR_J1907_p0602') and not Commo
     Hist_Tobias_reflect = CommonPlotFunctions.reflectXaxis(Hist_Tobias)
     CommonPlotFunctions.MatplotlibMap2D(Hist_Tobias_reflect,None,None,fig,'RA','Dec','significance','SkymapTobias_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
-    Hist_Fermi_cnt = ROOT.TH2D("Hist_Fermi_cnt","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
-    MWL_map_file = 'MWL_maps/ft1_03_30gev-2tev_1000pix_0.01deg_cmap.fits'
-    Hist_Fermi_cnt = CommonPlotFunctions.GetFITSMap(MWL_map_file, Hist_Fermi_cnt, True)
-    Hist_Fermi_cnt_reflect = CommonPlotFunctions.reflectXaxis(Hist_Fermi_cnt)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_Fermi_cnt_reflect,None,None,fig,'RA','Dec','Count','SkymapFermiCnt_30GeV_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
-
-    #Hist_Fermi = ROOT.TH2D("Hist_Fermi","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
-    #MWL_map_file = 'MWL_maps/rg_nothing_gone_all_30-300gev_pointsource_powerlaw_2.00_tsmap.fits'
-    #Hist_Fermi = CommonPlotFunctions.GetFITSMap(MWL_map_file, Hist_Fermi, True)
-    ##Hist_Fermi = CommonPlotFunctions.ConvertTSmapToZscore(Hist_Fermi)
-    #Hist_Fermi_reflect = CommonPlotFunctions.reflectXaxis(Hist_Fermi)
-    #CommonPlotFunctions.MatplotlibMap2D(Hist_Fermi_reflect,None,None,fig,'RA','Dec','TS','SkymapFermi_smallbin_30GeV_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
     Hist_Fermi = ROOT.TH2D("Hist_Fermi","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
-    #MWL_map_file = 'MWL_maps/sajan_rg_nothing_gone_all_30gev_pointsource_powerlaw_2.00_tsmap.fits'
-    MWL_map_file = 'MWL_maps/rg_nothing_gone_all_30-300gev_pointsource_powerlaw_2.00_tsmap.fits'
+    #MWL_map_file = 'MWL_maps/rg_nothing_gone_all_30-300gev_pointsource_powerlaw_2.00_tsmap.fits'
+    MWL_map_file = 'MWL_maps/rg_removed_residualmap_30gev-2tev_pointsource_powerlaw_2.00_residmap.fits'
     Hist_Fermi = CommonPlotFunctions.GetFITSMap(MWL_map_file, Hist_Fermi, True)
+    Hist_Fermi = CommonPlotFunctions.Smooth2DMap(Hist_Fermi,0.1,False,False)
     #Hist_Fermi = CommonPlotFunctions.ConvertTSmapToZscore(Hist_Fermi)
     Hist_Fermi_reflect = CommonPlotFunctions.reflectXaxis(Hist_Fermi)
-    CommonPlotFunctions.MatplotlibMap2D(Hist_Fermi_reflect,None,None,fig,'RA','Dec','TS','SkymapFermi_30GeV_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
+    CommonPlotFunctions.MatplotlibMap2D(Hist_Fermi_reflect,None,None,fig,'RA','Dec','Excess count','SkymapFermi_30GeV_%s'%(plot_tag),rotation_angle=text_angle,prime_psr_name=prime_psr_name,prime_psr_ra=prime_psr_ra,prime_psr_dec=prime_psr_dec)
 
     #Hist_Hawc = ROOT.TH2D("Hist_Hawc","",nbins_x,MapEdge_left,MapEdge_right,nbins_y,MapEdge_lower,MapEdge_upper)
     #Hist_Hawc.Rebin2D(3,3)
@@ -2667,20 +2760,12 @@ elif 'PSR_J1928_p1746' in source_name:
     region_name = '4FGL J1928.4+1801c'
     do_fit = 0
 
-elif 'Segue1' in source_name:
-    text_angle = 45.
-    region_x = 151.83
-    region_y = 16.76
-    region_r = [0.3 for element in range(len(energy_bin)-1)]
-    region_name = 'Star'
-    do_fit = 0
-
 else:
     text_angle = 45.
     region_x = MapCenter_x
     region_y = MapCenter_y
     #region_r = [CommonPlotFunctions.calibration_radius for element in range(len(energy_bin)-1)]
-    region_r = [1.5 for element in range(len(energy_bin)-1)]
+    region_r = [2.5 for element in range(len(energy_bin)-1)]
     region_name = 'Center'
     do_fit = 0
 

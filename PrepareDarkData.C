@@ -2363,14 +2363,24 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         sprintf(e_low, "%i", int(energy_bins[e]));
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
-        int Xoff_bins = 8;
-        int Yoff_bins = 8;
+
+        int Xoff_bins = 10;
+        int Yoff_bins = 10;
         int Roff_bins = 10;
-        if (e>2)
+        if (energy_bins[e]>600.)
         {
-            Xoff_bins = 4;
-            Yoff_bins = 4;
-            Roff_bins = 4;
+            Xoff_bins = 6;
+            Yoff_bins = 6;
+        }
+        if (energy_bins[e]>1000.)
+        {
+            Xoff_bins = 3;
+            Yoff_bins = 3;
+        }
+        if (energy_bins[e]>1500.)
+        {
+            Xoff_bins = 1;
+            Yoff_bins = 1;
         }
         Hist_SRDark_XYoff.push_back(TH2D("Hist_SRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Xoff_bins,-2,2,Yoff_bins,-2,2));
         Hist_CRDark_XYoff.push_back(TH2D("Hist_CRDark_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Xoff_bins,-2,2,Yoff_bins,-2,2));
@@ -2378,19 +2388,20 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         Hist_CRDark_Roff.push_back(TH1D("Hist_CRDark_Roff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Roff_bins,0,2));
         Hist_SRCRDarkRatio_XYoff.push_back(TH2D("Hist_SRCRDarkRatio_XYoff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Xoff_bins,-2,2,Yoff_bins,-2,2));
         Hist_SRCRDarkRatio_Roff.push_back(TH1D("Hist_SRCRDarkRatio_Roff_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",Roff_bins,0,2));
-        //int RaDec_bins = 30;
-        //int RaDec_bins = 20;
+
         int RaDec_bins = 20;
-        if (e>=2)
+        if (energy_bins[e]>600.)
         {
             RaDec_bins = 10;
         }
-        if (e>=4)
+        if (energy_bins[e]>1000.)
         {
             RaDec_bins = 5;
         }
-        // TRandom::Uniform(x) throws a flat distribution from 0 to x
-        double map_binsize = 2*Skymap_size_y/double(RaDec_bins);
+        if (energy_bins[e]>1500.)
+        {
+            RaDec_bins = 1;
+        }
         Hist_SRDark_RaDec.push_back(TH2D("Hist_SRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,map_center_x-2*Skymap_size_x,map_center_x+2*Skymap_size_x,RaDec_bins,map_center_y-2*Skymap_size_y,map_center_y+2*Skymap_size_y));
         Hist_CRDark_RaDec.push_back(TH2D("Hist_CRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,map_center_x-2*Skymap_size_x,map_center_x+2*Skymap_size_x,RaDec_bins,map_center_y-2*Skymap_size_y,map_center_y+2*Skymap_size_y));
         Hist_TightCRDark_RaDec.push_back(TH2D("Hist_TightCRDark_RaDec_ErecS"+TString(e_low)+TString("to")+TString(e_up),"",RaDec_bins,map_center_x-2*Skymap_size_x,map_center_x+2*Skymap_size_x,RaDec_bins,map_center_y-2*Skymap_size_y,map_center_y+2*Skymap_size_y));
@@ -3123,17 +3134,9 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             double xyoff_weight = Hist_SRCRDarkRatio_XYoff.at(energy).GetBinContent(big_bin_xoff,big_bin_yoff);
             double radec_weight = Hist_SRCRDarkRatio_RaDec.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
             double tight_radec_weight = Hist_TightSRCRDarkRatio_RaDec.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
-            double acceptance_weight = radec_weight;
+            //double acceptance_weight = radec_weight;
+            double acceptance_weight = xyoff_weight;
             double tight_acceptance_weight = tight_radec_weight;
-            if (AcceptanceCorrection==2)
-            {
-                acceptance_weight = xyoff_weight;
-            }
-            if (AcceptanceCorrection==3)
-            {
-                acceptance_weight = roff_weight;
-            }
-            acceptance_weight = 1.;
             double energy_weight = 1.;
             if (dark_cr_content_energy>0.)
             {
@@ -3274,17 +3277,9 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             double xyoff_weight = Hist_SRCRDarkRatio_XYoff.at(energy).GetBinContent(big_bin_xoff,big_bin_yoff);
             double radec_weight = Hist_SRCRDarkRatio_RaDec.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
             double tight_radec_weight = Hist_TightSRCRDarkRatio_RaDec.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
-            double acceptance_weight = radec_weight;
+            //double acceptance_weight = radec_weight;
+            double acceptance_weight = xyoff_weight;
             double tight_acceptance_weight = tight_radec_weight;
-            if (AcceptanceCorrection==2)
-            {
-                acceptance_weight = xyoff_weight;
-            }
-            if (AcceptanceCorrection==3)
-            {
-                acceptance_weight = roff_weight;
-            }
-            acceptance_weight = 1.;
             double energy_weight = 1.;
             if (dark_cr_content_energy>0.)
             {
@@ -3435,17 +3430,9 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             double xyoff_weight = Hist_SRCRDarkRatio_XYoff.at(energy).GetBinContent(big_bin_xoff,big_bin_yoff);
             double radec_weight = Hist_SRCRDarkRatio_RaDec.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
             double tight_radec_weight = Hist_TightSRCRDarkRatio_RaDec.at(energy).GetBinContent(big_bin_ra,big_bin_dec);
-            double acceptance_weight = radec_weight;
+            //double acceptance_weight = radec_weight;
+            double acceptance_weight = xyoff_weight;
             double tight_acceptance_weight = tight_radec_weight;
-            if (AcceptanceCorrection==2)
-            {
-                acceptance_weight = xyoff_weight;
-            }
-            if (AcceptanceCorrection==3)
-            {
-                acceptance_weight = roff_weight;
-            }
-            acceptance_weight = 1.;
             double energy_weight = 1.;
             if (dark_cr_content_energy>0.)
             {
@@ -3492,8 +3479,8 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     {
                         if (!UseGalacticCoord)
                         {
-                            Hist_OnData_CR_Skymap.at(energy).Fill(complementary_ra_sky,complementary_dec_sky,0.5);
-                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(complementary_ra_sky,complementary_dec_sky,0.5);
+                            Hist_OnData_CR_Skymap.at(energy).Fill(complementary_ra_sky,complementary_dec_sky,0.5*acceptance_weight);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(complementary_ra_sky,complementary_dec_sky,0.5*acceptance_weight);
                         }
                         else
                         {
@@ -3511,8 +3498,8 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     {
                         if (!UseGalacticCoord)
                         {
-                            Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,0.5);
-                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(ra_sky,dec_sky,0.5);
+                            Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,0.5*acceptance_weight);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(ra_sky,dec_sky,0.5*acceptance_weight);
                         }
                         else
                         {
@@ -3528,8 +3515,8 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                         Hist_OnData_CR_XYoff.at(energy).Fill(Xoff,Yoff,acceptance_weight);
                         if (!UseGalacticCoord)
                         {
-                            Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,1.);
-                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(ra_sky,dec_sky,1.);
+                            Hist_OnData_CR_Skymap.at(energy).Fill(ra_sky,dec_sky,1.*acceptance_weight);
+                            Hist_OnData_CR_LargeSkymap.at(energy).Fill(ra_sky,dec_sky,1.*acceptance_weight);
                         }
                         else
                         {
