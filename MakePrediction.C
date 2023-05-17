@@ -1302,26 +1302,9 @@ pair<MatrixXcd,MatrixXcd> NuclearNormMinimization(MatrixXcd mtx_init_input, Matr
                 for (int idx_n=0;idx_n<size_n;idx_n++)
                 {
                     int nth_entry = idx_n+1;
-                    if (isBlind)
-                    {
-                        if (kth_entry>entry_size && nth_entry>entry_size) continue;
-                        if (kth_entry>entry_size || nth_entry>entry_size) continue;
-                        //
-                        if (RegularizationType==7)
-                        {
-                            if (kth_entry>=3 && nth_entry>=3) continue;
-                            if (kth_entry>3 || nth_entry>3) continue;
-                        }
-                        if (RegularizationType==1)
-                        {
-                            if (kth_entry>3 || nth_entry>3) continue;
-                        }
-                        if (RegularizationType==2)
-                        {
-                            if (kth_entry>=3 && nth_entry>=3) continue;
-                            if (kth_entry>5 || nth_entry>5) continue;
-                        }
-                    }
+                    if (kth_entry>entry_size && nth_entry>entry_size) continue;
+                    if (kth_entry>entry_size) continue;
+                    if (nth_entry>entry_size) continue;
                     int idx_v = idx_k*size_n + idx_n;
                     mtx_A(idx_u,idx_v) = weight*mtx_U_dark(idx_i,idx_k)*mtx_V_dark(idx_j,idx_n);
                     if (isBlind)
@@ -3034,7 +3017,7 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
             NormalizeDarkMatrix(&Hist_OnData_MSCLW.at(e),&hist_dark_temp,0.);
             mtx_dark = fillMatrix(&hist_dark_temp);
             mtx_data_bkgd = NuclearNormMinimization(mtx_dark,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,1e10,0.,e).first;
-            //mtx_data_bkgd = NuclearNormMinimization(mtx_data_bkgd,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,0.,1e10,e).first;
+            //mtx_data_bkgd = NuclearNormMinimization(mtx_data_bkgd,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,1.,1e10,e).first;
             //mtx_data_bkgd = NuclearNormMinimization(mtx_data_bkgd,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,1e10,0.,e).first;
             //mtx_data_bkgd = NuclearNormMinimization(mtx_data_bkgd,mtx_data,mtx_dark,1,NumberOfEigenvectors_Stable,true,0.,1e10,e).first;
             fill2DHistogram(&Hist_Temp_Bkgd,mtx_data_bkgd);
@@ -3068,8 +3051,9 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         double SR_skymap_integral = Hist_OnData_SR_Skymap.at(e).Integral();
         double CR_skymap_integral = Hist_OnData_CR_Skymap.at(e).Integral();
         double SR_dark_skymap_integral = Hist_OnDark_SR_Skymap.at(e).Integral();
-        std::cout << "Bkgd_SR_Integral = " << Bkgd_SR_Integral << ", Data_SR_Integral = " << Data_SR_Integral << std::endl;
         std::cout << "SR_skymap_integral = " << SR_skymap_integral << ", CR_skymap_integral = " << CR_skymap_integral << std::endl;
+        std::cout << "Bkgd_SR_Integral = " << Bkgd_SR_Integral << ", Data_SR_Integral = " << Data_SR_Integral << std::endl;
+        std::cout << "Dark_SR_Integral = " << Dark_SR_Integral << std::endl;
         //double Dark_SR_Integral = 0.;
         //double dark_weight = 1./double(n_dark_samples);
         //for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
@@ -3079,7 +3063,6 @@ void MakePrediction_SubGroup(string target_data, double tel_elev_lower_input, do
         double Old_Integral_Energy = Hist_OnData_CR_Energy.at(e).Integral();
         double Old_Integral_Yoff = Hist_OnData_CR_Yoff.at(e).Integral();
         double Old_Integral_Raw = Hist_OnDark_SR_Energy_Tmp.at(e).Integral();
-        std::cout << "Old_Integral_Raw = " << Old_Integral_Raw << std::endl;
         double scale_energy = 0.;
         double scale_yoff = 0.;
         double scale_dark_energy = 0.;

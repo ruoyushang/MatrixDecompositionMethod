@@ -60,14 +60,18 @@ background_type = 'Matrix'
 analysis_type = 'Solo'
 #analysis_type = 'Mimic'
 
-#observing_condition = 'all'
-#observing_condition = 'north'
-#observing_condition = 'south'
-#observing_condition = 'eastwest'
-#observing_condition = 'sza'
-observing_condition = 'lza'
-#observing_condition = 'hnsb'
-#observing_condition = 'lnsb'
+observing_condition = 'obs'
+#observing_condition += '_all'
+#observing_condition += '_north'
+#observing_condition += '_south'
+#observing_condition += '_eastwest'
+#observing_condition += '_sza'
+#observing_condition += '_mza'
+observing_condition += '_lza'
+#observing_condition += '_hnsb'
+#observing_condition += '_lnsb'
+#observing_condition += '_good'
+#observing_condition += '_bad'
 
 
 sample_list = []
@@ -107,7 +111,7 @@ if analysis_type=='Solo':
     sample_list += ['M82V6_OFF'] # north
     sample_list += ['M82V5_OFF'] # north
     sample_list += ['1ES1011V6_OFF'] # north
-if analysis_type=='Mimic' and observing_condition=='north':
+if analysis_type=='Mimic' and 'north' in observing_condition:
     ONOFF_tag_sample = 'OFF'
     sample_list += ['UrsaMajorIIV6_OFF']
     sample_list += ['UrsaMinorV6_OFF']
@@ -129,7 +133,7 @@ if analysis_type=='Mimic' and observing_condition=='north':
         imposter_list += ['NGC1275V6_Imposter%s'%(imposter_ID)]
         imposter_list += ['DracoV6_Imposter%s'%(imposter_ID)]
         imposter_list += ['DracoV5_Imposter%s'%(imposter_ID)]
-if analysis_type=='Mimic' and observing_condition=='south':
+if analysis_type=='Mimic' and 'south' in observing_condition:
     ONOFF_tag_sample = 'OFF'
     sample_list += ['Sky_RA38Dec20_V6_OFF']
     sample_list += ['Sky_RA38Dec20_V5_OFF']
@@ -147,7 +151,7 @@ if analysis_type=='Mimic' and observing_condition=='south':
         imposter_list += ['Segue1V6_Imposter%s'%(imposter_ID)]
         imposter_list += ['Segue1V5_Imposter%s'%(imposter_ID)]
         imposter_list += ['1ES0414V5_Imposter%s'%(imposter_ID)]
-if analysis_type=='Mimic' and observing_condition=='all':
+if analysis_type=='Mimic' and 'all' in observing_condition:
     ONOFF_tag_sample = 'ON'
     #sample_list += ['UrsaMajorIIV6_OFF']
     #sample_list += ['UrsaMinorV6_OFF']
@@ -257,10 +261,13 @@ def GetObservingCondition(file_path):
     mean_elev = InfoTree.mean_elev
     mean_azim = InfoTree.mean_azim
     mean_nsb = InfoTree.mean_nsb
+    mean_off_elev = InfoTree.mean_off_elev
+    mean_off_azim = InfoTree.mean_off_azim
+    mean_off_nsb = InfoTree.mean_off_nsb
 
     print ('Open %s, mean_azim = %0.2f'%(file_path,mean_azim))
 
-    return mean_elev, mean_azim, mean_nsb
+    return mean_elev, mean_azim, mean_nsb, mean_off_elev, mean_off_azim, mean_off_nsb
 
 def GetGammaCounts(file_path,ebin):
 
@@ -633,21 +640,28 @@ def LoopOverFiles():
                             continue
                         else:
                             print ('Found a file.')
-                        mean_elev, mean_azim, mean_nsb = GetObservingCondition(FilePath_Folder[len(FilePath_Folder)-1])
-                        if observing_condition=='north':
+                        mean_elev, mean_azim, mean_nsb, mean_off_elev, mean_off_azim, mean_off_nsb = GetObservingCondition(FilePath_Folder[len(FilePath_Folder)-1])
+                        if 'north' in observing_condition:
                             if abs(mean_azim-0.)>45.: continue
-                        if observing_condition=='south':
+                        if 'south' in observing_condition:
                             if abs(mean_azim-180.)>45.: continue
-                        if observing_condition=='eastwest':
+                        if 'eastwest' in observing_condition:
                             if abs(mean_azim-0.)<45. or abs(mean_azim-180.)<45.: continue
-                        if observing_condition=='sza':
+                        if 'sza' in observing_condition:
                             if mean_elev<65.: continue
-                        if observing_condition=='lza':
+                        if 'mza' in observing_condition:
                             if mean_elev>65.: continue
-                        if observing_condition=='hnsb':
-                            if mean_nsb<5.: continue
-                        if observing_condition=='lnsb':
-                            if mean_nsb>5.: continue
+                            if mean_elev<55.: continue
+                        if 'lza' in observing_condition:
+                            if mean_elev>55.: continue
+                        if 'hnsb' in observing_condition:
+                            if mean_nsb<6.: continue
+                        if 'lnsb' in observing_condition:
+                            if mean_nsb>6.: continue
+                        if 'good' in observing_condition:
+                            if abs(mean_nsb-mean_off_nsb)>1.: continue
+                        if 'bad' in observing_condition:
+                            if abs(mean_nsb-mean_off_nsb)<1.: continue
                         Hist_Data_Eigenvalues_E = []
                         Hist_Bkgd_Optimization_E = []
                         rank_E = []
@@ -1019,6 +1033,7 @@ for eb in range(0,len(energy_bin)-1):
             bkgd_cnt_sum += bkgd_count[entry][eb]
         if n_expo_hours>=expo_hours_per_entry:
             if data_cnt_sum<10.: continue
+            if bkgd_cnt_sum<10.: continue
             epsilon_bkgd = (data_cnt_sum-bkgd_cnt_sum)/data_cnt_sum
             epsilon_bias_avg += epsilon_bkgd
             epsilon_scale_avg += data_cnt_sum/bkgd_cnt_sum
@@ -1027,8 +1042,9 @@ for eb in range(0,len(energy_bin)-1):
             data_cnt_sum = 0.
             bkgd_cnt_sum = 0.
             n_entries += 1.
-    epsilon_bias_avg = epsilon_bias_avg/n_entries
-    epsilon_scale_avg = epsilon_scale_avg/n_entries
+    if n_entries>0:
+        epsilon_bias_avg = epsilon_bias_avg/n_entries
+        epsilon_scale_avg = epsilon_scale_avg/n_entries
     n_entries = 0.
     n_measures = 0.
     n_expo_hours = 0.
@@ -1056,13 +1072,21 @@ for eb in range(0,len(energy_bin)-1):
     if n_entries>0.:
         epsilon_bkgd_avg = pow(epsilon_bkgd_avg/n_entries,0.5)
         epsilon_stat_avg = pow(epsilon_stat_avg/n_entries,0.5)
-    energy_dependent_scale += [epsilon_scale_avg]
-    energy_dependent_bias += [epsilon_bias_avg]
-    energy_dependent_bkgd += [epsilon_bkgd_avg]
-    energy_dependent_syst += [pow(max(0.,pow(epsilon_bkgd_avg,2)-pow(epsilon_stat_avg,2)),0.5)]
-    energy_dependent_syst_err += [pow(max(0.,pow(epsilon_bkgd_avg,2)-pow(epsilon_stat_avg,2)),0.5)/pow(n_entries,0.5)]
-    energy_dependent_stat += [epsilon_stat_avg]
-    energy_dependent_chi2 += [pow(avg_sigma_chi2/n_entries,0.5)]
+        energy_dependent_scale += [epsilon_scale_avg]
+        energy_dependent_bias += [epsilon_bias_avg]
+        energy_dependent_bkgd += [epsilon_bkgd_avg]
+        energy_dependent_syst += [pow(max(0.,pow(epsilon_bkgd_avg,2)-pow(epsilon_stat_avg,2)),0.5)]
+        energy_dependent_syst_err += [pow(max(0.,pow(epsilon_bkgd_avg,2)-pow(epsilon_stat_avg,2)),0.5)/pow(n_entries,0.5)]
+        energy_dependent_stat += [epsilon_stat_avg]
+        energy_dependent_chi2 += [pow(avg_sigma_chi2/n_entries,0.5)]
+    else:
+        energy_dependent_scale += [0.]
+        energy_dependent_bias += [0.]
+        energy_dependent_bkgd += [0.]
+        energy_dependent_syst += [0.]
+        energy_dependent_syst_err += [0.]
+        energy_dependent_stat += [0.]
+        energy_dependent_chi2 += [0.]
 plt.clf()
 fig, ax = plt.subplots()
 figsize_x = 6.4
@@ -1131,6 +1155,8 @@ Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E8","",nbins,-hist_limi
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E8","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E9","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E9","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_MDM += [ROOT.TH1D("Hist_SystErrDist_MDM_E10","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_SystErrDist_Init += [ROOT.TH1D("Hist_SystErrDist_Init_E10","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_MDM = []
 Hist_Imposter_SystErrDist_Init = []
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E0","",nbins,-hist_limit_le,hist_limit_le)]
@@ -1153,6 +1179,8 @@ Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E8","
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E8","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E9","",nbins,-hist_limit_he,hist_limit_he)]
 Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E9","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_MDM += [ROOT.TH1D("Hist_Imposter_SystErrDist_MDM_E10","",nbins,-hist_limit_he,hist_limit_he)]
+Hist_Imposter_SystErrDist_Init += [ROOT.TH1D("Hist_Imposter_SystErrDist_Init_E10","",nbins,-hist_limit_he,hist_limit_he)]
 
 for eb in range(0,len(energy_bin)-1):
     Hist_SystErrDist_MDM[eb].Reset()
@@ -1194,10 +1222,16 @@ for eb in range(0,len(energy_bin)-1):
             bkgd_count_n_measures = 0.
             dark_count_n_measures = 0.
     print ('n_measurements = %s'%(n_measurements))
-    MDM_mean = MDM_mean/n_entries
-    Init_mean = Init_mean/n_entries
-    MDM_rms = pow(MDM_rms/n_entries,0.5)
-    Init_rms = pow(Init_rms/n_entries,0.5)
+    if n_entries>0:
+        MDM_mean = MDM_mean/n_entries
+        Init_mean = Init_mean/n_entries
+        MDM_rms = pow(MDM_rms/n_entries,0.5)
+        Init_rms = pow(Init_rms/n_entries,0.5)
+    else:
+        MDM_mean = 0.
+        Init_mean = 0.
+        MDM_rms = 0.
+        Init_rms = 0.
 
     Hist_Imposter_SystErrDist_MDM[eb].Reset()
     Hist_Imposter_SystErrDist_Init[eb].Reset()
@@ -1248,22 +1282,36 @@ for eb in range(0,len(energy_bin)-1):
     colors = []
     if analysis_type=='Solo' and background_type=='Matrix':
         Hists += [Hist_SystErrDist_Init[eb]]
-        #legends += ['%0.2f-%0.2f TeV, ON/OFF, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,Init_rms,Init_rms/pow(n_entries,0.5))]
-        legends += ['ON/OFF, RMS = $%0.3f \pm %0.3f$'%(Init_rms,Init_rms/pow(n_entries,0.5))]
+        if n_entries>0:
+            legends += ['ON/OFF, RMS = $%0.3f \pm %0.3f$'%(Init_rms,Init_rms/pow(n_entries,0.5))]
+        else:
+            legends += ['ON/OFF, No data']
         colors += [2]
         Hists += [Hist_SystErrDist_MDM[eb]]
-        legends += ['Matrix method, RMS = $%0.3f \pm %0.3f$'%(MDM_rms,MDM_rms/pow(n_entries,0.5))]
+        if n_entries>0:
+            legends += ['Matrix method, RMS = $%0.3f \pm %0.3f$'%(MDM_rms,MDM_rms/pow(n_entries,0.5))]
+        else:
+            legends += ['Matrix method, No data']
         colors += [1]
     elif analysis_type=='Solo' and background_type=='ONOFF':
         Hists += [Hist_SystErrDist_Init[eb]]
-        legends += ['%0.2f-%0.2f TeV, ON/OFF, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,Init_rms,Init_rms/pow(n_entries,0.5))]
+        if n_entries>0:
+            legends += ['%0.2f-%0.2f TeV, ON/OFF, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,Init_rms,Init_rms/pow(n_entries,0.5))]
+        else:
+            legends += ['%0.2f-%0.2f TeV, ON/OFF, No data'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.)]
         colors += [2]
     elif analysis_type=='Mimic':
         Hists += [Hist_SystErrDist_MDM[eb]]
-        legends += ['%0.2f-%0.2f TeV, ON data, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_rms,MDM_rms/pow(n_entries,0.5))]
+        if n_entries>0:
+            legends += ['%0.2f-%0.2f TeV, ON data, RMS = $%0.3f \pm %0.3f$'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.,MDM_rms,MDM_rms/pow(n_entries,0.5))]
+        else:
+            legends += ['%0.2f-%0.2f TeV, ON data, No data'%(energy_bin[eb]/1000.,energy_bin[eb+1]/1000.)]
         colors += [1]
         Hists += [Hist_Imposter_SystErrDist_MDM[eb]]
-        legends += ['mimic data (entries scaled by 1/5), RMS = $%0.3f \pm %0.3f$'%(MDM_rms_imposter,MDM_rms_imposter/pow(n_entries_imposter,0.5))]
+        if n_entries_imposter> 0:
+            legends += ['mimic data (entries scaled by 1/5), RMS = $%0.3f \pm %0.3f$'%(MDM_rms_imposter,MDM_rms_imposter/pow(n_entries_imposter,0.5))]
+        else:
+            legends += ['mimic data (entries scaled by 1/5), No data'%(MDM_rms_imposter)]
         colors += [2]
     fig.clf()
     figsize_x = 6.5

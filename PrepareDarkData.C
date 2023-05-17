@@ -99,10 +99,14 @@ double dec_sky_imposter = 0;
 double ra_sky_dark = 0;
 double dec_sky_dark = 0;
 double exposure_hours = 0.;
-double shower_count = 0.;
+double on_run_count = 0.;
+double off_run_count = 0.;
 double mean_elev = 0.;
 double mean_azim = 0.;
 double mean_nsb = 0.;
+double mean_off_elev = 0.;
+double mean_off_azim = 0.;
+double mean_off_nsb = 0.;
 double exposure_hours_usable = 0.;
 double exposure_hours_ref = 0.;
 int MJD_Start = 2147483647;
@@ -339,15 +343,7 @@ bool FoV(TString target, bool doImposter, double evt_ra, double evt_dec) {
     double y = evt_dec-mean_tele_point_dec;
     if (source_theta_cut>(pow(x*x+y*y,0.5))) return false;
     if (CoincideWithGammaSources(evt_ra,evt_dec,source_theta_cut)) return false;
-    //if (target.Contains("SS433"))
-    //{
-    //    double hotspot_x = 287.05;
-    //    double hotspot_y = 6.39;
-    //    double dist_x = ra_sky-hotspot_x;
-    //    double dist_y = dec_sky-hotspot_y;
-    //    double dist = pow(dist_x*dist_x+dist_y*dist_y,0.5);
-    //    if (dist<1.2) return false;
-    //}
+
     if (!UseGalacticCoord)
     {
         if (abs(x)>Skymap_size_x) return false;
@@ -380,24 +376,6 @@ bool FoV(TString target, bool doImposter, double evt_ra, double evt_dec) {
         //    if (dist<1.2) return false;
         //}
     } 
-    
-    //vector<double> ss433_ra;
-    //vector<double> ss433_dec;
-    //ss433_ra.push_back(287.9565);
-    //ss433_dec.push_back(4.9827);
-    //ss433_ra.push_back(288.404);
-    //ss433_dec.push_back(4.930);
-    //ss433_ra.push_back(288.58);
-    //ss433_dec.push_back(4.91);
-    //ss433_ra.push_back(287.42);
-    //ss433_dec.push_back(5.04);
-    //for (int star=0;star<ss433_ra.size();star++)
-    //{
-    //    double star_ra = ss433_ra.at(star);
-    //    double star_dec = ss433_dec.at(star);
-    //    double radius = pow((ra_sky-star_ra)*(ra_sky-star_ra)+(dec_sky-star_dec)*(dec_sky-star_dec),0.5);
-    //    if (radius<0.3) return false;
-    //}
 
     return true;
 }
@@ -445,6 +423,25 @@ double RescaleMSCW(double MSCW_input, double R2off_input, double MSCW_shift)
     //double MSCW_new = MSCW_input-MSCW_shift*min(R2off_input,1.0);
     double MSCW_new = MSCW_input*(1.+MSCW_shift);
     return MSCW_new;
+}
+bool EnergyThresholdCut(double evt_energy, double obs_elev, bool isON)
+{
+    return true;
+    if (!isON) return true;
+
+    if (obs_elev>65.)
+    {
+        if (evt_energy<316.) return false;
+    }
+    if (obs_elev>55. && obs_elev<65.)
+    {
+        if (evt_energy<398.) return false;
+    }
+    if (obs_elev<55.)
+    {
+        if (evt_energy<501.) return false;
+    }
+    return true;
 }
 bool SelectNImages()
 {
@@ -2162,10 +2159,14 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     //    roi_radius_outer.push_back(bright_star_radius_cut);
     //}
 
-    shower_count = 0.;
+    on_run_count = 0.;
+    off_run_count = 0.;
     mean_elev = 0.;
     mean_azim = 0.;
     mean_nsb = 0.;
+    mean_off_elev = 0.;
+    mean_off_azim = 0.;
+    mean_off_nsb = 0.;
     TH1D Hist_Elev = TH1D("Hist_Elev","",N_elev_bins,elev_bins);
     TH1D Hist_MJD = TH1D("Hist_MJD","",N_MJD_bins,MJD_bins);
     TH1D Hist_ErecS = TH1D("Hist_ErecS","",N_energy_bins,energy_bins);
@@ -2364,13 +2365,13 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
         char e_up[50];
         sprintf(e_up, "%i", int(energy_bins[e+1]));
 
-        int Xoff_bins = 10;
-        int Yoff_bins = 10;
-        int Roff_bins = 10;
+        int Xoff_bins = 20;
+        int Yoff_bins = 20;
+        int Roff_bins = 20;
         if (energy_bins[e]>600.)
         {
-            Xoff_bins = 6;
-            Yoff_bins = 6;
+            Xoff_bins = 10;
+            Yoff_bins = 10;
         }
         if (energy_bins[e]>1000.)
         {
@@ -2588,6 +2589,17 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             tele_point_ra_dec_imposter = GetRunRaDec(filename,int(Data_runlist[run].second)); // original coordinate of imposter run
         }
 
+        double NSB_thisrun = GetRunPedestalVar(int(Data_runlist[run].second));
+        double tele_elev = GetRunElevAzim(filename,int(Data_runlist[run].second)).first;
+        double tele_azim = GetRunElevAzim(filename,int(Data_runlist[run].second)).second;
+
+        on_run_count += 1.;
+        mean_elev += tele_elev;
+        double shifted_azim = tele_azim+90.;
+        if (shifted_azim>360.) shifted_azim = shifted_azim-360.;
+        mean_azim += shifted_azim;
+        mean_nsb += NSB_thisrun;
+
         for (int nth_sample=0;nth_sample<n_dark_samples;nth_sample++)
         {
             for (int off_run=0;off_run<Dark_runlist.at(run).at(nth_sample).size();off_run++)
@@ -2638,10 +2650,17 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                 Dark_tree->GetEntry(Dark_tree->GetEntries()-1);
                 double time_1 = Time;
 
-                double NSB_thisrun = GetRunPedestalVar(int(Dark_runlist.at(run).at(nth_sample)[off_run].second));
-                Hist_Dark_NSB.Fill(NSB_thisrun);
+                double NSB_off_thisrun = GetRunPedestalVar(int(Dark_runlist.at(run).at(nth_sample)[off_run].second));
+                Hist_Dark_NSB.Fill(NSB_off_thisrun);
                 double tele_elev_off = GetRunElevAzim(filename_dark,int(Dark_runlist.at(run).at(nth_sample)[off_run].second)).first;
                 double tele_azim_off = GetRunElevAzim(filename_dark,int(Dark_runlist.at(run).at(nth_sample)[off_run].second)).second;
+
+                off_run_count += 1.;
+                mean_off_elev += tele_elev_off;
+                double shifted_azim_off = tele_azim_off+90.;
+                if (shifted_azim_off>360.) shifted_azim_off = shifted_azim_off-360.;
+                mean_off_azim += shifted_azim_off;
+                mean_off_nsb += NSB_off_thisrun;
 
                 for (int e=0;e<N_energy_bins;e++) 
                 {
@@ -2692,6 +2711,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     if (elevation<0) continue;
                     if (elevation>=N_elev_bins) continue;
                     if (!SelectNImages()) continue;
+                    if (!EnergyThresholdCut(ErecS*1000., tele_elev_off, isON)) continue;
                     if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
                     //if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
                     double shower_depth = GetShowerDepth(EmissionHeight,tele_elev_off);
@@ -2787,6 +2807,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     if (elevation<0) continue;
                     if (elevation>=N_elev_bins) continue;
                     if (!SelectNImages()) continue;
+                    if (!EnergyThresholdCut(ErecS*1000., tele_elev_off, isON)) continue;
                     if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
                     //if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
                     double shower_depth = GetShowerDepth(EmissionHeight,tele_elev_off);
@@ -2799,7 +2820,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
                     MSCW = RescaleMSCW(MSCW, R2off, MSCW_rescale[energy]);
                     MSCL = RescaleMSCW(MSCL, R2off, MSCL_rescale[energy]);
                     Hist_Dark_ShowerDirection.Fill(tele_azim_off,tele_elev_off);
-                    Hist_Dark_ElevNSB.Fill(NSB_thisrun,tele_elev_off);
+                    Hist_Dark_ElevNSB.Fill(NSB_off_thisrun,tele_elev_off);
                     Hist_Dark_ElevAzim.Fill(tele_azim_off,tele_elev_off);
                     double run_weight = Data_exposure_hour[run]/Dark_exposure_hour.at(run).at(nth_sample)[off_run];
                     double weight = run_weight;
@@ -3103,6 +3124,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (elevation<0) continue;
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
+            if (!EnergyThresholdCut(ErecS*1000., tele_elev, isON)) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
             //if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
@@ -3246,6 +3268,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (elevation<0) continue;
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
+            if (!EnergyThresholdCut(ErecS*1000., tele_elev, isON)) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
             //if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
@@ -3398,6 +3421,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (elevation<0) continue;
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
+            if (!EnergyThresholdCut(ErecS*1000., tele_elev, isON)) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
             //if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
@@ -3653,6 +3677,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (elevation<0) continue;
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
+            if (!EnergyThresholdCut(ErecS*1000., tele_elev, isON)) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
             //if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
@@ -3731,6 +3756,7 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             if (elevation<0) continue;
             if (elevation>=N_elev_bins) continue;
             if (!SelectNImages()) continue;
+            if (!EnergyThresholdCut(ErecS*1000., tele_elev, isON)) continue;
             if (!ApplyTimeCuts(Time-time_0, timecut_thisrun)) continue;
             //if (!UseDL3Tree && SizeSecondMax<SizeSecondMax_Cut) continue;
             double shower_depth = GetShowerDepth(EmissionHeight,tele_elev);
@@ -3752,12 +3778,6 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
             //double eff_area_weight = (eff_area*exposure_thisrun*3600.*(energy_bins[energy+1]-energy_bins[energy])/1000.);
             double eff_area_weight = eff_area*(energy_bins[energy+1]-energy_bins[energy])/1000.;
 
-            shower_count += 1.;
-            mean_elev += tele_elev;
-            double shifted_azim = tele_azim+90.;
-            if (shifted_azim>360.) shifted_azim = shifted_azim-360.;
-            mean_azim += shifted_azim;
-            mean_nsb += NSB_thisrun;
             Hist_Data_ShowerDirection.Fill(tele_azim,tele_elev);
             Hist_Data_ElevNSB.Fill(NSB_thisrun,tele_elev);
             Hist_Data_ElevAzim.Fill(tele_azim,tele_elev);
@@ -3877,10 +3897,15 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     }
 
 
-    mean_elev = mean_elev/shower_count;
-    mean_azim = mean_azim/shower_count;
+    mean_elev = mean_elev/on_run_count;
+    mean_azim = mean_azim/on_run_count;
     mean_azim = mean_azim-90.;  // north will be around +/- 0 and sourth will be around +/- 180
-    mean_nsb = mean_nsb/shower_count;
+    mean_nsb = mean_nsb/on_run_count;
+
+    mean_off_elev = mean_off_elev/off_run_count;
+    mean_off_azim = mean_off_azim/off_run_count;
+    mean_off_azim = mean_off_azim-90.;  // north will be around +/- 0 and sourth will be around +/- 180
+    mean_off_nsb = mean_off_nsb/off_run_count;
 
     TFile OutputFile(TString(SMI_OUTPUT)+"/Netflix_"+TString(target)+"_"+TString(output_file_tag)+TString(elev_cut_tag)+TString(theta2_cut_tag)+TString(mjd_cut_tag)+"_"+ONOFF_tag+group_tag+map_x_tag+map_y_tag+".root","recreate");
 
@@ -3893,6 +3918,9 @@ void PrepareDarkData_SubGroup(string target_data, double tel_elev_lower_input, d
     InfoTree.Branch("mean_elev",&mean_elev,"mean_elev/D");
     InfoTree.Branch("mean_azim",&mean_azim,"mean_azim/D");
     InfoTree.Branch("mean_nsb",&mean_nsb,"mean_nsb/D");
+    InfoTree.Branch("mean_off_elev",&mean_off_elev,"mean_off_elev/D");
+    InfoTree.Branch("mean_off_azim",&mean_off_azim,"mean_off_azim/D");
+    InfoTree.Branch("mean_off_nsb",&mean_off_nsb,"mean_off_nsb/D");
     InfoTree.Branch("exposure_hours",&exposure_hours,"exposure_hours/D");
     InfoTree.Branch("exposure_hours_usable",&exposure_hours_usable,"exposure_hours_usable/D");
     InfoTree.Branch("exposure_hours_ref",&exposure_hours_ref,"exposure_hours_ref/D");

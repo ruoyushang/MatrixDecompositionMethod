@@ -35,14 +35,14 @@ from spectral_cube import SpectralCube
 
 # Great examples of matplotlib plots: https://atmamani.github.io/cheatsheets/matplotlib/matplotlib_2/
 
-energy_bin = [100.,200.,251.,316.,398.,501.,794.,1259.,1995.,5011.,12589.]
+energy_bin = [100.,200.,251.,316.,398.,501.,794.,1259.,1995.,3162.,5011.,7943.]
 #energy_bin = [100.,200.,251.,316.,398.,631.,1000.,1995.,5011.,12589.]
 #energy_bin = [100.,200.,316.,501.,1000.,1995.,5011.,12589.]
 #energy_bin = [100.,200.,398.,794.,1585.,3162.,6310.,12589.]
 energy_fine_bin = energy_bin
 
-folder_path = 'output_test'
-#folder_path = 'output_default'
+#folder_path = 'output_test'
+folder_path = 'output_default'
 
 #folder_path = 'output_loose'
 #folder_path = 'output_medium'
@@ -1263,7 +1263,7 @@ def GetGammaSourceInfo(prime_psr_name=None,prime_psr_ra=None,prime_psr_dec=None)
     drawBrightStar = False
     drawPulsar = True
     drawSNR = True
-    drawFermi = False
+    drawFermi = True
     drawHAWC = False
     drawTeV = False
 
@@ -1585,7 +1585,11 @@ def BackgroundSubtractMap(fig,hist_data,hist_bkgd,label_x,label_y,label_z,plotna
     old_x_axis = np.linspace(Old_MapEdge_left,Old_MapEdge_right,Old_map_nbins_x)
     old_y_axis = np.linspace(Old_MapEdge_lower,Old_MapEdge_upper,Old_map_nbins_y)
     x_axis = np.linspace(MapEdge_left,MapEdge_right,map_nbins_x)
-    x_axis_sparse = np.linspace(MapEdge_left,MapEdge_right,5)
+    prelim_x_axis_sparse = np.linspace(MapEdge_left,MapEdge_right,6)
+    x_axis_sparse = []
+    for i in prelim_x_axis_sparse:
+        if int(i)>MapEdge_left and int(i)<MapEdge_right:
+            x_axis_sparse += [int(i)]
     x_axis_reflect = ["{:6.1f}".format(-1.*i) for i in x_axis_sparse]
     y_axis = np.linspace(MapEdge_lower,MapEdge_upper,map_nbins_y)
 
